@@ -1,0 +1,174 @@
+const path = require('path');
+const express = require('express');
+const cookieParser = require('cookie-parser');
+const morgan = require('morgan');
+
+// Importation des middlewares de sécurité
+const {
+  helmet,
+  cors,
+  mongoSanitize,
+  xss,
+  hpp,
+  compression,
+  globalLimiter,
+  suspiciousActivityLogger,
+  validateObjectId
+} = require('./middleware/security');
+
+// Importation des routes
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const producerRoutes = require('./routes/producerRoutes');
+const transformerRoutes = require('./routes/transformerRoutes');
+const consumerRoutes = require('./routes/consumerRoutes');
+const restaurateurRoutes = require('./routes/restaurateurRoutes');
+const exporterRoutes = require('./routes/exporterRoutes');
+const transporterRoutes = require('./routes/transporterRoutes');
+
+// Importation des gestionnaires d'erreur
+const AppError = require('./utils/appError');
+const globalErrorHandler = require('./middleware/errorHandler');
+
+// Importation de Swagger
+const { setupSwagger } = require('./config/swagger');
+
+const app = express();
+
+// Configuration du proxy de confiance (pour les headers X-Forwarded-*)
+app.set('trust proxy', 1);
+
+// Configuration du moteur de template Pug pour les emails
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
+
+// MIDDLEWARES GLOBAUX
+
+// Sécurité - Headers HTTP
+app.use(helmet);
+
+// CORS - Cross Origin Resource Sharing
+app.use(cors);
+
+// Logging des requêtes en développement
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
+// Limiteur de taux global
+app.use('/api', globalLimiter);
+
+// Parser le body des requêtes
+app.use(express.json({ limit: '10kb' })); // Limite la taille du body
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(cookieParser());
+
+// Servir les fichiers statiques
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Nettoyage des données contre les attaques NoSQL injection
+app.use(mongoSanitize);
+
+// Nettoyage des données contre les attaques XSS
+app.use(xss);
+
+// Prévention de la pollution des paramètres HTTP
+app.use(hpp);
+
+// Compression des réponses
+app.use(compression);
+
+// Logging des activités suspectes
+app.use(suspiciousActivityLogger);
+
+// Validation des IDs MongoDB dans les paramètres
+app.use(validateObjectId);
+
+// DOCUMENTATION API SWAGGER
+setupSwagger(app);
+
+// ROUTES DE L'API
+
+/**
+ * @swagger
+ * /api/v1/health:
+ *   get:
+ *     summary: Vérifier l'état de l'API
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: API opérationnelle
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: API Harvests fonctionnelle
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                 environment:
+ *                   type: string
+ *                   example: development
+ *                 version:
+ *                   type: string
+ *                   example: 1.0.0
+ */
+app.get('/api/v1/health', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'API Harvests fonctionnelle',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+    version: process.env.API_VERSION || '1.0.0'
+  });
+});
+
+// Routes d'authentification
+app.use('/api/v1/auth', authRoutes);
+
+// Routes utilisateurs génériques
+app.use('/api/v1/users', userRoutes);
+
+// Routes spécialisées par type d'utilisateur
+app.use('/api/v1/producers', producerRoutes);
+app.use('/api/v1/transformers', transformerRoutes);
+app.use('/api/v1/consumers', consumerRoutes);
+app.use('/api/v1/restaurateurs', restaurateurRoutes);
+app.use('/api/v1/exporters', exporterRoutes);
+app.use('/api/v1/transporters', transporterRoutes);
+
+// Routes pour les ressources communes
+const productRoutes = require('./routes/productRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
+const messageRoutes = require('./routes/messageRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+
+app.use('/api/v1/products', productRoutes);
+app.use('/api/v1/orders', orderRoutes);
+app.use('/api/v1/reviews', reviewRoutes);
+app.use('/api/v1/messages', messageRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/payments', paymentRoutes);
+
+// Routes à implémenter plus tard
+// app.use('/api/v1/deliveries', deliveryRoutes);
+// app.use('/api/v1/analytics', analyticsRoutes);
+// app.use('/api/v1/admin', adminRoutes);
+
+// Route de fallback pour les routes non trouvées
+app.all('*', (req, res, next) => {
+  next(new AppError(`Impossible de trouver ${req.originalUrl} sur ce serveur!`, 404));
+});
+
+// Gestionnaire d'erreur global
+app.use(globalErrorHandler);
+
+module.exports = app;

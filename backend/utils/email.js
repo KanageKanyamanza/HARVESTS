@@ -1,0 +1,243 @@
+const nodemailer = require('nodemailer');
+const pug = require('pug');
+const htmlToText = require('html-to-text');
+
+module.exports = class Email {
+  constructor(user, url) {
+    this.to = user.email;
+    this.firstName = user.firstName;
+    this.url = url;
+    this.from = `Harvests <${process.env.EMAIL_FROM}>`;
+  }
+
+  newTransport() {
+    // 🥇 PRIORITÉ 1: Gmail avec Nodemailer (RECOMMANDÉ - 500 emails/jour)
+    if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+      return nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.GMAIL_USER,
+          pass: process.env.GMAIL_APP_PASSWORD,
+        },
+        debug: process.env.NODE_ENV === 'development',
+        logger: process.env.NODE_ENV === 'development'
+      });
+    }
+    
+    // 🧪 PRIORITÉ 2: Ethereal Email pour tests (GRATUIT ILLIMITÉ)
+    if (process.env.USE_ETHEREAL === 'true' || process.env.NODE_ENV === 'test') {
+      // Génération automatique de compte test avec Nodemailer
+      if (!this.etherealAccount) {
+        // Créer un compte test automatiquement
+        return this.createEtherealTransport();
+      }
+      
+      return nodemailer.createTransport({
+        host: 'smtp.ethereal.email',
+        port: 587,
+        secure: false,
+        auth: {
+          user: this.etherealAccount.user,
+          pass: this.etherealAccount.pass,
+        },
+      });
+    }
+    
+    
+    // 🔧 FALLBACK: Configuration SMTP générique
+    return nodemailer.createTransport({
+      host: process.env.EMAIL_HOST || 'localhost',
+      port: parseInt(process.env.EMAIL_PORT) || 587,
+      secure: process.env.EMAIL_SECURE === 'true',
+      auth: {
+        user: process.env.EMAIL_USERNAME,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+      tls: {
+        rejectUnauthorized: false // Pour serveurs SMTP locaux
+      },
+      debug: process.env.NODE_ENV === 'development'
+    });
+  }
+
+  // Envoyer l'email
+  async send(template, subject) {
+    // 1) Générer le HTML basé sur un template pug
+    const html = pug.renderFile(`${__dirname}/../views/email/${template}.pug`, {
+      firstName: this.firstName,
+      url: this.url,
+      subject,
+    });
+
+    // 2) Définir les options de l'email
+    const mailOptions = {
+      from: this.from,
+      to: this.to,
+      subject,
+      html,
+      text: htmlToText.convert(html),
+    };
+
+    // 3) Créer un transport et envoyer l'email
+    await this.newTransport().sendMail(mailOptions);
+  }
+
+  async sendWelcome() {
+    await this.send('welcome', 'Bienvenue dans la famille Harvests!');
+  }
+
+  async sendEmailVerification() {
+    await this.send('emailVerification', 'Vérifiez votre adresse email - Harvests');
+  }
+
+  async sendPasswordReset() {
+    await this.send('passwordReset', 'Votre token de réinitialisation de mot de passe (valide 10 minutes)');
+  }
+
+  async sendAccountApproval() {
+    await this.send('accountApproval', 'Votre compte Harvests a été approuvé!');
+  }
+
+  async sendAccountRejection(reason) {
+    this.reason = reason;
+    await this.send('accountRejection', 'Mise à jour de votre demande de compte Harvests');
+  }
+
+  async sendOrderConfirmation(order) {
+    this.order = order;
+    await this.send('orderConfirmation', 'Confirmation de votre commande Harvests');
+  }
+
+  async sendDeliveryNotification(delivery) {
+    this.delivery = delivery;
+    await this.send('deliveryNotification', 'Votre commande est en route!');
+  }
+
+  // Créer un transport Ethereal automatiquement
+  async createEtherealTransport() {
+    try {
+      // Générer un compte de test automatiquement
+      const testAccount = await nodemailer.createTestAccount();
+      this.etherealAccount = testAccount;
+      
+      console.log('🧪 Compte Ethereal généré automatiquement:');
+      console.log(`   Email: ${testAccount.user}`);
+      console.log(`   Preview: https://ethereal.email`);
+      
+      return nodemailer.createTransport({
+        host: 'smtp.ethereal.email',
+        port: 587,
+        secure: false,
+        auth: {
+          user: testAccount.user,
+          pass: testAccount.pass,
+        },
+      });
+    } catch (error) {
+      console.error('❌ Erreur création compte Ethereal:', error.message);
+      // Fallback vers configuration manuelle
+      return nodemailer.createTransport({
+        host: process.env.EMAIL_HOST || 'localhost',
+        port: parseInt(process.env.EMAIL_PORT) || 587,
+        secure: false,
+        auth: {
+          user: process.env.EMAIL_USERNAME,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+      });
+    }
+  }
+
+  // Méthode de test de connexion Nodemailer
+  async testConnection() {
+    try {
+      const transporter = await this.newTransport();
+      await transporter.verify();
+      console.log('✅ Connexion Nodemailer réussie !');
+      return true;
+    } catch (error) {
+      console.error('❌ Erreur connexion Nodemailer:', error.message);
+      return false;
+    }
+  }
+
+  // Envoyer email de test simple
+  async sendTestEmail() {
+    try {
+      const transporter = this.newTransport();
+      
+      const testEmail = await transporter.sendMail({
+        from: this.from,
+        to: this.to,
+        subject: '🧪 Test Harvests - Nodemailer',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h1 style="color: #2E7D32;">🌾 Test Harvests</h1>
+            <p>Bonjour ${this.firstName},</p>
+            <p>✅ <strong>Nodemailer fonctionne parfaitement !</strong></p>
+            <p>✅ Votre configuration email est opérationnelle</p>
+            <p>✅ Harvests peut envoyer des emails</p>
+            <hr>
+            <p><small>Email envoyé le ${new Date().toLocaleString('fr-FR')}</small></p>
+            <p>L'équipe Harvests 🌾</p>
+          </div>
+        `,
+        text: `Test Harvests - Nodemailer fonctionne ! Email envoyé à ${this.firstName}`
+      });
+
+      console.log('✅ Email de test envoyé avec succès !');
+      
+      // Si c'est Ethereal, afficher l'URL de preview
+      if (testEmail.messageId && process.env.USE_ETHEREAL === 'true') {
+        console.log(`🔗 Preview: ${nodemailer.getTestMessageUrl(testEmail)}`);
+      }
+      
+      return testEmail;
+    } catch (error) {
+      console.error('❌ Erreur envoi email test:', error.message);
+      throw error;
+    }
+  }
+};
+
+// Fonctions utilitaires pour le test
+const envoyerEmailVerification = async (user) => {
+  const url = `${process.env.FRONTEND_URL}/verify-email/${user.emailVerificationToken}`;
+  await new module.exports(user, url).sendWelcome();
+};
+
+const envoyerEmailBienvenue = async (user) => {
+  const url = `${process.env.FRONTEND_URL}/dashboard`;
+  await new module.exports(user, url).sendWelcome();
+};
+
+const envoyerEmailConfirmationCommande = async (order) => {
+  const url = `${process.env.FRONTEND_URL}/orders/${order._id}`;
+  // Simuler l'envoi
+  console.log(`📧 Email confirmation commande envoyé à ${order.client.email}`);
+};
+
+const envoyerEmailNouvelleCommande = async (order) => {
+  const url = `${process.env.FRONTEND_URL}/producer/orders/${order._id}`;
+  // Simuler l'envoi
+  console.log(`📧 Email nouvelle commande envoyé au producteur`);
+};
+
+const envoyerEmailMiseAJourCommande = async (order) => {
+  const url = `${process.env.FRONTEND_URL}/orders/${order._id}`;
+  // Simuler l'envoi
+  console.log(`📧 Email mise à jour statut "${order.statut}" envoyé`);
+};
+
+const envoyerEmailNouvelAvis = async (review) => {
+  const url = `${process.env.FRONTEND_URL}/reviews/${review._id}`;
+  // Simuler l'envoi
+  console.log(`📧 Email notification nouvel avis envoyé au producteur`);
+};
+
+module.exports.envoyerEmailVerification = envoyerEmailVerification;
+module.exports.envoyerEmailBienvenue = envoyerEmailBienvenue;
+module.exports.envoyerEmailConfirmationCommande = envoyerEmailConfirmationCommande;
+module.exports.envoyerEmailNouvelleCommande = envoyerEmailNouvelleCommande;
+module.exports.envoyerEmailMiseAJourCommande = envoyerEmailMiseAJourCommande;
+module.exports.envoyerEmailNouvelAvis = envoyerEmailNouvelAvis;

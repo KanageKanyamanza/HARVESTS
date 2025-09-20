@@ -1,0 +1,293 @@
+const mongoose = require('mongoose');
+const User = require('./User');
+
+// Schéma spécialisé pour les Transformateurs
+const transformerSchema = new mongoose.Schema({
+  // Informations de l'entreprise
+  companyName: {
+    type: String,
+    required: [true, 'Nom de l\'entreprise requis'],
+    trim: true,
+    maxlength: [100, 'Le nom de l\'entreprise ne peut pas dépasser 100 caractères']
+  },
+  
+  companyRegistrationNumber: {
+    type: String,
+    required: [true, 'Numéro d\'enregistrement requis'],
+    unique: true
+  },
+  
+  // Type de transformation
+  transformationType: {
+    type: String,
+    enum: ['processing', 'packaging', 'preservation', 'manufacturing', 'mixed'],
+    required: [true, 'Type de transformation requis']
+  },
+  
+  // Produits transformés
+  processingCapabilities: [{
+    inputProduct: {
+      type: String,
+      required: true
+    },
+    outputProducts: [String],
+    processingMethod: String,
+    capacity: {
+      value: Number,
+      unit: String,
+      period: {
+        type: String,
+        enum: ['hour', 'day', 'week', 'month']
+      }
+    },
+    minimumQuantity: {
+      value: Number,
+      unit: String
+    }
+  }],
+  
+  // Certifications et standards
+  certifications: [{
+    name: {
+      type: String,
+      required: true
+    },
+    type: {
+      type: String,
+      enum: ['food-safety', 'quality', 'organic', 'halal', 'kosher', 'iso', 'haccp']
+    },
+    issuedBy: String,
+    validUntil: Date,
+    certificateNumber: String,
+    document: String
+  }],
+  
+  // Équipements de transformation
+  equipment: [{
+    type: {
+      type: String,
+      enum: ['processing-machine', 'packaging-machine', 'refrigeration', 'drying', 'grinding', 'pressing', 'other']
+    },
+    name: String,
+    capacity: String,
+    condition: {
+      type: String,
+      enum: ['excellent', 'good', 'fair', 'needs-repair']
+    }
+  }],
+  
+  // Capacités de stockage
+  storageCapabilities: {
+    rawMaterials: {
+      capacity: {
+        value: Number,
+        unit: String
+      },
+      conditions: [String] // réfrigéré, sec, température contrôlée, etc.
+    },
+    finishedProducts: {
+      capacity: {
+        value: Number,
+        unit: String
+      },
+      conditions: [String]
+    }
+  },
+  
+  // Services offerts
+  services: {
+    customProcessing: {
+      type: Boolean,
+      default: false
+    },
+    privateLabeling: {
+      type: Boolean,
+      default: false
+    },
+    qualityTesting: {
+      type: Boolean,
+      default: false
+    },
+    packaging: {
+      type: Boolean,
+      default: true
+    },
+    consultation: {
+      type: Boolean,
+      default: false
+    }
+  },
+  
+  // Tarification
+  pricing: {
+    model: {
+      type: String,
+      enum: ['per-unit', 'per-kg', 'per-batch', 'hourly', 'custom'],
+      required: true
+    },
+    baseRate: Number,
+    minimumCharge: Number,
+    additionalServices: [{
+      service: String,
+      rate: Number,
+      unit: String
+    }]
+  },
+  
+  // Délais de traitement
+  processingTimes: {
+    standard: {
+      value: Number,
+      unit: {
+        type: String,
+        enum: ['hours', 'days', 'weeks']
+      }
+    },
+    rush: {
+      value: Number,
+      unit: {
+        type: String,
+        enum: ['hours', 'days', 'weeks']
+      },
+      additionalCost: Number
+    }
+  },
+  
+  // Fournisseurs préférés
+  preferredSuppliers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  
+  // Informations financières
+  bankAccount: {
+    accountName: String,
+    accountNumber: String,
+    bankName: String,
+    bankCode: String,
+    isVerified: {
+      type: Boolean,
+      default: false
+    }
+  },
+  
+  // Statistiques d'activité
+  businessStats: {
+    totalOrders: {
+      type: Number,
+      default: 0
+    },
+    totalRevenue: {
+      type: Number,
+      default: 0
+    },
+    averageRating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5
+    },
+    totalReviews: {
+      type: Number,
+      default: 0
+    },
+    onTimeDeliveryRate: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100
+    }
+  },
+  
+  // Horaires d'opération
+  operatingHours: {
+    monday: { open: String, close: String, isOpen: Boolean },
+    tuesday: { open: String, close: String, isOpen: Boolean },
+    wednesday: { open: String, close: String, isOpen: Boolean },
+    thursday: { open: String, close: String, isOpen: Boolean },
+    friday: { open: String, close: String, isOpen: Boolean },
+    saturday: { open: String, close: String, isOpen: Boolean },
+    sunday: { open: String, close: String, isOpen: Boolean }
+  },
+  
+  // Documents légaux
+  documents: {
+    businessLicense: {
+      number: String,
+      document: String,
+      isVerified: {
+        type: Boolean,
+        default: false
+      }
+    },
+    taxId: {
+      number: String,
+      document: String,
+      isVerified: {
+        type: Boolean,
+        default: false
+      }
+    },
+    healthPermit: {
+      number: String,
+      document: String,
+      validUntil: Date,
+      isVerified: {
+        type: Boolean,
+        default: false
+      }
+    }
+  }
+});
+
+// Index pour recherche et performance
+transformerSchema.index({ transformationType: 1 });
+transformerSchema.index({ 'processingCapabilities.inputProduct': 1 });
+transformerSchema.index({ 'businessStats.averageRating': -1 });
+transformerSchema.index({ 'address.region': 1, transformationType: 1 });
+
+// Méthode pour mettre à jour les statistiques
+transformerSchema.methods.updateBusinessStats = async function() {
+  const Order = mongoose.model('Order');
+  const Review = mongoose.model('Review');
+  
+  // Statistiques des commandes
+  const orderStats = await Order.aggregate([
+    { $match: { transformer: this._id, status: 'completed' } },
+    {
+      $group: {
+        _id: null,
+        totalOrders: { $sum: 1 },
+        totalRevenue: { $sum: '$totalAmount' }
+      }
+    }
+  ]);
+  
+  // Statistiques des avis
+  const reviewStats = await Review.aggregate([
+    { $match: { transformer: this._id } },
+    {
+      $group: {
+        _id: null,
+        avgRating: { $avg: '$rating' },
+        numReviews: { $sum: 1 }
+      }
+    }
+  ]);
+  
+  if (orderStats.length > 0) {
+    this.businessStats.totalOrders = orderStats[0].totalOrders;
+    this.businessStats.totalRevenue = orderStats[0].totalRevenue;
+  }
+  
+  if (reviewStats.length > 0) {
+    this.businessStats.averageRating = Math.round(reviewStats[0].avgRating * 10) / 10;
+    this.businessStats.totalReviews = reviewStats[0].numReviews;
+  }
+  
+  await this.save();
+};
+
+const Transformer = User.discriminator('transformer', transformerSchema);
+
+module.exports = Transformer;

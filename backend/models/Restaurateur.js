@@ -1,0 +1,336 @@
+const mongoose = require('mongoose');
+const User = require('./User');
+
+// Schéma spécialisé pour les Restaurateurs
+const restaurateurSchema = new mongoose.Schema({
+  // Informations du restaurant
+  restaurantName: {
+    type: String,
+    required: [true, 'Nom du restaurant requis'],
+    trim: true,
+    maxlength: [100, 'Le nom du restaurant ne peut pas dépasser 100 caractères']
+  },
+  
+  businessLicense: {
+    type: String,
+    required: [true, 'Licence commerciale requise'],
+    unique: true
+  },
+  
+  // Type de restaurant
+  restaurantType: {
+    type: String,
+    enum: ['fine-dining', 'casual', 'fast-food', 'cafe', 'bar', 'catering', 'food-truck', 'bakery'],
+    required: [true, 'Type de restaurant requis']
+  },
+  
+  // Cuisine servie
+  cuisineTypes: {
+    type: [String],
+    enum: ['african', 'french', 'italian', 'asian', 'american', 'mediterranean', 'fusion', 'vegetarian', 'vegan'],
+    required: [true, 'Type de cuisine requis']
+  },
+  
+  // Capacité et horaires
+  seatingCapacity: {
+    type: Number,
+    required: [true, 'Capacité d\'accueil requise'],
+    min: [1, 'Capacité minimum de 1 personne']
+  },
+  
+  operatingHours: {
+    monday: { open: String, close: String, isOpen: { type: Boolean, default: true } },
+    tuesday: { open: String, close: String, isOpen: { type: Boolean, default: true } },
+    wednesday: { open: String, close: String, isOpen: { type: Boolean, default: true } },
+    thursday: { open: String, close: String, isOpen: { type: Boolean, default: true } },
+    friday: { open: String, close: String, isOpen: { type: Boolean, default: true } },
+    saturday: { open: String, close: String, isOpen: { type: Boolean, default: true } },
+    sunday: { open: String, close: String, isOpen: { type: Boolean, default: false } }
+  },
+  
+  // Besoins d'approvisionnement
+  procurementNeeds: [{
+    category: {
+      type: String,
+      enum: ['vegetables', 'fruits', 'cereals', 'legumes', 'spices', 'herbs', 'meat', 'dairy', 'seafood'],
+      required: true
+    },
+    specificProducts: [String],
+    estimatedMonthlyVolume: {
+      value: Number,
+      unit: String
+    },
+    qualityRequirements: {
+      organic: { type: Boolean, default: false },
+      freshness: {
+        type: String,
+        enum: ['same-day', 'within-2-days', 'within-week', 'flexible']
+      },
+      certification: [String]
+    },
+    budgetRange: {
+      min: Number,
+      max: Number
+    },
+    deliveryFrequency: {
+      type: String,
+      enum: ['daily', 'twice-weekly', 'weekly', 'bi-weekly', 'monthly']
+    }
+  }],
+  
+  // Fournisseurs préférés
+  preferredSuppliers: [{
+    supplier: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    category: String,
+    rating: {
+      type: Number,
+      min: 1,
+      max: 5
+    },
+    contractDetails: {
+      startDate: Date,
+      endDate: Date,
+      terms: String
+    }
+  }],
+  
+  // Certifications et licences
+  certifications: [{
+    name: {
+      type: String,
+      required: true
+    },
+    type: {
+      type: String,
+      enum: ['food-safety', 'hygiene', 'organic', 'halal', 'kosher', 'health-permit']
+    },
+    issuedBy: String,
+    validUntil: Date,
+    certificateNumber: String,
+    document: String
+  }],
+  
+  // Équipements de cuisine
+  kitchenEquipment: [{
+    type: {
+      type: String,
+      enum: ['oven', 'stove', 'refrigerator', 'freezer', 'grill', 'fryer', 'mixer', 'other']
+    },
+    brand: String,
+    capacity: String,
+    condition: {
+      type: String,
+      enum: ['excellent', 'good', 'fair', 'needs-repair']
+    }
+  }],
+  
+  // Capacité de stockage
+  storageCapacity: {
+    dryStorage: {
+      value: Number,
+      unit: String
+    },
+    refrigerated: {
+      value: Number,
+      unit: String
+    },
+    frozen: {
+      value: Number,
+      unit: String
+    }
+  },
+  
+  // Informations financières
+  bankAccount: {
+    accountName: String,
+    accountNumber: String,
+    bankName: String,
+    bankCode: String,
+    isVerified: {
+      type: Boolean,
+      default: false
+    }
+  },
+  
+  // Préférences de paiement
+  paymentPreferences: {
+    acceptedMethods: {
+      type: [String],
+      enum: ['cash', 'card', 'mobile-money', 'bank-transfer', 'credit'],
+      default: ['cash', 'mobile-money']
+    },
+    paymentTerms: {
+      type: String,
+      enum: ['immediate', 'net-7', 'net-15', 'net-30'],
+      default: 'immediate'
+    },
+    creditLimit: {
+      type: Number,
+      default: 0
+    }
+  },
+  
+  // Statistiques d'activité
+  businessStats: {
+    totalOrders: {
+      type: Number,
+      default: 0
+    },
+    totalSpent: {
+      type: Number,
+      default: 0
+    },
+    averageOrderValue: {
+      type: Number,
+      default: 0
+    },
+    onTimePaymentRate: {
+      type: Number,
+      default: 100,
+      min: 0,
+      max: 100
+    },
+    supplierRating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5
+    }
+  },
+  
+  // Services additionnels
+  additionalServices: {
+    catering: {
+      type: Boolean,
+      default: false
+    },
+    delivery: {
+      type: Boolean,
+      default: false
+    },
+    events: {
+      type: Boolean,
+      default: false
+    },
+    mealPlanning: {
+      type: Boolean,
+      default: false
+    }
+  },
+  
+  // Préférences de livraison
+  deliveryPreferences: {
+    preferredTimes: [{
+      day: {
+        type: String,
+        enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+      },
+      timeSlots: [String]
+    }],
+    specialInstructions: String,
+    dockAccess: {
+      type: Boolean,
+      default: false
+    },
+    storageAssistance: {
+      type: Boolean,
+      default: false
+    }
+  },
+  
+  // Documents légaux
+  documents: {
+    businessLicense: {
+      number: String,
+      document: String,
+      isVerified: {
+        type: Boolean,
+        default: false
+      }
+    },
+    taxId: {
+      number: String,
+      document: String,
+      isVerified: {
+        type: Boolean,
+        default: false
+      }
+    },
+    healthPermit: {
+      number: String,
+      document: String,
+      validUntil: Date,
+      isVerified: {
+        type: Boolean,
+        default: false
+      }
+    },
+    firePermit: {
+      number: String,
+      document: String,
+      validUntil: Date,
+      isVerified: {
+        type: Boolean,
+        default: false
+      }
+    }
+  }
+});
+
+// Index pour recherche et performance
+restaurateurSchema.index({ restaurantType: 1 });
+restaurateurSchema.index({ cuisineTypes: 1 });
+restaurateurSchema.index({ 'procurementNeeds.category': 1 });
+restaurateurSchema.index({ 'businessStats.supplierRating': -1 });
+restaurateurSchema.index({ 'address.city': 1, restaurantType: 1 });
+
+// Méthode pour calculer la note moyenne en tant qu'acheteur
+restaurateurSchema.methods.updateSupplierRating = async function() {
+  const Review = mongoose.model('Review');
+  const stats = await Review.aggregate([
+    { $match: { buyer: this._id } },
+    {
+      $group: {
+        _id: null,
+        avgRating: { $avg: '$buyerRating' }
+      }
+    }
+  ]);
+  
+  if (stats.length > 0) {
+    this.businessStats.supplierRating = Math.round(stats[0].avgRating * 10) / 10;
+  }
+  
+  await this.save();
+};
+
+// Méthode pour mettre à jour les statistiques d'achat
+restaurateurSchema.methods.updatePurchaseStats = async function() {
+  const Order = mongoose.model('Order');
+  const stats = await Order.aggregate([
+    { $match: { buyer: this._id, status: 'completed' } },
+    {
+      $group: {
+        _id: null,
+        totalOrders: { $sum: 1 },
+        totalSpent: { $sum: '$totalAmount' },
+        avgOrderValue: { $avg: '$totalAmount' }
+      }
+    }
+  ]);
+  
+  if (stats.length > 0) {
+    this.businessStats.totalOrders = stats[0].totalOrders;
+    this.businessStats.totalSpent = stats[0].totalSpent;
+    this.businessStats.averageOrderValue = Math.round(stats[0].avgOrderValue);
+  }
+  
+  await this.save();
+};
+
+const Restaurateur = User.discriminator('restaurateur', restaurateurSchema);
+
+module.exports = Restaurateur;
