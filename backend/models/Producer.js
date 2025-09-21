@@ -6,16 +6,18 @@ const producerSchema = new mongoose.Schema({
   // Informations spécifiques au producteur
   farmName: {
     type: String,
-    required: [true, 'Nom de la ferme requis'],
+    required: false, // Optionnel lors de l'inscription
     trim: true,
-    maxlength: [100, 'Le nom de la ferme ne peut pas dépasser 100 caractères']
+    maxlength: [100, 'Le nom de la ferme ne peut pas dépasser 100 caractères'],
+    default: 'À compléter'
   },
   
   farmSize: {
     value: {
       type: Number,
-      required: [true, 'Taille de la ferme requise'],
-      min: [0.1, 'La taille minimum est de 0.1']
+      required: false, // Optionnel lors de l'inscription
+      min: [0, 'La taille ne peut pas être négative'],
+      default: 0
     },
     unit: {
       type: String,
@@ -27,14 +29,15 @@ const producerSchema = new mongoose.Schema({
   farmingType: {
     type: String,
     enum: ['organic', 'conventional', 'mixed'],
-    required: [true, 'Type d\'agriculture requis']
+    required: false, // Optionnel lors de l'inscription
+    default: 'conventional'
   },
   
   // Certifications
   certifications: [{
     name: {
       type: String,
-      required: true
+      required: false // Optionnel lors de l'inscription
     },
     issuedBy: String,
     validUntil: Date,
@@ -46,12 +49,12 @@ const producerSchema = new mongoose.Schema({
   crops: [{
     name: {
       type: String,
-      required: true
+      required: false // Optionnel lors de l'inscription
     },
     category: {
       type: String,
       enum: ['cereals', 'vegetables', 'fruits', 'legumes', 'tubers', 'spices', 'herbs'],
-      required: true
+      required: false // Optionnel lors de l'inscription
     },
     plantingSeasons: [String],
     harvestSeasons: [String],

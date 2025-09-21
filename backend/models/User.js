@@ -42,9 +42,16 @@ const baseUserSchema = new mongoose.Schema({
   
   lastName: {
     type: String,
-    required: [true, 'Nom requis'],
+    required: function() {
+      // Requis seulement pour les consommateurs
+      return this.userType === 'consumer';
+    },
     trim: true,
-    maxlength: [50, 'Le nom ne peut pas dépasser 50 caractères']
+    maxlength: [50, 'Le nom ne peut pas dépasser 50 caractères'],
+    default: function() {
+      // Valeur par défaut pour les non-consommateurs
+      return this.userType !== 'consumer' ? 'À compléter' : undefined;
+    }
   },
   
   phone: {
@@ -76,11 +83,11 @@ const baseUserSchema = new mongoose.Schema({
     default: 'CM'
   },
   
-  // Localisation
+  // Localisation (optionnelle lors de l'inscription)
   address: {
-    street: { type: String, required: true },
-    city: { type: String, required: true },
-    region: { type: String, required: true },
+    street: { type: String, required: false, default: 'À compléter' },
+    city: { type: String, required: false, default: 'À compléter' },
+    region: { type: String, required: false, default: 'À compléter' },
     country: { type: String, required: true, default: 'Cameroon' },
     postalCode: { type: String },
     coordinates: {
@@ -110,6 +117,15 @@ const baseUserSchema = new mongoose.Schema({
   isApproved: {
     type: Boolean,
     default: false // Nécessite approbation admin pour certains types
+  },
+  
+  // Statut du profil
+  isProfileComplete: {
+    type: Boolean,
+    default: function() {
+      // Les consommateurs ont un profil complet après inscription
+      return this.userType === 'consumer';
+    }
   },
   
   suspendedUntil: Date,

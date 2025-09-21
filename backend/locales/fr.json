@@ -12,7 +12,9 @@
     "account_not_approved": "Compte en attente d'approbation",
     "account_suspended": "Compte suspendu",
     "token_expired": "Token expiré",
-    "unauthorized": "Non autorisé"
+    "unauthorized": "Non autorisé",
+    "verification_email_sent": "Email de vérification renvoyé avec succès",
+    "email_not_verified": "Veuillez vérifier votre email avant de vous connecter"
   },
   "user": {
     "profile_updated": "Profil mis à jour avec succès",

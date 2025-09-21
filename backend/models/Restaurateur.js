@@ -3,39 +3,43 @@ const User = require('./User');
 
 // Schéma spécialisé pour les Restaurateurs
 const restaurateurSchema = new mongoose.Schema({
-  // Informations du restaurant
+  // Informations du restaurant (optionnelles lors de l'inscription)
   restaurantName: {
     type: String,
-    required: [true, 'Nom du restaurant requis'],
+    required: false, // Optionnel lors de l'inscription
     trim: true,
-    maxlength: [100, 'Le nom du restaurant ne peut pas dépasser 100 caractères']
+    maxlength: [100, 'Le nom du restaurant ne peut pas dépasser 100 caractères'],
+    default: 'À compléter'
   },
   
   businessLicense: {
     type: String,
-    required: [true, 'Licence commerciale requise'],
-    unique: true
+    required: false, // Optionnel lors de l'inscription
+    default: function() { return `À_compléter_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`; }
   },
   
   // Type de restaurant
   restaurantType: {
     type: String,
     enum: ['fine-dining', 'casual', 'fast-food', 'cafe', 'bar', 'catering', 'food-truck', 'bakery'],
-    required: [true, 'Type de restaurant requis']
+    required: false, // Optionnel lors de l'inscription
+    default: 'casual'
   },
   
   // Cuisine servie
   cuisineTypes: {
     type: [String],
     enum: ['african', 'french', 'italian', 'asian', 'american', 'mediterranean', 'fusion', 'vegetarian', 'vegan'],
-    required: [true, 'Type de cuisine requis']
+    required: false, // Optionnel lors de l'inscription
+    default: ['african']
   },
   
   // Capacité et horaires
   seatingCapacity: {
     type: Number,
-    required: [true, 'Capacité d\'accueil requise'],
-    min: [1, 'Capacité minimum de 1 personne']
+    required: false, // Optionnel lors de l'inscription
+    min: [1, 'Capacité minimum de 1 personne'],
+    default: 20
   },
   
   operatingHours: {

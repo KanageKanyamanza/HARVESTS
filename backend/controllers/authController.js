@@ -2,25 +2,12 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { promisify } = require('util');
 const User = require('../models/User');
-const Producer = require('../models/Producer');
-const Transformer = require('../models/Transformer');
-const Consumer = require('../models/Consumer');
-const Restaurateur = require('../models/Restaurateur');
-const Exporter = require('../models/Exporter');
-const Transporter = require('../models/Transporter');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const Email = require('../utils/email');
 
-// Mapping des modèles par type d'utilisateur
-const userModels = {
-  producer: Producer,
-  transformer: Transformer,
-  consumer: Consumer,
-  restaurateur: Restaurateur,
-  exporter: Exporter,
-  transporter: Transporter
-};
+// Note: Pour l'inscription simplifiée, nous utilisons seulement le modèle User de base
+// Les profils spécialisés seront créés lors de la complétion du profil
 
 // Fonction pour signer un JWT
 const signToken = (id) => {
@@ -57,12 +44,13 @@ const createSendToken = (user, statusCode, req, res) => {
   });
 };
 
-// Inscription
+// Inscription simplifiée
 exports.signup = catchAsync(async (req, res, next) => {
   const { userType } = req.body;
 
-  // Vérifier si le type d'utilisateur est valide
-  if (!userModels[userType]) {
+  // Types d'utilisateurs valides
+  const validUserTypes = ['producer', 'transformer', 'consumer', 'restaurateur', 'exporter', 'transporter'];
+  if (!validUserTypes.includes(userType)) {
     return next(new AppError('Type d\'utilisateur invalide', 400));
   }
 
@@ -72,55 +60,75 @@ exports.signup = catchAsync(async (req, res, next) => {
     return next(new AppError('Un utilisateur avec cet email existe déjà', 400));
   }
 
-  // Créer le nouvel utilisateur avec le bon modèle
-  const UserModel = userModels[userType];
-  const newUser = await UserModel.create({
+  // Données minimales pour l'inscription
+  const userData = {
     firstName: req.body.firstName,
-    lastName: req.body.lastName,
     email: req.body.email,
     password: req.body.password,
     phone: req.body.phone,
     userType,
-    address: req.body.address,
-    language: req.body.language || 'fr',
-    currency: req.body.currency || 'XAF',
-    // Champs spécifiques selon le type
-    ...req.body.specificData
-  });
+    preferredLanguage: req.body.preferredLanguage || 'fr',
+    country: req.body.country || 'CM'
+  };
+
+  // Gérer lastName selon le type d'utilisateur
+  if (userType === 'consumer') {
+    // Pour les consommateurs : lastName requis
+    userData.lastName = req.body.lastName;
+    if (!userData.lastName) {
+      return next(new AppError('Le nom est requis pour les consommateurs', 400));
+    }
+  } else {
+    // Pour les autres : lastName optionnel, firstName contient le nom complet
+    userData.lastName = req.body.lastName || 'À compléter';
+  }
+
+  // INSCRIPTION SIMPLIFIÉE : Utiliser seulement le modèle User de base
+  // Les profils spécialisés seront créés lors de la complétion du profil
+  const newUser = await User.create(userData);
 
   // Générer token de vérification email
   const verifyToken = newUser.createEmailVerificationToken();
   await newUser.save({ validateBeforeSave: false });
 
+  // Réponse de succès d'inscription
+  const successResponse = {
+    user: {
+      id: newUser._id,
+      firstName: newUser.firstName,
+      lastName: newUser.lastName,
+      email: newUser.email,
+      userType: newUser.userType,
+      isEmailVerified: newUser.isEmailVerified,
+      preferredLanguage: newUser.preferredLanguage,
+      isProfileComplete: newUser.isProfileComplete
+    }
+  };
+
+  // Essayer d'envoyer l'email de vérification
   try {
-    // Envoyer email de vérification
     const verifyURL = `${req.protocol}://${req.get(
       'host'
     )}/api/v1/auth/verify-email/${verifyToken}`;
 
     await new Email(newUser, verifyURL, req.language).sendWelcome();
-
-    res.success(res.t('auth.signup_success'), {
-      user: {
-        id: newUser._id,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        email: newUser.email,
-        userType: newUser.userType,
-        isEmailVerified: newUser.isEmailVerified,
-        preferredLanguage: newUser.preferredLanguage
-      }
-    }, 201);
-  } catch (err) {
-    newUser.emailVerificationToken = undefined;
-    newUser.emailVerificationExpires = undefined;
-    await newUser.save({ validateBeforeSave: false });
-
-    return next(
-      new AppError('Erreur lors de l\'envoi de l\'email. Veuillez réessayer plus tard.', 500)
-    );
+    
+    // Email envoyé avec succès
+    res.success(res.t('auth.signup_success'), successResponse, 201);
+    
+  } catch (emailError) {
+    console.warn('⚠️ Erreur envoi email (inscription réussie quand même):', emailError.message);
+    
+    // Inscription réussie même si email échoue
+    res.status(201).json({
+      status: 'success',
+      message: 'Inscription réussie ! Email de vérification en cours d\'envoi.',
+      warning: 'Email de vérification peut arriver avec un délai.',
+      data: successResponse
+    });
   }
 });
+
 
 // Connexion
 exports.login = catchAsync(async (req, res, next) => {
@@ -417,3 +425,46 @@ exports.requireApproval = (req, res, next) => {
   }
   next();
 };
+
+// Renvoyer l'email de vérification
+exports.resendVerificationEmail = catchAsync(async (req, res, next) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return next(new AppError('Email requis', 400));
+  }
+
+  // Trouver l'utilisateur
+  const user = await User.findOne({ email });
+  if (!user) {
+    return next(new AppError('Aucun utilisateur trouvé avec cet email', 404));
+  }
+
+  // Vérifier si l'email est déjà vérifié
+  if (user.isEmailVerified) {
+    return next(new AppError('Cet email est déjà vérifié', 400));
+  }
+
+  // Générer un nouveau token de vérification
+  const verifyToken = user.createEmailVerificationToken();
+  await user.save({ validateBeforeSave: false });
+
+  try {
+    // Envoyer l'email de vérification
+    const email_service = new Email(user, user.preferredLanguage || 'fr');
+    await email_service.sendEmailVerification(verifyToken);
+
+    res.status(200).json({
+      status: 'success',
+      message: req.t ? req.t('auth.verification_email_sent') : 'Email de vérification renvoyé avec succès'
+    });
+  } catch (emailError) {
+    // Supprimer le token si l'envoi échoue
+    user.emailVerificationToken = undefined;
+    user.emailVerificationExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+
+    console.error('Erreur envoi email de vérification:', emailError);
+    return next(new AppError('Erreur lors de l\'envoi de l\'email. Veuillez réessayer plus tard.', 500));
+  }
+});

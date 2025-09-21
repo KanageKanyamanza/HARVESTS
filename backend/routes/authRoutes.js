@@ -1,6 +1,6 @@
 const express = require('express');
 const authController = require('../controllers/authController');
-const { authLimiter, signupLimiter, emailLimiter } = require('../middleware/security');
+const { authLimiter, emailLimiter } = require('../middleware/security');
 
 /**
  * @swagger
@@ -79,7 +79,7 @@ const router = express.Router();
  *       400:
  *         $ref: '#/components/responses/ValidationError'
  */
-router.post('/signup', signupLimiter, authController.signup);
+router.post('/signup', authController.signup);
 
 /**
  * @swagger
