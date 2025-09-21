@@ -9,6 +9,7 @@ import './utils/i18n';
 
 // Providers
 import { AuthProvider } from './store/AuthContext';
+import { useAuth } from './hooks/useAuth';
 import { ModalProvider } from './components/modals/ModalManager';
 
 // Layout Components
