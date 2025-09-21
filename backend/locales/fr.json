@@ -1,0 +1,135 @@
+{
+  "auth": {
+    "welcome": "Bienvenue sur Harvests",
+    "signup_success": "Inscription réussie ! Veuillez vérifier votre email.",
+    "login_success": "Connexion réussie",
+    "logout_success": "Déconnexion réussie",
+    "email_verified": "Email vérifié avec succès",
+    "password_reset_sent": "Instructions de réinitialisation envoyées par email",
+    "password_reset_success": "Mot de passe réinitialisé avec succès",
+    "invalid_credentials": "Identifiants invalides",
+    "account_not_verified": "Compte non vérifié. Veuillez vérifier votre email.",
+    "account_not_approved": "Compte en attente d'approbation",
+    "account_suspended": "Compte suspendu",
+    "token_expired": "Token expiré",
+    "unauthorized": "Non autorisé"
+  },
+  "user": {
+    "profile_updated": "Profil mis à jour avec succès",
+    "password_updated": "Mot de passe mis à jour avec succès",
+    "user_not_found": "Utilisateur non trouvé",
+    "email_already_exists": "Cette adresse email existe déjà",
+    "phone_already_exists": "Ce numéro de téléphone existe déjà"
+  },
+  "product": {
+    "created": "Produit créé avec succès",
+    "updated": "Produit mis à jour avec succès",
+    "deleted": "Produit supprimé avec succès",
+    "not_found": "Produit non trouvé",
+    "out_of_stock": "Produit en rupture de stock",
+    "insufficient_stock": "Stock insuffisant"
+  },
+  "order": {
+    "created": "Commande créée avec succès",
+    "updated": "Commande mise à jour avec succès",
+    "cancelled": "Commande annulée",
+    "confirmed": "Commande confirmée",
+    "preparing": "Commande en préparation",
+    "ready_for_pickup": "Commande prête pour enlèvement",
+    "in_transit": "Commande en transit",
+    "delivered": "Commande livrée",
+    "not_found": "Commande non trouvée"
+  },
+  "payment": {
+    "processing": "Paiement en cours de traitement",
+    "completed": "Paiement effectué avec succès",
+    "failed": "Échec du paiement",
+    "refunded": "Paiement remboursé",
+    "cancelled": "Paiement annulé"
+  },
+  "notification": {
+    "sent": "Notification envoyée",
+    "marked_read": "Notification marquée comme lue",
+    "deleted": "Notification supprimée"
+  },
+  "review": {
+    "created": "Avis créé avec succès",
+    "updated": "Avis mis à jour avec succès",
+    "deleted": "Avis supprimé avec succès",
+    "not_found": "Avis non trouvé",
+    "already_reviewed": "Vous avez déjà évalué ce produit"
+  },
+  "message": {
+    "sent": "Message envoyé",
+    "conversation_created": "Conversation créée",
+    "not_found": "Message non trouvé"
+  },
+  "validation": {
+    "required": "Ce champ est requis",
+    "email_invalid": "Format d'email invalide",
+    "phone_invalid": "Format de téléphone invalide",
+    "password_min": "Le mot de passe doit contenir au moins 8 caractères",
+    "name_max": "Le nom ne peut pas dépasser 50 caractères",
+    "description_max": "La description ne peut pas dépasser 500 caractères",
+    "price_positive": "Le prix doit être positif",
+    "quantity_positive": "La quantité doit être positive"
+  },
+  "errors": {
+    "server_error": "Erreur serveur interne",
+    "not_found": "Ressource non trouvée",
+    "forbidden": "Accès interdit",
+    "bad_request": "Requête invalide",
+    "rate_limit": "Trop de requêtes. Veuillez réessayer plus tard."
+  },
+  "email": {
+    "subjects": {
+      "welcome": "Bienvenue sur Harvests !",
+      "verify_email": "Vérifiez votre adresse email",
+      "password_reset": "Réinitialisation de votre mot de passe",
+      "order_confirmation": "Confirmation de commande",
+      "order_status_update": "Mise à jour de votre commande"
+    },
+    "greetings": {
+      "dear": "Cher/Chère",
+      "hello": "Bonjour"
+    },
+    "closings": {
+      "best_regards": "Cordialement",
+      "team": "L'équipe Harvests"
+    }
+  },
+  "countries": {
+    "CM": "Cameroun",
+    "SN": "Sénégal",
+    "CI": "Côte d'Ivoire",
+    "GH": "Ghana",
+    "NG": "Nigeria",
+    "KE": "Kenya"
+  },
+  "user_types": {
+    "producer": "Producteur",
+    "transformer": "Transformateur",
+    "consumer": "Consommateur",
+    "restaurateur": "Restaurateur",
+    "exporter": "Exportateur",
+    "transporter": "Transporteur"
+  },
+  "product_categories": {
+    "cereals": "Céréales",
+    "vegetables": "Légumes",
+    "fruits": "Fruits",
+    "tubers": "Tubercules",
+    "legumes": "Légumineuses",
+    "spices": "Épices",
+    "processed": "Produits transformés"
+  },
+  "units": {
+    "kg": "kg",
+    "g": "g",
+    "ton": "tonne",
+    "piece": "pièce",
+    "box": "boîte",
+    "bag": "sac",
+    "liter": "litre"
+  }
+}

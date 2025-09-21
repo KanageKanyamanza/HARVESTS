@@ -1,0 +1,135 @@
+{
+  "auth": {
+    "welcome": "Welcome to Harvests",
+    "signup_success": "Registration successful! Please check your email.",
+    "login_success": "Login successful",
+    "logout_success": "Logout successful",
+    "email_verified": "Email verified successfully",
+    "password_reset_sent": "Password reset instructions sent to your email",
+    "password_reset_success": "Password reset successfully",
+    "invalid_credentials": "Invalid credentials",
+    "account_not_verified": "Account not verified. Please check your email.",
+    "account_not_approved": "Account pending approval",
+    "account_suspended": "Account suspended",
+    "token_expired": "Token expired",
+    "unauthorized": "Unauthorized"
+  },
+  "user": {
+    "profile_updated": "Profile updated successfully",
+    "password_updated": "Password updated successfully",
+    "user_not_found": "User not found",
+    "email_already_exists": "This email address already exists",
+    "phone_already_exists": "This phone number already exists"
+  },
+  "product": {
+    "created": "Product created successfully",
+    "updated": "Product updated successfully",
+    "deleted": "Product deleted successfully",
+    "not_found": "Product not found",
+    "out_of_stock": "Product out of stock",
+    "insufficient_stock": "Insufficient stock"
+  },
+  "order": {
+    "created": "Order created successfully",
+    "updated": "Order updated successfully",
+    "cancelled": "Order cancelled",
+    "confirmed": "Order confirmed",
+    "preparing": "Order being prepared",
+    "ready_for_pickup": "Order ready for pickup",
+    "in_transit": "Order in transit",
+    "delivered": "Order delivered",
+    "not_found": "Order not found"
+  },
+  "payment": {
+    "processing": "Payment being processed",
+    "completed": "Payment completed successfully",
+    "failed": "Payment failed",
+    "refunded": "Payment refunded",
+    "cancelled": "Payment cancelled"
+  },
+  "notification": {
+    "sent": "Notification sent",
+    "marked_read": "Notification marked as read",
+    "deleted": "Notification deleted"
+  },
+  "review": {
+    "created": "Review created successfully",
+    "updated": "Review updated successfully",
+    "deleted": "Review deleted successfully",
+    "not_found": "Review not found",
+    "already_reviewed": "You have already reviewed this product"
+  },
+  "message": {
+    "sent": "Message sent",
+    "conversation_created": "Conversation created",
+    "not_found": "Message not found"
+  },
+  "validation": {
+    "required": "This field is required",
+    "email_invalid": "Invalid email format",
+    "phone_invalid": "Invalid phone format",
+    "password_min": "Password must be at least 8 characters long",
+    "name_max": "Name cannot exceed 50 characters",
+    "description_max": "Description cannot exceed 500 characters",
+    "price_positive": "Price must be positive",
+    "quantity_positive": "Quantity must be positive"
+  },
+  "errors": {
+    "server_error": "Internal server error",
+    "not_found": "Resource not found",
+    "forbidden": "Access forbidden",
+    "bad_request": "Bad request",
+    "rate_limit": "Too many requests. Please try again later."
+  },
+  "email": {
+    "subjects": {
+      "welcome": "Welcome to Harvests!",
+      "verify_email": "Verify your email address",
+      "password_reset": "Reset your password",
+      "order_confirmation": "Order confirmation",
+      "order_status_update": "Order status update"
+    },
+    "greetings": {
+      "dear": "Dear",
+      "hello": "Hello"
+    },
+    "closings": {
+      "best_regards": "Best regards",
+      "team": "The Harvests Team"
+    }
+  },
+  "countries": {
+    "CM": "Cameroon",
+    "SN": "Senegal",
+    "CI": "Ivory Coast",
+    "GH": "Ghana",
+    "NG": "Nigeria",
+    "KE": "Kenya"
+  },
+  "user_types": {
+    "producer": "Producer",
+    "transformer": "Processor",
+    "consumer": "Consumer",
+    "restaurateur": "Restaurant Owner",
+    "exporter": "Exporter",
+    "transporter": "Transporter"
+  },
+  "product_categories": {
+    "cereals": "Cereals",
+    "vegetables": "Vegetables",
+    "fruits": "Fruits",
+    "tubers": "Tubers",
+    "legumes": "Legumes",
+    "spices": "Spices",
+    "processed": "Processed Products"
+  },
+  "units": {
+    "kg": "kg",
+    "g": "g",
+    "ton": "ton",
+    "piece": "piece",
+    "box": "box",
+    "bag": "bag",
+    "liter": "liter"
+  }
+}

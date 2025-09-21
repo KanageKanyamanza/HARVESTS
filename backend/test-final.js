@@ -82,8 +82,18 @@ async function testFinalHarvests() {
         console.log('\n🎯 ÉTAPE 2: CATALOGUE PRODUITS SÉNÉGALAIS');
         
         const produit = await Product.create({
-            name: 'Mil Rouge Bio de Thiès',
-            description: 'Mil rouge cultivé selon les méthodes bio traditionnelles',
+            name: {
+                fr: 'Mil Rouge Bio de Thiès',
+                en: 'Organic Red Millet from Thiès'
+            },
+            description: {
+                fr: 'Mil rouge cultivé selon les méthodes bio traditionnelles dans la région de Thiès',
+                en: 'Red millet grown using traditional organic methods in the Thiès region'
+            },
+            shortDescription: {
+                fr: 'Mil rouge bio du Sénégal',
+                en: 'Organic red millet from Senegal'
+            },
             producer: producer._id,
             category: 'cereals',
             subcategory: 'millet',
@@ -102,7 +112,7 @@ async function testFinalHarvests() {
             tags: ['bio', 'cereales', 'local', 'senegal', 'thies']
         });
         
-        console.log(`✅ Produit: ${produit.name} - ${produit.variants[0].price} XOF`);
+        console.log(`✅ Produit: ${produit.name.fr} - ${produit.variants[0].price} XOF`);
         
         console.log('\n🎯 ÉTAPE 3: COMMANDE AVEC WAVE');
         
@@ -224,3 +234,4 @@ async function testFinalHarvests() {
 
 // Lancer le test
 testFinalHarvests();
+

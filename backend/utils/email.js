@@ -1,13 +1,16 @@
 const nodemailer = require('nodemailer');
 const pug = require('pug');
 const htmlToText = require('html-to-text');
+const { getTranslations } = require('../config/i18n');
 
 module.exports = class Email {
-  constructor(user, url) {
+  constructor(user, url, language = 'fr') {
     this.to = user.email;
     this.firstName = user.firstName;
     this.url = url;
     this.from = `Harvests <${process.env.EMAIL_FROM}>`;
+    this.language = language || user.preferredLanguage || 'fr';
+    this.t = getTranslations(this.language).t;
   }
 
   newTransport() {
@@ -83,15 +86,18 @@ module.exports = class Email {
   }
 
   async sendWelcome() {
-    await this.send('welcome', 'Bienvenue dans la famille Harvests!');
+    const subject = this.t('email.subjects.welcome');
+    await this.send('welcome', subject);
   }
 
   async sendEmailVerification() {
-    await this.send('emailVerification', 'Vérifiez votre adresse email - Harvests');
+    const subject = this.t('email.subjects.verify_email');
+    await this.send('emailVerification', subject);
   }
 
   async sendPasswordReset() {
-    await this.send('passwordReset', 'Votre token de réinitialisation de mot de passe (valide 10 minutes)');
+    const subject = this.t('email.subjects.password_reset');
+    await this.send('passwordReset', subject);
   }
 
   async sendAccountApproval() {
@@ -105,7 +111,8 @@ module.exports = class Email {
 
   async sendOrderConfirmation(order) {
     this.order = order;
-    await this.send('orderConfirmation', 'Confirmation de votre commande Harvests');
+    const subject = this.t('email.subjects.order_confirmation');
+    await this.send('orderConfirmation', subject);
   }
 
   async sendDeliveryNotification(delivery) {

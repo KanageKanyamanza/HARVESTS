@@ -98,22 +98,19 @@ exports.signup = catchAsync(async (req, res, next) => {
       'host'
     )}/api/v1/auth/verify-email/${verifyToken}`;
 
-    await new Email(newUser, verifyURL).sendWelcome();
+    await new Email(newUser, verifyURL, req.language).sendWelcome();
 
-    res.status(201).json({
-      status: 'success',
-      message: 'Utilisateur créé avec succès! Un email de vérification a été envoyé.',
-      data: {
-        user: {
-          id: newUser._id,
-          firstName: newUser.firstName,
-          lastName: newUser.lastName,
-          email: newUser.email,
-          userType: newUser.userType,
-          isEmailVerified: newUser.isEmailVerified
-        }
+    res.success(res.t('auth.signup_success'), {
+      user: {
+        id: newUser._id,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        email: newUser.email,
+        userType: newUser.userType,
+        isEmailVerified: newUser.isEmailVerified,
+        preferredLanguage: newUser.preferredLanguage
       }
-    });
+    }, 201);
   } catch (err) {
     newUser.emailVerificationToken = undefined;
     newUser.emailVerificationExpires = undefined;

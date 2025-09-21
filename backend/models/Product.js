@@ -82,12 +82,19 @@ const variantSchema = new mongoose.Schema({
 
 // Schéma principal du produit
 const productSchema = new mongoose.Schema({
-  // Informations de base
+  // Informations de base multilingues
   name: {
-    type: String,
-    required: [true, 'Nom du produit requis'],
-    trim: true,
-    maxlength: [200, 'Le nom ne peut pas dépasser 200 caractères']
+    fr: {
+      type: String,
+      required: [true, 'Nom du produit requis en français'],
+      trim: true,
+      maxlength: [200, 'Le nom ne peut pas dépasser 200 caractères']
+    },
+    en: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'Name cannot exceed 200 characters']
+    }
   },
   
   slug: {
@@ -97,14 +104,26 @@ const productSchema = new mongoose.Schema({
   },
   
   description: {
-    type: String,
-    required: [true, 'Description requise'],
-    maxlength: [2000, 'La description ne peut pas dépasser 2000 caractères']
+    fr: {
+      type: String,
+      required: [true, 'Description requise en français'],
+      maxlength: [2000, 'La description ne peut pas dépasser 2000 caractères']
+    },
+    en: {
+      type: String,
+      maxlength: [2000, 'Description cannot exceed 2000 characters']
+    }
   },
   
   shortDescription: {
-    type: String,
-    maxlength: [300, 'La description courte ne peut pas dépasser 300 caractères']
+    fr: {
+      type: String,
+      maxlength: [300, 'La description courte ne peut pas dépasser 300 caractères']
+    },
+    en: {
+      type: String,
+      maxlength: [300, 'Short description cannot exceed 300 characters']
+    }
   },
   
   // Producteur
@@ -433,9 +452,10 @@ productSchema.virtual('primaryImage').get(function() {
 
 // Middleware pre-save
 productSchema.pre('save', function(next) {
-  // Générer le slug
+  // Générer le slug à partir du nom français
   if (this.isModified('name')) {
-    this.slug = slugify(this.name, { 
+    const nameForSlug = typeof this.name === 'string' ? this.name : (this.name.fr || this.name.en || 'product');
+    this.slug = slugify(nameForSlug, { 
       lower: true, 
       strict: true,
       remove: /[*+~.()'"!:@]/g 
@@ -571,6 +591,31 @@ productSchema.methods.releaseStock = function(quantity, variantId = null) {
 productSchema.methods.incrementViews = function() {
   this.stats.views += 1;
   return this.save({ validateBeforeSave: false });
+};
+
+// Méthode pour obtenir le contenu dans la langue demandée
+productSchema.methods.getLocalizedContent = function(language = 'fr') {
+  const lang = ['fr', 'en'].includes(language) ? language : 'fr';
+  
+  return {
+    name: this.name[lang] || this.name.fr || this.name.en,
+    description: this.description[lang] || this.description.fr || this.description.en,
+    shortDescription: this.shortDescription[lang] || this.shortDescription.fr || this.shortDescription.en,
+    // Autres champs restent identiques
+    _id: this._id,
+    slug: this.slug,
+    producer: this.producer,
+    category: this.category,
+    subcategory: this.subcategory,
+    price: this.price,
+    images: this.images,
+    inventory: this.inventory,
+    stats: this.stats,
+    isActive: this.isActive,
+    status: this.status,
+    createdAt: this.createdAt,
+    updatedAt: this.updatedAt
+  };
 };
 
 // Méthode statique pour la recherche

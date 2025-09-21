@@ -33,6 +33,10 @@ const globalErrorHandler = require('./middleware/errorHandler');
 // Importation de Swagger
 const { setupSwagger } = require('./config/swagger');
 
+// Importation i18n
+const { detectLanguage } = require('./config/i18n');
+const i18nResponse = require('./middleware/i18nResponse');
+
 const app = express();
 
 // Configuration du proxy de confiance (pour les headers X-Forwarded-*)
@@ -83,6 +87,12 @@ app.use(suspiciousActivityLogger);
 
 // Validation des IDs MongoDB dans les paramètres
 app.use(validateObjectId);
+
+// Détection de la langue
+app.use(detectLanguage);
+
+// Middleware pour réponses bilingues
+app.use(i18nResponse);
 
 // DOCUMENTATION API SWAGGER
 setupSwagger(app);

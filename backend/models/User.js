@@ -63,6 +63,19 @@ const baseUserSchema = new mongoose.Schema({
     default: null
   },
   
+  // Préférences linguistiques
+  preferredLanguage: {
+    type: String,
+    enum: ['fr', 'en'],
+    default: 'fr'
+  },
+  
+  country: {
+    type: String,
+    enum: ['CM', 'SN', 'CI', 'GH', 'NG', 'KE'],
+    default: 'CM'
+  },
+  
   // Localisation
   address: {
     street: { type: String, required: true },
