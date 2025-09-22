@@ -15,9 +15,9 @@ export const AuthProvider = ({ children }) => {
 
   // Fonction pour sauvegarder les données d'auth dans localStorage
   const saveAuthData = (user, token, tokenExpiry = null) => {
-    // Vérifier le token avant de sauvegarder
-    if (!isValidToken(token)) {
-      console.warn('Tentative de sauvegarde d\'un token invalide');
+    // Vérification basique du token (structure seulement)
+    if (!token || token === 'undefined' || token === 'null') {
+      console.warn('Tentative de sauvegarde d\'un token vide');
       return;
     }
     
@@ -28,9 +28,13 @@ export const AuthProvider = ({ children }) => {
       tokenExpiry
     };
     
-    localStorage.setItem('harvests_user', JSON.stringify(user));
-    localStorage.setItem('harvests_token', token);
-    localStorage.setItem('harvests_auth_data', JSON.stringify(authData));
+    try {
+      localStorage.setItem('harvests_user', JSON.stringify(user));
+      localStorage.setItem('harvests_token', token);
+      localStorage.setItem('harvests_auth_data', JSON.stringify(authData));
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde:', error);
+    }
   };
 
   // Fonction pour supprimer les données d'auth du localStorage
@@ -46,7 +50,8 @@ export const AuthProvider = ({ children }) => {
       dispatch({ type: AUTH_ACTIONS.LOGIN_START });
 
       const response = await authService.login(credentials);
-      const { user, token } = response.data.data;
+      const { user } = response.data.data;
+      const token = response.data.token;
 
       // Sauvegarder dans localStorage
       saveAuthData(user, token);
@@ -136,10 +141,8 @@ export const AuthProvider = ({ children }) => {
       const userStr = localStorage.getItem('harvests_user');
       const authDataStr = localStorage.getItem('harvests_auth_data');
 
-      console.log('Tentative de restauration de session...');
-
-      // Vérifier que nous avons des données et qu'elles sont valides
-      if (token && userStr && isValidToken(token)) {
+      // Vérifier que nous avons des données (moins strict)
+      if (token && userStr) {
         const user = JSON.parse(userStr);
         let authData = null;
         
@@ -160,12 +163,10 @@ export const AuthProvider = ({ children }) => {
           },
         });
 
-        console.log('✅ Session restaurée depuis localStorage pour:', user.email);
+        // Session restaurée avec succès
       } else {
-        console.log('❌ Aucune session valide trouvée');
-        // Nettoyer les données invalides
-        if (token && !isValidToken(token)) {
-          console.warn('Token invalide détecté, nettoyage...');
+        // Nettoyer les données invalides seulement si vraiment corrompues
+        if (token && (token === 'undefined' || token === 'null' || token.length < 10)) {
           clearAuthData();
         }
       }
