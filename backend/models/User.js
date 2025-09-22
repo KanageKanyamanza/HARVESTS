@@ -75,6 +75,26 @@ const baseUserSchema = new mongoose.Schema({
     default: null
   },
   
+  // Badge de profil (pour tous sauf consumer)
+  badge: {
+    type: String,
+    enum: ['verified', 'premium', 'gold', 'platinum', 'diamond'],
+    default: null
+  },
+  
+  // Bannière de boutique (pour les profils vendeurs)
+  shopBanner: {
+    type: String,
+    default: null
+  },
+  
+  // Description de la boutique (pour les profils vendeurs)
+  shopDescription: {
+    type: String,
+    maxlength: [500, 'La description de la boutique ne peut pas dépasser 500 caractères'],
+    default: null
+  },
+  
   // Préférences linguistiques
   preferredLanguage: {
     type: String,

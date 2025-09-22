@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useUserType } from '../../hooks/useUserType';
+import CloudinaryImage from '../common/CloudinaryImage';
 import {
   FiHome,
   FiShoppingBag,
@@ -11,19 +12,24 @@ import {
   FiSettings,
   FiLogOut,
   FiX,
-  FiMessageCircle,
   FiChevronLeft,
   FiChevronRight,
   FiRefreshCw,
   FiStar,
   FiTrendingUp,
-  FiGift
+  FiGift,
+  FiPackage,
+  FiPlus,
+  FiTruck,
+  FiAward,
+  FiFileText
 } from 'react-icons/fi';
+import { FaChartBar } from 'react-icons/fa';
 
-const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse }) => {
-  const { user, userDisplayName, userInitials } = useAuth();
-  const { displayLabel, displayIcon } = useUserType();
-  const location = useLocation();
+  const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse }) => {
+    const { user, userDisplayName } = useAuth();
+    const { displayLabel, displayIcon } = useUserType();
+    const location = useLocation();
 
   const getNavigationItems = () => {
     if (user?.userType === 'consumer') {
@@ -36,17 +42,28 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse }
         { name: 'Mes avis', href: '/reviews', icon: FiStar },
         { name: 'Fidélité', href: '/loyalty', icon: FiGift },
         { name: 'Statistiques', href: '/stats', icon: FiTrendingUp },
-        { name: 'Profil', href: '/profile', icon: FiUser },
-        { name: 'Messages', href: '/messages', icon: FiMessageCircle },
-        { name: 'Paramètres', href: '/settings', icon: FiSettings }
+        { name: 'Profil', href: '/consumer/profile', icon: FiUser },
+        { name: 'Paramètres', href: '/consumer/settings', icon: FiSettings }
+      ];
+    }
+
+    if (user?.userType === 'producer') {
+      return [
+        { name: 'Tableau de bord', href: '/producer/dashboard', icon: FiHome },
+        { name: 'Mes produits', href: '/producer/products', icon: FiPackage },
+        { name: 'Ajouter produit', href: '/producer/products/add', icon: FiPlus },
+        { name: 'Commandes', href: '/producer/orders', icon: FiShoppingBag },
+        { name: 'Statistiques', href: '/producer/stats', icon: FaChartBar },
+        { name: 'Certifications', href: '/producer/certifications', icon: FiAward },
+        { name: 'Transporteurs', href: '/producer/transporters', icon: FiTruck },
+        { name: 'Documents', href: '/producer/documents', icon: FiFileText },
+        { name: 'Profil', href: '/producer/profile', icon: FiUser },
+        { name: 'Paramètres', href: '/producer/settings', icon: FiSettings }
       ];
     }
 
     return [
-      { name: 'Tableau de bord', href: '/dashboard', icon: FiHome },
-      { name: 'Profil', href: '/profile', icon: FiUser },
-      { name: 'Messages', href: '/messages', icon: FiMessageCircle },
-      { name: 'Paramètres', href: '/settings', icon: FiSettings }
+      { name: 'Tableau de bord', href: '/dashboard', icon: FiHome }
     ];
   };
 
@@ -57,20 +74,20 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse }
     <div className={`h-full bg-white shadow-lg transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
       <div className="flex flex-col h-full">
         {/* Logo et bouton collapse */}
-        <div className="h-16 px-4 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
+        <div className="h-16 px-4 border-b  border-gray-200 flex items-center justify-between flex-shrink-0">
           {!collapsed && (
-            <Link to="/" className="flex items-center space-x-2">
-              <img src="/src/assets/logo.png" alt="Harvests" className="h-8 w-auto" />
+            <Link to="/" className="flex items-center mx-auto space-x-1">
+              <img src="/src/assets/logo.png" alt="Harvests" className="h-10 w-auto" />
             </Link>
           )}
           {collapsed && (
-            <Link to="/" className="flex items-center justify-center w-full">
-              <img src="/src/assets/logo.png" alt="Harvests" className="h-8 w-auto" />
+            <Link to="/" className=" md:hidden mx-auto flex items-center justify-center w-full">
+              <img src="/src/assets/logo.png" alt="Harvests" className="h-10 w-auto" />
             </Link>
           )}
           <button
             onClick={onToggleCollapse}
-            className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+            className="hidden md:block p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
             title={collapsed ? 'Étendre la sidebar' : 'Réduire la sidebar'}
           >
             {collapsed ? (
@@ -82,12 +99,24 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse }
         </div>
 
         {/* User info */}
-        <div className="px-4 py-3 border-b border-gray-200 flex-shrink-0">
-          <div className={`flex items-center ${collapsed ? 'justify-center' : 'space-x-2'}`}>
+        <div className="px-2 py-3 border-b border-gray-200 flex-shrink-0">
+          <div className={`flex items-center ${collapsed ? 'justify-center ' : 'space-x-2'}`}>
             <div className="h-10 w-10 bg-harvests-green rounded-full flex items-center justify-center">
-              <span className="text-white font-medium">
-                {userInitials || user?.firstName?.charAt(0)?.toUpperCase() || '?'}
-              </span>
+              {user?.avatar ? (
+                <CloudinaryImage 
+                  src={user.avatar} 
+                  alt="Avatar" 
+                  className="h-10 w-10 rounded-full object-cover" 
+                  width={40}
+                  height={40}
+                  crop="fill"
+                  quality="auto"
+                />
+              ) : (
+                <div className="h-10 w-10 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 font-semibold text-sm">
+                  {user?.firstName?.[0] || user?.email?.[0] || 'U'}
+                </div>
+              )}
             </div>
             {!collapsed && (
               <div className="flex-1 min-w-0">

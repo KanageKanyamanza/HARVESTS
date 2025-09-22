@@ -1,35 +1,50 @@
-const multer = require('multer');
-// const sharp = require('sharp'); // Temporairement désactivé
-const Producer = require('../models/Producer');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const Producer = require('../models/Producer');
+const { createDynamicStorage } = require('../config/cloudinary');
+const multer = require('multer');
 
-// Configuration Multer pour upload de documents
-const multerStorage = multer.memoryStorage();
-
-const multerFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image') || file.mimetype === 'application/pdf') {
-    cb(null, true);
-  } else {
-    cb(new AppError('Veuillez télécharger uniquement des images ou des PDF!', 400), false);
-  }
+// Configuration Multer pour Cloudinary
+const createUploadMiddleware = (contentType, category = null, fieldName = 'images', maxFiles = 5) => {
+  const storage = createDynamicStorage('producer', contentType, category);
+  const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024, files: maxFiles },
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype.startsWith('image') || file.mimetype === 'application/pdf') {
+        cb(null, true);
+      } else {
+        cb(new AppError('Veuillez télécharger uniquement des images ou des PDF!', 400), false);
+      }
+    }
+  });
+  return maxFiles === 1 ? upload.single(fieldName) : upload.array(fieldName, maxFiles);
 };
 
-const upload = multer({
-  storage: multerStorage,
-  fileFilter: multerFilter,
-});
+exports.uploadProductImages = createUploadMiddleware('product', 'cereals', 'images', 5);
+exports.uploadCertificationDocument = createUploadMiddleware('document', null, 'document', 1);
+exports.uploadDocument = createUploadMiddleware('document', null, 'document', 1);
 
-exports.uploadCertificationDocument = upload.single('document');
-exports.uploadProductImages = upload.array('images', 5);
-exports.uploadDocument = upload.single('document');
+// Middleware pour traiter les images de produits
+exports.processProductImages = catchAsync(async (req, res, next) => {
+  if (!req.files) return next();
+
+  req.body.images = req.files.map((file, index) => ({
+    url: file.path,
+    alt: `Image ${index + 1}`,
+    isPrimary: index === 0,
+    order: index
+  }));
+
+  next();
+});
 
 // ROUTES PUBLIQUES
 
 // Obtenir tous les producteurs
 exports.getAllProducers = catchAsync(async (req, res, next) => {
   const queryObj = { ...req.query };
-  const excludedFields = ['page', 'sort', 'limit', 'fields'];
+  const excludedFields = ['page', 'sort', 'limit', 'fields', 'lang'];
   excludedFields.forEach((el) => delete queryObj[el]);
 
   // Ajouter les filtres de base
@@ -169,13 +184,37 @@ exports.getProducer = catchAsync(async (req, res, next) => {
 
 // Obtenir les produits d'un producteur
 exports.getProducerProducts = catchAsync(async (req, res, next) => {
-  // Cette fonction nécessitera le modèle Product qui n'est pas encore créé
-  // Pour l'instant, renvoyer une réponse temporaire
+  const Product = require('../models/Product');
+  
+  const queryObj = { 
+    producer: req.params.id,
+    status: { $in: ['approved', 'active'] } // Seulement les produits approuvés pour l'affichage public
+  };
+  
+  // Filtres optionnels
+  if (req.query.category) queryObj.category = req.query.category;
+  if (req.query.status) queryObj.status = req.query.status;
+
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 20;
+  const skip = (page - 1) * limit;
+
+  const products = await Product.find(queryObj)
+    .sort('-createdAt')
+    .skip(skip)
+    .limit(limit)
+    .populate('producer', 'firstName lastName farmName');
+
+  const total = await Product.countDocuments(queryObj);
+
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle Product requis',
+    results: products.length,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
     data: {
-      products: [],
+      products,
     },
   });
 });
@@ -196,7 +235,7 @@ exports.getProducerReviews = catchAsync(async (req, res, next) => {
 
 // Obtenir mon profil
 exports.getMyProfile = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user.id);
+  const producer = await Producer.findById(req.user._id);
 
   res.status(200).json({
     status: 'success',
@@ -221,7 +260,7 @@ exports.updateMyProfile = catchAsync(async (req, res, next) => {
     }
   });
 
-  const producer = await Producer.findByIdAndUpdate(req.user.id, filteredBody, {
+  const producer = await Producer.findByIdAndUpdate(req.user._id, filteredBody, {
     new: true,
     runValidators: true,
   });
@@ -236,7 +275,7 @@ exports.updateMyProfile = catchAsync(async (req, res, next) => {
 
 // Gestion des cultures
 exports.getMyCrops = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user.id).select('crops');
+  const producer = await Producer.findById(req.user._id).select('crops');
 
   res.status(200).json({
     status: 'success',
@@ -248,7 +287,7 @@ exports.getMyCrops = catchAsync(async (req, res, next) => {
 });
 
 exports.addCrop = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user.id);
+  const producer = await Producer.findById(req.user._id);
   
   producer.crops.push(req.body);
   await producer.save();
@@ -262,7 +301,7 @@ exports.addCrop = catchAsync(async (req, res, next) => {
 });
 
 exports.updateCrop = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user.id);
+  const producer = await Producer.findById(req.user._id);
   const crop = producer.crops.id(req.params.cropId);
 
   if (!crop) {
@@ -284,7 +323,7 @@ exports.updateCrop = catchAsync(async (req, res, next) => {
 });
 
 exports.removeCrop = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user.id);
+  const producer = await Producer.findById(req.user._id);
   
   producer.crops.pull(req.params.cropId);
   await producer.save();
@@ -297,7 +336,7 @@ exports.removeCrop = catchAsync(async (req, res, next) => {
 
 // Gestion des certifications
 exports.getMyCertifications = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user.id).select('certifications');
+  const producer = await Producer.findById(req.user._id).select('certifications');
 
   res.status(200).json({
     status: 'success',
@@ -309,7 +348,7 @@ exports.getMyCertifications = catchAsync(async (req, res, next) => {
 });
 
 exports.addCertification = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user.id);
+  const producer = await Producer.findById(req.user._id);
   
   const certificationData = { ...req.body };
   
@@ -332,7 +371,7 @@ exports.addCertification = catchAsync(async (req, res, next) => {
 });
 
 exports.updateCertification = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user.id);
+  const producer = await Producer.findById(req.user._id);
   const certification = producer.certifications.id(req.params.certId);
 
   if (!certification) {
@@ -354,7 +393,7 @@ exports.updateCertification = catchAsync(async (req, res, next) => {
 });
 
 exports.removeCertification = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user.id);
+  const producer = await Producer.findById(req.user._id);
   
   producer.certifications.pull(req.params.certId);
   await producer.save();
@@ -367,7 +406,7 @@ exports.removeCertification = catchAsync(async (req, res, next) => {
 
 // Gestion des équipements
 exports.getMyEquipment = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user.id).select('equipment');
+  const producer = await Producer.findById(req.user._id).select('equipment');
 
   res.status(200).json({
     status: 'success',
@@ -379,7 +418,7 @@ exports.getMyEquipment = catchAsync(async (req, res, next) => {
 });
 
 exports.addEquipment = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user.id);
+  const producer = await Producer.findById(req.user._id);
   
   producer.equipment.push(req.body);
   await producer.save();
@@ -393,7 +432,7 @@ exports.addEquipment = catchAsync(async (req, res, next) => {
 });
 
 exports.updateEquipment = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user.id);
+  const producer = await Producer.findById(req.user._id);
   const equipment = producer.equipment.id(req.params.equipmentId);
 
   if (!equipment) {
@@ -415,7 +454,7 @@ exports.updateEquipment = catchAsync(async (req, res, next) => {
 });
 
 exports.removeEquipment = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user.id);
+  const producer = await Producer.findById(req.user._id);
   
   producer.equipment.pull(req.params.equipmentId);
   await producer.save();
@@ -428,11 +467,18 @@ exports.removeEquipment = catchAsync(async (req, res, next) => {
 
 // Gestion des produits (implémentation complète)
 exports.getMyProducts = catchAsync(async (req, res, next) => {
+  console.log('🔍 getMyProducts appelé avec req.user:', req.user);
+  console.log('🔍 req.user._id:', req.user?.id);
+  console.log('🔍 req.user._id:', req.user?._id);
+  
   const Product = require('../models/Product');
   
-  const queryObj = { producer: req.user.id };
+  // Utiliser _id au lieu de id car req.user est un document Mongoose
+  const queryObj = { producer: req.user._id };
   if (req.query.status) queryObj.status = req.query.status;
   if (req.query.category) queryObj.category = req.query.category;
+
+  console.log('🔍 Query object:', queryObj);
 
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 20;
@@ -444,6 +490,8 @@ exports.getMyProducts = catchAsync(async (req, res, next) => {
     .limit(limit);
 
   const total = await Product.countDocuments(queryObj);
+
+  console.log('🔍 Produits trouvés:', products.length, 'sur', total);
 
   res.status(200).json({
     status: 'success',
@@ -458,7 +506,17 @@ exports.getMyProducts = catchAsync(async (req, res, next) => {
 exports.createProduct = catchAsync(async (req, res, next) => {
   const Product = require('../models/Product');
   
-  req.body.producer = req.user.id;
+  req.body.producer = req.user._id;
+  
+  // Traiter les images si présentes
+  if (req.body.images && req.body.images.length > 0) {
+    req.body.images = req.body.images.map((img, index) => ({
+      ...img,
+      order: index,
+      isPrimary: index === 0
+    }));
+  }
+  
   const product = await Product.create(req.body);
 
   res.status(201).json({
@@ -472,7 +530,7 @@ exports.getMyProduct = catchAsync(async (req, res, next) => {
   
   const product = await Product.findOne({
     _id: req.params.productId,
-    producer: req.user.id
+    producer: req.user._id
   });
 
   if (!product) {
@@ -489,7 +547,7 @@ exports.updateMyProduct = catchAsync(async (req, res, next) => {
   const Product = require('../models/Product');
   
   const product = await Product.findOneAndUpdate(
-    { _id: req.params.productId, producer: req.user.id },
+    { _id: req.params.productId, producer: req.user._id },
     req.body,
     { new: true, runValidators: true }
   );
@@ -508,7 +566,7 @@ exports.deleteMyProduct = catchAsync(async (req, res, next) => {
   const Product = require('../models/Product');
   
   const product = await Product.findOneAndUpdate(
-    { _id: req.params.productId, producer: req.user.id },
+    { _id: req.params.productId, producer: req.user._id },
     { isActive: false, status: 'inactive' },
     { new: true }
   );
@@ -531,7 +589,7 @@ exports.getMyOrders = catchAsync(async (req, res, next) => {
   const limit = parseInt(req.query.limit, 10) || 20;
   const skip = (page - 1) * limit;
 
-  const queryObj = { seller: req.user.id };
+  const queryObj = { seller: req.user._id };
   if (req.query.status) queryObj.status = req.query.status;
 
   const orders = await Order.find(queryObj)
@@ -558,7 +616,7 @@ exports.getMyOrder = catchAsync(async (req, res, next) => {
   
   const order = await Order.findOne({
     _id: req.params.orderId,
-    seller: req.user.id
+    seller: req.user._id
   })
   .populate('buyer', 'firstName lastName email phone')
   .populate('items.product', 'name images category');
@@ -579,14 +637,14 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
 
   const order = await Order.findOne({
     _id: req.params.orderId,
-    seller: req.user.id
+    seller: req.user._id
   });
 
   if (!order) {
     return next(new AppError('Commande non trouvée', 404));
   }
 
-  await order.updateStatus(status, req.user.id, reason, note);
+  await order.updateStatus(status, req.user._id, reason, note);
 
   res.status(200).json({
     status: 'success',
@@ -596,7 +654,7 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
 
 // Statistiques
 exports.getMyStats = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user.id).select('salesStats');
+  const producer = await Producer.findById(req.user._id).select('salesStats');
 
   res.status(200).json({
     status: 'success',
@@ -625,7 +683,7 @@ exports.getRevenueAnalytics = catchAsync(async (req, res, next) => {
 
 // Gestion des transporteurs préférés
 exports.getPreferredTransporters = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user.id)
+  const producer = await Producer.findById(req.user._id)
     .select('preferredTransporters')
     .populate('preferredTransporters', 'companyName phone address performanceStats');
 
@@ -639,7 +697,7 @@ exports.getPreferredTransporters = catchAsync(async (req, res, next) => {
 });
 
 exports.addPreferredTransporter = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user.id);
+  const producer = await Producer.findById(req.user._id);
   
   // Vérifier si le transporteur n'est pas déjà dans la liste
   if (producer.preferredTransporters.includes(req.body.transporterId)) {
@@ -656,7 +714,7 @@ exports.addPreferredTransporter = catchAsync(async (req, res, next) => {
 });
 
 exports.removePreferredTransporter = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user.id);
+  const producer = await Producer.findById(req.user._id);
   
   producer.preferredTransporters.pull(req.params.transporterId);
   await producer.save();
@@ -669,7 +727,7 @@ exports.removePreferredTransporter = catchAsync(async (req, res, next) => {
 
 // Gestion des documents
 exports.getMyDocuments = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user.id).select('documents');
+  const producer = await Producer.findById(req.user._id).select('documents');
 
   res.status(200).json({
     status: 'success',
@@ -680,7 +738,7 @@ exports.getMyDocuments = catchAsync(async (req, res, next) => {
 });
 
 exports.addDocument = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user.id);
+  const producer = await Producer.findById(req.user._id);
   
   if (!req.file) {
     return next(new AppError('Veuillez télécharger un document', 400));
@@ -713,7 +771,7 @@ exports.addDocument = catchAsync(async (req, res, next) => {
 
 // Paramètres de livraison
 exports.getDeliverySettings = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user.id).select('deliveryOptions');
+  const producer = await Producer.findById(req.user._id).select('deliveryOptions');
 
   res.status(200).json({
     status: 'success',
@@ -725,7 +783,7 @@ exports.getDeliverySettings = catchAsync(async (req, res, next) => {
 
 exports.updateDeliverySettings = catchAsync(async (req, res, next) => {
   const producer = await Producer.findByIdAndUpdate(
-    req.user.id,
+    req.user._id,
     { deliveryOptions: req.body },
     { new: true, runValidators: true }
   ).select('deliveryOptions');

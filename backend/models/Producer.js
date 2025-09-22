@@ -175,6 +175,50 @@ const producerSchema = new mongoose.Schema({
         default: false
       }
     }
+  },
+  
+  // Informations de boutique
+  shopInfo: {
+    isShopActive: {
+      type: Boolean,
+      default: false
+    },
+    shopName: {
+      type: String,
+      trim: true,
+      maxlength: [100, 'Le nom de la boutique ne peut pas dépasser 100 caractères']
+    },
+    shopDescription: {
+      type: String,
+      maxlength: [500, 'La description de la boutique ne peut pas dépasser 500 caractères']
+    },
+    shopBanner: {
+      type: String,
+      default: null
+    },
+    shopLogo: {
+      type: String,
+      default: null
+    },
+    openingHours: {
+      monday: { open: String, close: String },
+      tuesday: { open: String, close: String },
+      wednesday: { open: String, close: String },
+      thursday: { open: String, close: String },
+      friday: { open: String, close: String },
+      saturday: { open: String, close: String },
+      sunday: { open: String, close: String }
+    },
+    contactInfo: {
+      phone: String,
+      email: String,
+      website: String,
+      socialMedia: {
+        facebook: String,
+        instagram: String,
+        twitter: String
+      }
+    }
   }
 });
 

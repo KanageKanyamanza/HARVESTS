@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import { useAuth } from '../../../hooks/useAuth';
-import { consumerService } from '../../../services/api';
+import { consumerService } from '../../../services';
+import CloudinaryImage from '../../../components/common/CloudinaryImage';
 import { 
   FiHeart, 
   FiShoppingCart, 
@@ -248,10 +249,14 @@ const Favorites = () => {
               }`}>
                 {/* Image du produit */}
                 <div className={`${viewMode === 'list' ? 'w-48 h-32' : 'h-48'} bg-gray-200 rounded-t-lg lg:rounded-l-lg lg:rounded-t-none flex-shrink-0`}>
-                  <img
+                  <CloudinaryImage
                     src={favorite.product.image}
                     alt={favorite.product.name}
                     className="w-full h-full object-cover rounded-t-lg lg:rounded-l-lg lg:rounded-t-none"
+                    width={400}
+                    height={300}
+                    quality="auto"
+                    crop="fit"
                     onError={(e) => {
                       e.target.src = '/images/placeholder-product.jpg';
                     }}

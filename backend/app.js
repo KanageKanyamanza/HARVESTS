@@ -25,6 +25,7 @@ const consumerRoutes = require('./routes/consumerRoutes');
 const restaurateurRoutes = require('./routes/restaurateurRoutes');
 const exporterRoutes = require('./routes/exporterRoutes');
 const transporterRoutes = require('./routes/transporterRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 // Importation des gestionnaires d'erreur
 const AppError = require('./utils/appError');
@@ -167,6 +168,9 @@ app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/messages', messageRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/payments', paymentRoutes);
+
+// Routes d'upload d'images
+app.use('/api/v1/upload', uploadRoutes);
 
 // Routes à implémenter plus tard
 // app.use('/api/v1/deliveries', deliveryRoutes);

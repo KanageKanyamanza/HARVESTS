@@ -14,7 +14,6 @@ const api = axios.create({
   },
 });
 
-
 // Intercepteur de requête
 api.interceptors.request.use(
   (config) => {
@@ -50,356 +49,50 @@ api.interceptors.request.use(
 // Intercepteur de réponse
 api.interceptors.response.use(
   (response) => {
-    // Loguer les réponses en mode développement
-    if (import.meta.env.DEV) {
-      console.log('API Response:', response.data);
-    }
-    
+    // Log de la réponse pour le débogage
+    console.log('API Response:', response);
     return response;
   },
   (error) => {
-    // Gestion des erreurs globales
-    if (error.response) {
-      const { status, data } = error.response;
+    console.error('API Error:', error);
+    
+    // Gérer les erreurs d'authentification
+    if (error.response?.status === 401) {
+      const errorMessage = error.response?.data?.message || 'Non autorisé';
       
-      // Gestion des erreurs d'authentification et JWT malformé
-      if (status === 401 || data?.message === 'jwt malformed' || data?.message === 'jwt expired') {
-        console.warn('Token invalide ou expiré:', data?.message || 'Erreur 401');
+      // Vérifier si c'est une erreur de token spécifique
+      if (errorMessage.includes('jwt malformed') || errorMessage.includes('jwt expired')) {
+        console.warn('Token JWT invalide ou expiré, déconnexion...');
+        localStorage.removeItem('harvests_token');
+        localStorage.removeItem('harvests_user');
+        localStorage.removeItem('harvests_auth_data');
         
-        // Ne pas nettoyer automatiquement ni rediriger si c'est un appel de vérification en arrière-plan
-        const isBackgroundCheck = error.config?.url?.includes('/users/me');
-        
-        if (!isBackgroundCheck) {
-          // Token expiré ou invalide pour une vraie requête utilisateur
-          localStorage.removeItem('harvests_token');
-          localStorage.removeItem('harvests_user');
-          localStorage.removeItem('harvests_auth_data');
-          
-          // Rediriger vers la page de connexion seulement si on n'y est pas déjà
-          if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
-            window.location.href = '/login';
-          }
+        // Rediriger vers la page de connexion seulement si ce n'est pas une vérification en arrière-plan
+        if (!error.config?.skipRedirect) {
+          window.location.href = '/login';
         }
+      } else {
+        console.warn('Token invalide ou expiré:', errorMessage);
       }
-      
-      // Gestion des erreurs de permission
-      if (status === 403) {
-        console.error('Access forbidden:', data.message);
-      }
-      
-      // Gestion des erreurs serveur
-      if (status >= 500) {
-        console.error('Server error:', data.message);
-      }
-      
-      // Loguer les erreurs en mode développement
-      if (import.meta.env.DEV) {
-        console.error('API Error:', error.response);
-      }
-    } else if (error.request) {
-      // Erreur réseau
-      console.error('Network error:', error.message);
+    }
+    
+    // Gérer les erreurs de serveur
+    if (error.response?.status >= 500) {
+      console.error('Server error:', error.response?.data?.message || 'Erreur serveur');
     }
     
     return Promise.reject(error);
   }
 );
 
-// Fonctions utilitaires pour les requêtes
+// Fonction utilitaire pour les requêtes API
 export const apiRequest = {
   get: (url, config = {}) => api.get(url, config),
-  post: (url, data = {}, config = {}) => api.post(url, data, config),
-  put: (url, data = {}, config = {}) => api.put(url, data, config),
-  patch: (url, data = {}, config = {}) => api.patch(url, data, config),
-  delete: (url, config = {}) => api.delete(url, config),
+  post: (url, data, config = {}) => api.post(url, data, config),
+  put: (url, data, config = {}) => api.put(url, data, config),
+  patch: (url, data, config = {}) => api.patch(url, data, config),
+  delete: (url, config = {}) => api.delete(url, config)
 };
 
-// Services d'authentification
-export const authService = {
-  // Inscription
-  register: (userData) => apiRequest.post('/auth/signup', userData),
-  
-  // Connexion
-  login: (credentials) => apiRequest.post('/auth/login', credentials),
-  
-  // Déconnexion
-  logout: () => apiRequest.post('/auth/logout'),
-  
-  // Vérification email
-  verifyEmail: (token) => apiRequest.get(`/auth/verify-email/${token}`),
-  
-  // Renvoyer l'email de vérification
-  resendVerification: (email) => apiRequest.post('/auth/resend-verification', { email }),
-  
-  // Mot de passe oublié
-  forgotPassword: (email) => apiRequest.post('/auth/forgot-password', { email }),
-  
-  // Réinitialisation mot de passe
-  resetPassword: (token, password) => 
-    apiRequest.patch(`/auth/reset-password/${token}`, { password }),
-  
-  // Mise à jour mot de passe
-  updatePassword: (passwords) => apiRequest.patch('/auth/update-password', passwords),
-  
-  // Obtenir le profil utilisateur actuel
-  getProfile: () => apiRequest.get('/users/me'),
-  
-  // Mettre à jour le profil
-  updateProfile: (userData) => apiRequest.patch('/users/update-me', userData),
-};
-
-// Services consommateur
-export const consumerService = {
-  // Profil consommateur
-  getProfile: () => apiRequest.get('/consumers/me/profile'),
-  updateProfile: (profileData) => apiRequest.patch('/consumers/me/profile', profileData),
-  
-  // Préférences alimentaires
-  getDietaryPreferences: () => apiRequest.get('/consumers/me/dietary-preferences'),
-  updateDietaryPreferences: (preferences) => apiRequest.patch('/consumers/me/dietary-preferences', { dietaryPreferences: preferences }),
-  
-  // Allergies alimentaires
-  getAllergies: () => apiRequest.get('/consumers/me/allergies'),
-  addAllergy: (allergy) => apiRequest.post('/consumers/me/allergies', allergy),
-  updateAllergy: (allergyId, allergy) => apiRequest.patch(`/consumers/me/allergies/${allergyId}`, allergy),
-  removeAllergy: (allergyId) => apiRequest.delete(`/consumers/me/allergies/${allergyId}`),
-  
-  // Préférences d'achat
-  getShoppingPreferences: () => apiRequest.get('/consumers/me/profile'),
-  updateShoppingPreferences: (preferences) => apiRequest.patch('/consumers/me/profile', { shoppingPreferences: preferences }),
-  
-  // Préférences de communication/notifications
-  getNotificationPreferences: () => apiRequest.get('/consumers/me/communication-preferences'),
-  updateNotificationPreferences: (preferences) => apiRequest.patch('/consumers/me/communication-preferences', preferences),
-  
-  // Adresses de livraison
-  getDeliveryAddresses: () => apiRequest.get('/consumers/me/delivery-addresses'),
-  addDeliveryAddress: (address) => apiRequest.post('/consumers/me/delivery-addresses', address),
-  updateDeliveryAddress: (addressId, address) => apiRequest.patch(`/consumers/me/delivery-addresses/${addressId}`, address),
-  removeDeliveryAddress: (addressId) => apiRequest.delete(`/consumers/me/delivery-addresses/${addressId}`),
-  setDefaultAddress: (addressId) => apiRequest.post(`/consumers/me/delivery-addresses/${addressId}/default`),
-  
-  // Liste de souhaits (Wishlist/Favoris)
-  getWishlist: () => apiRequest.get('/consumers/me/wishlist'),
-  addToWishlist: (productId) => apiRequest.post('/consumers/me/wishlist', { productId }),
-  removeFromWishlist: (productId) => apiRequest.delete(`/consumers/me/wishlist/${productId}`),
-  toggleWishlistNotifications: (productId) => apiRequest.patch(`/consumers/me/wishlist/${productId}/notifications`),
-  
-  // Abonnements (Subscriptions)
-  getSubscriptions: () => apiRequest.get('/consumers/me/subscriptions'),
-  createSubscription: (subscriptionData) => apiRequest.post('/consumers/me/subscriptions', subscriptionData),
-  getSubscription: (subscriptionId) => apiRequest.get(`/consumers/me/subscriptions/${subscriptionId}`),
-  updateSubscription: (subscriptionId, subscriptionData) => apiRequest.patch(`/consumers/me/subscriptions/${subscriptionId}`, subscriptionData),
-  cancelSubscription: (subscriptionId) => apiRequest.delete(`/consumers/me/subscriptions/${subscriptionId}`),
-  pauseSubscription: (subscriptionId) => apiRequest.patch(`/consumers/me/subscriptions/${subscriptionId}/pause`),
-  resumeSubscription: (subscriptionId) => apiRequest.patch(`/consumers/me/subscriptions/${subscriptionId}/resume`),
-  
-  // Panier (Cart)
-  getCart: () => apiRequest.get('/consumers/me/cart'),
-  addToCart: (cartItem) => apiRequest.post('/consumers/me/cart', cartItem),
-  updateCartItem: (itemId, cartItem) => apiRequest.patch(`/consumers/me/cart/${itemId}`, cartItem),
-  removeFromCart: (itemId) => apiRequest.delete(`/consumers/me/cart/${itemId}`),
-  clearCart: () => apiRequest.delete('/consumers/me/cart'),
-  
-  // Commandes (Orders)
-  getMyOrders: () => apiRequest.get('/consumers/me/orders'),
-  createOrder: (orderData) => apiRequest.post('/consumers/me/orders', orderData),
-  getMyOrder: (orderId) => apiRequest.get(`/consumers/me/orders/${orderId}`),
-  cancelOrder: (orderId) => apiRequest.patch(`/consumers/me/orders/${orderId}`),
-  trackOrder: (orderId) => apiRequest.get(`/consumers/me/orders/${orderId}/tracking`),
-  
-  // Avis et évaluations (Reviews)
-  getMyReviews: () => apiRequest.get('/consumers/me/reviews'),
-  createReview: (reviewData) => apiRequest.post('/consumers/me/reviews', reviewData),
-  getMyReview: (reviewId) => apiRequest.get(`/consumers/me/reviews/${reviewId}`),
-  updateMyReview: (reviewId, reviewData) => apiRequest.patch(`/consumers/me/reviews/${reviewId}`, reviewData),
-  deleteMyReview: (reviewId) => apiRequest.delete(`/consumers/me/reviews/${reviewId}`),
-  
-  // Programme de fidélité (Loyalty)
-  getLoyaltyStatus: () => apiRequest.get('/consumers/me/loyalty'),
-  redeemLoyaltyPoints: (redemptionData) => apiRequest.post('/consumers/me/loyalty/redeem', redemptionData),
-  getLoyaltyHistory: () => apiRequest.get('/consumers/me/loyalty/history'),
-  
-  // Méthodes de paiement (Payment Methods)
-  getPaymentMethods: () => apiRequest.get('/consumers/me/payment-methods'),
-  addPaymentMethod: (paymentMethod) => apiRequest.post('/consumers/me/payment-methods', paymentMethod),
-  updatePaymentMethod: (methodId, paymentMethod) => apiRequest.patch(`/consumers/me/payment-methods/${methodId}`, paymentMethod),
-  removePaymentMethod: (methodId) => apiRequest.delete(`/consumers/me/payment-methods/${methodId}`),
-  setDefaultPaymentMethod: (methodId) => apiRequest.patch(`/consumers/me/payment-methods/${methodId}/default`),
-  
-  // Historique d'achat et recommandations
-  getPurchaseHistory: () => apiRequest.get('/consumers/me/purchase-history'),
-  getRecommendations: () => apiRequest.get('/consumers/me/recommendations'),
-  getFavoriteProducers: () => apiRequest.get('/consumers/me/favorite-producers'),
-  
-  // Statistiques personnelles
-  getMyStats: () => apiRequest.get('/consumers/me/stats'),
-  getSpendingAnalytics: () => apiRequest.get('/consumers/me/spending-analytics'),
-  
-  // Notifications
-  getNotifications: () => apiRequest.get('/consumers/me/notifications'),
-  markNotificationsAsRead: () => apiRequest.patch('/consumers/me/notifications'),
-  markNotificationAsRead: (notificationId) => apiRequest.patch(`/consumers/me/notifications/${notificationId}`),
-  deleteNotification: (notificationId) => apiRequest.delete(`/consumers/me/notifications/${notificationId}`),
-};
-
-// Services utilisateurs
-export const userService = {
-  // Obtenir tous les utilisateurs (admin)
-  getUsers: (params = {}) => apiRequest.get('/users', { params }),
-  
-  // Obtenir un utilisateur par ID
-  getUser: (id) => apiRequest.get(`/users/${id}`),
-  
-  // Mettre à jour un utilisateur
-  updateUser: (id, userData) => apiRequest.patch(`/users/${id}`, userData),
-  
-  // Supprimer un utilisateur
-  deleteUser: (id) => apiRequest.delete(`/users/${id}`),
-  
-  // Approuver un utilisateur
-  approveUser: (id) => apiRequest.patch(`/users/${id}/approve`),
-  
-  // Suspendre un utilisateur
-  suspendUser: (id) => apiRequest.patch(`/users/${id}/suspend`),
-};
-
-// Services produits
-export const productService = {
-  // Obtenir tous les produits
-  getProducts: (params = {}) => apiRequest.get('/products', { params }),
-  
-  // Obtenir un produit par ID
-  getProduct: (id) => apiRequest.get(`/products/${id}`),
-  
-  // Créer un nouveau produit
-  createProduct: (productData) => apiRequest.post('/products', productData),
-  
-  // Mettre à jour un produit
-  updateProduct: (id, productData) => apiRequest.patch(`/products/${id}`, productData),
-  
-  // Supprimer un produit
-  deleteProduct: (id) => apiRequest.delete(`/products/${id}`),
-  
-  // Rechercher des produits
-  searchProducts: (query, params = {}) => 
-    apiRequest.get('/products/search', { params: { q: query, ...params } }),
-  
-  // Obtenir les produits par catégorie
-  getProductsByCategory: (category, params = {}) =>
-    apiRequest.get(`/products/category/${category}`, { params }),
-  
-  // Obtenir les produits d'un producteur
-  getProductsByProducer: (producerId, params = {}) =>
-    apiRequest.get(`/products/producer/${producerId}`, { params }),
-  
-  // Obtenir les produits populaires
-  getFeaturedProducts: (params = {}) =>
-    apiRequest.get('/products/featured', { params }),
-};
-
-// Services commandes
-export const orderService = {
-  // Obtenir toutes les commandes
-  getOrders: (params = {}) => apiRequest.get('/orders', { params }),
-  
-  // Obtenir une commande par ID
-  getOrder: (id) => apiRequest.get(`/orders/${id}`),
-  
-  // Créer une nouvelle commande
-  createOrder: (orderData) => apiRequest.post('/orders', orderData),
-  
-  // Mettre à jour une commande
-  updateOrder: (id, orderData) => apiRequest.patch(`/orders/${id}`, orderData),
-  
-  // Annuler une commande
-  cancelOrder: (id) => apiRequest.patch(`/orders/${id}/cancel`),
-  
-  // Obtenir l'historique des commandes utilisateur
-  getMyOrders: (params = {}) => apiRequest.get('/orders/my-orders', { params }),
-  
-  // Suivre une commande
-  trackOrder: (id) => apiRequest.get(`/orders/${id}/track`),
-};
-
-// Services paiements
-export const paymentService = {
-  // Créer un paiement
-  createPayment: (paymentData) => apiRequest.post('/payments', paymentData),
-  
-  // Obtenir les détails d'un paiement
-  getPayment: (id) => apiRequest.get(`/payments/${id}`),
-  
-  // Obtenir l'historique des paiements
-  getPaymentHistory: (params = {}) => apiRequest.get('/payments/history', { params }),
-  
-  // Traitement paiement Stripe
-  processStripePayment: (paymentData) => 
-    apiRequest.post('/payments/stripe/process', paymentData),
-  
-  // Traitement paiement Wave Money
-  processWavePayment: (paymentData) => 
-    apiRequest.post('/payments/wave/process', paymentData),
-};
-
-// Services notifications
-export const notificationService = {
-  // Obtenir les notifications
-  getNotifications: (params = {}) => apiRequest.get('/notifications', { params }),
-  
-  // Marquer comme lu
-  markAsRead: (id) => apiRequest.patch(`/notifications/${id}/read`),
-  
-  // Marquer toutes comme lues
-  markAllAsRead: () => apiRequest.patch('/notifications/mark-all-read'),
-  
-  // Supprimer une notification
-  deleteNotification: (id) => apiRequest.delete(`/notifications/${id}`),
-  
-  // Obtenir le nombre de notifications non lues
-  getUnreadCount: () => apiRequest.get('/notifications/unread-count'),
-};
-
-// Services messages
-export const messageService = {
-  // Obtenir les conversations
-  getConversations: (params = {}) => apiRequest.get('/messages/conversations', { params }),
-  
-  // Obtenir les messages d'une conversation
-  getMessages: (conversationId, params = {}) => 
-    apiRequest.get(`/messages/conversations/${conversationId}`, { params }),
-  
-  // Envoyer un message
-  sendMessage: (messageData) => apiRequest.post('/messages', messageData),
-  
-  // Marquer les messages comme lus
-  markMessagesAsRead: (conversationId) => 
-    apiRequest.patch(`/messages/conversations/${conversationId}/read`),
-};
-
-// Services reviews
-export const reviewService = {
-  // Obtenir les avis d'un produit
-  getProductReviews: (productId, params = {}) =>
-    apiRequest.get(`/reviews/product/${productId}`, { params }),
-  
-  // Créer un avis
-  createReview: (reviewData) => apiRequest.post('/reviews', reviewData),
-  
-  // Mettre à jour un avis
-  updateReview: (id, reviewData) => apiRequest.patch(`/reviews/${id}`, reviewData),
-  
-  // Supprimer un avis
-  deleteReview: (id) => apiRequest.delete(`/reviews/${id}`),
-  
-  // Obtenir mes avis
-  getMyReviews: (params = {}) => apiRequest.get('/reviews/my-reviews', { params }),
-};
-
-// Service de santé de l'API
-export const healthService = {
-  // Vérifier l'état de l'API
-  checkHealth: () => apiRequest.get('/health'),
-};
-
+// Export de l'instance API par défaut
 export default api;

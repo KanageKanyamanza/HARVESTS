@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
-import { consumerService } from '../../../services/api';
+import { consumerService } from '../../../services';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import {
   FiSearch,

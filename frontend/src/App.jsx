@@ -37,10 +37,10 @@ const VerifyEmail = React.lazy(() => import('./pages/auth/VerifyEmail'));
 
 // Dashboard Pages
 const Dashboard = React.lazy(() => import('./pages/dashboard/Dashboard'));
-const Profile = React.lazy(() => import('./pages/dashboard/Profile'));
-const Orders = React.lazy(() => import('./pages/dashboard/Orders'));
-const Messages = React.lazy(() => import('./pages/dashboard/Messages'));
-const Settings = React.lazy(() => import('./pages/dashboard/Settings'));
+
+// Consumer Dashboard
+const ProfileConsumer = React.lazy(() => import('./pages/dashboard/consumer/ProfileConsumer'));
+const SettingsConsumer = React.lazy(() => import('./pages/dashboard/consumer/SettingsConsumer'));
 const Favorites = React.lazy(() => import('./pages/dashboard/consumer/Favorites'));
 const Subscriptions = React.lazy(() => import('./pages/dashboard/consumer/Subscriptions'));
 const Reviews = React.lazy(() => import('./pages/dashboard/consumer/Reviews'));
@@ -48,10 +48,17 @@ const Loyalty = React.lazy(() => import('./pages/dashboard/consumer/Loyalty'));
 const Stats = React.lazy(() => import('./pages/dashboard/consumer/Stats'));
 
 // Producer Dashboard
+const ProfileProducer = React.lazy(() => import('./pages/dashboard/producer/ProfileProducer'));
+const SettingsProducer = React.lazy(() => import('./pages/dashboard/producer/SettingsProducer'));
 const ProducerDashboard = React.lazy(() => import('./pages/dashboard/producer/ProducerDashboard'));
 const MyProducts = React.lazy(() => import('./pages/dashboard/producer/MyProducts'));
 const AddProduct = React.lazy(() => import('./pages/dashboard/producer/AddProduct'));
 const EditProduct = React.lazy(() => import('./pages/dashboard/producer/EditProduct'));
+const ProducerOrders = React.lazy(() => import('./pages/dashboard/producer/Orders'));
+const ProducerStats = React.lazy(() => import('./pages/dashboard/producer/Stats'));
+const Certifications = React.lazy(() => import('./pages/dashboard/producer/Certifications'));
+const Transporters = React.lazy(() => import('./pages/dashboard/producer/Transporters'));
+const Documents = React.lazy(() => import('./pages/dashboard/producer/Documents'));
 
 // Consumer Dashboard  
 const ConsumerDashboard = React.lazy(() => import('./pages/dashboard/consumer/ConsumerDashboard'));
@@ -232,31 +239,33 @@ function App() {
                   </ProtectedRoute>
                 } />
                 
-                <Route path="/profile" element={
+
+                {/* Routes spécifiques Consommateur */}
+                <Route path="/consumer/profile" element={
                   <ProtectedRoute>
-                    <Profile />
+                    <ProfileConsumer />
                   </ProtectedRoute>
                 } />
                 
-                <Route path="/orders" element={
+                <Route path="/consumer/settings" element={
                   <ProtectedRoute>
-                    <Orders />
-                  </ProtectedRoute>
-                } />
-                
-                <Route path="/messages" element={
-                  <ProtectedRoute>
-                    <Messages />
-                  </ProtectedRoute>
-                } />
-                
-                <Route path="/settings" element={
-                  <ProtectedRoute>
-                    <Settings />
+                    <SettingsConsumer />
                   </ProtectedRoute>
                 } />
 
-                {/* Routes spécifiques Producteur (sans Layout classique) */}
+                {/* Routes spécifiques Producteur */}
+                <Route path="/producer/profile" element={
+                  <ProtectedRoute>
+                    <ProfileProducer />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/producer/settings" element={
+                  <ProtectedRoute>
+                    <SettingsProducer />
+                  </ProtectedRoute>
+                } />
+
                 <Route path="/producer/dashboard" element={
                   <ProtectedRoute>
                     <ProducerDashboard />
@@ -278,6 +287,36 @@ function App() {
                 <Route path="/producer/products/edit/:id" element={
                   <ProtectedRoute>
                     <EditProduct />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/producer/orders" element={
+                  <ProtectedRoute>
+                    <ProducerOrders />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/producer/stats" element={
+                  <ProtectedRoute>
+                    <ProducerStats />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/producer/certifications" element={
+                  <ProtectedRoute>
+                    <Certifications />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/producer/transporters" element={
+                  <ProtectedRoute>
+                    <Transporters />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/producer/documents" element={
+                  <ProtectedRoute>
+                    <Documents />
                   </ProtectedRoute>
                 } />
 

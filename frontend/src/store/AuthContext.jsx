@@ -1,5 +1,5 @@
 import React, { createContext, useReducer, useEffect } from 'react';
-import { authService } from '../services/api';
+import { authService, consumerService, producerService } from '../services';
 import { getDefaultRoute, hasPermission, canAccessRoute } from '../utils/authUtils';
 import { initialState, AUTH_ACTIONS } from './authTypes';
 import { authReducer } from './authReducer';
@@ -115,7 +115,18 @@ export const AuthProvider = ({ children }) => {
   // Fonction de mise à jour du profil
   const updateProfile = async (userData) => {
     try {
-      const response = await authService.updateProfile(userData);
+      let response;
+      
+      // Utiliser le bon service selon le type d'utilisateur
+      if (state.user?.userType === 'consumer') {
+        response = await consumerService.updateProfile(userData);
+      } else if (state.user?.userType === 'producer') {
+        response = await producerService.updateProfile(userData);
+      } else {
+        // Fallback vers le service générique
+        response = await authService.updateProfile(userData);
+      }
+      
       const updatedUser = response.data.data.user;
 
       // Mettre à jour localStorage

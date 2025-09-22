@@ -5,11 +5,13 @@ const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../mi
 
 const router = express.Router();
 
-// Routes publiques pour recherche de producteurs
+// Routes publiques pour recherche de producteurs (doivent être AVANT /:id)
 router.get('/', producerController.getAllProducers);
 router.get('/search', producerController.searchProducers);
 router.get('/by-region/:region', producerController.getProducersByRegion);
 router.get('/by-crop/:crop', producerController.getProducersByCrop);
+
+// Routes publiques pour un producteur spécifique (doivent être APRÈS les routes spécifiques)
 router.get('/:id', producerController.getProducer);
 router.get('/:id/products', producerController.getProducerProducts);
 router.get('/:id/reviews', producerController.getProducerReviews);
@@ -20,6 +22,8 @@ router.use(authController.protect);
 // Routes pour les producteurs seulement
 router.use(authController.restrictTo('producer'));
 router.use(authController.requireVerification);
+
+// Routes protégées pour les producteurs connectés (doivent être AVANT les routes /:id)
 
 // Gestion du profil producteur
 router.get('/me/profile', producerController.getMyProfile);
@@ -64,6 +68,7 @@ router.route('/me/products')
   .post(
     uploadLimiter,
     producerController.uploadProductImages,
+    producerController.processProductImages,
     fileTypeValidation(['image/jpeg', 'image/png', 'image/webp']),
     fileSizeValidation(5 * 1024 * 1024), // 5MB par image
     producerController.createProduct

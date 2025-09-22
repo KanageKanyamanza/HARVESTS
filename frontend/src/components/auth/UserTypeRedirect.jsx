@@ -41,6 +41,7 @@ const UserTypeRedirect = ({ children }) => {
           navigate(defaultRoute, { replace: true });
         }
       }
+
     }
   }, [isAuthenticated, userType, isLoading, location.pathname, navigate, getDefaultRoute]);
 

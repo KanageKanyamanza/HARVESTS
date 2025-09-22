@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import { useAuth } from '../../../hooks/useAuth';
-import { consumerService } from '../../../services/api';
+import { consumerService } from '../../../services';
 import { 
   FiGift, 
   FiStar, 

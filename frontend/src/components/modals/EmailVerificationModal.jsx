@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { authService } from '../../services/api';
+import { authService } from '../../services';
 import { FiMail, FiX, FiRefreshCw, FiCheck, FiAlertCircle } from 'react-icons/fi';
 
 const EmailVerificationModal = ({ isOpen, onClose, email, isRegistration = false }) => {
