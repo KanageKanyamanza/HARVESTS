@@ -13,7 +13,11 @@ import {
   FiX,
   FiMessageCircle,
   FiChevronLeft,
-  FiChevronRight
+  FiChevronRight,
+  FiRefreshCw,
+  FiStar,
+  FiTrendingUp,
+  FiGift
 } from 'react-icons/fi';
 
 const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse }) => {
@@ -28,6 +32,10 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse }
         { name: 'Mes commandes', href: '/order-history', icon: FiShoppingBag },
         { name: 'Panier', href: '/cart', icon: FiShoppingCart },
         { name: 'Favoris', href: '/favorites', icon: FiHeart },
+        { name: 'Abonnements', href: '/subscriptions', icon: FiRefreshCw },
+        { name: 'Mes avis', href: '/reviews', icon: FiStar },
+        { name: 'Fidélité', href: '/loyalty', icon: FiGift },
+        { name: 'Statistiques', href: '/stats', icon: FiTrendingUp },
         { name: 'Profil', href: '/profile', icon: FiUser },
         { name: 'Messages', href: '/messages', icon: FiMessageCircle },
         { name: 'Paramètres', href: '/settings', icon: FiSettings }

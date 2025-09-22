@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../../hooks/useAuth';
+import { consumerService } from '../../../services/api';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import {
   FiMinus,
@@ -15,72 +17,60 @@ import {
 } from 'react-icons/fi';
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: 'Tomates bio',
-      description: 'Tomates fraîches biologiques',
-      price: 1500,
-      quantity: 2,
-      unit: 'kg',
-      seller: {
-        name: 'Ferme Bio Kamdem',
-        location: 'Yaoundé',
-        rating: 4.8
-      },
-      availability: 'in-stock',
-      deliveryTime: '2-3 jours'
-    },
-    {
-      id: 2,
-      name: 'Carottes',
-      description: 'Carottes fraîches du jardin',
-      price: 1000,
-      quantity: 1,
-      unit: 'kg',
-      seller: {
-        name: 'Ferme Bio Kamdem',
-        location: 'Yaoundé',
-        rating: 4.8
-      },
-      availability: 'in-stock',
-      deliveryTime: '2-3 jours'
-    },
-    {
-      id: 3,
-      name: 'Bananes plantain',
-      description: 'Bananes plantain mûres',
-      price: 500,
-      quantity: 5,
-      unit: 'pièce',
-      seller: {
-        name: 'Tropical Fruits Co',
-        location: 'Douala',
-        rating: 4.5
-      },
-      availability: 'low-stock',
-      deliveryTime: '1-2 jours'
-    }
-  ]);
-
+  const { user } = useAuth();
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [promoCode, setPromoCode] = useState('');
   const [appliedPromo, setAppliedPromo] = useState(null);
 
-  const updateQuantity = (id, newQuantity) => {
+  // Charger le panier
+  useEffect(() => {
+    const loadCart = async () => {
+      if (user?.userType === 'consumer') {
+        try {
+          setLoading(true);
+          const response = await consumerService.getCart();
+          console.log('📡 Réponse API Cart:', response);
+          setCartItems(response.data.cart?.items || []);
+        } catch (error) {
+          console.error('Erreur lors du chargement du panier:', error);
+          setCartItems([]);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadCart();
+  }, [user]);
+
+  const updateQuantity = async (id, newQuantity) => {
     if (newQuantity < 1) {
       removeItem(id);
       return;
     }
     
-    setCartItems(items =>
-      items.map(item =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    );
+    try {
+      console.log('🔄 Update quantity:', id, newQuantity);
+      await consumerService.updateCartItem(id, { quantity: newQuantity });
+      setCartItems(items =>
+        items.map(item =>
+          item.id === id ? { ...item, quantity: newQuantity } : item
+        )
+      );
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de la quantité:', error);
+    }
   };
 
-  const removeItem = (id) => {
-    setCartItems(items => items.filter(item => item.id !== id));
+  const removeItem = async (id) => {
+    try {
+      console.log('🗑️ Remove item:', id);
+      await consumerService.removeFromCart(id);
+      setCartItems(items => items.filter(item => item.id !== id));
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+    }
   };
 
   const applyPromoCode = () => {
@@ -122,6 +112,33 @@ const Cart = () => {
       </span>
     );
   };
+
+  if (loading) {
+    return (
+      <ModularDashboardLayout>
+        <div className="p-6 max-w-7xl mx-auto pb-20">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+            <div className="space-y-4">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="bg-white rounded-lg shadow p-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="h-20 w-20 bg-gray-200 rounded"></div>
+                    <div className="flex-1">
+                      <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-2/3 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </ModularDashboardLayout>
+    );
+  }
 
   if (cartItems.length === 0) {
     return (

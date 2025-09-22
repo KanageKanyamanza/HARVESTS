@@ -155,13 +155,92 @@ export const consumerService = {
   updateProfile: (profileData) => apiRequest.patch('/consumers/me/profile', profileData),
   
   // Préférences alimentaires
+  getDietaryPreferences: () => apiRequest.get('/consumers/me/dietary-preferences'),
   updateDietaryPreferences: (preferences) => apiRequest.patch('/consumers/me/dietary-preferences', { dietaryPreferences: preferences }),
   
-  // Préférences d'achat et notifications (via updateProfile)
+  // Allergies alimentaires
+  getAllergies: () => apiRequest.get('/consumers/me/allergies'),
+  addAllergy: (allergy) => apiRequest.post('/consumers/me/allergies', allergy),
+  updateAllergy: (allergyId, allergy) => apiRequest.patch(`/consumers/me/allergies/${allergyId}`, allergy),
+  removeAllergy: (allergyId) => apiRequest.delete(`/consumers/me/allergies/${allergyId}`),
+  
+  // Préférences d'achat
+  getShoppingPreferences: () => apiRequest.get('/consumers/me/profile'),
   updateShoppingPreferences: (preferences) => apiRequest.patch('/consumers/me/profile', { shoppingPreferences: preferences }),
   
   // Préférences de communication/notifications
+  getNotificationPreferences: () => apiRequest.get('/consumers/me/communication-preferences'),
   updateNotificationPreferences: (preferences) => apiRequest.patch('/consumers/me/communication-preferences', preferences),
+  
+  // Adresses de livraison
+  getDeliveryAddresses: () => apiRequest.get('/consumers/me/delivery-addresses'),
+  addDeliveryAddress: (address) => apiRequest.post('/consumers/me/delivery-addresses', address),
+  updateDeliveryAddress: (addressId, address) => apiRequest.patch(`/consumers/me/delivery-addresses/${addressId}`, address),
+  removeDeliveryAddress: (addressId) => apiRequest.delete(`/consumers/me/delivery-addresses/${addressId}`),
+  setDefaultAddress: (addressId) => apiRequest.post(`/consumers/me/delivery-addresses/${addressId}/default`),
+  
+  // Liste de souhaits (Wishlist/Favoris)
+  getWishlist: () => apiRequest.get('/consumers/me/wishlist'),
+  addToWishlist: (productId) => apiRequest.post('/consumers/me/wishlist', { productId }),
+  removeFromWishlist: (productId) => apiRequest.delete(`/consumers/me/wishlist/${productId}`),
+  toggleWishlistNotifications: (productId) => apiRequest.patch(`/consumers/me/wishlist/${productId}/notifications`),
+  
+  // Abonnements (Subscriptions)
+  getSubscriptions: () => apiRequest.get('/consumers/me/subscriptions'),
+  createSubscription: (subscriptionData) => apiRequest.post('/consumers/me/subscriptions', subscriptionData),
+  getSubscription: (subscriptionId) => apiRequest.get(`/consumers/me/subscriptions/${subscriptionId}`),
+  updateSubscription: (subscriptionId, subscriptionData) => apiRequest.patch(`/consumers/me/subscriptions/${subscriptionId}`, subscriptionData),
+  cancelSubscription: (subscriptionId) => apiRequest.delete(`/consumers/me/subscriptions/${subscriptionId}`),
+  pauseSubscription: (subscriptionId) => apiRequest.patch(`/consumers/me/subscriptions/${subscriptionId}/pause`),
+  resumeSubscription: (subscriptionId) => apiRequest.patch(`/consumers/me/subscriptions/${subscriptionId}/resume`),
+  
+  // Panier (Cart)
+  getCart: () => apiRequest.get('/consumers/me/cart'),
+  addToCart: (cartItem) => apiRequest.post('/consumers/me/cart', cartItem),
+  updateCartItem: (itemId, cartItem) => apiRequest.patch(`/consumers/me/cart/${itemId}`, cartItem),
+  removeFromCart: (itemId) => apiRequest.delete(`/consumers/me/cart/${itemId}`),
+  clearCart: () => apiRequest.delete('/consumers/me/cart'),
+  
+  // Commandes (Orders)
+  getMyOrders: () => apiRequest.get('/consumers/me/orders'),
+  createOrder: (orderData) => apiRequest.post('/consumers/me/orders', orderData),
+  getMyOrder: (orderId) => apiRequest.get(`/consumers/me/orders/${orderId}`),
+  cancelOrder: (orderId) => apiRequest.patch(`/consumers/me/orders/${orderId}`),
+  trackOrder: (orderId) => apiRequest.get(`/consumers/me/orders/${orderId}/tracking`),
+  
+  // Avis et évaluations (Reviews)
+  getMyReviews: () => apiRequest.get('/consumers/me/reviews'),
+  createReview: (reviewData) => apiRequest.post('/consumers/me/reviews', reviewData),
+  getMyReview: (reviewId) => apiRequest.get(`/consumers/me/reviews/${reviewId}`),
+  updateMyReview: (reviewId, reviewData) => apiRequest.patch(`/consumers/me/reviews/${reviewId}`, reviewData),
+  deleteMyReview: (reviewId) => apiRequest.delete(`/consumers/me/reviews/${reviewId}`),
+  
+  // Programme de fidélité (Loyalty)
+  getLoyaltyStatus: () => apiRequest.get('/consumers/me/loyalty'),
+  redeemLoyaltyPoints: (redemptionData) => apiRequest.post('/consumers/me/loyalty/redeem', redemptionData),
+  getLoyaltyHistory: () => apiRequest.get('/consumers/me/loyalty/history'),
+  
+  // Méthodes de paiement (Payment Methods)
+  getPaymentMethods: () => apiRequest.get('/consumers/me/payment-methods'),
+  addPaymentMethod: (paymentMethod) => apiRequest.post('/consumers/me/payment-methods', paymentMethod),
+  updatePaymentMethod: (methodId, paymentMethod) => apiRequest.patch(`/consumers/me/payment-methods/${methodId}`, paymentMethod),
+  removePaymentMethod: (methodId) => apiRequest.delete(`/consumers/me/payment-methods/${methodId}`),
+  setDefaultPaymentMethod: (methodId) => apiRequest.patch(`/consumers/me/payment-methods/${methodId}/default`),
+  
+  // Historique d'achat et recommandations
+  getPurchaseHistory: () => apiRequest.get('/consumers/me/purchase-history'),
+  getRecommendations: () => apiRequest.get('/consumers/me/recommendations'),
+  getFavoriteProducers: () => apiRequest.get('/consumers/me/favorite-producers'),
+  
+  // Statistiques personnelles
+  getMyStats: () => apiRequest.get('/consumers/me/stats'),
+  getSpendingAnalytics: () => apiRequest.get('/consumers/me/spending-analytics'),
+  
+  // Notifications
+  getNotifications: () => apiRequest.get('/consumers/me/notifications'),
+  markNotificationsAsRead: () => apiRequest.patch('/consumers/me/notifications'),
+  markNotificationAsRead: (notificationId) => apiRequest.patch(`/consumers/me/notifications/${notificationId}`),
+  deleteNotification: (notificationId) => apiRequest.delete(`/consumers/me/notifications/${notificationId}`),
 };
 
 // Services utilisateurs

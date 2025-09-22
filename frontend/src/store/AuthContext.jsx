@@ -1,6 +1,5 @@
 import React, { createContext, useReducer, useEffect } from 'react';
 import { authService } from '../services/api';
-import { isValidToken } from '../utils/tokenValidation';
 import { getDefaultRoute, hasPermission, canAccessRoute } from '../utils/authUtils';
 import { initialState, AUTH_ACTIONS } from './authTypes';
 import { authReducer } from './authReducer';
@@ -134,8 +133,8 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Fonction simplifiée pour restaurer la session (SANS vérification API)
-  const restoreSession = () => {
+  // Fonction pour restaurer la session et recharger les données complètes
+  const restoreSession = async () => {
     try {
       const token = localStorage.getItem('harvests_token');
       const userStr = localStorage.getItem('harvests_user');
@@ -152,7 +151,7 @@ export const AuthProvider = ({ children }) => {
           console.warn('Erreur parsing auth data:', parseError);
         }
 
-        // Restaurer la session avec les données locales UNIQUEMENT
+        // Restaurer la session avec les données locales
         dispatch({
           type: AUTH_ACTIONS.RESTORE_SESSION,
           payload: { 
@@ -162,6 +161,26 @@ export const AuthProvider = ({ children }) => {
             tokenExpiry: authData?.tokenExpiry
           },
         });
+
+        // Recharger les données complètes depuis l'API
+        try {
+          const response = await authService.getProfile();
+          if (response.success) {
+            const updatedUser = response.data.user;
+            
+            // Mettre à jour le localStorage avec les données complètes
+            saveAuthData(updatedUser, token);
+            
+            // Mettre à jour le contexte avec les données complètes
+            dispatch({
+              type: AUTH_ACTIONS.UPDATE_PROFILE,
+              payload: updatedUser,
+            });
+          }
+        } catch (apiError) {
+          console.warn('Impossible de recharger les données depuis l\'API:', apiError);
+          // Continuer avec les données locales si l'API échoue
+        }
 
         // Session restaurée avec succès
       } else {
@@ -244,7 +263,10 @@ export const AuthProvider = ({ children }) => {
 
   // Restaurer la session au chargement
   useEffect(() => {
-    restoreSession();
+    const initializeSession = async () => {
+      await restoreSession();
+    };
+    initializeSession();
   }, []);
 
   // Surveiller l'activité utilisateur et la gestion du token

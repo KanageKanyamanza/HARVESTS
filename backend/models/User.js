@@ -25,6 +25,11 @@ const baseUserSchema = new mongoose.Schema({
     select: false // N'inclut pas le mot de passe dans les requêtes par défaut
   },
   
+  passwordChangedAt: {
+    type: Date,
+    select: false
+  },
+  
   userType: {
     type: String,
     required: [true, 'Type d\'utilisateur requis'],
@@ -175,6 +180,12 @@ baseUserSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   
   this.password = await bcrypt.hash(this.password, 12);
+  
+  // Mettre à jour passwordChangedAt si ce n'est pas un nouveau document
+  if (!this.isNew) {
+    this.passwordChangedAt = Date.now() - 1000; // Soustraire 1 seconde pour s'assurer que le token est valide
+  }
+  
   next();
 });
 
@@ -248,6 +259,15 @@ baseUserSchema.methods.resetLoginAttempts = function() {
       accountLockedUntil: 1
     }
   });
+};
+
+// Méthode pour vérifier si le mot de passe a été changé après l'émission du token
+baseUserSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
+    return JWTTimestamp < changedTimestamp;
+  }
+  return false;
 };
 
 // Transformation JSON pour masquer les champs sensibles

@@ -41,6 +41,11 @@ const Profile = React.lazy(() => import('./pages/dashboard/Profile'));
 const Orders = React.lazy(() => import('./pages/dashboard/Orders'));
 const Messages = React.lazy(() => import('./pages/dashboard/Messages'));
 const Settings = React.lazy(() => import('./pages/dashboard/Settings'));
+const Favorites = React.lazy(() => import('./pages/dashboard/consumer/Favorites'));
+const Subscriptions = React.lazy(() => import('./pages/dashboard/consumer/Subscriptions'));
+const Reviews = React.lazy(() => import('./pages/dashboard/consumer/Reviews'));
+const Loyalty = React.lazy(() => import('./pages/dashboard/consumer/Loyalty'));
+const Stats = React.lazy(() => import('./pages/dashboard/consumer/Stats'));
 
 // Producer Dashboard
 const ProducerDashboard = React.lazy(() => import('./pages/dashboard/producer/ProducerDashboard'));
@@ -298,6 +303,36 @@ function App() {
                 <Route path="/order-history" element={
                   <ProtectedRoute>
                     <OrderHistory />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/favorites" element={
+                  <ProtectedRoute>
+                    <Favorites />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/subscriptions" element={
+                  <ProtectedRoute>
+                    <Subscriptions />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/reviews" element={
+                  <ProtectedRoute>
+                    <Reviews />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/loyalty" element={
+                  <ProtectedRoute>
+                    <Loyalty />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/stats" element={
+                  <ProtectedRoute>
+                    <Stats />
                   </ProtectedRoute>
                 } />
 

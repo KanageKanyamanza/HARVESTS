@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../../hooks/useAuth';
+import { consumerService } from '../../../services/api';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import {
   FiSearch,
@@ -15,37 +17,35 @@ import {
 } from 'react-icons/fi';
 
 const OrderHistory = () => {
+  const { user } = useAuth();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  // Données simulées
-  const orders = [
-    {
-      id: 'ORD-001',
-      orderNumber: 'HRV-2024-001',
-      date: '2024-01-15',
-      status: 'delivered',
-      total: 25000,
-      items: [
-        { name: 'Tomates bio', quantity: 2, price: 3000 },
-        { name: 'Carottes', quantity: 1, price: 2000 }
-      ],
-      seller: { name: 'Ferme Bio Kamdem', rating: 4.8 },
-      deliveryAddress: 'Yaoundé, Cameroun'
-    },
-    {
-      id: 'ORD-002',
-      orderNumber: 'HRV-2024-002',
-      date: '2024-01-12',
-      status: 'in-transit',
-      total: 18500,
-      items: [
-        { name: 'Bananes plantain', quantity: 5, price: 1500 }
-      ],
-      seller: { name: 'Agro-Fresh SARL', rating: 4.5 },
-      deliveryAddress: 'Douala, Cameroun'
-    }
-  ];
+  // Charger les commandes
+  useEffect(() => {
+    const loadOrders = async () => {
+      if (user?.userType === 'consumer') {
+        try {
+          setLoading(true);
+          const response = await consumerService.getMyOrders();
+          console.log('📡 Réponse API Orders:', response);
+          const ordersData = response.data.orders || response.data || [];
+          console.log('📦 Données brutes des commandes:', ordersData);
+          setOrders(ordersData);
+        } catch (error) {
+          console.error('Erreur lors du chargement des commandes:', error);
+          setOrders([]);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadOrders();
+  }, [user]);
+
 
   const getStatusConfig = (status) => {
     const configs = {
@@ -57,11 +57,35 @@ const OrderHistory = () => {
     return configs[status] || configs['pending'];
   };
 
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+  const filteredOrders = (Array.isArray(orders) ? orders : []).filter(order => {
+    const orderNumber = order.orderNumber || order.id || order._id || '';
+    const orderStatus = order.status || 'pending';
+    const matchesSearch = orderNumber.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || orderStatus === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  if (loading) {
+    return (
+      <ModularDashboardLayout>
+        <div className="p-6 max-w-7xl mx-auto pb-20">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+            <div className="space-y-4">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="bg-white rounded-lg shadow p-6">
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-2/3 mb-4"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </ModularDashboardLayout>
+    );
+  }
 
   return (
     <ModularDashboardLayout>
@@ -143,15 +167,15 @@ const OrderHistory = () => {
                       <div className="flex items-center space-x-4">
                         <div>
                           <h3 className="text-lg font-semibold text-gray-900">
-                            {order.orderNumber}
+                            {order.orderNumber || order.id || order._id || 'N/A'}
                           </h3>
                           <p className="text-sm text-gray-600">
-                            {order.date} • {order.seller.name}
+                            {order.date || order.createdAt || 'N/A'} • {order.seller?.name || order.producer?.name || 'N/A'}
                           </p>
                         </div>
                         <div className="flex items-center">
                           <FiStar className="h-4 w-4 text-yellow-400 mr-1" />
-                          <span className="text-sm text-gray-600">{order.seller.rating}</span>
+                          <span className="text-sm text-gray-600">{order.seller?.rating || order.producer?.rating || 'N/A'}</span>
                         </div>
                       </div>
                       <div className="mt-4 sm:mt-0 flex items-center space-x-4">
@@ -160,7 +184,7 @@ const OrderHistory = () => {
                           {statusConfig.text}
                         </span>
                         <span className="text-lg font-bold text-gray-900">
-                          {order.total.toLocaleString()} FCFA
+                          {(order.total || order.amount || 0).toLocaleString()} FCFA
                         </span>
                       </div>
                     </div>

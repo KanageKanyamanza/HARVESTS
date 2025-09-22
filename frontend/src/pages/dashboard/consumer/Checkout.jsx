@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../hooks/useAuth';
+import { consumerService } from '../../../services/api';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import {
   FiMapPin,
@@ -13,8 +15,12 @@ import {
 } from 'react-icons/fi';
 
 const Checkout = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [cartItems, setCartItems] = useState([]);
+  const [_deliveryAddresses, setDeliveryAddresses] = useState([]);
   const [formData, setFormData] = useState({
     delivery: {
       firstName: '',
@@ -30,11 +36,49 @@ const Checkout = () => {
     }
   });
 
-  const cartItems = [
-    { id: 1, name: 'Tomates bio', quantity: 2, price: 1500, unit: 'kg' },
-    { id: 2, name: 'Carottes', quantity: 1, price: 1000, unit: 'kg' }
-  ];
+  // Charger les données nécessaires
+  useEffect(() => {
+    const loadCheckoutData = async () => {
+      if (user?.userType === 'consumer') {
+        try {
+          setLoading(true);
+          const [cartResponse, addressesResponse] = await Promise.all([
+            consumerService.getCart(),
+            consumerService.getDeliveryAddresses()
+          ]);
 
+          console.log('📡 Réponse API Checkout Cart:', cartResponse);
+          console.log('📡 Réponse API Checkout Addresses:', addressesResponse);
+
+          setCartItems(cartResponse.data.cart?.items || []);
+          setDeliveryAddresses(addressesResponse.data.addresses || []);
+
+          // Pré-remplir avec les données utilisateur
+          if (user) {
+            setFormData(prev => ({
+              ...prev,
+              delivery: {
+                ...prev.delivery,
+                firstName: user.firstName || '',
+                lastName: user.lastName || '',
+                phone: user.phone || '',
+                city: user.address?.city || 'Yaoundé',
+                region: user.address?.region || 'Centre'
+              }
+            }));
+          }
+        } catch (error) {
+          console.error('Erreur lors du chargement des données de checkout:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadCheckoutData();
+  }, [user]);
+
+  // Calculer les totaux
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const deliveryFee = 2000;
   const total = subtotal + deliveryFee;
@@ -51,6 +95,26 @@ const Checkout = () => {
     { id: 2, title: 'Paiement', icon: FiCreditCard },
     { id: 3, title: 'Confirmation', icon: FiCheck }
   ];
+
+  if (loading) {
+    return (
+      <ModularDashboardLayout>
+        <div className="p-6 max-w-7xl mx-auto h-full pb-20">
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-8"></div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-6">
+                <div className="h-64 bg-gray-200 rounded"></div>
+                <div className="h-64 bg-gray-200 rounded"></div>
+              </div>
+              <div className="h-64 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </ModularDashboardLayout>
+    );
+  }
 
   return (
     <ModularDashboardLayout>

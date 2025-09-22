@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
+import { consumerService } from '../../../services/api';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import {
   FiShoppingBag,
@@ -18,35 +19,72 @@ import {
 
 const ConsumerDashboard = () => {
   const { user } = useAuth();
+  const [stats, setStats] = useState({
+    totalOrders: 0,
+    pendingOrders: 0,
+    totalSpent: 0,
+    loyaltyPoints: 0,
+    cartItems: 0,
+    favoriteProducts: 0
+  });
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Données simulées
-  const stats = {
-    totalOrders: 12,
-    pendingOrders: 2,
-    totalSpent: 245000,
-    loyaltyPoints: 1250,
-    cartItems: 3,
-    favoriteProducts: 15
-  };
+  // Charger les données du dashboard
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      if (user?.userType === 'consumer') {
+        try {
+          setLoading(true);
+          const [ordersResponse, loyaltyResponse, cartResponse, wishlistResponse, statsResponse] = await Promise.all([
+            consumerService.getMyOrders(),
+            consumerService.getLoyaltyStatus(),
+            consumerService.getCart(),
+            consumerService.getWishlist(),
+            consumerService.getMyStats()
+          ]);
 
-  const recentOrders = [
-    {
-      id: 'ORD-001',
-      date: '2024-01-15',
-      status: 'delivered',
-      total: 25000,
-      items: 3,
-      seller: 'Ferme Bio Kamdem'
-    },
-    {
-      id: 'ORD-002',
-      date: '2024-01-12',
-      status: 'in-transit',
-      total: 18500,
-      items: 2,
-      seller: 'Agro-Fresh SARL'
-    }
-  ];
+          console.log('📡 Réponse API Dashboard Orders:', ordersResponse);
+          console.log('📡 Réponse API Dashboard Loyalty:', loyaltyResponse);
+          console.log('📡 Réponse API Dashboard Cart:', cartResponse);
+          console.log('📡 Réponse API Dashboard Wishlist:', wishlistResponse);
+          console.log('📡 Réponse API Dashboard Stats:', statsResponse);
+
+          // Traiter les commandes
+          const orders = ordersResponse.data.orders || [];
+          const pendingOrders = orders.filter(order => order.status === 'pending' || order.status === 'processing').length;
+          const totalSpent = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+
+          // Traiter les données de fidélité
+          const loyaltyData = loyaltyResponse.data.loyaltyStatus || {};
+          
+          // Traiter le panier
+          const cartItems = cartResponse.data.cart?.items?.length || 0;
+          
+          // Traiter la wishlist
+          const favoriteProducts = wishlistResponse.data.wishlist?.length || 0;
+
+          setStats({
+            totalOrders: orders.length,
+            pendingOrders,
+            totalSpent,
+            loyaltyPoints: loyaltyData.points || 0,
+            cartItems,
+            favoriteProducts
+          });
+
+          setRecentOrders(orders.slice(0, 5)); // 5 dernières commandes
+
+        } catch (error) {
+          console.error('Erreur lors du chargement des données du dashboard:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadDashboardData();
+  }, [user]);
 
   const getStatusBadge = (status) => {
     const configs = {
@@ -65,6 +103,28 @@ const ConsumerDashboard = () => {
       </span>
     );
   };
+
+  if (loading) {
+    return (
+      <ModularDashboardLayout>
+        <div className="p-6 max-w-7xl mx-auto pb-20">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="bg-white rounded-lg shadow p-6">
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-8 bg-gray-200 rounded mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </ModularDashboardLayout>
+    );
+  }
 
   return (
     <ModularDashboardLayout>

@@ -19,7 +19,7 @@ import {
 } from 'react-icons/fi';
 
 const Settings = () => {
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -94,36 +94,68 @@ const Settings = () => {
     { id: 'security', label: 'Sécurité', icon: FiShield }
   ];
 
-  // Charger les données utilisateur au montage
+  // Charger les données utilisateur depuis l'API au montage
   useEffect(() => {
-    if (user) {
-      setProfileData({
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        email: user.email || '',
-        phone: user.phone || '',
-        preferredLanguage: user.preferredLanguage || 'fr',
-        country: user.country || 'CM'
-      });
-      
-      // Charger les données spécifiques au consommateur si disponibles
-      setDietaryPreferences(user.dietaryPreferences || []);
-      setAllergies(user.allergies || []);
-      setDeliveryAddresses(user.deliveryAddresses || []);
-      setShoppingPreferences(user.shoppingPreferences || {
-        preferredDeliveryTime: 'flexible',
-        maxDeliveryDistance: 25,
-        budgetRange: { min: 0, max: 100000, currency: 'XAF' },
-        preferredPaymentMethods: ['cash', 'mobile-money']
-      });
-      setNotifications(user.notifications || { email: true, sms: false, push: true });
-    }
+    const loadUserData = async () => {
+      if (user) {
+        try {
+          // Charger le profil complet depuis l'API
+          const profileResponse = await authService.getProfile();
+          if (profileResponse.data.status === 'success') {
+            const userData = profileResponse.data.data.user;
+            
+            setProfileData({
+              firstName: userData.firstName || '',
+              lastName: userData.lastName || '',
+              email: userData.email || '',
+              phone: userData.phone || '',
+              preferredLanguage: userData.preferredLanguage || 'fr',
+              country: userData.country || 'CM'
+            });
+            
+            // Charger les données spécifiques au consommateur depuis les données du profil
+            if (userData.userType === 'consumer') {
+              setDietaryPreferences(userData.dietaryPreferences || []);
+              setShoppingPreferences(userData.shoppingPreferences || {
+                preferredDeliveryTime: 'flexible',
+                maxDeliveryDistance: 25,
+                budgetRange: { min: 0, max: 100000, currency: 'XAF' },
+                preferredPaymentMethods: ['cash', 'mobile-money']
+              });
+              setNotifications(userData.notifications || { email: true, sms: false, push: true });
+              setAllergies(userData.allergies || []);
+              setDeliveryAddresses(userData.deliveryAddresses || []);
+            } else {
+              // Pour les autres types d'utilisateurs, utiliser les données de base
+              setNotifications(userData.notifications || { email: true, sms: false, push: true });
+            }
+          }
+        } catch (error) {
+          console.error('Erreur lors du chargement du profil:', error);
+          // Fallback sur les données du contexte en cas d'erreur
+          setProfileData({
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
+            email: user.email || '',
+            phone: user.phone || '',
+            preferredLanguage: user.preferredLanguage || 'fr',
+            country: user.country || 'SN'
+          });
+          setNotifications(user.notifications || { email: true, sms: false, push: true });
+        }
+      }
+    };
+
+    loadUserData();
   }, [user]);
+
+
 
   const showMessage = (type, text) => {
     setMessage({ type, text });
     setTimeout(() => setMessage({ type: '', text: '' }), 5000);
   };
+
 
   const handleSave = async () => {
     setLoading(true);
@@ -149,6 +181,61 @@ const Settings = () => {
 
         // Sauvegarder les préférences de communication
         await consumerService.updateNotificationPreferences(notifications);
+
+        // Sauvegarder les adresses de livraison
+        for (const address of deliveryAddresses) {
+          if (address.id && address.id > 1000000000000) { // ID généré localement (timestamp)
+            // Nouvelle adresse - l'ajouter (nettoyer l'ID local)
+            const cleanAddress = { ...address };
+            delete cleanAddress.id; // Supprimer l'ID local
+            await consumerService.addDeliveryAddress(cleanAddress);
+          } else if (address._id) {
+            // Adresse existante - la mettre à jour
+            const cleanAddress = { ...address };
+            delete cleanAddress.id; // Supprimer l'ID local s'il existe
+            await consumerService.updateDeliveryAddress(address._id, cleanAddress);
+          }
+        }
+      }
+
+      // Recharger toutes les données depuis l'API pour afficher les modifications
+      const profileResponse = await authService.getProfile();
+      if (profileResponse.data.status === 'success') {
+        const userData = profileResponse.data.data.user;
+        
+        // Mettre à jour le contexte d'authentification
+        await updateProfile({
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          email: userData.email,
+          phone: userData.phone,
+          preferredLanguage: userData.preferredLanguage,
+          country: userData.country,
+          notifications: userData.notifications
+        });
+
+        // Recharger les données spécifiques au consommateur
+        if (userData.userType === 'consumer') {
+          const dietaryResponse = await consumerService.getDietaryPreferences();
+          if (dietaryResponse.success) {
+            setDietaryPreferences(dietaryResponse.data.dietaryPreferences || []);
+          }
+
+          const shoppingResponse = await consumerService.getShoppingPreferences();
+          if (shoppingResponse.success) {
+            setShoppingPreferences(shoppingResponse.data.shoppingPreferences || {
+              preferredDeliveryTime: 'flexible',
+              maxDeliveryDistance: 25,
+              budgetRange: { min: 0, max: 100000, currency: 'XAF' },
+              preferredPaymentMethods: ['cash', 'mobile-money']
+            });
+          }
+
+          const notificationResponse = await consumerService.getNotificationPreferences();
+          if (notificationResponse.success) {
+            setNotifications(notificationResponse.data.preferences || { email: true, sms: false, push: true });
+          }
+        }
       }
 
       showMessage('success', 'Paramètres sauvegardés avec succès !');
@@ -166,7 +253,7 @@ const Settings = () => {
       street: '',
       city: '',
       region: '',
-      country: 'Cameroon',
+      country: profileData.country || 'SN', // Synchroniser avec le pays du profil
       postalCode: '',
       instructions: '',
       isDefault: deliveryAddresses.length === 0
@@ -671,6 +758,7 @@ const Settings = () => {
           <p className="text-gray-600 mt-1">Configurez vos préférences et paramètres de compte</p>
         </div>
 
+        
         {/* Message de feedback */}
         {message.text && (
           <div className={`mb-6 p-4 rounded-lg ${
@@ -685,14 +773,14 @@ const Settings = () => {
         <div className="bg-white rounded-lg shadow">
           {/* Navigation par onglets */}
           <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6" aria-label="Tabs">
+            <nav className="flex space-x-8 px-6 overflow-x-auto" aria-label="Tabs">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
+                    className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
                       activeTab === tab.id
                         ? 'border-harvests-green text-harvests-green'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
