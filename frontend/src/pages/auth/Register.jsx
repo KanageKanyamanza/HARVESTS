@@ -26,12 +26,12 @@ const Register = () => {
 
   // Types d'utilisateurs disponibles
   const userTypes = [
-    { value: 'consumer', label: '🛒 Consommateur', description: 'J\'achète des produits agricoles - Inscription simple' },
-    { value: 'producer', label: '🌾 Producteur', description: 'Je cultive et vends mes produits - Profil à compléter après inscription' },
-    { value: 'transformer', label: '🏭 Transformateur', description: 'Je transforme les produits - Profil professionnel à compléter' },
-    { value: 'restaurateur', label: '🍽️ Restaurateur', description: 'Je gère un restaurant - Informations business à ajouter' },
-    { value: 'exporter', label: '🚢 Exportateur', description: 'J\'exporte des produits - Certifications à ajouter' },
-    { value: 'transporter', label: '🚛 Transporteur', description: 'Je fournis des services de transport - Flotte à configurer' }
+    { value: 'consumer', label: '🛒 Consommateur', description: 'Achetez des produits frais directement des producteurs' },
+    { value: 'producer', label: '🌾 Producteur', description: 'Vendez vos produits agricoles sur notre plateforme' },
+    { value: 'transformer', label: '🏭 Transformateur', description: 'Transformez et commercialisez des produits agricoles' },
+    { value: 'restaurateur', label: '🍽️ Restaurateur', description: 'Commandez des ingrédients frais pour votre restaurant' },
+    { value: 'exporter', label: '🚢 Exportateur', description: 'Exportez des produits agricoles vers d\'autres pays' },
+    { value: 'transporter', label: '🚛 Transporteur', description: 'Transportez des produits agricoles en toute sécurité' }
   ];
   
   const [showPassword, setShowPassword] = useState(false);
@@ -120,11 +120,11 @@ const Register = () => {
     }
     
     if (!formData.phone.trim()) {
-      newErrors.phone = 'Le numéro de téléphone est requis';
+      newErrors.phone = 'Le téléphone est requis';
     }
     
     if (!formData.userType) {
-      newErrors.userType = 'Veuillez sélectionner un type de profil';
+      newErrors.userType = 'Le type d\'utilisateur est requis';
     }
     
     setErrors(newErrors);
@@ -175,7 +175,7 @@ const Register = () => {
         setErrors({ submit: result.error });
       }
     } catch {
-      setErrors({ submit: 'Une erreur est survenue lors de l\'inscription' });
+      setErrors({ submit: 'Erreur lors de l\'inscription' });
     }
   };
 
@@ -243,7 +243,7 @@ const Register = () => {
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleChange}
-                        placeholder="Prénom"
+                        placeholder="Votre prénom"
                         className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
                           errors.firstName ? 'border-red-300' : 'border-gray-300'
                         }`}
@@ -263,7 +263,7 @@ const Register = () => {
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleChange}
-                        placeholder="Nom"
+                        placeholder="Votre nom"
                         className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
                           errors.lastName ? 'border-red-300' : 'border-gray-300'
                         }`}
@@ -285,12 +285,12 @@ const Register = () => {
                       value={formData.firstName}
                       onChange={handleChange}
                       placeholder={
-                        formData.userType === 'producer' ? 'Nom de l\'exploitation' :
-                        formData.userType === 'transformer' ? 'Nom de l\'entreprise' :
-                        formData.userType === 'restaurateur' ? 'Nom du restaurant' :
-                        formData.userType === 'exporter' ? 'Nom de l\'entreprise' :
-                        formData.userType === 'transporter' ? 'Nom de la société' :
-                        'Nom'
+                        formData.userType === 'producer' ? 'Nom de votre ferme/exploitation' :
+                        formData.userType === 'transformer' ? 'Nom de votre entreprise' :
+                        formData.userType === 'restaurateur' ? 'Nom de votre restaurant' :
+                        formData.userType === 'exporter' ? 'Nom de votre entreprise' :
+                        formData.userType === 'transporter' ? 'Nom de votre entreprise' :
+                        'Votre nom'
                       }
                       className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
                         errors.firstName ? 'border-red-300' : 'border-gray-300'
@@ -312,7 +312,7 @@ const Register = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="Mail"
+                  placeholder="Votre email"
                   className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
                     errors.email ? 'border-red-300' : 'border-gray-300'
                   }`}
@@ -332,7 +332,7 @@ const Register = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="Mot de passe"
+                  placeholder="Votre mot de passe"
                   className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
                     errors.password ? 'border-red-300' : 'border-gray-300'
                   }`}
@@ -363,7 +363,7 @@ const Register = () => {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  placeholder="Confirmez Mot de passe"
+                  placeholder="Confirmez votre mot de passe"
                   className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
                     errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
                   }`}
@@ -394,7 +394,7 @@ const Register = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  placeholder="Numéro de téléphone"
+                  placeholder="Votre numéro de téléphone"
                   className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
                     errors.phone ? 'border-red-300' : 'border-gray-300'
                   }`}
@@ -422,7 +422,7 @@ const Register = () => {
                   <span className={formData.userType ? 'text-gray-900' : 'text-gray-500'}>
                     {formData.userType 
                       ? userTypes.find(type => type.value === formData.userType)?.label 
-                      : 'Sélectionnez votre profil'
+                      : 'Sélectionner un profil'
                     }
                   </span>
                   <ChevronUp className={`h-5 w-5 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
@@ -472,12 +472,12 @@ const Register = () => {
 
               {/* Lien de connexion */}
               <div className="text-center">
-                <Link 
-                  to="/login" 
-                  className="text-green-600 hover:text-green-700 text-sm underline"
-                >
-                  Or sign in
-                </Link>
+                  <Link 
+                    to="/login" 
+                    className="text-green-600 hover:text-green-700 text-sm underline"
+                  >
+                    Ou connectez-vous
+                  </Link>
               </div>
               </div>
 
@@ -492,7 +492,7 @@ const Register = () => {
                   className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                  Remember me
+                  Se souvenir de moi
                 </label>
               </div>
 
@@ -505,7 +505,7 @@ const Register = () => {
                 {isLoading ? (
                   <LoadingSpinner size="sm" />
                 ) : (
-                  'Sign up'
+                  "S'inscrire"
                 )}
               </button>
             </form>

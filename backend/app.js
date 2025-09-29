@@ -18,6 +18,9 @@ const {
 
 // Importation des routes
 const authRoutes = require('./routes/authRoutes');
+const adminAuthRoutes = require('./routes/adminAuthRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const adminManagementRoutes = require('./routes/adminManagementRoutes');
 const userRoutes = require('./routes/userRoutes');
 const producerRoutes = require('./routes/producerRoutes');
 const transformerRoutes = require('./routes/transformerRoutes');
@@ -142,6 +145,15 @@ app.get('/api/v1/health', (req, res) => {
 
 // Routes d'authentification
 app.use('/api/v1/auth', authRoutes);
+
+// Routes d'authentification admin
+app.use('/api/v1/admin/auth', adminAuthRoutes);
+
+// Routes admin
+app.use('/api/v1/admin', adminRoutes);
+
+// Routes de gestion des administrateurs
+app.use('/api/v1/admin-management', adminManagementRoutes);
 
 // Routes utilisateurs génériques
 app.use('/api/v1/users', userRoutes);

@@ -485,6 +485,7 @@ exports.getMyProducts = catchAsync(async (req, res, next) => {
   const skip = (page - 1) * limit;
 
   const products = await Product.find(queryObj)
+    .populate('producer', 'farmName firstName lastName address salesStats certifications businessName createdAt country')
     .sort('-createdAt')
     .skip(skip)
     .limit(limit);
@@ -531,7 +532,8 @@ exports.getMyProduct = catchAsync(async (req, res, next) => {
   const product = await Product.findOne({
     _id: req.params.productId,
     producer: req.user._id
-  });
+  })
+  .populate('producer', 'farmName firstName lastName address salesStats certifications businessName createdAt country');
 
   if (!product) {
     return next(new AppError('Produit non trouvé', 404));

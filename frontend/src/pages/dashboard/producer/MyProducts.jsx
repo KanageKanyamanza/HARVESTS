@@ -132,7 +132,7 @@ const MyProducts = () => {
 
         <div className="mb-6">
           <div className="bg-white rounded-lg shadow p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="relative">
                 <FiSearch className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <input
@@ -181,7 +181,7 @@ const MyProducts = () => {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProducts.map((product) => {
               const statusConfig = getStatusConfig(product.status);
               const StatusIcon = statusConfig.icon;

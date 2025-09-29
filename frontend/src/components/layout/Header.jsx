@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { 
   Menu, 
   X, 
@@ -8,34 +7,33 @@ import {
   ShoppingCart, 
   Bell, 
   User,
-  Globe,
   LogIn,
-  UserPlus,
   LogOut,
   Settings,
   Package,
-  MessageCircle
+  MessageCircle,
+  Shield
 } from 'lucide-react';
 
 import { useAuth } from '../../hooks/useAuth';
-import { changeLanguage, getCurrentLanguage, getLanguageInfo } from '../../utils/i18n';
+import { useCart } from '../../contexts/CartContext';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 const Header = () => {
-  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
+  const { totalItems } = useCart();
+  const { unreadCount } = useNotifications();
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fermer les menus au clic extérieur
   React.useEffect(() => {
     const handleClickOutside = () => {
       setIsProfileMenuOpen(false);
-      setIsLanguageMenuOpen(false);
     };
 
     document.addEventListener('click', handleClickOutside);
@@ -44,20 +42,29 @@ const Header = () => {
 
   // Navigation principale
   const mainNavigation = [
-    { name: t('navigation.home'), href: '/', current: location.pathname === '/' },
-    { name: t('navigation.products'), href: '/products', current: location.pathname === '/products' },
-    { name: t('navigation.categories'), href: '/categories', current: location.pathname === '/categories' },
-    { name: t('navigation.producers'), href: '/producers', current: location.pathname === '/producers' },
+    { name: 'Accueil', href: '/', current: location.pathname === '/' },
+    { name: 'Produits', href: '/products', current: location.pathname === '/products' },
+    { name: 'Catégories', href: '/categories', current: location.pathname === '/categories' },
+    { name: 'Producteurs', href: '/producers', current: location.pathname === '/producers' },
   ];
 
   // Navigation utilisateur connecté
   const userNavigation = [
-    { name: t('navigation.dashboard'), href: '/dashboard', icon: Package },
-    { name: t('navigation.orders'), href: '/orders', icon: Package },
-    { name: t('navigation.messages'), href: '/messages', icon: MessageCircle },
-    { name: t('navigation.profile'), href: '/profile', icon: User },
-    { name: t('navigation.settings'), href: '/settings', icon: Settings },
+    { name: 'Tableau de bord', href: '/dashboard', icon: Package },
+    { name: 'Commandes', href: '/orders', icon: Package },
+    { name: 'Messages', href: '/messages', icon: MessageCircle },
+    { name: 'Profil', href: '/profile', icon: User },
+    { name: 'Paramètres', href: '/settings', icon: Settings },
   ];
+
+  // Ajouter le lien admin si l'utilisateur est admin
+  if (user?.role === 'admin') {
+    userNavigation.unshift({ 
+      name: 'Administration', 
+      href: '/admin', 
+      icon: Shield 
+    });
+  }
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -72,13 +79,6 @@ const Header = () => {
     navigate('/');
   };
 
-  const handleLanguageChange = (lang) => {
-    changeLanguage(lang);
-    setIsLanguageMenuOpen(false);
-  };
-
-  const currentLanguage = getCurrentLanguage();
-  const languageInfo = getLanguageInfo(currentLanguage);
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
@@ -114,7 +114,7 @@ const Header = () => {
           </nav>
 
           {/* Barre de recherche - Desktop */}
-          <div className="hidden lg:block flex-1 max-w-lg mx-8">
+          <div className="hidden lg:block flex-1 max-w-[250px] ">
             <form onSubmit={handleSearch} className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search className="h-5 w-5 text-gray-400" />
@@ -124,74 +124,40 @@ const Header = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                placeholder={t('search.placeholder')}
+                placeholder="Rechercher..."
               />
             </form>
           </div>
 
           {/* Actions utilisateur */}
           <div className="flex items-center space-x-4">
-            {/* Sélecteur de langue */}
-            <div className="relative">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsLanguageMenuOpen(!isLanguageMenuOpen);
-                }}
-                className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors"
+            {/* Panier - visible pour tous sauf producteurs et admins connectés */}
+            {(!isAuthenticated || (user?.userType !== 'producer' && user?.userType !== 'admin')) && (
+              <Link
+                to="/cart"
+                className="text-gray-700 hover:text-primary-600 transition-colors relative"
+                title="Mon panier"
               >
-                <Globe className="h-5 w-5" />
-                <span className="text-sm font-medium">{languageInfo.flag}</span>
-              </button>
-
-              {isLanguageMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
-                  <div className="py-1">
-                    <button
-                      onClick={() => handleLanguageChange('fr')}
-                      className={`${
-                        currentLanguage === 'fr' ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
-                      } flex items-center px-4 py-2 text-sm w-full text-left hover:bg-gray-100`}
-                    >
-                      <span className="mr-3">🇫🇷</span>
-                      Français
-                    </button>
-                    <button
-                      onClick={() => handleLanguageChange('en')}
-                      className={`${
-                        currentLanguage === 'en' ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
-                      } flex items-center px-4 py-2 text-sm w-full text-left hover:bg-gray-100`}
-                    >
-                      <span className="mr-3">🇬🇧</span>
-                      English
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+                <ShoppingCart className="h-6 w-6" />
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary-500 text-white text-xs rounded-full flex items-center justify-center">
+                    {totalItems}
+                  </span>
+                )}
+              </Link>
+            )}
 
             {isAuthenticated ? (
               <>
                 {/* Notifications */}
                 <button className="text-gray-700 hover:text-primary-600 transition-colors relative">
                   <Bell className="h-6 w-6" />
-                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    3
-                  </span>
-                </button>
-
-                {/* Panier (pour les consommateurs) */}
-                {user?.userType === 'consumer' && (
-                  <Link
-                    to="/cart"
-                    className="text-gray-700 hover:text-primary-600 transition-colors relative"
-                  >
-                    <ShoppingCart className="h-6 w-6" />
-                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary-500 text-white text-xs rounded-full flex items-center justify-center">
-                      2
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                      {unreadCount}
                     </span>
-                  </Link>
-                )}
+                  )}
+                </button>
 
                 {/* Menu profil */}
                 <div className="relative">
@@ -203,9 +169,8 @@ const Header = () => {
                     className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors"
                   >
                     <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
-                      <span className="text-primary-600 font-medium text-sm">
-                        {user?.firstName?.[0]?.toUpperCase()}
-                      </span>
+                      
+                      <img src={user?.avatar} alt={user?.firstName} className="w-8 h-8 rounded-full object-cover" />
                     </div>
                     <span className="hidden md:block text-sm font-medium">
                       {user?.firstName}
@@ -235,7 +200,7 @@ const Header = () => {
                           className="flex items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50 w-full text-left"
                         >
                           <LogOut className="h-4 w-4 mr-3" />
-                          {t('navigation.logout')}
+                          Déconnexion
                         </button>
                       </div>
                     </div>
@@ -246,17 +211,10 @@ const Header = () => {
               <div className="hidden md:flex items-center space-x-4">
                 <Link
                   to="/login"
-                  className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors"
-                >
-                  <LogIn className="h-4 w-4" />
-                  <span className="text-sm font-medium">{t('navigation.login')}</span>
-                </Link>
-                <Link
-                  to="/register"
                   className="btn-primary btn-sm"
                 >
-                  <UserPlus className="h-4 w-4 mr-1" />
-                  {t('navigation.register')}
+                  <LogIn className="h-4 w-4 mr-1" />
+                  Connexion
                 </Link>
               </div>
             )}
@@ -290,7 +248,7 @@ const Header = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                    placeholder={t('search.placeholder')}
+                    placeholder="Rechercher..."
                   />
                 </div>
               </form>
@@ -337,7 +295,7 @@ const Header = () => {
                     className="flex items-center px-3 py-2 text-base font-medium text-red-600 hover:text-red-900 hover:bg-red-50 w-full text-left"
                   >
                     <LogOut className="h-5 w-5 mr-3" />
-                    {t('navigation.logout')}
+                    Déconnexion
                   </button>
                 </>
               ) : (
@@ -345,19 +303,11 @@ const Header = () => {
                   <hr className="my-2" />
                   <Link
                     to="/login"
-                    className="flex items-center px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <LogIn className="h-5 w-5 mr-3" />
-                    {t('navigation.login')}
-                  </Link>
-                  <Link
-                    to="/register"
                     className="flex items-center px-3 py-2 text-base font-medium text-primary-600 hover:text-primary-900 hover:bg-primary-50"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <UserPlus className="h-5 w-5 mr-3" />
-                    {t('navigation.register')}
+                    <LogIn className="h-5 w-5 mr-3" />
+                    Connexion
                   </Link>
                 </>
               )}

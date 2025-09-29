@@ -56,7 +56,7 @@ const Producers = () => {
         </div>
 
         {producers.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             {producers.map((producer) => (
               <Link 
                 key={producer._id} 
@@ -113,8 +113,8 @@ const Producers = () => {
                   <div className="flex items-center text-gray-500 text-sm mb-3">
                     <FiMapPin className="mr-1" />
                     <span>{getCountryName(producer.country)}</span>
-                    {producer.address?.region && (
-                      <span className="ml-2">• {producer.address.region}</span>
+                    {producer.address?.city && (
+                      <span className="ml-2">• {producer.address.city}</span>
                     )}
                   </div>
 
@@ -126,9 +126,10 @@ const Producers = () => {
                     </div>
                     <div className="flex items-center text-gray-500">
                       <FiPackage className="mr-1" />
-                      <span>Produits</span>
+                      <span className='mr-1'>Produits</span>
+                      <FiArrowRight className="text-gray-400 group-hover:text-gray-600 transition-colors" />
+
                     </div>
-                    <FiArrowRight className="text-gray-400 group-hover:text-gray-600 transition-colors" />
                   </div>
                 </div>
               </Link>

@@ -47,8 +47,8 @@ i18n
     },
     
     // Configuration des namespaces
-    defaultNS: 'translation',
-    ns: ['translation'],
+    defaultNS: 'common',
+    ns: ['common', 'navigation', 'public', 'admin', 'consumer', 'producer', 'auth'],
     
     // Options de détection
     detection: {

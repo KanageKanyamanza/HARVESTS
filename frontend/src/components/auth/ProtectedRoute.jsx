@@ -11,6 +11,7 @@ const ProtectedRoute = ({
   children, 
   requiredPermission = null,
   requiredUserType = null,
+  requireRole = null,
   requireEmailVerification = false,
   requireAccountApproval = false,
   fallbackRoute = '/login'
@@ -21,7 +22,8 @@ const ProtectedRoute = ({
     isEmailVerified, 
     isAccountApproved,
     hasPermission,
-    canAccessRoute
+    canAccessRoute,
+    user
   } = useAuth();
   
   const { userType } = useUserType();
@@ -66,6 +68,18 @@ const ProtectedRoute = ({
       state={{ 
         from: location.pathname,
         message: `Cette page est réservée aux ${requiredUserType}s` 
+      }} 
+      replace 
+    />;
+  }
+
+  // Vérifier le rôle si spécifié
+  if (requireRole && user?.role !== requireRole) {
+    return <Navigate 
+      to="/unauthorized" 
+      state={{ 
+        from: location.pathname,
+        message: `Cette page est réservée aux ${requireRole}s` 
       }} 
       replace 
     />;

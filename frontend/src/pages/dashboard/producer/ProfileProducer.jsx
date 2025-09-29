@@ -175,6 +175,10 @@ const ProfileProducer = () => {
                 <p className="text-gray-900 text-lg">{currentUser?.phone || 'Non renseigné'}</p>
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700">Ville</label>
+                <p className="text-gray-900 text-lg">{currentUser?.address?.city || 'Non renseigné'}</p>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700">Langue préférée</label>
                 <p className="text-gray-900 text-lg">{getLanguageName(currentUser?.preferredLanguage)}</p>
               </div>
@@ -436,7 +440,7 @@ const ProfileProducer = () => {
 
         <div className="mt-8 flex justify-end">
           <button 
-            onClick={() => navigate('/settings')}
+            onClick={() => navigate('/producer/settings')}
             className="flex items-center space-x-2 px-6 py-2 bg-harvests-green text-white rounded-md hover:bg-harvests-green/90 transition-colors"
           >
             <FiEdit3 className="h-4 w-4" />

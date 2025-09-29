@@ -19,6 +19,12 @@ router.get('/featured', productController.getFeaturedProducts);
 // Nouveaux produits
 router.get('/new', productController.getNewProducts);
 
+// Obtenir les catégories de produits
+router.get('/categories', productController.getCategories);
+
+// Obtenir les produits par catégorie
+router.get('/category/:category', productController.getProductsByCategory);
+
 // Obtenir un produit par ID ou slug
 router.get('/:id', productController.getProduct);
 

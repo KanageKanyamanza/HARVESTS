@@ -1,40 +1,38 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { Heart, Mail, MapPin, Phone, Globe } from 'lucide-react';
+import { Heart, Mail, MapPin, Phone } from 'lucide-react';
 import SocialLinks from '../common/SocialLinks';
 
 const Footer = () => {
-  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   const footerLinks = {
     company: [
-      { name: t('footer.aboutUs'), href: '/about' },
-      { name: t('footer.contactUs'), href: '/contact' },
-      { name: t('navigation.help'), href: '/help' },
+      { name: 'À propos de nous', href: '/about' },
+      { name: 'Nous contacter', href: '/contact' },
+      { name: 'Aide', href: '/help' },
     ],
     legal: [
-      { name: t('footer.termsOfService'), href: '/terms' },
-      { name: t('footer.privacyPolicy'), href: '/privacy' },
+      { name: 'Conditions d\'utilisation', href: '/terms' },
+      { name: 'Politique de confidentialité', href: '/privacy' },
     ],
     categories: [
-      { name: t('categories.cereals'), href: '/categories/cereals' },
-      { name: t('categories.vegetables'), href: '/categories/vegetables' },
-      { name: t('categories.fruits'), href: '/categories/fruits' },
-      { name: t('categories.spices'), href: '/categories/spices' },
+      { name: 'Céréales', href: '/categories/cereals' },
+      { name: 'Légumes', href: '/categories/vegetables' },
+      { name: 'Fruits', href: '/categories/fruits' },
+      { name: 'Épices', href: '/categories/spices' },
     ]
   };
 
 
-  const countries = [
-    { name: 'Cameroun', flag: '🇨🇲', code: 'CM' },
-    { name: 'Sénégal', flag: '🇸🇳', code: 'SN' },
-    { name: 'Ghana', flag: '🇬🇭', code: 'GH' },
-    { name: 'Nigeria', flag: '🇳🇬', code: 'NG' },
-    { name: 'Kenya', flag: '🇰🇪', code: 'KE' },
-    { name: 'Côte d\'Ivoire', flag: '🇨🇮', code: 'CI' },
-  ];
+  // const countries = [
+  //   { name: 'Cameroun', flag: '🇨🇲', code: 'CM' },
+  //   { name: 'Sénégal', flag: '🇸🇳', code: 'SN' },
+  //   { name: 'Ghana', flag: '🇬🇭', code: 'GH' },
+  //   { name: 'Nigeria', flag: '🇳🇬', code: 'NG' },
+  //   { name: 'Kenya', flag: '🇰🇪', code: 'KE' },
+  //   { name: 'Côte d\'Ivoire', flag: '🇨🇮', code: 'CI' },
+  // ];
 
   return (
     <footer className="bg-gray-900 text-white">
@@ -111,7 +109,7 @@ const Footer = () => {
             {/* Newsletter */}
             <div className="mb-6">
               <p className="text-gray-400 text-sm mb-3">
-                {t('footer.subscribeNewsletter')}
+                Abonnez-vous à notre newsletter
               </p>
               <form className="flex">
                 <input
@@ -130,7 +128,7 @@ const Footer = () => {
 
             {/* Réseaux sociaux */}
             <div>
-              <p className="text-gray-400 text-sm mb-3">{t('footer.followUs')}</p>
+              <p className="text-gray-400 text-sm mb-3">Suivez-nous</p>
               <SocialLinks 
                 variant="minimal" 
                 size="sm"
@@ -141,7 +139,7 @@ const Footer = () => {
         </div>
 
         {/* Section pays supportés */}
-        <div className="py-6 border-t border-gray-800">
+        {/* <div className="py-6 border-t border-gray-800">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div className="mb-4 md:mb-0">
               <h4 className="font-medium text-sm mb-2 flex items-center">
@@ -161,14 +159,14 @@ const Footer = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Section copyright */}
         <div className="py-6 border-t border-gray-800">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4">
               <p className="text-gray-400 text-sm">
-                © {currentYear} Harvests. {t('footer.allRightsReserved')}.
+                © {currentYear} Harvests. Tous droits réservés.
               </p>
               <div className="flex items-center space-x-4">
                 {footerLinks.legal.map((link) => (
@@ -185,7 +183,7 @@ const Footer = () => {
             
             <div className="mt-4 md:mt-0">
               <p className="text-gray-400 text-sm flex items-center">
-                {t('footer.madeWith')} <Heart className="h-4 w-4 mx-1 text-red-500" /> {t('footer.in')} {t('footer.africa')}
+                Fait avec <Heart className="h-4 w-4 mx-1 text-red-500" /> en <span className="font-semibold">Afrique</span>
               </p>
             </div>
           </div>

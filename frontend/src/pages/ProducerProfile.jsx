@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { useCart } from '../contexts/CartContext';
 import { producerService } from '../services';
 import { 
   FiMapPin, 
@@ -16,6 +18,8 @@ import {
 
 const ProducerProfile = () => {
   const { id } = useParams();
+  const { user } = useAuth();
+  const { addToCart } = useCart();
   const navigate = useNavigate();
   const [producer, setProducer] = useState(null);
   const [products, setProducts] = useState([]);
@@ -26,20 +30,62 @@ const ProducerProfile = () => {
     const loadProducerData = async () => {
       try {
         setLoading(true);
-        const [producerResponse, productsResponse] = await Promise.all([
-          producerService.getPublicProducer(id),
-          producerService.getPublicProducerProducts(id)
-        ]);
+        let producerResponse = null;
+        let productsResponse = null;
 
-        if (producerResponse.data.status === 'success') {
-          setProducer(producerResponse.data.data.producer);
+        // Charger les informations du producteur
+        try {
+          producerResponse = await producerService.getPublicProducer(id);
+          if (producerResponse.data.status === 'success') {
+            setProducer(producerResponse.data.data.producer);
+          }
+        } catch (error) {
+          console.error('Erreur lors du chargement du producteur:', error);
         }
 
-        if (productsResponse.data.status === 'success') {
-          setProducts(productsResponse.data.data.products || []);
+        // Charger les produits selon les permissions
+        let loadedProducts = [];
+        
+        // Si l'utilisateur est le propriétaire ou admin, charger tous les produits (privé)
+        if (user && (user._id === id || user.role === 'admin')) {
+          try {
+            console.log('🔐 Chargement des produits privés pour le propriétaire/admin');
+            productsResponse = await producerService.getProducts();
+            if (productsResponse.data.status === 'success') {
+              loadedProducts = productsResponse.data.data.products || [];
+              console.log('✅ Produits privés chargés:', loadedProducts.length);
+            }
+          } catch (privateError) {
+            console.error('❌ Erreur lors du chargement privé des produits:', privateError);
+            // En cas d'erreur, essayer la route publique comme fallback
+            try {
+              productsResponse = await producerService.getPublicProducerProducts(id);
+              if (productsResponse.data.status === 'success') {
+                loadedProducts = productsResponse.data.data.products || [];
+                console.log('✅ Fallback: Produits publics chargés:', loadedProducts.length);
+              }
+            } catch (publicError) {
+              console.warn('Erreur lors du chargement public des produits:', publicError);
+            }
+          }
+        } else {
+          // Pour les utilisateurs non connectés ou autres, charger seulement les produits publics
+          try {
+            console.log('🌐 Chargement des produits publics');
+            productsResponse = await producerService.getPublicProducerProducts(id);
+            if (productsResponse.data.status === 'success') {
+              loadedProducts = productsResponse.data.data.products || [];
+              console.log('✅ Produits publics chargés:', loadedProducts.length);
+            }
+          } catch (publicError) {
+            console.warn('Erreur lors du chargement public des produits:', publicError);
+          }
         }
+
+        // Mettre à jour l'état avec les produits chargés
+        setProducts(loadedProducts);
       } catch (error) {
-        console.error('Erreur lors du chargement du producteur:', error);
+        console.error('Erreur lors du chargement:', error);
       } finally {
         setLoading(false);
       }
@@ -48,7 +94,8 @@ const ProducerProfile = () => {
     if (id) {
       loadProducerData();
     }
-  }, [id]);
+  }, [id, user]);
+
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('fr-FR', {
@@ -56,6 +103,41 @@ const ProducerProfile = () => {
       currency: 'XOF',
       minimumFractionDigits: 0
     }).format(price);
+  };
+
+  // Fonction pour déterminer si un produit peut être vu
+  const canViewProduct = (product) => {
+    if (!user) {
+      return product.status === 'approved';
+    }
+    if (user.role === 'admin' || user._id === id) {
+      return true; // Admin et propriétaire peuvent voir tous les produits
+    }
+    return product.status === 'approved';
+  };
+
+  // Fonction pour obtenir le statut du produit
+  const getProductStatus = (status) => {
+    const statusMap = {
+      'approved': 'Approuvé',
+      'pending-review': 'En attente',
+      'draft': 'Brouillon',
+      'rejected': 'Rejeté',
+      'inactive': 'Inactif'
+    };
+    return statusMap[status] || status;
+  };
+
+  // Fonction pour obtenir la couleur du statut
+  const getStatusColor = (status) => {
+    const colorMap = {
+      'approved': 'bg-green-100 text-green-800',
+      'pending-review': 'bg-yellow-100 text-yellow-800',
+      'draft': 'bg-gray-100 text-gray-800',
+      'rejected': 'bg-red-100 text-red-800',
+      'inactive': 'bg-gray-100 text-gray-800'
+    };
+    return colorMap[status] || 'bg-gray-100 text-gray-800';
   };
 
   const getCountryName = (code) => {
@@ -119,7 +201,7 @@ const ProducerProfile = () => {
         {/* En-tête avec bannière et photo de profil */}
         <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
           {/* Bannière en arrière-plan */}
-          <div className="relative h-48 bg-gradient-to-r from-green-400 to-green-600">
+          <div className="relative sm:h-[300px] h-[200px] md:h-[375px] bg-gradient-to-r from-green-400 to-green-600">
             {producer.shopBanner ? (
               <img 
                 src={producer.shopBanner} 
@@ -168,8 +250,8 @@ const ProducerProfile = () => {
             <div className="flex items-center text-gray-500 mb-6">
               <FiMapPin className="mr-1" />
               <span>{getCountryName(producer.country)}</span>
-              {producer.address?.region && (
-                <span className="ml-2">• {producer.address.region}</span>
+              {producer.address?.city && (
+                <span className="ml-2">• {producer.address.city}</span>
               )}
             </div>
 
@@ -190,7 +272,7 @@ const ProducerProfile = () => {
                   <FiPackage className="w-5 h-5 text-blue-500" />
                 </div>
                 <div className="text-2xl font-bold text-gray-900">
-                  {products.length}
+                  {products.filter(canViewProduct).length}
                 </div>
                 <div className="text-sm text-gray-600">Produits</div>
               </div>
@@ -230,7 +312,7 @@ const ProducerProfile = () => {
                     : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
               >
-                Produits ({products.length})
+                Produits ({products.filter(canViewProduct).length})
               </button>
             </nav>
           </div>
@@ -238,10 +320,14 @@ const ProducerProfile = () => {
           <div className="p-6">
             {activeTab === 'products' && (
               <div>
-                {products.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {products.map((product) => (
-                      <div key={product._id} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                {products.filter(canViewProduct).length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {products.filter(canViewProduct).map((product) => (
+                      <div 
+                        key={product._id} 
+                        className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => navigate(`/products/${product._id}`)}
+                      >
                         {/* Image du produit */}
                         <div className="h-48 bg-gray-200 relative">
                           {product.images?.[0]?.url ? (
@@ -259,9 +345,16 @@ const ProducerProfile = () => {
 
                         {/* Informations du produit */}
                         <div className="p-4">
-                          <h3 className="font-semibold text-gray-900 mb-2">
-                            {product.name?.fr || product.name?.en || 'Produit sans nom'}
-                          </h3>
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="font-semibold text-gray-900">
+                              {product.name?.fr || product.name?.en || 'Produit sans nom'}
+                            </h3>
+                            {product.status !== 'approved' && (
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}>
+                                {getProductStatus(product.status)}
+                              </span>
+                            )}
+                          </div>
                           <p className="text-gray-600 text-sm mb-3 line-clamp-2">
                             {product.description?.fr || product.description?.en || 'Aucune description'}
                           </p>
@@ -273,7 +366,14 @@ const ProducerProfile = () => {
                               {product.inventory?.quantity || 0} en stock
                             </span>
                           </div>
-                          <button className="w-full mt-3 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center">
+                          <button 
+                            className="w-full mt-3 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center"
+                            onClick={(e) => {
+                              e.stopPropagation(); // Empêcher la navigation vers les détails
+                              addToCart(product);
+                              console.log('Produit ajouté au panier:', product.name?.fr || product.name);
+                            }}
+                          >
                             <FiShoppingCart className="w-4 h-4 mr-2" />
                             Ajouter au panier
                           </button>

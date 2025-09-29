@@ -37,6 +37,13 @@ const baseUserSchema = new mongoose.Schema({
     immutable: true // Ne peut pas être modifié après création
   },
   
+  // Rôle système (admin, user, etc.)
+  role: {
+    type: String,
+    enum: ['user', 'admin', 'super-admin'],
+    default: 'user'
+  },
+  
   // Informations de profil communes
   firstName: {
     type: String,
@@ -79,7 +86,7 @@ const baseUserSchema = new mongoose.Schema({
   badge: {
     type: String,
     enum: ['verified', 'premium', 'gold', 'platinum', 'diamond'],
-    default: null
+    required: false
   },
   
   // Bannière de boutique (pour les profils vendeurs)

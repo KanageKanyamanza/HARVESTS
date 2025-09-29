@@ -30,9 +30,12 @@ const SettingsConsumer = () => {
     lastName: '',
     email: '',
     phone: '',
+    city: '',
     preferredLanguage: 'fr',
     country: 'CM'
   });
+
+  const [existingAddress, setExistingAddress] = useState({});
 
   const [dietaryPreferences, setDietaryPreferences] = useState([]);
   const [allergies, setAllergies] = useState([]);
@@ -64,9 +67,13 @@ const SettingsConsumer = () => {
               lastName: userData.lastName || '',
               email: userData.email || '',
               phone: userData.phone || '',
+              city: userData.address?.city || '',
               preferredLanguage: userData.preferredLanguage || 'fr',
               country: userData.country || 'CM'
             });
+
+            // Sauvegarder l'adresse existante
+            setExistingAddress(userData.address || {});
 
             // Données spécifiques consommateur
             setDietaryPreferences(userData.dietaryPreferences || []);
@@ -135,7 +142,14 @@ const SettingsConsumer = () => {
 
     try {
       // Sauvegarder les données de profil de base
-      await authService.updateProfile(profileData);
+      const profileDataToSave = {
+        ...profileData,
+        address: {
+          ...existingAddress, // Préserver l'adresse existante
+          city: profileData.city // Mettre à jour seulement la ville
+        }
+      };
+      await authService.updateProfile(profileDataToSave);
       
       // Sauvegarder les préférences alimentaires
       await consumerService.updateDietaryPreferences({ dietaryPreferences });
@@ -288,6 +302,15 @@ const SettingsConsumer = () => {
                       type="tel"
                       value={profileData.phone}
                       onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Ville</label>
+                    <input
+                      type="text"
+                      value={profileData.city}
+                      onChange={(e) => setProfileData({...profileData, city: e.target.value})}
                       className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-harvests-green"
                     />
                   </div>

@@ -1,7 +1,12 @@
 // Utilitaires d'authentification
 
 // Fonction pour obtenir la route par défaut selon le type d'utilisateur
-export const getDefaultRoute = (userType) => {
+export const getDefaultRoute = (userType, role = null) => {
+  // Priorité au rôle admin
+  if (role === 'admin' || userType === 'admin') {
+    return '/admin';
+  }
+  
   const routes = {
     consumer: '/consumer/dashboard',
     producer: '/producer/dashboard',
@@ -33,8 +38,13 @@ export const hasPermission = (userType, permission) => {
 };
 
 // Fonction pour vérifier si l'utilisateur peut accéder à une route
-export const canAccessRoute = (route, userType, isAuthenticated) => {
+export const canAccessRoute = (route, userType, isAuthenticated, role = null) => {
   if (!isAuthenticated) return false;
+  
+  // Routes admin - accès complet pour les admins
+  if (role === 'admin' || userType === 'admin') {
+    return route.startsWith('/admin') || route.startsWith('/dashboard') || route.startsWith('/profile') || route.startsWith('/settings');
+  }
   
   // Routes publiques accessibles à tous les utilisateurs connectés
   const publicRoutes = ['/dashboard', '/profile', '/settings', '/messages'];

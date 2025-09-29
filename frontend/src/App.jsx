@@ -9,16 +9,20 @@ import './utils/i18n';
 
 // Providers
 import { AuthProvider } from './store/AuthContext';
+import { CartProvider } from './contexts/CartContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import { useAuth } from './hooks/useAuth';
 import { ModalProvider } from './components/modals/ModalManager';
 
 // Layout Components
 import Layout from './components/layout/Layout';
 import AuthLayout from './components/layout/AuthLayout';
+import AdminLayout from './components/layout/AdminLayout';
 import UserTypeRedirect from './components/auth/UserTypeRedirect';
 
 // Loading Component
 import LoadingSpinner from './components/common/LoadingSpinner';
+import NotificationContainer from './components/common/NotificationContainer';
 
 // Lazy Loading des pages
 const Home = React.lazy(() => import('./pages/Home'));
@@ -27,6 +31,7 @@ const ProductDetail = React.lazy(() => import('./pages/ProductDetail'));
 const Categories = React.lazy(() => import('./pages/Categories'));
 const Producers = React.lazy(() => import('./pages/Producers'));
 const ProducerProfile = React.lazy(() => import('./pages/ProducerProfile'));
+const CartPage = React.lazy(() => import('./pages/Cart'));
 
 // Auth Pages
 const Login = React.lazy(() => import('./pages/auth/Login'));
@@ -65,6 +70,16 @@ const ConsumerDashboard = React.lazy(() => import('./pages/dashboard/consumer/Co
 const Cart = React.lazy(() => import('./pages/dashboard/consumer/Cart'));
 const Checkout = React.lazy(() => import('./pages/dashboard/consumer/Checkout'));
 const OrderHistory = React.lazy(() => import('./pages/dashboard/consumer/OrderHistory'));
+
+// Admin Dashboard
+const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminManagement = React.lazy(() => import('./pages/admin/AdminManagement'));
+const AdminUsers = React.lazy(() => import('./pages/admin/AdminUsers'));
+const AdminProducts = React.lazy(() => import('./pages/admin/AdminProducts'));
+const AdminReviews = React.lazy(() => import('./pages/admin/AdminReviews'));
+const AdminMessages = React.lazy(() => import('./pages/admin/AdminMessages'));
+const AdminOrders = React.lazy(() => import('./pages/admin/AdminOrders'));
+const AdminAnalytics = React.lazy(() => import('./pages/admin/AdminAnalytics'));
 
 // Error Pages
 const NotFound = React.lazy(() => import('./pages/errors/NotFound'));
@@ -138,7 +153,9 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ModalProvider>
+        <CartProvider>
+          <NotificationProvider>
+            <ModalProvider>
           <Router>
             <div className="App">
               <UserTypeRedirect>
@@ -165,6 +182,14 @@ function App() {
                   <PublicRoute>
                     <Layout>
                       <ProductDetail />
+                    </Layout>
+                  </PublicRoute>
+                } />
+                
+                <Route path="/cart" element={
+                  <PublicRoute>
+                    <Layout>
+                      <CartPage />
                     </Layout>
                   </PublicRoute>
                 } />
@@ -344,6 +369,71 @@ function App() {
                     <OrderHistory />
                   </ProtectedRoute>
                 } />
+
+                {/* Routes Admin */}
+                <Route path="/admin" element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminLayout>
+                      <AdminDashboard />
+                    </AdminLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/admin/management" element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminLayout>
+                      <AdminManagement />
+                    </AdminLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/admin/products" element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminLayout>
+                      <AdminProducts />
+                    </AdminLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/admin/users" element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminLayout>
+                      <AdminUsers />
+                    </AdminLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/admin/reviews" element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminLayout>
+                      <AdminReviews />
+                    </AdminLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/admin/messages" element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminLayout>
+                      <AdminMessages />
+                    </AdminLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/admin/orders" element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminLayout>
+                      <AdminOrders />
+                    </AdminLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/admin/analytics" element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminLayout>
+                      <AdminAnalytics />
+                    </AdminLayout>
+                  </ProtectedRoute>
+                } />
                 
                 <Route path="/favorites" element={
                   <ProtectedRoute>
@@ -385,6 +475,11 @@ function App() {
           </div>
         </Router>
         </ModalProvider>
+        
+        {/* Container des notifications */}
+        <NotificationContainer />
+        </NotificationProvider>
+        </CartProvider>
       </AuthProvider>
       
       {/* React Query DevTools en développement */}

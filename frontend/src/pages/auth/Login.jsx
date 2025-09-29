@@ -82,7 +82,7 @@ const Login = () => {
         }
       }
     } catch {
-      setErrors({ submit: 'Une erreur est survenue lors de la connexion' });
+      setErrors({ submit: 'Erreur de connexion' });
     }
   };
 
@@ -147,7 +147,7 @@ const Login = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="Email"
+                    placeholder="Votre email"
                     className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
                       errors.email ? 'border-red-300' : 'border-gray-300'
                     }`}
@@ -167,7 +167,7 @@ const Login = () => {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    placeholder="Mot de passe"
+                    placeholder="Votre mot de passe"
                     className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
                       errors.password ? 'border-red-300' : 'border-gray-300'
                     }`}
@@ -194,7 +194,7 @@ const Login = () => {
                     to="/register" 
                     className="text-green-600 hover:text-green-700 text-sm underline"
                   >
-                    Or sign up
+                    Ou inscrivez-vous
                   </Link>
                 </div>
 
@@ -211,7 +211,7 @@ const Login = () => {
                     className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
                   />
                   <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                    Remember me
+                    Se souvenir de moi
                   </label>
                 </div>
 
@@ -224,7 +224,7 @@ const Login = () => {
                   {isLoading ? (
                     <LoadingSpinner size="sm" />
                   ) : (
-                    'Sign in'
+                    "Se connecter"
                   )}
                 </button>
 

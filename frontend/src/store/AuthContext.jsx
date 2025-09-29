@@ -1,5 +1,6 @@
 import React, { createContext, useReducer, useEffect } from 'react';
 import { authService, consumerService, producerService } from '../services';
+import { adminAuthService } from '../services/adminAuthService';
 import { getDefaultRoute, hasPermission, canAccessRoute } from '../utils/authUtils';
 import { initialState, AUTH_ACTIONS } from './authTypes';
 import { authReducer } from './authReducer';
@@ -48,9 +49,33 @@ export const AuthProvider = ({ children }) => {
     try {
       dispatch({ type: AUTH_ACTIONS.LOGIN_START });
 
-      const response = await authService.login(credentials);
-      const { user } = response.data.data;
-      const token = response.data.token;
+      let response;
+      let user;
+      let token;
+
+      // Essayer d'abord l'authentification admin
+      try {
+        response = await adminAuthService.login(credentials);
+        const { admin } = response.data.data;
+        token = response.data.token;
+        
+        // Convertir l'admin en format utilisateur pour la compatibilité
+        user = {
+          ...admin,
+          role: 'admin', // Toujours 'admin' pour l'interface
+          userType: 'admin',
+          originalRole: admin.role // Garder le rôle original pour référence
+        };
+        
+        console.log('✅ Connexion admin réussie');
+      } catch (adminError) {
+        // Si l'auth admin échoue, essayer l'auth normale
+        response = await authService.login(credentials);
+        user = response.data.data.user;
+        token = response.data.token;
+        
+        console.log('✅ Connexion utilisateur normale réussie');
+      }
 
       // Sauvegarder dans localStorage
       saveAuthData(user, token);
@@ -175,18 +200,43 @@ export const AuthProvider = ({ children }) => {
 
         // Recharger les données complètes depuis l'API
         try {
-          const response = await authService.getProfile();
-          if (response.success) {
-            const updatedUser = response.data.user;
-            
-            // Mettre à jour le localStorage avec les données complètes
-            saveAuthData(updatedUser, token);
-            
-            // Mettre à jour le contexte avec les données complètes
-            dispatch({
-              type: AUTH_ACTIONS.UPDATE_PROFILE,
-              payload: updatedUser,
-            });
+          let response;
+          
+          // Détecter si c'est un admin ou un utilisateur normal
+          if (user.role === 'admin' || user.userType === 'admin') {
+            response = await adminAuthService.getProfile();
+            if (response.success) {
+              const updatedAdmin = response.data.admin;
+              // Convertir l'admin en format utilisateur pour la compatibilité
+              const updatedUser = {
+                ...updatedAdmin,
+                role: 'admin',
+                userType: 'admin'
+              };
+              
+              // Mettre à jour le localStorage avec les données complètes
+              saveAuthData(updatedUser, token);
+              
+              // Mettre à jour le contexte avec les données complètes
+              dispatch({
+                type: AUTH_ACTIONS.UPDATE_PROFILE,
+                payload: updatedUser,
+              });
+            }
+          } else {
+            response = await authService.getProfile();
+            if (response.success) {
+              const updatedUser = response.data.user;
+              
+              // Mettre à jour le localStorage avec les données complètes
+              saveAuthData(updatedUser, token);
+              
+              // Mettre à jour le contexte avec les données complètes
+              dispatch({
+                type: AUTH_ACTIONS.UPDATE_PROFILE,
+                payload: updatedUser,
+              });
+            }
           }
         } catch (apiError) {
           console.warn('Impossible de recharger les données depuis l\'API:', apiError);
@@ -346,8 +396,8 @@ export const AuthProvider = ({ children }) => {
     
     // Fonctions de gestion des permissions et routes
     hasPermission: (permission) => hasPermission(state.user?.userType, permission),
-    canAccessRoute: (route) => canAccessRoute(route, state.user?.userType, state.isAuthenticated),
-    getDefaultRoute: () => getDefaultRoute(state.user?.userType),
+    canAccessRoute: (route) => canAccessRoute(route, state.user?.userType, state.isAuthenticated, state.user?.role),
+    getDefaultRoute: () => getDefaultRoute(state.user?.userType, state.user?.role),
     isTokenExpired,
     
     // Informations utilisateur enrichies
