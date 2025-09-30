@@ -14,6 +14,7 @@ import {
   MessageCircle,
   Shield
 } from 'lucide-react';
+import logo from '../../assets/logo.png';
 
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../contexts/CartContext';
@@ -29,6 +30,7 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isScrolled, setIsScrolled] = useState(false);
 
   // Fermer les menus au clic extérieur
   React.useEffect(() => {
@@ -39,6 +41,24 @@ const Header = () => {
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
+
+  // Détecter le scroll pour changer l'apparence de la navbar
+  React.useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setIsScrolled(scrollTop > 50);
+    };
+
+    // Vérifier l'état initial du scroll
+    handleScroll();
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Déterminer si la navbar doit être transparente (uniquement sur la page d'accueil)
+  const shouldBeTransparent = location.pathname === '/' && !isScrolled;
+
 
   // Navigation principale
   const mainNavigation = [
@@ -81,18 +101,23 @@ const Header = () => {
 
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
-      <div className="container-xl">
-        <div className="flex items-center justify-between h-16">
+    <header 
+      className={`${
+        shouldBeTransparent
+          ? 'absolute top-0 left-0 right-0 bg-transparent' 
+          : 'bg-white border-b border-gray-200 sticky top-0'
+      } z-40 transition-all duration-500 ease-in-out`}
+    >
+      <div className="w-full">
+        <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-harvest rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">H</span>
-              </div>
-              <span className="font-display font-bold text-xl text-gray-900">
-                Harvests
-              </span>
+              <img 
+                src={logo} 
+                alt="Harvests Logo" 
+                className="h-10 w-auto"
+              />
             </Link>
           </div>
 
@@ -105,8 +130,10 @@ const Header = () => {
                 className={`${
                   item.current
                     ? 'text-primary-600 border-b-2 border-primary-600'
-                    : 'text-gray-700 hover:text-primary-600 hover:border-b-2 hover:border-primary-200'
-                } px-3 py-2 text-sm font-medium transition-all duration-200`}
+                    : shouldBeTransparent 
+                      ? 'text-white hover:text-primary-200 hover:border-b-2 hover:border-primary-200'
+                      : 'text-gray-700 hover:text-primary-600 hover:border-b-2 hover:border-primary-200'
+                } px-3 py-2 text-sm font-medium transition-all duration-500 ease-in-out`}
               >
                 {item.name}
               </Link>
@@ -117,7 +144,7 @@ const Header = () => {
           <div className="hidden lg:block flex-1 max-w-[250px] ">
             <form onSubmit={handleSearch} className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
+                <Search className={`h-5 w-5 transition-colors duration-500 ease-in-out ${shouldBeTransparent ? 'text-white' : 'text-gray-400'}`} />
               </div>
               <input
                 type="text"
@@ -135,7 +162,11 @@ const Header = () => {
             {(!isAuthenticated || (user?.userType !== 'producer' && user?.userType !== 'admin')) && (
               <Link
                 to="/cart"
-                className="text-gray-700 hover:text-primary-600 transition-colors relative"
+                className={`${
+                  shouldBeTransparent 
+                    ? 'text-white hover:text-primary-200' 
+                    : 'text-gray-700 hover:text-primary-600'
+                } transition-colors duration-500 ease-in-out relative`}
                 title="Mon panier"
               >
                 <ShoppingCart className="h-6 w-6" />
@@ -150,7 +181,11 @@ const Header = () => {
             {isAuthenticated ? (
               <>
                 {/* Notifications */}
-                <button className="text-gray-700 hover:text-primary-600 transition-colors relative">
+                <button className={`${
+                  shouldBeTransparent 
+                    ? 'text-white hover:text-primary-200' 
+                    : 'text-gray-700 hover:text-primary-600'
+                } transition-colors duration-500 ease-in-out relative`}>
                   <Bell className="h-6 w-6" />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
@@ -222,7 +257,11 @@ const Header = () => {
             {/* Menu mobile */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden text-gray-700 hover:text-primary-600 transition-colors"
+              className={`md:hidden ${
+                shouldBeTransparent 
+                  ? 'text-white hover:text-primary-200' 
+                  : 'text-gray-700 hover:text-primary-600'
+              } transition-colors duration-500 ease-in-out`}
             >
               {isMobileMenuOpen ? (
                 <X className="h-6 w-6" />
@@ -234,9 +273,29 @@ const Header = () => {
         </div>
 
         {/* Menu mobile */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-gray-200">
+        <div className={`md:hidden fixed inset-0 z-50 transition-transform duration-300 ease-in-out ${
+          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}>
+          {/* Overlay */}
+          <div 
+            className="absolute inset-0 bg-black bg-opacity-50"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          
+          {/* Menu panel */}
+          <div className="absolute right-0 top-0 h-full w-80 max-w-sm bg-white shadow-xl">
+            {/* Header du menu mobile */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <div className="px-2 pt-2 pb-3 space-y-1 h-[calc(100%-80px)] overflow-y-auto">
               {/* Barre de recherche mobile */}
               <form onSubmit={handleSearch} className="px-3 py-2">
                 <div className="relative">
@@ -313,7 +372,7 @@ const Header = () => {
               )}
             </div>
           </div>
-        )}
+        </div>
       </div>
     </header>
   );

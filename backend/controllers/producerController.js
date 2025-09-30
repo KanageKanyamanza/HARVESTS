@@ -4,6 +4,9 @@ const Producer = require('../models/Producer');
 const { createDynamicStorage } = require('../config/cloudinary');
 const multer = require('multer');
 
+// Import de la fonction de notification depuis orderController
+const { sendStatusNotifications } = require('./orderController');
+
 // Configuration Multer pour Cloudinary
 const createUploadMiddleware = (contentType, category = null, fieldName = 'images', maxFiles = 5) => {
   const storage = createDynamicStorage('producer', contentType, category);
@@ -647,6 +650,9 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
   }
 
   await order.updateStatus(status, req.user._id, reason, note);
+
+  // Envoyer notifications selon le nouveau statut
+  await sendStatusNotifications(order, status);
 
   res.status(200).json({
     status: 'success',

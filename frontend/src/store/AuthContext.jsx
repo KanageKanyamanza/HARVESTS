@@ -200,6 +200,9 @@ export const AuthProvider = ({ children }) => {
 
         // Recharger les données complètes depuis l'API
         try {
+          // Délai pour éviter le rate limiting
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
           let response;
           
           // Détecter si c'est un admin ou un utilisateur normal

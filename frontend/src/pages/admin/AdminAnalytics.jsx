@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
   BarChart3,
   TrendingUp,
@@ -15,7 +14,6 @@ import {
 import { adminService } from '../../services/adminService';
 
 const AdminAnalytics = () => {
-  const { t, i18n } = useTranslation();
   const [analytics, setAnalytics] = useState({
     overview: {
       totalUsers: 0,
@@ -45,18 +43,14 @@ const AdminAnalytics = () => {
     try {
       setLoading(true);
       const response = await adminService.getAnalytics({ timeRange });
-      console.log('🔍 AdminAnalytics - Response:', response.data);
       
       // Vérifier si la réponse contient des analytics
       if (response.data && response.data.analytics) {
-        console.log('📊 AdminAnalytics - Analytics:', response.data.analytics);
         setAnalytics(response.data.analytics);
       } else if (response.data && response.data.data) {
         // Structure alternative avec data
-        console.log('📊 AdminAnalytics - Analytics (alt):', response.data.data);
         setAnalytics(response.data.data);
       } else {
-        console.log('❌ AdminAnalytics - No analytics found in response:', response.data);
         // Garder les valeurs par défaut
       }
     } catch (error) {
@@ -68,10 +62,8 @@ const AdminAnalytics = () => {
   }, [timeRange]);
 
   useEffect(() => {
-    if (i18n.isInitialized) {
-      loadAnalytics();
-    }
-  }, [i18n.isInitialized, loadAnalytics]);
+    loadAnalytics();
+  }, [loadAnalytics]);
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('fr-FR', {
@@ -93,7 +85,7 @@ const AdminAnalytics = () => {
     return growth >= 0 ? TrendingUp : TrendingDown;
   };
 
-  if (!i18n.isInitialized || loading) {
+  if (loading) {
     return (
       <div>
         <div className="flex items-center justify-center h-64">
@@ -109,9 +101,9 @@ const AdminAnalytics = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{t('admin.analytics')}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Analytiques</h1>
             <p className="mt-1 text-sm text-gray-500">
-              {t('admin.analyticsDescription')}
+              Suivez les performances de la plateforme
             </p>
           </div>
           <div className="flex space-x-3">
@@ -120,14 +112,14 @@ const AdminAnalytics = () => {
               onChange={(e) => setTimeRange(e.target.value)}
               className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
-              <option value="7d">{t('admin.last7Days')}</option>
-              <option value="30d">{t('admin.last30Days')}</option>
-              <option value="90d">{t('admin.last90Days')}</option>
-              <option value="1y">{t('admin.lastYear')}</option>
+              <option value="7d">7 derniers jours</option>
+              <option value="30d">30 derniers jours</option>
+              <option value="90d">90 derniers jours</option>
+              <option value="1y">Dernière année</option>
             </select>
             <button className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700">
               <Download className="h-4 w-4 inline mr-2" />
-              {t('admin.exportData')}
+              Exporter les données
             </button>
           </div>
         </div>
@@ -143,18 +135,18 @@ const AdminAnalytics = () => {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">
-                      {t('admin.totalUsers')}
+                      Total Utilisateurs
                     </dt>
                     <dd className="text-lg font-medium text-gray-900">
-                      {formatNumber(analytics.overview.totalUsers)}
+                      {formatNumber(analytics.overview?.totalUsers || 0)}
                     </dd>
-                    <dd className={`text-sm ${getGrowthColor(analytics.overview.userGrowth)}`}>
+                    <dd className={`text-sm ${getGrowthColor(analytics.overview?.userGrowth || 0)}`}>
                       {(() => {
-                        const Icon = getGrowthIcon(analytics.overview.userGrowth);
+                        const Icon = getGrowthIcon(analytics.overview?.userGrowth || 0);
                         return (
                           <div className="flex items-center">
                             <Icon className="h-4 w-4 mr-1" />
-                            {Math.abs(analytics.overview.userGrowth)}%
+                            {Math.abs(analytics.overview?.userGrowth || 0)}%
                           </div>
                         );
                       })()}
@@ -174,18 +166,18 @@ const AdminAnalytics = () => {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">
-                      {t('admin.totalProducts')}
+                      Total Produits
                     </dt>
                     <dd className="text-lg font-medium text-gray-900">
-                      {formatNumber(analytics.overview.totalProducts)}
+                      {formatNumber(analytics.overview?.totalProducts || 0)}
                     </dd>
-                    <dd className={`text-sm ${getGrowthColor(analytics.overview.productGrowth)}`}>
+                    <dd className={`text-sm ${getGrowthColor(analytics.overview?.productGrowth || 0)}`}>
                       {(() => {
-                        const Icon = getGrowthIcon(analytics.overview.productGrowth);
+                        const Icon = getGrowthIcon(analytics.overview?.productGrowth || 0);
                         return (
                           <div className="flex items-center">
                             <Icon className="h-4 w-4 mr-1" />
-                            {Math.abs(analytics.overview.productGrowth)}%
+                            {Math.abs(analytics.overview?.productGrowth || 0)}%
                           </div>
                         );
                       })()}
@@ -205,18 +197,18 @@ const AdminAnalytics = () => {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">
-                      {t('admin.totalOrders')}
+                      Total Commandes
                     </dt>
                     <dd className="text-lg font-medium text-gray-900">
-                      {formatNumber(analytics.overview.totalOrders)}
+                      {formatNumber(analytics.overview?.totalOrders || 0)}
                     </dd>
-                    <dd className={`text-sm ${getGrowthColor(analytics.overview.orderGrowth)}`}>
+                    <dd className={`text-sm ${getGrowthColor(analytics.overview?.orderGrowth || 0)}`}>
                       {(() => {
-                        const Icon = getGrowthIcon(analytics.overview.orderGrowth);
+                        const Icon = getGrowthIcon(analytics.overview?.orderGrowth || 0);
                         return (
                           <div className="flex items-center">
                             <Icon className="h-4 w-4 mr-1" />
-                            {Math.abs(analytics.overview.orderGrowth)}%
+                            {Math.abs(analytics.overview?.orderGrowth || 0)}%
                           </div>
                         );
                       })()}
@@ -236,18 +228,18 @@ const AdminAnalytics = () => {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">
-                      {t('admin.totalRevenue')}
+                      Chiffre d'affaires
                     </dt>
                     <dd className="text-lg font-medium text-gray-900">
-                      {formatPrice(analytics.overview.totalRevenue)}
+                      {formatPrice(analytics.overview?.totalRevenue || 0)}
                     </dd>
-                    <dd className={`text-sm ${getGrowthColor(analytics.overview.revenueGrowth)}`}>
+                    <dd className={`text-sm ${getGrowthColor(analytics.overview?.revenueGrowth || 0)}`}>
                       {(() => {
-                        const Icon = getGrowthIcon(analytics.overview.revenueGrowth);
+                        const Icon = getGrowthIcon(analytics.overview?.revenueGrowth || 0);
                         return (
                           <div className="flex items-center">
                             <Icon className="h-4 w-4 mr-1" />
-                            {Math.abs(analytics.overview.revenueGrowth)}%
+                            {Math.abs(analytics.overview?.revenueGrowth || 0)}%
                           </div>
                         );
                       })()}
@@ -264,12 +256,12 @@ const AdminAnalytics = () => {
           {/* User Registrations Chart */}
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">
-              {t('admin.userRegistrations')}
+              Inscriptions d'utilisateurs
             </h3>
             <div className="h-64 flex items-center justify-center text-gray-500">
               <div className="text-center">
                 <BarChart3 className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                <p>{t('admin.chartPlaceholder')}</p>
+                <p>Graphique des inscriptions en cours de développement</p>
               </div>
             </div>
           </div>
@@ -277,12 +269,12 @@ const AdminAnalytics = () => {
           {/* Revenue Trends Chart */}
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">
-              {t('admin.revenueTrends')}
+              Tendances du chiffre d'affaires
             </h3>
             <div className="h-64 flex items-center justify-center text-gray-500">
               <div className="text-center">
                 <TrendingUp className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                <p>{t('admin.chartPlaceholder')}</p>
+                <p>Graphique des inscriptions en cours de développement</p>
               </div>
             </div>
           </div>
@@ -294,12 +286,12 @@ const AdminAnalytics = () => {
           <div className="bg-white shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
-                {t('admin.topProducers')}
+                Top Producteurs
               </h3>
               <div className="mt-5">
                 <div className="flow-root">
                   <ul className="-my-5 divide-y divide-gray-200">
-                    {analytics.charts.topProducers.map((producer, index) => (
+                    {(analytics.charts?.topProducers || []).map((producer, index) => (
                       <li key={producer._id} className="py-4">
                         <div className="flex items-center space-x-4">
                           <div className="flex-shrink-0">
@@ -333,12 +325,12 @@ const AdminAnalytics = () => {
           <div className="bg-white shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
-                {t('admin.topProducts')}
+                Top Produits
               </h3>
               <div className="mt-5">
                 <div className="flow-root">
                   <ul className="-my-5 divide-y divide-gray-200">
-                    {analytics.charts.topProducts.map((product, index) => (
+                    {(analytics.charts?.topProducts || []).map((product, index) => (
                       <li key={product._id} className="py-4">
                         <div className="flex items-center space-x-4">
                           <div className="flex-shrink-0">

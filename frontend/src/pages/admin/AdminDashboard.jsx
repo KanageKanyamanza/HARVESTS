@@ -45,11 +45,9 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       const response = await adminService.getDashboardStats();
-      console.log('🔍 AdminDashboard - Response:', response.data);
       
       // Vérifier si la réponse contient des statistiques
       if (response.data && response.data.stats) {
-        console.log('📊 AdminDashboard - Stats:', response.data.stats);
         const statsData = response.data.stats;
         
         setStats({
@@ -71,7 +69,6 @@ const AdminDashboard = () => {
         });
       } else if (response.data && response.data.data && response.data.data.stats) {
         // Structure alternative avec data.stats
-        console.log('📊 AdminDashboard - Stats (alt):', response.data.data.stats);
         const statsData = response.data.data.stats;
         
         setStats({
@@ -92,7 +89,6 @@ const AdminDashboard = () => {
           activeAdmins: statsData.activeAdmins || 0
         });
       } else {
-        console.log('❌ AdminDashboard - No stats found in response:', response.data);
         // En cas d'erreur, utiliser des données par défaut
         setStats({
           totalUsers: 0,
@@ -155,7 +151,7 @@ const AdminDashboard = () => {
       value: stats.totalProducts.toLocaleString(),
       icon: Package,
       color: 'bg-green-500',
-      change: '+8.2%',
+      change: stats.pendingProducts > 0 ? `${stats.pendingProducts} en attente` : 'Tous approuvés',
       link: '/admin/products'
     },
     {
@@ -163,7 +159,7 @@ const AdminDashboard = () => {
       value: stats.totalOrders.toLocaleString(),
       icon: ShoppingCart,
       color: 'bg-purple-500',
-      change: '+12.1%',
+      change: `${stats.recentOrders} récentes`,
       link: '/admin/orders'
     },
     {
@@ -171,7 +167,7 @@ const AdminDashboard = () => {
       value: `${stats.totalRevenue.toLocaleString()} FCFA`,
       icon: DollarSign,
       color: 'bg-yellow-500',
-      change: '+18.7%',
+      change: `${stats.totalOrders} commandes`,
       link: '/admin/analytics'
     }
   ];
@@ -353,20 +349,26 @@ const AdminDashboard = () => {
             </Link>
                           </div>
           <div className="space-y-3">
-            {[1, 2, 3, 4, 5].map((order) => (
-              <div key={order} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Commande #{1000 + order}</p>
-                  <p className="text-xs text-gray-500">Il y a {order} heures</p>
-                          </div>
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">{(Math.random() * 100 + 50).toFixed(0)} FCFA</p>
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    Terminé
-                            </span>
-                          </div>
-                          </div>
-            ))}
+            {stats.recentOrders > 0 ? (
+              <div className="text-center py-8">
+                <ShoppingCart className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <p className="text-gray-600 mb-2">{stats.recentOrders} commandes récentes</p>
+                <p className="text-sm text-gray-500">Dernières 7 jours</p>
+                <Link 
+                  to="/admin/orders" 
+                  className="inline-flex items-center mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium"
+                >
+                  Voir toutes les commandes
+                  <ArrowRight className="h-4 w-4 ml-1" />
+                </Link>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <ShoppingCart className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <p className="text-gray-600 mb-2">Aucune commande récente</p>
+                <p className="text-sm text-gray-500">Dernières 7 jours</p>
+              </div>
+            )}
             </div>
           </div>
         </div>

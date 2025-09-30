@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import { producerService } from '../../../services';
+import { useOrderNotifications } from '../../../hooks/useOrderNotifications';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import CloudinaryImage from '../../../components/common/CloudinaryImage';
 import {
@@ -20,41 +21,129 @@ import {
 } from 'react-icons/fi';
 
 const ProducerDashboard = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const { notifyNewOrder } = useOrderNotifications();
   const [stats, setStats] = useState(null);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const previousOrdersCountRef = useRef(0);
+  const isLoadingRef = useRef(false);
+
+  // Rediriger vers la page de connexion si l'utilisateur n'est pas authentifié
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      console.log('Utilisateur non authentifié, redirection vers la page de connexion');
+      navigate('/login');
+      return;
+    }
+
+    if (user.userType !== 'producer') {
+      console.log('Utilisateur n\'est pas un producteur, redirection vers le dashboard approprié');
+      navigate('/dashboard');
+      return;
+    }
+  }, [isAuthenticated, user, navigate]);
 
   // Charger les données du dashboard
   useEffect(() => {
     const loadDashboardData = async () => {
-      if (user?.userType === 'producer') {
-        try {
-          setLoading(true);
-          
-          // Charger les statistiques, produits et commandes en parallèle
-          const [statsResponse, productsResponse, ordersResponse] = await Promise.all([
-            producerService.getStats(),
-            producerService.getProducts({ limit: 5 }),
-            producerService.getOrders({ limit: 5 })
-          ]);
+      // Vérifier que l'utilisateur est authentifié et est un producteur
+      if (!isAuthenticated || !user || user.userType !== 'producer') {
+        return;
+      }
 
-          setStats(statsResponse.data.stats || {});
-          setProducts(Array.isArray(productsResponse.data.products) ? productsResponse.data.products : 
-                     Array.isArray(productsResponse.data) ? productsResponse.data : []);
-          setOrders(Array.isArray(ordersResponse.data.orders) ? ordersResponse.data.orders : 
-                   Array.isArray(ordersResponse.data) ? ordersResponse.data : []);
+      // Éviter les appels multiples simultanés
+      if (isLoadingRef.current) {
+        console.log('Chargement déjà en cours, ignoré');
+        return;
+      }
+
+      try {
+        isLoadingRef.current = true;
+        setLoading(true);
+        console.log('🔄 Chargement des données du dashboard...');
+        
+        // Charger les données séquentiellement avec des délais pour éviter la surcharge
+        const statsResponse = await producerService.getStats();
+        await new Promise(resolve => setTimeout(resolve, 200)); // Délai de 200ms
+        
+        const productsResponse = await producerService.getProducts({ limit: 5 });
+        await new Promise(resolve => setTimeout(resolve, 200)); // Délai de 200ms
+        
+        const ordersResponse = await producerService.getOrders({ limit: 5 });
+
+          // Debug logs (temporaires)
+          // console.log('📊 Stats Response complète:', statsResponse);
+          // console.log('📊 Stats Data:', statsResponse.data);
+          // console.log('📦 Products Response complète:', productsResponse);
+          // console.log('📦 Products Data:', productsResponse.data);
+          // console.log('🛒 Orders Response complète:', ordersResponse);
+          // console.log('🛒 Orders Data:', ordersResponse.data);
+
+          // Extraire les données correctement selon la structure de l'API
+          setStats(statsResponse.data.data?.stats || statsResponse.data.stats || {});
+          
+          const productsData = productsResponse.data.data?.products || productsResponse.data.products || [];
+          setProducts(Array.isArray(productsData) ? productsData : []);
+          
+          const ordersData = ordersResponse.data.data?.orders || ordersResponse.data.orders || [];
+          const newOrders = Array.isArray(ordersData) ? ordersData : [];
+          
+          // console.log('🛒 Processed Orders:', newOrders);
+          // console.log('🛒 Orders Count:', newOrders.length);
+          
+          // Logs des données finales
+          // console.log('📊 Stats finales:', statsResponse.data.data?.stats || statsResponse.data.stats || {});
+          // console.log('📦 Products finales:', productsData);
+          // console.log('🛒 Orders finales:', newOrders);
+          
+          setOrders(newOrders);
+
+          // Détecter les nouvelles commandes et créer des notifications
+          const previousCount = previousOrdersCountRef.current;
+          if (previousCount > 0 && newOrders.length > previousCount) {
+            const newOrdersList = newOrders.slice(0, newOrders.length - previousCount);
+            newOrdersList.forEach(order => {
+              if (order.status === 'pending' || order.status === 'new') {
+                notifyNewOrder(order);
+              }
+            });
+          }
+          
+          // Mettre à jour le compteur
+          previousOrdersCountRef.current = newOrders.length;
         } catch (error) {
           console.error('Erreur lors du chargement du dashboard:', error);
+          
+          // Gestion spécifique des erreurs de rate limiting
+          if (error.response?.status === 429) {
+            console.warn('Trop de requêtes - Veuillez patienter quelques secondes');
+            // Ne pas réessayer automatiquement pour éviter les boucles infinies
+            return;
+          }
+          
+          // Gestion des erreurs de connexion réseau
+          if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+            console.warn('Erreur de connexion réseau - Vérifiez que le serveur backend est démarré');
+            return;
+          }
+          
+          // Pour les autres erreurs, continuer normalement
         } finally {
           setLoading(false);
+          isLoadingRef.current = false;
         }
-      }
     };
 
-    loadDashboardData();
-  }, [user]);
+    // Délai initial pour éviter les appels immédiats après l'authentification
+    const timeoutId = setTimeout(() => {
+      loadDashboardData();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [isAuthenticated, user]); // Supprimer notifyNewOrder des dépendances
 
   if (loading) {
     return (
@@ -104,8 +193,12 @@ const ProducerDashboard = () => {
       <div className="p-6 max-w-7xl mx-auto pb-20">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard Producteur 🌾</h1>
-          <p className="text-gray-600 mt-1">Gérez vos produits, commandes et statistiques</p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Dashboard Producteur 🌾</h1>
+              <p className="text-gray-600 mt-1">Gérez vos produits, commandes et statistiques</p>
+            </div>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -118,7 +211,7 @@ const ProducerDashboard = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Produits actifs</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {stats?.totalProducts || products.length}
+                  {products.length}
                 </p>
               </div>
             </div>
@@ -132,7 +225,7 @@ const ProducerDashboard = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Commandes ce mois</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {stats?.monthlyOrders || orders.length}
+                  {orders.length}
                 </p>
               </div>
             </div>
@@ -146,7 +239,7 @@ const ProducerDashboard = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Revenus ce mois</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {(stats?.monthlyRevenue || 0).toLocaleString()} FCFA
+                  {orders.reduce((total, order) => total + (order.total || 0), 0).toLocaleString()} FCFA
                 </p>
               </div>
             </div>
@@ -221,7 +314,9 @@ const ProducerDashboard = () => {
                           )}
                         </div>
                         <div>
-                          <h3 className="text-sm font-medium text-gray-900">{product.name}</h3>
+                          <h3 className="text-sm font-medium text-gray-900">
+                            {typeof product.name === 'object' ? (product.name?.fr || product.name?.en || 'Sans nom') : product.name}
+                          </h3>
                           <p className="text-sm text-gray-500">
                             {product.price?.toLocaleString()} FCFA • {product.stock || 0} en stock
                           </p>
@@ -288,18 +383,19 @@ const ProducerDashboard = () => {
                           order.status === 'in-transit' ? 'bg-blue-100 text-blue-800' :
                           order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                           'bg-red-100 text-red-800'
-                        }`}>
+                        }
+      }`}>
                           {order.status === 'delivered' ? 'Livrée' :
                            order.status === 'in-transit' ? 'En transit' :
                            order.status === 'pending' ? 'En attente' :
                            'Annulée'}
                         </span>
-                        <Link
-                          to={`/producer/orders/${order._id}`}
-                          className="p-2 text-gray-400 hover:text-gray-600"
-                        >
-                          <FiEye className="h-4 w-4" />
-                        </Link>
+                               <Link
+                                 to={`/orders/${order._id}`}
+                                 className="p-2 text-gray-400 hover:text-gray-600"
+                               >
+                                 <FiEye className="h-4 w-4" />
+                               </Link>
                       </div>
                     </div>
                   ))}

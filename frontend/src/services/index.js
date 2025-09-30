@@ -5,6 +5,7 @@ export { producerService } from './producerService';
 export { userService } from './userService';
 export { productService } from './productService';
 export { orderService } from './orderService';
+export { notificationService } from './notificationService';
 export { default as uploadService } from './uploadService';
 
 // Export de l'instance API de base

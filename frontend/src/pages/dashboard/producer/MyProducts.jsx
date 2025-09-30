@@ -4,7 +4,7 @@ import { useAuth } from '../../../hooks/useAuth';
 import { producerService } from '../../../services';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import CloudinaryImage from '../../../components/common/CloudinaryImage';
-import { FiSearch, FiPlus, FiEdit, FiEye, FiTrash2, FiPackage, FiDollarSign, FiCheckCircle, FiXCircle, FiClock, FiSend } from 'react-icons/fi';
+import { FiSearch, FiPlus, FiEdit, FiEye, FiTrash2, FiPackage, FiDollarSign, FiCheckCircle, FiXCircle, FiClock, FiSend, FiStar } from 'react-icons/fi';
 
 const MyProducts = () => {
   const { user } = useAuth();
@@ -12,6 +12,7 @@ const MyProducts = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [featuredFilter, setFeaturedFilter] = useState('all');
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -22,9 +23,7 @@ const MyProducts = () => {
             status: statusFilter !== 'all' ? statusFilter : undefined,
             search: searchTerm || undefined
           });
-          console.log('📦 Réponse API Products:', response);
           const productsData = response.data.data?.products || response.data.products || response.data || [];
-          console.log('📦 Données brutes des produits:', productsData);
           setProducts(Array.isArray(productsData) ? productsData : []);
         } catch (error) {
           console.error('Erreur lors du chargement des produits:', error);
@@ -35,7 +34,7 @@ const MyProducts = () => {
       }
     };
     loadProducts();
-  }, [user, searchTerm, statusFilter]);
+  }, [user]); // Supprimer les dépendances qui causent trop de rechargements
 
   const getStatusConfig = (status) => {
     const configs = {
@@ -83,7 +82,10 @@ const MyProducts = () => {
     const matchesSearch = productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          productDescription.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || product.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesFeatured = featuredFilter === 'all' || 
+                           (featuredFilter === 'featured' && product.isFeatured) ||
+                           (featuredFilter === 'not-featured' && !product.isFeatured);
+    return matchesSearch && matchesStatus && matchesFeatured;
   });
 
   if (loading) {
@@ -132,7 +134,7 @@ const MyProducts = () => {
 
         <div className="mb-6">
           <div className="bg-white rounded-lg shadow p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="relative">
                 <FiSearch className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <input
@@ -150,10 +152,22 @@ const MyProducts = () => {
                   className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
                 >
                   <option value="all">Tous les statuts</option>
-                  <option value="active">Actif</option>
-                  <option value="inactive">Inactif</option>
-                  <option value="pending">En attente</option>
+                  <option value="approved">Publié</option>
+                  <option value="pending-review">En révision</option>
                   <option value="draft">Brouillon</option>
+                  <option value="rejected">Rejeté</option>
+                  <option value="inactive">Inactif</option>
+                </select>
+              </div>
+              <div>
+                <select
+                  value={featuredFilter}
+                  onChange={(e) => setFeaturedFilter(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                >
+                  <option value="all">Tous les produits</option>
+                  <option value="featured">Mis en avant</option>
+                  <option value="not-featured">Non mis en avant</option>
                 </select>
               </div>
             </div>
@@ -212,10 +226,18 @@ const MyProducts = () => {
                       <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
                         {product.name?.fr || product.name?.en || product.name || 'Produit sans nom'}
                       </h3>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusConfig.color}`}>
-                        <StatusIcon className="w-3 h-3 mr-1" />
-                        {statusConfig.text}
-                      </span>
+                      <div className="flex flex-col items-end space-y-1">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusConfig.color}`}>
+                          <StatusIcon className="w-3 h-3 mr-1" />
+                          {statusConfig.text}
+                        </span>
+                        {product.isFeatured && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                            <FiStar className="w-3 h-3 mr-1 fill-current" />
+                            Mis en avant
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <p className="text-sm text-gray-600 line-clamp-2 mb-4">
                       {product.description?.fr || product.description?.en || product.description || 'Aucune description'}

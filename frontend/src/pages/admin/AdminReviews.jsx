@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
   Star,
   User,
@@ -14,7 +13,6 @@ import {
 import { adminService } from '../../services/adminService';
 
 const AdminReviews = () => {
-  const { t, i18n } = useTranslation();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,20 +33,16 @@ const AdminReviews = () => {
       };
 
       const response = await adminService.getReviews(params);
-      console.log('🔍 AdminReviews - Response:', response.data);
       
       // Vérifier si la réponse contient des avis
       if (response.data && response.data.reviews) {
-        console.log('⭐ AdminReviews - Reviews:', response.data.reviews);
         setReviews(response.data.reviews || []);
         setTotalPages(response.data.pagination?.totalPages || 1);
       } else if (response.data && response.data.data && response.data.data.reviews) {
         // Structure alternative avec data.reviews
-        console.log('⭐ AdminReviews - Reviews (alt):', response.data.data.reviews);
         setReviews(response.data.data.reviews || []);
         setTotalPages(response.data.data.pagination?.totalPages || 1);
       } else {
-        console.log('❌ AdminReviews - No reviews found in response:', response.data);
         setReviews([]);
         setTotalPages(1);
       }
@@ -62,10 +56,8 @@ const AdminReviews = () => {
   }, [currentPage, statusFilter, searchTerm]);
 
   useEffect(() => {
-    if (i18n.isInitialized && i18n.language) {
-      loadReviews();
-    }
-  }, [i18n.isInitialized, i18n.language, loadReviews]);
+    loadReviews();
+  }, [loadReviews]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -166,7 +158,7 @@ const AdminReviews = () => {
     ));
   };
 
-  if (!i18n.isInitialized || !i18n.language || loading) {
+  if (loading) {
     return (
       <div>
         <div className="flex items-center justify-center h-64">

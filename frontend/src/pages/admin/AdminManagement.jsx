@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
 import { adminService } from '../../services/adminService';
 import { 
   Plus, 
@@ -15,7 +14,6 @@ import {
 } from 'lucide-react';
 
 const AdminManagement = () => {
-  const { t } = useTranslation();
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -40,22 +38,17 @@ const AdminManagement = () => {
         status: statusFilter
       });
       
-      console.log('🔍 AdminManagement - Response:', response.data);
-      
       // Vérifier si la réponse contient des administrateurs
       if (response.data && response.data.admins) {
-        console.log('👨‍💼 AdminManagement - Admins:', response.data.admins);
         setAdmins(response.data.admins || []);
         setTotalPages(response.data.totalPages || 1);
         setTotalItems(response.data.totalItems || 0);
       } else if (response.data && response.data.data && response.data.data.admins) {
         // Structure alternative avec data.admins
-        console.log('👨‍💼 AdminManagement - Admins (alt):', response.data.data.admins);
         setAdmins(response.data.data.admins || []);
         setTotalPages(response.data.data.totalPages || 1);
         setTotalItems(response.data.data.totalItems || 0);
       } else {
-        console.log('❌ AdminManagement - No admins found in response:', response.data);
         setAdmins([]);
         setTotalPages(1);
         setTotalItems(0);
@@ -132,7 +125,7 @@ const AdminManagement = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">{t('common.loading')}</p>
+          <p className="mt-4 text-gray-600">Chargement...</p>
         </div>
       </div>
     );
@@ -145,10 +138,10 @@ const AdminManagement = () => {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                {t('admin.management.title')}
+                Gestion des administrateurs
               </h1>
               <p className="mt-2 text-gray-600">
-                {t('admin.management.subtitle')}
+                Gérez les comptes administrateurs et leurs permissions
               </p>
             </div>
             <button
@@ -156,7 +149,7 @@ const AdminManagement = () => {
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
             >
               <Plus className="h-5 w-5 mr-2" />
-              {t('admin.management.createAdmin')}
+              Créer un administrateur
             </button>
           </div>
         </div>
@@ -166,7 +159,7 @@ const AdminManagement = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('admin.management.search')}
+                Recherche
               </label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -174,7 +167,7 @@ const AdminManagement = () => {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder={t('admin.management.searchPlaceholder')}
+                  placeholder="Rechercher un administrateur..."
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -182,14 +175,14 @@ const AdminManagement = () => {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('admin.management.role')}
+                Rôle
               </label>
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">{t('admin.management.allRoles')}</option>
+                <option value="">Tous les rôles</option>
                 <option value="super-admin">Super Admin</option>
                 <option value="admin">Admin</option>
                 <option value="moderator">Modérateur</option>
@@ -199,16 +192,16 @@ const AdminManagement = () => {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('admin.management.status')}
+                Statut
               </label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="">{t('admin.management.allStatuses')}</option>
-                <option value="active">{t('admin.management.active')}</option>
-                <option value="inactive">{t('admin.management.inactive')}</option>
+                <option value="">Tous les statuts</option>
+                <option value="active">Actif</option>
+                <option value="inactive">Inactif</option>
               </select>
             </div>
           </div>
@@ -221,25 +214,25 @@ const AdminManagement = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('admin.management.name')}
+                    Nom
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('admin.management.email')}
+                    Email
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('admin.management.role')}
+                    Rôle
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('admin.management.department')}
+                    Département
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('admin.management.status')}
+                    Statut
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('admin.management.lastLogin')}
+                    Dernière connexion
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {t('admin.management.actions')}
+                    Actions
                   </th>
                 </tr>
               </thead>
@@ -282,12 +275,12 @@ const AdminManagement = () => {
                         {admin.isActive ? (
                           <>
                             <UserCheck className="h-3 w-3 mr-1" />
-                            {t('admin.management.active')}
+                            Actif
                           </>
                         ) : (
                           <>
                             <UserX className="h-3 w-3 mr-1" />
-                            {t('admin.management.inactive')}
+                            Inactif
                           </>
                         )}
                       </span>
@@ -311,9 +304,9 @@ const AdminManagement = () => {
                         </button>
                         <button
                           onClick={() => {
-                            if (window.confirm(t('admin.management.confirmDelete'))) {
+                            if (window.confirm('Êtes-vous sûr de vouloir supprimer cet administrateur ?')) {
                               // Logique de suppression
-                              console.log('Supprimer admin:', admin.id);
+                              // Logique de suppression
                             }
                           }}
                           className="text-red-600 hover:text-red-900"
@@ -332,17 +325,17 @@ const AdminManagement = () => {
         {/* Pagination */}
         <div className="mt-6 flex items-center justify-between">
           <div className="text-sm text-gray-700">
-            {t('admin.management.showing')} <span className="font-medium">1</span> {t('admin.management.to')} <span className="font-medium">{filteredAdmins.length}</span> {t('admin.management.of')} <span className="font-medium">{admins.length}</span> {t('admin.management.results')}
+            Affichage de <span className="font-medium">1</span> à <span className="font-medium">{filteredAdmins.length}</span> sur <span className="font-medium">{admins.length}</span> résultats
           </div>
           <div className="flex space-x-2">
             <button className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-              {t('admin.management.previous')}
+              Précédent
             </button>
             <button className="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700">
               1
             </button>
             <button className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-              {t('admin.management.next')}
+              Suivant
             </button>
           </div>
         </div>

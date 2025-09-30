@@ -13,6 +13,9 @@ router.use(authController.requireVerification);
 // Créer une nouvelle commande
 router.post('/', orderController.createOrder);
 
+// Route de test pour créer une commande (TEMPORAIRE)
+router.post('/test', orderController.createTestOrder);
+
 // Obtenir mes commandes
 router.get('/my', orderController.getMyOrders);
 

@@ -36,22 +36,16 @@ const ConsumerDashboard = () => {
       if (user?.userType === 'consumer') {
         try {
           setLoading(true);
-          const [ordersResponse, loyaltyResponse, cartResponse, wishlistResponse, statsResponse] = await Promise.all([
+          const [ordersResponse, loyaltyResponse, cartResponse, wishlistResponse] = await Promise.all([
             consumerService.getMyOrders(),
             consumerService.getLoyaltyStatus(),
             consumerService.getCart(),
-            consumerService.getWishlist(),
-            consumerService.getMyStats()
+            consumerService.getWishlist()
           ]);
 
-          console.log('📡 Réponse API Dashboard Orders:', ordersResponse);
-          console.log('📡 Réponse API Dashboard Loyalty:', loyaltyResponse);
-          console.log('📡 Réponse API Dashboard Cart:', cartResponse);
-          console.log('📡 Réponse API Dashboard Wishlist:', wishlistResponse);
-          console.log('📡 Réponse API Dashboard Stats:', statsResponse);
 
           // Traiter les commandes
-          const orders = ordersResponse.data.orders || [];
+          const orders = ordersResponse.data.data?.orders || ordersResponse.data.orders || [];
           const pendingOrders = orders.filter(order => order.status === 'pending' || order.status === 'processing').length;
           const totalSpent = orders.reduce((sum, order) => sum + (order.total || 0), 0);
 
@@ -131,20 +125,24 @@ const ConsumerDashboard = () => {
       <div className="p-6 max-w-7xl mx-auto pb-20">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Bonjour {user?.firstName} ! 👋
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Voici un aperçu de votre activité sur Harvests
-          </p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Bonjour {user?.firstName} ! 👋
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Voici un aperçu de votre activité sur Harvests
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow p-3">
+            <div className="flex  items-center">
               <div className="p-2 bg-harvests-green bg-opacity-10 rounded-lg">
-                <FiShoppingBag className="h-6 w-6 text-harvests-green" />
+                <FiShoppingBag className="h-6 w-6 text-harvests-white" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total commandes</p>
@@ -153,7 +151,7 @@ const ConsumerDashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-3">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
                 <FiClock className="h-6 w-6 text-blue-600" />
@@ -165,10 +163,10 @@ const ConsumerDashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-3">
             <div className="flex items-center">
               <div className="p-2 bg-harvests-yellow bg-opacity-20 rounded-lg">
-                <FiTrendingUp className="h-6 w-6 text-harvests-yellow" />
+                <FiTrendingUp className="h-6 w-6 text-harvests-white" />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total dépensé</p>
@@ -177,7 +175,7 @@ const ConsumerDashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-3">
             <div className="flex items-center">
               <div className="p-2 bg-purple-100 rounded-lg">
                 <FiStar className="h-6 w-6 text-purple-600" />
@@ -260,11 +258,15 @@ const ConsumerDashboard = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {recentOrders.map((order) => (
-                      <tr key={order.id} className="hover:bg-gray-50">
+                      <tr key={order._id || order.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{order.id}</div>
-                            <div className="text-sm text-gray-500">{order.seller}</div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {order.orderNumber || order._id?.slice(-8).toUpperCase()}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {order.seller?.firstName} {order.seller?.lastName}
+                            </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

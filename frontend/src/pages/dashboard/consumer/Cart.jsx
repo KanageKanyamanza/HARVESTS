@@ -10,10 +10,7 @@ import {
   FiShoppingBag,
   FiArrowRight,
   FiHeart,
-  FiTag,
-  FiTruck,
-  FiClock,
-  FiMapPin
+  FiTag
 } from 'react-icons/fi';
 
 const Cart = () => {
@@ -23,21 +20,29 @@ const Cart = () => {
   const [promoCode, setPromoCode] = useState('');
   const [appliedPromo, setAppliedPromo] = useState(null);
 
+
   // Charger le panier
   useEffect(() => {
     const loadCart = async () => {
-      if (user?.userType === 'consumer') {
+      if (user) { // Temporairement, permettre à tous les utilisateurs connectés
         try {
           setLoading(true);
-          const response = await consumerService.getCart();
-          console.log('📡 Réponse API Cart:', response);
-          setCartItems(response.data.cart?.items || []);
+          if (user.userType === 'consumer') {
+            const response = await consumerService.getCart();
+            setCartItems(response.data.cart?.items || []);
+          } else {
+            // Pour les autres types d'utilisateurs, utiliser le panier local
+            console.log('⚠️ Utilisateur non-consumer, utilisation du panier local');
+            setCartItems([]);
+          }
         } catch (error) {
           console.error('Erreur lors du chargement du panier:', error);
           setCartItems([]);
         } finally {
           setLoading(false);
         }
+      } else {
+        setLoading(false);
       }
     };
 
@@ -90,13 +95,12 @@ const Cart = () => {
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const deliveryFee = 2000;
   const discount = appliedPromo 
     ? appliedPromo.type === 'percentage' 
       ? (subtotal * appliedPromo.discount) / 100
       : appliedPromo.discount
     : 0;
-  const total = subtotal + deliveryFee - discount;
+  const total = subtotal - discount;
 
   const getAvailabilityBadge = (availability) => {
     const configs = {
@@ -133,6 +137,32 @@ const Cart = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      </ModularDashboardLayout>
+    );
+  }
+
+  // Vérifier si l'utilisateur est connecté
+  if (!user) {
+    return (
+      <ModularDashboardLayout>
+        <div className="p-6 max-w-4xl mx-auto">
+          <div className="text-center py-12">
+            <FiShoppingBag className="mx-auto h-16 w-16 text-gray-400" />
+            <h2 className="mt-4 text-xl font-semibold text-gray-900">Connexion requise</h2>
+            <p className="mt-2 text-gray-600">
+              Vous devez vous connecter pour accéder à votre panier
+            </p>
+            <div className="mt-6">
+              <Link
+                to="/login"
+                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-harvests-green hover:bg-green-600"
+              >
+                Se connecter
+                <FiArrowRight className="ml-2 h-5 w-5" />
+              </Link>
             </div>
           </div>
         </div>
@@ -206,10 +236,6 @@ const Cart = () => {
                                 Par {item.seller.name} • {item.seller.location}
                               </span>
                               {getAvailabilityBadge(item.availability)}
-                            </div>
-                            <div className="mt-1 flex items-center text-sm text-gray-500">
-                              <FiTruck className="h-4 w-4 mr-1" />
-                              Livraison: {item.deliveryTime}
                             </div>
                           </div>
                           
@@ -323,11 +349,6 @@ const Cart = () => {
                   <span className="font-medium">{subtotal.toLocaleString()} FCFA</span>
                 </div>
                 
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Livraison</span>
-                  <span className="font-medium">{deliveryFee.toLocaleString()} FCFA</span>
-                </div>
-                
                 {discount > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-green-600">Réduction</span>
@@ -345,17 +366,6 @@ const Cart = () => {
                 </div>
               </div>
 
-              {/* Delivery Info */}
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center text-sm text-gray-600 mb-2">
-                  <FiMapPin className="h-4 w-4 mr-2" />
-                  Livraison à Yaoundé
-                </div>
-                <div className="flex items-center text-sm text-gray-600">
-                  <FiClock className="h-4 w-4 mr-2" />
-                  Estimée entre 2-3 jours
-                </div>
-              </div>
 
               {/* Checkout Button */}
               <Link

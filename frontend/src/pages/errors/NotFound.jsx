@@ -1,10 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { Home, ArrowLeft, Search } from 'lucide-react';
 
 const NotFound = () => {
-  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -17,7 +15,7 @@ const NotFound = () => {
           </div>
 
           <h1 className="text-3xl font-display font-bold text-gray-900 mb-4">
-            {t('errors.pageNotFound')}
+            Page non trouvée
           </h1>
           
           <p className="text-lg text-gray-600 mb-8">

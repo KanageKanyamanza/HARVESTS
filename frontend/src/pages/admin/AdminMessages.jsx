@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
   MessageSquare,
   User,
@@ -14,7 +13,6 @@ import {
 import { adminService } from '../../services/adminService';
 
 const AdminMessages = () => {
-  const { t, i18n } = useTranslation();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -36,20 +34,16 @@ const AdminMessages = () => {
       };
 
       const response = await adminService.getMessages(params);
-      console.log('🔍 AdminMessages - Response:', response.data);
       
       // Vérifier si la réponse contient des messages
       if (response.data && response.data.messages) {
-        console.log('💬 AdminMessages - Messages:', response.data.messages);
         setMessages(response.data.messages || []);
         setTotalPages(response.data.pagination?.totalPages || 1);
       } else if (response.data && response.data.data && response.data.data.messages) {
         // Structure alternative avec data.messages
-        console.log('💬 AdminMessages - Messages (alt):', response.data.data.messages);
         setMessages(response.data.data.messages || []);
         setTotalPages(response.data.data.pagination?.totalPages || 1);
       } else {
-        console.log('❌ AdminMessages - No messages found in response:', response.data);
         setMessages([]);
         setTotalPages(1);
       }
@@ -63,10 +57,8 @@ const AdminMessages = () => {
   }, [currentPage, statusFilter, searchTerm]);
 
   useEffect(() => {
-    if (i18n.isInitialized && i18n.language) {
-      loadMessages();
-    }
-  }, [i18n.isInitialized, i18n.language, loadMessages]);
+    loadMessages();
+  }, [loadMessages]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -159,7 +151,7 @@ const AdminMessages = () => {
     return priorityMap[priority] || priority;
   };
 
-  if (!i18n.isInitialized || !i18n.language || loading) {
+  if (loading) {
     return (
       <div>
         <div className="flex items-center justify-center h-64">

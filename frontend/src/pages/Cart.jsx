@@ -124,10 +124,6 @@ const Cart = () => {
                   <span>Sous-total ({totalItems} articles)</span>
                   <span>{totalPrice.toLocaleString()} FCFA</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span>Livraison</span>
-                  <span className="text-green-600">Gratuite</span>
-                </div>
                 <hr />
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Total</span>
@@ -135,13 +131,13 @@ const Cart = () => {
                 </div>
               </div>
 
-              <button className="w-full bg-harvests-green text-white py-3 rounded-lg hover:bg-green-600 transition-colors font-medium">
+              <button 
+                onClick={() => navigate('/checkout')}
+                className="w-full bg-harvests-green text-white py-3 rounded-lg hover:bg-green-600 transition-colors font-medium"
+              >
                 Passer la commande
               </button>
 
-              <p className="text-xs text-gray-500 text-center mt-4">
-                Vous devrez vous connecter pour finaliser la commande
-              </p>
             </div>
           </div>
         </div>

@@ -17,16 +17,31 @@ const api = axios.create({
 // Intercepteur de requête
 api.interceptors.request.use(
   (config) => {
-    // Ajouter le token d'authentification s'il existe et est valide
-    const token = localStorage.getItem('harvests_token');
-    if (isValidToken(token)) {
-      config.headers.Authorization = `Bearer ${token}`;
-    } else if (token) {
-      // Token invalide trouvé, le nettoyer
-      console.warn('Token invalide détecté dans intercepteur, nettoyage...');
-      localStorage.removeItem('harvests_token');
-      localStorage.removeItem('harvests_user');
-      localStorage.removeItem('harvests_auth_data');
+    // Routes publiques qui ne nécessitent pas d'authentification
+    const publicRoutes = [
+      '/auth/signup',
+      '/auth/login',
+      '/auth/forgot-password',
+      '/auth/reset-password',
+      '/auth/verify-email',
+      '/auth/resend-verification'
+    ];
+    
+    // Vérifier si la route est publique
+    const isPublicRoute = publicRoutes.some(route => config.url?.includes(route));
+    
+    // Ajouter le token d'authentification seulement pour les routes protégées
+    if (!isPublicRoute) {
+      const token = localStorage.getItem('harvests_token');
+      if (isValidToken(token)) {
+        config.headers.Authorization = `Bearer ${token}`;
+      } else if (token) {
+        // Token invalide trouvé, le nettoyer
+        console.warn('Token invalide détecté dans intercepteur, nettoyage...');
+        localStorage.removeItem('harvests_token');
+        localStorage.removeItem('harvests_user');
+        localStorage.removeItem('harvests_auth_data');
+      }
     }
     
     // Ajouter la langue actuelle
@@ -49,11 +64,15 @@ api.interceptors.request.use(
 // Intercepteur de réponse
 api.interceptors.response.use(
   (response) => {
-    // Log de la réponse pour le débogage
-    console.log('API Response:', response);
     return response;
   },
   (error) => {
+    // Gérer les erreurs de rate limiting en silence
+    if (error.response?.status === 429) {
+      console.warn('Trop de requêtes - Rate limiting activé');
+      return Promise.reject(error);
+    }
+    
     console.error('API Error:', error);
     
     // Gérer les erreurs d'authentification

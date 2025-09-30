@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
   Search,
@@ -19,12 +18,12 @@ import { adminService } from '../../services/adminService';
 import CloudinaryImage from '../../components/common/CloudinaryImage';
 
 const AdminProducts = () => {
-  const { t, i18n } = useTranslation();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [featuredFilter, setFeaturedFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [selectedProducts, setSelectedProducts] = useState([]);
@@ -34,16 +33,14 @@ const AdminProducts = () => {
     if (!text) return fallback;
     if (typeof text === 'string') return text;
     if (typeof text === 'object') {
-      return text[i18n.language] || text.fr || text.en || fallback;
+      return text.fr || text.en || fallback;
     }
     return fallback;
   };
 
   useEffect(() => {
-    if (i18n.isInitialized && i18n.language) {
-      loadProducts();
-    }
-  }, [i18n.isInitialized, i18n.language, currentPage, statusFilter, categoryFilter, searchTerm]);
+    loadProducts();
+  }, [currentPage, statusFilter, categoryFilter, searchTerm, featuredFilter]);
 
   // Fonction loadProducts
   const loadProducts = async () => {
@@ -54,23 +51,19 @@ const AdminProducts = () => {
         limit: 10,
         search: searchTerm,
         status: statusFilter,
-        category: categoryFilter
+        category: categoryFilter,
+        featured: featuredFilter
       };
       const response = await adminService.getProducts(params);
-      console.log('🔍 AdminProducts - Response:', response.data);
-      
       // Vérifier si la réponse contient des produits
       if (response.data && response.data.products) {
-        console.log('📦 AdminProducts - Products:', response.data.products);
         setProducts(response.data.products || []);
         setTotalPages(response.data.pagination?.totalPages || 1);
       } else if (response.data && response.data.data && response.data.data.products) {
         // Structure alternative avec data.products
-        console.log('📦 AdminProducts - Products (alt):', response.data.data.products);
         setProducts(response.data.data.products || []);
         setTotalPages(response.data.data.pagination?.totalPages || 1);
       } else {
-        console.log('❌ AdminProducts - No products found in response:', response.data);
         setProducts([]);
         setTotalPages(1);
       }
@@ -98,6 +91,11 @@ const AdminProducts = () => {
     setCurrentPage(1);
   };
 
+  const handleFeaturedFilter = (e) => {
+    setFeaturedFilter(e.target.value);
+    setCurrentPage(1);
+  };
+
   const handleSelectProduct = (productId) => {
     setSelectedProducts(prev => 
       prev.includes(productId) 
@@ -115,7 +113,7 @@ const AdminProducts = () => {
   };
 
   const handleApproveProduct = async (productId) => {
-    if (window.confirm(t('admin.confirmApproveProduct'))) {
+    if (window.confirm('Êtes-vous sûr de vouloir approuver ce produit ?')) {
       try {
         await adminService.approveProduct(productId);
         loadProducts();
@@ -126,7 +124,7 @@ const AdminProducts = () => {
   };
 
   const handleRejectProduct = async (productId) => {
-    const reason = window.prompt(t('admin.rejectionReason'));
+    const reason = window.prompt('Raison du rejet:');
     if (reason) {
       try {
         await adminService.rejectProduct(productId, reason);
@@ -139,10 +137,15 @@ const AdminProducts = () => {
 
   const handleFeatureProduct = async (productId) => {
     try {
-      await adminService.featureProduct(productId);
+      const product = products.find(p => p._id === productId);
+      if (product?.isFeatured) {
+        await adminService.unfeatureProduct(productId);
+      } else {
+        await adminService.featureProduct(productId);
+      }
       loadProducts();
     } catch (error) {
-      console.error('Erreur lors de la mise en vedette:', error);
+      console.error('Erreur lors de la gestion de la vedette:', error);
     }
   };
 
@@ -175,21 +178,17 @@ const AdminProducts = () => {
 
   const getStatusText = (status) => {
     const statusMap = {
-      'approved': t('admin.approved'),
-      'pending-review': t('admin.pendingReview'),
-      'draft': t('admin.draft'),
-      'rejected': t('admin.rejected'),
-      'inactive': t('admin.inactive')
+      'approved': 'Approuvé',
+      'pending-review': 'En attente de révision',
+      'draft': 'Brouillon',
+      'rejected': 'Rejeté',
+      'inactive': 'Inactif'
     };
     return statusMap[status] || status;
   };
 
-  console.log('🔍 AdminProducts - Render - Products:', products);
-  console.log('🔍 AdminProducts - Render - Loading:', loading);
-  console.log('🔍 AdminProducts - Render - i18n initialized:', i18n.isInitialized);
-  console.log('🔍 AdminProducts - Render - i18n language:', i18n.language);
 
-  if (!i18n.isInitialized || !i18n.language || loading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
@@ -203,29 +202,29 @@ const AdminProducts = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{t('admin.products')}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Produits</h1>
             <p className="mt-1 text-sm text-gray-500">
-              {t('admin.productsDescription')}
+              Gérez tous les produits de la plateforme
             </p>
           </div>
           <div className="flex space-x-3">
             <button className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700">
-              {t('admin.exportProducts')}
+              Exporter
             </button>
             <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
-              {t('admin.addProduct')}
+              Ajouter un produit
             </button>
           </div>
         </div>
 
         {/* Filters */}
         <div className="bg-white p-4 rounded-lg shadow">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                placeholder={t('admin.searchProducts')}
+                placeholder="Rechercher des produits..."
                 value={searchTerm}
                 onChange={handleSearch}
                 className="pl-10 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -236,28 +235,37 @@ const AdminProducts = () => {
               onChange={handleStatusFilter}
               className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
-              <option value="">{t('admin.allStatuses')}</option>
-              <option value="approved">{t('admin.approved')}</option>
-              <option value="pending-review">{t('admin.pendingReview')}</option>
-              <option value="draft">{t('admin.draft')}</option>
-              <option value="rejected">{t('admin.rejected')}</option>
-              <option value="inactive">{t('admin.inactive')}</option>
+              <option value="">Tous les statuts</option>
+              <option value="approved">Approuvé</option>
+              <option value="pending-review">En attente de révision</option>
+              <option value="draft">Brouillon</option>
+              <option value="rejected">Rejeté</option>
+              <option value="inactive">Inactif</option>
             </select>
             <select
               value={categoryFilter}
               onChange={handleCategoryFilter}
               className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
-              <option value="">{t('admin.allCategories')}</option>
-              <option value="fruits">{t('products.categories.fruits')}</option>
-              <option value="vegetables">{t('products.categories.vegetables')}</option>
-              <option value="grains">{t('products.categories.grains')}</option>
-              <option value="herbs">{t('products.categories.herbs')}</option>
-              <option value="other">{t('products.categories.other')}</option>
+              <option value="">Toutes les catégories</option>
+              <option value="fruits">Fruits</option>
+              <option value="vegetables">Légumes</option>
+              <option value="grains">Céréales</option>
+              <option value="herbs">Herbes</option>
+              <option value="other">Autres</option>
+            </select>
+            <select
+              value={featuredFilter}
+              onChange={handleFeaturedFilter}
+              className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              <option value="">Tous les produits</option>
+              <option value="featured">En vedette</option>
+              <option value="not-featured">Non en vedette</option>
             </select>
             <button className="bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200">
               <Filter className="h-4 w-4 inline mr-2" />
-              {t('admin.moreFilters')}
+              Plus de filtres
             </button>
           </div>
         </div>
@@ -267,15 +275,15 @@ const AdminProducts = () => {
           <div className="px-4 py-5 sm:p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium text-gray-900">
-                {t('admin.productsList')} ({products.length})
+                Liste des produits ({products.length})
               </h3>
               {selectedProducts.length > 0 && (
                 <div className="flex space-x-2">
                   <button className="bg-green-600 text-white px-3 py-1 rounded text-sm">
-                    {t('admin.approveSelected')}
+                    Approuver sélectionnés
                   </button>
                   <button className="bg-red-600 text-white px-3 py-1 rounded text-sm">
-                    {t('admin.rejectSelected')}
+                    Rejeter sélectionnés
                   </button>
                 </div>
               )}
@@ -294,22 +302,22 @@ const AdminProducts = () => {
                       />
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('admin.product')}
+                      Produit
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('admin.producer')}
+                      Producteur
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('admin.price')}
+                      Prix
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('admin.status')}
+                      Statut
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('admin.created')}
+                      Créé le
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('admin.actions')}
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -319,8 +327,8 @@ const AdminProducts = () => {
                       <td colSpan="7" className="px-6 py-12 text-center text-gray-500">
                         <div className="flex flex-col items-center">
                           <Package className="h-12 w-12 text-gray-300 mb-4" />
-                          <p className="text-lg font-medium">{t('admin.noProducts')}</p>
-                          <p className="text-sm">{t('admin.noProductsDescription')}</p>
+                          <p className="text-lg font-medium">Aucun produit trouvé</p>
+                          <p className="text-sm">Aucun produit ne correspond à vos critères de recherche</p>
                         </div>
                       </td>
                     </tr>
@@ -345,8 +353,11 @@ const AdminProducts = () => {
                               />
                             </div>
                             <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">
+                              <div className="flex items-center text-sm font-medium text-gray-900">
                                 {getLocalizedText(product.name, 'Produit sans nom')}
+                                {product.isFeatured && (
+                                  <Star className="h-4 w-4 text-yellow-500 ml-2 fill-current" />
+                                )}
                               </div>
                               <div className="text-sm text-gray-500">
                                 {product.category}
@@ -366,18 +377,28 @@ const AdminProducts = () => {
                           {formatPrice(product.price)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}>
-                            {getStatusText(product.status)}
-                          </span>
+                          <div className="flex items-center space-x-2">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(product.status)}`}>
+                              {getStatusText(product.status)}
+                            </span>
+                            {product.isFeatured && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                <Star className="h-3 w-3 mr-1 fill-current" />
+                                En vedette
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {formatDate(product.createdAt)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex items-center space-x-2">
+                           
                             <Link
                               to={`/admin/products/${product._id}`}
                               className="text-green-600 hover:text-green-900"
+                              title="Voir les détails"
                             >
                               <Eye className="h-4 w-4" />
                             </Link>
@@ -386,23 +407,30 @@ const AdminProducts = () => {
                                 <button
                                   onClick={() => handleApproveProduct(product._id)}
                                   className="text-green-600 hover:text-green-900"
+                                  title="Approuver le produit"
                                 >
                                   <CheckCircle className="h-4 w-4" />
                                 </button>
                                 <button
                                   onClick={() => handleRejectProduct(product._id)}
                                   className="text-red-600 hover:text-red-900"
+                                  title="Rejeter le produit"
                                 >
                                   <XCircle className="h-4 w-4" />
                                 </button>
                               </>
                             )}
-                            {product.status === 'approved' && !product.featured && (
+                            {product.status === 'approved' && (
                               <button
                                 onClick={() => handleFeatureProduct(product._id)}
-                                className="text-yellow-600 hover:text-yellow-900"
+                                className={`${
+                                  product.isFeatured 
+                                    ? 'text-yellow-500 hover:text-yellow-900' 
+                                    : 'text-gray-400 hover:text-yellow-500'
+                                }`}
+                                title={product.isFeatured ? 'Retirer des vedettes' : 'Mettre en vedette'}
                               >
-                                <Star className="h-4 w-4" />
+                                <Star className={`h-4 w-4 ${product.isFeatured ? 'fill-current' : ''}`} />
                               </button>
                             )}
                           </div>
@@ -417,7 +445,7 @@ const AdminProducts = () => {
             {/* Pagination */}
             <div className="mt-6 flex items-center justify-between">
               <div className="text-sm text-gray-700">
-                {t('admin.showing')} {((currentPage - 1) * 10) + 1} {t('admin.to')} {Math.min(currentPage * 10, products.length)} {t('admin.of')} {products.length} {t('admin.results')}
+                Affichage de {((currentPage - 1) * 10) + 1} à {Math.min(currentPage * 10, products.length)} sur {products.length} résultats
               </div>
               <div className="flex space-x-2">
                 <button
@@ -425,14 +453,14 @@ const AdminProducts = () => {
                   disabled={currentPage === 1}
                   className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {t('admin.previous')}
+                  Précédent
                 </button>
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
                   className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {t('admin.next')}
+                  Suivant
                 </button>
               </div>
             </div>

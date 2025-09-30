@@ -6,10 +6,21 @@ export const authService = {
   login: (credentials) => apiRequest.post('/auth/login', credentials),
   
   // Inscription
-  register: (userData) => apiRequest.post('/auth/register', userData),
+  register: (userData) => apiRequest.post('/auth/signup', userData),
   
   // Déconnexion
-  logout: () => apiRequest.post('/auth/logout'),
+  logout: async () => {
+    try {
+      return await apiRequest.post('/auth/logout');
+    } catch (error) {
+      // Si l'endpoint n'existe pas (404), on considère que la déconnexion locale est suffisante
+      if (error.response?.status === 404) {
+        console.log('Endpoint logout non disponible - déconnexion locale uniquement');
+        return { data: { message: 'Déconnexion locale réussie' } };
+      }
+      throw error;
+    }
+  },
   
   // Vérification d'email
   resendVerification: (email) => apiRequest.post('/auth/resend-verification', { email }),

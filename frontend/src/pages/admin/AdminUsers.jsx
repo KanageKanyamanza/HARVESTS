@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
   Search,
@@ -23,7 +22,6 @@ import {
 import { adminService } from '../../services/adminService';
 
 const AdminUsers = () => {
-  const { t, i18n } = useTranslation();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -45,20 +43,16 @@ const AdminUsers = () => {
         status: statusFilter
       };
       const response = await adminService.getUsers(params);
-      console.log('🔍 AdminUsers - Response:', response.data);
       
       // Vérifier si la réponse contient des utilisateurs
       if (response.data && response.data.users) {
-        console.log('👥 AdminUsers - Users:', response.data.users);
         setUsers(response.data.users || []);
         setTotalPages(response.data.pagination?.totalPages || 1);
       } else if (response.data && response.data.data && response.data.data.users) {
         // Structure alternative avec data.users
-        console.log('👥 AdminUsers - Users (alt):', response.data.data.users);
         setUsers(response.data.data.users || []);
         setTotalPages(response.data.data.pagination?.totalPages || 1);
       } else {
-        console.log('❌ AdminUsers - No users found in response:', response.data);
         setUsers([]);
         setTotalPages(1);
       }
@@ -72,10 +66,8 @@ const AdminUsers = () => {
   }, [currentPage, roleFilter, statusFilter, searchTerm]);
 
   useEffect(() => {
-    if (i18n.isInitialized && i18n.language) {
-      loadUsers();
-    }
-  }, [i18n.isInitialized, i18n.language, loadUsers]);
+    loadUsers();
+  }, [loadUsers]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -109,7 +101,7 @@ const AdminUsers = () => {
   };
 
   const handleBanUser = async (userId) => {
-    if (window.confirm(t('admin.confirmBanUser'))) {
+    if (window.confirm('Êtes-vous sûr de vouloir bannir cet utilisateur ?')) {
       try {
         await adminService.banUser(userId, 'Violation des règles');
         loadUsers();
@@ -149,18 +141,29 @@ const AdminUsers = () => {
     return colors[role] || 'text-gray-600 bg-gray-100';
   };
 
+  const getRoleLabel = (userType) => {
+    const labels = {
+      'producer': 'Producteur',
+      'consumer': 'Consommateur',
+      'transformer': 'Transformateur',
+      'restaurateur': 'Restaurateur',
+      'exporter': 'Exportateur',
+      'transporter': 'Transporteur'
+    };
+    return labels[userType] || userType;
+  };
+
   const getStatusColor = (status) => {
     const colors = {
-      'active': 'text-green-600 bg-green-100',
-      'inactive': 'text-gray-600 bg-gray-100',
-      'banned': 'text-red-600 bg-red-100',
-      'pending': 'text-yellow-600 bg-yellow-100',
-      'verified': 'text-blue-600 bg-blue-100'
+      'Actif': 'text-green-600 bg-green-100',
+      'Vérifié': 'text-blue-600 bg-blue-100',
+      'En attente': 'text-yellow-600 bg-yellow-100',
+      'Banni': 'text-red-600 bg-red-100'
     };
     return colors[status] || 'text-gray-600 bg-gray-100';
   };
 
-  if (!i18n.isInitialized || !i18n.language || loading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
@@ -174,17 +177,23 @@ const AdminUsers = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{t('admin.users')}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Utilisateurs</h1>
             <p className="mt-1 text-sm text-gray-500">
-              {t('admin.usersDescription')}
+              Gérez tous les utilisateurs de la plateforme
             </p>
           </div>
           <div className="flex space-x-3">
-            <button className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700">
-              {t('admin.exportUsers')}
+            <button 
+              className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700"
+              title="Exporter la liste des utilisateurs"
+            >
+              Exporter
             </button>
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
-              {t('admin.addUser')}
+            <button 
+              className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
+              title="Créer un nouvel utilisateur"
+            >
+              Ajouter un utilisateur
             </button>
           </div>
         </div>
@@ -196,7 +205,7 @@ const AdminUsers = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                placeholder={t('admin.searchUsers')}
+                placeholder="Rechercher des utilisateurs..."
                 value={searchTerm}
                 onChange={handleSearch}
                 className="pl-10 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -207,30 +216,28 @@ const AdminUsers = () => {
               onChange={handleRoleFilter}
               className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
-              <option value="">{t('admin.allRoles')}</option>
-              <option value="admin">{t('admin.admin')}</option>
-              <option value="producer">{t('admin.producer')}</option>
-              <option value="consumer">{t('admin.consumer')}</option>
-              <option value="transformer">{t('admin.transformer')}</option>
-              <option value="restaurateur">{t('admin.restaurateur')}</option>
-              <option value="exporter">{t('admin.exporter')}</option>
-              <option value="transporter">{t('admin.transporter')}</option>
+              <option value="">Tous les rôles</option>
+              <option value="producer">Producteur</option>
+              <option value="consumer">Consommateur</option>
+              <option value="transformer">Transformateur</option>
+              <option value="restaurateur">Restaurateur</option>
+              <option value="exporter">Exportateur</option>
+              <option value="transporter">Transporteur</option>
             </select>
             <select
               value={statusFilter}
               onChange={handleStatusFilter}
               className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
-              <option value="">{t('admin.allStatuses')}</option>
-              <option value="active">{t('admin.active')}</option>
-              <option value="inactive">{t('admin.inactive')}</option>
-              <option value="banned">{t('admin.banned')}</option>
-              <option value="pending">{t('admin.pending')}</option>
-              <option value="verified">{t('admin.verified')}</option>
+              <option value="">Tous les statuts</option>
+              <option value="Actif">Actif</option>
+              <option value="Vérifié">Vérifié</option>
+              <option value="En attente">En attente</option>
+              <option value="Banni">Banni</option>
             </select>
             <button className="bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200">
               <Filter className="h-4 w-4 inline mr-2" />
-              {t('admin.moreFilters')}
+              Plus de filtres
             </button>
           </div>
         </div>
@@ -240,15 +247,21 @@ const AdminUsers = () => {
           <div className="px-4 py-5 sm:p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium text-gray-900">
-                {t('admin.usersList')} ({users.length})
+                Liste des utilisateurs ({users.length})
               </h3>
               {selectedUsers.length > 0 && (
                 <div className="flex space-x-2">
-                  <button className="bg-red-600 text-white px-3 py-1 rounded text-sm">
-                    {t('admin.banSelected')}
+                  <button 
+                    className="bg-red-600 text-white px-3 py-1 rounded text-sm"
+                    title="Bannir les utilisateurs sélectionnés"
+                  >
+                    Bannir sélectionnés
                   </button>
-                  <button className="bg-green-600 text-white px-3 py-1 rounded text-sm">
-                    {t('admin.verifySelected')}
+                  <button 
+                    className="bg-green-600 text-white px-3 py-1 rounded text-sm"
+                    title="Vérifier les utilisateurs sélectionnés"
+                  >
+                    Vérifier sélectionnés
                   </button>
                 </div>
               )}
@@ -264,22 +277,23 @@ const AdminUsers = () => {
                         checked={selectedUsers.length === users.length && users.length > 0}
                         onChange={handleSelectAll}
                         className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                        title="Sélectionner tous les utilisateurs"
                       />
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('admin.user')}
+                      Utilisateur
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('admin.role')}
+                      Rôle
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('admin.status')}
+                      Statut
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('admin.joined')}
+                      Inscrit le
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('admin.actions')}
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -292,6 +306,7 @@ const AdminUsers = () => {
                           checked={selectedUsers.includes(user._id)}
                           onChange={() => handleSelectUser(user._id)}
                           className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                          title={`Sélectionner ${user.firstName} ${user.lastName}`}
                         />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -314,8 +329,8 @@ const AdminUsers = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
-                          {user.role}
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user.userType)}`}>
+                          {getRoleLabel(user.userType)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -331,21 +346,28 @@ const AdminUsers = () => {
                           <Link
                             to={`/admin/users/${user._id}`}
                             className="text-green-600 hover:text-green-900"
+                            title="Voir les détails"
                           >
                             <Eye className="h-4 w-4" />
                           </Link>
-                          <button
-                            onClick={() => handleVerifyUser(user._id)}
-                            className="text-blue-600 hover:text-blue-900"
-                          >
-                            <UserCheck className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleBanUser(user._id)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            <Ban className="h-4 w-4" />
-                          </button>
+                          {user.status !== 'Vérifié' && (
+                            <button
+                              onClick={() => handleVerifyUser(user._id)}
+                              className="text-blue-600 hover:text-blue-900"
+                              title="Vérifier l'utilisateur"
+                            >
+                              <UserCheck className="h-4 w-4" />
+                            </button>
+                          )}
+                          {user.status !== 'Banni' && (
+                            <button
+                              onClick={() => handleBanUser(user._id)}
+                              className="text-red-600 hover:text-red-900"
+                              title="Bannir l'utilisateur"
+                            >
+                              <Ban className="h-4 w-4" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -357,22 +379,24 @@ const AdminUsers = () => {
             {/* Pagination */}
             <div className="mt-6 flex items-center justify-between">
               <div className="text-sm text-gray-700">
-                {t('admin.showing')} {((currentPage - 1) * 10) + 1} {t('admin.to')} {Math.min(currentPage * 10, users.length)} {t('admin.of')} {users.length} {t('admin.results')}
+                Affichage de {((currentPage - 1) * 10) + 1} à {Math.min(currentPage * 10, users.length)} sur {users.length} résultats
               </div>
               <div className="flex space-x-2">
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
                   className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Page précédente"
                 >
-                  {t('admin.previous')}
+                  Précédent
                 </button>
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
                   className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Page suivante"
                 >
-                  {t('admin.next')}
+                  Suivant
                 </button>
               </div>
             </div>

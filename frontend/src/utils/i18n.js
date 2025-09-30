@@ -40,7 +40,7 @@ i18n
     resources,
     lng: detectLanguage(),
     fallbackLng: 'fr',
-    debug: import.meta.env.DEV,
+    debug: false,
     
     interpolation: {
       escapeValue: false, // React échappe déjà les valeurs

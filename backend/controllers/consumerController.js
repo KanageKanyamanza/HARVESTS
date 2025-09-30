@@ -494,41 +494,369 @@ exports.clearCart = catchAsync(async (req, res, next) => {
 });
 
 // Commandes
+const Order = require('../models/Order');
+const Product = require('../models/Product');
+const Payment = require('../models/Payment');
+const Notification = require('../models/Notification');
+
 exports.getMyOrders = catchAsync(async (req, res, next) => {
+  const { page = 1, limit = 10, status, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
+  
+  const query = { buyer: req.user.id };
+  if (status) {
+    query.status = status;
+  }
+
+  const sortOptions = {};
+  sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+  const orders = await Order.find(query)
+    .populate('seller', 'firstName lastName email phone')
+    .populate('items.product', 'name images')
+    .sort(sortOptions)
+    .limit(limit * 1)
+    .skip((page - 1) * limit);
+
+  const total = await Order.countDocuments(query);
+
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle Order requis',
-    data: { orders: [] },
+    data: {
+      orders,
+      pagination: {
+        current: parseInt(page),
+        pages: Math.ceil(total / limit),
+        total
+      }
+    }
   });
 });
 
 exports.createOrder = catchAsync(async (req, res, next) => {
+  const { items, deliveryAddress, billingAddress, paymentMethod, paymentProvider, deliveryMethod, notes, useLoyaltyPoints, loyaltyPointsToUse, currency = 'XAF', source = 'web' } = req.body;
+
+  // Valider les articles
+  if (!items || items.length === 0) {
+    return next(new AppError('Au moins un article est requis', 400));
+  }
+
+  // Vérifier la disponibilité et calculer les totaux
+  let subtotal = 0;
+  const processedItems = [];
+
+  for (const item of items) {
+    const product = await Product.findById(item.productId);
+    if (!product || !product.isActive || product.status !== 'approved') {
+      return next(new AppError(`Produit ${item.productId} non disponible`, 400));
+    }
+
+    // Vérifier le stock
+    let availableQuantity;
+    let unitPrice;
+
+    if (product.hasVariants && item.variantId) {
+      const variant = product.variants.id(item.variantId);
+      if (!variant || !variant.isActive) {
+        return next(new AppError(`Variante non disponible`, 400));
+      }
+      availableQuantity = variant.inventory.quantity;
+      unitPrice = variant.price;
+    } else {
+      availableQuantity = product.inventory.quantity;
+      unitPrice = product.price;
+    }
+
+    if (availableQuantity < item.quantity) {
+      return next(new AppError(`Stock insuffisant pour ${product.name}`, 400));
+    }
+
+    // Vérifier la quantité minimum
+    if (item.quantity < product.minimumOrderQuantity) {
+      return next(new AppError(`Quantité minimum de ${product.minimumOrderQuantity} requise pour ${product.name}`, 400));
+    }
+
+    const totalPrice = unitPrice * item.quantity;
+    subtotal += totalPrice;
+
+    processedItems.push({
+      product: product._id,
+      variant: item.variantId || undefined,
+      productSnapshot: {
+        name: product.name,
+        description: product.description,
+        images: product.images,
+        producer: product.producer
+      },
+      quantity: item.quantity,
+      unitPrice,
+      totalPrice,
+      weight: product.shipping?.weight,
+      specialInstructions: item.specialInstructions || ''
+    });
+  }
+
+  // Calculer les frais de livraison
+  const deliveryFee = deliveryMethod === 'express-delivery' ? 5000 : 2000;
+
+  // Calculer les taxes (19.25% TVA au Cameroun)
+  const taxes = Math.round(subtotal * 0.1925);
+
+  // Appliquer les remises (points de fidélité)
+  let discount = 0;
+  let loyaltyPointsUsed = 0;
+
+  if (useLoyaltyPoints && loyaltyPointsToUse > 0) {
+    const consumer = await Consumer.findById(req.user.id);
+    if (consumer && consumer.loyaltyProgram && loyaltyPointsToUse <= consumer.loyaltyProgram.points) {
+      discount = loyaltyPointsToUse * 10; // 1 point = 10 FCFA
+      loyaltyPointsUsed = loyaltyPointsToUse;
+      consumer.loyaltyProgram.points -= loyaltyPointsUsed;
+      await consumer.save();
+    }
+  }
+
+  const total = subtotal + deliveryFee + taxes - discount;
+
+  // Générer le numéro de commande (solution de secours)
+  const generateOrderNumber = (countryCode) => {
+    const countryMap = {
+      'CM': 'CM', 'Cameroon': 'CM', 'cameroun': 'CM',
+      'SN': 'SN', 'Senegal': 'SN', 'sénégal': 'SN', 'Sénégal': 'SN',
+      'CI': 'CI', 'Côte d\'Ivoire': 'CI', 'côte d\'ivoire': 'CI',
+      'GH': 'GH', 'Ghana': 'GH', 'ghana': 'GH',
+      'NG': 'NG', 'Nigeria': 'NG', 'nigeria': 'NG',
+      'KE': 'KE', 'Kenya': 'KE', 'kenya': 'KE',
+      'BF': 'BF', 'Burkina Faso': 'BF', 'burkina faso': 'BF',
+      'ML': 'ML', 'Mali': 'ML', 'mali': 'ML',
+      'NE': 'NE', 'Niger': 'NE', 'niger': 'NE',
+      'TD': 'TD', 'Tchad': 'TD', 'tchad': 'TD',
+      'CF': 'CF', 'République centrafricaine': 'CF', 'république centrafricaine': 'CF',
+      'GA': 'GA', 'Gabon': 'GA', 'gabon': 'GA',
+      'CG': 'CG', 'Congo': 'CG', 'congo': 'CG',
+      'CD': 'CD', 'République démocratique du Congo': 'CD', 'république démocratique du congo': 'CD',
+      'AO': 'AO', 'Angola': 'AO', 'angola': 'AO',
+      'ZM': 'ZM', 'Zambie': 'ZM', 'zambie': 'ZM',
+      'ZW': 'ZW', 'Zimbabwe': 'ZW', 'zimbabwe': 'ZW',
+      'ZA': 'ZA', 'Afrique du Sud': 'ZA', 'afrique du sud': 'ZA',
+      'EG': 'EG', 'Égypte': 'EG', 'égypte': 'EG',
+      'MA': 'MA', 'Maroc': 'MA', 'maroc': 'MA',
+      'TN': 'TN', 'Tunisie': 'TN', 'tunisie': 'TN',
+      'DZ': 'DZ', 'Algérie': 'DZ', 'algérie': 'DZ',
+      'LY': 'LY', 'Libye': 'LY', 'libye': 'LY',
+      'SD': 'SD', 'Soudan': 'SD', 'soudan': 'SD',
+      'ET': 'ET', 'Éthiopie': 'ET', 'éthiopie': 'ET',
+      'UG': 'UG', 'Ouganda': 'UG', 'ouganda': 'UG',
+      'TZ': 'TZ', 'Tanzanie': 'TZ', 'tanzanie': 'TZ',
+      'RW': 'RW', 'Rwanda': 'RW', 'rwanda': 'RW',
+      'BI': 'BI', 'Burundi': 'BI', 'burundi': 'BI',
+      'MW': 'MW', 'Malawi': 'MW', 'malawi': 'MW',
+      'MZ': 'MZ', 'Mozambique': 'MZ', 'mozambique': 'MZ',
+      'MG': 'MG', 'Madagascar': 'MG', 'madagascar': 'MG',
+      'MU': 'MU', 'Maurice': 'MU', 'maurice': 'MU',
+      'SC': 'SC', 'Seychelles': 'SC', 'seychelles': 'SC',
+      'KM': 'KM', 'Comores': 'KM', 'comores': 'KM',
+      'DJ': 'DJ', 'Djibouti': 'DJ', 'djibouti': 'DJ',
+      'SO': 'SO', 'Somalie': 'SO', 'somalie': 'SO',
+      'ER': 'ER', 'Érythrée': 'ER', 'érythrée': 'ER',
+      'SS': 'SS', 'Soudan du Sud': 'SS', 'soudan du sud': 'SS'
+    };
+    
+    if (countryCode && countryCode.length === 2 && /^[A-Z]{2}$/.test(countryCode)) {
+      return countryCode;
+    }
+    return countryMap[countryCode] || 'CM';
+  };
+
+  const countryCode = deliveryAddress?.country || 'CM';
+  const countryPrefix = generateOrderNumber(countryCode);
+  const count = await Order.countDocuments();
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const countStr = count.toString().padStart(4, '0');
+  const orderNumber = `H${countryPrefix}${countStr}${timestamp.substring(-4)}${random}`;
+
+  console.log('🔢 Génération orderNumber dans contrôleur:', {
+    countryCode,
+    countryPrefix,
+    count,
+    orderNumber
+  });
+
+  // Créer la commande
+  const order = await Order.create({
+    orderNumber, // Ajouter explicitement le orderNumber
+    buyer: req.user.id,
+    seller: processedItems[0].productSnapshot.producer,
+    items: processedItems,
+    subtotal,
+    deliveryFee,
+    taxes,
+    discount,
+    total,
+    currency,
+    payment: {
+      method: paymentMethod,
+      provider: paymentProvider,
+      amount: total,
+      status: 'pending'
+    },
+    delivery: {
+      method: deliveryMethod,
+      deliveryAddress: {
+        ...deliveryAddress,
+        country: deliveryAddress.country || 'CM' // S'assurer que le pays est défini
+      },
+      estimatedDeliveryDate: calculateEstimatedDelivery(deliveryMethod)
+    },
+    billingAddress: billingAddress || deliveryAddress,
+    buyerNotes: notes,
+    loyaltyPointsUsed,
+    source
+  });
+
+  // Réserver le stock
+  try {
+    await order.reserveStock();
+  } catch (error) {
+    await Order.findByIdAndDelete(order._id);
+    return next(new AppError(error.message, 400));
+  }
+
+  // Calculer les points de fidélité gagnés
+  if (req.user.userType === 'consumer') {
+    const consumer = await Consumer.findById(req.user.id);
+    if (consumer && consumer.loyaltyProgram) {
+      const pointsEarned = Math.floor(total / 100); // 1 point pour 100 FCFA
+      consumer.loyaltyProgram.points += pointsEarned;
+      order.loyaltyPointsEarned = pointsEarned;
+      await consumer.save();
+    }
+  }
+
+  await order.save();
+
+  // Envoyer notifications
+  await sendOrderNotifications(order);
+
   res.status(201).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle Order requis',
+    message: 'Commande créée avec succès',
+    data: {
+      order: await Order.findById(order._id)
+        .populate('buyer', 'firstName lastName email')
+        .populate('seller', 'firstName lastName email')
+    }
   });
 });
 
 exports.getMyOrder = catchAsync(async (req, res, next) => {
+  const order = await Order.findOne({
+    _id: req.params.orderId,
+    buyer: req.user.id
+  })
+    .populate('buyer', 'firstName lastName email phone')
+    .populate('seller', 'firstName lastName email phone')
+    .populate('items.product', 'name images');
+
+  if (!order) {
+    return next(new AppError('Commande non trouvée', 404));
+  }
+
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle Order requis',
+    data: { order }
   });
 });
 
 exports.cancelOrder = catchAsync(async (req, res, next) => {
+  const { reason } = req.body;
+  
+  const order = await Order.findOne({
+    _id: req.params.orderId,
+    buyer: req.user.id
+  });
+
+  if (!order) {
+    return next(new AppError('Commande non trouvée', 404));
+  }
+
+  if (!['pending', 'confirmed'].includes(order.status)) {
+    return next(new AppError('Cette commande ne peut pas être annulée', 400));
+  }
+
+  order.status = 'cancelled';
+  order.cancellationReason = reason;
+  order.cancelledAt = new Date();
+  order.cancelledBy = req.user.id;
+
+  // Libérer le stock réservé
+  await order.releaseStock();
+
+  await order.save();
+
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle Order requis',
+    message: 'Commande annulée avec succès',
+    data: { order }
   });
 });
 
 exports.trackOrder = catchAsync(async (req, res, next) => {
+  const order = await Order.findOne({
+    _id: req.params.orderId,
+    buyer: req.user.id
+  })
+    .populate('seller', 'firstName lastName phone')
+    .populate('items.product', 'name images');
+
+  if (!order) {
+    return next(new AppError('Commande non trouvée', 404));
+  }
+
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle Order requis',
+    data: { 
+      order,
+      tracking: {
+        status: order.status,
+        estimatedDelivery: order.delivery?.estimatedDeliveryDate,
+        trackingNumber: order.trackingNumber,
+        updates: order.statusUpdates || []
+      }
+    }
   });
 });
+
+// Fonctions utilitaires
+function calculateEstimatedDelivery(deliveryMethod) {
+  const now = new Date();
+  const days = deliveryMethod === 'express-delivery' ? 1 : 3;
+  return new Date(now.getTime() + (days * 24 * 60 * 60 * 1000));
+}
+
+async function sendOrderNotifications(order) {
+  try {
+    // Notification au vendeur
+    await Notification.create({
+      user: order.seller,
+      type: 'order_received',
+      title: 'Nouvelle commande reçue',
+      message: `Vous avez reçu une nouvelle commande de ${order.buyer.firstName} ${order.buyer.lastName}`,
+      data: { orderId: order._id }
+    });
+
+    // Notification à l'acheteur
+    await Notification.create({
+      user: order.buyer,
+      type: 'order_confirmed',
+      title: 'Commande confirmée',
+      message: `Votre commande #${order.orderNumber || order._id.slice(-8)} a été confirmée`,
+      data: { orderId: order._id }
+    });
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi des notifications:', error);
+  }
+}
 
 // Avis et évaluations
 exports.getMyReviews = catchAsync(async (req, res, next) => {
@@ -835,3 +1163,76 @@ function calculateNextDelivery(frequency) {
 
   return nextDelivery;
 }
+
+// Gestion des préférences d'achat
+exports.getShoppingPreferences = catchAsync(async (req, res, next) => {
+  const consumer = await Consumer.findById(req.user.id)
+    .select('shoppingPreferences');
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      shoppingPreferences: consumer.shoppingPreferences || {
+        preferredDeliveryTime: 'flexible',
+        maxDeliveryDistance: 25,
+        budgetRange: { min: 0, max: 100000, currency: 'XAF' },
+        preferredPaymentMethods: ['cash', 'mobile-money']
+      }
+    }
+  });
+});
+
+exports.updateShoppingPreferences = catchAsync(async (req, res, next) => {
+  const consumer = await Consumer.findById(req.user.id);
+  
+  consumer.shoppingPreferences = {
+    ...consumer.shoppingPreferences,
+    ...req.body
+  };
+
+  await consumer.save();
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Préférences d\'achat mises à jour avec succès',
+    data: {
+      shoppingPreferences: consumer.shoppingPreferences
+    }
+  });
+});
+
+// Gestion des préférences de notification
+exports.getNotificationPreferences = catchAsync(async (req, res, next) => {
+  const consumer = await Consumer.findById(req.user.id)
+    .select('notifications');
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      notifications: consumer.notifications || {
+        email: true,
+        sms: false,
+        push: true
+      }
+    }
+  });
+});
+
+exports.updateNotificationPreferences = catchAsync(async (req, res, next) => {
+  const consumer = await Consumer.findById(req.user.id);
+  
+  consumer.notifications = {
+    ...consumer.notifications,
+    ...req.body
+  };
+
+  await consumer.save();
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Préférences de notification mises à jour avec succès',
+    data: {
+      notifications: consumer.notifications
+    }
+  });
+});

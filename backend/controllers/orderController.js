@@ -652,4 +652,122 @@ async function sendStatusNotifications(order, newStatus) {
   }
 }
 
+// Fonction de test pour créer une commande (TEMPORAIRE)
+exports.createTestOrder = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  const Product = require('../models/Product');
+  
+  try {
+    console.log('🔧 createTestOrder - User ID:', req.user._id);
+    
+    // Trouver un produit du producteur connecté
+    const product = await Product.findOne({ producer: req.user._id });
+    console.log('🔧 createTestOrder - Product found:', product);
+    
+    // Si pas de produit, créer une commande simple sans produit
+    let orderData;
+    
+    if (product) {
+      orderData = {
+        orderNumber: `TEST-${Date.now()}`,
+        buyer: req.user._id, // Temporairement, le producteur est aussi l'acheteur
+        seller: req.user._id,
+        items: [{
+          product: product._id,
+          quantity: 2,
+          unitPrice: product.price || 1000,
+          totalPrice: (product.price || 1000) * 2,
+          productSnapshot: {
+            name: product.name?.fr || product.name || 'Produit de test',
+            description: product.description?.fr || 'Description de test'
+          }
+        }],
+        total: (product.price || 1000) * 2,
+        status: 'pending',
+        paymentMethod: 'cash',
+        delivery: {
+          method: 'standard-delivery',
+          deliveryFee: 0,
+          deliveryAddress: {
+            firstName: 'Test',
+            lastName: 'User',
+            street: 'Test Street',
+            city: 'Dakar',
+            region: 'Dakar',
+            country: 'Sénégal',
+            postalCode: '00000',
+            phone: '+221000000000'
+          }
+        }
+      };
+    } else {
+      // Commande sans produit réel
+      orderData = {
+        orderNumber: `TEST-${Date.now()}`,
+        buyer: req.user._id,
+        seller: req.user._id,
+        items: [{
+          product: null, // Pas de produit réel
+          quantity: 1,
+          unitPrice: 1000,
+          totalPrice: 1000,
+          productSnapshot: {
+            name: 'Produit de test',
+            description: 'Commande de test sans produit réel'
+          }
+        }],
+        total: 1000,
+        status: 'pending',
+        paymentMethod: 'cash',
+        delivery: {
+          method: 'standard-delivery',
+          deliveryFee: 0,
+          deliveryAddress: {
+            firstName: 'Test',
+            lastName: 'User',
+            street: 'Test Street',
+            city: 'Dakar',
+            region: 'Dakar',
+            country: 'Sénégal',
+            postalCode: '00000',
+            phone: '+221000000000'
+          }
+        }
+      };
+    }
+
+    // Créer une commande de test
+    const testOrder = new Order(orderData);
+
+    console.log('🔧 createTestOrder - Saving order...');
+    await testOrder.save();
+    console.log('🔧 createTestOrder - Order saved successfully');
+    
+    // Populate les données
+    await testOrder.populate('buyer', 'firstName lastName email');
+    await testOrder.populate('seller', 'firstName lastName');
+    await testOrder.populate('items.product', 'name images');
+
+    console.log('🔧 createTestOrder - Order created successfully:', testOrder._id);
+
+    res.status(201).json({
+      status: 'success',
+      message: 'Commande de test créée',
+      data: { order: testOrder }
+    });
+  } catch (error) {
+    console.error('🔧 Erreur création commande test:', error);
+    console.error('🔧 Error details:', error.message);
+    console.error('🔧 Error stack:', error.stack);
+    res.status(500).json({
+      status: 'error',
+      message: 'Erreur lors de la création de la commande de test',
+      error: error.message
+    });
+  }
+});
+
+// Exporter la fonction de notification pour utilisation dans d'autres contrôleurs
+exports.sendStatusNotifications = sendStatusNotifications;
+
 module.exports = exports;

@@ -2,8 +2,8 @@ import { apiRequest } from './api';
 
 // Service pour la gestion des commandes
 export const orderService = {
-  // Obtenir toutes les commandes
-  getOrders: (params = {}) => apiRequest.get('/orders', { params }),
+  // Obtenir mes commandes (route commune pour tous les types d'utilisateurs)
+  getOrders: (params = {}) => apiRequest.get('/orders/my', { params }),
   
   // Obtenir une commande par ID
   getOrder: (id) => apiRequest.get(`/orders/${id}`),
@@ -19,6 +19,9 @@ export const orderService = {
   
   // Confirmer une commande
   confirmOrder: (id) => apiRequest.patch(`/orders/${id}/confirm`),
+  
+  // Mettre à jour le statut d'une commande (méthode générique)
+  updateOrderStatus: (id, data) => apiRequest.patch(`/orders/${id}/status`, data),
   
   // Marquer comme expédiée
   shipOrder: (id, trackingData) => apiRequest.patch(`/orders/${id}/ship`, trackingData),

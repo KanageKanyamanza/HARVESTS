@@ -3,9 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import { producerService, uploadService } from '../../../services';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
-import ImageUpload from '../../../components/common/ImageUpload';
+import ProductImageUpload from '../../../components/common/ProductImageUpload';
 import CloudinaryImage from '../../../components/common/CloudinaryImage';
-import { FiPackage, FiDollarSign, FiSave, FiArrowLeft, FiImage, FiX } from 'react-icons/fi';
+import { 
+  FiPackage, FiDollarSign, FiSave, FiArrowLeft, FiImage, FiX, 
+  FiTruck, FiShield, FiInfo, FiTag, FiCalendar,
+  FiMapPin, FiThermometer, FiClock, FiStar, FiPlus, FiMinus
+} from 'react-icons/fi';
 
 const AddProduct = () => {
   const { user } = useAuth();
@@ -16,36 +20,285 @@ const AddProduct = () => {
   const [productImages, setProductImages] = useState([]);
 
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    price: '',
-    stock: '',
+    // Informations de base
+    name: { fr: '', en: '' },
+    description: { fr: '', en: '' },
+    shortDescription: { fr: '', en: '' },
     category: '',
+    subcategory: '',
+    tags: [],
+    
+    // Prix et stock
+    price: '',
+    compareAtPrice: '',
+    stock: '',
+    minimumOrderQuantity: 1,
+    maximumOrderQuantity: '',
     unit: 'kg',
+    
+    // Informations agricoles
+    agricultureInfo: {
+      harvestDate: '',
+      expiryDate: '',
+      shelfLife: { value: '', unit: 'days' },
+      storageConditions: 'room-temperature',
+      storageInstructions: '',
+      seasonality: [],
+      region: '',
+      farmingMethod: 'organic'
+    },
+    
+    // Informations nutritionnelles
+    nutritionalInfo: {
+      servingSize: { value: '', unit: 'g' },
+      calories: '',
+      nutrients: [],
+      allergens: [],
+      ingredients: []
+    },
+    
+    // Expédition
+    shipping: {
+      weight: { value: '', unit: 'kg' },
+      dimensions: { length: '', width: '', height: '', unit: 'cm' },
+      fragile: false,
+      perishable: true,
+      requiresRefrigeration: false
+    },
+    
+    // Certifications
+    certifications: [],
+    
+    // Disponibilité
+    availability: {
+      status: 'in-stock',
+      availableFrom: '',
+      availableUntil: '',
+      estimatedRestockDate: ''
+    },
+    
+    // SEO
+    seo: {
+      title: '',
+      description: '',
+      keywords: []
+    },
+    
     status: 'draft'
   });
 
   const categories = [
-    { value: 'fruits', label: 'Fruits' },
+    { value: 'cereals', label: 'Céréales' },
     { value: 'vegetables', label: 'Légumes' },
-    { value: 'grains', label: 'Céréales' },
+    { value: 'fruits', label: 'Fruits' },
+    { value: 'legumes', label: 'Légumineuses' },
+    { value: 'tubers', label: 'Tubercules' },
+    { value: 'spices', label: 'Épices' },
     { value: 'herbs', label: 'Herbes' },
+    { value: 'nuts', label: 'Noix' },
+    { value: 'seeds', label: 'Graines' },
+    { value: 'dairy', label: 'Produits laitiers' },
+    { value: 'meat', label: 'Viande' },
+    { value: 'poultry', label: 'Volaille' },
+    { value: 'fish', label: 'Poisson' },
+    { value: 'processed-foods', label: 'Aliments transformés' },
+    { value: 'beverages', label: 'Boissons' },
     { value: 'other', label: 'Autres' }
   ];
 
+  const farmingMethods = [
+    { value: 'organic', label: 'Biologique' },
+    { value: 'conventional', label: 'Conventionnel' },
+    { value: 'biodynamic', label: 'Biodynamique' },
+    { value: 'hydroponic', label: 'Hydroponique' },
+    { value: 'greenhouse', label: 'Serre' }
+  ];
+
+  const storageConditions = [
+    { value: 'room-temperature', label: 'Température ambiante' },
+    { value: 'cool-dry', label: 'Frais et sec' },
+    { value: 'refrigerated', label: 'Réfrigéré' },
+    { value: 'frozen', label: 'Congelé' },
+    { value: 'special', label: 'Conditions spéciales' }
+  ];
+
+  const seasons = [
+    { value: 'spring', label: 'Printemps' },
+    { value: 'summer', label: 'Été' },
+    { value: 'autumn', label: 'Automne' },
+    { value: 'winter', label: 'Hiver' }
+  ];
+
+  const commonAllergens = [
+    'Gluten', 'Lactose', 'Noix', 'Arachides', 'Soja', 'Œufs', 
+    'Poisson', 'Crustacés', 'Mollusques', 'Sésame', 'Moutarde'
+  ];
+
+  const commonNutrients = [
+    'Calories', 'Protéines', 'Glucides', 'Lipides', 'Fibres', 
+    'Vitamine C', 'Vitamine A', 'Calcium', 'Fer', 'Potassium'
+  ];
+
+  // Fonctions de gestion des données
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    
+    if (name.includes('.')) {
+      const [parent, child] = name.split('.');
+      setFormData(prev => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [child]: type === 'checkbox' ? checked : value
+        }
+      }));
+    } else if (name.includes('agricultureInfo.')) {
+      const field = name.replace('agricultureInfo.', '');
+      setFormData(prev => ({
+        ...prev,
+        agricultureInfo: {
+          ...prev.agricultureInfo,
+          [field]: type === 'checkbox' ? checked : value
+        }
+      }));
+    } else if (name.includes('nutritionalInfo.')) {
+      const field = name.replace('nutritionalInfo.', '');
+      setFormData(prev => ({
+        ...prev,
+        nutritionalInfo: {
+          ...prev.nutritionalInfo,
+          [field]: type === 'checkbox' ? checked : value
+        }
+      }));
+    } else if (name.includes('shipping.')) {
+      const field = name.replace('shipping.', '');
+      
+      // Gérer les champs imbriqués comme shipping.weight.value
+      if (field.includes('.')) {
+        const keys = field.split('.');
+        setFormData(prev => {
+          const newData = { ...prev };
+          let current = newData.shipping;
+          
+          for (let i = 0; i < keys.length - 1; i++) {
+            if (!current[keys[i]]) {
+              current[keys[i]] = {};
+            }
+            current = current[keys[i]];
+          }
+          
+          current[keys[keys.length - 1]] = type === 'checkbox' ? checked : value;
+          return newData;
+        });
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          shipping: {
+            ...prev.shipping,
+            [field]: type === 'checkbox' ? checked : value
+          }
+        }));
+      }
+    } else if (name.includes('seo.')) {
+      const field = name.replace('seo.', '');
+      setFormData(prev => ({
+        ...prev,
+        seo: {
+          ...prev.seo,
+          [field]: type === 'checkbox' ? checked : value
+        }
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    }
+    
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
+    
+    // Effacer l'erreur shippingWeight si on modifie le poids
+    if (name === 'shipping.weight.value' && errors.shippingWeight) {
+      setErrors(prev => ({ ...prev, shippingWeight: '' }));
+    }
+  };
+
+  const handleArrayInputChange = (parent, child, value) => {
+    if (parent === '') {
+      // Pour les tags au niveau racine
+      setFormData(prev => ({
+        ...prev,
+        [child]: value.split(',').map(item => item.trim()).filter(item => item)
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [child]: value.split(',').map(item => item.trim()).filter(item => item)
+        }
+      }));
+    }
+  };
+
+  const addNutrient = () => {
+    setFormData(prev => ({
+      ...prev,
+      nutritionalInfo: {
+        ...prev.nutritionalInfo,
+        nutrients: [...prev.nutritionalInfo.nutrients, { name: '', value: '', unit: 'g' }]
+      }
+    }));
+  };
+
+  const removeNutrient = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      nutritionalInfo: {
+        ...prev.nutritionalInfo,
+        nutrients: prev.nutritionalInfo.nutrients.filter((_, i) => i !== index)
+      }
+    }));
+  };
+
+  const updateNutrient = (index, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      nutritionalInfo: {
+        ...prev.nutritionalInfo,
+        nutrients: prev.nutritionalInfo.nutrients.map((nutrient, i) => 
+          i === index ? { ...nutrient, [field]: value } : nutrient
+        )
+      }
+    }));
+  };
+
+  const addCertification = () => {
+    setFormData(prev => ({
+      ...prev,
+      certifications: [...prev.certifications, { name: '', certifyingBody: '', certificateNumber: '', validUntil: '', document: '' }]
+    }));
+  };
+
+  const removeCertification = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      certifications: prev.certifications.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateCertification = (index, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      certifications: prev.certifications.map((cert, i) => 
+        i === index ? { ...cert, [field]: value } : cert
+      )
+    }));
   };
 
   const handleImageAdd = async (newImageUrl) => {
     try {
       setUploadingImages(true);
       
-      // Si newImageUrl est déjà une URL Cloudinary, l'utiliser directement
       if (newImageUrl && newImageUrl.startsWith('http')) {
         setProductImages(prev => [...prev, {
           url: newImageUrl,
@@ -65,7 +318,6 @@ const AddProduct = () => {
   const handleImageRemove = (indexToRemove) => {
     setProductImages(prev => {
       const updatedImages = prev.filter((_, index) => index !== indexToRemove);
-      // Réassigner les ordres et la première image comme primaire
       return updatedImages.map((img, index) => ({
         ...img,
         order: index,
@@ -85,11 +337,19 @@ const AddProduct = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = 'Le nom du produit est requis';
-    if (!formData.description.trim()) newErrors.description = 'La description est requise';
-    if (!formData.price || formData.price <= 0) newErrors.price = 'Le prix doit être supérieur à 0';
-    if (!formData.stock || formData.stock < 0) newErrors.stock = 'Le stock ne peut pas être négatif';
+    
+    // Champs obligatoires selon le modèle Product (required: true)
+    if (!formData.name.fr?.trim()) newErrors.name = 'Le nom du produit en français est requis';
+    if (!formData.description.fr?.trim()) newErrors.description = 'La description en français est requise';
     if (!formData.category) newErrors.category = 'La catégorie est requise';
+    if (!formData.subcategory) newErrors.subcategory = 'La sous-catégorie est requise';
+    if (productImages.length === 0) newErrors.images = 'Au moins une image est requise';
+    
+    // Validation des champs optionnels (si remplis)
+    if (formData.price && formData.price <= 0) newErrors.price = 'Le prix doit être supérieur à 0';
+    if (formData.stock && formData.stock < 0) newErrors.stock = 'Le stock ne peut pas être négatif';
+    if (formData.minimumOrderQuantity && formData.minimumOrderQuantity < 1) newErrors.minimumOrderQuantity = 'La quantité minimum doit être au moins 1';
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -103,23 +363,64 @@ const AddProduct = () => {
       setLoading(true);
       
       const productData = {
-        name: {
-          fr: formData.name,
-          en: formData.name // Fallback en anglais
-        },
-        description: {
-          fr: formData.description,
-          en: formData.description // Fallback en anglais
-        },
+        name: formData.name,
+        description: formData.description,
+        shortDescription: formData.shortDescription,
         price: parseFloat(formData.price),
+        compareAtPrice: formData.compareAtPrice ? parseFloat(formData.compareAtPrice) : undefined,
         category: formData.category,
-        subcategory: formData.category, // Utiliser la catégorie comme sous-catégorie pour l'instant
+        subcategory: formData.subcategory,
+        tags: formData.tags,
+        minimumOrderQuantity: parseInt(formData.minimumOrderQuantity),
+        maximumOrderQuantity: formData.maximumOrderQuantity ? parseInt(formData.maximumOrderQuantity) : undefined,
+        agricultureInfo: {
+          ...formData.agricultureInfo,
+          harvestDate: formData.agricultureInfo.harvestDate ? new Date(formData.agricultureInfo.harvestDate) : undefined,
+          expiryDate: formData.agricultureInfo.expiryDate ? new Date(formData.agricultureInfo.expiryDate) : undefined,
+          shelfLife: {
+            ...formData.agricultureInfo.shelfLife,
+            value: formData.agricultureInfo.shelfLife.value ? parseInt(formData.agricultureInfo.shelfLife.value) : undefined
+          }
+        },
+        nutritionalInfo: {
+          ...formData.nutritionalInfo,
+          servingSize: {
+            ...formData.nutritionalInfo.servingSize,
+            value: formData.nutritionalInfo.servingSize.value ? parseFloat(formData.nutritionalInfo.servingSize.value) : undefined
+          },
+          calories: formData.nutritionalInfo.calories ? parseFloat(formData.nutritionalInfo.calories) : undefined,
+          nutrients: formData.nutritionalInfo.nutrients.filter(n => n.name && n.value)
+        },
+        shipping: {
+          ...formData.shipping,
+          weight: {
+            ...formData.shipping.weight,
+            value: formData.shipping.weight.value ? parseFloat(formData.shipping.weight.value) : undefined
+          },
+          dimensions: {
+            ...formData.shipping.dimensions,
+            length: formData.shipping.dimensions.length ? parseFloat(formData.shipping.dimensions.length) : undefined,
+            width: formData.shipping.dimensions.width ? parseFloat(formData.shipping.dimensions.width) : undefined,
+            height: formData.shipping.dimensions.height ? parseFloat(formData.shipping.dimensions.height) : undefined
+          }
+        },
+        certifications: formData.certifications.filter(cert => cert.name),
+        availability: {
+          ...formData.availability,
+          availableFrom: formData.availability.availableFrom ? new Date(formData.availability.availableFrom) : undefined,
+          availableUntil: formData.availability.availableUntil ? new Date(formData.availability.availableUntil) : undefined,
+          estimatedRestockDate: formData.availability.estimatedRestockDate ? new Date(formData.availability.estimatedRestockDate) : undefined
+        },
+        seo: {
+          ...formData.seo,
+          keywords: formData.seo.keywords.filter(k => k.trim())
+        },
         inventory: {
           quantity: parseInt(formData.stock)
         },
         status: formData.status || 'draft',
         producer: user.id,
-        images: productImages // Ajouter les images
+        images: productImages
       };
 
       await producerService.createProduct(productData);
@@ -127,21 +428,16 @@ const AddProduct = () => {
     } catch (error) {
       console.error('Erreur lors de la création du produit:', error);
       
-      // Gestion des erreurs spécifiques
       let errorMessage = 'Erreur lors de la création du produit';
       
       if (error.response?.data?.message) {
         const serverMessage = error.response.data.message;
         
-        // Erreur de slug dupliqué
         if (serverMessage.includes('duplicate key error') && serverMessage.includes('slug')) {
           errorMessage = 'Un produit avec ce nom existe déjà. Veuillez modifier le nom du produit.';
-        }
-        // Autres erreurs de validation
-        else if (serverMessage.includes('validation failed')) {
+        } else if (serverMessage.includes('validation failed')) {
           errorMessage = 'Veuillez vérifier que tous les champs requis sont remplis correctement.';
-        }
-        else {
+        } else {
           errorMessage = serverMessage;
         }
       }
@@ -154,7 +450,7 @@ const AddProduct = () => {
 
   return (
     <ModularDashboardLayout>
-      <div className="p-6 max-w-4xl mx-auto pb-20">
+      <div className="p-6 max-w-6xl mx-auto pb-20">
         <div className="mb-8">
           <div className="flex items-center space-x-4 mb-4">
             <button
@@ -181,12 +477,12 @@ const AddProduct = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nom du produit *
+                  Nom du produit (Français) *
                 </label>
                 <input
                   type="text"
-                  name="name"
-                  value={formData.name}
+                  name="name.fr"
+                  value={formData.name.fr}
                   onChange={handleInputChange}
                   className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green ${
                     errors.name ? 'border-red-300' : 'border-gray-300'
@@ -194,6 +490,20 @@ const AddProduct = () => {
                   placeholder="Ex: Tomates cerises bio"
                 />
                 {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nom du produit (Anglais)
+                </label>
+                <input
+                  type="text"
+                  name="name.en"
+                  value={formData.name.en}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                  placeholder="Ex: Organic cherry tomatoes"
+                />
               </div>
 
               <div>
@@ -216,13 +526,43 @@ const AddProduct = () => {
                 {errors.category && <p className="mt-1 text-sm text-red-600">{errors.category}</p>}
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Sous-catégorie *
+                </label>
+                <input
+                  type="text"
+                  name="subcategory"
+                  value={formData.subcategory}
+                  onChange={handleInputChange}
+                  className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green ${
+                    errors.subcategory ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                  placeholder="Ex: Tomates cerises, Pommes de terre, etc."
+                />
+                {errors.subcategory && <p className="mt-1 text-sm text-red-600">{errors.subcategory}</p>}
+              </div>
+
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description *
+                  Tags (séparés par des virgules)
+                </label>
+                <input
+                  type="text"
+                  value={formData.tags.join(', ')}
+                  onChange={(e) => handleArrayInputChange('', 'tags', e.target.value)}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                  placeholder="Ex: bio, local, frais, saisonnier"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description (Français) *
                 </label>
                 <textarea
-                  name="description"
-                  value={formData.description}
+                  name="description.fr"
+                  value={formData.description.fr}
                   onChange={handleInputChange}
                   rows={4}
                   className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green ${
@@ -231,6 +571,20 @@ const AddProduct = () => {
                   placeholder="Décrivez votre produit, ses caractéristiques, sa qualité..."
                 />
                 {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description courte (Français)
+                </label>
+                <textarea
+                  name="shortDescription.fr"
+                  value={formData.shortDescription.fr}
+                  onChange={handleInputChange}
+                  rows={2}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                  placeholder="Description courte pour les cartes produit..."
+                />
               </div>
             </div>
           </div>
@@ -245,7 +599,7 @@ const AddProduct = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Prix (FCFA) *
+                  Prix (FCFA)
                 </label>
                 <input
                   type="number"
@@ -254,17 +608,30 @@ const AddProduct = () => {
                   onChange={handleInputChange}
                   min="0"
                   step="0.01"
-                  className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green ${
-                    errors.price ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
                   placeholder="0.00"
                 />
-                {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Stock disponible *
+                  Prix de comparaison (FCFA)
+                </label>
+                <input
+                  type="number"
+                  name="compareAtPrice"
+                  value={formData.compareAtPrice}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.01"
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Stock disponible
                 </label>
                 <input
                   type="number"
@@ -272,12 +639,39 @@ const AddProduct = () => {
                   value={formData.stock}
                   onChange={handleInputChange}
                   min="0"
-                  className={`w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green ${
-                    errors.stock ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
                   placeholder="0"
                 />
-                {errors.stock && <p className="mt-1 text-sm text-red-600">{errors.stock}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Quantité minimum
+                </label>
+                <input
+                  type="number"
+                  name="minimumOrderQuantity"
+                  value={formData.minimumOrderQuantity}
+                  onChange={handleInputChange}
+                  min="1"
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                  placeholder="1"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Quantité maximum
+                </label>
+                <input
+                  type="number"
+                  name="maximumOrderQuantity"
+                  value={formData.maximumOrderQuantity}
+                  onChange={handleInputChange}
+                  min="1"
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                  placeholder="100"
+                />
               </div>
 
               <div>
@@ -295,7 +689,656 @@ const AddProduct = () => {
                   <option value="piece">Pièce</option>
                   <option value="bunch">Botte</option>
                   <option value="bag">Sac</option>
+                  <option value="box">Boîte</option>
                 </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Informations agricoles */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+              <FiInfo className="h-5 w-5 mr-2" />
+              Informations agricoles
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Méthode de culture
+                </label>
+                <select
+                  name="agricultureInfo.farmingMethod"
+                  value={formData.agricultureInfo.farmingMethod}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                >
+                  {farmingMethods.map(method => (
+                    <option key={method.value} value={method.value}>{method.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Région de production
+                </label>
+                <input
+                  type="text"
+                  name="agricultureInfo.region"
+                  value={formData.agricultureInfo.region}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                  placeholder="Ex: Centre, Littoral, Ouest..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Date de récolte
+                </label>
+                <input
+                  type="date"
+                  name="agricultureInfo.harvestDate"
+                  value={formData.agricultureInfo.harvestDate}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Date d'expiration
+                </label>
+                <input
+                  type="date"
+                  name="agricultureInfo.expiryDate"
+                  value={formData.agricultureInfo.expiryDate}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Durée de conservation
+                </label>
+                <div className="flex space-x-2">
+                  <input
+                    type="number"
+                    name="agricultureInfo.shelfLife.value"
+                    value={formData.agricultureInfo.shelfLife.value}
+                    onChange={handleInputChange}
+                    className="flex-1 border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                    placeholder="7"
+                  />
+                  <select
+                    name="agricultureInfo.shelfLife.unit"
+                    value={formData.agricultureInfo.shelfLife.unit}
+                    onChange={handleInputChange}
+                    className="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                  >
+                    <option value="days">Jours</option>
+                    <option value="weeks">Semaines</option>
+                    <option value="months">Mois</option>
+                    <option value="years">Années</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Conditions de stockage
+                </label>
+                <select
+                  name="agricultureInfo.storageConditions"
+                  value={formData.agricultureInfo.storageConditions}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                >
+                  {storageConditions.map(condition => (
+                    <option key={condition.value} value={condition.value}>{condition.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Instructions de stockage
+                </label>
+                <textarea
+                  name="agricultureInfo.storageInstructions"
+                  value={formData.agricultureInfo.storageInstructions}
+                  onChange={handleInputChange}
+                  rows={2}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                  placeholder="Ex: Conserver au frais et au sec, éviter l'exposition directe au soleil..."
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Saisonnalité
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {seasons.map(season => (
+                    <label key={season.value} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.agricultureInfo.seasonality.includes(season.value)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData(prev => ({
+                              ...prev,
+                              agricultureInfo: {
+                                ...prev.agricultureInfo,
+                                seasonality: [...prev.agricultureInfo.seasonality, season.value]
+                              }
+                            }));
+                          } else {
+                            setFormData(prev => ({
+                              ...prev,
+                              agricultureInfo: {
+                                ...prev.agricultureInfo,
+                                seasonality: prev.agricultureInfo.seasonality.filter(s => s !== season.value)
+                              }
+                            }));
+                          }
+                        }}
+                        className="mr-2"
+                      />
+                      {season.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Informations nutritionnelles */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+              <FiInfo className="h-5 w-5 mr-2" />
+              Informations nutritionnelles
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Taille de portion
+                </label>
+                <div className="flex space-x-2">
+                  <input
+                    type="number"
+                    name="nutritionalInfo.servingSize.value"
+                    value={formData.nutritionalInfo.servingSize.value}
+                    onChange={handleInputChange}
+                    className="flex-1 border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                    placeholder="100"
+                  />
+                  <select
+                    name="nutritionalInfo.servingSize.unit"
+                    value={formData.nutritionalInfo.servingSize.unit}
+                    onChange={handleInputChange}
+                    className="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                  >
+                    <option value="g">g</option>
+                    <option value="ml">ml</option>
+                    <option value="piece">pièce</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Calories (pour 100g)
+                </label>
+                <input
+                  type="number"
+                  name="nutritionalInfo.calories"
+                  value={formData.nutritionalInfo.calories}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                  placeholder="50"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Allergènes
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {commonAllergens.map(allergen => (
+                    <label key={allergen} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={formData.nutritionalInfo.allergens.includes(allergen)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData(prev => ({
+                              ...prev,
+                              nutritionalInfo: {
+                                ...prev.nutritionalInfo,
+                                allergens: [...prev.nutritionalInfo.allergens, allergen]
+                              }
+                            }));
+                          } else {
+                            setFormData(prev => ({
+                              ...prev,
+                              nutritionalInfo: {
+                                ...prev.nutritionalInfo,
+                                allergens: prev.nutritionalInfo.allergens.filter(a => a !== allergen)
+                              }
+                            }));
+                          }
+                        }}
+                        className="mr-2"
+                      />
+                      {allergen}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Ingrédients (pour produits transformés)
+                </label>
+                <input
+                  type="text"
+                  value={formData.nutritionalInfo.ingredients.join(', ')}
+                  onChange={(e) => handleArrayInputChange('nutritionalInfo', 'ingredients', e.target.value)}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                  placeholder="Ex: Tomates, sel, épices..."
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <div className="flex items-center justify-between mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Valeurs nutritionnelles
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addNutrient}
+                    className="flex items-center text-sm text-harvests-green hover:text-green-600"
+                  >
+                    <FiPlus className="h-4 w-4 mr-1" />
+                    Ajouter
+                  </button>
+                </div>
+                
+                {formData.nutritionalInfo.nutrients.map((nutrient, index) => (
+                  <div key={index} className="flex space-x-2 mb-2">
+                    <input
+                      type="text"
+                      value={nutrient.name}
+                      onChange={(e) => updateNutrient(index, 'name', e.target.value)}
+                      className="flex-1 border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                      placeholder="Ex: Protéines"
+                    />
+                    <input
+                      type="number"
+                      value={nutrient.value}
+                      onChange={(e) => updateNutrient(index, 'value', e.target.value)}
+                      className="w-20 border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                      placeholder="2.5"
+                    />
+                    <select
+                      value={nutrient.unit}
+                      onChange={(e) => updateNutrient(index, 'unit', e.target.value)}
+                      className="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                    >
+                      <option value="g">g</option>
+                      <option value="mg">mg</option>
+                      <option value="%">%</option>
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => removeNutrient(index)}
+                      className="p-2 text-red-500 hover:text-red-600"
+                    >
+                      <FiMinus className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Expédition */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+              <FiTruck className="h-5 w-5 mr-2" />
+              Informations d'expédition
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Poids
+                </label>
+                <div className="flex space-x-2">
+                  <input
+                    type="number"
+                    name="shipping.weight.value"
+                    value={formData.shipping.weight.value}
+                    onChange={handleInputChange}
+                    className="flex-1 border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                    placeholder="1.5"
+                  />
+                  <select
+                    name="shipping.weight.unit"
+                    value={formData.shipping.weight.unit}
+                    onChange={handleInputChange}
+                    className="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                  >
+                    <option value="g">g</option>
+                    <option value="kg">kg</option>
+                    <option value="lb">lb</option>
+                    <option value="oz">oz</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Dimensions (L x l x H)
+                </label>
+                <div className="flex space-x-2">
+                  <div className="flex-1">
+                    <input
+                      type="number"
+                      name="shipping.dimensions.length"
+                      value={formData.shipping.dimensions.length}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green text-center"
+                      placeholder="Longueur"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      type="number"
+                      name="shipping.dimensions.width"
+                      value={formData.shipping.dimensions.width}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green text-center"
+                      placeholder="Largeur"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <input
+                      type="number"
+                      name="shipping.dimensions.height"
+                      value={formData.shipping.dimensions.height}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green text-center"
+                      placeholder="Hauteur"
+                    />
+                  </div>
+                  <div className="w-20">
+                    <select
+                      name="shipping.dimensions.unit"
+                      value={formData.shipping.dimensions.unit}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded-md py-2 px-2 focus:outline-none focus:ring-2 focus:ring-harvests-green text-center"
+                    >
+                      <option value="cm">cm</option>
+                      <option value="m">m</option>
+                      <option value="in">in</option>
+                      <option value="ft">ft</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="md:col-span-2">
+                <div className="space-y-3">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="shipping.fragile"
+                      checked={formData.shipping.fragile}
+                      onChange={handleInputChange}
+                      className="mr-2"
+                    />
+                    Produit fragile
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="shipping.perishable"
+                      checked={formData.shipping.perishable}
+                      onChange={handleInputChange}
+                      className="mr-2"
+                    />
+                    Produit périssable
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="shipping.requiresRefrigeration"
+                      checked={formData.shipping.requiresRefrigeration}
+                      onChange={handleInputChange}
+                      className="mr-2"
+                    />
+                    Nécessite une réfrigération
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Certifications */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+              <FiShield className="h-5 w-5 mr-2" />
+              Certifications et labels
+            </h2>
+            
+            <div className="space-y-4">
+              {formData.certifications.map((cert, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-sm font-medium text-gray-700">Certification {index + 1}</h3>
+                    <button
+                      type="button"
+                      onClick={() => removeCertification(index)}
+                      className="text-red-500 hover:text-red-600"
+                    >
+                      <FiX className="h-4 w-4" />
+                    </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Nom de la certification
+                      </label>
+                      <input
+                        type="text"
+                        value={cert.name}
+                        onChange={(e) => updateCertification(index, 'name', e.target.value)}
+                        className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                        placeholder="Ex: Agriculture Biologique"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Organisme certificateur
+                      </label>
+                      <input
+                        type="text"
+                        value={cert.certifyingBody}
+                        onChange={(e) => updateCertification(index, 'certifyingBody', e.target.value)}
+                        className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                        placeholder="Ex: Ecocert"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Numéro de certificat
+                      </label>
+                      <input
+                        type="text"
+                        value={cert.certificateNumber}
+                        onChange={(e) => updateCertification(index, 'certificateNumber', e.target.value)}
+                        className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                        placeholder="Ex: BIO-2024-001"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Valide jusqu'au
+                      </label>
+                      <input
+                        type="date"
+                        value={cert.validUntil}
+                        onChange={(e) => updateCertification(index, 'validUntil', e.target.value)}
+                        className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Document (URL)
+                      </label>
+                      <input
+                        type="url"
+                        value={cert.document}
+                        onChange={(e) => updateCertification(index, 'document', e.target.value)}
+                        className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                        placeholder="https://example.com/certificate.pdf"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              <button
+                type="button"
+                onClick={addCertification}
+                className="flex items-center text-sm text-harvests-green hover:text-green-600"
+              >
+                <FiPlus className="h-4 w-4 mr-1" />
+                Ajouter une certification
+              </button>
+            </div>
+          </div>
+
+          {/* Disponibilité */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+              <FiCalendar className="h-5 w-5 mr-2" />
+              Disponibilité
+            </h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Statut de disponibilité
+                </label>
+                <select
+                  name="availability.status"
+                  value={formData.availability.status}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                >
+                  <option value="in-stock">En stock</option>
+                  <option value="low-stock">Stock faible</option>
+                  <option value="out-of-stock">Rupture de stock</option>
+                  <option value="pre-order">Pré-commande</option>
+                  <option value="discontinued">Discontinué</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Disponible à partir du
+                </label>
+                <input
+                  type="date"
+                  name="availability.availableFrom"
+                  value={formData.availability.availableFrom}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Disponible jusqu'au
+                </label>
+                <input
+                  type="date"
+                  name="availability.availableUntil"
+                  value={formData.availability.availableUntil}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Date de réapprovisionnement estimée
+                </label>
+                <input
+                  type="date"
+                  name="availability.estimatedRestockDate"
+                  value={formData.availability.estimatedRestockDate}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* SEO */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+              <FiTag className="h-5 w-5 mr-2" />
+              Optimisation SEO
+            </h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Titre SEO
+                </label>
+                <input
+                  type="text"
+                  name="seo.title"
+                  value={formData.seo.title}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                  placeholder="Ex: Tomates cerises bio fraîches - Producteur local"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description SEO
+                </label>
+                <textarea
+                  name="seo.description"
+                  value={formData.seo.description}
+                  onChange={handleInputChange}
+                  rows={3}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                  placeholder="Description optimisée pour les moteurs de recherche..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Mots-clés (séparés par des virgules)
+                </label>
+                <input
+                  type="text"
+                  value={formData.seo.keywords.join(', ')}
+                  onChange={(e) => handleArrayInputChange('seo', 'keywords', e.target.value)}
+                  className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+                  placeholder="Ex: tomates, bio, local, frais, agriculture"
+                />
               </div>
             </div>
           </div>
@@ -309,16 +1352,13 @@ const AddProduct = () => {
             
             <div className="space-y-6">
               {/* Zone d'upload */}
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
-                <ImageUpload
-                  type="product"
-                  size="large"
-                  aspectRatio="free"
-                  onImageChange={handleImageAdd}
-                  disabled={uploadingImages}
-                  className="w-full"
-                />
-              </div>
+              <ProductImageUpload
+                onImageUpload={handleImageAdd}
+                uploading={uploadingImages}
+                setUploading={setUploadingImages}
+                maxImages={10}
+                currentCount={productImages.length}
+              />
 
               {/* Images uploadées */}
               {productImages.length > 0 && (

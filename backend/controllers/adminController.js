@@ -473,16 +473,76 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 // @route   GET /api/v1/admin/dashboard/stats
 // @access  Admin
 exports.getDashboardStats = catchAsync(async (req, res, next) => {
-  // Statistiques simulées pour l'instant
+  // Récupérer les vraies statistiques de la base de données
+  const User = require('../models/User');
+  const Admin = require('../models/Admin');
+  const Producer = require('../models/Producer');
+  const Consumer = require('../models/Consumer');
+  const Transporter = require('../models/Transporter');
+  const Product = require('../models/Product');
+  const Order = require('../models/Order');
+  
+  // Compter les utilisateurs
+  const totalUsers = await User.countDocuments();
+  const activeUsers = await User.countDocuments({ isActive: true });
+  
+  // Compter les utilisateurs par type en utilisant les modèles spécifiques
+  const totalProducers = await Producer.countDocuments();
+  const totalConsumers = await Consumer.countDocuments();
+  const totalTransporters = await Transporter.countDocuments();
+  const activeAdmins = await Admin.countDocuments({ isActive: true });
+  
+  // Compter les produits
+  const totalProducts = await Product.countDocuments();
+  const pendingProducts = await Product.countDocuments({ status: 'pending-review' });
+  
+  // Compter les commandes
+  const totalOrders = await Order.countDocuments();
+  const recentOrders = await Order.countDocuments({
+    createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } // 7 derniers jours
+  });
+  
+  // Calculer le revenu total
+  const revenueResult = await Order.aggregate([
+    { $match: { status: 'completed' } },
+    { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+  ]);
+  const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
+  
+  // Compter les approbations en attente
+  const pendingApprovals = await User.countDocuments({ 
+    isApproved: false, 
+    isActive: true 
+  });
+  
+  // Calculer la croissance mensuelle (simplifié)
+  const lastMonth = new Date();
+  lastMonth.setMonth(lastMonth.getMonth() - 1);
+  const usersLastMonth = await User.countDocuments({
+    createdAt: { $gte: lastMonth }
+  });
+  const monthlyGrowth = totalUsers > 0 ? ((usersLastMonth / totalUsers) * 100).toFixed(1) : 0;
+  
+  // Autres statistiques
+  const pendingReviews = 0; // À implémenter quand le système de reviews sera prêt
+  const unreadMessages = 0; // À implémenter quand le système de messages sera prêt
+
   const stats = {
-    totalUsers: 1247,
-    totalProducts: 89,
-    totalOrders: 342,
-    totalRevenue: 45678,
-    pendingApprovals: 12,
-    activeUsers: 892,
-    recentOrders: 23,
-    monthlyGrowth: 15.3
+    totalUsers,
+    totalProducts,
+    totalOrders,
+    totalRevenue,
+    pendingApprovals,
+    activeUsers,
+    recentOrders,
+    monthlyGrowth: parseFloat(monthlyGrowth),
+    totalProducers,
+    totalConsumers,
+    totalTransporters,
+    pendingProducts,
+    pendingReviews,
+    unreadMessages,
+    activeAdmins
   };
 
   res.status(200).json({
@@ -516,7 +576,26 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
   }
   
   if (status) {
-    filter.isActive = status === 'active';
+    // Mapper les statuts textuels vers les champs de base de données
+    switch (status) {
+      case 'Actif':
+        filter.isActive = true;
+        filter.isApproved = true;
+        filter.isEmailVerified = false;
+        break;
+      case 'Vérifié':
+        filter.isActive = true;
+        filter.isApproved = true;
+        filter.isEmailVerified = true;
+        break;
+      case 'En attente':
+        filter.isActive = true;
+        filter.isApproved = false;
+        break;
+      case 'Banni':
+        filter.isActive = false;
+        break;
+    }
   }
 
   // Pagination
@@ -529,13 +608,31 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
     .skip(skip)
     .limit(parseInt(limit));
 
+  // Mapper les utilisateurs pour ajouter un champ status textuel
+  const usersWithStatus = users.map(user => {
+    const userObj = user.toObject();
+    
+    // Déterminer le statut basé sur isActive et isApproved
+    if (!userObj.isActive) {
+      userObj.status = 'Banni';
+    } else if (!userObj.isApproved) {
+      userObj.status = 'En attente';
+    } else if (userObj.isEmailVerified) {
+      userObj.status = 'Vérifié';
+    } else {
+      userObj.status = 'Actif';
+    }
+    
+    return userObj;
+  });
+
   // Compter le total
   const total = await User.countDocuments(filter);
 
   res.status(200).json({
     status: 'success',
     data: {
-      users,
+      users: usersWithStatus,
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / limit),
@@ -555,9 +652,23 @@ exports.getUserById = catchAsync(async (req, res, next) => {
     return next(new AppError('Utilisateur non trouvé', 404));
   }
 
+  // Ajouter le statut textuel
+  const userObj = user.toObject();
+  
+  // Déterminer le statut basé sur isActive et isApproved
+  if (!userObj.isActive) {
+    userObj.status = 'Banni';
+  } else if (!userObj.isApproved) {
+    userObj.status = 'En attente';
+  } else if (userObj.isEmailVerified) {
+    userObj.status = 'Vérifié';
+  } else {
+    userObj.status = 'Actif';
+  }
+
   res.status(200).json({
     status: 'success',
-    data: { user }
+    data: { user: userObj }
   });
 });
 
@@ -633,7 +744,10 @@ exports.unbanUser = catchAsync(async (req, res, next) => {
 exports.verifyUser = catchAsync(async (req, res, next) => {
   const user = await User.findByIdAndUpdate(
     req.params.id,
-    { isEmailVerified: true },
+    { 
+      isEmailVerified: true,
+      isApproved: true 
+    },
     { new: true }
   ).select('-password');
 
@@ -649,7 +763,7 @@ exports.verifyUser = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllProducts = catchAsync(async (req, res, next) => {
-  const { page = 1, limit = 10, search, status, category } = req.query;
+  const { page = 1, limit = 10, search, status, category, featured } = req.query;
   
   // Construire le filtre
   const filter = {};
@@ -668,6 +782,14 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
   
   if (category) {
     filter.category = category;
+  }
+  
+  if (featured) {
+    if (featured === 'featured') {
+      filter.isFeatured = true;
+    } else if (featured === 'not-featured') {
+      filter.isFeatured = false;
+    }
   }
 
   // Pagination
@@ -836,9 +958,9 @@ exports.getAllOrders = catchAsync(async (req, res, next) => {
   if (search) {
     filter.$or = [
       { orderNumber: { $regex: search, $options: 'i' } },
-      { 'customer.firstName': { $regex: search, $options: 'i' } },
-      { 'customer.lastName': { $regex: search, $options: 'i' } },
-      { 'customer.email': { $regex: search, $options: 'i' } }
+      { 'buyer.firstName': { $regex: search, $options: 'i' } },
+      { 'buyer.lastName': { $regex: search, $options: 'i' } },
+      { 'buyer.email': { $regex: search, $options: 'i' } }
     ];
   }
 
@@ -847,11 +969,41 @@ exports.getAllOrders = catchAsync(async (req, res, next) => {
   
   // Récupérer les commandes avec populate
   const orders = await Order.find(filter)
-    .populate('customer', 'firstName lastName email phone')
-    .populate('items.product', 'name images')
+    .populate('buyer', 'firstName lastName email phone userType')
+    .populate('seller', 'firstName lastName email phone farmName companyName userType')
+    .populate('items.product', 'name images price')
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(parseInt(limit));
+
+  // Transformer les données pour correspondre au format attendu par le frontend
+  const transformedOrders = orders.map(order => ({
+    _id: order._id,
+    orderNumber: order.orderNumber,
+    status: order.status,
+    paymentStatus: order.payment.status,
+    totalAmount: order.total,
+    items: order.items.map(item => ({
+      product: {
+        name: item.productSnapshot?.name || item.product?.name || 'Produit supprimé',
+        images: item.productSnapshot?.images || item.product?.images || []
+      },
+      quantity: item.quantity,
+      price: item.unitPrice
+    })),
+    customer: {
+      firstName: order.buyer?.firstName || 'N/A',
+      lastName: order.buyer?.lastName || 'N/A',
+      email: order.buyer?.email || 'N/A'
+    },
+    producer: {
+      firstName: order.seller?.firstName || 'N/A',
+      lastName: order.seller?.lastName || 'N/A',
+      farmName: order.seller?.farmName || order.seller?.companyName || 'N/A'
+    },
+    disputeReason: order.cancellationReason || null,
+    createdAt: order.createdAt
+  }));
 
   // Compter le total
   const total = await Order.countDocuments(filter);
@@ -859,7 +1011,7 @@ exports.getAllOrders = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     data: {
-      orders,
+      orders: transformedOrders,
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / limit),
@@ -873,77 +1025,175 @@ exports.getAllOrders = catchAsync(async (req, res, next) => {
 
 exports.getOrderById = catchAsync(async (req, res, next) => {
   const order = await Order.findById(req.params.id)
-    .populate('customer', 'firstName lastName email phone address')
-    .populate('items.product', 'name images description')
-    .populate('transporter', 'firstName lastName email phone');
+    .populate('buyer', 'firstName lastName email phone address userType')
+    .populate('seller', 'firstName lastName email phone farmName companyName userType')
+    .populate('items.product', 'name images description price')
+    .populate('delivery.transporter', 'firstName lastName email phone companyName');
 
   if (!order) {
     return next(new AppError('Commande non trouvée', 404));
   }
 
+  // Transformer les données pour correspondre au format attendu par le frontend
+  const transformedOrder = {
+    _id: order._id,
+    orderNumber: order.orderNumber,
+    status: order.status,
+    paymentStatus: order.payment.status,
+    totalAmount: order.total,
+    subtotal: order.subtotal,
+    deliveryFee: order.deliveryFee,
+    taxes: order.taxes,
+    discount: order.discount,
+    items: order.items.map(item => ({
+      product: {
+        name: item.productSnapshot?.name || item.product?.name || 'Produit supprimé',
+        images: item.productSnapshot?.images || item.product?.images || [],
+        description: item.productSnapshot?.description || item.product?.description || ''
+      },
+      quantity: item.quantity,
+      price: item.unitPrice,
+      totalPrice: item.totalPrice
+    })),
+    customer: {
+      firstName: order.buyer?.firstName || 'N/A',
+      lastName: order.buyer?.lastName || 'N/A',
+      email: order.buyer?.email || 'N/A',
+      phone: order.buyer?.phone || 'N/A',
+      address: order.buyer?.address || 'N/A'
+    },
+    producer: {
+      firstName: order.seller?.firstName || 'N/A',
+      lastName: order.seller?.lastName || 'N/A',
+      farmName: order.seller?.farmName || order.seller?.companyName || 'N/A',
+      email: order.seller?.email || 'N/A',
+      phone: order.seller?.phone || 'N/A'
+    },
+    transporter: order.delivery?.transporter ? {
+      firstName: order.delivery.transporter.firstName || 'N/A',
+      lastName: order.delivery.transporter.lastName || 'N/A',
+      email: order.delivery.transporter.email || 'N/A',
+      phone: order.delivery.transporter.phone || 'N/A',
+      companyName: order.delivery.transporter.companyName || 'N/A'
+    } : null,
+    disputeReason: order.cancellationReason || null,
+    createdAt: order.createdAt,
+    delivery: order.delivery,
+    payment: order.payment,
+    statusHistory: order.statusHistory
+  };
+
   res.status(200).json({
     status: 'success',
-    data: { order }
+    data: { order: transformedOrder }
   });
 });
 
 exports.updateOrderStatus = catchAsync(async (req, res, next) => {
   const { status, notes } = req.body;
   
-  const order = await Order.findByIdAndUpdate(
-    req.params.id,
-    { 
-      status, 
-      statusHistory: { 
-        $push: { 
-          status, 
-          timestamp: new Date(), 
-          notes: notes || '' 
-        } 
-      }
-    },
-    { new: true }
-  ).populate('customer', 'firstName lastName email');
-
+  const order = await Order.findById(req.params.id);
+  
   if (!order) {
     return next(new AppError('Commande non trouvée', 404));
   }
 
+  // Utiliser la méthode du modèle pour mettre à jour le statut
+  await order.updateStatus(status, req.admin._id, null, notes);
+
+  // Récupérer la commande mise à jour avec les populations
+  const updatedOrder = await Order.findById(req.params.id)
+    .populate('buyer', 'firstName lastName email phone userType')
+    .populate('seller', 'firstName lastName email phone farmName companyName userType')
+    .populate('items.product', 'name images price');
+
+  // Transformer les données pour correspondre au format attendu par le frontend
+  const transformedOrder = {
+    _id: updatedOrder._id,
+    orderNumber: updatedOrder.orderNumber,
+    status: updatedOrder.status,
+    paymentStatus: updatedOrder.payment.status,
+    totalAmount: updatedOrder.total,
+    items: updatedOrder.items.map(item => ({
+      product: {
+        name: item.productSnapshot?.name || item.product?.name || 'Produit supprimé',
+        images: item.productSnapshot?.images || item.product?.images || []
+      },
+      quantity: item.quantity,
+      price: item.unitPrice
+    })),
+    customer: {
+      firstName: updatedOrder.buyer?.firstName || 'N/A',
+      lastName: updatedOrder.buyer?.lastName || 'N/A',
+      email: updatedOrder.buyer?.email || 'N/A'
+    },
+    producer: {
+      firstName: updatedOrder.seller?.firstName || 'N/A',
+      lastName: updatedOrder.seller?.lastName || 'N/A',
+      farmName: updatedOrder.seller?.farmName || updatedOrder.seller?.companyName || 'N/A'
+    },
+    disputeReason: updatedOrder.cancellationReason || null,
+    createdAt: updatedOrder.createdAt
+  };
+
   res.status(200).json({
     status: 'success',
     message: 'Statut de la commande mis à jour avec succès',
-    data: { order }
+    data: { order: transformedOrder }
   });
 });
 
 exports.cancelOrder = catchAsync(async (req, res, next) => {
   const { reason } = req.body;
   
-  const order = await Order.findByIdAndUpdate(
-    req.params.id,
-    { 
-      status: 'cancelled',
-      cancelledAt: new Date(),
-      cancellationReason: reason,
-      statusHistory: { 
-        $push: { 
-          status: 'cancelled', 
-          timestamp: new Date(), 
-          notes: reason || 'Commande annulée' 
-        } 
-      }
-    },
-    { new: true }
-  ).populate('customer', 'firstName lastName email');
-
+  const order = await Order.findById(req.params.id);
+  
   if (!order) {
     return next(new AppError('Commande non trouvée', 404));
   }
 
+  // Utiliser la méthode du modèle pour annuler la commande
+  await order.updateStatus('cancelled', req.admin._id, reason);
+
+  // Récupérer la commande mise à jour avec les populations
+  const updatedOrder = await Order.findById(req.params.id)
+    .populate('buyer', 'firstName lastName email phone userType')
+    .populate('seller', 'firstName lastName email phone farmName companyName userType')
+    .populate('items.product', 'name images price');
+
+  // Transformer les données pour correspondre au format attendu par le frontend
+  const transformedOrder = {
+    _id: updatedOrder._id,
+    orderNumber: updatedOrder.orderNumber,
+    status: updatedOrder.status,
+    paymentStatus: updatedOrder.payment.status,
+    totalAmount: updatedOrder.total,
+    items: updatedOrder.items.map(item => ({
+      product: {
+        name: item.productSnapshot?.name || item.product?.name || 'Produit supprimé',
+        images: item.productSnapshot?.images || item.product?.images || []
+      },
+      quantity: item.quantity,
+      price: item.unitPrice
+    })),
+    customer: {
+      firstName: updatedOrder.buyer?.firstName || 'N/A',
+      lastName: updatedOrder.buyer?.lastName || 'N/A',
+      email: updatedOrder.buyer?.email || 'N/A'
+    },
+    producer: {
+      firstName: updatedOrder.seller?.firstName || 'N/A',
+      lastName: updatedOrder.seller?.lastName || 'N/A',
+      farmName: updatedOrder.seller?.farmName || updatedOrder.seller?.companyName || 'N/A'
+    },
+    disputeReason: updatedOrder.cancellationReason || null,
+    createdAt: updatedOrder.createdAt
+  };
+
   res.status(200).json({
     status: 'success',
     message: 'Commande annulée avec succès',
-    data: { order }
+    data: { order: transformedOrder }
   });
 });
 

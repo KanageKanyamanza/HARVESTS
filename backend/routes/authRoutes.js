@@ -128,14 +128,14 @@ router.post('/login', authLimiter, authController.login);
 /**
  * @swagger
  * /api/v1/auth/logout:
- *   get:
+ *   post:
  *     summary: Déconnexion utilisateur
  *     tags: [Authentication]
  *     responses:
  *       200:
  *         description: Déconnexion réussie
  */
-router.get('/logout', authController.logout);
+router.post('/logout', authController.logout);
 
 // Vérification et réinitialisation
 router.get('/verify-email/:token', authController.verifyEmail);

@@ -70,12 +70,16 @@ const ConsumerDashboard = React.lazy(() => import('./pages/dashboard/consumer/Co
 const Cart = React.lazy(() => import('./pages/dashboard/consumer/Cart'));
 const Checkout = React.lazy(() => import('./pages/dashboard/consumer/Checkout'));
 const OrderHistory = React.lazy(() => import('./pages/dashboard/consumer/OrderHistory'));
+const OrderDetail = React.lazy(() => import('./pages/orders/OrderDetail'));
+const OrderConfirmation = React.lazy(() => import('./pages/dashboard/consumer/OrderConfirmation'));
 
 // Admin Dashboard
 const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard'));
 const AdminManagement = React.lazy(() => import('./pages/admin/AdminManagement'));
 const AdminUsers = React.lazy(() => import('./pages/admin/AdminUsers'));
+const UserDetails = React.lazy(() => import('./pages/admin/UserDetails'));
 const AdminProducts = React.lazy(() => import('./pages/admin/AdminProducts'));
+const ProductDetails = React.lazy(() => import('./pages/admin/ProductDetails'));
 const AdminReviews = React.lazy(() => import('./pages/admin/AdminReviews'));
 const AdminMessages = React.lazy(() => import('./pages/admin/AdminMessages'));
 const AdminOrders = React.lazy(() => import('./pages/admin/AdminOrders'));
@@ -153,12 +157,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <CartProvider>
-          <NotificationProvider>
-            <ModalProvider>
-          <Router>
-            <div className="App">
-              <UserTypeRedirect>
+        <NotificationProvider>
+          <ModalProvider>
+            <Router>
+              <div className="App">
+                <UserTypeRedirect>
+                  <CartProvider>
               <Suspense fallback={<LoadingSpinner />}>
                 <Routes>
                 {/* Routes publiques */}
@@ -369,6 +373,18 @@ function App() {
                     <OrderHistory />
                   </ProtectedRoute>
                 } />
+                
+                <Route path="/orders/:id" element={
+                  <ProtectedRoute>
+                    <OrderDetail />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/orders/:orderId/confirmation" element={
+                  <ProtectedRoute>
+                    <OrderConfirmation />
+                  </ProtectedRoute>
+                } />
 
                 {/* Routes Admin */}
                 <Route path="/admin" element={
@@ -395,10 +411,26 @@ function App() {
                   </ProtectedRoute>
                 } />
                 
+                <Route path="/admin/products/:id" element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminLayout>
+                      <ProductDetails />
+                    </AdminLayout>
+                  </ProtectedRoute>
+                } />
+                
                 <Route path="/admin/users" element={
                   <ProtectedRoute requireRole="admin">
                     <AdminLayout>
                       <AdminUsers />
+                    </AdminLayout>
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/admin/users/:id" element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminLayout>
+                      <UserDetails />
                     </AdminLayout>
                   </ProtectedRoute>
                 } />
@@ -471,15 +503,15 @@ function App() {
                 <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
-            </UserTypeRedirect>
-          </div>
-        </Router>
-        </ModalProvider>
-        
-        {/* Container des notifications */}
-        <NotificationContainer />
+              
+              {/* Container des notifications */}
+              <NotificationContainer />
+                  </CartProvider>
+                </UserTypeRedirect>
+              </div>
+            </Router>
+          </ModalProvider>
         </NotificationProvider>
-        </CartProvider>
       </AuthProvider>
       
       {/* React Query DevTools en développement */}

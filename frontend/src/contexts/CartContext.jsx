@@ -58,9 +58,7 @@ const cartReducer = (state, action) => {
       };
 
     case CART_ACTIONS.LOAD_CART:
-      console.log('🔄 LOAD_CART - payload:', action.payload);
       const items = action.payload.items || action.payload || [];
-      console.log('🔄 LOAD_CART - items:', items);
       return {
         ...state,
         items: items
@@ -83,21 +81,18 @@ export const CartProvider = ({ children }) => {
 
   // Charger le panier depuis localStorage au montage
   useEffect(() => {
-    console.log('🛒 Chargement du panier depuis localStorage...');
     const savedCart = localStorage.getItem('harvests_cart');
-    console.log('📦 Données sauvegardées:', savedCart);
     
     if (savedCart) {
       try {
         const cartData = JSON.parse(savedCart);
-        console.log('✅ Panier chargé:', cartData);
         dispatch({ type: CART_ACTIONS.LOAD_CART, payload: cartData });
       } catch (error) {
         console.error('❌ Erreur lors du chargement du panier:', error);
         localStorage.removeItem('harvests_cart');
       }
     } else {
-      console.log('⚠️ Aucun panier sauvegardé trouvé');
+      dispatch({ type: CART_ACTIONS.LOAD_CART, payload: { items: [] } });
     }
     setIsInitialized(true);
   }, []);
@@ -105,39 +100,36 @@ export const CartProvider = ({ children }) => {
   // Sauvegarder le panier dans localStorage à chaque changement
   useEffect(() => {
     if (isInitialized) {
-      console.log('💾 Sauvegarde du panier:', state);
       localStorage.setItem('harvests_cart', JSON.stringify(state));
     }
   }, [state, isInitialized]);
 
   // Synchroniser le panier avec le serveur quand l'utilisateur se connecte
-  useEffect(() => {
-    const syncCartWithServer = async () => {
-      if (isAuthenticated && isInitialized && state.items.length > 0) {
-        try {
-          console.log('🔄 Synchronisation du panier avec le serveur...');
-          await cartService.syncCart(state.items);
-          console.log('✅ Panier synchronisé avec le serveur');
-        } catch (error) {
-          console.error('❌ Erreur lors de la synchronisation du panier:', error);
-        }
-      }
-    };
+  // Synchroniser le panier local avec le serveur
+  // Désactivé temporairement car la route /cart/sync n'existe pas encore
+  // useEffect(() => {
+  //   const syncCartWithServer = async () => {
+  //     if (isAuthenticated && isInitialized && state.items.length > 0) {
+  //       try {
+  //         await cartService.syncCart(state.items);
+  //       } catch (error) {
+  //         console.error('❌ Erreur lors de la synchronisation du panier:', error);
+  //       }
+  //     }
+  //   };
 
-    syncCartWithServer();
-  }, [isAuthenticated, isInitialized]);
+  //   syncCartWithServer();
+  // }, [isAuthenticated, isInitialized]);
 
   // Charger le panier du serveur quand l'utilisateur se connecte
   useEffect(() => {
     const loadServerCart = async () => {
-      if (isAuthenticated && isInitialized) {
+      if (isAuthenticated && isInitialized && user?.userType === 'consumer') {
         try {
-          console.log('🔄 Chargement du panier depuis le serveur...');
           const response = await cartService.getCart();
           const serverItems = response.data.data?.items || response.data.items || [];
           
           if (serverItems.length > 0) {
-            console.log('✅ Panier serveur chargé:', serverItems);
             dispatch({ type: CART_ACTIONS.LOAD_CART, payload: { items: serverItems } });
           }
         } catch (error) {
@@ -147,7 +139,7 @@ export const CartProvider = ({ children }) => {
     };
 
     loadServerCart();
-  }, [isAuthenticated, isInitialized]);
+  }, [isAuthenticated, isInitialized, user?.userType]);
 
   // Fonctions du panier
   const addToCart = (product) => {
