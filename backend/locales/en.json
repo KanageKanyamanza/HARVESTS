@@ -12,7 +12,9 @@
     "account_not_approved": "Account pending approval",
     "account_suspended": "Account suspended",
     "token_expired": "Token expired",
-    "unauthorized": "Unauthorized"
+    "unauthorized": "Unauthorized",
+    "verification_email_sent": "Verification email sent successfully",
+    "email_not_verified": "Please verify your email before logging in"
   },
   "user": {
     "profile_updated": "Profile updated successfully",

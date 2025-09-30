@@ -18,6 +18,9 @@ const {
 
 // Importation des routes
 const authRoutes = require('./routes/authRoutes');
+const adminAuthRoutes = require('./routes/adminAuthRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const adminManagementRoutes = require('./routes/adminManagementRoutes');
 const userRoutes = require('./routes/userRoutes');
 const producerRoutes = require('./routes/producerRoutes');
 const transformerRoutes = require('./routes/transformerRoutes');
@@ -25,6 +28,7 @@ const consumerRoutes = require('./routes/consumerRoutes');
 const restaurateurRoutes = require('./routes/restaurateurRoutes');
 const exporterRoutes = require('./routes/exporterRoutes');
 const transporterRoutes = require('./routes/transporterRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 // Importation des gestionnaires d'erreur
 const AppError = require('./utils/appError');
@@ -142,6 +146,15 @@ app.get('/api/v1/health', (req, res) => {
 // Routes d'authentification
 app.use('/api/v1/auth', authRoutes);
 
+// Routes d'authentification admin
+app.use('/api/v1/admin/auth', adminAuthRoutes);
+
+// Routes admin
+app.use('/api/v1/admin', adminRoutes);
+
+// Routes de gestion des administrateurs
+app.use('/api/v1/admin-management', adminManagementRoutes);
+
 // Routes utilisateurs génériques
 app.use('/api/v1/users', userRoutes);
 
@@ -167,6 +180,9 @@ app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/messages', messageRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/payments', paymentRoutes);
+
+// Routes d'upload d'images
+app.use('/api/v1/upload', uploadRoutes);
 
 // Routes à implémenter plus tard
 // app.use('/api/v1/deliveries', deliveryRoutes);

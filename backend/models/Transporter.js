@@ -3,32 +3,35 @@ const User = require('./User');
 
 // Schéma spécialisé pour les Transporteurs
 const transporterSchema = new mongoose.Schema({
-  // Informations de l'entreprise de transport
+  // Informations de l'entreprise de transport (optionnelles lors de l'inscription)
   companyName: {
     type: String,
-    required: [true, 'Nom de l\'entreprise de transport requis'],
+    required: false, // Optionnel lors de l'inscription
     trim: true,
-    maxlength: [100, 'Le nom de l\'entreprise ne peut pas dépasser 100 caractères']
+    maxlength: [100, 'Le nom de l\'entreprise ne peut pas dépasser 100 caractères'],
+    default: 'À compléter'
   },
   
   businessLicense: {
     type: String,
-    required: [true, 'Licence de transport requise'],
-    unique: true
+    required: false, // Optionnel lors de l'inscription
+    default: function() { return `À_compléter_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`; }
   },
   
   // Type de transport
   transportType: {
     type: [String],
     enum: ['road', 'rail', 'air', 'sea', 'multimodal'],
-    required: [true, 'Type de transport requis']
+    required: false, // Optionnel lors de l'inscription
+    default: ['road']
   },
   
   // Services de transport
   serviceTypes: {
     type: [String],
     enum: ['local-delivery', 'regional-transport', 'national-transport', 'international-shipping', 'cold-chain', 'express-delivery'],
-    required: [true, 'Types de services requis']
+    required: false, // Optionnel lors de l'inscription
+    default: ['local-delivery']
   },
   
   // Flotte de véhicules
@@ -94,16 +97,18 @@ const transporterSchema = new mongoose.Schema({
     }
   }],
   
-  // Tarification
+  // Tarification (optionnelle lors de l'inscription)
   pricingStructure: {
     model: {
       type: String,
       enum: ['per-km', 'per-kg', 'flat-rate', 'time-based', 'custom'],
-      required: true
+      required: false, // Optionnel lors de l'inscription
+      default: 'per-km'
     },
     baseRate: {
       type: Number,
-      required: true
+      required: false, // Optionnel lors de l'inscription
+      default: 0
     },
     additionalCharges: [{
       type: {

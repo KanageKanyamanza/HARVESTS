@@ -3,25 +3,27 @@ const User = require('./User');
 
 // Schéma spécialisé pour les Transformateurs
 const transformerSchema = new mongoose.Schema({
-  // Informations de l'entreprise
+  // Informations de l'entreprise (optionnelles lors de l'inscription)
   companyName: {
     type: String,
-    required: [true, 'Nom de l\'entreprise requis'],
+    required: false, // Optionnel lors de l'inscription
     trim: true,
-    maxlength: [100, 'Le nom de l\'entreprise ne peut pas dépasser 100 caractères']
+    maxlength: [100, 'Le nom de l\'entreprise ne peut pas dépasser 100 caractères'],
+    default: 'À compléter'
   },
   
   companyRegistrationNumber: {
     type: String,
-    required: [true, 'Numéro d\'enregistrement requis'],
-    unique: true
+    required: false, // Optionnel lors de l'inscription
+    default: function() { return `À_compléter_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`; }
   },
   
   // Type de transformation
   transformationType: {
     type: String,
     enum: ['processing', 'packaging', 'preservation', 'manufacturing', 'mixed'],
-    required: [true, 'Type de transformation requis']
+    required: false, // Optionnel lors de l'inscription
+    default: 'processing'
   },
   
   // Produits transformés
@@ -118,15 +120,22 @@ const transformerSchema = new mongoose.Schema({
     }
   },
   
-  // Tarification
+  // Tarification (optionnelle lors de l'inscription)
   pricing: {
     model: {
       type: String,
       enum: ['per-unit', 'per-kg', 'per-batch', 'hourly', 'custom'],
-      required: true
+      required: false, // Optionnel lors de l'inscription
+      default: 'per-unit'
     },
-    baseRate: Number,
-    minimumCharge: Number,
+    baseRate: {
+      type: Number,
+      default: 0
+    },
+    minimumCharge: {
+      type: Number,
+      default: 0
+    },
     additionalServices: [{
       service: String,
       rate: Number,

@@ -6,16 +6,18 @@ const producerSchema = new mongoose.Schema({
   // Informations spécifiques au producteur
   farmName: {
     type: String,
-    required: [true, 'Nom de la ferme requis'],
+    required: false, // Optionnel lors de l'inscription
     trim: true,
-    maxlength: [100, 'Le nom de la ferme ne peut pas dépasser 100 caractères']
+    maxlength: [100, 'Le nom de la ferme ne peut pas dépasser 100 caractères'],
+    default: 'À compléter'
   },
   
   farmSize: {
     value: {
       type: Number,
-      required: [true, 'Taille de la ferme requise'],
-      min: [0.1, 'La taille minimum est de 0.1']
+      required: false, // Optionnel lors de l'inscription
+      min: [0, 'La taille ne peut pas être négative'],
+      default: 0
     },
     unit: {
       type: String,
@@ -27,14 +29,15 @@ const producerSchema = new mongoose.Schema({
   farmingType: {
     type: String,
     enum: ['organic', 'conventional', 'mixed'],
-    required: [true, 'Type d\'agriculture requis']
+    required: false, // Optionnel lors de l'inscription
+    default: 'conventional'
   },
   
   // Certifications
   certifications: [{
     name: {
       type: String,
-      required: true
+      required: false // Optionnel lors de l'inscription
     },
     issuedBy: String,
     validUntil: Date,
@@ -46,12 +49,12 @@ const producerSchema = new mongoose.Schema({
   crops: [{
     name: {
       type: String,
-      required: true
+      required: false // Optionnel lors de l'inscription
     },
     category: {
       type: String,
       enum: ['cereals', 'vegetables', 'fruits', 'legumes', 'tubers', 'spices', 'herbs'],
-      required: true
+      required: false // Optionnel lors de l'inscription
     },
     plantingSeasons: [String],
     harvestSeasons: [String],
@@ -170,6 +173,50 @@ const producerSchema = new mongoose.Schema({
       isVerified: {
         type: Boolean,
         default: false
+      }
+    }
+  },
+  
+  // Informations de boutique
+  shopInfo: {
+    isShopActive: {
+      type: Boolean,
+      default: false
+    },
+    shopName: {
+      type: String,
+      trim: true,
+      maxlength: [100, 'Le nom de la boutique ne peut pas dépasser 100 caractères']
+    },
+    shopDescription: {
+      type: String,
+      maxlength: [500, 'La description de la boutique ne peut pas dépasser 500 caractères']
+    },
+    shopBanner: {
+      type: String,
+      default: null
+    },
+    shopLogo: {
+      type: String,
+      default: null
+    },
+    openingHours: {
+      monday: { open: String, close: String },
+      tuesday: { open: String, close: String },
+      wednesday: { open: String, close: String },
+      thursday: { open: String, close: String },
+      friday: { open: String, close: String },
+      saturday: { open: String, close: String },
+      sunday: { open: String, close: String }
+    },
+    contactInfo: {
+      phone: String,
+      email: String,
+      website: String,
+      socialMedia: {
+        facebook: String,
+        instagram: String,
+        twitter: String
       }
     }
   }

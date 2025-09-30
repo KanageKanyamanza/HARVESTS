@@ -3,25 +3,26 @@ const User = require('./User');
 
 // Schéma spécialisé pour les Exportateurs
 const exporterSchema = new mongoose.Schema({
-  // Informations de l'entreprise
+  // Informations de l'entreprise (optionnelles lors de l'inscription)
   companyName: {
     type: String,
-    required: [true, 'Nom de l\'entreprise requis'],
+    required: false, // Optionnel lors de l'inscription
     trim: true,
-    maxlength: [150, 'Le nom de l\'entreprise ne peut pas dépasser 150 caractères']
+    maxlength: [150, 'Le nom de l\'entreprise ne peut pas dépasser 150 caractères'],
+    default: 'À compléter'
   },
   
   businessRegistrationNumber: {
     type: String,
-    required: [true, 'Numéro d\'enregistrement commercial requis'],
-    unique: true
+    required: false, // Optionnel lors de l'inscription
+    default: function() { return `À_compléter_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`; }
   },
   
   // Licences d'exportation
   exportLicenses: [{
     licenseNumber: {
       type: String,
-      required: true
+      required: false // Optionnel lors de l'inscription
     },
     issuedBy: String,
     validUntil: Date,
@@ -38,7 +39,7 @@ const exporterSchema = new mongoose.Schema({
   targetMarkets: [{
     country: {
       type: String,
-      required: true
+      required: false // Optionnel lors de l'inscription
     },
     region: String,
     marketType: {
@@ -60,7 +61,7 @@ const exporterSchema = new mongoose.Schema({
     category: {
       type: String,
       enum: ['cereals', 'vegetables', 'fruits', 'legumes', 'tubers', 'spices', 'herbs', 'processed-foods'],
-      required: true
+      required: false // Optionnel lors de l'inscription
     },
     specificProducts: [String],
     qualityStandards: [String], // ISO, FDA, EU, etc.

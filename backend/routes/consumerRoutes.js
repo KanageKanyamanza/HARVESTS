@@ -18,6 +18,16 @@ router.route('/me/dietary-preferences')
   .get(consumerController.getDietaryPreferences)
   .patch(consumerController.updateDietaryPreferences);
 
+// Gestion des préférences d'achat
+router.route('/me/shopping-preferences')
+  .get(consumerController.getShoppingPreferences)
+  .patch(consumerController.updateShoppingPreferences);
+
+// Gestion des préférences de notification
+router.route('/me/notification-preferences')
+  .get(consumerController.getNotificationPreferences)
+  .patch(consumerController.updateNotificationPreferences);
+
 // Gestion des allergies
 router.route('/me/allergies')
   .get(consumerController.getAllergies)

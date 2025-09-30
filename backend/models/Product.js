@@ -395,7 +395,7 @@ productSchema.index({ name: 'text', description: 'text', tags: 'text' });
 productSchema.index({ producer: 1, status: 1 });
 productSchema.index({ category: 1, subcategory: 1 });
 productSchema.index({ 'availability.status': 1 });
-productSchema.index({ slug: 1 }, { unique: true });
+productSchema.index({ producer: 1, slug: 1 }, { unique: true });
 productSchema.index({ isFeatured: 1, 'stats.averageRating': -1 });
 productSchema.index({ createdAt: -1 });
 productSchema.index({ 'agricultureInfo.region': 1 });
@@ -451,15 +451,39 @@ productSchema.virtual('primaryImage').get(function() {
 });
 
 // Middleware pre-save
-productSchema.pre('save', function(next) {
+productSchema.pre('save', async function(next) {
   // Générer le slug à partir du nom français
   if (this.isModified('name')) {
     const nameForSlug = typeof this.name === 'string' ? this.name : (this.name.fr || this.name.en || 'product');
-    this.slug = slugify(nameForSlug, { 
+    let baseSlug = slugify(nameForSlug, { 
       lower: true, 
       strict: true,
       remove: /[*+~.()'"!:@]/g 
     });
+    
+    // Gérer les slugs dupliqués en ajoutant un suffixe numérique
+    let slug = baseSlug;
+    let counter = 1;
+    
+    while (true) {
+      try {
+        const existingProduct = await this.constructor.findOne({ 
+          producer: this.producer, 
+          slug 
+        });
+        if (!existingProduct || existingProduct._id.toString() === this._id.toString()) {
+          break;
+        }
+        slug = `${baseSlug}-${counter}`;
+        counter++;
+      } catch (error) {
+        // En cas d'erreur, utiliser le slug de base avec timestamp
+        slug = `${baseSlug}-${Date.now()}`;
+        break;
+      }
+    }
+    
+    this.slug = slug;
   }
   
   // Mettre à jour le statut de disponibilité

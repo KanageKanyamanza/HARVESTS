@@ -1,0 +1,36 @@
+{
+  "name": "harvests-fullstack",
+  "version": "1.0.0",
+  "description": "L'Amazon des produits agricoles africains - Application complète",
+  "main": "start-dev.js",
+  "scripts": {
+    "dev": "node start-dev.js",
+    "start": "node start-dev.js",
+    "backend": "cd backend && npm start",
+    "frontend": "cd frontend && npm run dev",
+    "backend:dev": "cd backend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "test": "echo 'Tests à implémenter'",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "clean": "rm -rf node_modules backend/node_modules frontend/node_modules",
+    "setup": "npm run install:all && cp backend/env.example backend/.env && cp frontend/env.example frontend/.env"
+  },
+  "keywords": [
+    "agriculture",
+    "e-commerce",
+    "africa",
+    "marketplace",
+    "react",
+    "nodejs",
+    "mongodb"
+  ],
+  "author": "Équipe Harvests",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZooM982/HARVESTS.git"
+  }
+}

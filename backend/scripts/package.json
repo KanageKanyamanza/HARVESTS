@@ -1,0 +1,26 @@
+{
+  "name": "harvests-admin-scripts",
+  "version": "1.0.0",
+  "description": "Scripts de gestion des administrateurs pour Harvests",
+  "main": "admin-manager.js",
+  "scripts": {
+    "setup": "node quick-admin-setup.js",
+    "admin": "node admin-manager.js",
+    "create": "node admin-manager.js create",
+    "list": "node admin-manager.js list",
+    "stats": "node admin-manager.js stats"
+  },
+  "keywords": [
+    "admin",
+    "management",
+    "harvests",
+    "mongodb"
+  ],
+  "author": "Harvests Team",
+  "license": "MIT",
+  "dependencies": {
+    "mongoose": "^7.0.0",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.0.0"
+  }
+}

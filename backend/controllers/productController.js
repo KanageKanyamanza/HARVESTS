@@ -87,7 +87,7 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
 
   // Construction de la requête
   let query = Product.find(queryObj)
-    .populate('producer', 'farmName firstName lastName address salesStats')
+    .populate('producer', 'farmName firstName lastName address salesStats createdAt country')
     .select('-__v');
 
   // Tri
@@ -154,15 +154,7 @@ exports.getProduct = catchAsync(async (req, res, next) => {
     status: 'approved',
     isActive: true
   })
-  .populate('producer', 'farmName firstName lastName address salesStats certifications')
-  .populate({
-    path: 'reviews',
-    options: { limit: 10, sort: { createdAt: -1 } },
-    populate: {
-      path: 'reviewer',
-      select: 'firstName lastName avatar'
-    }
-  });
+  .populate('producer', 'farmName firstName lastName address salesStats certifications createdAt country');
 
   if (!product) {
     return next(new AppError('Produit non trouvé', 404));
@@ -181,7 +173,7 @@ exports.getProduct = catchAsync(async (req, res, next) => {
     status: 'approved',
     isActive: true
   })
-  .populate('producer', 'farmName firstName lastName')
+  .populate('producer', 'farmName firstName lastName createdAt country')
   .limit(6)
   .sort('-stats.averageRating');
 
@@ -203,7 +195,7 @@ exports.getFeaturedProducts = catchAsync(async (req, res, next) => {
     isActive: true,
     'availability.status': { $in: ['in-stock', 'low-stock'] }
   })
-  .populate('producer', 'farmName firstName lastName address')
+  .populate('producer', 'farmName firstName lastName address createdAt country')
   .sort('-stats.averageRating -createdAt')
   .limit(12);
 
@@ -226,13 +218,96 @@ exports.getNewProducts = catchAsync(async (req, res, next) => {
     status: 'approved',
     isActive: true
   })
-  .populate('producer', 'farmName firstName lastName')
+  .populate('producer', 'farmName firstName lastName createdAt country')
   .sort('-createdAt')
   .limit(20);
 
   res.status(200).json({
     status: 'success',
     results: products.length,
+    data: {
+      products
+    }
+  });
+});
+
+// Obtenir les catégories de produits
+exports.getCategories = catchAsync(async (req, res, next) => {
+  const categories = await Product.distinct('category', {
+    status: 'approved',
+    isActive: true
+  });
+
+  res.status(200).json({
+    status: 'success',
+    results: categories.length,
+    data: categories
+  });
+});
+
+// Obtenir les produits par catégorie
+exports.getProductsByCategory = catchAsync(async (req, res, next) => {
+  const { category } = req.params;
+  
+  // Construction de la requête de base
+  const queryObj = { 
+    category,
+    status: 'approved', 
+    isActive: true,
+    'availability.status': { $in: ['in-stock', 'low-stock'] }
+  };
+
+  // Filtres additionnels
+  if (req.query.subcategory) queryObj.subcategory = req.query.subcategory;
+  if (req.query.region) queryObj['producer.address.region'] = req.query.region;
+  if (req.query.farmingMethod) queryObj['agricultureInfo.farmingMethod'] = req.query.farmingMethod;
+  if (req.query.certified) queryObj['certifications.0'] = { $exists: true };
+
+  // Filtres de prix
+  if (req.query.minPrice || req.query.maxPrice) {
+    queryObj.price = {};
+    if (req.query.minPrice) queryObj.price.$gte = parseFloat(req.query.minPrice);
+    if (req.query.maxPrice) queryObj.price.$lte = parseFloat(req.query.maxPrice);
+  }
+
+  // Recherche textuelle
+  if (req.query.search) {
+    queryObj.$text = { $search: req.query.search };
+  }
+
+  // Pagination
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 20;
+  const skip = (page - 1) * limit;
+
+  // Construction de la requête
+  let query = Product.find(queryObj)
+    .populate('producer', 'farmName firstName lastName address salesStats createdAt country')
+    .select('-__v');
+
+  // Tri
+  if (req.query.sort) {
+    const sortBy = req.query.sort.split(',').join(' ');
+    query = query.sort(sortBy);
+  } else if (req.query.search) {
+    query = query.sort({ score: { $meta: 'textScore' }, 'stats.averageRating': -1 });
+  } else {
+    query = query.sort('-createdAt');
+  }
+
+  // Appliquer pagination
+  query = query.skip(skip).limit(limit);
+
+  // Exécuter la requête
+  const products = await query;
+  const total = await Product.countDocuments(queryObj);
+
+  res.status(200).json({
+    status: 'success',
+    results: products.length,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
     data: {
       products
     }

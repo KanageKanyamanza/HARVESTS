@@ -71,6 +71,8 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     'phone',
     'address',
     'language',
+    'preferredLanguage',
+    'country',
     'currency',
     'notifications'
   );

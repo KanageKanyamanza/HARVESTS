@@ -25,11 +25,23 @@ const baseUserSchema = new mongoose.Schema({
     select: false // N'inclut pas le mot de passe dans les requêtes par défaut
   },
   
+  passwordChangedAt: {
+    type: Date,
+    select: false
+  },
+  
   userType: {
     type: String,
     required: [true, 'Type d\'utilisateur requis'],
     enum: ['producer', 'transformer', 'consumer', 'restaurateur', 'exporter', 'transporter'],
     immutable: true // Ne peut pas être modifié après création
+  },
+  
+  // Rôle système (admin, user, etc.)
+  role: {
+    type: String,
+    enum: ['user', 'admin', 'super-admin'],
+    default: 'user'
   },
   
   // Informations de profil communes
@@ -42,9 +54,16 @@ const baseUserSchema = new mongoose.Schema({
   
   lastName: {
     type: String,
-    required: [true, 'Nom requis'],
+    required: function() {
+      // Requis seulement pour les consommateurs
+      return this.userType === 'consumer';
+    },
     trim: true,
-    maxlength: [50, 'Le nom ne peut pas dépasser 50 caractères']
+    maxlength: [50, 'Le nom ne peut pas dépasser 50 caractères'],
+    default: function() {
+      // Valeur par défaut pour les non-consommateurs
+      return this.userType !== 'consumer' ? 'À compléter' : undefined;
+    }
   },
   
   phone: {
@@ -63,6 +82,26 @@ const baseUserSchema = new mongoose.Schema({
     default: null
   },
   
+  // Badge de profil (pour tous sauf consumer)
+  badge: {
+    type: String,
+    enum: ['verified', 'premium', 'gold', 'platinum', 'diamond'],
+    required: false
+  },
+  
+  // Bannière de boutique (pour les profils vendeurs)
+  shopBanner: {
+    type: String,
+    default: null
+  },
+  
+  // Description de la boutique (pour les profils vendeurs)
+  shopDescription: {
+    type: String,
+    maxlength: [500, 'La description de la boutique ne peut pas dépasser 500 caractères'],
+    default: null
+  },
+  
   // Préférences linguistiques
   preferredLanguage: {
     type: String,
@@ -76,11 +115,11 @@ const baseUserSchema = new mongoose.Schema({
     default: 'CM'
   },
   
-  // Localisation
+  // Localisation (optionnelle lors de l'inscription)
   address: {
-    street: { type: String, required: true },
-    city: { type: String, required: true },
-    region: { type: String, required: true },
+    street: { type: String, required: false, default: 'À compléter' },
+    city: { type: String, required: false, default: 'À compléter' },
+    region: { type: String, required: false, default: 'À compléter' },
     country: { type: String, required: true, default: 'Cameroon' },
     postalCode: { type: String },
     coordinates: {
@@ -110,6 +149,15 @@ const baseUserSchema = new mongoose.Schema({
   isApproved: {
     type: Boolean,
     default: false // Nécessite approbation admin pour certains types
+  },
+  
+  // Statut du profil
+  isProfileComplete: {
+    type: Boolean,
+    default: function() {
+      // Les consommateurs ont un profil complet après inscription
+      return this.userType === 'consumer';
+    }
   },
   
   suspendedUntil: Date,
@@ -159,6 +207,12 @@ baseUserSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   
   this.password = await bcrypt.hash(this.password, 12);
+  
+  // Mettre à jour passwordChangedAt si ce n'est pas un nouveau document
+  if (!this.isNew) {
+    this.passwordChangedAt = Date.now() - 1000; // Soustraire 1 seconde pour s'assurer que le token est valide
+  }
+  
   next();
 });
 
@@ -232,6 +286,15 @@ baseUserSchema.methods.resetLoginAttempts = function() {
       accountLockedUntil: 1
     }
   });
+};
+
+// Méthode pour vérifier si le mot de passe a été changé après l'émission du token
+baseUserSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
+    return JWTTimestamp < changedTimestamp;
+  }
+  return false;
 };
 
 // Transformation JSON pour masquer les champs sensibles

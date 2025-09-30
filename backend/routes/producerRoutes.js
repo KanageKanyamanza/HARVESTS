@@ -5,14 +5,25 @@ const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../mi
 
 const router = express.Router();
 
-// Routes publiques pour recherche de producteurs
+// ========================================
+// ROUTES PUBLIQUES (sans authentification)
+// ========================================
+
+// Routes de recherche de producteurs
 router.get('/', producerController.getAllProducers);
 router.get('/search', producerController.searchProducers);
 router.get('/by-region/:region', producerController.getProducersByRegion);
 router.get('/by-crop/:crop', producerController.getProducersByCrop);
-router.get('/:id', producerController.getProducer);
-router.get('/:id/products', producerController.getProducerProducts);
-router.get('/:id/reviews', producerController.getProducerReviews);
+
+// Routes publiques pour un producteur spécifique (doivent être après /me/*)
+// Ces routes utilisent des paramètres ObjectId valides
+router.get('/:id([0-9a-fA-F]{24})', producerController.getProducer);
+router.get('/:id([0-9a-fA-F]{24})/products', producerController.getProducerProducts);
+router.get('/:id([0-9a-fA-F]{24})/reviews', producerController.getProducerReviews);
+
+// ========================================
+// ROUTES PRIVÉES (avec authentification)
+// ========================================
 
 // Toutes les routes suivantes nécessitent une authentification
 router.use(authController.protect);
@@ -20,6 +31,8 @@ router.use(authController.protect);
 // Routes pour les producteurs seulement
 router.use(authController.restrictTo('producer'));
 router.use(authController.requireVerification);
+
+// Routes protégées pour les producteurs connectés (/me/*)
 
 // Gestion du profil producteur
 router.get('/me/profile', producerController.getMyProfile);
@@ -64,6 +77,7 @@ router.route('/me/products')
   .post(
     uploadLimiter,
     producerController.uploadProductImages,
+    producerController.processProductImages,
     fileTypeValidation(['image/jpeg', 'image/png', 'image/webp']),
     fileSizeValidation(5 * 1024 * 1024), // 5MB par image
     producerController.createProduct
