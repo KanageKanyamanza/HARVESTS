@@ -128,50 +128,112 @@ exports.getProducerReviews = catchAsync(async (req, res, next) => {
 
 // Créer un avis (acheteurs seulement)
 exports.createReview = catchAsync(async (req, res, next) => {
-  const { orderId, productId, rating, title, comment, detailedRating, media } = req.body;
+  const { orderId, productId, rating, title, comment, detailedRating, media, producer } = req.body;
 
-  // Vérifier que l'utilisateur a bien acheté ce produit
-  const order = await Order.findOne({
-    _id: orderId,
-    buyer: req.user.id,
-    status: 'completed',
-    'items.product': productId
-  }).populate('seller');
+  let order = null;
+  let producerId = producer;
 
-  if (!order) {
-    return next(new AppError('Vous devez avoir acheté ce produit pour laisser un avis', 403));
-  }
+  // Si un orderId est fourni, vérifier que l'utilisateur a bien acheté ce produit
+  if (orderId) {
+    order = await Order.findOne({
+      _id: orderId,
+      buyer: req.user.id,
+      status: { $in: ['completed', 'delivered'] },
+      'items.product': productId
+    }).populate('seller');
 
-  // Vérifier qu'un avis n'existe pas déjà pour cette commande
-  const existingReview = await Review.findOne({ order: orderId });
-  if (existingReview) {
-    return next(new AppError('Vous avez déjà laissé un avis pour cette commande', 400));
+    if (!order) {
+      return next(new AppError('Commande non trouvée ou non valide', 404));
+    }
+
+    producerId = order.seller._id;
+
+    // Vérifier qu'un avis n'existe pas déjà pour cette commande
+    const existingReview = await Review.findOne({ order: orderId });
+    if (existingReview) {
+      return next(new AppError('Vous avez déjà laissé un avis pour cette commande', 400));
+    }
+  } else {
+    // Si pas d'orderId, vérifier que l'utilisateur a acheté ce produit dans une commande complétée ou livrée
+    console.log('🔍 Recherche de commande pour:', {
+      buyer: req.user.id,
+      productId,
+      status: { $in: ['completed', 'delivered'] }
+    });
+    
+    const completedOrder = await Order.findOne({
+      buyer: req.user.id,
+      status: { $in: ['completed', 'delivered'] },
+      'items.product': productId
+    }).populate('seller');
+
+    console.log('📦 Commande trouvée:', completedOrder ? 'Oui' : 'Non');
+
+    if (!completedOrder) {
+      // Vérifier s'il y a des commandes avec ce produit mais pas complétées/livrées
+      const pendingOrder = await Order.findOne({
+        buyer: req.user.id,
+        'items.product': productId,
+        status: { $nin: ['completed', 'delivered'] }
+      });
+      
+      if (pendingOrder) {
+        console.log('⚠️ Commande trouvée mais pas complétée/livrée:', pendingOrder.status);
+        return next(new AppError(`Commande trouvée mais pas encore complétée (statut: ${pendingOrder.status})`, 403));
+      }
+      
+      console.log('❌ Aucune commande trouvée pour ce produit');
+      
+      // Vérifier si on permet les avis sans commande (pour les tests)
+      const allowReviewsWithoutOrder = process.env.ALLOW_REVIEWS_WITHOUT_ORDER === 'true';
+      
+      if (!allowReviewsWithoutOrder) {
+        return next(new AppError('Vous devez avoir acheté ce produit pour laisser un avis', 403));
+      }
+      
+      console.log('🔓 Mode test: Permettre l\'avis sans commande');
+      
+      // Récupérer le producteur depuis le produit
+      const product = await Product.findById(productId).populate('producer');
+      if (!product) {
+        return next(new AppError('Produit non trouvé', 404));
+      }
+      
+      producerId = product.producer._id;
+      order = null; // Pas de commande associée
+    } else {
+      producerId = completedOrder.seller._id;
+      order = completedOrder;
+    }
   }
 
   // Créer l'avis
   const review = await Review.create({
     reviewer: req.user.id,
     product: productId,
-    order: orderId,
-    producer: order.seller._id,
+    order: orderId || (order ? order._id : null),
+    producer: producerId,
     rating,
-    title,
-    comment,
+    title: title || `Avis ${rating} étoiles`,
+    comment: comment || '',
     detailedRating,
     media: media || [],
-    isVerifiedPurchase: true,
-    purchaseDate: order.createdAt
+    isVerifiedPurchase: order ? true : false, // Vérifié seulement si commande associée
+    purchaseDate: order ? order.createdAt : null
   });
 
-  // Marquer la commande comme évaluée
-  order.isReviewed = true;
-  order.review = review._id;
-  await order.save();
+  // Marquer la commande comme évaluée si elle existe
+  if (order) {
+    order.isReviewed = true;
+    order.review = review._id;
+    await order.save();
+  }
 
   // Notifier le producteur
   await Notification.createNotification({
-    recipient: order.seller._id,
+    recipient: producerId,
     type: 'review_received',
+    category: 'product',
     title: 'Nouvel avis reçu',
     message: `Vous avez reçu un avis ${rating} étoiles pour "${title}"`,
     data: {
@@ -207,6 +269,7 @@ exports.getMyReviews = catchAsync(async (req, res, next) => {
   const reviews = await Review.find({ reviewer: req.user.id })
     .populate('product', 'name images')
     .populate('producer', 'farmName firstName lastName')
+    .populate('order', 'orderNumber status delivery.deliveredAt')
     .sort('-createdAt')
     .skip(skip)
     .limit(limit);
@@ -373,6 +436,7 @@ exports.respondToReview = catchAsync(async (req, res, next) => {
   await Notification.createNotification({
     recipient: review.reviewer._id,
     type: 'review_response_received',
+    category: 'product',
     title: 'Réponse à votre avis',
     message: `Le producteur a répondu à votre avis sur "${review.title}"`,
     data: {
@@ -519,6 +583,7 @@ exports.moderateReview = catchAsync(async (req, res, next) => {
     await Notification.createNotification({
       recipient: review.reviewer._id,
       type: 'review_rejected',
+      category: 'product',
       title: 'Avis modéré',
       message: `Votre avis a été modéré. Raison: ${reason}`,
       data: {
@@ -691,6 +756,26 @@ exports.getReview = catchAsync(async (req, res, next) => {
     data: {
       review
     }
+  });
+});
+
+// Obtenir les statistiques de notation d'un produit
+exports.getProductRatingStats = catchAsync(async (req, res, next) => {
+  const stats = await Review.getProductRatingStats(req.params.productId);
+  
+  res.status(200).json({
+    status: 'success',
+    data: stats[0] || null
+  });
+});
+
+// Obtenir les statistiques de notation d'un producteur
+exports.getProducerRatingStats = catchAsync(async (req, res, next) => {
+  const stats = await Review.getProducerRatingStats(req.params.producerId);
+  
+  res.status(200).json({
+    status: 'success',
+    data: stats[0] || null
   });
 });
 

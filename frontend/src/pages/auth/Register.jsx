@@ -20,7 +20,7 @@ const Register = () => {
     confirmPassword: '',
     phone: '',
     userType: '',
-    country: 'CM',
+    country: 'SN',
     preferredLanguage: 'fr'
   });
 

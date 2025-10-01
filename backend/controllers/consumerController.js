@@ -1,4 +1,5 @@
 const Consumer = require('../models/Consumer');
+const LoyaltyTransaction = require('../models/LoyaltyTransaction');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 
@@ -836,22 +837,24 @@ function calculateEstimatedDelivery(deliveryMethod) {
 
 async function sendOrderNotifications(order) {
   try {
-    // Notification au vendeur
-    await Notification.create({
-      user: order.seller,
-      type: 'order_received',
-      title: 'Nouvelle commande reçue',
-      message: `Vous avez reçu une nouvelle commande de ${order.buyer.firstName} ${order.buyer.lastName}`,
-      data: { orderId: order._id }
-    });
+    // Notification au producteur (vendeur) - Nouvelle commande
+    await Notification.notifyOrderCreated(order);
 
-    // Notification à l'acheteur
-    await Notification.create({
-      user: order.buyer,
+    // Notification à l'acheteur - Commande créée
+    await Notification.createNotification({
+      recipient: order.buyer,
       type: 'order_confirmed',
-      title: 'Commande confirmée',
-      message: `Votre commande #${order.orderNumber || order._id.slice(-8)} a été confirmée`,
-      data: { orderId: order._id }
+      category: 'order',
+      title: 'Commande créée',
+      message: `Votre commande ${order.orderNumber} a été créée avec succès`,
+      data: {
+        orderId: order._id,
+        orderNumber: order.orderNumber
+      },
+      channels: {
+        inApp: { enabled: true },
+        email: { enabled: true }
+      }
     });
   } catch (error) {
     console.error('Erreur lors de l\'envoi des notifications:', error);
@@ -912,7 +915,7 @@ exports.redeemLoyaltyPoints = catchAsync(async (req, res, next) => {
   const { pointsToRedeem } = req.body;
 
   try {
-    const discount = consumer.redeemLoyaltyPoints(pointsToRedeem);
+    const discount = await consumer.redeemLoyaltyPoints(pointsToRedeem);
     await consumer.save();
 
     res.status(200).json({
@@ -929,10 +932,30 @@ exports.redeemLoyaltyPoints = catchAsync(async (req, res, next) => {
 });
 
 exports.getLoyaltyHistory = catchAsync(async (req, res, next) => {
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 20;
+  const skip = (page - 1) * limit;
+
+  const transactions = await LoyaltyTransaction.find({ consumer: req.user.id })
+    .sort('-createdAt')
+    .limit(limit)
+    .skip(skip)
+    .populate('order', 'orderNumber total status');
+
+  const total = await LoyaltyTransaction.countDocuments({ consumer: req.user.id });
+
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle LoyaltyTransaction requis',
-    data: { history: [] },
+    results: transactions.length,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit)
+    },
+    data: {
+      history: transactions
+    }
   });
 });
 
@@ -1093,22 +1116,129 @@ exports.getFavoriteProducers = catchAsync(async (req, res, next) => {
 });
 
 exports.getMyStats = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  const Review = require('../models/Review');
+  
   const consumer = await Consumer.findById(req.user.id).select('activityStats loyaltyProgram');
+  
+  // Récupérer les vraies stats depuis les commandes
+  const orders = await Order.find({ buyer: req.user.id });
+  const completedOrders = orders.filter(o => o.status === 'completed' || o.status === 'delivered');
+  const cancelledOrders = orders.filter(o => o.status === 'cancelled');
+  
+  // Récupérer les avis
+  const reviews = await Review.find({ user: req.user.id });
+  const averageRating = reviews.length > 0 
+    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length 
+    : 0;
+  
+  // Dernière commande
+  const sortedOrders = orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const lastOrderDate = sortedOrders.length > 0 ? sortedOrders[0].createdAt : null;
 
   res.status(200).json({
     status: 'success',
     data: {
-      activityStats: consumer.activityStats,
+      activityStats: {
+        totalOrders: orders.length,
+        cancelledOrders: cancelledOrders.length,
+        completedOrders: completedOrders.length,
+        averageRatingGiven: averageRating,
+        reviewsWritten: reviews.length,
+        lastOrderDate
+      },
       loyaltyStats: consumer.loyaltyProgram,
     },
   });
 });
 
 exports.getSpendingAnalytics = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  const Product = require('../models/Product');
+  
+  const consumer = await Consumer.findById(req.user.id);
+  
+  // Récupérer toutes les commandes du consommateur
+  const orders = await Order.find({ 
+    buyer: req.user.id,
+    status: { $in: ['completed', 'delivered'] }
+  }).populate('items.product');
+  
+  // Calculer les analytics
+  const totalSpent = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+  const averageOrderValue = orders.length > 0 ? totalSpent / orders.length : 0;
+  
+  // Date de la dernière commande
+  const lastOrder = orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+  const lastOrderDate = lastOrder ? lastOrder.createdAt : null;
+  
+  // Commandes ce mois
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const ordersThisMonth = orders.filter(order => {
+    const orderDate = new Date(order.createdAt);
+    return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
+  }).length;
+  
+  const spentThisMonth = orders
+    .filter(order => {
+      const orderDate = new Date(order.createdAt);
+      return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
+    })
+    .reduce((sum, order) => sum + (order.total || 0), 0);
+  
+  // Catégories favorites
+  const categoryCount = {};
+  orders.forEach(order => {
+    order.items.forEach(item => {
+      if (item.product && item.product.category) {
+        categoryCount[item.product.category] = (categoryCount[item.product.category] || 0) + 1;
+      }
+    });
+  });
+  
+  const favoriteCategories = Object.entries(categoryCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([category]) => category);
+  
+  // Producteurs favoris
+  const producerCount = {};
+  orders.forEach(order => {
+    if (order.seller) {
+      const producerId = order.seller._id || order.seller;
+      producerCount[producerId] = (producerCount[producerId] || 0) + 1;
+    }
+  });
+  
+  const favoriteProducers = await Promise.all(
+    Object.entries(producerCount)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(async ([producerId, count]) => {
+        const User = require('../models/User');
+        const producer = await User.findById(producerId).select('firstName lastName businessName farmName');
+        return {
+          id: producerId,
+          name: producer?.farmName || producer?.businessName || `${producer?.firstName} ${producer?.lastName}`,
+          orders: count
+        };
+      })
+  );
+  
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle Order requis',
-    data: { analytics: {} },
+    data: {
+      analytics: {
+        totalSpent,
+        averageOrderValue,
+        lastOrderDate,
+        ordersThisMonth,
+        spentThisMonth,
+        favoriteCategories,
+        favoriteProducers
+      }
+    }
   });
 });
 

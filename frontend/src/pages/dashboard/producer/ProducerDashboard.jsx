@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import { producerService } from '../../../services';
 import { useOrderNotifications } from '../../../hooks/useOrderNotifications';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import CloudinaryImage from '../../../components/common/CloudinaryImage';
+import ReviewStats from '../../../components/dashboard/ReviewStats';
 import {
   FiPackage,
   FiShoppingCart,
@@ -31,6 +32,48 @@ const ProducerDashboard = () => {
   const previousOrdersCountRef = useRef(0);
   const isLoadingRef = useRef(false);
 
+  // Fonction pour calculer les revenus du mois en cours
+  const calculateMonthlyRevenue = useCallback((orders) => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    return orders.reduce((total, order) => {
+      const orderDate = new Date(order.createdAt || order.updatedAt);
+      const orderMonth = orderDate.getMonth();
+      const orderYear = orderDate.getFullYear();
+      
+      // Vérifier si la commande est du mois en cours et qu'elle est livrée/terminée
+      if (orderMonth === currentMonth && orderYear === currentYear && 
+          (order.status === 'delivered' || order.status === 'completed')) {
+        return total + (order.total || 0);
+      }
+      return total;
+    }, 0);
+  }, []);
+
+  // Fonction pour calculer les commandes du mois en cours
+  const calculateMonthlyOrders = useCallback((orders) => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    return orders.filter(order => {
+      const orderDate = new Date(order.createdAt || order.updatedAt);
+      const orderMonth = orderDate.getMonth();
+      const orderYear = orderDate.getFullYear();
+      
+      return orderMonth === currentMonth && orderYear === currentYear;
+    }).length;
+  }, []);
+
+  // Mémoriser les calculs pour éviter les recalculs inutiles
+  const monthlyRevenue = useMemo(() => calculateMonthlyRevenue(orders), [orders, calculateMonthlyRevenue]);
+  const monthlyOrders = useMemo(() => calculateMonthlyOrders(orders), [orders, calculateMonthlyOrders]);
+
+  // Mémoriser les produits pour éviter les re-renders
+  const memoizedProducts = useMemo(() => products, [products]);
+
   // Rediriger vers la page de connexion si l'utilisateur n'est pas authentifié
   useEffect(() => {
     if (!isAuthenticated || !user) {
@@ -46,104 +89,93 @@ const ProducerDashboard = () => {
     }
   }, [isAuthenticated, user, navigate]);
 
+  // Fonction pour charger les données du dashboard (sans dépendance sur notifyNewOrder)
+  const loadDashboardData = useCallback(async () => {
+    // Vérifier que l'utilisateur est authentifié et est un producteur
+    if (!isAuthenticated || !user || user.userType !== 'producer') {
+      return;
+    }
+
+    // Éviter les appels multiples simultanés
+    if (isLoadingRef.current) {
+      console.log('Chargement déjà en cours, ignoré');
+      return;
+    }
+
+    try {
+      isLoadingRef.current = true;
+      setLoading(true);
+      console.log('🔄 Chargement des données du dashboard...');
+      
+      // Charger les données en parallèle pour de meilleures performances
+      const [statsResponse, productsResponse, ordersResponse] = await Promise.all([
+        producerService.getStats(),
+        producerService.getProducts({ limit: 5 }),
+        producerService.getOrders({ limit: 5 })
+      ]);
+
+      // Extraire les données correctement selon la structure de l'API
+      setStats(statsResponse.data.data?.stats || statsResponse.data.stats || {});
+      
+      const productsData = productsResponse.data.data?.products || productsResponse.data.products || [];
+      setProducts(Array.isArray(productsData) ? productsData : []);
+      
+      const ordersData = ordersResponse.data.data?.orders || ordersResponse.data.orders || [];
+      const newOrders = Array.isArray(ordersData) ? ordersData : [];
+      
+      setOrders(newOrders);
+
+      // Mettre à jour le compteur
+      previousOrdersCountRef.current = newOrders.length;
+    } catch (error) {
+      console.error('Erreur lors du chargement du dashboard:', error);
+      
+      // Gestion spécifique des erreurs de rate limiting
+      if (error.response?.status === 429) {
+        console.warn('Trop de requêtes - Veuillez patienter quelques secondes');
+        return;
+      }
+      
+      // Gestion des erreurs de connexion réseau
+      if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+        console.warn('Erreur de connexion réseau - Vérifiez que le serveur backend est démarré');
+        return;
+      }
+    } finally {
+      setLoading(false);
+      isLoadingRef.current = false;
+    }
+  }, [isAuthenticated, user]);
+
+  // Fonction séparée pour gérer les notifications de nouvelles commandes
+  const handleNewOrderNotifications = useCallback((newOrders) => {
+    const previousCount = previousOrdersCountRef.current;
+    if (previousCount > 0 && newOrders.length > previousCount) {
+      const newOrdersList = newOrders.slice(0, newOrders.length - previousCount);
+      newOrdersList.forEach(order => {
+        if (order.status === 'pending' || order.status === 'new') {
+          notifyNewOrder(order);
+        }
+      });
+    }
+  }, [notifyNewOrder]);
+
   // Charger les données du dashboard
   useEffect(() => {
-    const loadDashboardData = async () => {
-      // Vérifier que l'utilisateur est authentifié et est un producteur
-      if (!isAuthenticated || !user || user.userType !== 'producer') {
-        return;
-      }
-
-      // Éviter les appels multiples simultanés
-      if (isLoadingRef.current) {
-        console.log('Chargement déjà en cours, ignoré');
-        return;
-      }
-
-      try {
-        isLoadingRef.current = true;
-        setLoading(true);
-        console.log('🔄 Chargement des données du dashboard...');
-        
-        // Charger les données séquentiellement avec des délais pour éviter la surcharge
-        const statsResponse = await producerService.getStats();
-        await new Promise(resolve => setTimeout(resolve, 200)); // Délai de 200ms
-        
-        const productsResponse = await producerService.getProducts({ limit: 5 });
-        await new Promise(resolve => setTimeout(resolve, 200)); // Délai de 200ms
-        
-        const ordersResponse = await producerService.getOrders({ limit: 5 });
-
-          // Debug logs (temporaires)
-          // console.log('📊 Stats Response complète:', statsResponse);
-          // console.log('📊 Stats Data:', statsResponse.data);
-          // console.log('📦 Products Response complète:', productsResponse);
-          // console.log('📦 Products Data:', productsResponse.data);
-          // console.log('🛒 Orders Response complète:', ordersResponse);
-          // console.log('🛒 Orders Data:', ordersResponse.data);
-
-          // Extraire les données correctement selon la structure de l'API
-          setStats(statsResponse.data.data?.stats || statsResponse.data.stats || {});
-          
-          const productsData = productsResponse.data.data?.products || productsResponse.data.products || [];
-          setProducts(Array.isArray(productsData) ? productsData : []);
-          
-          const ordersData = ordersResponse.data.data?.orders || ordersResponse.data.orders || [];
-          const newOrders = Array.isArray(ordersData) ? ordersData : [];
-          
-          // console.log('🛒 Processed Orders:', newOrders);
-          // console.log('🛒 Orders Count:', newOrders.length);
-          
-          // Logs des données finales
-          // console.log('📊 Stats finales:', statsResponse.data.data?.stats || statsResponse.data.stats || {});
-          // console.log('📦 Products finales:', productsData);
-          // console.log('🛒 Orders finales:', newOrders);
-          
-          setOrders(newOrders);
-
-          // Détecter les nouvelles commandes et créer des notifications
-          const previousCount = previousOrdersCountRef.current;
-          if (previousCount > 0 && newOrders.length > previousCount) {
-            const newOrdersList = newOrders.slice(0, newOrders.length - previousCount);
-            newOrdersList.forEach(order => {
-              if (order.status === 'pending' || order.status === 'new') {
-                notifyNewOrder(order);
-              }
-            });
-          }
-          
-          // Mettre à jour le compteur
-          previousOrdersCountRef.current = newOrders.length;
-        } catch (error) {
-          console.error('Erreur lors du chargement du dashboard:', error);
-          
-          // Gestion spécifique des erreurs de rate limiting
-          if (error.response?.status === 429) {
-            console.warn('Trop de requêtes - Veuillez patienter quelques secondes');
-            // Ne pas réessayer automatiquement pour éviter les boucles infinies
-            return;
-          }
-          
-          // Gestion des erreurs de connexion réseau
-          if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
-            console.warn('Erreur de connexion réseau - Vérifiez que le serveur backend est démarré');
-            return;
-          }
-          
-          // Pour les autres erreurs, continuer normalement
-        } finally {
-          setLoading(false);
-          isLoadingRef.current = false;
-        }
-    };
-
     // Délai initial pour éviter les appels immédiats après l'authentification
     const timeoutId = setTimeout(() => {
       loadDashboardData();
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [isAuthenticated, user]); // Supprimer notifyNewOrder des dépendances
+  }, [loadDashboardData]);
+
+  // Gérer les notifications de nouvelles commandes quand les commandes changent
+  useEffect(() => {
+    if (orders.length > 0) {
+      handleNewOrderNotifications(orders);
+    }
+  }, [orders, handleNewOrderNotifications]);
 
   if (loading) {
     return (
@@ -211,7 +243,7 @@ const ProducerDashboard = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Produits actifs</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {products.length}
+                  {memoizedProducts.length}
                 </p>
               </div>
             </div>
@@ -225,7 +257,7 @@ const ProducerDashboard = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Commandes ce mois</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {orders.length}
+                  {monthlyOrders}
                 </p>
               </div>
             </div>
@@ -239,7 +271,7 @@ const ProducerDashboard = () => {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Revenus ce mois</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {orders.reduce((total, order) => total + (order.total || 0), 0).toLocaleString()} FCFA
+                  {monthlyRevenue.toLocaleString()} FCFA
                 </p>
               </div>
             </div>
@@ -276,7 +308,7 @@ const ProducerDashboard = () => {
               </div>
             </div>
             <div className="p-6">
-              {products.length === 0 ? (
+              {memoizedProducts.length === 0 ? (
                 <div className="text-center py-8">
                   <FiPackage className="mx-auto h-12 w-12 text-gray-400" />
                   <h3 className="mt-2 text-sm font-medium text-gray-900">Aucun produit</h3>
@@ -295,7 +327,7 @@ const ProducerDashboard = () => {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {products.map((product) => (
+                  {memoizedProducts.map((product) => (
                     <div key={product._id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                       <div className="flex items-center space-x-4">
                         <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
@@ -403,6 +435,15 @@ const ProducerDashboard = () => {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Review Stats */}
+        <div className="mt-8">
+          <ReviewStats 
+            userId={user?._id} 
+            userType="producer" 
+            showDetailed={true}
+          />
         </div>
 
         {/* Quick Actions */}

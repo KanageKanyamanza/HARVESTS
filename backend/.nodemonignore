@@ -1,0 +1,58 @@
+# Nodemon ignore file
+# Fichiers et dossiers à ignorer lors du watch
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Test files
+*.test.js
+*.spec.js
+__tests__/
+test/
+coverage/
+
+# Build files
+dist/
+build/
+
+# Uploads et fichiers temporaires
+uploads/
+temp/
+tmp/
+public/uploads/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.*
+
+# Documentation
+docs/
+*.md
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# OS
+.DS_Store
+Thumbs.db
+

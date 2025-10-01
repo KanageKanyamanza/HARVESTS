@@ -62,7 +62,7 @@ const deliveryAddressSchema = new mongoose.Schema({
   },
   country: {
     type: String,
-    default: 'Cameroon'
+    default: 'Senegal'
   },
   postalCode: String,
   phone: String,
@@ -356,6 +356,9 @@ orderSchema.index({ 'delivery.transporter': 1 });
 
 // Virtuals
 orderSchema.virtual('totalWeight').get(function() {
+  if (!this.items || !Array.isArray(this.items)) {
+    return 0;
+  }
   return this.items.reduce((total, item) => {
     if (item.weight && item.weight.value) {
       return total + (item.weight.value * item.quantity);
@@ -365,6 +368,9 @@ orderSchema.virtual('totalWeight').get(function() {
 });
 
 orderSchema.virtual('isPaymentPending').get(function() {
+  if (!this.payment || !this.payment.status) {
+    return false;
+  }
   return ['pending', 'processing'].includes(this.payment.status);
 });
 

@@ -62,11 +62,11 @@ export const consumerService = {
   trackOrder: (id) => apiRequest.get(`/consumers/me/orders/${id}/track`),
   
   // Reviews
-  getMyReviews: () => apiRequest.get('/consumers/me/reviews'),
-  createReview: (data) => apiRequest.post('/consumers/me/reviews', data),
-  getMyReview: (id) => apiRequest.get(`/consumers/me/reviews/${id}`),
-  updateMyReview: (id, data) => apiRequest.patch(`/consumers/me/reviews/${id}`, data),
-  deleteMyReview: (id) => apiRequest.delete(`/consumers/me/reviews/${id}`),
+  getMyReviews: () => apiRequest.get('/reviews/my/reviews'),
+  createReview: (data) => apiRequest.post('/reviews', data),
+  getMyReview: (id) => apiRequest.get(`/reviews/${id}`),
+  updateMyReview: (id, data) => apiRequest.patch(`/reviews/my/${id}`, data),
+  deleteMyReview: (id) => apiRequest.delete(`/reviews/my/${id}`),
   
   // Loyalty Program
   getLoyaltyStatus: () => apiRequest.get('/consumers/me/loyalty'),

@@ -14,6 +14,14 @@ router.use(adminAuthController.protect);
 // Statistiques générales du dashboard
 router.get('/dashboard/stats', adminController.getDashboardStats);
 
+// Données détaillées pour le dashboard
+router.get('/dashboard/recent-orders', adminController.getRecentOrders);
+router.get('/dashboard/pending-products', adminController.getPendingProducts);
+router.get('/dashboard/sales-chart', adminController.getSalesChart);
+router.get('/dashboard/user-stats', adminController.getUserStats);
+router.get('/dashboard/top-producers', adminController.getTopProducers);
+router.get('/dashboard/product-stats', adminController.getProductStats);
+
 // ========================================
 // GESTION DES UTILISATEURS
 // ========================================
@@ -79,6 +87,9 @@ router.get('/orders/:id', adminController.getOrderById);
 
 // Mettre à jour le statut d'une commande
 router.patch('/orders/:id/status', adminController.updateOrderStatus);
+
+// Mettre à jour le statut de paiement d'une commande
+router.patch('/orders/:id/payment-status', adminController.updateOrderPaymentStatus);
 
 // Annuler une commande
 router.post('/orders/:id/cancel', adminController.cancelOrder);

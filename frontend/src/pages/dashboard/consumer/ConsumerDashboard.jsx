@@ -27,6 +27,7 @@ const ConsumerDashboard = () => {
     cartItems: 0,
     favoriteProducts: 0
   });
+  const [loyaltyData, setLoyaltyData] = useState(null);
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -50,7 +51,8 @@ const ConsumerDashboard = () => {
           const totalSpent = orders.reduce((sum, order) => sum + (order.total || 0), 0);
 
           // Traiter les données de fidélité
-          const loyaltyData = loyaltyResponse.data.loyaltyStatus || {};
+          const loyaltyInfo = loyaltyResponse.data.data?.loyalty || loyaltyResponse.data.loyaltyStatus || {};
+          setLoyaltyData(loyaltyInfo);
           
           // Traiter le panier
           const cartItems = cartResponse.data.cart?.items?.length || 0;
@@ -62,7 +64,7 @@ const ConsumerDashboard = () => {
             totalOrders: orders.length,
             pendingOrders,
             totalSpent,
-            loyaltyPoints: loyaltyData.points || 0,
+            loyaltyPoints: loyaltyInfo.points || 0,
             cartItems,
             favoriteProducts
           });
@@ -96,6 +98,26 @@ const ConsumerDashboard = () => {
         {config.text}
       </span>
     );
+  };
+
+  const getNextTierInfo = (currentTier) => {
+    const tiers = {
+      bronze: { next: 'Silver', pointsNeeded: 1000, icon: '🥈' },
+      silver: { next: 'Gold', pointsNeeded: 5000, icon: '🥇' },
+      gold: { next: 'Platinum', pointsNeeded: 10000, icon: '💎' },
+      platinum: { next: null, pointsNeeded: null, icon: '👑' }
+    };
+    return tiers[currentTier] || tiers.bronze;
+  };
+
+  const getTierLabel = (tier) => {
+    const labels = {
+      bronze: 'Bronze',
+      silver: 'Silver',
+      gold: 'Gold',
+      platinum: 'Platinum'
+    };
+    return labels[tier] || 'Bronze';
   };
 
   if (loading) {
@@ -187,6 +209,7 @@ const ConsumerDashboard = () => {
             </div>
           </div>
         </div>
+
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Quick Actions */}
@@ -285,26 +308,61 @@ const ConsumerDashboard = () => {
         </div>
 
         {/* Loyalty Program */}
-        <div className="mt-8 ">
-          <div className="bg-gradient-to-r from-harvests-green to-harvests-yellow rounded-lg shadow text-black p-6">
-            <div className="flex items-center">
-              <FiStar className="h-8 w-8" />
-              <div className="ml-4">
-                <h2 className="text-lg font-semibold">Programme de fidélité</h2>
-                <p className="text-sm opacity-90">Vous avez {stats.loyaltyPoints} points</p>
+        <div className="mt-8">
+          <div className="bg-gradient-to-r from-primary-500 to-primary-700 rounded-lg shadow-xl text-white p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <FiStar className="h-8 w-8" />
+                <div className="ml-4">
+                  <h2 className="text-lg font-semibold">Programme de fidélité</h2>
+                  <p className="text-sm text-white/90">
+                    Niveau: {getTierLabel(loyaltyData?.tier || 'bronze')} {getNextTierInfo(loyaltyData?.tier || 'bronze').icon}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-3xl font-bold">{stats.loyaltyPoints}</div>
+                <div className="text-sm text-white/80">Points</div>
               </div>
             </div>
-            <div className="mt-4">
-              <div className="flex justify-between text-sm mb-1">
-                <span>Progression vers la récompense suivante</span>
-                <span>{stats.loyaltyPoints}/2000 points</span>
+            
+            {loyaltyData && getNextTierInfo(loyaltyData.tier).next && (
+              <div className="mt-4">
+                <div className="flex justify-between text-sm mb-2">
+                  <span>Progression vers {getNextTierInfo(loyaltyData.tier).next}</span>
+                  <span>
+                    {stats.loyaltyPoints}/{getNextTierInfo(loyaltyData.tier).pointsNeeded} points
+                  </span>
+                </div>
+                <div className="w-full bg-white/20 rounded-full h-2.5 overflow-hidden">
+                  <div 
+                    className="bg-white h-2.5 rounded-full transition-all duration-500" 
+                    style={{ 
+                      width: `${Math.min((stats.loyaltyPoints / getNextTierInfo(loyaltyData.tier).pointsNeeded) * 100, 100)}%` 
+                    }}
+                  ></div>
+                </div>
+                <p className="text-xs text-white/70 mt-2">
+                  Plus que {Math.max(0, getNextTierInfo(loyaltyData.tier).pointsNeeded - stats.loyaltyPoints)} points pour atteindre {getNextTierInfo(loyaltyData.tier).next}
+                </p>
               </div>
-              <div className="w-full bg-white bg-opacity-20 rounded-full h-2">
-                <div 
-                  className="bg-white h-2 rounded-full" 
-                  style={{ width: `${(stats.loyaltyPoints / 2000) * 100}%` }}
-                ></div>
+            )}
+            
+            {loyaltyData?.tier === 'platinum' && (
+              <div className="mt-4 p-4 bg-white/10 rounded-lg text-center">
+                <p className="font-semibold">🎉 Félicitations !</p>
+                <p className="text-sm text-white/80 mt-1">Vous avez atteint le niveau maximum</p>
               </div>
+            )}
+            
+            <div className="mt-4 pt-4 border-t border-white/20">
+              <Link
+                to="/consumer/loyalty"
+                className="text-sm text-white hover:underline inline-flex items-center"
+              >
+                Voir tous mes avantages
+                <FiStar className="ml-1 h-4 w-4" />
+              </Link>
             </div>
           </div>
         </div>

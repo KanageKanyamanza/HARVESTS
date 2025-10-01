@@ -34,10 +34,8 @@ export const NotificationProvider = ({ children }) => {
     });
     
     // Recalculer le nombre de notifications non lues
-    setUnreadCount(prev => {
-      const currentNotifications = JSON.parse(localStorage.getItem('harvests_notifications') || '[]');
-      return currentNotifications.filter(n => !n.read).length;
-    });
+    const currentNotifications = JSON.parse(localStorage.getItem('harvests_notifications') || '[]');
+    setUnreadCount(currentNotifications.filter(n => !n.read).length);
   };
 
   // Charger les notifications (backend + localStorage pour les non-connectés)
@@ -53,7 +51,10 @@ export const NotificationProvider = ({ children }) => {
           setNotifications(backendNotifications.notifications || []);
           setUnreadCount(backendNotifications.unreadCount || 0);
         } catch (error) {
-          console.error('Erreur lors du chargement des notifications du backend:', error);
+          // Ne pas logger les erreurs 401 (non authentifié) pour éviter le spam
+          if (error.response?.status !== 401) {
+            console.error('Erreur lors du chargement des notifications du backend:', error);
+          }
           // Fallback sur localStorage en cas d'erreur
           loadFromLocalStorage();
         }
@@ -82,6 +83,30 @@ export const NotificationProvider = ({ children }) => {
     if (!isAuthenticated) {
       cleanupOldNotifications();
     }
+
+    // 🔄 Polling automatique toutes les 30 secondes pour actualiser les notifications
+    let pollingInterval;
+    if (isAuthenticated) {
+      pollingInterval = setInterval(async () => {
+        try {
+          const backendNotifications = await notificationService.getNotifications(1, 50);
+          setNotifications(backendNotifications.notifications || []);
+          setUnreadCount(backendNotifications.unreadCount || 0);
+        } catch (error) {
+          // Ne pas logger les erreurs 401 (non authentifié) pour éviter le spam
+          if (error.response?.status !== 401) {
+            console.error('Erreur lors de l\'actualisation automatique:', error);
+          }
+        }
+      }, 30000); // 30 secondes
+    }
+
+    // Nettoyer l'intervalle au démontage
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+    };
   }, [isAuthenticated]); // Recharger quand l'état d'authentification change
 
   // Sauvegarder les notifications dans localStorage (seulement pour les non-connectés)
@@ -163,8 +188,8 @@ export const NotificationProvider = ({ children }) => {
       return prev.filter(n => n.id !== notificationId);
     });
 
-    // Synchroniser avec le backend si l'utilisateur est connecté
-    if (isAuthenticated) {
+    // Synchroniser avec le backend si l'utilisateur est connecté ET que c'est un ID MongoDB valide
+    if (isAuthenticated && notificationId && notificationId.match(/^[0-9a-fA-F]{24}$/)) {
       try {
         await notificationService.deleteNotification(notificationId);
       } catch (error) {
@@ -279,10 +304,12 @@ export const NotificationProvider = ({ children }) => {
   );
 };
 
-export const useNotifications = () => {
+const useNotifications = () => {
   const context = useContext(NotificationContext);
   if (!context) {
     throw new Error('useNotifications doit être utilisé dans un NotificationProvider');
   }
   return context;
 };
+
+export { useNotifications };

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import { useCart } from '../../../contexts/CartContext';
 import { consumerService, authService } from '../../../services';
+import cartService from '../../../services/cartService';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import CloudinaryImage from '../../../components/common/CloudinaryImage';
 import {
@@ -27,7 +28,7 @@ import {
 
 const Checkout = () => {
   const { user } = useAuth();
-  const { items: cartItems } = useCart();
+  const { items: cartItems, clearCart } = useCart();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
 
@@ -155,22 +156,10 @@ const Checkout = () => {
                                  userData.address || {};
             
             // Déboguer les données de pays
-            const userCountry = userData.country || 'CM';
+            const userCountry = userData.country || 'SN';
             const addressCountry = defaultAddress.country;
             // Priorité : userData.country (code) puis defaultAddress.country
             const finalCountry = getCountryName(userCountry || addressCountry);
-            
-            console.log('🌍 Debug pays complet:', {
-              userData: userData,
-              userDataCountry: userData.country,
-              defaultAddress: defaultAddress,
-              defaultAddressCountry: defaultAddress.country,
-              userCountry,
-              addressCountry,
-              finalCountry,
-              getCountryNameTest: getCountryName('SN'),
-              getCountryNameTest2: getCountryName('Sénégal')
-            });
             
             setOrderData(prev => ({
               ...prev,
@@ -377,9 +366,18 @@ const Checkout = () => {
         source: 'web'
       };
 
-      console.log('📦 Création de commande:', orderPayload);
       const response = await consumerService.createOrder(orderPayload);
-      console.log('✅ Commande créée:', response);
+
+      // Vider le panier après la création réussie
+      clearCart();
+      
+      // Vider aussi le panier côté serveur si l'utilisateur est connecté
+      try {
+        await cartService.clearCart();
+      } catch (error) {
+        console.error('Erreur lors du vidage du panier serveur:', error);
+        // Continuer même si ça échoue
+      }
 
       // Rediriger vers la page de confirmation
       const orderId = response.data.data?.order?._id || response.data.order?._id;

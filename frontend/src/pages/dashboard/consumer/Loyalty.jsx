@@ -33,8 +33,8 @@ const Loyalty = () => {
           console.log('📡 Réponse API Loyalty Status:', statusResponse);
           console.log('📡 Réponse API Loyalty History:', historyResponse);
           
-          setLoyaltyStatus(statusResponse.data.loyaltyStatus || {});
-          setLoyaltyHistory(historyResponse.data.history || []);
+          setLoyaltyStatus(statusResponse.data.data?.loyalty || statusResponse.data.loyaltyStatus || {});
+          setLoyaltyHistory(historyResponse.data.data?.history || historyResponse.data.history || []);
         } catch (error) {
           console.error('Erreur lors du chargement des données de fidélité:', error);
           setLoyaltyStatus({});

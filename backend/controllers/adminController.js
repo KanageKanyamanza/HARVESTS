@@ -553,6 +553,254 @@ exports.getDashboardStats = catchAsync(async (req, res, next) => {
   });
 });
 
+// @desc    Obtenir les commandes récentes pour le dashboard
+// @route   GET /api/v1/admin/dashboard/recent-orders
+// @access  Admin
+exports.getRecentOrders = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  const User = require('../models/User');
+  const Product = require('../models/Product');
+  
+  const limit = parseInt(req.query.limit) || 10;
+  
+  const recentOrders = await Order.find()
+    .populate('buyer', 'firstName lastName email userType')
+    .populate('seller', 'firstName lastName email userType')
+    .populate('items.product', 'name price images')
+    .sort('-createdAt')
+    .limit(limit);
+  
+  res.status(200).json({
+    status: 'success',
+    data: {
+      orders: recentOrders
+    }
+  });
+});
+
+// @desc    Obtenir les produits en attente d'approbation
+// @route   GET /api/v1/admin/dashboard/pending-products
+// @access  Admin
+exports.getPendingProducts = catchAsync(async (req, res, next) => {
+  const Product = require('../models/Product');
+  const Producer = require('../models/Producer');
+  
+  const limit = parseInt(req.query.limit) || 10;
+  
+  const pendingProducts = await Product.find({ status: 'pending-review' })
+    .populate('producer', 'firstName lastName farmName email')
+    .sort('-createdAt')
+    .limit(limit);
+  
+  res.status(200).json({
+    status: 'success',
+    data: {
+      products: pendingProducts
+    }
+  });
+});
+
+// @desc    Obtenir les statistiques de vente par mois
+// @route   GET /api/v1/admin/dashboard/sales-chart
+// @access  Admin
+exports.getSalesChart = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  
+  const months = parseInt(req.query.months) || 12;
+  const startDate = new Date();
+  startDate.setMonth(startDate.getMonth() - months);
+  
+  const salesData = await Order.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: startDate },
+        status: { $in: ['completed', 'delivered'] }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          year: { $year: '$createdAt' },
+          month: { $month: '$createdAt' }
+        },
+        totalSales: { $sum: '$totalAmount' },
+        orderCount: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { '_id.year': 1, '_id.month': 1 }
+    }
+  ]);
+  
+  // Formater les données pour le graphique
+  const chartData = salesData.map(item => ({
+    month: `${item._id.year}-${String(item._id.month).padStart(2, '0')}`,
+    sales: item.totalSales,
+    orders: item.orderCount
+  }));
+  
+  res.status(200).json({
+    status: 'success',
+    data: {
+      chartData
+    }
+  });
+});
+
+// @desc    Obtenir les statistiques des utilisateurs par type
+// @route   GET /api/v1/admin/dashboard/user-stats
+// @access  Admin
+exports.getUserStats = catchAsync(async (req, res, next) => {
+  const User = require('../models/User');
+  const Producer = require('../models/Producer');
+  const Consumer = require('../models/Consumer');
+  const Transporter = require('../models/Transporter');
+  
+  const months = parseInt(req.query.months) || 12;
+  const startDate = new Date();
+  startDate.setMonth(startDate.getMonth() - months);
+  
+  // Statistiques des nouveaux utilisateurs par mois
+  const newUsersByMonth = await User.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: startDate }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          year: { $year: '$createdAt' },
+          month: { $month: '$createdAt' },
+          userType: '$userType'
+        },
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { '_id.year': 1, '_id.month': 1 }
+    }
+  ]);
+  
+  // Statistiques par type d'utilisateur
+  const userTypeStats = await Promise.all([
+    Producer.aggregate([
+      { $group: { _id: null, total: { $sum: 1 }, active: { $sum: { $cond: ['$isActive', 1, 0] } } } }
+    ]),
+    Consumer.aggregate([
+      { $group: { _id: null, total: { $sum: 1 }, active: { $sum: { $cond: ['$isActive', 1, 0] } } } }
+    ]),
+    Transporter.aggregate([
+      { $group: { _id: null, total: { $sum: 1 }, active: { $sum: { $cond: ['$isActive', 1, 0] } } } }
+    ])
+  ]);
+  
+  res.status(200).json({
+    status: 'success',
+    data: {
+      newUsersByMonth,
+      userTypeStats: {
+        producers: userTypeStats[0][0] || { total: 0, active: 0 },
+        consumers: userTypeStats[1][0] || { total: 0, active: 0 },
+        transporters: userTypeStats[2][0] || { total: 0, active: 0 }
+      }
+    }
+  });
+});
+
+// @desc    Obtenir les top producteurs
+// @route   GET /api/v1/admin/dashboard/top-producers
+// @access  Admin
+exports.getTopProducers = catchAsync(async (req, res, next) => {
+  const Producer = require('../models/Producer');
+  const Order = require('../models/Order');
+  
+  const limit = parseInt(req.query.limit) || 10;
+  
+  const topProducers = await Order.aggregate([
+    {
+      $match: { status: { $in: ['completed', 'delivered'] } }
+    },
+    {
+      $group: {
+        _id: '$seller',
+        totalSales: { $sum: '$totalAmount' },
+        orderCount: { $sum: 1 }
+      }
+    },
+    {
+      $lookup: {
+        from: 'producers',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'producer'
+      }
+    },
+    {
+      $unwind: '$producer'
+    },
+    {
+      $project: {
+        producerId: '$_id',
+        producerName: { $concat: ['$producer.firstName', ' ', '$producer.lastName'] },
+        farmName: '$producer.farmName',
+        totalSales: 1,
+        orderCount: 1
+      }
+    },
+    {
+      $sort: { totalSales: -1 }
+    },
+    {
+      $limit: limit
+    }
+  ]);
+  
+  res.status(200).json({
+    status: 'success',
+    data: {
+      producers: topProducers
+    }
+  });
+});
+
+// @desc    Obtenir les statistiques des produits
+// @route   GET /api/v1/admin/dashboard/product-stats
+// @access  Admin
+exports.getProductStats = catchAsync(async (req, res, next) => {
+  const Product = require('../models/Product');
+  
+  const productStats = await Product.aggregate([
+    {
+      $group: {
+        _id: '$category',
+        count: { $sum: 1 },
+        averagePrice: { $avg: '$price' }
+      }
+    },
+    {
+      $sort: { count: -1 }
+    }
+  ]);
+  
+  const statusStats = await Product.aggregate([
+    {
+      $group: {
+        _id: '$status',
+        count: { $sum: 1 }
+      }
+    }
+  ]);
+  
+  res.status(200).json({
+    status: 'success',
+    data: {
+      byCategory: productStats,
+      byStatus: statusStats
+    }
+  });
+});
+
 // ========================================
 // GESTION DES UTILISATEURS
 // ========================================
@@ -1140,6 +1388,42 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
     status: 'success',
     message: 'Statut de la commande mis à jour avec succès',
     data: { order: transformedOrder }
+  });
+});
+
+// @desc    Mettre à jour le statut de paiement d'une commande
+// @route   PATCH /api/v1/admin/orders/:id/payment-status
+// @access  Admin
+exports.updateOrderPaymentStatus = catchAsync(async (req, res, next) => {
+  const { paymentStatus, transactionId, paidAt } = req.body;
+  
+  const order = await Order.findById(req.params.id);
+  
+  if (!order) {
+    return next(new AppError('Commande non trouvée', 404));
+  }
+
+  // Mettre à jour le statut de paiement
+  order.payment.status = paymentStatus;
+  if (transactionId) order.payment.transactionId = transactionId;
+  if (paidAt) order.payment.paidAt = new Date(paidAt);
+  else if (paymentStatus === 'completed') order.payment.paidAt = new Date();
+
+  await order.save();
+
+  // Si le paiement est confirmé et la commande est en attente, la confirmer
+  if (paymentStatus === 'completed' && order.status === 'pending') {
+    await order.updateStatus('confirmed', req.admin._id, 'Paiement confirmé');
+  }
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Statut de paiement mis à jour avec succès',
+    data: { 
+      orderId: order._id,
+      paymentStatus: order.payment.status,
+      paidAt: order.payment.paidAt
+    }
   });
 });
 

@@ -1,35 +1,32 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams, useParams } from 'react-router-dom';
 import { productService } from '../services';
-import CloudinaryImage from '../components/common/CloudinaryImage';
+import ProductCard from '../components/products/ProductCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { 
   FiSearch, 
   FiFilter, 
-  FiGrid, 
-  FiList, 
-  FiStar, 
-  FiMapPin,
-  FiPackage,
   FiChevronDown,
-  FiX
+  FiX,
+  FiPackage
 } from 'react-icons/fi';
 
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { category: categoryFromRoute } = useParams();
   
   // États
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('grid');
   const [showFilters, setShowFilters] = useState(false);
   
-  // Filtres et recherche
+  // Filtres et recherche - Prioriser le paramètre de route s'il existe
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
+  const [selectedCategory, setSelectedCategory] = useState(categoryFromRoute || searchParams.get('category') || '');
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'newest');
+  const [isFeatured, setIsFeatured] = useState(searchParams.get('featured') === 'true');
   const [priceRange, setPriceRange] = useState({
     min: searchParams.get('minPrice') || '',
     max: searchParams.get('maxPrice') || ''
@@ -52,11 +49,14 @@ const Products = () => {
         sort: sortBy,
         ...(searchQuery && { q: searchQuery }),
         ...(selectedCategory && { category: selectedCategory }),
+        ...(isFeatured && { featured: true }),
         ...(priceRange.min && { minPrice: priceRange.min }),
         ...(priceRange.max && { maxPrice: priceRange.max })
       };
 
-      const response = await productService.getProducts(params);
+      const response = isFeatured 
+        ? await productService.getFeaturedProducts(params)
+        : await productService.getProducts(params);
       
       if (response.data.status === 'success') {
         setProducts(response.data.data.products || []);
@@ -69,7 +69,14 @@ const Products = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, selectedCategory, sortBy, priceRange, searchQuery, productsPerPage]);
+  }, [currentPage, selectedCategory, sortBy, priceRange, searchQuery, isFeatured, productsPerPage]);
+
+  // Synchroniser la catégorie depuis la route
+  useEffect(() => {
+    if (categoryFromRoute) {
+      setSelectedCategory(categoryFromRoute);
+    }
+  }, [categoryFromRoute]);
 
   // Charger les données
   useEffect(() => {
@@ -118,6 +125,7 @@ const Products = () => {
     setSearchQuery('');
     setSelectedCategory('');
     setSortBy('newest');
+    setIsFeatured(false);
     setPriceRange({ min: '', max: '' });
     setCurrentPage(1);
     setSearchParams({});
@@ -128,19 +136,12 @@ const Products = () => {
     if (searchQuery) params.set('q', searchQuery);
     if (selectedCategory) params.set('category', selectedCategory);
     if (sortBy !== 'newest') params.set('sort', sortBy);
+    if (isFeatured) params.set('featured', 'true');
     if (priceRange.min) params.set('minPrice', priceRange.min);
     if (priceRange.max) params.set('maxPrice', priceRange.max);
     if (currentPage > 1) params.set('page', currentPage);
     
     setSearchParams(params);
-  };
-
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XOF',
-      minimumFractionDigits: 0
-    }).format(price);
   };
 
   const getCategoryLabel = (category) => {
@@ -191,10 +192,15 @@ const Products = () => {
         {/* En-tête */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Nos Produits
+            {selectedCategory ? getCategoryLabel(selectedCategory) : isFeatured ? 'Produits Mis en Avant' : 'Nos Produits'}
           </h1>
           <p className="text-gray-600">
-            Découvrez nos produits frais et de qualité
+            {selectedCategory 
+              ? `Découvrez notre sélection de ${getCategoryLabel(selectedCategory).toLowerCase()}`
+              : isFeatured
+              ? 'Découvrez notre sélection de produits mis en avant'
+              : 'Découvrez nos produits frais et de qualité'
+            }
             {totalProducts > 0 && ` (${totalProducts} produits)`}
           </p>
         </div>
@@ -304,25 +310,10 @@ const Products = () => {
           )}
         </div>
 
-        {/* Contrôles d'affichage */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-md ${viewMode === 'grid' ? 'bg-green-100 text-green-600' : 'text-gray-400 hover:text-gray-600'}`}
-            >
-              <FiGrid className="h-5 w-5" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-2 rounded-md ${viewMode === 'list' ? 'bg-green-100 text-green-600' : 'text-gray-400 hover:text-gray-600'}`}
-            >
-              <FiList className="h-5 w-5" />
-            </button>
-          </div>
-          
+        {/* Informations de pagination */}
+        <div className="flex justify-end items-center mb-6">
           <div className="text-sm text-gray-600">
-            Page {currentPage} sur {totalPages}
+            Affichage de {products.length} produit{products.length > 1 ? 's' : ''} • Page {currentPage} sur {totalPages}
           </div>
         </div>
 
@@ -339,164 +330,10 @@ const Products = () => {
           </div>
         ) : products.length > 0 ? (
           <>
-            <div className={`grid gap-6 ${
-              viewMode === 'grid' 
-                ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
-                : 'grid-cols-1 md:grid-cols-2'
-            }`}>
-              {products.map((product) => {
-                const productName = product.name?.fr || product.name?.en || product.name;
-                const productDescription = product.description?.fr || product.description?.en || product.description;
-                const primaryImage = product.images?.find(img => img.isPrimary) || product.images?.[0];
-                
-                return (
-                  <div
-                    key={product._id}
-                    className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow ${
-                      viewMode === 'list' ? 'flex' : ''
-                    }`}
-                  >
-                    <Link to={`/products/${product._id}`} className="block">
-                      {viewMode === 'grid' ? (
-                        <div className="p-4">
-                          {/* Image */}
-                          <div className="aspect-square mb-4 rounded-lg overflow-hidden bg-gray-100">
-                            {primaryImage ? (
-                              <CloudinaryImage
-                                src={primaryImage.url}
-                                alt={productName}
-                                className="w-full h-full object-cover"
-                                width={300}
-                                height={300}
-                                quality="auto"
-                                crop="fit"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                <FiPackage className="h-12 w-12" />
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Informations */}
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {getCategoryLabel(product.category)}
-                              </span>
-                              <div className="flex items-center text-yellow-500">
-                                <FiStar className="h-4 w-4 fill-current" />
-                                <span className="ml-1 text-sm text-gray-600">
-                                  {product.stats?.averageRating?.toFixed(1) || '0.0'}
-                                </span>
-                              </div>
-                            </div>
-
-                            <h3 className="font-medium text-gray-900 line-clamp-2">
-                              {productName}
-                            </h3>
-
-                            <p className="text-sm text-gray-600 line-clamp-2">
-                              {productDescription}
-                            </p>
-
-                            <div className="flex items-center justify-between">
-                              <span className="text-lg font-bold text-gray-900">
-                                {formatPrice(product.price)}
-                              </span>
-                              <div className="flex items-center text-sm text-gray-500">
-                                <FiPackage className="h-4 w-4 mr-1" />
-                                {product.inventory?.quantity || 0}
-                              </div>
-                            </div>
-
-                            {product.producer && (
-                              <div className="flex items-center text-sm text-gray-500">
-                                <FiMapPin className="h-4 w-4 mr-1" />
-                                <span className="truncate">
-                                  {product.producer.farmName || `${product.producer.firstName} ${product.producer.lastName}`}
-                                </span>
-                                <span className="text-sm text-gray-500">•</span>
-                                <span className="text-sm text-gray-500">
-                                  {product.producer.address?.city}
-                                  </span>
-                                <span className="text-sm text-gray-500">•</span>
-                                <span className="text-sm text-gray-500">
-                                  {product.producer.country}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex p-4 w-full">
-                          <div className="w-32 h-32 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                            {primaryImage ? (
-                              <CloudinaryImage
-                                src={primaryImage.url}
-                                alt={productName}
-                                className="w-full h-full object-cover"
-                                width={128}
-                                height={128}
-                                quality="auto"
-                                crop="fit"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                <FiPackage className="h-8 w-8" />
-                              </div>
-                            )}
-                          </div>
-                          
-                          <div className="ml-4 flex-1 flex flex-col justify-between">
-                            <div>
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                  {getCategoryLabel(product.category)}
-                                </span>
-                                <div className="flex items-center text-yellow-500">
-                                  <FiStar className="h-4 w-4 fill-current" />
-                                  <span className="ml-1 text-sm text-gray-600">
-                                    {product.stats?.averageRating?.toFixed(1) || '0.0'}
-                                  </span>
-                                </div>
-                              </div>
-                              
-                              <h3 className="font-medium text-gray-900 mb-1">
-                                {productName}
-                              </h3>
-                              
-                              <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                                {productDescription}
-                              </p>
-                            </div>
-                            
-                            <div className="flex items-center justify-between">
-                              <span className="text-lg font-bold text-gray-900">
-                                {formatPrice(product.price)}
-                              </span>
-                              <div className="flex items-center space-x-2">
-                                <div className="flex items-center text-sm text-gray-500">
-                                  <FiPackage className="h-4 w-4 mr-1" />
-                                  {product.inventory?.quantity || 0}
-                                </div>
-                                {product.producer && (
-                                  <div className="flex items-center text-sm text-gray-500">
-                                    <FiMapPin className="h-4 w-4 mr-1" />
-                                    <span className="truncate">
-                                      {product.producer.farmName || `${product.producer.firstName} ${product.producer.lastName}`}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </Link>
-                  </div>
-                );
-              })}
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {products.map((product) => (
+                <ProductCard key={product._id} product={product} />
+              ))}
             </div>
 
             {/* Pagination */}
@@ -557,12 +394,12 @@ const Products = () => {
               Aucun produit trouvé
             </h3>
             <p className="text-gray-500 mb-4">
-              {searchQuery || selectedCategory || priceRange.min || priceRange.max
+              {searchQuery || selectedCategory || isFeatured || priceRange.min || priceRange.max
                 ? 'Essayez de modifier vos critères de recherche'
                 : 'Aucun produit disponible pour le moment'
               }
             </p>
-            {(searchQuery || selectedCategory || priceRange.min || priceRange.max) && (
+            {(searchQuery || selectedCategory || isFeatured || priceRange.min || priceRange.max) && (
               <button
                 onClick={clearFilters}
                 className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"

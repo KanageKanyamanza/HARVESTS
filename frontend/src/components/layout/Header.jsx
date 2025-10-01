@@ -5,7 +5,6 @@ import {
   X, 
   Search, 
   ShoppingCart, 
-  Bell, 
   User,
   LogIn,
   LogOut,
@@ -18,14 +17,13 @@ import logo from '../../assets/logo.png';
 
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../contexts/CartContext';
-import { useNotifications } from '../../contexts/NotificationContext';
+import NotificationDropdown from '../notifications/NotificationDropdown';
 
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, user, logout } = useAuth();
   const { totalItems } = useCart();
-  const { unreadCount } = useNotifications();
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -105,7 +103,7 @@ const Header = () => {
       className={`${
         shouldBeTransparent
           ? 'absolute top-0 left-0 right-0 bg-transparent' 
-          : 'bg-white border-b border-gray-200 sticky top-0'
+          : 'bg-white sticky top-0'
       } z-40 transition-all duration-500 ease-in-out`}
     >
       <div className="w-full">
@@ -181,18 +179,7 @@ const Header = () => {
             {isAuthenticated ? (
               <>
                 {/* Notifications */}
-                <button className={`${
-                  shouldBeTransparent 
-                    ? 'text-white hover:text-primary-200' 
-                    : 'text-gray-700 hover:text-primary-600'
-                } transition-colors duration-500 ease-in-out relative`}>
-                  <Bell className="h-6 w-6" />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                      {unreadCount}
-                    </span>
-                  )}
-                </button>
+                <NotificationDropdown />
 
                 {/* Menu profil */}
                 <div className="relative">

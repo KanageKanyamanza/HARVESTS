@@ -6,6 +6,37 @@ export const getDashboardStats = async () => {
   return response.data;
 };
 
+// Service pour les données détaillées du dashboard
+export const getRecentOrders = async (params = {}) => {
+  const response = await api.get('/admin/dashboard/recent-orders', { params });
+  return response.data;
+};
+
+export const getPendingProducts = async (params = {}) => {
+  const response = await api.get('/admin/dashboard/pending-products', { params });
+  return response.data;
+};
+
+export const getSalesChart = async (params = {}) => {
+  const response = await api.get('/admin/dashboard/sales-chart', { params });
+  return response.data;
+};
+
+export const getUserStats = async (params = {}) => {
+  const response = await api.get('/admin/dashboard/user-stats', { params });
+  return response.data;
+};
+
+export const getTopProducers = async (params = {}) => {
+  const response = await api.get('/admin/dashboard/top-producers', { params });
+  return response.data;
+};
+
+export const getProductStats = async (params = {}) => {
+  const response = await api.get('/admin/dashboard/product-stats', { params });
+  return response.data;
+};
+
 // Service pour la gestion des utilisateurs
 export const getUsers = async (params = {}) => {
   const response = await api.get('/admin/users', { params });
@@ -96,6 +127,11 @@ export const getOrderById = async (id) => {
 
 export const updateOrderStatus = async (id, status) => {
   const response = await api.patch(`/admin/orders/${id}/status`, { status });
+  return response.data;
+};
+
+export const updatePaymentStatus = async (id, data) => {
+  const response = await api.patch(`/admin/orders/${id}/payment-status`, data);
   return response.data;
 };
 
@@ -247,6 +283,12 @@ export const updateAdminProfile = async (profileData) => {
 export const adminService = {
   // Dashboard
   getDashboardStats,
+  getRecentOrders,
+  getPendingProducts,
+  getSalesChart,
+  getUserStats,
+  getTopProducers,
+  getProductStats,
   
   // Users
   getUsers,
@@ -271,6 +313,7 @@ export const adminService = {
   getOrders,
   getOrderById,
   updateOrderStatus,
+  updatePaymentStatus,
   cancelOrder,
   
   // Reviews

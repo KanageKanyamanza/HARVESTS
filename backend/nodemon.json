@@ -1,0 +1,36 @@
+{
+  "watch": [
+    "server.js",
+    "app.js",
+    "controllers",
+    "models",
+    "routes",
+    "middleware",
+    "utils",
+    "config",
+    "services"
+  ],
+  "ext": "js,json",
+  "ignore": [
+    "node_modules",
+    "logs",
+    "*.test.js",
+    "*.spec.js",
+    "public",
+    "uploads",
+    "temp",
+    ".git"
+  ],
+  "exec": "node server.js",
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "delay": "1000",
+  "verbose": true,
+  "colours": true,
+  "restartable": "rs",
+  "events": {
+    "restart": "echo '🔄 Redémarrage du serveur...'"
+  }
+}
+

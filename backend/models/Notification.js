@@ -71,10 +71,15 @@ const notificationSchema = new mongoose.Schema({
       // Commandes
       'order_created',
       'order_confirmed',
-      'order_cancelled',
+      'order_preparing',
+      'order_ready_for_pickup',
       'order_shipped',
+      'order_in_transit',
       'order_delivered',
       'order_completed',
+      'order_cancelled',
+      'order_refunded',
+      'order_disputed',
       'order_payment_received',
       'order_payment_failed',
       
@@ -429,7 +434,6 @@ notificationSchema.methods.sendViaEmail = async function() {
     
   } catch (error) {
     this.channels.email.failureReason = error.message;
-    this.status = 'failed';
     await this.save();
     return false;
   }
@@ -456,7 +460,6 @@ notificationSchema.methods.sendViaSMS = async function() {
     
   } catch (error) {
     this.channels.sms.failureReason = error.message;
-    this.status = 'failed';
     await this.save();
     return false;
   }
@@ -483,7 +486,6 @@ notificationSchema.methods.sendViaPush = async function() {
     
   } catch (error) {
     this.channels.push.failureReason = error.message;
-    this.status = 'failed';
     await this.save();
     return false;
   }
@@ -497,22 +499,41 @@ notificationSchema.methods.sendToAllChannels = async function() {
     push: false
   };
   
+  // Envoyer par email si activé (sans bloquer si échec)
   if (this.channels.email.enabled) {
-    results.email = await this.sendViaEmail();
+    try {
+      results.email = await this.sendViaEmail();
+    } catch (error) {
+      console.error('Erreur envoi email:', error.message);
+      this.channels.email.failureReason = error.message;
+    }
   }
   
+  // Envoyer par SMS si activé (sans bloquer si échec)
   if (this.channels.sms.enabled) {
-    results.sms = await this.sendViaSMS();
+    try {
+      results.sms = await this.sendViaSMS();
+    } catch (error) {
+      console.error('Erreur envoi SMS:', error.message);
+      this.channels.sms.failureReason = error.message;
+    }
   }
   
+  // Envoyer par push si activé (sans bloquer si échec)
   if (this.channels.push.enabled) {
-    results.push = await this.sendViaPush();
+    try {
+      results.push = await this.sendViaPush();
+    } catch (error) {
+      console.error('Erreur envoi push:', error.message);
+      this.channels.push.failureReason = error.message;
+    }
   }
   
-  // Marquer comme envoyé in-app
+  // Marquer comme envoyé in-app (toujours disponible)
   this.channels.inApp.sent = true;
   this.channels.inApp.sentAt = new Date();
   
+  // Marquer comme envoyé si au moins inApp fonctionne
   if (this.status === 'pending') {
     this.status = 'sent';
   }
@@ -539,7 +560,7 @@ notificationSchema.statics.getUnreadCount = function(userId) {
   return this.countDocuments({
     recipient: userId,
     readAt: { $exists: false },
-    status: { $in: ['pending', 'sent', 'delivered'] }
+    status: { $in: ['pending', 'sent', 'delivered', 'failed'] } // Inclure 'failed'
   });
 };
 
@@ -592,6 +613,7 @@ notificationSchema.statics.notifyOrderCreated = function(order) {
   return this.createNotification({
     recipient: order.seller,
     type: 'order_created',
+    category: 'order',
     title: 'Nouvelle commande reçue',
     message: `Vous avez reçu une nouvelle commande (${order.orderNumber}) d'un montant de ${order.total} ${order.currency}`,
     data: {
@@ -617,6 +639,7 @@ notificationSchema.statics.notifyProductApproved = function(product, producer) {
   return this.createNotification({
     recipient: producer._id,
     type: 'product_approved',
+    category: 'product',
     title: 'Produit approuvé',
     message: `Votre produit "${product.name}" a été approuvé et est maintenant visible sur la marketplace`,
     data: {

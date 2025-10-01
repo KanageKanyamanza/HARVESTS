@@ -40,7 +40,7 @@ import { FaChartBar } from 'react-icons/fa';
         { name: 'Favoris', href: '/favorites', icon: FiHeart },
         { name: 'Abonnements', href: '/subscriptions', icon: FiRefreshCw },
         { name: 'Mes avis', href: '/reviews', icon: FiStar },
-        { name: 'Fidélité', href: '/loyalty', icon: FiGift },
+        { name: 'Fidélité', href: '/consumer/loyalty', icon: FiGift },
         { name: 'Statistiques', href: '/stats', icon: FiTrendingUp },
         { name: 'Profil', href: '/consumer/profile', icon: FiUser },
         { name: 'Paramètres', href: '/consumer/settings', icon: FiSettings }
@@ -53,6 +53,7 @@ import { FaChartBar } from 'react-icons/fa';
         { name: 'Mes produits', href: '/producer/products', icon: FiPackage },
         { name: 'Ajouter produit', href: '/producer/products/add', icon: FiPlus },
         { name: 'Commandes', href: '/producer/orders', icon: FiShoppingBag },
+        { name: 'Avis reçus', href: '/producer/reviews', icon: FiStar },
         { name: 'Statistiques', href: '/producer/stats', icon: FaChartBar },
         { name: 'Certifications', href: '/producer/certifications', icon: FiAward },
         { name: 'Transporteurs', href: '/producer/transporters', icon: FiTruck },

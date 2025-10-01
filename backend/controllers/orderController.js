@@ -4,6 +4,7 @@ const Payment = require('../models/Payment');
 const Notification = require('../models/Notification');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const notificationController = require('./notificationController');
 
 // ROUTES PUBLIQUES (avec authentification)
 
@@ -88,7 +89,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     const Consumer = require('../models/Consumer');
     const consumer = await Consumer.findById(req.user.id);
     if (consumer && req.body.loyaltyPointsToUse <= consumer.loyaltyProgram.points) {
-      discount = consumer.redeemLoyaltyPoints(req.body.loyaltyPointsToUse);
+      discount = await consumer.redeemLoyaltyPoints(req.body.loyaltyPointsToUse);
       loyaltyPointsUsed = req.body.loyaltyPointsToUse;
       await consumer.save();
     }
@@ -135,7 +136,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     const Consumer = require('../models/Consumer');
     const consumer = await Consumer.findById(req.user.id);
     if (consumer) {
-      const pointsEarned = consumer.addLoyaltyPoints(total);
+      const pointsEarned = await consumer.addLoyaltyPoints(total, order._id);
       order.loyaltyPointsEarned = pointsEarned;
       await consumer.save();
     }
@@ -144,7 +145,26 @@ exports.createOrder = catchAsync(async (req, res, next) => {
   await order.save();
 
   // Envoyer notifications
-  await Notification.notifyOrderCreated(order);
+  try {
+    await Notification.notifyOrderCreated(order);
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi de la notification:', error);
+  }
+
+  // Notifier les admins pour les commandes de forte valeur (> 100,000 FCFA)
+  if (total >= 100000) {
+    try {
+      const customerName = `${req.user.firstName} ${req.user.lastName}`;
+      await notificationController.notifyHighValueOrder(
+        order._id,
+        total,
+        customerName
+      );
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi de notification admin:', error);
+      // Ne pas faire échouer la création de commande si la notification échoue
+    }
+  }
 
   res.status(201).json({
     status: 'success',
@@ -601,32 +621,65 @@ async function sendStatusNotifications(order, newStatus) {
     confirmed: {
       recipient: order.buyer,
       type: 'order_confirmed',
+      category: 'order',
       title: 'Commande confirmée',
       message: `Votre commande ${order.orderNumber} a été confirmée par le vendeur`
     },
     preparing: {
       recipient: order.buyer,
       type: 'order_preparing',
+      category: 'order',
       title: 'Commande en préparation',
       message: `Votre commande ${order.orderNumber} est en cours de préparation`
     },
+    'ready-for-pickup': {
+      recipient: order.buyer,
+      type: 'order_ready_for_pickup',
+      category: 'order',
+      title: 'Commande prête',
+      message: `Votre commande ${order.orderNumber} est prête pour la collecte`
+    },
     'in-transit': {
       recipient: order.buyer,
-      type: 'order_shipped',
-      title: 'Commande expédiée',
+      type: 'order_in_transit',
+      category: 'order',
+      title: 'Commande en transit',
       message: `Votre commande ${order.orderNumber} est en route`
     },
     delivered: {
       recipient: order.buyer,
       type: 'order_delivered',
+      category: 'order',
       title: 'Commande livrée',
       message: `Votre commande ${order.orderNumber} a été livrée`
+    },
+    completed: {
+      recipient: order.buyer,
+      type: 'order_completed',
+      category: 'order',
+      title: 'Commande terminée',
+      message: `Votre commande ${order.orderNumber} est terminée. Merci pour votre achat !`
     },
     cancelled: {
       recipient: order.buyer,
       type: 'order_cancelled',
+      category: 'order',
       title: 'Commande annulée',
       message: `Votre commande ${order.orderNumber} a été annulée`
+    },
+    refunded: {
+      recipient: order.buyer,
+      type: 'order_refunded',
+      category: 'order',
+      title: 'Commande remboursée',
+      message: `Votre commande ${order.orderNumber} a été remboursée`
+    },
+    disputed: {
+      recipient: order.buyer,
+      type: 'order_disputed',
+      category: 'order',
+      title: 'Commande en litige',
+      message: `Un litige a été ouvert pour votre commande ${order.orderNumber}`
     }
   };
 
