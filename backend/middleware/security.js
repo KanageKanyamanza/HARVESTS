@@ -13,9 +13,7 @@ const corsOptions = {
     const allowedOrigins = [
       'http://localhost:3000', // React dev
       'http://localhost:5173', // Vite dev
-      'https://harvests.cm',
-      'https://www.harvests.cm',
-      'https://app.harvests.cm'
+      'https://harvests-khaki.vercel.app' // Frontend Vercel
     ];
 
     // Permettre les requêtes sans origin (mobile apps, Postman, etc.)
