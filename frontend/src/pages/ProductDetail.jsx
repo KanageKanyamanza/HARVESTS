@@ -3,8 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useCart } from '../contexts/CartContext';
 import { useNotifications } from '../contexts/NotificationContext';
-import { productService, producerService } from '../services';
+import { productService, producerService, reviewService } from '../services';
 import CloudinaryImage from '../components/common/CloudinaryImage';
+import ReviewList from '../components/reviews/ReviewList';
+import SimpleReviewForm from '../components/reviews/SimpleReviewForm';
+import StarRating from '../components/reviews/StarRating';
 import { 
   FiArrowLeft, 
   FiStar, 
@@ -25,7 +28,8 @@ import {
   FiPlus,
   FiMinus,
   FiInfo,
-  FiEye
+  FiEye,
+  FiX
 } from 'react-icons/fi';
 
 // Fonction utilitaire pour convertir le code pays en nom complet
@@ -45,18 +49,41 @@ const ProductDetail = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const { addToCart } = useCart();
-  const { showSuccess } = useNotifications();
+  const { showSuccess, showError } = useNotifications();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [producer, setProducer] = useState(null);
   const [reviews, setReviews] = useState([]);
+  const [reviewStats, setReviewStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [activeTab, setActiveTab] = useState('description');
   const [showAddedToCart, setShowAddedToCart] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+
+  // Fonction pour charger les avis
+  const loadReviews = async () => {
+    if (!product?._id) return;
+    
+    try {
+      setReviewsLoading(true);
+      const [reviewsResponse, statsResponse] = await Promise.all([
+        reviewService.getProductReviews(product._id),
+        reviewService.getProductRatingStats(product._id)
+      ]);
+      
+      setReviews(reviewsResponse.data.reviews || []);
+      setReviewStats(statsResponse.data || null);
+    } catch (error) {
+      console.error('Erreur lors du chargement des avis:', error);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const loadProductData = async () => {
@@ -115,12 +142,100 @@ const ProductDetail = () => {
     }
   }, [id, user]);
 
+  // Charger les avis quand le produit est chargé
+  useEffect(() => {
+    if (product?._id) {
+      loadReviews();
+    }
+  }, [product?._id]);
+
   const formatPrice = (price) => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
       currency: 'XOF',
       minimumFractionDigits: 0
     }).format(price);
+  };
+
+  // Fonctions pour gérer les votes sur les avis
+  const handleVoteHelpful = async (reviewId) => {
+    try {
+      await reviewService.voteHelpful(reviewId);
+      // Recharger les avis pour mettre à jour les votes
+      loadReviews();
+    } catch (error) {
+      console.error('Erreur lors du vote utile:', error);
+    }
+  };
+
+  const handleVoteUnhelpful = async (reviewId) => {
+    try {
+      await reviewService.voteUnhelpful(reviewId);
+      // Recharger les avis pour mettre à jour les votes
+      loadReviews();
+    } catch (error) {
+      console.error('Erreur lors du vote inutile:', error);
+    }
+  };
+
+  // Vérifier si l'utilisateur peut laisser un avis
+  const canLeaveReview = () => {
+    if (!user || user.userType !== 'consumer') return false;
+    // Ici, vous pourriez vérifier si l'utilisateur a acheté ce produit
+    // Pour l'instant, on permet à tous les consommateurs connectés de laisser un avis
+    return true;
+  };
+
+  // Gérer la soumission d'un avis
+  const handleSubmitReview = async (reviewData) => {
+    try {
+      console.log('📝 Données de l\'avis à envoyer:', {
+        ...reviewData,
+        productId: product._id,
+        producer: producer._id
+      });
+      
+      const response = await reviewService.createReview({
+        ...reviewData,
+        productId: product._id,
+        producer: producer._id
+      });
+      
+      console.log('✅ Avis créé avec succès:', response);
+      showSuccess('Votre avis a été publié avec succès !');
+      setShowReviewForm(false);
+      loadReviews(); // Recharger les avis
+    } catch (error) {
+      console.error('❌ Erreur lors de la création de l\'avis:', error);
+      console.error('📋 Détails de l\'erreur:', error.response?.data);
+      
+      // Afficher un message d'erreur plus spécifique
+      let errorMessage = 'Erreur lors de la publication de l\'avis';
+      
+      console.log('🔍 Structure de l\'erreur:', {
+        response: error.response,
+        data: error.response?.data,
+        message: error.response?.data?.message,
+        errorMessage: error.message
+      });
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      // Messages d'erreur plus clairs
+      if (errorMessage.includes('Vous devez avoir acheté ce produit')) {
+        errorMessage = 'Vous devez avoir acheté ce produit pour laisser un avis';
+      } else if (errorMessage.includes('pas encore complétée')) {
+        errorMessage = 'Votre commande n\'est pas encore complétée. Vous pourrez laisser un avis une fois la commande livrée.';
+      } else if (errorMessage.includes('déjà laissé un avis')) {
+        errorMessage = 'Vous avez déjà laissé un avis pour cette commande';
+      }
+      
+      showError(errorMessage);
+    }
   };
 
   const getCategoryLabel = (category) => {
@@ -379,9 +494,17 @@ const ProductDetail = () => {
                 </div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">{productName}</h1>
                 <div className="flex items-center space-x-4">
-                  <div className="flex items-center">
-                    <FiStar className="h-5 w-5 text-yellow-400 fill-current" />
-                    <span className="ml-1 text-sm text-gray-600">Note</span>
+                  <div className="flex items-center space-x-2">
+                    <StarRating 
+                      rating={reviewStats?.averageRating || 0} 
+                      size="md" 
+                      showText={true}
+                    />
+                    {reviewStats?.totalReviews > 0 && (
+                      <span className="text-sm text-gray-600">
+                        ({reviewStats.totalReviews} avis)
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
                     <FiPackage className="h-4 w-4 mr-1" />
@@ -1173,46 +1296,62 @@ const ProductDetail = () => {
 
               {activeTab === 'reviews' && (
                 <div className="space-y-6">
-                  {reviews.length > 0 ? (
-                    <div className="space-y-4">
-                      {reviews.map((review, index) => (
-                        <div key={index} className="bg-white rounded-lg p-4 shadow-sm border">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                              <FiUser className="h-4 w-4 text-gray-600" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-900">
-                                {review.user?.firstName} {review.user?.lastName}
-                              </p>
-                              <div className="flex items-center">
-                                {[...Array(5)].map((_, i) => (
-                                  <FiStar
-                                    key={i}
-                                    className={`h-4 w-4 ${
-                                      i < review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                          <p className="text-gray-600">{review.comment}</p>
-                          <p className="text-sm text-gray-500 mt-2">
-                            {new Date(review.createdAt).toLocaleDateString('fr-FR')}
+                  {/* Bouton pour laisser un avis */}
+                  {canLeaveReview() && !showReviewForm && (
+                    <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-lg font-medium text-primary-500">
+                            Avez-vous acheté ce produit ?
+                          </h3>
+                          <p className="text-primary-700 text-sm mt-1">
+                            Partagez votre expérience avec la communauté
                           </p>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <FiStar className="mx-auto h-12 w-12 text-gray-400" />
-                      <h3 className="mt-2 text-sm font-medium text-gray-900">Aucun avis</h3>
-                      <p className="mt-1 text-sm text-gray-500">
-                        Soyez le premier à laisser un avis
-                      </p>
+                        <button
+                          onClick={() => setShowReviewForm(true)}
+                          className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
+                        >
+                          <FiStar className="h-4 w-4 mr-2" />
+                          Laisser un avis
+                        </button>
+                      </div>
                     </div>
                   )}
+
+                  {/* Formulaire d'avis */}
+                  {showReviewForm && (
+                    <div className="bg-white border border-gray-200 rounded-lg p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-medium text-gray-900">
+                          Laisser un avis
+                        </h3>
+                        <button
+                          onClick={() => setShowReviewForm(false)}
+                          className="text-gray-400 hover:text-gray-600"
+                        >
+                          <FiX className="h-5 w-5" />
+                        </button>
+                      </div>
+                      <SimpleReviewForm
+                        product={product}
+                        producer={producer}
+                        onSubmit={handleSubmitReview}
+                        onCancel={() => setShowReviewForm(false)}
+                      />
+                    </div>
+                  )}
+
+                  {/* Liste des avis */}
+                  <ReviewList
+                    reviews={reviews}
+                    stats={reviewStats}
+                    loading={reviewsLoading}
+                    onVoteHelpful={handleVoteHelpful}
+                    onVoteUnhelpful={handleVoteUnhelpful}
+                    currentUserId={user?._id}
+                    showProductInfo={false}
+                  />
                 </div>
               )}
             </div>

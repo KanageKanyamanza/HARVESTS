@@ -112,7 +112,7 @@ const baseUserSchema = new mongoose.Schema({
   country: {
     type: String,
     enum: ['CM', 'SN', 'CI', 'GH', 'NG', 'KE'],
-    default: 'CM'
+    default: 'SN'
   },
   
   // Localisation (optionnelle lors de l'inscription)
@@ -120,7 +120,6 @@ const baseUserSchema = new mongoose.Schema({
     street: { type: String, required: false, default: 'À compléter' },
     city: { type: String, required: false, default: 'À compléter' },
     region: { type: String, required: false, default: 'À compléter' },
-    country: { type: String, required: true, default: 'Cameroon' },
     postalCode: { type: String },
     coordinates: {
       latitude: { type: Number },
@@ -199,7 +198,7 @@ const baseUserSchema = new mongoose.Schema({
 // Index pour performance
 baseUserSchema.index({ email: 1 });
 baseUserSchema.index({ userType: 1 });
-baseUserSchema.index({ 'address.country': 1, 'address.region': 1 });
+baseUserSchema.index({ country: 1, 'address.region': 1 });
 baseUserSchema.index({ isActive: 1, isApproved: 1 });
 
 // Middleware pre-save pour hasher le mot de passe

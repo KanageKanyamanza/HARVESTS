@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
 import { producerService } from '../../../services';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
-import { FiTrendingUp, FiDollarSign, FiPackage, FiShoppingBag, FiUsers, FiBarChart } from 'react-icons/fi';
+import { FiTrendingUp, FiDollarSign, FiPackage, FiShoppingBag, FiUsers, FiBarChart, FiCheckCircle, FiClock } from 'react-icons/fi';
 
 const Stats = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [salesAnalytics, setSalesAnalytics] = useState(null);
   const [revenueAnalytics, setRevenueAnalytics] = useState(null);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,17 +17,28 @@ const Stats = () => {
       if (user?.userType === 'producer') {
         try {
           setLoading(true);
-          const [statsResponse, salesResponse, revenueResponse] = await Promise.all([
+          const [statsResponse, salesResponse, revenueResponse, ordersResponse] = await Promise.all([
             producerService.getStats(),
             producerService.getSalesAnalytics(),
-            producerService.getRevenueAnalytics()
+            producerService.getRevenueAnalytics(),
+            producerService.getOrders()
           ]);
 
-          setStats(statsResponse.data.stats || statsResponse.data);
-          setSalesAnalytics(salesResponse.data.analytics || salesResponse.data);
-          setRevenueAnalytics(revenueResponse.data.analytics || revenueResponse.data);
+          console.log('📡 Producer Stats:', statsResponse);
+          console.log('📡 Sales Analytics:', salesResponse);
+          console.log('📡 Revenue Analytics:', revenueResponse);
+          console.log('📡 Orders:', ordersResponse);
+
+          setStats(statsResponse.data.data?.stats || statsResponse.data.stats || statsResponse.data);
+          setSalesAnalytics(salesResponse.data.data?.analytics || salesResponse.data.analytics || salesResponse.data);
+          setRevenueAnalytics(revenueResponse.data.data?.analytics || revenueResponse.data.analytics || revenueResponse.data);
+          setOrders(ordersResponse.data.data?.orders || ordersResponse.data.orders || []);
         } catch (error) {
           console.error('Erreur lors du chargement des statistiques:', error);
+          setStats(null);
+          setSalesAnalytics(null);
+          setRevenueAnalytics(null);
+          setOrders([]);
         } finally {
           setLoading(false);
         }
@@ -57,12 +69,18 @@ const Stats = () => {
     );
   }
 
+  // Calculer les statuts des commandes
+  const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'processing').length;
+  const completedOrders = orders.filter(o => o.status === 'completed' || o.status === 'delivered').length;
+  const cancelledOrders = orders.filter(o => o.status === 'cancelled').length;
+  const inTransitOrders = orders.filter(o => o.status === 'in-transit' || o.status === 'shipped').length;
+
   return (
     <ModularDashboardLayout>
       <div className="p-6 max-w-7xl mx-auto pb-20">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Statistiques</h1>
-          <p className="text-gray-600 mt-1">Analysez les performances de votre activité</p>
+          <h1 className="text-2xl font-bold text-gray-900">Statistiques de Vente</h1>
+          <p className="text-gray-600 mt-1">Analysez les performances de votre activité de production</p>
         </div>
 
         {/* Métriques principales */}
@@ -96,7 +114,10 @@ const Stats = () => {
                     Commandes totales
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {stats?.totalOrders || 0}
+                    {orders.length || stats?.totalOrders || 0}
+                  </dd>
+                  <dd className="text-xs text-gray-500 mt-1">
+                    {completedOrders} complétées
                   </dd>
                 </dl>
               </div>
@@ -140,24 +161,33 @@ const Stats = () => {
           </div>
         </div>
 
-        {/* Graphiques */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        {/* Ventes mensuelles */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Ventes par mois */}
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-              <FiBarChart className="h-5 w-5 mr-2" />
+              <FiBarChart className="h-5 w-5 mr-2 text-blue-500" />
               Ventes par mois
             </h3>
-            <div className="h-64 flex items-center justify-center text-gray-500">
-              {salesAnalytics?.monthlySales ? (
-                <div className="text-center">
-                  <p className="text-sm">Graphique des ventes mensuelles</p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {salesAnalytics.monthlySales.length} mois de données
-                  </p>
-                </div>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {salesAnalytics?.monthlySales && salesAnalytics.monthlySales.length > 0 ? (
+                salesAnalytics.monthlySales.slice(0, 6).map((sale, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900">{sale.month}</p>
+                      <p className="text-xs text-gray-500">{sale.orders} commande{sale.orders > 1 ? 's' : ''}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-gray-900">{sale.products} produits</p>
+                      <p className="text-xs text-green-600 font-medium">{(sale.revenue || 0).toLocaleString()} FCFA</p>
+                    </div>
+                  </div>
+                ))
               ) : (
-                <p className="text-sm">Aucune donnée de vente disponible</p>
+                <div className="text-center py-8 text-gray-500">
+                  <FiBarChart className="mx-auto h-12 w-12 text-gray-400" />
+                  <p className="mt-2 text-sm">Aucune donnée de vente disponible</p>
+                </div>
               )}
             </div>
           </div>
@@ -165,82 +195,180 @@ const Stats = () => {
           {/* Revenus par mois */}
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-              <FiTrendingUp className="h-5 w-5 mr-2" />
+              <FiDollarSign className="h-5 w-5 mr-2 text-green-500" />
               Revenus par mois
             </h3>
-            <div className="h-64 flex items-center justify-center text-gray-500">
-              {revenueAnalytics?.monthlyRevenue ? (
-                <div className="text-center">
-                  <p className="text-sm">Graphique des revenus mensuels</p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {revenueAnalytics.monthlyRevenue.length} mois de données
-                  </p>
-                </div>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {revenueAnalytics?.monthlyRevenue && revenueAnalytics.monthlyRevenue.length > 0 ? (
+                revenueAnalytics.monthlyRevenue.slice(0, 6).map((rev, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                    <p className="text-sm font-medium text-gray-900">{rev.month}</p>
+                    <p className="text-base font-bold text-green-600">{(rev.revenue || 0).toLocaleString()} FCFA</p>
+                  </div>
+                ))
               ) : (
-                <p className="text-sm">Aucune donnée de revenus disponible</p>
+                <div className="text-center py-8 text-gray-500">
+                  <FiDollarSign className="mx-auto h-12 w-12 text-gray-400" />
+                  <p className="mt-2 text-sm">Aucune donnée de revenus disponible</p>
+                </div>
               )}
             </div>
-          </div>
-        </div>
-
-        {/* Produits les plus vendus */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            Produits les plus vendus
-          </h3>
-          <div className="overflow-hidden">
-            {stats?.topProducts && stats.topProducts.length > 0 ? (
-              <div className="space-y-4">
-                {stats.topProducts.map((product, index) => (
-                  <div key={product.id || index} className="flex items-center justify-between py-2 border-b border-gray-200 last:border-b-0">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-sm font-medium text-gray-600">
-                        {index + 1}
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-900">{product.name}</p>
-                        <p className="text-sm text-gray-500">{product.category}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">{product.quantitySold} vendus</p>
-                      <p className="text-sm text-gray-500">{(product.revenue || 0).toLocaleString()} FCFA</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <FiPackage className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="mt-2 text-sm">Aucun produit vendu pour le moment</p>
+            
+            {revenueAnalytics?.currentMonthRevenue !== undefined && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Mois en cours</span>
+                  <span className="text-lg font-bold text-primary-600">
+                    {revenueAnalytics.currentMonthRevenue.toLocaleString()} FCFA
+                  </span>
+                </div>
               </div>
             )}
           </div>
         </div>
 
-        {/* Résumé des performances */}
-        <div className="mt-8 bg-gray-50 rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            Résumé des performances
+        {/* Détails des produits */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Produits les plus vendus */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+              <FiTrendingUp className="h-5 w-5 mr-2 text-green-500" />
+              Produits les plus vendus
+            </h3>
+            <div className="overflow-hidden">
+              {stats?.topProducts && stats.topProducts.length > 0 ? (
+                <div className="space-y-3">
+                  {stats.topProducts.map((product, index) => (
+                    <div key={product.id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center flex-1">
+                        <div className="flex-shrink-0 w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                          {index + 1}
+                        </div>
+                        <div className="ml-3 flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
+                          <p className="text-xs text-gray-500">{product.category}</p>
+                        </div>
+                      </div>
+                      <div className="text-right ml-4">
+                        <p className="text-sm font-bold text-gray-900">{product.quantitySold} vendus</p>
+                        <p className="text-xs text-green-600 font-medium">{(product.revenue || 0).toLocaleString()} FCFA</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <FiPackage className="mx-auto h-12 w-12 text-gray-400" />
+                  <p className="mt-2 text-sm">Aucun produit vendu pour le moment</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Statut des produits */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+              <FiPackage className="h-5 w-5 mr-2 text-purple-500" />
+              Statut des produits
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <div className="flex items-center">
+                  <FiCheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                  <span className="text-sm font-medium text-gray-700">Produits actifs</span>
+                </div>
+                <span className="text-xl font-bold text-green-600">{stats?.activeProducts || 0}</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center">
+                  <FiPackage className="h-5 w-5 text-gray-500 mr-2" />
+                  <span className="text-sm font-medium text-gray-700">Total produits</span>
+                </div>
+                <span className="text-xl font-bold text-gray-600">{stats?.totalProducts || 0}</span>
+              </div>
+              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                <div className="flex items-center">
+                  <FiShoppingBag className="h-5 w-5 text-blue-500 mr-2" />
+                  <span className="text-sm font-medium text-gray-700">Unités vendues</span>
+                </div>
+                <span className="text-xl font-bold text-blue-600">{stats?.totalProductsSold || 0}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Statuts des commandes */}
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+            <FiShoppingBag className="h-5 w-5 mr-2 text-blue-500" />
+            Statuts des commandes
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600">En attente</span>
+                <FiClock className="h-5 w-5 text-yellow-500" />
+              </div>
+              <div className="text-2xl font-bold text-yellow-600">{pendingOrders}</div>
+              <p className="text-xs text-gray-600 mt-1">À traiter</p>
+            </div>
+            
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600">En transit</span>
+                <FiShoppingBag className="h-5 w-5 text-blue-500" />
+              </div>
+              <div className="text-2xl font-bold text-blue-600">{inTransitOrders}</div>
+              <p className="text-xs text-gray-600 mt-1">En livraison</p>
+            </div>
+            
+            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600">Complétées</span>
+                <FiCheckCircle className="h-5 w-5 text-green-500" />
+              </div>
+              <div className="text-2xl font-bold text-green-600">{completedOrders}</div>
+              <p className="text-xs text-gray-600 mt-1">Livrées avec succès</p>
+            </div>
+            
+            <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600">Annulées</span>
+                <FiPackage className="h-5 w-5 text-red-500" />
+              </div>
+              <div className="text-2xl font-bold text-red-600">{cancelledOrders}</div>
+              <p className="text-xs text-gray-600 mt-1">Non abouties</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Résumé des performances */}
+        <div className="bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg shadow-xl text-white p-8 mb-8">
+          <h3 className="text-2xl font-bold mb-6">Résumé des Performances</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900">
-                {stats?.averageOrderValue ? `${stats.averageOrderValue.toLocaleString()} FCFA` : '0 FCFA'}
+              <p className="text-3xl font-bold mb-1">
+                {stats?.averageOrderValue ? `${Math.round(stats.averageOrderValue).toLocaleString()}` : '0'}
               </p>
-              <p className="text-sm text-gray-500">Valeur moyenne des commandes</p>
+              <p className="text-sm text-white/80">Valeur moyenne commande (FCFA)</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900">
-                {stats?.conversionRate ? `${stats.conversionRate}%` : '0%'}
+              <p className="text-3xl font-bold mb-1">
+                {stats?.conversionRate || 0}%
               </p>
-              <p className="text-sm text-gray-500">Taux de conversion</p>
+              <p className="text-sm text-white/80">Taux de conversion</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900">
-                {stats?.customerRetentionRate ? `${stats.customerRetentionRate}%` : '0%'}
+              <p className="text-3xl font-bold mb-1">
+                {stats?.customerRetentionRate || 0}%
               </p>
-              <p className="text-sm text-gray-500">Taux de fidélisation</p>
+              <p className="text-sm text-white/80">Taux de fidélisation</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-bold mb-1">
+                {stats?.uniqueCustomers || 0}
+              </p>
+              <p className="text-sm text-white/80">Clients uniques</p>
             </div>
           </div>
         </div>

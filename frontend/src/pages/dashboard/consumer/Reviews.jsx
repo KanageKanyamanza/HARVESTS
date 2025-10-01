@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import { useAuth } from '../../../hooks/useAuth';
 import { consumerService } from '../../../services';
+import { parseProductName } from '../../../utils/productUtils';
+import CloudinaryImage from '../../../components/common/CloudinaryImage';
 import { 
   FiStar, 
   FiEdit3, 
@@ -11,7 +14,9 @@ import {
   FiPackage,
   FiUser,
   FiThumbsUp,
-  FiThumbsDown
+  FiThumbsDown,
+  FiPlus,
+  FiShoppingBag
 } from 'react-icons/fi';
 
 const Reviews = () => {
@@ -28,7 +33,21 @@ const Reviews = () => {
           setLoading(true);
           const response = await consumerService.getMyReviews();
           console.log('📡 Réponse API Reviews:', response);
-          setReviews(response.data.reviews || []);
+          
+          // Gérer différentes structures de réponse
+          let reviewsData = [];
+          if (response && response.data) {
+            if (response.data.data && response.data.data.reviews && Array.isArray(response.data.data.reviews)) {
+              reviewsData = response.data.data.reviews;
+            } else if (Array.isArray(response.data)) {
+              reviewsData = response.data;
+            } else if (response.data.reviews && Array.isArray(response.data.reviews)) {
+              reviewsData = response.data.reviews;
+            }
+          }
+          
+          console.log('📝 Avis extraits:', reviewsData);
+          setReviews(reviewsData);
         } catch (error) {
           console.error('Erreur lors du chargement des avis:', error);
           setReviews([]);
@@ -76,7 +95,12 @@ const Reviews = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
+    if (!dateString) return 'Date non disponible';
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Date invalide';
+    
+    return date.toLocaleDateString('fr-FR', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -117,13 +141,26 @@ const Reviews = () => {
       <div className="p-6 max-w-7xl mx-auto pb-20">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-            <FiStar className="h-8 w-8 mr-3 text-yellow-500" />
-            Mes avis et évaluations
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Gérez vos avis sur les produits et producteurs
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+                <FiStar className="h-8 w-8 mr-3 text-yellow-500" />
+                Mes avis et évaluations
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Gérez vos avis sur les produits et producteurs
+              </p>
+            </div>
+            <div className="flex space-x-3">
+              <Link
+                to="/products"
+                className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              >
+                <FiShoppingBag className="h-4 w-4 mr-2" />
+                Voir les produits
+              </Link>
+            </div>
+          </div>
         </div>
 
         {/* Filtres */}
@@ -197,16 +234,31 @@ const Reviews = () => {
                         </span>
                       </div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                        {review.product?.name || 'Produit'}
+                        {parseProductName(review.product?.name) || 'Produit'}
                       </h3>
                       <p className="text-gray-600 text-sm">
-                        Producteur: {review.producer?.name || 'N/A'}
+                        Producteur: {review.producer?.farmName || `${review.producer?.firstName || ''} ${review.producer?.lastName || ''}`.trim() || 'N/A'}
                       </p>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-500">
-                        {formatDate(review.createdAt)}
-                      </span>
+                    <div className="flex items-center space-x-4">
+                      {/* Image du produit */}
+                      {review.product?.images?.[0]?.url && (
+                        <CloudinaryImage
+                          src={review.product.images[0].url}
+                          alt={parseProductName(review.product?.name)}
+                          className="h-16 w-16 object-cover rounded-lg"
+                        />
+                      )}
+                      <div className="text-right">
+                        <span className="text-sm text-gray-500 block">
+                          {formatDate(review.createdAt)}
+                        </span>
+                        {review.order && (
+                          <span className="text-xs text-gray-400 block">
+                            Commande #{review.order.orderNumber || review.order._id?.slice(-8) || 'N/A'}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -219,16 +271,20 @@ const Reviews = () => {
                   )}
 
                   {/* Détails du produit */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center text-sm text-gray-600">
-                      <FiPackage className="h-4 w-4 mr-2 text-harvests-green" />
-                      <span>Commande #{review.orderId}</span>
+                  {review.order && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center text-sm text-gray-600">
+                        <FiPackage className="h-4 w-4 mr-2 text-harvests-green" />
+                        <span>Commande #{review.order.orderNumber || review.order._id?.slice(-8)}</span>
+                      </div>
+                      {review.order.delivery?.deliveredAt && (
+                        <div className="flex items-center text-sm text-gray-600">
+                          <FiCalendar className="h-4 w-4 mr-2 text-harvests-green" />
+                          <span>Livré le {formatDate(review.order.delivery.deliveredAt)}</span>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <FiCalendar className="h-4 w-4 mr-2 text-harvests-green" />
-                      <span>Livré le {formatDate(review.deliveryDate)}</span>
-                    </div>
-                  </div>
+                  )}
 
                   {/* Actions */}
                   <div className="flex justify-end space-x-2">

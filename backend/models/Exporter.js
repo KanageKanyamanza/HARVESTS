@@ -310,7 +310,7 @@ exporterSchema.index({ 'targetMarkets.country': 1 });
 exporterSchema.index({ 'exportProducts.category': 1 });
 exporterSchema.index({ 'exportStats.averageRating': -1 });
 exporterSchema.index({ 'tradingTerms.acceptedIncoterms': 1 });
-exporterSchema.index({ 'address.country': 1, 'targetMarkets.country': 1 });
+exporterSchema.index({ country: 1, 'targetMarkets.country': 1 });
 
 // Méthode pour mettre à jour les statistiques d'export
 exporterSchema.methods.updateExportStats = async function() {

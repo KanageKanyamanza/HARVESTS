@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { uploadService } from '../../services';
 
 /**
@@ -8,18 +8,13 @@ import { uploadService } from '../../services';
 const CloudinaryImage = ({
   src,
   alt = '',
-  width,
-  height,
-  quality = 'auto',
-  format = 'auto',
-  crop = 'fit',
   className = '',
   loading = 'lazy',
   fallback = '/images/placeholder.svg',
   ...props
 }) => {
-  // Obtenir l'URL optimisée
-  const getOptimizedSrc = () => {
+  // Obtenir l'URL optimisée avec mémorisation
+  const optimizedSrc = useMemo(() => {
     if (!src) return fallback;
     
     // Si c'est une URL Cloudinary, l'utiliser directement
@@ -30,16 +25,14 @@ const CloudinaryImage = ({
     // Pour les autres URLs, utiliser getImageUrl
     const processedUrl = uploadService.getImageUrl(src);
     return processedUrl;
-  };
+  }, [src, fallback]);
 
-  const optimizedSrc = getOptimizedSrc();
-
-  // Gestion des erreurs d'image
-  const handleError = (e) => {
+  // Gestion des erreurs d'image avec mémorisation
+  const handleError = useCallback((e) => {
     if (fallback && e.target.src !== fallback) {
       e.target.src = fallback;
     }
-  };
+  }, [fallback]);
 
   return (
     <img

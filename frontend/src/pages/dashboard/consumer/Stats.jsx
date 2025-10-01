@@ -11,13 +11,15 @@ import {
   FiCalendar,
   FiAward,
   FiHeart,
-  FiMapPin
+  FiMapPin,
+  FiClock
 } from 'react-icons/fi';
 
 const Stats = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [analytics, setAnalytics] = useState(null);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Charger les statistiques
@@ -26,20 +28,24 @@ const Stats = () => {
       if (user?.userType === 'consumer') {
         try {
           setLoading(true);
-          const [statsResponse, analyticsResponse] = await Promise.all([
+          const [statsResponse, analyticsResponse, ordersResponse] = await Promise.all([
             consumerService.getMyStats(),
-            consumerService.getSpendingAnalytics()
+            consumerService.getSpendingAnalytics(),
+            consumerService.getMyOrders()
           ]);
           
           console.log('📡 Réponse API Stats:', statsResponse);
           console.log('📡 Réponse API Analytics:', analyticsResponse);
+          console.log('📡 Réponse API Orders:', ordersResponse);
           
-          setStats(statsResponse.data);
-          setAnalytics(analyticsResponse.data.analytics || {});
+          setStats(statsResponse.data.data || statsResponse.data);
+          setAnalytics(analyticsResponse.data.data?.analytics || analyticsResponse.data.analytics || {});
+          setOrders(ordersResponse.data.data?.orders || ordersResponse.data.orders || []);
         } catch (error) {
           console.error('Erreur lors du chargement des statistiques:', error);
           setStats(null);
           setAnalytics({});
+          setOrders([]);
         } finally {
           setLoading(false);
         }
@@ -83,8 +89,19 @@ const Stats = () => {
     );
   }
 
-  const activityStats = stats?.activityStats || {};
-  const loyaltyStats = stats?.loyaltyStats || {};
+  const activityStats = stats?.data?.activityStats || stats?.activityStats || {};
+  const loyaltyStats = stats?.data?.loyaltyStats || stats?.loyaltyStats || {};
+  
+  // Calculer les statistiques réelles depuis les commandes
+  const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'processing').length;
+  const completedOrders = orders.filter(o => o.status === 'completed' || o.status === 'delivered').length;
+  const cancelledOrders = orders.filter(o => o.status === 'cancelled').length;
+  const inTransitOrders = orders.filter(o => o.status === 'in-transit' || o.status === 'shipped').length;
+  
+  console.log('📊 Activity Stats:', activityStats);
+  console.log('📊 Loyalty Stats:', loyaltyStats);
+  console.log('📊 Analytics:', analytics);
+  console.log('📊 Orders:', orders);
 
   return (
     <ModularDashboardLayout>
@@ -109,10 +126,10 @@ const Stats = () => {
               <FiShoppingBag className="h-6 w-6 text-blue-500" />
             </div>
             <div className="text-3xl font-bold text-harvests-green mb-2">
-              {activityStats.totalOrders || 0}
+              {orders.length || 0}
             </div>
             <p className="text-sm text-gray-600">
-              {activityStats.cancelledOrders || 0} annulées
+              {completedOrders} complétées • {cancelledOrders} annulées
             </p>
           </div>
 
@@ -205,13 +222,33 @@ const Stats = () => {
               <div>
                 <h4 className="text-sm font-medium text-gray-700 mb-2">Catégories préférées</h4>
                 <div className="flex flex-wrap gap-2">
-                  {(analytics.favoriteCategories || []).map((category, index) => (
-                    <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                      {category}
-                    </span>
-                  ))}
+                  {(analytics.favoriteCategories || []).map((category, index) => {
+                    const categoryLabels = {
+                      'cereals': 'Céréales',
+                      'vegetables': 'Légumes',
+                      'fruits': 'Fruits',
+                      'legumes': 'Légumineuses',
+                      'tubers': 'Tubercules',
+                      'spices': 'Épices',
+                      'herbs': 'Herbes',
+                      'nuts': 'Noix',
+                      'seeds': 'Graines',
+                      'dairy': 'Produits Laitiers',
+                      'meat': 'Viande',
+                      'poultry': 'Volaille',
+                      'fish': 'Poisson',
+                      'processed-foods': 'Produits Transformés',
+                      'beverages': 'Boissons',
+                      'other': 'Autre'
+                    };
+                    return (
+                      <span key={index} className="px-3 py-1 bg-primary-100 text-primary-800 rounded-full text-sm font-medium">
+                        {categoryLabels[category] || category}
+                      </span>
+                    );
+                  })}
                   {(!analytics.favoriteCategories || analytics.favoriteCategories.length === 0) && (
-                    <span className="text-gray-500 text-sm">Aucune donnée</span>
+                    <span className="text-gray-500 text-sm">Aucune donnée disponible</span>
                   )}
                 </div>
               </div>
@@ -233,49 +270,89 @@ const Stats = () => {
           </div>
         </div>
 
-        {/* Graphiques et tendances */}
+        {/* Activité récente */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-            <FiTrendingUp className="h-5 w-5 mr-2 text-green-500" />
-            Tendances et analyses
+            <FiCalendar className="h-5 w-5 mr-2 text-green-500" />
+            Activité récente
           </h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Évolution des dépenses */}
-            <div>
-              <h4 className="text-md font-medium text-gray-700 mb-4">Évolution des dépenses</h4>
-              <div className="h-32 bg-gray-50 rounded-lg flex items-center justify-center">
-                <p className="text-gray-500 text-sm">Graphique en cours de développement</p>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {/* Commandes en attente */}
+            <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600">En attente</span>
+                <FiClock className="h-5 w-5 text-yellow-500" />
               </div>
+              <div className="text-2xl font-bold text-yellow-600">
+                {pendingOrders}
+              </div>
+              <p className="text-xs text-gray-600 mt-1">À traiter</p>
             </div>
-
-            {/* Répartition par catégorie */}
-            <div>
-              <h4 className="text-md font-medium text-gray-700 mb-4">Répartition par catégorie</h4>
-              <div className="h-32 bg-gray-50 rounded-lg flex items-center justify-center">
-                <p className="text-gray-500 text-sm">Graphique en cours de développement</p>
+            
+            {/* Commandes en transit */}
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600">En transit</span>
+                <FiShoppingBag className="h-5 w-5 text-blue-500" />
               </div>
+              <div className="text-2xl font-bold text-blue-600">
+                {inTransitOrders}
+              </div>
+              <p className="text-xs text-gray-600 mt-1">En livraison</p>
+            </div>
+            
+            {/* Commandes complétées */}
+            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600">Complétées</span>
+                <FiPackage className="h-5 w-5 text-green-500" />
+              </div>
+              <div className="text-2xl font-bold text-green-600">
+                {completedOrders}
+              </div>
+              <p className="text-xs text-gray-600 mt-1">Livrées avec succès</p>
+            </div>
+            
+            {/* Avis donnés */}
+            <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-600">Avis</span>
+                <FiStar className="h-5 w-5 text-purple-500" />
+              </div>
+              <div className="text-2xl font-bold text-purple-600">
+                {activityStats.reviewsWritten || 0}
+              </div>
+              <p className="text-xs text-gray-600 mt-1">Avis publiés</p>
             </div>
           </div>
         </div>
 
-        {/* Recommandations */}
-        {analytics.recommendations && analytics.recommendations.length > 0 && (
-          <div className="bg-white rounded-lg shadow p-6 mt-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-              <FiStar className="h-5 w-5 mr-2 text-yellow-500" />
-              Recommandations personnalisées
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {analytics.recommendations.map((recommendation, index) => (
-                <div key={index} className="p-4 bg-gray-50 rounded-lg">
-                  <h4 className="font-medium text-gray-900 mb-2">{recommendation.title}</h4>
-                  <p className="text-sm text-gray-600">{recommendation.description}</p>
-                </div>
-              ))}
+        {/* Résumé de performance */}
+        <div className="bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg shadow-xl p-8 text-white mt-8">
+          <h3 className="text-2xl font-bold mb-6 flex items-center">
+            <FiAward className="h-6 w-6 mr-3" />
+            Votre Performance
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="text-center">
+              <div className="text-3xl font-bold mb-1">{orders.length || 0}</div>
+              <div className="text-sm text-white/80">Commandes totales</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold mb-1">{formatPrice(analytics.totalSpent || 0)}</div>
+              <div className="text-sm text-white/80">Dépenses totales</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold mb-1">{(activityStats.averageRatingGiven || 0).toFixed(1)}⭐</div>
+              <div className="text-sm text-white/80">Note moyenne donnée</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold mb-1">{loyaltyStats.points || 0}</div>
+              <div className="text-sm text-white/80">Points de fidélité</div>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </ModularDashboardLayout>
   );

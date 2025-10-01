@@ -93,9 +93,9 @@ const AdminLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile sidebar */}
-      <div className={`fixed h-[100%] inset-0 z-50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
+      <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
         <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
-        <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
+        <div className="relative flex flex-col h-full max-w-xs w-full bg-white">
           <div className="absolute top-0 right-0 -mr-12 pt-2">
             <button
               type="button"
@@ -105,18 +105,19 @@ const AdminLayout = ({ children }) => {
               <X className="h-6 w-6 text-white" />
             </button>
           </div>
-          <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
+          <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
             <div className="flex-shrink-0 flex items-center px-4">
               <Shield className="h-8 w-8 text-green-600" />
               <span className="ml-2 text-xl font-bold text-gray-900">Admin Panel</span>
             </div>
-            <nav className="mt-5 px-2 space-y-1">
+            <nav className="mt-5 flex-1 px-2 space-y-1">
               {menuItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link
                     key={item.name}
                     to={item.href}
+                    onClick={() => setSidebarOpen(false)}
                     className={`${
                       item.current
                         ? 'bg-green-100 text-green-900'
@@ -129,6 +130,19 @@ const AdminLayout = ({ children }) => {
                 );
               })}
             </nav>
+            {/* User info en bas */}
+            <div className="flex-shrink-0 px-4 py-4 border-t border-gray-200">
+              <div className="flex items-center">
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-gray-700">
+                    {user?.firstName} {user?.lastName}
+                  </p>
+                  <p className="text-xs font-medium text-gray-500">
+                    Administrateur
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -32,6 +32,7 @@ const Categories = React.lazy(() => import('./pages/Categories'));
 const Producers = React.lazy(() => import('./pages/Producers'));
 const ProducerProfile = React.lazy(() => import('./pages/ProducerProfile'));
 const CartPage = React.lazy(() => import('./pages/Cart'));
+const LoyaltyProgram = React.lazy(() => import('./pages/LoyaltyProgram'));
 
 // Auth Pages
 const Login = React.lazy(() => import('./pages/auth/Login'));
@@ -49,6 +50,7 @@ const SettingsConsumer = React.lazy(() => import('./pages/dashboard/consumer/Set
 const Favorites = React.lazy(() => import('./pages/dashboard/consumer/Favorites'));
 const Subscriptions = React.lazy(() => import('./pages/dashboard/consumer/Subscriptions'));
 const Reviews = React.lazy(() => import('./pages/dashboard/consumer/Reviews'));
+const WriteReview = React.lazy(() => import('./pages/dashboard/consumer/WriteReview'));
 const Loyalty = React.lazy(() => import('./pages/dashboard/consumer/Loyalty'));
 const Stats = React.lazy(() => import('./pages/dashboard/consumer/Stats'));
 
@@ -60,6 +62,7 @@ const MyProducts = React.lazy(() => import('./pages/dashboard/producer/MyProduct
 const AddProduct = React.lazy(() => import('./pages/dashboard/producer/AddProduct'));
 const EditProduct = React.lazy(() => import('./pages/dashboard/producer/EditProduct'));
 const ProducerOrders = React.lazy(() => import('./pages/dashboard/producer/Orders'));
+const ProducerReviews = React.lazy(() => import('./pages/dashboard/producer/ProducerReviews'));
 const ProducerStats = React.lazy(() => import('./pages/dashboard/producer/Stats'));
 const Certifications = React.lazy(() => import('./pages/dashboard/producer/Certifications'));
 const Transporters = React.lazy(() => import('./pages/dashboard/producer/Transporters'));
@@ -83,6 +86,7 @@ const ProductDetails = React.lazy(() => import('./pages/admin/ProductDetails'));
 const AdminReviews = React.lazy(() => import('./pages/admin/AdminReviews'));
 const AdminMessages = React.lazy(() => import('./pages/admin/AdminMessages'));
 const AdminOrders = React.lazy(() => import('./pages/admin/AdminOrders'));
+const OrderDetails = React.lazy(() => import('./pages/admin/OrderDetails'));
 const AdminAnalytics = React.lazy(() => import('./pages/admin/AdminAnalytics'));
 
 // Error Pages
@@ -158,12 +162,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <NotificationProvider>
-          <ModalProvider>
-            <Router>
-              <div className="App">
-                <UserTypeRedirect>
-                  <CartProvider>
-              <Suspense fallback={<LoadingSpinner />}>
+          <CartProvider>
+            <ModalProvider>
+              <Router>
+                <div className="App">
+                  <UserTypeRedirect>
+                    <Suspense fallback={<LoadingSpinner />}>
                 <Routes>
                 {/* Routes publiques */}
                 <Route path="/" element={
@@ -226,6 +230,14 @@ function App() {
                   <PublicRoute>
                     <Layout>
                       <ProducerProfile />
+                    </Layout>
+                  </PublicRoute>
+                } />
+                
+                <Route path="/loyalty" element={
+                  <PublicRoute>
+                    <Layout>
+                      <LoyaltyProgram />
                     </Layout>
                   </PublicRoute>
                 } />
@@ -322,6 +334,12 @@ function App() {
                 <Route path="/producer/orders" element={
                   <ProtectedRoute>
                     <ProducerOrders />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/producer/reviews" element={
+                  <ProtectedRoute requireRole="producer">
+                    <ProducerReviews />
                   </ProtectedRoute>
                 } />
                 
@@ -459,6 +477,14 @@ function App() {
                   </ProtectedRoute>
                 } />
                 
+                <Route path="/admin/orders/:orderId" element={
+                  <ProtectedRoute requireRole="admin">
+                    <AdminLayout>
+                      <OrderDetails />
+                    </AdminLayout>
+                  </ProtectedRoute>
+                } />
+                
                 <Route path="/admin/analytics" element={
                   <ProtectedRoute requireRole="admin">
                     <AdminLayout>
@@ -485,7 +511,13 @@ function App() {
                   </ProtectedRoute>
                 } />
                 
-                <Route path="/loyalty" element={
+                <Route path="/write-review/:orderId" element={
+                  <ProtectedRoute requireRole="consumer">
+                    <WriteReview />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/consumer/loyalty" element={
                   <ProtectedRoute>
                     <Loyalty />
                   </ProtectedRoute>
@@ -502,17 +534,17 @@ function App() {
                 <Route path="/server-error" element={<ServerError />} />
                 <Route path="*" element={<NotFound />} />
                 </Routes>
-              </Suspense>
-              
-              {/* Container des notifications */}
-              <NotificationContainer />
-                  </CartProvider>
+                  </Suspense>
+                  
+                  {/* Container des notifications */}
+                  <NotificationContainer />
                 </UserTypeRedirect>
               </div>
             </Router>
           </ModalProvider>
-        </NotificationProvider>
-      </AuthProvider>
+        </CartProvider>
+      </NotificationProvider>
+    </AuthProvider>
       
       {/* React Query DevTools en développement */}
       {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}

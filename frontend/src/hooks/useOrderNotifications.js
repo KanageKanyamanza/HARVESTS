@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useNotifications } from '../contexts/NotificationContext';
 import { notificationService } from '../services/notificationService';
 
@@ -6,7 +7,7 @@ export const useOrderNotifications = () => {
   const { addNotification } = useNotifications();
 
   // Créer une notification pour une nouvelle commande
-  const notifyNewOrder = (order) => {
+  const notifyNewOrder = useCallback((order) => {
     const notification = notificationService.createOrderNotification(order);
     addNotification({
       type: 'order',
@@ -15,10 +16,10 @@ export const useOrderNotifications = () => {
       data: notification.data,
       showAsToast: false // Affichage dans le dropdown uniquement
     });
-  };
+  }, [addNotification]);
 
   // Créer une notification pour un changement de statut de commande
-  const notifyOrderStatusChange = (order, newStatus) => {
+  const notifyOrderStatusChange = useCallback((order, newStatus) => {
     const statusMessages = {
       'confirmed': 'Commande confirmée',
       'processing': 'Commande en cours de traitement',
@@ -42,10 +43,10 @@ export const useOrderNotifications = () => {
       },
       showAsToast: true // Toast pour les changements de statut
     });
-  };
+  }, [addNotification]);
 
   // Créer une notification pour un produit approuvé
-  const notifyProductApproved = (product) => {
+  const notifyProductApproved = useCallback((product) => {
     const notification = notificationService.createProductApprovedNotification(product);
     addNotification({
       type: 'product',
@@ -54,10 +55,10 @@ export const useOrderNotifications = () => {
       data: notification.data,
       showAsToast: false
     });
-  };
+  }, [addNotification]);
 
   // Créer une notification pour un produit rejeté
-  const notifyProductRejected = (product, reason) => {
+  const notifyProductRejected = useCallback((product, reason) => {
     addNotification({
       type: 'product',
       title: 'Produit rejeté',
@@ -69,7 +70,7 @@ export const useOrderNotifications = () => {
       },
       showAsToast: false
     });
-  };
+  }, [addNotification]);
 
   return {
     notifyNewOrder,

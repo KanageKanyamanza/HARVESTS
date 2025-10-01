@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import {
   ShoppingCart,
   User,
@@ -11,6 +12,7 @@ import {
 } from 'lucide-react';
 
 import { adminService } from '../../services/adminService';
+import { parseProductName } from '../../utils/productUtils';
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -19,7 +21,6 @@ const AdminOrders = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [selectedOrder, setSelectedOrder] = useState(null);
 
   // Fonction loadOrders mémorisée pour éviter les re-rendus
   const loadOrders = useCallback(async () => {
@@ -109,6 +110,7 @@ const AdminOrders = () => {
       minimumFractionDigits: 0
     }).format(price);
   };
+
 
   const getStatusColor = (status) => {
     const colors = {
@@ -217,7 +219,7 @@ const AdminOrders = () => {
         </div>
 
         {/* Liste des commandes */}
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
+        <div className="bg-white shadow sm:rounded-md">
           {orders.length === 0 ? (
             <div className="text-center py-12">
               <ShoppingCart className="mx-auto h-12 w-12 text-gray-400" />
@@ -230,9 +232,9 @@ const AdminOrders = () => {
               </p>
             </div>
           ) : (
-            <ul className="divide-y divide-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
               {orders.map((order) => (
-              <li key={order._id} className="px-6 py-4">
+              <div key={order._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3">
@@ -261,7 +263,7 @@ const AdminOrders = () => {
                           <ul className="text-sm text-gray-600 ml-4">
                             {order.items.map((item, index) => (
                               <li key={index}>
-                                {item.quantity}x {item.product.name} - {formatPrice(item.price)}
+                                {item.quantity}x {parseProductName(item.product?.name)} - {formatPrice(item.price)}
                               </li>
                             ))}
                           </ul>
@@ -283,13 +285,13 @@ const AdminOrders = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => setSelectedOrder(order)}
+                    <Link
+                      to={`/admin/orders/${order._id}`}
                       className="text-blue-600 hover:text-blue-900"
                       title="Voir détails"
                     >
                       <Eye className="h-5 w-5" />
-                    </button>
+                    </Link>
                     {order.status === 'pending' && (
                       <button
                         onClick={() => handleUpdateOrderStatus(order._id, 'confirmed')}
@@ -322,72 +324,12 @@ const AdminOrders = () => {
                     )}
                   </div>
                 </div>
-              </li>
+              </div>
             ))}
-            </ul>
+            </div>
           )}
         </div>
 
-        {/* Modal de détails */}
-        {selectedOrder && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-              <div className="mt-3">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
-                  Détails de la commande {selectedOrder.orderNumber}
-                </h3>
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Client</p>
-                    <p className="text-sm text-gray-600">
-                      {selectedOrder.customer.firstName} {selectedOrder.customer.lastName}
-                    </p>
-                    <p className="text-sm text-gray-600">{selectedOrder.customer.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Producteur</p>
-                    <p className="text-sm text-gray-600">
-                      {selectedOrder.producer.firstName} {selectedOrder.producer.lastName}
-                    </p>
-                    <p className="text-sm text-gray-600">{selectedOrder.producer.farmName}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Produits</p>
-                    {selectedOrder.items.map((item, index) => (
-                      <div key={index} className="text-sm text-gray-600">
-                        {item.quantity}x {item.product.name} - {formatPrice(item.price)}
-                      </div>
-                    ))}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Total</p>
-                    <p className="text-sm text-gray-600">{formatPrice(selectedOrder.totalAmount)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Statut</p>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(selectedOrder.status)}`}>
-                      {getStatusText(selectedOrder.status)}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Paiement</p>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPaymentStatusColor(selectedOrder.paymentStatus)}`}>
-                      {getPaymentStatusText(selectedOrder.paymentStatus)}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex justify-end space-x-2 mt-4">
-                  <button
-                    onClick={() => setSelectedOrder(null)}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                  >
-                    Fermer
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Pagination */}
         <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">

@@ -77,7 +77,7 @@ const consumerSchema = new mongoose.Schema({
     },
     country: {
       type: String,
-      default: 'Cameroon'
+      default: 'Senegal'
     },
     postalCode: String,
     coordinates: {
@@ -271,7 +271,7 @@ consumerSchema.methods.updateLoyaltyTier = function() {
 };
 
 // Méthode pour ajouter des points de fidélité
-consumerSchema.methods.addLoyaltyPoints = function(orderAmount) {
+consumerSchema.methods.addLoyaltyPoints = async function(orderAmount, orderId = null) {
   const pointsEarned = Math.floor(orderAmount / 100); // 1 point pour 100 XAF
   
   this.loyaltyProgram.points += pointsEarned;
@@ -279,11 +279,27 @@ consumerSchema.methods.addLoyaltyPoints = function(orderAmount) {
   
   this.updateLoyaltyTier();
   
+  // Créer une transaction de fidélité
+  const LoyaltyTransaction = mongoose.model('LoyaltyTransaction');
+  await LoyaltyTransaction.create({
+    consumer: this._id,
+    type: 'earn',
+    points: pointsEarned,
+    description: `Points gagnés sur commande${orderId ? ` #${orderId}` : ''}`,
+    order: orderId,
+    balanceAfter: this.loyaltyProgram.points,
+    metadata: {
+      tierAtTransaction: this.loyaltyProgram.tier,
+      orderAmount,
+      conversionRate: orderAmount / pointsEarned
+    }
+  });
+  
   return pointsEarned;
 };
 
 // Méthode pour utiliser des points de fidélité
-consumerSchema.methods.redeemLoyaltyPoints = function(pointsToRedeem) {
+consumerSchema.methods.redeemLoyaltyPoints = async function(pointsToRedeem, orderId = null) {
   if (this.loyaltyProgram.points < pointsToRedeem) {
     throw new Error('Points insuffisants');
   }
@@ -292,6 +308,20 @@ consumerSchema.methods.redeemLoyaltyPoints = function(pointsToRedeem) {
   this.loyaltyProgram.totalPointsRedeemed += pointsToRedeem;
   
   this.updateLoyaltyTier();
+  
+  // Créer une transaction de fidélité
+  const LoyaltyTransaction = mongoose.model('LoyaltyTransaction');
+  await LoyaltyTransaction.create({
+    consumer: this._id,
+    type: 'redeem',
+    points: -pointsToRedeem,
+    description: `Points utilisés${orderId ? ` sur commande #${orderId}` : ''}`,
+    order: orderId,
+    balanceAfter: this.loyaltyProgram.points,
+    metadata: {
+      tierAtTransaction: this.loyaltyProgram.tier
+    }
+  });
   
   // 1 point = 1 XAF de réduction
   return pointsToRedeem;

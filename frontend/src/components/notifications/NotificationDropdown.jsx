@@ -1,10 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiBell, FiX, FiCheck, FiTrash2, FiShoppingBag, FiPackage, FiTruck, FiAlertCircle, FiRefreshCw } from 'react-icons/fi';
 import { useNotifications } from '../../contexts/NotificationContext';
 
 const NotificationDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification, refreshNotifications } = useNotifications();
 
   // Fermer le dropdown quand on clique à l'extérieur
@@ -19,33 +22,45 @@ const NotificationDropdown = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Obtenir l'icône selon le type de notification
-  const getNotificationIcon = (type) => {
-    switch (type) {
+  // Obtenir l'icône selon la catégorie de notification
+  const getNotificationIcon = (category) => {
+    switch (category) {
       case 'order':
         return <FiShoppingBag className="h-4 w-4 text-blue-500" />;
-      case 'delivery':
+      case 'payment':
         return <FiTruck className="h-4 w-4 text-green-500" />;
       case 'product':
         return <FiPackage className="h-4 w-4 text-orange-500" />;
-      case 'error':
+      case 'system':
         return <FiAlertCircle className="h-4 w-4 text-red-500" />;
+      case 'message':
+        return <FiBell className="h-4 w-4 text-purple-500" />;
+      case 'account':
+        return <FiAlertCircle className="h-4 w-4 text-yellow-500" />;
+      case 'marketing':
+        return <FiBell className="h-4 w-4 text-pink-500" />;
       default:
         return <FiBell className="h-4 w-4 text-gray-500" />;
     }
   };
 
-  // Obtenir la couleur de fond selon le type
-  const getNotificationBgColor = (type) => {
-    switch (type) {
+  // Obtenir la couleur de fond selon la catégorie
+  const getNotificationBgColor = (category) => {
+    switch (category) {
       case 'order':
         return 'bg-blue-50 border-blue-200';
-      case 'delivery':
+      case 'payment':
         return 'bg-green-50 border-green-200';
       case 'product':
         return 'bg-orange-50 border-orange-200';
-      case 'error':
+      case 'system':
         return 'bg-red-50 border-red-200';
+      case 'message':
+        return 'bg-purple-50 border-purple-200';
+      case 'account':
+        return 'bg-yellow-50 border-yellow-200';
+      case 'marketing':
+        return 'bg-pink-50 border-pink-200';
       default:
         return 'bg-gray-50 border-gray-200';
     }
@@ -61,6 +76,29 @@ const NotificationDropdown = () => {
     if (diffInMinutes < 60) return `Il y a ${diffInMinutes}min`;
     if (diffInMinutes < 1440) return `Il y a ${Math.floor(diffInMinutes / 60)}h`;
     return `Il y a ${Math.floor(diffInMinutes / 1440)}j`;
+  };
+
+  // Gérer le clic sur une notification
+  const handleNotificationClick = async (notification) => {
+    // Marquer comme lue
+    if (!notification.read) {
+      await markAsRead(notification.id);
+    }
+
+    // Rediriger selon le type de notification
+    if (notification.data?.orderId) {
+      // Notification de commande
+      navigate(`/orders/${notification.data.orderId}`);
+      setIsOpen(false);
+    } else if (notification.data?.productId) {
+      // Notification de produit
+      navigate(`/products/${notification.data.productId}`);
+      setIsOpen(false);
+    } else if (notification.actions && notification.actions[0]?.url) {
+      // Utiliser l'URL définie dans les actions
+      navigate(notification.actions[0].url);
+      setIsOpen(false);
+    }
   };
 
   return (
@@ -86,9 +124,14 @@ const NotificationDropdown = () => {
             <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
             <div className="flex items-center space-x-2">
               <button
-                onClick={refreshNotifications}
-                className="text-gray-400 hover:text-gray-500 p-1"
+                onClick={async () => {
+                  setIsRefreshing(true);
+                  await refreshNotifications();
+                  setTimeout(() => setIsRefreshing(false), 500);
+                }}
+                className={`text-gray-400 hover:text-gray-500 p-1 ${isRefreshing ? 'animate-spin' : ''}`}
                 title="Rafraîchir les notifications"
+                disabled={isRefreshing}
               >
                 <FiRefreshCw className="h-4 w-4" />
               </button>
@@ -111,23 +154,22 @@ const NotificationDropdown = () => {
 
           {/* Liste des notifications */}
           <div className="max-h-96 overflow-y-auto">
-            {notifications.length === 0 ? (
+            {notifications.filter(n => !n.read).length === 0 ? (
               <div className="px-4 py-8 text-center text-gray-500">
                 <FiBell className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-                <p>Aucune notification</p>
+                <p>Aucune notification non lue</p>
               </div>
             ) : (
-              notifications.map((notification) => (
+              notifications.filter(n => !n.read).map((notification) => (
                 <div
                   key={notification.id}
-                  className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                    !notification.read ? 'bg-blue-50/50' : ''
-                  }`}
+                  className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors bg-blue-50/50 cursor-pointer"
+                  onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="flex items-start space-x-3">
                     {/* Icône */}
-                    <div className={`p-2 rounded-full border ${getNotificationBgColor(notification.type)}`}>
-                      {getNotificationIcon(notification.type)}
+                    <div className={`p-2 rounded-full border ${getNotificationBgColor(notification.category)}`}>
+                      {getNotificationIcon(notification.category)}
                     </div>
 
                     {/* Contenu */}
@@ -147,17 +189,21 @@ const NotificationDropdown = () => {
 
                         {/* Actions */}
                         <div className="flex items-center space-x-1 ml-2">
-                          {!notification.read && (
-                            <button
-                              onClick={() => markAsRead(notification.id)}
-                              className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                              title="Marquer comme lu"
-                            >
-                              <FiCheck className="h-3 w-3" />
-                            </button>
-                          )}
                           <button
-                            onClick={() => removeNotification(notification.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              markAsRead(notification.id);
+                            }}
+                            className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                            title="Marquer comme lu"
+                          >
+                            <FiCheck className="h-3 w-3" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeNotification(notification.id);
+                            }}
                             className="p-1 text-gray-400 hover:text-red-600 transition-colors"
                             title="Supprimer"
                           >
@@ -173,10 +219,10 @@ const NotificationDropdown = () => {
           </div>
 
           {/* Footer */}
-          {notifications.length > 0 && (
+          {notifications.filter(n => !n.read).length > 0 && (
             <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
               <p className="text-xs text-gray-500 text-center">
-                {notifications.length} notification{notifications.length > 1 ? 's' : ''} au total
+                {notifications.filter(n => !n.read).length} notification{notifications.filter(n => !n.read).length > 1 ? 's' : ''} non lue{notifications.filter(n => !n.read).length > 1 ? 's' : ''}
               </p>
             </div>
           )}

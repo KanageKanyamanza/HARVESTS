@@ -7,13 +7,19 @@ const router = express.Router();
 // ROUTES PUBLIQUES
 
 // Obtenir les avis d'un produit
-router.get('/products/:productId', reviewController.getProductReviews);
+router.get('/product/:productId', reviewController.getProductReviews);
 
 // Obtenir les avis en vedette d'un produit
-router.get('/products/:productId/featured', reviewController.getFeaturedReviews);
+router.get('/product/:productId/featured', reviewController.getFeaturedReviews);
+
+// Obtenir les statistiques de notation d'un produit
+router.get('/product/:productId/stats', reviewController.getProductRatingStats);
 
 // Obtenir les avis d'un producteur
 router.get('/producers/:producerId', reviewController.getProducerReviews);
+
+// Obtenir les statistiques de notation d'un producteur
+router.get('/producers/:producerId/stats', reviewController.getProducerRatingStats);
 
 // Obtenir un avis spécifique
 router.get('/:id', reviewController.getReview);

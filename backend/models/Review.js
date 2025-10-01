@@ -100,16 +100,18 @@ const reviewSchema = new mongoose.Schema({
   // Contenu de l'avis
   title: {
     type: String,
-    required: [true, 'Titre requis'],
+    required: false,
     maxlength: [200, 'Le titre ne peut pas dépasser 200 caractères'],
-    trim: true
+    trim: true,
+    default: ''
   },
   
   comment: {
     type: String,
-    required: [true, 'Commentaire requis'],
+    required: false,
     maxlength: [2000, 'Le commentaire ne peut pas dépasser 2000 caractères'],
-    trim: true
+    trim: true,
+    default: ''
   },
   
   // Médias attachés

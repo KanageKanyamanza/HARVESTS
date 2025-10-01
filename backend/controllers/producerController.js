@@ -662,30 +662,190 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
 
 // Statistiques
 exports.getMyStats = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  const Product = require('../models/Product');
+  
   const producer = await Producer.findById(req.user._id).select('salesStats');
+  
+  // Récupérer toutes les commandes du producteur
+  const orders = await Order.find({ 
+    seller: req.user._id 
+  }).populate('buyer', 'firstName lastName');
+  
+  // Récupérer tous les produits du producteur
+  const products = await Product.find({ 
+    producer: req.user._id 
+  });
+  
+  // Calculer les statistiques
+  const completedOrders = orders.filter(o => o.status === 'completed' || o.status === 'delivered');
+  const totalRevenue = completedOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+  const averageOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
+  
+  // Total de produits vendus
+  let totalProductsSold = 0;
+  completedOrders.forEach(order => {
+    order.items.forEach(item => {
+      totalProductsSold += item.quantity;
+    });
+  });
+  
+  // Clients uniques
+  const uniqueCustomers = new Set(orders.map(o => o.buyer?._id?.toString() || o.buyer?.toString())).size;
+  
+  // Produits les plus vendus
+  const productSales = {};
+  completedOrders.forEach(order => {
+    order.items.forEach(item => {
+      const productId = item.product?._id?.toString() || item.product?.toString();
+      if (!productSales[productId]) {
+        productSales[productId] = {
+          quantity: 0,
+          revenue: 0
+        };
+      }
+      productSales[productId].quantity += item.quantity;
+      productSales[productId].revenue += item.totalPrice || (item.quantity * item.unitPrice);
+    });
+  });
+  
+  const topProducts = await Promise.all(
+    Object.entries(productSales)
+      .sort((a, b) => b[1].quantity - a[1].quantity)
+      .slice(0, 5)
+      .map(async ([productId, sales]) => {
+        const product = await Product.findById(productId).select('name category');
+        return {
+          id: productId,
+          name: product?.name?.fr || product?.name?.en || 'Produit',
+          category: product?.category,
+          quantitySold: sales.quantity,
+          revenue: sales.revenue
+        };
+      })
+  );
+  
+  // Taux de conversion (produits actifs / total produits)
+  const activeProducts = products.filter(p => p.isActive && p.status === 'approved').length;
+  const conversionRate = products.length > 0 ? Math.round((activeProducts / products.length) * 100) : 0;
+  
+  // Taux de fidélisation (clients qui ont commandé plus d'une fois)
+  const customerOrderCounts = {};
+  orders.forEach(order => {
+    const customerId = order.buyer?._id?.toString() || order.buyer?.toString();
+    customerOrderCounts[customerId] = (customerOrderCounts[customerId] || 0) + 1;
+  });
+  const repeatCustomers = Object.values(customerOrderCounts).filter(count => count > 1).length;
+  const customerRetentionRate = uniqueCustomers > 0 ? Math.round((repeatCustomers / uniqueCustomers) * 100) : 0;
 
   res.status(200).json({
     status: 'success',
     data: {
-      stats: producer.salesStats,
-    },
+      stats: {
+        totalRevenue,
+        totalOrders: orders.length,
+        completedOrders: completedOrders.length,
+        totalProductsSold,
+        uniqueCustomers,
+        topProducts,
+        averageOrderValue,
+        conversionRate,
+        customerRetentionRate,
+        totalProducts: products.length,
+        activeProducts
+      }
+    }
   });
 });
 
 exports.getSalesAnalytics = catchAsync(async (req, res, next) => {
-  // Cette fonction nécessitera des agrégations complexes avec les commandes
+  const Order = require('../models/Order');
+  
+  // Récupérer les commandes des 12 derniers mois
+  const twelveMonthsAgo = new Date();
+  twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+  
+  const orders = await Order.find({ 
+    seller: req.user._id,
+    status: { $in: ['completed', 'delivered'] },
+    createdAt: { $gte: twelveMonthsAgo }
+  });
+  
+  // Grouper par mois
+  const monthlySales = {};
+  orders.forEach(order => {
+    const month = new Date(order.createdAt).toLocaleDateString('fr-FR', { year: 'numeric', month: 'short' });
+    if (!monthlySales[month]) {
+      monthlySales[month] = {
+        orders: 0,
+        revenue: 0,
+        products: 0
+      };
+    }
+    monthlySales[month].orders += 1;
+    monthlySales[month].revenue += order.total || 0;
+    order.items.forEach(item => {
+      monthlySales[month].products += item.quantity;
+    });
+  });
+  
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle Order requis',
-    data: { analytics: {} },
+    data: {
+      analytics: {
+        monthlySales: Object.entries(monthlySales).map(([month, data]) => ({
+          month,
+          ...data
+        }))
+      }
+    }
   });
 });
 
 exports.getRevenueAnalytics = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  
+  const twelveMonthsAgo = new Date();
+  twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+  
+  const orders = await Order.find({ 
+    seller: req.user._id,
+    status: { $in: ['completed', 'delivered'] },
+    createdAt: { $gte: twelveMonthsAgo }
+  });
+  
+  // Grouper les revenus par mois
+  const monthlyRevenue = {};
+  orders.forEach(order => {
+    const month = new Date(order.createdAt).toLocaleDateString('fr-FR', { year: 'numeric', month: 'short' });
+    if (!monthlyRevenue[month]) {
+      monthlyRevenue[month] = 0;
+    }
+    monthlyRevenue[month] += order.total || 0;
+  });
+  
+  // Mois actuel
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const currentMonthRevenue = orders
+    .filter(order => {
+      const orderDate = new Date(order.createdAt);
+      return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
+    })
+    .reduce((sum, order) => sum + (order.total || 0), 0);
+  
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle Order requis',
-    data: { revenue: {} },
+    data: {
+      analytics: {
+        monthlyRevenue: Object.entries(monthlyRevenue).map(([month, revenue]) => ({
+          month,
+          revenue
+        })),
+        currentMonthRevenue,
+        totalRevenue: orders.reduce((sum, order) => sum + (order.total || 0), 0)
+      }
+    }
   });
 });
 

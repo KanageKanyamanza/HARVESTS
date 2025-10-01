@@ -1,14 +1,16 @@
 import axios from 'axios';
 import { getCurrentLanguage } from '../utils/i18n';
 import { isValidToken } from '../utils/tokenValidation';
+import { getConfig } from '../config/production';
 
 // Configuration de base d'Axios
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const appConfig = getConfig();
+const API_BASE_URL = appConfig.API_BASE_URL;
 
 // Créer une instance Axios
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: appConfig.API_TIMEOUT || 12000,
   headers: {
     'Content-Type': 'application/json',
   },

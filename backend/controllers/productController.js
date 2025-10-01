@@ -4,6 +4,7 @@ const Producer = require('../models/Producer');
 const Review = require('../models/Review');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const notificationController = require('./notificationController');
 
 // Configuration Multer pour les images de produits
 const multerStorage = multer.memoryStorage();
@@ -363,6 +364,24 @@ exports.createProduct = catchAsync(async (req, res, next) => {
 
   const product = await Product.create(req.body);
 
+  // Notifier les admins d'un nouveau produit en attente d'approbation
+  try {
+    const producer = await Producer.findById(req.user.id).select('firstName lastName farmName');
+    const producerName = producer.farmName || `${producer.firstName} ${producer.lastName}`;
+    const productName = typeof product.name === 'object' ? 
+      (product.name.fr || product.name.en || 'Sans nom') : 
+      product.name;
+    
+    await notificationController.notifyProductPendingApproval(
+      product._id, 
+      productName, 
+      producerName
+    );
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi de notification admin:', error);
+    // Ne pas faire échouer la création du produit si la notification échoue
+  }
+
   res.status(201).json({
     status: 'success',
     data: {
@@ -681,6 +700,7 @@ exports.rejectProduct = catchAsync(async (req, res, next) => {
   await Notification.createNotification({
     recipient: product.producer._id,
     type: 'product_rejected',
+    category: 'product',
     title: 'Produit rejeté',
     message: `Votre produit "${product.name}" a été rejeté. Raison: ${reason}`,
     data: {

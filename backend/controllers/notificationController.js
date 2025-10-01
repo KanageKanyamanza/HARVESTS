@@ -298,11 +298,19 @@ exports.getAllNotifications = catchAsync(async (req, res, next) => {
     .limit(limit);
 
   const total = await Notification.countDocuments(queryObj);
+  
+  // Calculer le nombre de notifications non lues pour l'admin
+  const unreadCount = await Notification.countDocuments({
+    ...queryObj,
+    readAt: { $exists: false },
+    status: { $in: ['pending', 'sent', 'delivered'] }
+  });
 
   res.status(200).json({
     status: 'success',
     results: notifications.length,
     total,
+    unreadCount,
     page,
     totalPages: Math.ceil(total / limit),
     data: {
@@ -754,5 +762,221 @@ async function handleFirebaseWebhook(event, data) {
   // Traiter les événements Firebase Push
   // Implémentation similaire
 }
+
+// ===== FONCTIONS DE NOTIFICATIONS AUTOMATIQUES POUR ADMINS =====
+
+// Notifier les admins d'un nouveau produit en attente d'approbation
+exports.notifyProductPendingApproval = catchAsync(async (productId, productName, producerName) => {
+  const Admin = require('../models/Admin');
+  
+  // Récupérer tous les admins actifs
+  const admins = await Admin.find({ isActive: true }).select('_id');
+  
+  const notifications = [];
+  
+  for (const admin of admins) {
+    const notification = await Notification.createNotification({
+      recipient: admin._id,
+      type: 'product_pending_approval',
+      category: 'product',
+      priority: 'high',
+      title: 'Nouveau produit en attente d\'approbation',
+      message: `Le produit "${productName}" de ${producerName} est en attente d'approbation`,
+      data: {
+        productId,
+        productName,
+        producerName,
+        action: 'approve_product'
+      },
+      actions: [{
+        type: 'view',
+        label: 'Voir le produit',
+        url: `/admin/products/${productId}`
+      }]
+    });
+    
+    notifications.push(notification);
+  }
+  
+  return notifications;
+});
+
+// Notifier les admins d'un utilisateur signalé
+exports.notifyUserReported = catchAsync(async (userId, userName, reportReason, reporterName) => {
+  const Admin = require('../models/Admin');
+  
+  const admins = await Admin.find({ isActive: true }).select('_id');
+  
+  const notifications = [];
+  
+  for (const admin of admins) {
+    const notification = await Notification.createNotification({
+      recipient: admin._id,
+      type: 'user_reported',
+      category: 'account',
+      priority: 'high',
+      title: 'Utilisateur signalé',
+      message: `L'utilisateur ${userName} a été signalé par ${reporterName}. Raison: ${reportReason}`,
+      data: {
+        userId,
+        userName,
+        reportReason,
+        reporterName,
+        action: 'review_user'
+      },
+      actions: [{
+        type: 'view',
+        label: 'Examiner l\'utilisateur',
+        url: `/admin/users/${userId}`
+      }]
+    });
+    
+    notifications.push(notification);
+  }
+  
+  return notifications;
+});
+
+// Notifier les admins d'une commande de forte valeur
+exports.notifyHighValueOrder = catchAsync(async (orderId, orderAmount, customerName) => {
+  const Admin = require('../models/Admin');
+  
+  const admins = await Admin.find({ isActive: true }).select('_id');
+  
+  const notifications = [];
+  
+  for (const admin of admins) {
+    const notification = await Notification.createNotification({
+      recipient: admin._id,
+      type: 'high_value_order',
+      category: 'order',
+      priority: 'medium',
+      title: 'Commande de forte valeur',
+      message: `Nouvelle commande de ${orderAmount.toLocaleString()} FCFA par ${customerName}`,
+      data: {
+        orderId,
+        orderAmount,
+        customerName,
+        action: 'review_order'
+      },
+      actions: [{
+        type: 'view',
+        label: 'Voir la commande',
+        url: `/admin/orders/${orderId}`
+      }]
+    });
+    
+    notifications.push(notification);
+  }
+  
+  return notifications;
+});
+
+// Notifier les admins d'un problème de paiement
+exports.notifyPaymentIssue = catchAsync(async (paymentId, issue, amount, customerName) => {
+  const Admin = require('../models/Admin');
+  
+  const admins = await Admin.find({ isActive: true }).select('_id');
+  
+  const notifications = [];
+  
+  for (const admin of admins) {
+    const notification = await Notification.createNotification({
+      recipient: admin._id,
+      type: 'payment_issue',
+      category: 'payment',
+      priority: 'high',
+      title: 'Problème de paiement',
+      message: `Problème de paiement: ${issue} - ${amount.toLocaleString()} FCFA - ${customerName}`,
+      data: {
+        paymentId,
+        issue,
+        amount,
+        customerName,
+        action: 'resolve_payment'
+      },
+      actions: [{
+        type: 'view',
+        label: 'Examiner le paiement',
+        url: `/admin/payments/${paymentId}`
+      }]
+    });
+    
+    notifications.push(notification);
+  }
+  
+  return notifications;
+});
+
+// Notifier les admins d'un litige créé
+exports.notifyDisputeCreated = catchAsync(async (disputeId, disputeType, customerName, amount) => {
+  const Admin = require('../models/Admin');
+  
+  const admins = await Admin.find({ isActive: true }).select('_id');
+  
+  const notifications = [];
+  
+  for (const admin of admins) {
+    const notification = await Notification.createNotification({
+      recipient: admin._id,
+      type: 'dispute_created',
+      category: 'order',
+      priority: 'high',
+      title: 'Nouveau litige créé',
+      message: `Litige ${disputeType} créé par ${customerName} - ${amount?.toLocaleString()} FCFA`,
+      data: {
+        disputeId,
+        disputeType,
+        customerName,
+        amount,
+        action: 'resolve_dispute'
+      },
+      actions: [{
+        type: 'view',
+        label: 'Examiner le litige',
+        url: `/admin/disputes/${disputeId}`
+      }]
+    });
+    
+    notifications.push(notification);
+  }
+  
+  return notifications;
+});
+
+// Notifier les admins d'une alerte de sécurité
+exports.notifySecurityAlert = catchAsync(async (alertType, description, severity = 'medium') => {
+  const Admin = require('../models/Admin');
+  
+  const admins = await Admin.find({ isActive: true }).select('_id');
+  
+  const notifications = [];
+  
+  for (const admin of admins) {
+    const notification = await Notification.createNotification({
+      recipient: admin._id,
+      type: 'security_alert',
+      category: 'system',
+      priority: severity,
+      title: 'Alerte de sécurité',
+      message: `${alertType}: ${description}`,
+      data: {
+        alertType,
+        description,
+        severity,
+        action: 'investigate_security'
+      },
+      actions: [{
+        type: 'view',
+        label: 'Examiner l\'alerte',
+        url: `/admin/security/alerts`
+      }]
+    });
+    
+    notifications.push(notification);
+  }
+  
+  return notifications;
+});
 
 module.exports = exports;

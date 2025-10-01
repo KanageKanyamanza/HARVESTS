@@ -33,7 +33,7 @@ const SettingsProducer = () => {
     phone: '',
     city: '',
     preferredLanguage: 'fr',
-    country: 'CM'
+    country: 'SN'
   });
 
   const [existingAddress, setExistingAddress] = useState({});
@@ -82,7 +82,7 @@ const SettingsProducer = () => {
               phone: userData.phone || '',
               city: userData.address?.city || '',
               preferredLanguage: userData.preferredLanguage || 'fr',
-              country: userData.country || 'CM'
+              country: userData.country || 'SN'
             });
 
             // Sauvegarder l'adresse existante

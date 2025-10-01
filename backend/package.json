@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js",
+    "dev": "nodemon",
+    "dev:verbose": "nodemon --verbose",
+    "dev:inspect": "nodemon --inspect",
     "test": "echo 'Tests à implémenter'",
     "admin:setup": "node scripts/quick-admin-setup.js",
     "admin:manage": "node scripts/admin-manager.js",
