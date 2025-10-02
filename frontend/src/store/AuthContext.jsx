@@ -80,12 +80,23 @@ export const AuthProvider = ({ children }) => {
       // Sauvegarder dans localStorage
       saveAuthData(user, token);
 
+      // Ajouter le statut d'approbation à l'utilisateur
+      const userWithApprovalStatus = {
+        ...user,
+        approvalStatus: {
+          isApproved: user.isApproved,
+          needsApproval: ['producer', 'transformer', 'exporter', 'transporter'].includes(user.userType),
+          canAccessDashboard: true,
+          canPerformOperations: user.isApproved || !['producer', 'transformer', 'exporter', 'transporter'].includes(user.userType)
+        }
+      };
+
       dispatch({
         type: AUTH_ACTIONS.LOGIN_SUCCESS,
-        payload: { user, token },
+        payload: { user: userWithApprovalStatus, token },
       });
 
-      return { success: true, user, token };
+      return { success: true, user: userWithApprovalStatus, token };
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Erreur de connexion';
       

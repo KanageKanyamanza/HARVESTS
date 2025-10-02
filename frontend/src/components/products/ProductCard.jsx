@@ -58,7 +58,7 @@ const ProductCard = ({ product }) => {
     <div className="bg-white border rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
       <Link to={`/products/${product._id}`} className="block">
         {/* Image */}
-        <div className="md:aspect-[4/3] aspect-[4/2] relative overflow-hidden bg-gray-100">
+        <div className="aspect-[4/3] relative overflow-hidden bg-gray-100">
           {primaryImage ? (
             <CloudinaryImage
               src={primaryImage.url}
@@ -112,7 +112,7 @@ const ProductCard = ({ product }) => {
             <span className="text-xl font-bold text-green-600">
               {formatPrice(product.price)}
             </span>
-            <div className="flex items-center text-sm text-gray-500">
+            <div className="hidden sm:flex items-center text-sm text-gray-500">
               <FiPackage className="h-4 w-4 mr-1" />
               {product.inventory?.quantity || 0} en stock
             </div>

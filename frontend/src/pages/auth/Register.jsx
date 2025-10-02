@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Eye, EyeOff, User, Mail, Lock, Phone, Users, ChevronUp } from 'lucide-react';
+import { Eye, EyeOff, User, Mail, Lock, Phone, Users, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
 import SocialLinks from '../../components/common/SocialLinks';
 import { useModal } from '../../components/modals/ModalManager';
 import logo from '../../assets/logo.png';
 import authbg from '../../assets/images/authbg.png';
 
 const Register = () => {
-  const { register, isLoading } = useAuth();
+  const { register } = useAuth();
   const { openEmailVerificationModal } = useModal();
   
   const [formData, setFormData] = useState({
@@ -39,6 +38,7 @@ const Register = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fonction pour sélectionner un type d'utilisateur
   const selectUserType = (type) => {
@@ -121,6 +121,12 @@ const Register = () => {
     
     if (!formData.phone.trim()) {
       newErrors.phone = 'Le téléphone est requis';
+    } else {
+      // Validation flexible pour tous les numéros internationaux
+      const cleaned = formData.phone.replace(/\D/g, '');
+      if (cleaned.length < 7 || cleaned.length > 15) {
+        newErrors.phone = 'Le numéro doit contenir entre 7 et 15 chiffres';
+      }
     }
     
     if (!formData.userType) {
@@ -137,6 +143,9 @@ const Register = () => {
     if (!validateForm()) {
       return;
     }
+
+    setIsSubmitting(true);
+    setErrors({}); // Effacer les erreurs précédentes
 
     try {
       // Préparer les données selon le type d'utilisateur
@@ -171,11 +180,26 @@ const Register = () => {
       if (result.success) {
         // Afficher la modale de vérification d'email via ModalManager
         openEmailVerificationModal(formData.email, true);
+        // Réinitialiser le formulaire après succès
+        setFormData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          password: '',
+          confirmPassword: '',
+          phone: '',
+          userType: '',
+          country: 'SN',
+          preferredLanguage: 'fr'
+        });
       } else {
         setErrors({ submit: result.error });
       }
-    } catch {
+    } catch (error) {
+      console.error('Erreur inscription:', error);
       setErrors({ submit: 'Erreur lors de l\'inscription' });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -230,6 +254,71 @@ const Register = () => {
 
             <form onSubmit={handleSubmit}>
               <div className="space-y-2 px-5 pt-5 pb-2 sm:px-10 sm:pt-10 sm:pb-5 backdrop-blur-sm shadow-lg rounded-4xl bg-green-500/10">
+                {/* Type de profil - Custom Dropdown - EN PREMIER */}
+                <div className="relative profile-dropdown">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+                    <Users className="h-5 w-5 text-black" />
+                  </div>
+                  
+                  {/* Trigger du dropdown */}
+                  <button
+                    type="button"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-left flex items-center justify-between ${
+                      errors.userType ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                  >
+                    <span className={formData.userType ? 'text-gray-900' : 'text-gray-500'}>
+                      {formData.userType 
+                        ? userTypes.find(type => type.value === formData.userType)?.label 
+                        : 'Sélectionner un profil'
+                      }
+                    </span>
+                    <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {/* Menu dropdown - S'ouvre vers le bas */}
+                  {isDropdownOpen && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-20 max-h-80 overflow-y-auto">
+                      <div className="py-2">
+                        {userTypes.map((type) => (
+                          <button
+                            key={type.value}
+                            type="button"
+                            onClick={() => selectUserType(type)}
+                            className={`w-full px-4 py-3 text-left hover:bg-green-50 transition-colors border-b border-gray-100 last:border-b-0 ${
+                              formData.userType === type.value ? 'bg-green-50 text-green-700' : 'text-gray-700'
+                            }`}
+                          >
+                            <div className="flex items-start space-x-3">
+                              <div className="text-2xl">{type.label.split(' ')[0]}</div>
+                              <div className="flex-1">
+                                <div className="font-medium text-sm">
+                                  {type.label.split(' ').slice(1).join(' ')}
+                                </div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {type.description}
+                                </div>
+                              </div>
+                              {formData.userType === type.value && (
+                                <div className="flex-shrink-0">
+                                  <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {errors.userType && (
+                    <p className="mt-1 text-sm text-red-600">{errors.userType}</p>
+                  )}
+                </div>
+
                 {/* Nom - Conditionnel selon le type d'utilisateur */}
                 {formData.userType === 'consumer' ? (
                   <>
@@ -394,79 +483,13 @@ const Register = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  placeholder="Votre numéro de téléphone"
+                  placeholder="Ex: +221 77 123 45 67 ou 1234567890"
                   className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
                     errors.phone ? 'border-red-300' : 'border-gray-300'
                   }`}
                 />
                 {errors.phone && (
                   <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
-                )}
-              </div>
-
-
-              {/* Type de profil - Custom Dropdown */}
-              <div className="relative profile-dropdown">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                  <Users className="h-5 w-5 text-black" />
-                </div>
-                
-                {/* Trigger du dropdown */}
-                <button
-                  type="button"
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-left flex items-center justify-between ${
-                    errors.userType ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                >
-                  <span className={formData.userType ? 'text-gray-900' : 'text-gray-500'}>
-                    {formData.userType 
-                      ? userTypes.find(type => type.value === formData.userType)?.label 
-                      : 'Sélectionner un profil'
-                    }
-                  </span>
-                  <ChevronUp className={`h-5 w-5 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-
-                {/* Menu dropdown */}
-                {isDropdownOpen && (
-                  <div className="absolute -top-[330px] left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-20 max-h-80 overflow-y-auto">
-                    <div className="py-2">
-                      {userTypes.map((type) => (
-                        <button
-                          key={type.value}
-                          type="button"
-                          onClick={() => selectUserType(type)}
-                          className={`w-full px-4 py-3 text-left hover:bg-green-50 transition-colors border-b border-gray-100 last:border-b-0 ${
-                            formData.userType === type.value ? 'bg-green-50 text-green-700' : 'text-gray-700'
-                          }`}
-                        >
-                          <div className="flex items-start space-x-3">
-                            <div className="text-2xl">{type.label.split(' ')[0]}</div>
-                            <div className="flex-1">
-                              <div className="font-medium text-sm">
-                                {type.label.split(' ').slice(1).join(' ')}
-                              </div>
-                              <div className="text-xs text-gray-500 mt-1">
-                                {type.description}
-                              </div>
-                            </div>
-                            {formData.userType === type.value && (
-                              <div className="flex-shrink-0">
-                                <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {errors.userType && (
-                  <p className="mt-1 text-sm text-red-600">{errors.userType}</p>
                 )}
               </div>
 
@@ -499,11 +522,14 @@ const Register = () => {
               {/* Bouton d'inscription */}
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isSubmitting}
                 className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-full transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? (
-                  <LoadingSpinner size="sm" />
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span className="ml-2">Inscription en cours...</span>
+                  </>
                 ) : (
                   "S'inscrire"
                 )}

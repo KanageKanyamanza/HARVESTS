@@ -78,7 +78,18 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
 
   // Recherche textuelle
   if (req.query.search) {
-    queryObj.$text = { $search: req.query.search };
+    const searchTerm = req.query.search.trim();
+    // Recherche flexible avec regex (insensible à la casse et aux accents)
+    queryObj.$or = [
+      { 'name.fr': { $regex: searchTerm, $options: 'i' } },
+      { 'name.en': { $regex: searchTerm, $options: 'i' } },
+      { 'description.fr': { $regex: searchTerm, $options: 'i' } },
+      { 'description.en': { $regex: searchTerm, $options: 'i' } },
+      { 'shortDescription.fr': { $regex: searchTerm, $options: 'i' } },
+      { 'shortDescription.en': { $regex: searchTerm, $options: 'i' } },
+      { tags: { $in: [new RegExp(searchTerm, 'i')] } },
+      { subcategory: { $regex: searchTerm, $options: 'i' } }
+    ];
   }
 
   // Pagination
@@ -95,8 +106,6 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
   if (req.query.sort) {
     const sortBy = req.query.sort.split(',').join(' ');
     query = query.sort(sortBy);
-  } else if (req.query.search) {
-    query = query.sort({ score: { $meta: 'textScore' }, 'stats.averageRating': -1 });
   } else {
     query = query.sort('-createdAt');
   }
@@ -290,8 +299,6 @@ exports.getProductsByCategory = catchAsync(async (req, res, next) => {
   if (req.query.sort) {
     const sortBy = req.query.sort.split(',').join(' ');
     query = query.sort(sortBy);
-  } else if (req.query.search) {
-    query = query.sort({ score: { $meta: 'textScore' }, 'stats.averageRating': -1 });
   } else {
     query = query.sort('-createdAt');
   }

@@ -1,0 +1,263 @@
+doctype html
+html(lang='fr')
+  head
+    meta(charset='UTF-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title= subject
+    style.
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        line-height: 1.6;
+        color: #2d3748;
+        background-color: #f7fafc;
+        margin: 0;
+        padding: 20px;
+      }
+      .email-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+      }
+      .header {
+        background: linear-gradient(135deg, #4CAF50 0%, #F4C542 100%);
+        padding: 40px 30px;
+        text-align: center;
+        color: white;
+      }
+      .logo {
+        width: 80px;
+        height: 80px;
+        background-color: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .logo img {
+        width: 50px;
+        height: 50px;
+        object-fit: contain;
+      }
+      .title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        letter-spacing: -0.025em;
+      }
+      .subtitle {
+        font-size: 16px;
+        opacity: 0.9;
+        font-weight: 400;
+      }
+      .content {
+        padding: 40px 30px;
+      }
+      .greeting {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 20px;
+      }
+      .message {
+        font-size: 16px;
+        color: #4a5568;
+        margin-bottom: 24px;
+        line-height: 1.7;
+      }
+      .cta-container {
+        text-align: center;
+        margin: 32px 0;
+      }
+      .cta-button {
+        display: inline-block;
+        background: linear-gradient(135deg, #4CAF50 0%, #F4C542 100%);
+        color: white;
+        padding: 16px 32px;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        box-shadow: 0 4px 6px -1px rgba(76, 175, 80, 0.3);
+        transition: all 0.2s ease;
+      }
+      .cta-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 8px -1px rgba(76, 175, 80, 0.4);
+      }
+      .features {
+        background-color: #f7fafc;
+        border-radius: 8px;
+        padding: 24px;
+        margin: 32px 0;
+      }
+      .features h3 {
+        color: #2d3748;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        text-align: center;
+      }
+      .features ul {
+        list-style: none;
+        padding: 0;
+      }
+      .features li {
+        color: #4a5568;
+        font-size: 15px;
+        margin-bottom: 12px;
+        padding-left: 24px;
+        position: relative;
+      }
+      .features li:before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: #4CAF50;
+        font-weight: bold;
+        font-size: 16px;
+      }
+      .warning {
+        background-color: #fff5cd;
+        border: 1px solid #f6e05e;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 24px 0;
+        border-left: 4px solid #d69e2e;
+      }
+      .warning-title {
+        color: #744210;
+        font-weight: 600;
+        font-size: 16px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+      }
+      .warning-title:before {
+        content: '⚠️';
+        margin-right: 8px;
+      }
+      .warning-text {
+        color: #744210;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .link-fallback {
+        background-color: #edf2f7;
+        border-radius: 6px;
+        padding: 16px;
+        margin: 20px 0;
+        word-break: break-all;
+        font-size: 14px;
+        color: #4a5568;
+        font-family: monospace;
+      }
+      .footer {
+        background-color: #000000;
+        color: #ffffff;
+        padding: 30px;
+        text-align: center;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      .footer-brand {
+        color: #ffffff;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .footer-contact {
+        margin: 12px 0;
+      }
+      .footer-contact a {
+        color: #4CAF50;
+        text-decoration: none;
+      }
+      .footer-contact a:hover {
+        text-decoration: underline;
+      }
+      @media (max-width: 600px) {
+        .email-container {
+          margin: 0;
+          border-radius: 0;
+        }
+        .header, .content, .footer {
+          padding: 20px;
+        }
+        .title {
+          font-size: 24px;
+        }
+        .logo {
+          width: 60px;
+          height: 60px;
+          font-size: 24px;
+        }
+      }
+  body
+    .email-container
+      .header
+        .logo
+          img(src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', alt='Harvests Logo', style='width: 50px; height: 50px; object-fit: contain;')
+        .title Bienvenue sur Harvests !
+        .subtitle La plateforme agricole africaine de référence
+      
+      .content
+        .greeting Bonjour #{firstName},
+        
+        .message
+          p Félicitations ! Votre compte Harvests a été créé avec succès. Vous rejoignez une communauté dynamique de producteurs, transformateurs et consommateurs qui transforment l'agriculture africaine.
+        
+        .message
+          p Pour activer votre compte et commencer à explorer toutes les fonctionnalités de Harvests, veuillez vérifier votre adresse email en cliquant sur le bouton ci-dessous :
+        
+        .cta-container
+          a.cta-button(href=url) Vérifier mon email
+        
+        .warning
+          .warning-title Important
+          .warning-text Ce lien de vérification expire dans 24 heures. Si vous ne l'utilisez pas à temps, vous devrez demander un nouveau lien de vérification depuis la page de connexion.
+        
+        .link-fallback
+          | Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :
+          br
+          | #{url}
+        
+        .features
+          h3 Une fois votre compte activé, vous pourrez :
+          ul
+            li Accéder à votre tableau de bord personnalisé
+            li Publier et gérer vos produits agricoles
+            li Connecter avec d'autres acteurs du secteur
+            li Bénéficier de nos outils de gestion avancés
+            li Recevoir des notifications personnalisées
+            li Accéder à notre marketplace premium
+        
+        .message
+          p Si vous n'avez pas créé de compte sur Harvests, vous pouvez ignorer cet email en toute sécurité. Aucune action n'est requise de votre part.
+      
+      .footer
+        .footer-brand 🌱 Harvests
+        .footer-contact
+          | Plateforme agricole africaine - Connectons l'Afrique à travers l'agriculture
+        .footer-contact
+          | Questions ? Contactez-nous :
+        .footer-contact
+          | 📞 Sénégal : 
+          a(href='tel:+221771970713') +221 771970713
+        .footer-contact
+          | 📞 Royaume-Uni : 
+          a(href='tel:+447546756325') +44 7546756325
+        .footer-contact
+          | 📧 Email : 
+          a(href='mailto:info@growthubb.space') info@growthubb.space
+        .footer-contact
+          | © 2024 Harvests. Tous droits réservés. | Yaoundé, Cameroun

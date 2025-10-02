@@ -28,13 +28,13 @@ const swaggerOptions = {
 - **Mobile Money** : Wave + Orange Money intégrés
 
 ## 🔗 Liens utiles
-- **Frontend** : http://localhost:3000
+- **Frontend** : https://harvests-khaki.vercel.app
 - **Admin** : http://localhost:3001
 - **Repository** : https://github.com/votre-repo/harvests
       `,
       contact: {
         name: 'Équipe Harvests',
-        email: 'dev@harvests.sn',
+        email: 'info@growthubb.space',
         url: 'https://harvests.sn'
       },
       license: {

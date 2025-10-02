@@ -35,7 +35,7 @@ const LoadingSpinner = ({ size = 'md', text = null, className = '' }) => {
       
       {(text || size === 'lg' || size === 'xl') && (
         <p className={`text-gray-600 font-medium ${textSizeClasses[size]}`}>
-          {text || t('common.loading')}
+          {text || 'Chargement...'}
         </p>
       )}
     </div>

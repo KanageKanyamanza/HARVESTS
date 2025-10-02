@@ -26,12 +26,28 @@ import {
 } from 'react-icons/fi';
 import { FaChartBar } from 'react-icons/fa';
 
-  const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse }) => {
-    const { user, userDisplayName } = useAuth();
-    const { displayLabel, displayIcon } = useUserType();
-    const location = useLocation();
+const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse, navigationItems, user: propUser }) => {
+  const { user: authUser, userDisplayName } = useAuth();
+  const { displayLabel, displayIcon } = useUserType();
+  const location = useLocation();
+  
+  // Utiliser l'utilisateur passé en prop ou celui du contexte d'auth
+  const user = propUser || authUser;
 
   const getNavigationItems = () => {
+    // Si des navigationItems sont fournis en prop, les utiliser
+    if (navigationItems && navigationItems.length > 0) {
+      // Convertir le format des navigationItems en format sidebar
+      return navigationItems.flatMap(section => 
+        section.items.map(item => ({
+          name: item.label,
+          href: item.link,
+          icon: item.icon || FiHome
+        }))
+      );
+    }
+
+    // Sinon, utiliser la logique par défaut
     if (user?.userType === 'consumer') {
       return [
         { name: 'Tableau de bord', href: '/consumer/dashboard', icon: FiHome },
@@ -63,12 +79,27 @@ import { FaChartBar } from 'react-icons/fa';
       ];
     }
 
+    if (user?.userType === 'transformer') {
+      return [
+        { name: 'Tableau de bord', href: '/transformer/dashboard', icon: FiHome },
+        { name: 'Commandes', href: '/transformer/orders', icon: FiShoppingBag },
+        { name: 'Production', href: '/transformer/production/batches', icon: FiPackage },
+        { name: 'Qualité', href: '/transformer/quality-control', icon: FiAward },
+        { name: 'Devis', href: '/transformer/quotes', icon: FiFileText },
+        { name: 'Équipements', href: '/transformer/equipment', icon: FiTruck },
+        { name: 'Certifications', href: '/transformer/certifications', icon: FiAward },
+        { name: 'Analytics', href: '/transformer/analytics/business', icon: FaChartBar },
+        { name: 'Profil', href: '/transformer/profile', icon: FiUser },
+        { name: 'Paramètres', href: '/transformer/settings', icon: FiSettings }
+      ];
+    }
+
     return [
       { name: 'Tableau de bord', href: '/dashboard', icon: FiHome }
     ];
   };
 
-  const navigationItems = getNavigationItems();
+  const sidebarNavigationItems = getNavigationItems();
   const isActive = (href) => location.pathname === href;
 
   return (
@@ -135,7 +166,7 @@ import { FaChartBar } from 'react-icons/fa';
 
         {/* Navigation */}
         <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
-          {navigationItems.map((item) => {
+          {sidebarNavigationItems.map((item) => {
             const Icon = item.icon;
             return (
               <Link

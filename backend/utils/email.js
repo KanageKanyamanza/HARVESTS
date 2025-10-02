@@ -14,7 +14,7 @@ module.exports = class Email {
   }
 
   newTransport() {
-    // 🥇 PRIORITÉ 1: Gmail avec Nodemailer (RECOMMANDÉ - 500 emails/jour)
+    // 🥇 Gmail avec Nodemailer (RECOMMANDÉ - 500 emails/jour)
     if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
       return nodemailer.createTransport({
         service: 'gmail',
@@ -26,26 +26,6 @@ module.exports = class Email {
         logger: process.env.NODE_ENV === 'development'
       });
     }
-    
-    // 🧪 PRIORITÉ 2: Ethereal Email pour tests (GRATUIT ILLIMITÉ)
-    if (process.env.USE_ETHEREAL === 'true' || process.env.NODE_ENV === 'test') {
-      // Génération automatique de compte test avec Nodemailer
-      if (!this.etherealAccount) {
-        // Créer un compte test automatiquement
-        return this.createEtherealTransport();
-      }
-      
-      return nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
-        port: 587,
-        secure: false,
-        auth: {
-          user: this.etherealAccount.user,
-          pass: this.etherealAccount.pass,
-        },
-      });
-    }
-    
     
     // 🔧 FALLBACK: Configuration SMTP générique
     return nodemailer.createTransport({
@@ -90,10 +70,6 @@ module.exports = class Email {
     await this.send('welcome', subject);
   }
 
-  async sendEmailVerification() {
-    const subject = this.t('email.subjects.verify_email');
-    await this.send('emailVerification', subject);
-  }
 
   async sendPasswordReset() {
     const subject = this.t('email.subjects.password_reset');
@@ -118,41 +94,6 @@ module.exports = class Email {
   async sendDeliveryNotification(delivery) {
     this.delivery = delivery;
     await this.send('deliveryNotification', 'Votre commande est en route!');
-  }
-
-  // Créer un transport Ethereal automatiquement
-  async createEtherealTransport() {
-    try {
-      // Générer un compte de test automatiquement
-      const testAccount = await nodemailer.createTestAccount();
-      this.etherealAccount = testAccount;
-      
-      console.log('🧪 Compte Ethereal généré automatiquement:');
-      console.log(`   Email: ${testAccount.user}`);
-      console.log(`   Preview: https://ethereal.email`);
-      
-      return nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
-        port: 587,
-        secure: false,
-        auth: {
-          user: testAccount.user,
-          pass: testAccount.pass,
-        },
-      });
-    } catch (error) {
-      console.error('❌ Erreur création compte Ethereal:', error.message);
-      // Fallback vers configuration manuelle
-      return nodemailer.createTransport({
-        host: process.env.EMAIL_HOST || 'localhost',
-        port: parseInt(process.env.EMAIL_PORT) || 587,
-        secure: false,
-        auth: {
-          user: process.env.EMAIL_USERNAME,
-          pass: process.env.EMAIL_PASSWORD,
-        },
-      });
-    }
   }
 
   // Méthode de test de connexion Nodemailer
@@ -193,11 +134,6 @@ module.exports = class Email {
       });
 
       console.log('✅ Email de test envoyé avec succès !');
-      
-      // Si c'est Ethereal, afficher l'URL de preview
-      if (testEmail.messageId && process.env.USE_ETHEREAL === 'true') {
-        console.log(`🔗 Preview: ${nodemailer.getTestMessageUrl(testEmail)}`);
-      }
       
       return testEmail;
     } catch (error) {

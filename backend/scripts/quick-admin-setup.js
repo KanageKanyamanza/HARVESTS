@@ -95,7 +95,7 @@ const createTestAdmins = async () => {
       {
         firstName: 'Support',
         lastName: 'Client',
-        email: 'support@harvests.com',
+        email: 'info@growthubb.space',
         password: 'Support123!',
         role: 'support',
         department: 'support',
@@ -131,7 +131,7 @@ const showConnectionInfo = () => {
   console.log('\n📋 Comptes créés:');
   console.log('1. Super Admin: admin@harvests.com / Admin123!');
   console.log('2. Modérateur: moderator@harvests.com / Moderator123!');
-  console.log('3. Support: support@harvests.com / Support123!');
+  console.log('3. Support: info@growthubb.space / Support123!');
   console.log('=====================================');
 };
 

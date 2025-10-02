@@ -18,6 +18,7 @@ import logo from '../../assets/logo.png';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../contexts/CartContext';
 import NotificationDropdown from '../notifications/NotificationDropdown';
+import SearchDropdown from '../common/SearchDropdown';
 
 const Header = () => {
   const location = useLocation();
@@ -29,16 +30,34 @@ const Header = () => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
 
   // Fermer les menus au clic extérieur
   React.useEffect(() => {
-    const handleClickOutside = () => {
+    const handleClickOutside = (event) => {
+      // Ne pas fermer si on clique sur le dropdown de recherche
+      if (event.target.closest('[data-search-dropdown]')) {
+        return;
+      }
+      
+      // Ne pas fermer si on clique sur le bouton du menu mobile
+      if (event.target.closest('[data-mobile-menu-button]')) {
+        return;
+      }
+      
+      // Ne pas fermer si on clique dans le champ de recherche mobile
+      if (event.target.closest('[data-mobile-search]')) {
+        return;
+      }
+      
       setIsProfileMenuOpen(false);
+      setIsMobileMenuOpen(false);
     };
 
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
+
 
   // Détecter le scroll pour changer l'apparence de la navbar
   React.useEffect(() => {
@@ -87,9 +106,52 @@ const Header = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      navigate(`/products?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
+      setIsSearchDropdownOpen(false);
     }
+  };
+
+  const handleSearchInputChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    
+    // Pour desktop : afficher le dropdown
+    setIsSearchDropdownOpen(value.length >= 2);
+  };
+
+  const navigateToSearchResults = (query) => {
+    if (query.trim()) {
+      // Fermer le menu mobile
+      setIsMobileMenuOpen(false);
+      
+      // Naviguer vers les résultats
+      navigate(`/products?q=${encodeURIComponent(query.trim())}`);
+      
+      // Nettoyer la recherche
+      setSearchQuery('');
+      setIsSearchDropdownOpen(false);
+    }
+  };
+
+  const handleProductClick = (product) => {
+    // Fermer le menu mobile si ouvert
+    setIsMobileMenuOpen(false);
+    
+    // Naviguer vers le produit
+    navigate(`/products/${product._id}`);
+    
+    // Nettoyer la recherche
+    setSearchQuery('');
+    setIsSearchDropdownOpen(false);
+  };
+
+  const handleSearchDropdownClose = () => {
+    setIsSearchDropdownOpen(false);
+  };
+
+  const handleMobileSearchSubmit = () => {
+    navigateToSearchResults(searchQuery);
   };
 
   const handleLogout = async () => {
@@ -139,7 +201,7 @@ const Header = () => {
           </nav>
 
           {/* Barre de recherche - Desktop */}
-          <div className="hidden lg:block flex-1 max-w-[250px] ">
+          <div className="hidden lg:block flex-1 max-w-[300px] relative">
             <form onSubmit={handleSearch} className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search className={`h-5 w-5 transition-colors duration-500 ease-in-out ${shouldBeTransparent ? 'text-white' : 'text-gray-400'}`} />
@@ -147,11 +209,19 @@ const Header = () => {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearchInputChange}
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                placeholder="Rechercher..."
+                placeholder="Rechercher des produits..."
               />
             </form>
+            
+            {/* Dropdown de recherche */}
+            <SearchDropdown
+              searchQuery={searchQuery}
+              isOpen={isSearchDropdownOpen}
+              onClose={handleSearchDropdownClose}
+              onProductClick={handleProductClick}
+            />
           </div>
 
           {/* Actions utilisateur */}
@@ -243,7 +313,12 @@ const Header = () => {
 
             {/* Menu mobile */}
             <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              data-mobile-menu-button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsMobileMenuOpen(!isMobileMenuOpen);
+              }}
               className={`md:hidden ${
                 shouldBeTransparent 
                   ? 'text-white hover:text-primary-200' 
@@ -284,20 +359,33 @@ const Header = () => {
             
             <div className="px-2 pt-2 pb-3 space-y-1 h-[calc(100%-80px)] overflow-y-auto">
               {/* Barre de recherche mobile */}
-              <form onSubmit={handleSearch} className="px-3 py-2">
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-5 w-5 text-gray-400" />
+              <div className="px-3 py-2" data-mobile-search>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Search className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={handleSearchInputChange}
+                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-sm"
+                      placeholder="Rechercher des produits..."
+                    />
                   </div>
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                    placeholder="Rechercher..."
-                  />
+                  
+                  {/* Bouton de validation */}
+                  {searchQuery.trim().length >= 2 && (
+                    <button
+                      onClick={handleMobileSearchSubmit}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium whitespace-nowrap"
+                    >
+                      Valider
+                    </button>
+                  )}
                 </div>
-              </form>
+                
+              </div>
 
               {/* Navigation principale mobile */}
               {mainNavigation.map((item) => (

@@ -91,18 +91,10 @@ DATABASE_PASSWORD=votre_mot_de_passe_mongodb
 JWT_SECRET=votre-clé-secrète-jwt-très-longue-et-sécurisée
 JWT_EXPIRES_IN=90d
 
-# Email
-# Option 1: Ethereal (auto-généré, gratuit illimité)
-USE_ETHEREAL=true
-EMAIL_FROM=noreply@harvests.local
-
-# Option 2: Gmail (500 emails/jour gratuit)  
+# Email - Gmail (500 emails/jour gratuit)  
 GMAIL_USER=votre-email@gmail.com
 GMAIL_APP_PASSWORD=votre-mot-de-passe-app
-
-# Production Email (SendGrid)
-SENDGRID_PASSWORD=votre_clé_api_sendgrid
-EMAIL_FROM=noreply@harvests.cm
+EMAIL_FROM=noreply@harvests.sn
 ```
 
 ## 🌐 Structure de l'API

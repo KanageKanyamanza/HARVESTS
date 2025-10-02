@@ -327,7 +327,7 @@ const Categories = () => {
                             <p className="text-sm text-gray-600 mb-2">
                               {getCategoryDescription(category)}
                             </p>
-                            <div className="flex items-center space-x-4 text-sm text-gray-500">
+                            <div className="flex flex-wrap items-center sm:space-x-4 text-sm text-gray-500">
                               <span className="flex items-center">
                                 <FiPackage className="h-4 w-4 mr-1" />
                                 {totalProducts} produit{totalProducts > 1 ? 's' : ''}

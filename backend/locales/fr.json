@@ -1,4 +1,27 @@
 {
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "view": "Voir",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "close": "Fermer",
+    "open": "Ouvrir",
+    "search": "Rechercher",
+    "filter": "Filtrer",
+    "sort": "Trier",
+    "refresh": "Actualiser",
+    "retry": "Réessayer",
+    "yes": "Oui",
+    "no": "Non"
+  },
   "auth": {
     "welcome": "Bienvenue sur Harvests",
     "signup_success": "Inscription réussie ! Veuillez vérifier votre email.",

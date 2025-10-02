@@ -18,11 +18,23 @@ router.get('/:id/reviews', transformerController.getTransformerReviews);
 router.use(authController.protect);
 router.use(authController.restrictTo('transformer'));
 router.use(authController.requireVerification);
-router.use(authController.requireApproval); // Les transformateurs doivent être approuvés
+router.use(authController.checkApprovalStatus); // Vérifier le statut d'approbation
 
-// Gestion du profil transformateur
+// Routes accessibles même sans approbation (dashboard, profil)
 router.get('/me/profile', transformerController.getMyProfile);
 router.patch('/me/profile', transformerController.updateMyProfile);
+router.get('/me/business-stats', transformerController.getBusinessStats);
+router.get('/me/production-analytics', transformerController.getProductionAnalytics);
+router.get('/me/orders', transformerController.getMyOrders);
+router.get('/me/orders/:orderId', transformerController.getMyOrder);
+router.get('/me/production-batches', transformerController.getProductionBatches);
+router.get('/me/production-batches/:batchId', transformerController.getProductionBatch);
+router.get('/me/reviews', transformerController.getMyReviews);
+router.get('/me/notifications', transformerController.getNotifications);
+router.get('/me/documents', transformerController.getMyDocuments);
+
+// Routes nécessitant une approbation (opérations sensibles)
+router.use(authController.requireApproval); // Appliquer l'approbation aux routes suivantes
 
 // Gestion des informations de l'entreprise
 router.route('/me/company-info')

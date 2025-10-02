@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import DashboardSidebarFixed from '../dashboard/DashboardSidebarFixed';
 import DashboardTopbar from '../dashboard/DashboardTopbar';
 
-const ModularDashboardLayout = ({ children }) => {
+const ModularDashboardLayout = ({ children, navigationItems, user }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // Charger l'état collapsed depuis localStorage
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -42,6 +42,8 @@ const ModularDashboardLayout = ({ children }) => {
           onLogout={handleLogout} 
           collapsed={sidebarCollapsed}
           onToggleCollapse={handleToggleCollapse}
+          navigationItems={navigationItems}
+          user={user}
         />
       </div>
 
