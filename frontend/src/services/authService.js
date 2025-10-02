@@ -23,6 +23,7 @@ export const authService = {
   },
   
   // Vérification d'email
+  verifyEmail: (token) => apiRequest.get(`/auth/verify-email/${token}`),
   resendVerification: (email) => apiRequest.post('/auth/resend-verification', { email }),
   
   // Mot de passe oublié

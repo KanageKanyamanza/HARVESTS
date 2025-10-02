@@ -21,8 +21,17 @@ import AdminLayout from './components/layout/AdminLayout';
 import UserTypeRedirect from './components/auth/UserTypeRedirect';
 
 // Loading Component
-import LoadingSpinner from './components/common/LoadingSpinner';
 import NotificationContainer from './components/common/NotificationContainer';
+
+// Composant de fallback pour les routes
+const RouteFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+      <p className="text-gray-600">Chargement...</p>
+    </div>
+  </div>
+);
 
 // Lazy Loading des pages
 const Home = React.lazy(() => import('./pages/Home'));
@@ -38,8 +47,8 @@ const LoyaltyProgram = React.lazy(() => import('./pages/LoyaltyProgram'));
 const Login = React.lazy(() => import('./pages/auth/Login'));
 const Register = React.lazy(() => import('./pages/auth/Register'));
 const ForgotPassword = React.lazy(() => import('./pages/auth/ForgotPassword'));
+const EmailVerification = React.lazy(() => import('./pages/auth/EmailVerification'));
 const ResetPassword = React.lazy(() => import('./pages/auth/ResetPassword'));
-const VerifyEmail = React.lazy(() => import('./pages/auth/VerifyEmail'));
 
 // Dashboard Pages
 const Dashboard = React.lazy(() => import('./pages/dashboard/Dashboard'));
@@ -67,6 +76,9 @@ const ProducerStats = React.lazy(() => import('./pages/dashboard/producer/Stats'
 const Certifications = React.lazy(() => import('./pages/dashboard/producer/Certifications'));
 const Transporters = React.lazy(() => import('./pages/dashboard/producer/Transporters'));
 const Documents = React.lazy(() => import('./pages/dashboard/producer/Documents'));
+
+// Transformer Dashboard
+const TransformerDashboard = React.lazy(() => import('./pages/dashboard/transformer/TransformerDashboard'));
 
 // Consumer Dashboard  
 const ConsumerDashboard = React.lazy(() => import('./pages/dashboard/consumer/ConsumerDashboard'));
@@ -115,8 +127,9 @@ const queryClient = new QueryClient({
 const ProtectedRoute = ({ children, requiredAuth = true, requiredVerification = false }) => {
   const { isAuthenticated, isEmailVerified, isLoading } = useAuth();
 
+  // Ne plus afficher de loader global - laisser les pages gérer leur propre état
   if (isLoading) {
-    return <LoadingSpinner />;
+    return null; // Retourner null pour éviter tout affichage pendant le chargement
   }
 
   if (requiredAuth && !isAuthenticated) {
@@ -139,8 +152,9 @@ const PublicRoute = ({ children }) => {
 const AuthRoute = ({ children, useLayout = true }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
+  // Ne plus afficher de loader global - laisser les pages gérer leur propre état
   if (isLoading) {
-    return <LoadingSpinner />;
+    return null; // Retourner null pour éviter tout affichage pendant le chargement
   }
 
   if (isAuthenticated) {
@@ -167,7 +181,7 @@ function App() {
               <Router>
                 <div className="App">
                   <UserTypeRedirect>
-                    <Suspense fallback={<LoadingSpinner />}>
+                    <Suspense fallback={<RouteFallback />}>
                 <Routes>
                 {/* Routes publiques */}
                 <Route path="/" element={
@@ -244,13 +258,13 @@ function App() {
 
                 {/* Routes d'authentification */}
                 <Route path="/login" element={
-                  <AuthRoute useLayout={false}>
+                  <AuthRoute>
                     <Login />
                   </AuthRoute>
                 } />
                 
                 <Route path="/register" element={
-                  <AuthRoute useLayout={false}>
+                  <AuthRoute>
                     <Register />
                   </AuthRoute>
                 } />
@@ -269,7 +283,7 @@ function App() {
                 
                 <Route path="/verify-email/:token?" element={
                   <AuthRoute>
-                    <VerifyEmail />
+                    <EmailVerification />
                   </AuthRoute>
                 } />
 
@@ -310,6 +324,13 @@ function App() {
                 <Route path="/producer/dashboard" element={
                   <ProtectedRoute>
                     <ProducerDashboard />
+                  </ProtectedRoute>
+                } />
+
+                {/* Transformer Dashboard Routes */}
+                <Route path="/transformer/dashboard" element={
+                  <ProtectedRoute>
+                    <TransformerDashboard />
                   </ProtectedRoute>
                 } />
                 

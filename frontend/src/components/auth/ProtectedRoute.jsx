@@ -2,7 +2,6 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useUserType } from '../../hooks/useUserType';
-import LoadingSpinner from '../common/LoadingSpinner';
 
 /**
  * Composant de protection de route avec gestion des permissions
@@ -29,9 +28,9 @@ const ProtectedRoute = ({
   const { userType } = useUserType();
   const location = useLocation();
 
-  // Afficher le spinner pendant le chargement
+  // Ne plus afficher de loader global - laisser les pages gérer leur propre état
   if (isLoading) {
-    return <LoadingSpinner />;
+    return null; // Retourner null pour éviter tout affichage pendant le chargement
   }
 
   // Rediriger si non authentifié

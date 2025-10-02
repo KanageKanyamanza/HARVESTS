@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
 import SocialLinks from '../../components/common/SocialLinks';
 import { useModal } from '../../components/modals/ModalManager';
 import logo from '../../assets/logo.png';
 import authbg from '../../assets/images/authbg.png';
 
 const Login = () => {
-  const { login, isLoading, getDefaultRoute } = useAuth();
+  const { login, getDefaultRoute } = useAuth();
   const { openEmailVerificationModal } = useModal();
   const navigate = useNavigate();
   
@@ -21,6 +20,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
 
   const handleChange = (e) => {
@@ -63,6 +63,9 @@ const Login = () => {
       return;
     }
 
+    setIsSubmitting(true);
+    setErrors({}); // Effacer les erreurs précédentes
+
     try {
       // Utiliser l'AuthContext pour gérer la connexion
       const result = await login(formData);
@@ -81,8 +84,10 @@ const Login = () => {
           setErrors({ submit: result.error });
         }
       }
-    } catch {
+    } catch (error) {
       setErrors({ submit: 'Erreur de connexion' });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -198,6 +203,16 @@ const Login = () => {
                   </Link>
                 </div>
 
+                {/* Lien mot de passe oublié */}
+                <div className="text-center">
+                  <Link 
+                    to="/forgot-password" 
+                    className="text-green-600 hover:text-green-700 text-sm underline"
+                  >
+                    Mot de passe oublié ?
+                  </Link>
+                </div>
+
               </div>
               
                 {/* Remember me */}
@@ -218,11 +233,11 @@ const Login = () => {
                 {/* Bouton de connexion */}
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isSubmitting}
                   className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-full transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? (
-                    <LoadingSpinner size="sm" />
+                  {isSubmitting ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                   ) : (
                     "Se connecter"
                   )}

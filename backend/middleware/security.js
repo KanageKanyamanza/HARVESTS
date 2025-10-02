@@ -82,11 +82,11 @@ const signupLimiter = rateLimit({
 
 // Limiteur pour les emails (reset password, verification)
 const emailLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 heure
-  max: 5, // limite à 5 emails par IP par heure
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // limite à 10 emails par IP par 15 minutes
   message: {
-    error: 'Trop d\'emails envoyés depuis cette IP, veuillez réessayer dans 1 heure.',
-    retryAfter: '1 heure'
+    error: 'Trop d\'emails envoyés depuis cette IP, veuillez réessayer dans 15 minutes.',
+    retryAfter: '15 minutes'
   },
   standardHeaders: true,
   legacyHeaders: false

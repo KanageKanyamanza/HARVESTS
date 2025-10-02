@@ -66,11 +66,15 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 flex-shrink-0" />
-                <span>+221 33 123 45 67</span>
+                <span>+221 771970713</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Phone className="h-4 w-4 flex-shrink-0" />
+                <span>+44 7546756325</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4 flex-shrink-0" />
-                <span>contact@harvests.sn</span>
+                <span>info@growthubb.space</span>
               </div>
             </div>
           </div>
@@ -151,7 +155,7 @@ const Footer = () => {
         </div> */}
 
         {/* Section copyright */}
-        <div className="py-6 border-t border-gray-900">
+        <div className="py-6 border-t border-gray-900 justify-center content-center text-center">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4">
               <p className="text-gray-500 text-sm">
@@ -159,7 +163,7 @@ const Footer = () => {
               </p>
             </div>
             
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center justify-center content-center gap-2">
               <p className="text-gray-500 text-sm flex items-center">
                 Fait avec <Heart className="h-4 w-4 mx-1 text-red-500 fill-current" /> au Sénégal
               </p>

@@ -2,6 +2,7 @@
 export { authService } from './authService';
 export { consumerService } from './consumerService';
 export { producerService } from './producerService';
+export { default as transformerService } from './transformerService';
 export { userService } from './userService';
 export { productService } from './productService';
 export { orderService } from './orderService';

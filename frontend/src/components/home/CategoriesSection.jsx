@@ -145,7 +145,7 @@ const CategoriesSection = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {categories.map((category) => {
               const product = categoryProducts[category];
               const primaryImage = product?.images?.find(img => img.isPrimary) || product?.images?.[0];

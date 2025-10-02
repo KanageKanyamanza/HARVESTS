@@ -107,9 +107,8 @@ exports.signup = catchAsync(async (req, res, next) => {
 
   // Essayer d'envoyer l'email de vérification
   try {
-    const verifyURL = `${req.protocol}://${req.get(
-      'host'
-    )}/api/v1/auth/verify-email/${verifyToken}`;
+    const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
+    const verifyURL = `${frontendUrl}/verify-email/${verifyToken}`;
 
     await new Email(newUser, verifyURL, req.language).sendWelcome();
     
@@ -165,10 +164,7 @@ exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError('Votre compte a été désactivé. Contactez le support.', 401));
   }
 
-  // 5) Vérifier si le compte est approuvé (pour certains types)
-  if (['producer', 'transformer', 'exporter', 'transporter'].includes(user.userType) && !user.isApproved) {
-    return next(new AppError('Votre compte est en attente d\'approbation', 401));
-  }
+  // 5) L'approbation sera vérifiée par un middleware spécifique si nécessaire
 
   // 6) Vérifier si le compte n'est pas suspendu
   if (user.suspendedUntil && user.suspendedUntil > new Date()) {
@@ -214,14 +210,23 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
     return next(new AppError('Token invalide ou expiré', 400));
   }
 
+  // Vérifier si l'email est déjà vérifié
+  if (user.isEmailVerified) {
+    return res.status(200).json({
+      status: 'success',
+      message: 'Email déjà vérifié !'
+    });
+  }
+
   user.isEmailVerified = true;
   user.emailVerificationToken = undefined;
   user.emailVerificationExpires = undefined;
   await user.save({ validateBeforeSave: false });
 
+  // Retourner une réponse JSON de succès
   res.status(200).json({
     status: 'success',
-    message: 'Email vérifié avec succès! Vous pouvez maintenant vous connecter.',
+    message: 'Email vérifié avec succès !'
   });
 });
 
@@ -242,11 +247,12 @@ exports.resendVerificationEmail = catchAsync(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   try {
-    const verifyURL = `${req.protocol}://${req.get(
-      'host'
-    )}/api/v1/auth/verify-email/${verifyToken}`;
+    // URL du frontend pour la vérification directe
+    const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
+    const verifyURL = `${frontendUrl}/verify-email/${verifyToken}`;
 
-    await new Email(user, verifyURL).sendEmailVerification();
+    await new Email(user, verifyURL, req.language).sendWelcome();
+
 
     res.status(200).json({
       status: 'success',
@@ -277,9 +283,8 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
   try {
     // 3) Envoyer à l'email de l'utilisateur
-    const resetURL = `${req.protocol}://${req.get(
-      'host'
-    )}/api/v1/auth/reset-password/${resetToken}`;
+    const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
+    const resetURL = `${frontendUrl}/reset-password/${resetToken}`;
 
     await new Email(user, resetURL).sendPasswordReset();
 
@@ -418,11 +423,23 @@ exports.requireVerification = (req, res, next) => {
   next();
 };
 
-// Middleware pour vérifier si l'utilisateur est approuvé
+// Middleware pour vérifier si l'utilisateur est approuvé (pour les opérations sensibles)
 exports.requireApproval = (req, res, next) => {
   if (['producer', 'transformer', 'exporter', 'transporter'].includes(req.user.userType) && !req.user.isApproved) {
     return next(new AppError('Votre compte doit être approuvé pour accéder à cette fonctionnalité', 403));
   }
+  next();
+};
+
+// Middleware pour vérifier si l'utilisateur est approuvé (pour l'accès au dashboard)
+exports.checkApprovalStatus = (req, res, next) => {
+  // Ajouter le statut d'approbation aux données de l'utilisateur
+  req.user.approvalStatus = {
+    isApproved: req.user.isApproved,
+    needsApproval: ['producer', 'transformer', 'exporter', 'transporter'].includes(req.user.userType),
+    canAccessDashboard: true, // Toujours autoriser l'accès au dashboard
+    canPerformOperations: req.user.isApproved || !['producer', 'transformer', 'exporter', 'transporter'].includes(req.user.userType)
+  };
   next();
 };
 
@@ -450,9 +467,11 @@ exports.resendVerificationEmail = catchAsync(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   try {
-    // Envoyer l'email de vérification
-    const email_service = new Email(user, user.preferredLanguage || 'fr');
-    await email_service.sendEmailVerification(verifyToken);
+    // Envoyer l'email de vérification avec Gmail (URL frontend directe)
+    const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
+    const verifyURL = `${frontendUrl}/verify-email/${verifyToken}`;
+    
+    await new Email(user, verifyURL, req.language).sendWelcome();
 
     res.status(200).json({
       status: 'success',

@@ -71,9 +71,22 @@ const baseUserSchema = new mongoose.Schema({
     required: [true, 'Numéro de téléphone requis'],
     validate: {
       validator: function(phone) {
-        return /^(\+|00)[1-9]\d{1,14}$/.test(phone);
+        // Accepter tous les formats de téléphone internationaux
+        if (!phone || typeof phone !== 'string') return false;
+        
+        // Nettoyer le numéro (garder seulement les chiffres)
+        const cleaned = phone.replace(/\D/g, '');
+        
+        // Vérifier la longueur (7-15 chiffres selon les standards internationaux)
+        return cleaned.length >= 7 && cleaned.length <= 15;
       },
-      message: 'Format de téléphone invalide'
+      message: 'Format de téléphone invalide (7-15 chiffres requis)'
+    },
+    // Transformer le numéro avant sauvegarde
+    set: function(phone) {
+      if (!phone) return phone;
+      // Garder le format original mais nettoyer pour la validation
+      return phone;
     }
   },
   
@@ -111,7 +124,7 @@ const baseUserSchema = new mongoose.Schema({
   
   country: {
     type: String,
-    enum: ['CM', 'SN', 'CI', 'GH', 'NG', 'KE'],
+    enum: ['SN', 'CM', 'CI', 'GH', 'NG', 'KE', 'MA', 'DZ', 'TN', 'EG', 'ZA', 'TZ', 'UG', 'RW', 'BF', 'ML', 'NE', 'TD', 'CF', 'CD', 'AO', 'ZM', 'ZW', 'BW', 'NA', 'SZ', 'LS', 'MW', 'MZ', 'MG', 'MU', 'SC', 'KM', 'DJ', 'SO', 'ET', 'ER', 'SS', 'SD', 'LY', 'MR', 'GM', 'GW', 'GN', 'SL', 'LR', 'TG', 'BJ', 'GH', 'CI', 'LR', 'SL', 'GN', 'GW', 'CV', 'ST', 'GQ', 'GA', 'CG', 'AO', 'ZM', 'ZW', 'BW', 'NA', 'SZ', 'LS', 'MW', 'MZ', 'MG', 'MU', 'SC', 'KM', 'DJ', 'SO', 'ET', 'ER', 'SS', 'SD', 'LY', 'MR', 'FR', 'US', 'CA', 'GB', 'DE', 'IT', 'ES', 'PT', 'NL', 'BE', 'CH', 'AT', 'SE', 'NO', 'DK', 'FI', 'IS', 'IE', 'LU', 'MT', 'CY', 'GR', 'PL', 'CZ', 'SK', 'HU', 'SI', 'HR', 'RO', 'BG', 'LT', 'LV', 'EE', 'AU', 'NZ', 'JP', 'KR', 'CN', 'IN', 'BR', 'AR', 'MX', 'CL', 'CO', 'PE', 'VE', 'UY', 'PY', 'BO', 'EC', 'GY', 'SR', 'GF', 'FK', 'CR', 'PA', 'NI', 'HN', 'GT', 'BZ', 'SV', 'CU', 'JM', 'HT', 'DO', 'TT', 'BB', 'LC', 'VC', 'GD', 'AG', 'KN', 'DM', 'RU', 'UA', 'BY', 'MD', 'KZ', 'UZ', 'KG', 'TJ', 'TM', 'MN', 'AF', 'PK', 'BD', 'LK', 'MV', 'NP', 'BT', 'MM', 'TH', 'LA', 'VN', 'KH', 'MY', 'SG', 'ID', 'PH', 'TL', 'BN', 'FJ', 'PG', 'SB', 'VU', 'NC', 'PF', 'WS', 'TO', 'KI', 'TV', 'NR', 'MH', 'FM', 'PW', 'AS', 'GU', 'MP', 'VI', 'PR'],
     default: 'SN'
   },
   
@@ -229,7 +242,7 @@ baseUserSchema.methods.createEmailVerificationToken = function() {
     .update(verifyToken)
     .digest('hex');
   
-  this.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 heures
+  this.emailVerificationExpires = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 jours (pour les tests)
   
   return verifyToken;
 };
