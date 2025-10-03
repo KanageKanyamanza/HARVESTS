@@ -1494,8 +1494,8 @@ exports.getAllReviews = catchAsync(async (req, res, next) => {
   if (search) {
     filter.$or = [
       { comment: { $regex: search, $options: 'i' } },
-      { 'customer.firstName': { $regex: search, $options: 'i' } },
-      { 'customer.lastName': { $regex: search, $options: 'i' } },
+      { 'reviewer.firstName': { $regex: search, $options: 'i' } },
+      { 'reviewer.lastName': { $regex: search, $options: 'i' } },
       { 'product.name': { $regex: search, $options: 'i' } }
     ];
   }
@@ -1505,7 +1505,7 @@ exports.getAllReviews = catchAsync(async (req, res, next) => {
   
   // Récupérer les avis avec populate
   const reviews = await Review.find(filter)
-    .populate('customer', 'firstName lastName email')
+    .populate('reviewer', 'firstName lastName email')
     .populate('product', 'name images')
     .populate('producer', 'firstName lastName email')
     .sort({ createdAt: -1 })
@@ -1532,7 +1532,7 @@ exports.getAllReviews = catchAsync(async (req, res, next) => {
 
 exports.getReviewById = catchAsync(async (req, res, next) => {
   const review = await Review.findById(req.params.id)
-    .populate('customer', 'firstName lastName email phone')
+    .populate('reviewer', 'firstName lastName email phone')
     .populate('product', 'name images description')
     .populate('producer', 'firstName lastName email phone');
 
@@ -1553,7 +1553,7 @@ exports.updateReview = catchAsync(async (req, res, next) => {
     req.params.id,
     { status, adminNotes },
     { new: true }
-  ).populate('customer', 'firstName lastName email')
+  ).populate('reviewer', 'firstName lastName email')
    .populate('product', 'name images');
 
   if (!review) {
@@ -1585,7 +1585,7 @@ exports.approveReview = catchAsync(async (req, res, next) => {
     req.params.id,
     { status: 'approved', approvedAt: new Date() },
     { new: true }
-  ).populate('customer', 'firstName lastName email')
+  ).populate('reviewer', 'firstName lastName email')
    .populate('product', 'name images');
 
   if (!review) {
@@ -1610,7 +1610,7 @@ exports.rejectReview = catchAsync(async (req, res, next) => {
       rejectionReason: reason 
     },
     { new: true }
-  ).populate('customer', 'firstName lastName email')
+  ).populate('reviewer', 'firstName lastName email')
    .populate('product', 'name images');
 
   if (!review) {
@@ -1815,10 +1815,206 @@ exports.assignTransporter = catchAsync(async (req, res, next) => {
 });
 
 exports.getAnalytics = catchAsync(async (req, res, next) => {
+  const { timeRange = '30d' } = req.query;
+  
+  // Calculer la période
+  const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : timeRange === '90d' ? 90 : 365;
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  
+  // Récupérer les statistiques générales
+  const totalUsers = await User.countDocuments();
+  const totalProducts = await Product.countDocuments();
+  const totalOrders = await Order.countDocuments();
+  
+  // Calculer le revenu total
+  const revenueResult = await Order.aggregate([
+    { $match: { status: 'completed' } },
+    { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+  ]);
+  const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
+  
+  // Statistiques de croissance
+  const usersLastPeriod = await User.countDocuments({
+    createdAt: { $gte: startDate }
+  });
+  const productsLastPeriod = await Product.countDocuments({
+    createdAt: { $gte: startDate }
+  });
+  const ordersLastPeriod = await Order.countDocuments({
+    createdAt: { $gte: startDate }
+  });
+  
+  const userGrowth = totalUsers > 0 ? ((usersLastPeriod / totalUsers) * 100) : 0;
+  const productGrowth = totalProducts > 0 ? ((productsLastPeriod / totalProducts) * 100) : 0;
+  const orderGrowth = totalOrders > 0 ? ((ordersLastPeriod / totalOrders) * 100) : 0;
+  
+  // Données pour les graphiques
+  const userRegistrations = await User.aggregate([
+    {
+      $match: { createdAt: { $gte: startDate } }
+    },
+    {
+      $group: {
+        _id: {
+          year: { $year: '$createdAt' },
+          month: { $month: '$createdAt' },
+          day: { $dayOfMonth: '$createdAt' }
+        },
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 }
+    }
+  ]);
+  
+  const revenueTrends = await Order.aggregate([
+    {
+      $match: { 
+        createdAt: { $gte: startDate },
+        status: { $in: ['completed', 'delivered'] }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          year: { $year: '$createdAt' },
+          month: { $month: '$createdAt' },
+          day: { $dayOfMonth: '$createdAt' }
+        },
+        revenue: { $sum: '$totalAmount' },
+        orders: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 }
+    }
+  ]);
+  
+  // Distribution par catégorie
+  const categoryDistribution = await Product.aggregate([
+    {
+      $group: {
+        _id: '$category',
+        count: { $sum: 1 },
+        averagePrice: { $avg: '$price' }
+      }
+    },
+    {
+      $sort: { count: -1 }
+    }
+  ]);
+  
+  // Top producteurs
+  const topProducers = await Order.aggregate([
+    {
+      $match: { status: { $in: ['completed', 'delivered'] } }
+    },
+    {
+      $group: {
+        _id: '$seller',
+        totalSales: { $sum: '$totalAmount' },
+        orderCount: { $sum: 1 }
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'producer'
+      }
+    },
+    {
+      $unwind: '$producer'
+    },
+    {
+      $project: {
+        producerName: { $concat: ['$producer.firstName', ' ', '$producer.lastName'] },
+        farmName: '$producer.farmName',
+        totalSales: 1,
+        orderCount: 1
+      }
+    },
+    {
+      $sort: { totalSales: -1 }
+    },
+    {
+      $limit: 5
+    }
+  ]);
+
+  // Top produits
+  const topProducts = await Order.aggregate([
+    {
+      $match: { status: { $in: ['completed', 'delivered'] } }
+    },
+    {
+      $unwind: '$items'
+    },
+    {
+      $group: {
+        _id: '$items.product',
+        totalSales: { $sum: { $multiply: ['$items.quantity', '$items.price'] } },
+        totalQuantity: { $sum: '$items.quantity' },
+        orderCount: { $sum: 1 }
+      }
+    },
+    {
+      $lookup: {
+        from: 'products',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'product'
+      }
+    },
+    {
+      $unwind: '$product'
+    },
+    {
+      $project: {
+        name: '$product.name',
+        price: '$product.price',
+        totalSales: 1,
+        totalQuantity: 1,
+        orderCount: 1,
+        sales: '$totalQuantity'
+      }
+    },
+    {
+      $sort: { totalSales: -1 }
+    },
+    {
+      $limit: 5
+    }
+  ]);
+  
+  const analytics = {
+    overview: {
+      totalUsers,
+      totalProducts,
+      totalOrders,
+      totalRevenue,
+      userGrowth: parseFloat(userGrowth.toFixed(1)),
+      productGrowth: parseFloat(productGrowth.toFixed(1)),
+      orderGrowth: parseFloat(orderGrowth.toFixed(1)),
+      revenueGrowth: 0 // À calculer si nécessaire
+    },
+    charts: {
+      userRegistrations,
+      productCreations: [], // À implémenter si nécessaire
+      orderTrends: revenueTrends,
+      revenueTrends,
+      categoryDistribution,
+      topProducers,
+      topProducts
+    }
+  };
+  
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement',
-    data: { analytics: {} }
+    data: { analytics }
   });
 });
 

@@ -154,16 +154,18 @@ const NotificationDropdown = () => {
 
           {/* Liste des notifications */}
           <div className="max-h-96 overflow-y-auto">
-            {notifications.filter(n => !n.read).length === 0 ? (
+            {notifications.length === 0 ? (
               <div className="px-4 py-8 text-center text-gray-500">
                 <FiBell className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-                <p>Aucune notification non lue</p>
+                <p>Aucune notification</p>
               </div>
             ) : (
-              notifications.filter(n => !n.read).map((notification) => (
+              notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors bg-blue-50/50 cursor-pointer"
+                  className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer ${
+                    notification.read ? 'bg-gray-50/30' : 'bg-blue-50/50'
+                  }`}
                   onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="flex items-start space-x-3">
@@ -219,10 +221,15 @@ const NotificationDropdown = () => {
           </div>
 
           {/* Footer */}
-          {notifications.filter(n => !n.read).length > 0 && (
+          {notifications.length > 0 && (
             <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
               <p className="text-xs text-gray-500 text-center">
-                {notifications.filter(n => !n.read).length} notification{notifications.filter(n => !n.read).length > 1 ? 's' : ''} non lue{notifications.filter(n => !n.read).length > 1 ? 's' : ''}
+                {notifications.length} notification{notifications.length > 1 ? 's' : ''} 
+                {unreadCount > 0 && (
+                  <span className="ml-1">
+                    ({unreadCount} non lue{unreadCount > 1 ? 's' : ''})
+                  </span>
+                )}
               </p>
             </div>
           )}

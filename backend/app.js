@@ -67,8 +67,8 @@ if (process.env.NODE_ENV === 'development') {
 app.use('/api', globalLimiter);
 
 // Parser le body des requêtes
-app.use(express.json({ limit: '10kb' })); // Limite la taille du body
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(express.json({ limit: '10mb' })); // Limite la taille du body pour les uploads
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
 // Servir les fichiers statiques

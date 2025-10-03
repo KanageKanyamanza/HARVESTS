@@ -37,7 +37,7 @@ const AdminUsers = () => {
       setLoading(true);
       const params = {
         page: currentPage,
-        limit: 10,
+        limit: 50, // Augmenté pour voir plus d'utilisateurs
         search: searchTerm,
         role: roleFilter,
         status: statusFilter

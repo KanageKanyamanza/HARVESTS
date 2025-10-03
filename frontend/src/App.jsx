@@ -40,6 +40,9 @@ const ProductDetail = React.lazy(() => import('./pages/ProductDetail'));
 const Categories = React.lazy(() => import('./pages/Categories'));
 const Producers = React.lazy(() => import('./pages/Producers'));
 const ProducerProfile = React.lazy(() => import('./pages/ProducerProfile'));
+const Vendeurs = React.lazy(() => import('./pages/Vendeurs'));
+const Transformers = React.lazy(() => import('./pages/Transformers'));
+const TransformerProfile = React.lazy(() => import('./pages/TransformerProfile'));
 const CartPage = React.lazy(() => import('./pages/Cart'));
 const LoyaltyProgram = React.lazy(() => import('./pages/LoyaltyProgram'));
 
@@ -79,6 +82,20 @@ const Documents = React.lazy(() => import('./pages/dashboard/producer/Documents'
 
 // Transformer Dashboard
 const TransformerDashboard = React.lazy(() => import('./pages/dashboard/transformer/TransformerDashboard'));
+
+// Transformer Pages
+const OrdersList = React.lazy(() => import('./pages/dashboard/transformer/orders/OrdersList'));
+const NewOrder = React.lazy(() => import('./pages/dashboard/transformer/orders/NewOrder'));
+const ProductionBatches = React.lazy(() => import('./pages/dashboard/transformer/production/ProductionBatches'));
+const NewBatch = React.lazy(() => import('./pages/dashboard/transformer/production/NewBatch'));
+const QuotesList = React.lazy(() => import('./pages/dashboard/transformer/quotes/QuotesList'));
+const EquipmentList = React.lazy(() => import('./pages/dashboard/transformer/equipment/EquipmentList'));
+const CertificationsList = React.lazy(() => import('./pages/dashboard/transformer/certifications/CertificationsList'));
+const BusinessAnalytics = React.lazy(() => import('./pages/dashboard/transformer/analytics/BusinessAnalytics'));
+const ProfileSettings = React.lazy(() => import('./pages/dashboard/transformer/settings/ProfileSettings'));
+const QualityControl = React.lazy(() => import('./pages/dashboard/transformer/quality/QualityControl'));
+const Settings = React.lazy(() => import('./pages/dashboard/transformer/settings/Settings'));
+const ShopManagement = React.lazy(() => import('./pages/dashboard/transformer/shop/ShopManagement'));
 
 // Consumer Dashboard  
 const ConsumerDashboard = React.lazy(() => import('./pages/dashboard/consumer/ConsumerDashboard'));
@@ -125,12 +142,9 @@ const queryClient = new QueryClient({
 
 // Composant pour les routes protégées
 const ProtectedRoute = ({ children, requiredAuth = true, requiredVerification = false }) => {
-  const { isAuthenticated, isEmailVerified, isLoading } = useAuth();
+  const { isAuthenticated, isEmailVerified } = useAuth();
 
   // Ne plus afficher de loader global - laisser les pages gérer leur propre état
-  if (isLoading) {
-    return null; // Retourner null pour éviter tout affichage pendant le chargement
-  }
 
   if (requiredAuth && !isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -150,12 +164,9 @@ const PublicRoute = ({ children }) => {
 
 // Composant pour les routes d'authentification (redirection si déjà connecté)
 const AuthRoute = ({ children, useLayout = true }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   // Ne plus afficher de loader global - laisser les pages gérer leur propre état
-  if (isLoading) {
-    return null; // Retourner null pour éviter tout affichage pendant le chargement
-  }
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
@@ -247,6 +258,31 @@ function App() {
                     </Layout>
                   </PublicRoute>
                 } />
+
+                {/* Page Vendeurs (Producteurs + Transformateurs) */}
+                <Route path="/vendeurs" element={
+                  <PublicRoute>
+                    <Layout>
+                      <Vendeurs />
+                    </Layout>
+                  </PublicRoute>
+                } />
+                
+                <Route path="/transformers" element={
+                  <PublicRoute>
+                    <Layout>
+                      <Transformers />
+                    </Layout>
+                  </PublicRoute>
+                } />
+                
+                <Route path="/transformers/:id" element={
+                  <PublicRoute>
+                    <Layout>
+                      <TransformerProfile />
+                    </Layout>
+                  </PublicRoute>
+                } />
                 
                 <Route path="/loyalty" element={
                   <PublicRoute>
@@ -333,6 +369,88 @@ function App() {
                     <TransformerDashboard />
                   </ProtectedRoute>
                 } />
+
+                {/* Transformer Orders Routes */}
+                <Route path="/transformer/orders" element={
+                  <ProtectedRoute>
+                    <OrdersList />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/transformer/orders/new" element={
+                  <ProtectedRoute>
+                    <NewOrder />
+                  </ProtectedRoute>
+                } />
+
+                {/* Transformer Production Routes */}
+                <Route path="/transformer/production/batches" element={
+                  <ProtectedRoute>
+                    <ProductionBatches />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/transformer/production/batches/new" element={
+                  <ProtectedRoute>
+                    <NewBatch />
+                  </ProtectedRoute>
+                } />
+
+                {/* Transformer Quotes Routes */}
+                <Route path="/transformer/quotes" element={
+                  <ProtectedRoute>
+                    <QuotesList />
+                  </ProtectedRoute>
+                } />
+
+                {/* Transformer Equipment Routes */}
+                <Route path="/transformer/equipment" element={
+                  <ProtectedRoute>
+                    <EquipmentList />
+                  </ProtectedRoute>
+                } />
+
+                {/* Transformer Certifications Routes */}
+                <Route path="/transformer/certifications" element={
+                  <ProtectedRoute>
+                    <CertificationsList />
+                  </ProtectedRoute>
+                } />
+
+                {/* Transformer Analytics Routes */}
+                <Route path="/transformer/analytics/business" element={
+                  <ProtectedRoute>
+                    <BusinessAnalytics />
+                  </ProtectedRoute>
+                } />
+
+                {/* Transformer Settings Routes */}
+                <Route path="/transformer/profile" element={
+                  <ProtectedRoute>
+                    <ProfileSettings />
+                  </ProtectedRoute>
+                } />
+
+                {/* Transformer Quality Control Routes */}
+                <Route path="/transformer/quality-control" element={
+                  <ProtectedRoute>
+                    <QualityControl />
+                  </ProtectedRoute>
+                } />
+
+         {/* Transformer Settings Routes */}
+         <Route path="/transformer/settings" element={
+           <ProtectedRoute>
+             <Settings />
+           </ProtectedRoute>
+         } />
+
+         {/* Transformer Shop Routes */}
+         <Route path="/transformer/shop" element={
+           <ProtectedRoute>
+             <ShopManagement />
+           </ProtectedRoute>
+         } />
                 
                 <Route path="/producer/products" element={
                   <ProtectedRoute>

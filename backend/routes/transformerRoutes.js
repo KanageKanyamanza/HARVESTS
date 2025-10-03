@@ -1,6 +1,7 @@
 const express = require('express');
 const transformerController = require('../controllers/transformerController');
 const authController = require('../controllers/authController');
+const uploadController = require('../controllers/uploadController');
 const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
 
 const router = express.Router();
@@ -11,6 +12,7 @@ router.get('/search', transformerController.searchTransformers);
 router.get('/by-region/:region', transformerController.getTransformersByRegion);
 router.get('/by-type/:type', transformerController.getTransformersByType);
 router.get('/:id', transformerController.getTransformer);
+router.get('/:id/public', transformerController.getPublicTransformer);
 router.get('/:id/services', transformerController.getTransformerServices);
 router.get('/:id/reviews', transformerController.getTransformerReviews);
 
@@ -233,6 +235,28 @@ router.route('/me/documents')
     fileSizeValidation(10 * 1024 * 1024), // 10MB
     transformerController.addDocument
   );
+
+// Gestion de boutique
+router.route('/me/shop-info')
+  .get(transformerController.getMyShopInfo)
+  .patch(transformerController.updateMyShopInfo);
+
+router.patch('/me/shop-info/activate', transformerController.activateShop);
+router.patch('/me/shop-info/deactivate', transformerController.deactivateShop);
+
+router.post('/me/shop-info/banner',
+  uploadLimiter,
+  uploadController.uploadTransformerShopBanner,
+  uploadController.processTransformerShopBanner,
+  transformerController.uploadShopBanner
+);
+
+router.post('/me/shop-info/logo',
+  uploadLimiter,
+  uploadController.uploadTransformerShopLogo,
+  uploadController.processTransformerShopLogo,
+  transformerController.uploadShopLogo
+);
 
 // Notifications et alertes
 router.route('/me/notifications')

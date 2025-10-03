@@ -25,6 +25,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
+import NotificationDropdown from '../notifications/NotificationDropdown';
 
 const AdminLayout = ({ children }) => {
   const { user, logout } = useAuth();
@@ -241,12 +242,7 @@ const AdminLayout = ({ children }) => {
             </div>
             <div className="ml-4 flex items-center md:ml-6">
               {/* Notifications */}
-              <button
-                type="button"
-                className="bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-              >
-                <Bell className="h-6 w-6" />
-              </button>
+              <NotificationDropdown />
 
               {/* Profile dropdown */}
               <div className="ml-3 relative">

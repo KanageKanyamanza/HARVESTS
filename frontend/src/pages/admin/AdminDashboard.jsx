@@ -22,7 +22,8 @@ import {
   ArrowRight,
   Activity,
   Globe,
-  Truck
+  Truck,
+  Hammer
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -38,6 +39,8 @@ const AdminDashboard = () => {
     totalProducers: 0,
     totalConsumers: 0,
     totalTransporters: 0,
+    totalRestaurateurs: 0,
+    totalExportateurs: 0,
     pendingProducts: 0,
     pendingReviews: 0,
     unreadMessages: 0,
@@ -87,6 +90,8 @@ const AdminDashboard = () => {
           totalProducers: statsData.totalProducers || 0,
           totalConsumers: statsData.totalConsumers || 0,
           totalTransporters: statsData.totalTransporters || 0,
+          totalRestaurateurs: statsData.totalRestaurateurs || 0,
+          totalExportateurs: statsData.totalExportateurs || 0,
           pendingProducts: statsData.pendingProducts || 0,
           pendingReviews: statsData.pendingReviews || 0,
           unreadMessages: statsData.unreadMessages || 0,
@@ -134,6 +139,8 @@ const AdminDashboard = () => {
         totalProducers: 0,
         totalConsumers: 0,
         totalTransporters: 0,
+        totalRestaurateurs: 0,
+        totalExportateurs: 0,
         pendingProducts: 0,
         pendingReviews: 0,
         unreadMessages: 0,
@@ -189,28 +196,56 @@ const AdminDashboard = () => {
       value: stats.totalProducers.toLocaleString(),
       icon: Globe,
       color: 'text-green-600',
-      bgColor: 'bg-green-50'
+      bgColor: 'bg-green-50',
+      description: 'Agriculteurs et éleveurs'
     },
     {
       title: 'Consommateurs',
       value: stats.totalConsumers.toLocaleString(),
       icon: Users,
       color: 'text-blue-600',
-      bgColor: 'bg-blue-50'
+      bgColor: 'bg-blue-50',
+      description: 'Acheteurs finaux'
+    },
+    {
+      title: 'Transformateurs',
+      value: (stats.totalUsers - stats.totalProducers - stats.totalConsumers - stats.totalTransporters).toLocaleString(),
+      icon: Activity,
+      color: 'text-orange-600',
+      bgColor: 'bg-orange-50',
+      description: 'Entreprises de transformation'
+    },
+    {
+      title: 'Restaurateurs',
+      value: (stats.totalRestaurateurs || 0).toLocaleString(),
+      icon: Star,
+      color: 'text-yellow-600',
+      bgColor: 'bg-yellow-50',
+      description: 'Restaurants et cafés'
+    },
+    {
+      title: 'Exportateurs',
+      value: (stats.totalExportateurs || 0).toLocaleString(),
+      icon: TrendingUp,
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-50',
+      description: 'Entreprises d\'exportation'
     },
     {
       title: 'Transporteurs',
       value: stats.totalTransporters.toLocaleString(),
       icon: Truck,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50'
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+      description: 'Services de livraison'
     },
     {
       title: 'Admins actifs',
       value: stats.activeAdmins.toLocaleString(),
       icon: Shield,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50'
+      color: 'text-red-600',
+      bgColor: 'bg-red-50',
+      description: 'Administrateurs'
     }
   ];
 
@@ -319,9 +354,12 @@ const AdminDashboard = () => {
                   <div key={index} className={`p-4 rounded-lg ${stat.bgColor}`}>
                     <div className="flex items-center">
                       <stat.icon className={`w-5 h-5 ${stat.color}`} />
-                      <div className="ml-3">
+                      <div className="ml-3 flex-1">
                         <p className="text-sm font-medium text-gray-600">{stat.title}</p>
                         <p className={`text-xl font-bold ${stat.color}`}>{stat.value}</p>
+                        {stat.description && (
+                          <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
+                        )}
                       </div>
                     </div>
                   </div>

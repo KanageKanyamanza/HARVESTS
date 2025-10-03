@@ -25,7 +25,7 @@ class NotificationService {
           category: notif.category,
           type: notif.type,
           timestamp: notif.createdAt,
-          read: !!notif.readAt,
+          read: !!notif.readAt || !!notif.isRead,
           data: notif.data,
           actions: notif.actions,
           priority: notif.priority

@@ -140,12 +140,25 @@ const transformerService = {
   getComplianceReports: () => api.get('/transformers/me/compliance-reports'),
   generateComplianceReport: (data) => api.post('/transformers/me/compliance-reports', data),
 
+  // Gestion de boutique
+  getMyShopInfo: () => api.get('/transformers/me/shop-info'),
+  updateMyShopInfo: (data) => api.patch('/transformers/me/shop-info', data),
+  activateShop: () => api.patch('/transformers/me/shop-info/activate'),
+  deactivateShop: () => api.patch('/transformers/me/shop-info/deactivate'),
+  uploadShopBanner: (formData) => api.post('/transformers/me/shop-info/banner', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  uploadShopLogo: (formData) => api.post('/transformers/me/shop-info/logo', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+
   // Routes publiques pour recherche
   getAllTransformers: (params) => api.get('/transformers', { params }),
   searchTransformers: (params) => api.get('/transformers/search', { params }),
   getTransformersByRegion: (region) => api.get(`/transformers/by-region/${region}`),
   getTransformersByType: (type) => api.get(`/transformers/by-type/${type}`),
   getTransformer: (id) => api.get(`/transformers/${id}`),
+  getPublicTransformer: (id) => api.get(`/transformers/${id}/public`),
   getTransformerServices: (id) => api.get(`/transformers/${id}/services`),
   getTransformerReviews: (id) => api.get(`/transformers/${id}/reviews`)
 };

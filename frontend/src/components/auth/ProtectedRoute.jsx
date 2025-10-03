@@ -28,10 +28,7 @@ const ProtectedRoute = ({
   const { userType } = useUserType();
   const location = useLocation();
 
-  // Ne plus afficher de loader global - laisser les pages gérer leur propre état
-  if (isLoading) {
-    return null; // Retourner null pour éviter tout affichage pendant le chargement
-  }
+  // Ne plus afficher de loader - laisser les pages gérer leur propre état de chargement
 
   // Rediriger si non authentifié
   if (!isAuthenticated) {
