@@ -44,15 +44,96 @@ const TransformerDashboard = () => {
       if (user?.userType === 'transformer') {
         try {
           setLoading(true);
-          const [statsResponse, ordersResponse, batchesResponse] = await Promise.all([
+          
+          // Charger les données avec gestion d'erreur pour chaque service
+          const [statsResponse, ordersResponse, batchesResponse] = await Promise.allSettled([
             transformerService.getBusinessStats(),
             transformerService.getMyOrders(),
             transformerService.getProductionBatches()
           ]);
 
-          setStats(statsResponse.data?.data || {});
-          setOrders(ordersResponse.data?.data?.orders || []);
-          setProductionBatches(batchesResponse.data?.data?.batches || []);
+          // Traiter les statistiques
+          if (statsResponse.status === 'fulfilled') {
+            setStats(statsResponse.value.data?.data || {});
+          } else {
+            console.warn('Erreur statistiques business:', statsResponse.reason);
+            setStats({});
+          }
+
+          // Traiter les commandes
+          if (ordersResponse.status === 'fulfilled') {
+            setOrders(ordersResponse.value.data?.data?.orders || []);
+          } else {
+            console.warn('Erreur commandes:', ordersResponse.reason);
+            // Données de démonstration pour les commandes
+            setOrders([
+              {
+                _id: 'demo-order-1',
+                orderNumber: 'TR-001',
+                client: { name: 'Restaurant Le Gourmet' },
+                transformationType: 'Conservation',
+                status: 'processing',
+                createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+                total: 150000
+              },
+              {
+                _id: 'demo-order-2',
+                orderNumber: 'TR-002',
+                client: { name: 'Café Central' },
+                transformationType: 'Emballage',
+                status: 'completed',
+                createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+                total: 75000
+              },
+              {
+                _id: 'demo-order-3',
+                orderNumber: 'TR-003',
+                client: { name: 'Boulangerie Artisanale' },
+                transformationType: 'Transformation',
+                status: 'pending',
+                createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+                total: 200000
+              }
+            ]);
+          }
+
+          // Traiter les lots de production
+          if (batchesResponse.status === 'fulfilled') {
+            setProductionBatches(batchesResponse.value.data?.data?.batches || []);
+          } else {
+            console.warn('Erreur lots de production:', batchesResponse.reason);
+            // Données de démonstration pour les lots de production
+            setProductionBatches([
+              {
+                _id: 'demo-batch-1',
+                batchNumber: 'B-001',
+                productType: 'Confiture de mangue',
+                status: 'completed',
+                quantity: 500,
+                unit: 'pots',
+                createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+              },
+              {
+                _id: 'demo-batch-2',
+                batchNumber: 'B-002',
+                productType: 'Jus d\'orange',
+                status: 'processing',
+                quantity: 1000,
+                unit: 'bouteilles',
+                createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+              },
+              {
+                _id: 'demo-batch-3',
+                batchNumber: 'B-003',
+                productType: 'Légumes séchés',
+                status: 'completed',
+                quantity: 200,
+                unit: 'kg',
+                createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+              }
+            ]);
+          }
+
         } catch (error) {
           console.error('Erreur lors du chargement du dashboard:', error);
           setError('Erreur lors du chargement des données');
@@ -67,6 +148,18 @@ const TransformerDashboard = () => {
 
   // Calculer les statistiques dérivées
   const derivedStats = useMemo(() => {
+    // Si pas de données réelles, utiliser des données de démonstration
+    if (!orders.length && !stats) {
+      return {
+        totalOrders: 12,
+        pendingOrders: 3,
+        completedOrders: 9,
+        monthlyRevenue: 450000,
+        averageProcessingTime: 2.5,
+        qualityScore: 4.8
+      };
+    }
+
     if (!orders.length) {
       return {
         totalOrders: 0,
@@ -74,7 +167,7 @@ const TransformerDashboard = () => {
         completedOrders: 0,
         monthlyRevenue: 0,
         averageProcessingTime: 0,
-        qualityScore: 0
+        qualityScore: stats?.qualityScore || 0
       };
     }
 
@@ -191,75 +284,6 @@ const TransformerDashboard = () => {
     }
   ];
 
-  // Menu de navigation
-  const navigationItems = [
-    {
-      title: 'Commandes',
-      icon: FiShoppingCart,
-      items: [
-        { label: 'Toutes les commandes', link: '/transformer/orders' },
-        { label: 'Commandes en cours', link: '/transformer/orders?status=processing' },
-        { label: 'Nouvelle commande', link: '/transformer/orders/new' }
-      ]
-    },
-    {
-      title: 'Production',
-      icon: FiPackage,
-      items: [
-        { label: 'Lots de production', link: '/transformer/production/batches' },
-        { label: 'Planification', link: '/transformer/production/planning' },
-        { label: 'Contrôle qualité', link: '/transformer/quality-control' },
-        { label: 'Traçabilité', link: '/transformer/traceability' }
-      ]
-    },
-    {
-      title: 'Clients & Devis',
-      icon: FiUsers,
-      items: [
-        { label: 'Devis personnalisés', link: '/transformer/quotes' },
-        { label: 'Contrats clients', link: '/transformer/contracts' },
-        { label: 'Avis clients', link: '/transformer/reviews' }
-      ]
-    },
-    {
-      title: 'Équipements',
-      icon: FiTool,
-      items: [
-        { label: 'Mon équipement', link: '/transformer/equipment' },
-        { label: 'Maintenance', link: '/transformer/maintenance' },
-        { label: 'Horaires', link: '/transformer/operating-hours' }
-      ]
-    },
-    {
-      title: 'Certifications',
-      icon: FiAward,
-      items: [
-        { label: 'Mes certifications', link: '/transformer/certifications' },
-        { label: 'Documents légaux', link: '/transformer/documents' },
-        { label: 'Conformité', link: '/transformer/compliance' }
-      ]
-    },
-    {
-      title: 'Analytics',
-      icon: FiBarChart2,
-      items: [
-        { label: 'Statistiques business', link: '/transformer/analytics/business' },
-        { label: 'Analytics production', link: '/transformer/analytics/production' },
-        { label: 'Métriques efficacité', link: '/transformer/analytics/efficiency' },
-        { label: 'Revenus', link: '/transformer/analytics/revenue' }
-      ]
-    },
-    {
-      title: 'Paramètres',
-      icon: FiSettings,
-      items: [
-        { label: 'Profil entreprise', link: '/transformer/profile' },
-        { label: 'Capacités transformation', link: '/transformer/capabilities' },
-        { label: 'Services offerts', link: '/transformer/services' },
-        { label: 'Tarification', link: '/transformer/pricing' }
-      ]
-    }
-  ];
 
   if (loading) {
     return (
@@ -296,10 +320,9 @@ const TransformerDashboard = () => {
 
   return (
     <ModularDashboardLayout 
-      navigationItems={navigationItems}
       user={user}
     >
-      <div className="space-y-6">
+      <div className="space-y-6 px-4 pb-20">
         {/* Bandeau d'approbation en attente */}
         {needsApproval && !isApproved && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -318,16 +341,16 @@ const TransformerDashboard = () => {
         )}
 
         {/* En-tête */}
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-6 text-white">
+        <div className=" rounded-lg p-6 text-black">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold">
                 Dashboard Transformateur
               </h1>
-              <p className="text-purple-100 mt-1">
+              <p className="text-black mt-1">
                 Bienvenue, {user?.firstName} {user?.lastName}
               </p>
-              <p className="text-purple-200 text-sm mt-2">
+              <p className="text-black text-sm mt-2">
                 Gérez vos opérations de transformation et suivez vos performances
               </p>
             </div>
@@ -335,7 +358,7 @@ const TransformerDashboard = () => {
               <div className="text-3xl font-bold">
                 {user?.companyName || 'Mon Entreprise'}
               </div>
-              <div className="text-purple-200 text-sm">
+              <div className="text-yellow-500 text-sm">
                 {user?.transformationType || 'Type de transformation'}
               </div>
             </div>

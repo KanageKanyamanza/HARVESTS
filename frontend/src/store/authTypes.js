@@ -5,7 +5,7 @@ export const initialState = {
   user: null,
   token: null,
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: false,
   error: null,
   lastActivity: null,
   tokenExpiry: null,

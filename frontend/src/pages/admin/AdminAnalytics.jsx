@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 
 import { adminService } from '../../services/adminService';
+import UserRegistrationsChart from '../../components/admin/UserRegistrationsChart';
+import RevenueTrendsChart from '../../components/admin/RevenueTrendsChart';
 
 const AdminAnalytics = () => {
   const [analytics, setAnalytics] = useState({
@@ -258,12 +260,7 @@ const AdminAnalytics = () => {
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               Inscriptions d'utilisateurs
             </h3>
-            <div className="h-64 flex items-center justify-center text-gray-500">
-              <div className="text-center">
-                <BarChart3 className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                <p>Graphique des inscriptions en cours de développement</p>
-              </div>
-            </div>
+            <UserRegistrationsChart data={analytics.charts?.userRegistrations || []} />
           </div>
 
           {/* Revenue Trends Chart */}
@@ -271,12 +268,7 @@ const AdminAnalytics = () => {
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               Tendances du chiffre d'affaires
             </h3>
-            <div className="h-64 flex items-center justify-center text-gray-500">
-              <div className="text-center">
-                <TrendingUp className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                <p>Graphique des inscriptions en cours de développement</p>
-              </div>
-            </div>
+            <RevenueTrendsChart data={analytics.charts?.revenueTrends || []} />
           </div>
         </div>
 
@@ -289,34 +281,43 @@ const AdminAnalytics = () => {
                 Top Producteurs
               </h3>
               <div className="mt-5">
-                <div className="flow-root">
-                  <ul className="-my-5 divide-y divide-gray-200">
-                    {(analytics.charts?.topProducers || []).map((producer, index) => (
-                      <li key={producer._id} className="py-4">
-                        <div className="flex items-center space-x-4">
-                          <div className="flex-shrink-0">
-                            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                              <span className="text-sm font-medium text-gray-600">
-                                {producer.farmName?.charAt(0) || producer.firstName?.charAt(0)}
-                              </span>
+                {(analytics.charts?.topProducers || []).length > 0 ? (
+                  <div className="flow-root">
+                    <ul className="-my-5 divide-y divide-gray-200">
+                      {analytics.charts.topProducers.map((producer, index) => (
+                        <li key={producer._id} className="py-4">
+                          <div className="flex items-center space-x-4">
+                            <div className="flex-shrink-0">
+                              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                <span className="text-sm font-medium text-gray-600">
+                                  {producer.producerName?.charAt(0) || producer.farmName?.charAt(0) || 'P'}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {producer.producerName || producer.farmName || 'Producteur'}
+                              </p>
+                              <p className="text-sm text-gray-500 truncate">
+                                {formatPrice(producer.totalSales || 0)} • {producer.orderCount || 0} commandes
+                              </p>
+                            </div>
+                            <div className="flex-shrink-0 text-sm text-gray-500">
+                              #{index + 1}
                             </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              {producer.farmName || `${producer.firstName} ${producer.lastName}`}
-                            </p>
-                            <p className="text-sm text-gray-500 truncate">
-                              {producer.address?.city}
-                            </p>
-                          </div>
-                          <div className="flex-shrink-0 text-sm text-gray-500">
-                            #{index + 1}
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="text-gray-400 mb-2">
+                      <Users className="h-12 w-12 mx-auto" />
+                    </div>
+                    <p className="text-gray-500">Aucun producteur avec des ventes</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -328,32 +329,41 @@ const AdminAnalytics = () => {
                 Top Produits
               </h3>
               <div className="mt-5">
-                <div className="flow-root">
-                  <ul className="-my-5 divide-y divide-gray-200">
-                    {(analytics.charts?.topProducts || []).map((product, index) => (
-                      <li key={product._id} className="py-4">
-                        <div className="flex items-center space-x-4">
-                          <div className="flex-shrink-0">
-                            <div className="h-10 w-10 rounded-lg bg-gray-200 flex items-center justify-center">
-                              <Package className="h-5 w-5 text-gray-400" />
+                {(analytics.charts?.topProducts || []).length > 0 ? (
+                  <div className="flow-root">
+                    <ul className="-my-5 divide-y divide-gray-200">
+                      {analytics.charts.topProducts.map((product, index) => (
+                        <li key={product._id} className="py-4">
+                          <div className="flex items-center space-x-4">
+                            <div className="flex-shrink-0">
+                              <div className="h-10 w-10 rounded-lg bg-gray-200 flex items-center justify-center">
+                                <Package className="h-5 w-5 text-gray-400" />
+                              </div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {product.name?.fr || product.name?.en || product.name || 'Produit'}
+                              </p>
+                              <p className="text-sm text-gray-500 truncate">
+                                {formatPrice(product.price || 0)} • {product.sales || 0} ventes
+                              </p>
+                            </div>
+                            <div className="flex-shrink-0 text-sm text-gray-500">
+                              #{index + 1}
                             </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              {product.name}
-                            </p>
-                            <p className="text-sm text-gray-500 truncate">
-                              {formatPrice(product.price)}
-                            </p>
-                          </div>
-                          <div className="flex-shrink-0 text-sm text-gray-500">
-                            #{index + 1}
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="text-gray-400 mb-2">
+                      <Package className="h-12 w-12 mx-auto" />
+                    </div>
+                    <p className="text-gray-500">Aucun produit avec des ventes</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

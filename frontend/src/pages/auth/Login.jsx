@@ -84,7 +84,7 @@ const Login = () => {
           setErrors({ submit: result.error });
         }
       }
-    } catch (error) {
+    } catch {
       setErrors({ submit: 'Erreur de connexion' });
     } finally {
       setIsSubmitting(false);
@@ -237,7 +237,10 @@ const Login = () => {
                   className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-full transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span className="ml-2">Connexion en cours...</span>
+                    </>
                   ) : (
                     "Se connecter"
                   )}

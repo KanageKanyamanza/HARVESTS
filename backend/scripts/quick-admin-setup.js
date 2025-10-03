@@ -43,18 +43,40 @@ const createFirstSuperAdmin = async () => {
 
     console.log('🚀 Création du premier super-administrateur...\n');
 
-    // Données par défaut pour le premier super-admin
-    const superAdminData = {
-      firstName: 'Roll Revhieno ',
-      lastName: 'Haurly',
-      email: 'admin@harvests.com',
-      password: 'Admin@harvests123!',
-      role: 'super-admin',
-      department: 'technical',
-      permissions: ['all'],
-      isEmailVerified: true,
-      isActive: true
-    };
+    // Configuration selon l'environnement
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    let superAdminData;
+    
+    if (isProduction) {
+      // Configuration pour la production
+      superAdminData = {
+        firstName: process.env.ADMIN_FIRST_NAME || 'Admin',
+        lastName: process.env.ADMIN_LAST_NAME || 'Harvests',
+        email: process.env.ADMIN_EMAIL || 'admin@harvests.sn',
+        password: process.env.ADMIN_PASSWORD || 'Admin@Harvests2025!',
+        role: 'super-admin',
+        department: 'technical',
+        permissions: ['all'],
+        isEmailVerified: true,
+        isActive: true
+      };
+      console.log('🌐 Mode PRODUCTION détecté - Configuration via variables d\'environnement');
+    } else {
+      // Configuration pour le développement
+      superAdminData = {
+        firstName: 'Roll Revhieno ',
+        lastName: 'Haurly',
+        email: 'admin@harvests.com',
+        password: 'Admin@harvests123!',
+        role: 'super-admin',
+        department: 'technical',
+        permissions: ['all'],
+        isEmailVerified: true,
+        isActive: true
+      };
+      console.log('🛠️ Mode DÉVELOPPEMENT détecté - Configuration par défaut');
+    }
 
     const superAdmin = await Admin.create(superAdminData);
 
@@ -173,5 +195,32 @@ const main = async () => {
   }
 };
 
+// Fonction pour créer automatiquement un admin en production
+const createAdminIfNeeded = async () => {
+  try {
+    // Vérifier si on est en production et qu'aucun admin n'existe
+    if (process.env.NODE_ENV === 'production') {
+      await connectDB();
+      
+      const adminCount = await Admin.countDocuments();
+      if (adminCount === 0) {
+        console.log('🚀 Production: Création automatique du premier admin...');
+        await createFirstSuperAdmin();
+        console.log('✅ Premier admin créé automatiquement en production');
+      }
+      
+      await mongoose.connection.close();
+    }
+  } catch (error) {
+    console.error('❌ Erreur lors de la création automatique de l\'admin:', error.message);
+  }
+};
+
 // Exécuter le script
-main();
+if (process.argv.includes('--auto-create')) {
+  // Mode automatique (pour le démarrage de l'application)
+  createAdminIfNeeded();
+} else {
+  // Mode manuel (interactif)
+  main();
+}

@@ -10,8 +10,8 @@ const {
 } = require('../config/cloudinary');
 
 // Configuration Multer pour Cloudinary
-const createUploadMiddleware = (contentType, category = null, fieldName = 'image', maxFiles = 1) => {
-  const storage = createDynamicStorage('producer', contentType, category);
+const createUploadMiddleware = (userType, contentType, category = null, fieldName = 'image', maxFiles = 1) => {
+  const storage = createDynamicStorage(userType, contentType, category);
   
   const upload = multer({
     storage: storage,
@@ -36,16 +36,22 @@ const createUploadMiddleware = (contentType, category = null, fieldName = 'image
 };
 
 // Middleware d'upload pour avatar
-exports.uploadAvatar = createUploadMiddleware('profile', null, 'avatar', 1);
+exports.uploadAvatar = createUploadMiddleware('producer', 'profile', null, 'avatar', 1);
 
-// Middleware d'upload pour bannière de boutique
-exports.uploadShopBanner = createUploadMiddleware('marketing', null, 'shopBanner', 1);
+// Middleware d'upload pour bannière de boutique (producteurs)
+exports.uploadShopBanner = createUploadMiddleware('producer', 'marketing', null, 'image', 1);
 
-// Middleware d'upload pour logo de boutique
-exports.uploadShopLogo = createUploadMiddleware('profile', null, 'shopLogo', 1);
+// Middleware d'upload pour logo de boutique (producteurs)
+exports.uploadShopLogo = createUploadMiddleware('producer', 'profile', null, 'image', 1);
+
+// Middleware d'upload pour bannière de boutique (transformateurs)
+exports.uploadTransformerShopBanner = createUploadMiddleware('transformer', 'marketing', null, 'image', 1);
+
+// Middleware d'upload pour logo de boutique (transformateurs)
+exports.uploadTransformerShopLogo = createUploadMiddleware('transformer', 'profile', null, 'image', 1);
 
 // Middleware d'upload multiple pour images de produits
-exports.uploadProductImages = createUploadMiddleware('product', 'cereals', 'images', 10);
+exports.uploadProductImages = createUploadMiddleware('producer', 'product', 'cereals', 'images', 10);
 
 // Traiter l'avatar uploadé avec Cloudinary
 exports.processAvatar = catchAsync(async (req, res, next) => {
@@ -70,6 +76,26 @@ exports.processShopBanner = catchAsync(async (req, res, next) => {
 
 // Traiter le logo de boutique uploadé avec Cloudinary
 exports.processShopLogo = catchAsync(async (req, res, next) => {
+  if (!req.file) return next();
+
+  // Cloudinary retourne déjà l'URL optimisée dans req.file.path
+  req.body.shopLogo = req.file.path;
+
+  next();
+});
+
+// Traiter la bannière de boutique transformateur uploadée avec Cloudinary
+exports.processTransformerShopBanner = catchAsync(async (req, res, next) => {
+  if (!req.file) return next();
+
+  // Cloudinary retourne déjà l'URL optimisée dans req.file.path
+  req.body.shopBanner = req.file.path;
+
+  next();
+});
+
+// Traiter le logo de boutique transformateur uploadé avec Cloudinary
+exports.processTransformerShopLogo = catchAsync(async (req, res, next) => {
   if (!req.file) return next();
 
   // Cloudinary retourne déjà l'URL optimisée dans req.file.path

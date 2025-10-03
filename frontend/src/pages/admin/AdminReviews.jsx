@@ -271,7 +271,7 @@ const AdminReviews = () => {
                       <div className="flex-1">
                         <div className="flex items-center space-x-2">
                           <h3 className="text-sm font-medium text-gray-900">
-                            {review.reviewer.firstName} {review.reviewer.lastName}
+                            {review.reviewer?.firstName || 'N/A'} {review.reviewer?.lastName || ''}
                           </h3>
                           <div className="flex items-center">
                             {renderStars(review.rating)}
@@ -281,7 +281,7 @@ const AdminReviews = () => {
                           </span>
                         </div>
                         <p className="text-sm text-gray-600 mt-1">
-                          Sur: {review.product.name} par {review.product.producer.firstName} {review.product.producer.lastName}
+                          Sur: {review.product?.name?.fr || review.product?.name?.en || 'Produit'} par {review.producer?.firstName || 'N/A'} {review.producer?.lastName || ''}
                         </p>
                         <p className="text-sm font-medium text-gray-900 mt-1">
                           {review.title}

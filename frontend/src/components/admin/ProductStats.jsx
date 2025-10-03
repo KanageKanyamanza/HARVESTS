@@ -45,7 +45,7 @@ const ProductStats = ({ data = {} }) => {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ category, count }) => `${category}: ${count}`}
+                    label={({ _id, count }) => `${_id}: ${count}`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="count"
@@ -76,7 +76,7 @@ const ProductStats = ({ data = {} }) => {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ status, count }) => `${status}: ${count}`}
+                    label={({ _id, count }) => `${_id}: ${count}`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="count"

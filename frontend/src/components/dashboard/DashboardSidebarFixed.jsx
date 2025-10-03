@@ -22,7 +22,8 @@ import {
   FiPlus,
   FiTruck,
   FiAward,
-  FiFileText
+  FiFileText,
+  FiGlobe
 } from 'react-icons/fi';
 import { FaChartBar } from 'react-icons/fa';
 
@@ -88,6 +89,7 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse, 
         { name: 'Devis', href: '/transformer/quotes', icon: FiFileText },
         { name: 'Équipements', href: '/transformer/equipment', icon: FiTruck },
         { name: 'Certifications', href: '/transformer/certifications', icon: FiAward },
+        { name: 'Boutique', href: '/transformer/shop', icon: FiGlobe },
         { name: 'Analytics', href: '/transformer/analytics/business', icon: FaChartBar },
         { name: 'Profil', href: '/transformer/profile', icon: FiUser },
         { name: 'Paramètres', href: '/transformer/settings', icon: FiSettings }

@@ -82,7 +82,7 @@ const Header = () => {
     { name: 'Accueil', href: '/', current: location.pathname === '/' },
     { name: 'Produits', href: '/products', current: location.pathname === '/products' },
     { name: 'Catégories', href: '/categories', current: location.pathname === '/categories' },
-    { name: 'Producteurs', href: '/producers', current: location.pathname === '/producers' },
+    { name: 'Nos Vendeurs', href: '/vendeurs', current: location.pathname === '/vendeurs' },
   ];
 
   // Navigation utilisateur connecté
