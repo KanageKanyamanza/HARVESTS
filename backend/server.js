@@ -14,15 +14,30 @@ dotenv.config();
 const app = require('./app');
 
 // Configuration de la base de données
-const DB = process.env.DATABASE ? 
-  process.env.DATABASE.replace('<PASSWORD>', process.env.DATABASE_PASSWORD) :
-  process.env.DATABASE_LOCAL || 'mongodb://localhost:27017/harvests';
+let DB;
+if (process.env.DATABASE) {
+  // Production avec mot de passe
+  DB = process.env.DATABASE.replace('<PASSWORD>', process.env.DATABASE_PASSWORD);
+} else if (process.env.DATABASE_URL) {
+  // Production directe
+  DB = process.env.DATABASE_URL;
+} else if (process.env.DATABASE_LOCAL) {
+  // Développement local
+  DB = process.env.DATABASE_LOCAL;
+} else {
+  // Fallback par défaut
+  DB = 'mongodb://localhost:27017/harvests';
+}
 
 // Connexion à MongoDB
 mongoose
   .connect(DB, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    maxPoolSize: 10,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+    family: 4 // Utiliser IPv4, ignorer IPv6
   })
   .then(async () => {
     console.log('✅ Connexion à la base de données réussie!');
