@@ -12,8 +12,31 @@ require('dotenv').config();
 // Configuration de la base de données
 const connectDB = async () => {
   try {
-    const mongoURI = process.env.DATABASE_LOCAL || process.env.DATABASE_URL || 'mongodb://localhost:27017/harvests';
-    await mongoose.connect(mongoURI);
+    // Priorité aux variables d'environnement de production
+    let mongoURI;
+    
+    if (process.env.DATABASE) {
+      // Production avec mot de passe
+      mongoURI = process.env.DATABASE.replace('<PASSWORD>', process.env.DATABASE_PASSWORD);
+    } else if (process.env.DATABASE_URL) {
+      // Production directe
+      mongoURI = process.env.DATABASE_URL;
+    } else if (process.env.DATABASE_LOCAL) {
+      // Développement local
+      mongoURI = process.env.DATABASE_LOCAL;
+    } else {
+      // Fallback par défaut
+      mongoURI = 'mongodb://localhost:27017/harvests';
+    }
+    
+    await mongoose.connect(mongoURI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      family: 4 // Utiliser IPv4, ignorer IPv6
+    });
     console.log('✅ Connexion à la base de données réussie');
   } catch (error) {
     console.error('❌ Erreur de connexion à la base de données:', error.message);
