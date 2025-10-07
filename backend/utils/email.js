@@ -2,6 +2,7 @@ const nodemailer = require('nodemailer');
 const pug = require('pug');
 const htmlToText = require('html-to-text');
 const { getTranslations } = require('../config/i18n');
+const emailjs = require('@emailjs/nodejs');
 
 module.exports = class Email {
   constructor(user, url, language = 'fr') {
@@ -43,7 +44,7 @@ module.exports = class Email {
     });
   }
 
-  // Envoyer l'email
+  // Envoyer l'email avec fallback EmailJS
   async send(template, subject) {
     // 1) Générer le HTML basé sur un template pug
     const html = pug.renderFile(`${__dirname}/../views/email/${template}.pug`, {
@@ -61,8 +62,22 @@ module.exports = class Email {
       text: htmlToText.convert(html),
     };
 
-    // 3) Créer un transport et envoyer l'email
-    await this.newTransport().sendMail(mailOptions);
+    // 3) Essayer d'envoyer avec Nodemailer d'abord
+    try {
+      await this.newTransport().sendMail(mailOptions);
+      console.log('✅ Email envoyé avec succès via Nodemailer');
+    } catch (error) {
+      console.error('❌ Erreur Nodemailer, tentative avec EmailJS:', error.message);
+      
+      // 4) Fallback avec EmailJS si Nodemailer échoue
+      try {
+        await this.sendWithEmailJS(subject, html);
+        console.log('✅ Email envoyé avec succès via EmailJS (fallback)');
+      } catch (emailjsError) {
+        console.error('❌ Erreur EmailJS également:', emailjsError.message);
+        throw new Error(`Échec envoi email: Nodemailer (${error.message}) et EmailJS (${emailjsError.message})`);
+      }
+    }
   }
 
   async sendWelcome() {
@@ -109,36 +124,73 @@ module.exports = class Email {
     }
   }
 
-  // Envoyer email de test simple
-  async sendTestEmail() {
-    try {
-      const transporter = this.newTransport();
-      
-      const testEmail = await transporter.sendMail({
-        from: this.from,
-        to: this.to,
-        subject: '🧪 Test Harvests - Nodemailer',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #2E7D32;">🌾 Test Harvests</h1>
-            <p>Bonjour ${this.firstName},</p>
-            <p>✅ <strong>Nodemailer fonctionne parfaitement !</strong></p>
-            <p>✅ Votre configuration email est opérationnelle</p>
-            <p>✅ Harvests peut envoyer des emails</p>
-            <hr>
-            <p><small>Email envoyé le ${new Date().toLocaleString('fr-FR')}</small></p>
-            <p>L'équipe Harvests 🌾</p>
-          </div>
-        `,
-        text: `Test Harvests - Nodemailer fonctionne ! Email envoyé à ${this.firstName}`
-      });
+  // Méthode EmailJS pour le fallback
+  async sendWithEmailJS(subject, html) {
+    if (!process.env.EMAILJS_SERVICE_ID || !process.env.EMAILJS_TEMPLATE_ID || !process.env.EMAILJS_PUBLIC_KEY) {
+      throw new Error('Configuration EmailJS manquante. Vérifiez EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID et EMAILJS_PUBLIC_KEY');
+    }
 
-      console.log('✅ Email de test envoyé avec succès !');
-      
+    const templateParams = {
+      to_email: this.to,
+      to_name: this.firstName,
+      from_name: 'Harvests',
+      subject: subject,
+      message: htmlToText.convert(html),
+      html_message: html,
+      reply_to: process.env.EMAIL_FROM || 'noreply@harvests.sn'
+    };
+
+    return await emailjs.send(
+      process.env.EMAILJS_SERVICE_ID,
+      process.env.EMAILJS_TEMPLATE_ID,
+      templateParams,
+      {
+        publicKey: process.env.EMAILJS_PUBLIC_KEY,
+      }
+    );
+  }
+
+  // Envoyer email de test simple avec fallback
+  async sendTestEmail() {
+    const testHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1 style="color: #2E7D32;">🌾 Test Harvests</h1>
+        <p>Bonjour ${this.firstName},</p>
+        <p>✅ <strong>Nodemailer fonctionne parfaitement !</strong></p>
+        <p>✅ Votre configuration email est opérationnelle</p>
+        <p>✅ Harvests peut envoyer des emails</p>
+        <hr>
+        <p><small>Email envoyé le ${new Date().toLocaleString('fr-FR')}</small></p>
+        <p>L'équipe Harvests 🌾</p>
+      </div>
+    `;
+
+    const mailOptions = {
+      from: this.from,
+      to: this.to,
+      subject: '🧪 Test Harvests - Nodemailer',
+      html: testHtml,
+      text: `Test Harvests - Nodemailer fonctionne ! Email envoyé à ${this.firstName}`
+    };
+
+    try {
+      // Essayer Nodemailer d'abord
+      const transporter = this.newTransport();
+      const testEmail = await transporter.sendMail(mailOptions);
+      console.log('✅ Email de test envoyé avec succès via Nodemailer !');
       return testEmail;
     } catch (error) {
-      console.error('❌ Erreur envoi email test:', error.message);
-      throw error;
+      console.error('❌ Erreur Nodemailer, test avec EmailJS:', error.message);
+      
+      try {
+        // Fallback EmailJS
+        const emailjsResult = await this.sendWithEmailJS('🧪 Test Harvests - EmailJS', testHtml);
+        console.log('✅ Email de test envoyé avec succès via EmailJS (fallback) !');
+        return emailjsResult;
+      } catch (emailjsError) {
+        console.error('❌ Erreur EmailJS également:', emailjsError.message);
+        throw new Error(`Échec test email: Nodemailer (${error.message}) et EmailJS (${emailjsError.message})`);
+      }
     }
   }
 };

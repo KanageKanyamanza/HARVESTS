@@ -83,7 +83,7 @@ const ResetPassword = () => {
   if (isSuccess) {
     return (
       <div className="flex items-center justify-center min-h-screen" style={{ backgroundImage: `url(${authbg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-        <div className="w-full flex overflow-hidden">
+        <div className="w-full flex">
           {/* Section gauche - Logo et informations */}
           <div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-center items-center text-white relative">
             <div className="relative z-10 text-center">
@@ -150,7 +150,7 @@ const ResetPassword = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen" style={{ backgroundImage: `url(${authbg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-      <div className="w-full flex overflow-hidden">
+      <div className="w-full flex">
         {/* Section gauche - Logo et informations */}
         <div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-center items-center text-white relative">
           <div className="relative z-10 text-center">
