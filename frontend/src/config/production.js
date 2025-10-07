@@ -28,8 +28,8 @@ export const PRODUCTION_CONFIG = {
   ENABLE_CSP: true,
   
   // Timeouts
-  API_TIMEOUT: 15000, // Plus long pour la production
-  UPLOAD_TIMEOUT: 30000,
+  API_TIMEOUT: 60000, // 1 minute pour la production
+  UPLOAD_TIMEOUT: 120000, // 2 minutes pour les uploads
 };
 
 // Fonction pour obtenir la configuration selon l'environnement
@@ -50,7 +50,7 @@ export const getConfig = () => {
     FRONTEND_URL: 'http://localhost:5173',
     DEBUG: true,
     LOG_LEVEL: 'debug',
-    API_TIMEOUT: 10000,
-    UPLOAD_TIMEOUT: 20000,
+    API_TIMEOUT: 60000, // 1 minute pour le développement aussi
+    UPLOAD_TIMEOUT: 120000, // 2 minutes pour les uploads
   };
 };

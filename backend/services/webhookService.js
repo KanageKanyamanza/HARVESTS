@@ -98,7 +98,7 @@ class WebhookService {
           'X-Harvests-Webhook-ID': webhook._id.toString(),
           'User-Agent': 'Harvests-Webhook/1.0'
         },
-        timeout: 30000, // 30 secondes
+        timeout: 60000, // 1 minute minimum
         validateStatus: (status) => status >= 200 && status < 300
       });
       

@@ -175,7 +175,7 @@ import { HarvestsAPI } from './api/harvests-client';
 
 const api = new HarvestsAPI({
   baseURL: 'http://localhost:8000/api/v1',
-  timeout: 10000
+  timeout: 60000 // 1 minute minimum
 });
 
 // Authentification

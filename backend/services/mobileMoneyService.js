@@ -9,6 +9,7 @@ class MobileMoneyService {
     try {
       const orangeConfig = {
         baseURL: 'https://api.orange.com/orange-money-webpay/sn/v1',
+        timeout: 60000, // 1 minute minimum
         headers: {
           'Authorization': `Bearer ${await this.getOrangeAccessToken()}`,
           'Content-Type': 'application/json'
@@ -48,6 +49,7 @@ class MobileMoneyService {
     try {
       const waveConfig = {
         baseURL: 'https://api.wave.com/v1',
+        timeout: 60000, // 1 minute minimum
         headers: {
           'Authorization': `Bearer ${process.env.WAVE_API_KEY}`,
           'Content-Type': 'application/json',
@@ -140,6 +142,7 @@ class MobileMoneyService {
     try {
       const orangeConfig = {
         baseURL: 'https://api.orange.com/orange-money-webpay/cm/v1',
+        timeout: 60000, // 1 minute minimum
         headers: {
           'Authorization': `Bearer ${await this.getOrangeAccessToken()}`,
           'Content-Type': 'application/json'
@@ -339,6 +342,7 @@ class MobileMoneyService {
     try {
       const waveConfig = {
         baseURL: 'https://api.wave.com/v1',
+        timeout: 60000, // 1 minute minimum
         headers: {
           'Authorization': `Bearer ${process.env.WAVE_API_KEY}`,
           'Content-Type': 'application/json',

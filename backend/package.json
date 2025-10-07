@@ -14,6 +14,7 @@
     "admin:start": "node scripts/start-admin-system.js"
   },
   "dependencies": {
+    "@emailjs/nodejs": "^5.0.2",
     "axios": "^1.12.2",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^2.4.3",

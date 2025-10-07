@@ -10,7 +10,7 @@ const API_BASE_URL = appConfig.API_BASE_URL;
 // Créer une instance Axios
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: appConfig.API_TIMEOUT || 12000,
+  timeout: appConfig.API_TIMEOUT || 60000, // 1 minute minimum
   headers: {
     'Content-Type': 'application/json',
   },

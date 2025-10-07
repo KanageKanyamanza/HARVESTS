@@ -17,7 +17,6 @@ const ProtectedRoute = ({
 }) => {
   const { 
     isAuthenticated, 
-    isLoading, 
     isEmailVerified, 
     isAccountApproved,
     hasPermission,
