@@ -19,15 +19,16 @@ import {
 	FiMessageCircle,
 	FiPackage,
 	FiShield,
+	FiShoppingCart,
 } from "react-icons/fi";
 
 const TransformerProfile = () => {
 	const { id } = useParams();
 	const navigate = useNavigate();
 	const [transformer, setTransformer] = useState(null);
-	const [services, setServices] = useState([]);
+	const [products, setProducts] = useState([]);
 	const [loading, setLoading] = useState(true);
-	const [activeTab, setActiveTab] = useState("services");
+	const [activeTab, setActiveTab] = useState("products");
 
 	useEffect(() => {
 		const loadTransformerData = async () => {
@@ -41,37 +42,16 @@ const TransformerProfile = () => {
 					setTransformer(transformerResponse.data.data.transformer);
 				}
 
-				// Charger les services (pour l'instant, on simule)
-				setServices([
-					{
-						_id: "service-1",
-						name: "Transformation de fruits",
-						description:
-							"Transformation de fruits frais en jus, confitures et conserves",
-						price: 5000,
-						unit: "kg",
-						processingTime: "2-3 jours",
-						category: "processing",
-					},
-					{
-						_id: "service-2",
-						name: "Emballage sous vide",
-						description: "Emballage sous vide pour conservation longue durée",
-						price: 2000,
-						unit: "unité",
-						processingTime: "1 jour",
-						category: "packaging",
-					},
-					{
-						_id: "service-3",
-						name: "Séchage solaire",
-						description: "Séchage naturel au soleil pour fruits et légumes",
-						price: 3000,
-						unit: "kg",
-						processingTime: "3-5 jours",
-						category: "preservation",
-					},
-				]);
+				// Charger les produits du transformateur
+				try {
+					const productsResponse = await transformerService.getPublicProducts(id);
+					if (productsResponse.data.status === 'success') {
+						setProducts(productsResponse.data.data.products || []);
+					}
+				} catch (error) {
+					console.error('Erreur lors du chargement des produits:', error);
+					setProducts([]);
+				}
 			} catch (error) {
 				console.error("Erreur lors du chargement du transformateur:", error);
 			} finally {
@@ -252,7 +232,7 @@ const TransformerProfile = () => {
 						)}
 
 						{/* Statistiques */}
-						<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+						<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
 							<div className="text-center bg-gray-100 rounded-lg p-4">
 								<div className="text-2xl font-bold text-gray-900">
 									{transformer.businessStats?.totalOrders || 0}
@@ -282,10 +262,6 @@ const TransformerProfile = () => {
 
 						{/* Actions */}
 						<div className="flex space-x-4">
-							<button className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">
-								<FiMessageCircle className="mr-2" />
-								Contacter
-							</button>
 							<button className="flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
 								<FiStar className="mr-2" />
 								Favoris
@@ -295,22 +271,22 @@ const TransformerProfile = () => {
 				</div>
 
 				{/* Contenu principal */}
-				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+				<div className="flex flex-col lg:flex-row gap-6">
 					{/* Contenu principal */}
-					<div className="lg:col-span-2">
+					<div className="lg:col-span-2 md:w-[75%]">
 						{/* Onglets */}
 						<div className="bg-white rounded-lg shadow-sm mb-6">
 							<div className="border-b border-gray-200">
 								<nav className="flex space-x-8 px-6">
 									<button
-										onClick={() => setActiveTab("services")}
+										onClick={() => setActiveTab("products")}
 										className={`py-4 px-1 border-b-2 font-medium text-sm ${
-											activeTab === "services"
+											activeTab === "products"
 												? "border-purple-500 text-purple-600"
 												: "border-transparent text-gray-500 hover:text-gray-700"
 										}`}
 									>
-										Services
+										Produits
 									</button>
 									<button
 										onClick={() => setActiveTab("about")}
@@ -335,43 +311,83 @@ const TransformerProfile = () => {
 								</nav>
 							</div>
 
-							<div className="p-6">
-								{activeTab === "services" && (
+							<div className="p-4">
+								{activeTab === "products" && (
 									<div>
 										<h3 className="text-lg font-medium text-gray-900 mb-4">
-											Services de transformation
+											Produits disponibles
 										</h3>
-										<div className="space-y-4">
-											{services.map((service) => (
-												<div
-													key={service._id}
-													className="border border-gray-200 rounded-lg p-4"
-												>
-													<div className="flex justify-between items-start">
-														<div className="flex-1">
-															<h4 className="font-medium text-gray-900 mb-2">
-																{service.name}
-															</h4>
-															<p className="text-gray-600 mb-2">
-																{service.description}
-															</p>
-															<div className="flex items-center text-sm text-gray-500">
-																<FiClock className="mr-1" />
-																<span>{service.processingTime}</span>
-															</div>
+										{products.length > 0 ? (
+											<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+												{products.map((product) => (
+													<div 
+														key={product._id} 
+														className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+														onClick={() => navigate(`/products/${product._id}`)}
+													>
+														{/* Image du produit */}
+														<div className="h-48 bg-gray-200 relative">
+															{product.images && product.images.length > 0 ? (
+																<img 
+																	src={product.images[0].url}
+																	alt={typeof product.name === 'object' ? product.name.fr : product.name || 'Produit'}
+																	className="w-full h-full object-cover"
+																/>
+															) : (
+																<div className="w-full h-full bg-gray-100 flex items-center justify-center">
+																	<FiPackage className="w-12 h-12 text-gray-400" />
+																</div>
+															)}
 														</div>
-														<div className="text-right">
-															<div className="text-lg font-bold text-gray-900">
-																{service.price.toLocaleString()} FCFA
+
+														{/* Informations du produit */}
+														<div className="p-4">
+															<div className="flex items-center justify-between mb-2">
+																<h3 className="font-semibold text-gray-900">
+																	{typeof product.name === 'object' ? product.name.fr : product.name || 'Produit sans nom'}
+																</h3>
+																<span className={`px-2 whitespace-nowrap py-1 rounded-full text-xs font-medium ${
+																	(product.inventory?.quantity || product.stock || 0) > 0 
+																		? 'bg-green-100 text-green-800' 
+																		: 'bg-red-100 text-red-800'
+																}`}>
+																	{(product.inventory?.quantity || product.stock || 0) > 0 ? 'En stock' : 'Rupture'}
+																</span>
 															</div>
-															<div className="text-sm text-gray-500">
-																par {service.unit}
+															<p className="text-gray-600 text-sm mb-3 line-clamp-2">
+																{typeof product.description === 'object' ? product.description.fr : product.description || 'Aucune description'}
+															</p>
+															<div className="flex items-center justify-between">
+																<span className="text-lg font-bold text-green-600">
+																	{product.price?.toLocaleString()} {product.currency}
+																</span>
+																<span className="text-sm text-gray-500">
+																	{product.inventory?.quantity || product.stock || 0} en stock
+																</span>
 															</div>
+															<button 
+																className="w-full mt-3 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center"
+																onClick={(e) => {
+																	e.stopPropagation(); // Empêcher la navigation vers les détails
+																	console.log('Produit ajouté au panier:', typeof product.name === 'object' ? product.name.fr : product.name);
+																}}
+															>
+																<FiShoppingCart className="w-4 h-4 mr-2" />
+																Ajouter au panier
+															</button>
 														</div>
 													</div>
-												</div>
-											))}
-										</div>
+												))}
+											</div>
+										) : (
+											<div className="text-center py-12">
+												<FiPackage className="mx-auto h-12 w-12 text-gray-400" />
+												<h3 className="mt-2 text-sm font-medium text-gray-900">Aucun produit disponible</h3>
+												<p className="mt-1 text-sm text-gray-500">
+													Ce transformateur n'a pas encore ajouté de produits à sa boutique.
+												</p>
+											</div>
+										)}
 									</div>
 								)}
 
@@ -475,10 +491,10 @@ const TransformerProfile = () => {
 					</div>
 
 					{/* Sidebar */}
-					<div className="space-y-6">
+					<div className="space-y-4 md:w-[25%]">
 						{/* Horaires d'ouverture */}
 						{transformer.shopInfo?.openingHours && (
-							<div className="bg-white rounded-lg shadow-sm p-6">
+							<div className="bg-white rounded-lg shadow-sm p-4">
 								<h3 className="text-lg font-medium text-gray-900 mb-4">
 									Horaires d'ouverture
 								</h3>
@@ -504,78 +520,6 @@ const TransformerProfile = () => {
 							</div>
 						)}
 
-						{/* Contact */}
-						<div className="bg-white rounded-lg shadow-sm p-6">
-							<h3 className="text-lg font-medium text-gray-900 mb-4">
-								Contact
-							</h3>
-							<div className="space-y-3">
-								{transformer.shopInfo?.contactInfo?.phone && (
-									<div className="flex items-center text-gray-600">
-										<FiPhone className="mr-3" />
-										<span>{transformer.shopInfo.contactInfo.phone}</span>
-									</div>
-								)}
-								{transformer.shopInfo?.contactInfo?.email && (
-									<div className="flex items-center text-gray-600">
-										<FiMail className="mr-3" />
-										<span>{transformer.shopInfo.contactInfo.email}</span>
-									</div>
-								)}
-								{transformer.shopInfo?.contactInfo?.website && (
-									<div className="flex items-center text-gray-600">
-										<FiGlobe className="mr-3" />
-										<a
-											href={transformer.shopInfo.contactInfo.website}
-											className="text-purple-600 hover:underline"
-										>
-											Site web
-										</a>
-									</div>
-								)}
-							</div>
-
-							{/* Réseaux sociaux */}
-							{transformer.shopInfo?.contactInfo?.socialMedia && (
-								<div className="mt-4 pt-4 border-t border-gray-200">
-									<h4 className="text-sm font-medium text-gray-900 mb-3">
-										Réseaux sociaux
-									</h4>
-									<div className="flex space-x-3">
-										{transformer.shopInfo.contactInfo.socialMedia.facebook && (
-											<a
-												href={
-													transformer.shopInfo.contactInfo.socialMedia.facebook
-												}
-												className="text-blue-600 hover:text-blue-800"
-											>
-												<FiFacebook className="w-5 h-5" />
-											</a>
-										)}
-										{transformer.shopInfo.contactInfo.socialMedia.instagram && (
-											<a
-												href={
-													transformer.shopInfo.contactInfo.socialMedia.instagram
-												}
-												className="text-pink-600 hover:text-pink-800"
-											>
-												<FiInstagram className="w-5 h-5" />
-											</a>
-										)}
-										{transformer.shopInfo.contactInfo.socialMedia.twitter && (
-											<a
-												href={
-													transformer.shopInfo.contactInfo.socialMedia.twitter
-												}
-												className="text-blue-400 hover:text-blue-600"
-											>
-												<FiTwitter className="w-5 h-5" />
-											</a>
-										)}
-									</div>
-								</div>
-							)}
-						</div>
 
 						{/* Certifications */}
 						{transformer.certifications &&

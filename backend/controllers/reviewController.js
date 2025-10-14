@@ -19,8 +19,11 @@ exports.getProductReviews = catchAsync(async (req, res, next) => {
     status: 'approved' 
   };
 
-  if (req.query.rating) {
-    queryObj.rating = parseInt(req.query.rating, 10);
+  if (req.query.rating && req.query.rating !== 'all') {
+    const rating = parseInt(req.query.rating, 10);
+    if (!isNaN(rating)) {
+      queryObj.rating = rating;
+    }
   }
 
   if (req.query.verified === 'true') {
@@ -470,22 +473,46 @@ exports.getReceivedReviews = catchAsync(async (req, res, next) => {
 
   const queryObj = { producer: req.user.id };
   
-  if (req.query.rating) {
-    queryObj.rating = parseInt(req.query.rating, 10);
+  if (req.query.rating && req.query.rating !== 'all') {
+    const rating = parseInt(req.query.rating, 10);
+    if (!isNaN(rating) && rating >= 1 && rating <= 5) {
+      queryObj.rating = rating;
+    }
   }
   
-  if (req.query.responded) {
-    if (req.query.responded === 'true') {
+  if (req.query.hasResponse && req.query.hasResponse !== 'all') {
+    if (req.query.hasResponse === 'true') {
       queryObj['producerResponse.comment'] = { $exists: true };
     } else {
       queryObj['producerResponse.comment'] = { $exists: false };
     }
   }
 
+  // Validation du paramètre de tri
+  let sortObj = { createdAt: -1 };
+  if (req.query.sort) {
+    switch (req.query.sort) {
+      case 'newest':
+        sortObj = { createdAt: -1 };
+        break;
+      case 'oldest':
+        sortObj = { createdAt: 1 };
+        break;
+      case 'highest-rating':
+        sortObj = { rating: -1, createdAt: -1 };
+        break;
+      case 'lowest-rating':
+        sortObj = { rating: 1, createdAt: -1 };
+        break;
+      default:
+        sortObj = { createdAt: -1 };
+    }
+  }
+
   const reviews = await Review.find(queryObj)
     .populate('reviewer', 'firstName lastName avatar')
     .populate('product', 'name images')
-    .sort('-createdAt')
+    .sort(sortObj)
     .skip(skip)
     .limit(limit);
 
@@ -501,7 +528,11 @@ exports.getReceivedReviews = catchAsync(async (req, res, next) => {
         averageRating: { $avg: '$rating' },
         respondedReviews: {
           $sum: {
-            $cond: [{ $exists: ['$producerResponse.comment', true] }, 1, 0]
+            $cond: [
+              { $ne: ['$producerResponse.comment', null] },
+              1,
+              0
+            ]
           }
         }
       }
@@ -533,7 +564,12 @@ exports.getAllReviews = catchAsync(async (req, res, next) => {
   
   // Filtres admin
   if (req.query.status) queryObj.status = req.query.status;
-  if (req.query.rating) queryObj.rating = parseInt(req.query.rating, 10);
+  if (req.query.rating && req.query.rating !== 'all') {
+    const rating = parseInt(req.query.rating, 10);
+    if (!isNaN(rating)) {
+      queryObj.rating = rating;
+    }
+  }
   if (req.query.reported === 'true') {
     queryObj['reports.0'] = { $exists: true };
   }

@@ -531,25 +531,54 @@ reviewSchema.statics.getProductRatingStats = function(productId) {
   ]);
 };
 
-reviewSchema.statics.getProducerRatingStats = function(producerId) {
-  return this.aggregate([
-    { $match: { producer: producerId, status: 'approved' } },
-    {
-      $group: {
-        _id: null,
-        averageRating: { $avg: '$rating' },
-        totalReviews: { $sum: 1 },
-        averageDetailedRatings: {
-          quality: { $avg: '$detailedRating.quality' },
-          freshness: { $avg: '$detailedRating.freshness' },
-          packaging: { $avg: '$detailedRating.packaging' },
-          delivery: { $avg: '$detailedRating.delivery' },
-          communication: { $avg: '$detailedRating.communication' },
-          valueForMoney: { $avg: '$detailedRating.valueForMoney' }
-        }
+reviewSchema.statics.getProducerRatingStats = async function(producerId) {
+  const reviews = await this.find({ producer: producerId, status: 'approved' });
+  
+  if (reviews.length === 0) {
+    return [{
+      averageRating: 0,
+      totalReviews: 0,
+      averageDetailedRatings: {
+        quality: 0,
+        freshness: 0,
+        packaging: 0,
+        delivery: 0,
+        communication: 0,
+        valueForMoney: 0
       }
-    }
-  ]);
+    }];
+  }
+  
+  const totalReviews = reviews.length;
+  const averageRating = reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews;
+  
+  // Calculer les moyennes des évaluations détaillées si elles existent
+  const detailedRatings = reviews.filter(review => review.detailedRating);
+  let averageDetailedRatings = {
+    quality: 0,
+    freshness: 0,
+    packaging: 0,
+    delivery: 0,
+    communication: 0,
+    valueForMoney: 0
+  };
+  
+  if (detailedRatings.length > 0) {
+    averageDetailedRatings = {
+      quality: detailedRatings.reduce((sum, review) => sum + (review.detailedRating.quality || 0), 0) / detailedRatings.length,
+      freshness: detailedRatings.reduce((sum, review) => sum + (review.detailedRating.freshness || 0), 0) / detailedRatings.length,
+      packaging: detailedRatings.reduce((sum, review) => sum + (review.detailedRating.packaging || 0), 0) / detailedRatings.length,
+      delivery: detailedRatings.reduce((sum, review) => sum + (review.detailedRating.delivery || 0), 0) / detailedRatings.length,
+      communication: detailedRatings.reduce((sum, review) => sum + (review.detailedRating.communication || 0), 0) / detailedRatings.length,
+      valueForMoney: detailedRatings.reduce((sum, review) => sum + (review.detailedRating.valueForMoney || 0), 0) / detailedRatings.length
+    };
+  }
+  
+  return [{
+    averageRating: Math.round(averageRating * 10) / 10,
+    totalReviews,
+    averageDetailedRatings
+  }];
 };
 
 reviewSchema.statics.getFeaturedReviews = function(productId, limit = 5) {

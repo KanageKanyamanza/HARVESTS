@@ -20,10 +20,10 @@ import {
   FiGift,
   FiPackage,
   FiPlus,
-  FiTruck,
   FiAward,
-  FiFileText,
-  FiGlobe
+  FiGlobe,
+  FiTruck,
+  FiFileText
 } from 'react-icons/fi';
 import { FaChartBar } from 'react-icons/fa';
 
@@ -84,10 +84,7 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse, 
       return [
         { name: 'Tableau de bord', href: '/transformer/dashboard', icon: FiHome },
         { name: 'Commandes', href: '/transformer/orders', icon: FiShoppingBag },
-        { name: 'Production', href: '/transformer/production/batches', icon: FiPackage },
-        { name: 'Qualité', href: '/transformer/quality-control', icon: FiAward },
-        { name: 'Devis', href: '/transformer/quotes', icon: FiFileText },
-        { name: 'Équipements', href: '/transformer/equipment', icon: FiTruck },
+        { name: 'Mes Produits', href: '/transformer/products', icon: FiPackage },
         { name: 'Certifications', href: '/transformer/certifications', icon: FiAward },
         { name: 'Boutique', href: '/transformer/shop', icon: FiGlobe },
         { name: 'Analytics', href: '/transformer/analytics/business', icon: FaChartBar },
@@ -141,8 +138,8 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse, 
                   src={user.avatar} 
                   alt="Avatar" 
                   className="h-10 w-10 rounded-full object-cover" 
-                  width={40}
-                  height={40}
+                  width={50}
+                  height={50}
                   crop="fill"
                   quality="auto"
                 />
@@ -167,7 +164,7 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse, 
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
           {sidebarNavigationItems.map((item) => {
             const Icon = item.icon;
             return (

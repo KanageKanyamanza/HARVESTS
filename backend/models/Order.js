@@ -18,6 +18,10 @@ const orderItemSchema = new mongoose.Schema({
     producer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
+    },
+    transformer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
     }
   },
   quantity: {

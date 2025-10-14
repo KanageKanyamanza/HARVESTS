@@ -15,14 +15,11 @@ router.get('/product/:productId/featured', reviewController.getFeaturedReviews);
 // Obtenir les statistiques de notation d'un produit
 router.get('/product/:productId/stats', reviewController.getProductRatingStats);
 
-// Obtenir les avis d'un producteur
-router.get('/producers/:producerId', reviewController.getProducerReviews);
+// Obtenir les avis d'un producteur (public)
+router.get('/producer/:producerId', reviewController.getProducerReviews);
 
-// Obtenir les statistiques de notation d'un producteur
-router.get('/producers/:producerId/stats', reviewController.getProducerRatingStats);
-
-// Obtenir un avis spécifique
-router.get('/:id', reviewController.getReview);
+// Obtenir les statistiques de notation d'un producteur (public)
+router.get('/producer/:producerId/stats', reviewController.getProducerRatingStats);
 
 // Rechercher dans les avis
 router.get('/search', reviewController.searchReviews);
@@ -65,7 +62,7 @@ router.post('/:id/respond',
 );
 
 // Obtenir les avis reçus (producteurs)
-router.get('/received/my', 
+router.get('/received', 
   authController.restrictTo('producer', 'transformer'),
   reviewController.getReceivedReviews
 );
@@ -75,6 +72,9 @@ router.get('/received/recent',
   authController.restrictTo('producer', 'transformer'),
   reviewController.getRecentReviews
 );
+
+// Obtenir un avis spécifique (doit être après les routes spécifiques)
+router.get('/:id', reviewController.getReview);
 
 // ROUTES ADMIN
 

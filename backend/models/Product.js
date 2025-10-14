@@ -130,7 +130,25 @@ const productSchema = new mongoose.Schema({
   producer: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: [true, 'Producteur requis']
+    required: function() {
+      return !this.transformer;
+    }
+  },
+  
+  // Transformateur
+  transformer: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: function() {
+      return !this.producer;
+    }
+  },
+  
+  // Type d'utilisateur (producer ou transformer)
+  userType: {
+    type: String,
+    enum: ['producer', 'transformer'],
+    required: true
   },
   
   // Catégorisation
@@ -393,9 +411,11 @@ const productSchema = new mongoose.Schema({
 // Index pour la recherche et performance
 productSchema.index({ name: 'text', description: 'text', tags: 'text' });
 productSchema.index({ producer: 1, status: 1 });
+productSchema.index({ transformer: 1, status: 1 });
 productSchema.index({ category: 1, subcategory: 1 });
 productSchema.index({ 'availability.status': 1 });
-productSchema.index({ producer: 1, slug: 1 }, { unique: true });
+productSchema.index({ producer: 1, slug: 1 }, { unique: true, sparse: true });
+productSchema.index({ transformer: 1, slug: 1 }, { unique: true, sparse: true });
 productSchema.index({ isFeatured: 1, 'stats.averageRating': -1 });
 productSchema.index({ createdAt: -1 });
 productSchema.index({ 'agricultureInfo.region': 1 });
@@ -468,8 +488,10 @@ productSchema.pre('save', async function(next) {
     while (true) {
       try {
         const existingProduct = await this.constructor.findOne({ 
-          producer: this.producer, 
-          slug 
+          $or: [
+            { producer: this.producer, slug },
+            { transformer: this.transformer, slug }
+          ]
         });
         if (!existingProduct || existingProduct._id.toString() === this._id.toString()) {
           break;
@@ -656,6 +678,7 @@ productSchema.statics.search = function(query, filters = {}) {
   
   return this.find(searchQuery)
     .populate('producer', 'farmName firstName lastName address')
+    .populate('transformer', 'companyName firstName lastName address')
     .sort(query ? { score: { $meta: 'textScore' } } : { createdAt: -1 });
 };
 

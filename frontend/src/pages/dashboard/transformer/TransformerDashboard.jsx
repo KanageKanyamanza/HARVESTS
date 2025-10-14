@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import { transformerService } from '../../../services';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
+import ProductCard from '../../../components/common/ProductCard';
 import {
   FiPackage,
   FiShoppingCart,
@@ -10,7 +11,6 @@ import {
   FiDollarSign,
   FiEye,
   FiEdit,
-  FiPlus,
   FiRefreshCw,
   FiStar,
   FiUsers,
@@ -19,22 +19,20 @@ import {
   FiClock,
   FiCheckCircle,
   FiSettings,
-  FiFileText,
-  FiAward,
   FiTool,
   FiArchive,
   FiBarChart2,
   FiCalendar,
-  FiShield,
   FiActivity,
-  FiZap
+  FiZap,
+  FiPlus
 } from 'react-icons/fi';
 
 const TransformerDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [orders, setOrders] = useState([]);
-  const [productionBatches, setProductionBatches] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -46,10 +44,10 @@ const TransformerDashboard = () => {
           setLoading(true);
           
           // Charger les données avec gestion d'erreur pour chaque service
-          const [statsResponse, ordersResponse, batchesResponse] = await Promise.allSettled([
+          const [statsResponse, ordersResponse, productsResponse] = await Promise.allSettled([
             transformerService.getBusinessStats(),
             transformerService.getMyOrders(),
-            transformerService.getProductionBatches()
+            transformerService.getMyProducts()
           ]);
 
           // Traiter les statistiques
@@ -97,39 +95,48 @@ const TransformerDashboard = () => {
             ]);
           }
 
-          // Traiter les lots de production
-          if (batchesResponse.status === 'fulfilled') {
-            setProductionBatches(batchesResponse.value.data?.data?.batches || []);
+          // Traiter les produits
+          if (productsResponse.status === 'fulfilled') {
+            setProducts(productsResponse.value.data?.data?.products || []);
           } else {
-            console.warn('Erreur lots de production:', batchesResponse.reason);
-            // Données de démonstration pour les lots de production
-            setProductionBatches([
+            console.warn('Erreur produits:', productsResponse.reason);
+            // Données de démonstration pour les produits
+            setProducts([
               {
-                _id: 'demo-batch-1',
-                batchNumber: 'B-001',
-                productType: 'Confiture de mangue',
-                status: 'completed',
-                quantity: 500,
+                _id: 'demo-product-1',
+                name: 'Confiture de mangue artisanale',
+                price: 2500,
+                currency: 'FCFA',
+                category: 'Conserves',
+                stock: 45,
                 unit: 'pots',
-                createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+                status: 'active',
+                createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+                sales: 12
               },
               {
-                _id: 'demo-batch-2',
-                batchNumber: 'B-002',
-                productType: 'Jus d\'orange',
-                status: 'processing',
-                quantity: 1000,
+                _id: 'demo-product-2',
+                name: 'Jus d\'orange frais',
+                price: 1500,
+                currency: 'FCFA',
+                category: 'Boissons',
+                stock: 28,
                 unit: 'bouteilles',
-                createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+                status: 'active',
+                createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+                sales: 8
               },
               {
-                _id: 'demo-batch-3',
-                batchNumber: 'B-003',
-                productType: 'Légumes séchés',
-                status: 'completed',
-                quantity: 200,
+                _id: 'demo-product-3',
+                name: 'Légumes séchés mélange',
+                price: 3500,
+                currency: 'FCFA',
+                category: 'Légumes',
+                stock: 15,
                 unit: 'kg',
-                createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+                status: 'active',
+                createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+                sales: 5
               }
             ]);
           }
@@ -186,7 +193,7 @@ const TransformerDashboard = () => {
     }, 0);
 
     const pendingOrders = orders.filter(order => 
-      ['pending', 'processing', 'in_progress'].includes(order.status)
+      !['completed', 'cancelled'].includes(order.status)
     ).length;
 
     const completedOrders = orders.filter(order => 
@@ -220,7 +227,7 @@ const TransformerDashboard = () => {
       icon: FiClock,
       color: 'text-orange-600',
       bgColor: 'bg-orange-100',
-      link: '/transformer/orders?status=pending'
+      link: '/transformer/orders?status=active'
     },
     {
       title: 'Commandes terminées',
@@ -238,49 +245,17 @@ const TransformerDashboard = () => {
       bgColor: 'bg-blue-100',
       link: '/transformer/analytics/revenue'
     },
-    {
-      title: 'Score qualité',
-      value: `${derivedStats.qualityScore}%`,
-      icon: FiAward,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100',
-      link: '/transformer/quality-control'
-    }
   ];
 
   // Actions rapides
   const quickActions = [
     {
-      title: 'Nouvelle commande',
-      description: 'Accepter une nouvelle commande de transformation',
-      icon: FiPlus,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100',
-      link: '/transformer/orders/new'
-    },
-    {
-      title: 'Lot de production',
-      description: 'Créer un nouveau lot de production',
+      title: 'Ajouter un produit',
+      description: 'Ajouter un nouveau produit à votre boutique',
       icon: FiPackage,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
-      link: '/transformer/production/batches/new'
-    },
-    {
-      title: 'Devis personnalisé',
-      description: 'Créer un devis pour un client',
-      icon: FiFileText,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100',
-      link: '/transformer/quotes/new'
-    },
-    {
-      title: 'Rapport qualité',
-      description: 'Générer un rapport de contrôle qualité',
-      icon: FiShield,
-      color: 'text-red-600',
-      bgColor: 'bg-red-100',
-      link: '/transformer/quality/reports/new'
+      link: '/transformer/products/new'
     }
   ];
 
@@ -366,7 +341,7 @@ const TransformerDashboard = () => {
         </div>
 
         {/* Statistiques principales */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {mainStats.map((stat, index) => (
             <Link
               key={index}
@@ -460,8 +435,9 @@ const TransformerDashboard = () => {
                         #{order.orderNumber || order._id.slice(-8)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {order.client?.name || 'N/A'}
-                      </td>
+                      {order.buyer?.firstName && order.buyer?.lastName 
+                              ? `${order.buyer.firstName} ${order.buyer.lastName}`
+                              : 'N/A'}                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {order.transformationType || 'Transformation'}
                       </td>
@@ -493,74 +469,48 @@ const TransformerDashboard = () => {
               <p className="mt-1 text-sm text-gray-500">
                 Vous n'avez pas encore de commandes de transformation.
               </p>
-              <div className="mt-6">
-                <Link
-                  to="/transformer/orders/new"
-                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
-                >
-                  <FiPlus className="h-4 w-4 mr-2" />
-                  Accepter une commande
-                </Link>
-              </div>
             </div>
           )}
         </div>
 
-        {/* Lots de production récents */}
+        {/* Mes produits récents */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Lots de production récents</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Mes produits récents</h2>
             <Link
-              to="/transformer/production/batches"
+              to="/transformer/products"
               className="text-purple-600 hover:text-purple-700 text-sm font-medium"
             >
               Voir tous
             </Link>
           </div>
-          {productionBatches.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {productionBatches.slice(0, 6).map((batch) => (
-                <div key={batch._id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium text-gray-900">
-                      Lot #{batch.batchNumber || batch._id.slice(-8)}
-                    </h3>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      batch.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      batch.status === 'processing' ? 'bg-blue-100 text-blue-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {batch.status === 'completed' ? 'Terminé' :
-                       batch.status === 'processing' ? 'En cours' :
-                       batch.status}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-2">
-                    {batch.productType || 'Produit transformé'}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Quantité: {batch.quantity || 'N/A'} {batch.unit || ''}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Date: {new Date(batch.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
+          {products.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {products.slice(0, 6).map((product) => (
+                <ProductCard
+                  key={product._id}
+                  product={product}
+                  userType="transformer"
+                  showActions={false}
+                  showStatus={true}
+                  showFeatured={false}
+                />
               ))}
             </div>
           ) : (
             <div className="text-center py-8">
               <FiPackage className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">Aucun lot de production</h3>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">Aucun produit</h3>
               <p className="mt-1 text-sm text-gray-500">
-                Créez votre premier lot de production.
+                Commencez par ajouter votre premier produit à votre boutique.
               </p>
               <div className="mt-6">
                 <Link
-                  to="/transformer/production/batches/new"
+                  to="/transformer/products/new"
                   className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
                 >
                   <FiPlus className="h-4 w-4 mr-2" />
-                  Créer un lot
+                  Ajouter un produit
                 </Link>
               </div>
             </div>

@@ -18,6 +18,7 @@ import { ModalProvider } from './components/modals/ModalManager';
 import Layout from './components/layout/Layout';
 import AuthLayout from './components/layout/AuthLayout';
 import AdminLayout from './components/layout/AdminLayout';
+import ScrollToTop from './components/common/ScrollToTop';
 import UserTypeRedirect from './components/auth/UserTypeRedirect';
 
 // Loading Component
@@ -85,15 +86,11 @@ const TransformerDashboard = React.lazy(() => import('./pages/dashboard/transfor
 
 // Transformer Pages
 const OrdersList = React.lazy(() => import('./pages/dashboard/transformer/orders/OrdersList'));
-const NewOrder = React.lazy(() => import('./pages/dashboard/transformer/orders/NewOrder'));
-const ProductionBatches = React.lazy(() => import('./pages/dashboard/transformer/production/ProductionBatches'));
-const NewBatch = React.lazy(() => import('./pages/dashboard/transformer/production/NewBatch'));
-const QuotesList = React.lazy(() => import('./pages/dashboard/transformer/quotes/QuotesList'));
-const EquipmentList = React.lazy(() => import('./pages/dashboard/transformer/equipment/EquipmentList'));
+const TransformerProducts = React.lazy(() => import('./pages/dashboard/transformer/products/MyProducts'));
+const NewProduct = React.lazy(() => import('./pages/dashboard/transformer/products/NewProduct'));
 const CertificationsList = React.lazy(() => import('./pages/dashboard/transformer/certifications/CertificationsList'));
 const BusinessAnalytics = React.lazy(() => import('./pages/dashboard/transformer/analytics/BusinessAnalytics'));
 const ProfileSettings = React.lazy(() => import('./pages/dashboard/transformer/settings/ProfileSettings'));
-const QualityControl = React.lazy(() => import('./pages/dashboard/transformer/quality/QualityControl'));
 const Settings = React.lazy(() => import('./pages/dashboard/transformer/settings/Settings'));
 const ShopManagement = React.lazy(() => import('./pages/dashboard/transformer/shop/ShopManagement'));
 
@@ -190,6 +187,7 @@ function App() {
           <CartProvider>
             <ModalProvider>
               <Router>
+                <ScrollToTop />
                 <div className="App">
                   <UserTypeRedirect>
                     <Suspense fallback={<RouteFallback />}>
@@ -377,38 +375,27 @@ function App() {
                   </ProtectedRoute>
                 } />
                 
-                <Route path="/transformer/orders/new" element={
+
+                <Route path="/transformer/orders/:orderId" element={
                   <ProtectedRoute>
-                    <NewOrder />
+                    <OrderDetail />
                   </ProtectedRoute>
                 } />
 
-                {/* Transformer Production Routes */}
-                <Route path="/transformer/production/batches" element={
+                {/* Transformer Products Routes */}
+                <Route path="/transformer/products" element={
                   <ProtectedRoute>
-                    <ProductionBatches />
+                    <TransformerProducts />
                   </ProtectedRoute>
                 } />
-                
-                <Route path="/transformer/production/batches/new" element={
+
+                <Route path="/transformer/products/new" element={
                   <ProtectedRoute>
-                    <NewBatch />
+                    <NewProduct />
                   </ProtectedRoute>
                 } />
 
                 {/* Transformer Quotes Routes */}
-                <Route path="/transformer/quotes" element={
-                  <ProtectedRoute>
-                    <QuotesList />
-                  </ProtectedRoute>
-                } />
-
-                {/* Transformer Equipment Routes */}
-                <Route path="/transformer/equipment" element={
-                  <ProtectedRoute>
-                    <EquipmentList />
-                  </ProtectedRoute>
-                } />
 
                 {/* Transformer Certifications Routes */}
                 <Route path="/transformer/certifications" element={
@@ -432,11 +419,6 @@ function App() {
                 } />
 
                 {/* Transformer Quality Control Routes */}
-                <Route path="/transformer/quality-control" element={
-                  <ProtectedRoute>
-                    <QualityControl />
-                  </ProtectedRoute>
-                } />
 
          {/* Transformer Settings Routes */}
          <Route path="/transformer/settings" element={

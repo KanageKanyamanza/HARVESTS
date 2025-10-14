@@ -33,10 +33,6 @@ const ProducerReviews = () => {
     sort: 'newest'
   });
 
-  useEffect(() => {
-    loadReviews();
-  }, [filters, loadReviews]);
-
   const loadReviews = useCallback(async () => {
     try {
       setLoading(true);
@@ -54,6 +50,10 @@ const ProducerReviews = () => {
       setLoading(false);
     }
   }, [filters, user._id, showError]);
+
+  useEffect(() => {
+    loadReviews();
+  }, [loadReviews]);
 
   const handleRespondToReview = async (reviewId) => {
     if (!responseText.trim()) {

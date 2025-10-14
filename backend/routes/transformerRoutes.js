@@ -11,10 +11,27 @@ router.get('/', transformerController.getAllTransformers);
 router.get('/search', transformerController.searchTransformers);
 router.get('/by-region/:region', transformerController.getTransformersByRegion);
 router.get('/by-type/:type', transformerController.getTransformersByType);
-router.get('/:id', transformerController.getTransformer);
 router.get('/:id/public', transformerController.getPublicTransformer);
 router.get('/:id/services', transformerController.getTransformerServices);
 router.get('/:id/reviews', transformerController.getTransformerReviews);
+// Route publique pour les produits d'un transformateur spécifique (sans authentification)
+// Vérifier si l'ID est "me" et appliquer l'authentification
+router.get('/:id/products', (req, res, next) => {
+  if (req.params.id === 'me') {
+    // Appliquer l'authentification pour la route /me/products
+    return authController.protect(req, res, () => {
+      authController.restrictTo('transformer')(req, res, () => {
+        authController.requireVerification(req, res, () => {
+          transformerController.getMyProducts(req, res, next);
+        });
+      });
+    });
+  }
+  // Continuer vers la route publique
+  transformerController.getPublicProducts(req, res, next);
+});
+// Route générique /:id doit être en dernier pour éviter de capturer les routes spécifiques
+router.get('/:id', transformerController.getTransformer);
 
 // Toutes les routes suivantes nécessitent une authentification
 router.use(authController.protect);
@@ -34,6 +51,20 @@ router.get('/me/production-batches/:batchId', transformerController.getProductio
 router.get('/me/reviews', transformerController.getMyReviews);
 router.get('/me/notifications', transformerController.getNotifications);
 router.get('/me/documents', transformerController.getMyDocuments);
+
+// Gestion des produits de la boutique (accessible sans approbation)
+router.route('/me/products')
+  .get(transformerController.getMyProducts)
+  .post(transformerController.createProduct);
+
+router.route('/me/products/:productId')
+  .get(transformerController.getProduct)
+  .patch(transformerController.updateProduct)
+  .delete(transformerController.deleteProduct);
+
+// Soumettre un produit pour révision
+router.patch('/me/products/:productId/submit', transformerController.submitProductForReview);
+
 
 // Routes nécessitant une approbation (opérations sensibles)
 router.use(authController.requireApproval); // Appliquer l'approbation aux routes suivantes
@@ -67,14 +98,6 @@ router.route('/me/certifications/:certId')
   .patch(transformerController.updateCertification)
   .delete(transformerController.removeCertification);
 
-// Gestion des équipements
-router.route('/me/equipment')
-  .get(transformerController.getMyEquipment)
-  .post(transformerController.addEquipment);
-
-router.route('/me/equipment/:equipmentId')
-  .patch(transformerController.updateEquipment)
-  .delete(transformerController.removeEquipment);
 
 // Gestion des capacités de stockage
 router.route('/me/storage-capabilities')
@@ -119,44 +142,13 @@ router.route('/me/orders/:orderId')
 router.get('/me/orders/:orderId/tracking', transformerController.trackOrder);
 router.patch('/me/orders/:orderId/progress', transformerController.updateOrderProgress);
 
-// Gestion des devis personnalisés
-router.route('/me/custom-quotes')
-  .get(transformerController.getCustomQuotes)
-  .post(transformerController.createCustomQuote);
-
-router.route('/me/custom-quotes/:quoteId')
-  .get(transformerController.getCustomQuote)
-  .patch(transformerController.updateCustomQuote)
-  .delete(transformerController.deleteCustomQuote);
-
-// Conversion de devis en commandes
-router.post('/me/custom-quotes/:quoteId/convert', transformerController.convertQuoteToOrder);
 
 // Gestion des horaires d'opération
 router.route('/me/operating-hours')
   .get(transformerController.getOperatingHours)
   .patch(transformerController.updateOperatingHours);
 
-// Gestion du contrôle qualité
-router.route('/me/quality-control')
-  .get(transformerController.getQualityControlSettings)
-  .patch(transformerController.updateQualityControlSettings);
 
-// Rapports de qualité
-router.route('/me/quality-reports')
-  .get(transformerController.getQualityReports)
-  .post(
-    uploadLimiter,
-    transformerController.uploadQualityReport,
-    fileTypeValidation(['application/pdf', 'image/jpeg', 'image/png']),
-    fileSizeValidation(10 * 1024 * 1024), // 10MB
-    transformerController.createQualityReport
-  );
-
-// Gestion des lots de production
-router.route('/me/production-batches')
-  .get(transformerController.getProductionBatches)
-  .post(transformerController.createProductionBatch);
 
 router.route('/me/production-batches/:batchId')
   .get(transformerController.getProductionBatch)
@@ -169,6 +161,7 @@ router.get('/me/production-batches/:batchId/traceability', transformerController
 router.route('/me/waste-management')
   .get(transformerController.getWasteManagement)
   .patch(transformerController.updateWasteManagement);
+
 
 // Statistiques et analytics
 router.get('/me/business-stats', transformerController.getBusinessStats);
@@ -271,5 +264,6 @@ router.route('/me/production-alerts')
 // Rapports de conformité
 router.get('/me/compliance-reports', transformerController.getComplianceReports);
 router.post('/me/compliance-reports', transformerController.generateComplianceReport);
+
 
 module.exports = router;

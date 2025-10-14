@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../../../hooks/useAuth';
 import ModularDashboardLayout from '../../../../components/layout/ModularDashboardLayout';
 import {
   FiSettings,
-  FiUser,
   FiShield,
   FiBell,
   FiGlobe,
@@ -18,17 +16,10 @@ import {
 } from 'react-icons/fi';
 
 const Settings = () => {
-  const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState('security');
   const [showPassword, setShowPassword] = useState(false);
 
   const settingsTabs = [
-    {
-      id: 'profile',
-      label: 'Profil',
-      icon: FiUser,
-      description: 'Informations personnelles et entreprise'
-    },
     {
       id: 'security',
       label: 'Sécurité',
@@ -63,50 +54,6 @@ const Settings = () => {
 
   const renderTabContent = () => {
     switch (activeTab) {
-      case 'profile':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-medium text-gray-900">Profil Entreprise</h3>
-              <p className="text-sm text-gray-500">Gérez les informations de votre entreprise</p>
-            </div>
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nom de l'entreprise
-                  </label>
-                  <input
-                    type="text"
-                    defaultValue={user?.companyName || ''}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Type de transformation
-                  </label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
-                    <option value="processing">Transformation</option>
-                    <option value="packaging">Emballage</option>
-                    <option value="preservation">Conservation</option>
-                    <option value="manufacturing">Fabrication</option>
-                  </select>
-                </div>
-              </div>
-              <div className="mt-6">
-                <Link
-                  to="/transformer/profile"
-                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
-                >
-                  <FiUser className="h-4 w-4 mr-2" />
-                  Modifier le profil complet
-                </Link>
-              </div>
-            </div>
-          </div>
-        );
-
       case 'security':
         return (
           <div className="space-y-6">
