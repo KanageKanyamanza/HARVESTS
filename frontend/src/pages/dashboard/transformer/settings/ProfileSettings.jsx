@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../../hooks/useAuth';
 import { transformerService } from '../../../../services';
+import { useNotifications } from '../../../../contexts/NotificationContext';
 import ModularDashboardLayout from '../../../../components/layout/ModularDashboardLayout';
 import {
   FiSave,
@@ -17,6 +18,7 @@ import {
 
 const ProfileSettings = () => {
   const { user } = useAuth();
+  const { showSuccess, showError } = useNotifications();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState({
     // Informations personnelles
@@ -41,18 +43,7 @@ const ProfileSettings = () => {
     
     // Contact
     website: '',
-    description: '',
-    
-    // Horaires
-    operatingHours: {
-      monday: { open: '08:00', close: '18:00', isOpen: true },
-      tuesday: { open: '08:00', close: '18:00', isOpen: true },
-      wednesday: { open: '08:00', close: '18:00', isOpen: true },
-      thursday: { open: '08:00', close: '18:00', isOpen: true },
-      friday: { open: '08:00', close: '18:00', isOpen: true },
-      saturday: { open: '08:00', close: '14:00', isOpen: true },
-      sunday: { open: '', close: '', isOpen: false }
-    }
+    description: ''
   });
 
   const transformationTypes = [
@@ -63,11 +54,6 @@ const ProfileSettings = () => {
     { value: 'mixed', label: 'Mixte' }
   ];
 
-  const regions = [
-    'Dakar', 'Thiès', 'Diourbel', 'Fatick', 'Kaffrine', 'Kaolack',
-    'Kédougou', 'Kolda', 'Louga', 'Matam', 'Saint-Louis', 'Sédhiou',
-    'Tambacounda', 'Ziguinchor'
-  ];
 
   // Charger le profil
   useEffect(() => {
@@ -79,8 +65,7 @@ const ProfileSettings = () => {
           setProfile(prev => ({
             ...prev,
             ...transformerData,
-            address: transformerData.address || prev.address,
-            operatingHours: transformerData.operatingHours || prev.operatingHours
+            address: transformerData.address || prev.address
           }));
         } else {
           // Utiliser les données de l'utilisateur connecté
@@ -122,53 +107,39 @@ const ProfileSettings = () => {
 
   const handleAddressChange = (e) => {
     const { name, value } = e.target;
-    setProfile(prev => ({
-      ...prev,
-      address: {
-        ...prev.address,
-        [name]: value
-      }
-    }));
+    console.log('Changement d\'adresse:', name, value);
+    setProfile(prev => {
+      const newProfile = {
+        ...prev,
+        address: {
+          ...prev.address,
+          [name]: value
+        }
+      };
+      console.log('Nouveau profil après changement d\'adresse:', newProfile);
+      return newProfile;
+    });
   };
 
-  const handleOperatingHoursChange = (day, field, value) => {
-    setProfile(prev => ({
-      ...prev,
-      operatingHours: {
-        ...prev.operatingHours,
-        [day]: {
-          ...prev.operatingHours[day],
-          [field]: value
-        }
-      }
-    }));
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      await transformerService.updateMyProfile(profile);
-      // Afficher un message de succès
-      alert('Profil mis à jour avec succès !');
+      console.log('Données envoyées au backend:', profile);
+      const response = await transformerService.updateMyProfile(profile);
+      console.log('Réponse du backend:', response.data);
+      // Afficher un toast de succès
+      showSuccess('Profil mis à jour avec succès !', 'Succès');
     } catch (error) {
       console.error('Erreur lors de la mise à jour du profil:', error);
-      alert('Erreur lors de la mise à jour du profil');
+      showError('Erreur lors de la mise à jour du profil', 'Erreur');
     } finally {
       setLoading(false);
     }
   };
 
-  const days = [
-    { key: 'monday', label: 'Lundi' },
-    { key: 'tuesday', label: 'Mardi' },
-    { key: 'wednesday', label: 'Mercredi' },
-    { key: 'thursday', label: 'Jeudi' },
-    { key: 'friday', label: 'Vendredi' },
-    { key: 'saturday', label: 'Samedi' },
-    { key: 'sunday', label: 'Dimanche' }
-  ];
 
   return (
     <ModularDashboardLayout userType="transformer">
@@ -368,17 +339,14 @@ const ProfileSettings = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Région
                 </label>
-                <select
+                <input
+                  type="text"
                   name="region"
                   value={profile.address.region}
                   onChange={handleAddressChange}
+                  placeholder="Saisissez votre région"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="">Sélectionner une région</option>
-                  {regions.map(region => (
-                    <option key={region} value={region}>{region}</option>
-                  ))}
-                </select>
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -407,51 +375,6 @@ const ProfileSettings = () => {
             </div>
           </div>
 
-          {/* Horaires d'ouverture */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Horaires d'Ouverture</h2>
-            <div className="space-y-4">
-              {days.map(day => (
-                <div key={day.key} className="flex items-center space-x-4">
-                  <div className="w-24">
-                    <label className="block text-sm font-medium text-gray-700">
-                      {day.label}
-                    </label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={profile.operatingHours[day.key].isOpen}
-                      onChange={(e) => handleOperatingHoursChange(day.key, 'isOpen', e.target.checked)}
-                      className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                    />
-                    <span className="text-sm text-gray-600">Ouvert</span>
-                  </div>
-                  {profile.operatingHours[day.key].isOpen && (
-                    <>
-                      <div>
-                        <input
-                          type="time"
-                          value={profile.operatingHours[day.key].open}
-                          onChange={(e) => handleOperatingHoursChange(day.key, 'open', e.target.value)}
-                          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        />
-                      </div>
-                      <span className="text-gray-500">à</span>
-                      <div>
-                        <input
-                          type="time"
-                          value={profile.operatingHours[day.key].close}
-                          onChange={(e) => handleOperatingHoursChange(day.key, 'close', e.target.value)}
-                          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        />
-                      </div>
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
 
           {/* Actions */}
           <div className="flex items-center justify-end space-x-4">

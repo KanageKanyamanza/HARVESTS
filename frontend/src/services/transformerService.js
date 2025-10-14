@@ -22,11 +22,6 @@ const transformerService = {
   updateCertification: (certId, data) => api.patch(`/transformers/me/certifications/${certId}`, data),
   removeCertification: (certId) => api.delete(`/transformers/me/certifications/${certId}`),
 
-  // Équipements
-  getMyEquipment: () => api.get('/transformers/me/equipment'),
-  addEquipment: (data) => api.post('/transformers/me/equipment', data),
-  updateEquipment: (equipmentId, data) => api.patch(`/transformers/me/equipment/${equipmentId}`, data),
-  removeEquipment: (equipmentId) => api.delete(`/transformers/me/equipment/${equipmentId}`),
 
   // Capacités de stockage
   getStorageCapabilities: () => api.get('/transformers/me/storage-capabilities'),
@@ -59,36 +54,26 @@ const transformerService = {
   trackOrder: (orderId) => api.get(`/transformers/me/orders/${orderId}/tracking`),
   updateOrderProgress: (orderId, data) => api.patch(`/transformers/me/orders/${orderId}/progress`, data),
 
-  // Devis personnalisés
-  getCustomQuotes: () => api.get('/transformers/me/custom-quotes'),
-  getCustomQuote: (quoteId) => api.get(`/transformers/me/custom-quotes/${quoteId}`),
-  createCustomQuote: (data) => api.post('/transformers/me/custom-quotes', data),
-  updateCustomQuote: (quoteId, data) => api.patch(`/transformers/me/custom-quotes/${quoteId}`, data),
-  deleteCustomQuote: (quoteId) => api.delete(`/transformers/me/custom-quotes/${quoteId}`),
-  convertQuoteToOrder: (quoteId) => api.post(`/transformers/me/custom-quotes/${quoteId}/convert`),
 
   // Horaires d'opération
   getOperatingHours: () => api.get('/transformers/me/operating-hours'),
   updateOperatingHours: (data) => api.patch('/transformers/me/operating-hours', data),
 
-  // Contrôle qualité
-  getQualityControlSettings: () => api.get('/transformers/me/quality-control'),
-  updateQualityControlSettings: (data) => api.patch('/transformers/me/quality-control', data),
 
-  // Rapports de qualité
-  getQualityReports: () => api.get('/transformers/me/quality-reports'),
-  createQualityReport: (data) => api.post('/transformers/me/quality-reports', data),
-
-  // Lots de production
-  getProductionBatches: () => api.get('/transformers/me/production-batches'),
-  getProductionBatch: (batchId) => api.get(`/transformers/me/production-batches/${batchId}`),
-  createProductionBatch: (data) => api.post('/transformers/me/production-batches', data),
-  updateProductionBatch: (batchId, data) => api.patch(`/transformers/me/production-batches/${batchId}`, data),
-  getBatchTraceability: (batchId) => api.get(`/transformers/me/production-batches/${batchId}/traceability`),
+  // Produits de la boutique
+  getMyProducts: () => api.get('/transformers/me/products'),
+  getProduct: (productId) => api.get(`/transformers/me/products/${productId}`),
+  createProduct: (data) => api.post('/transformers/me/products', data),
+  updateProduct: (productId, data) => api.patch(`/transformers/me/products/${productId}`, data),
+  deleteProduct: (productId) => api.delete(`/transformers/me/products/${productId}`),
+  submitProductForReview: (productId) => api.patch(`/transformers/me/products/${productId}/submit`),
 
   // Gestion des déchets
   getWasteManagement: () => api.get('/transformers/me/waste-management'),
   updateWasteManagement: (data) => api.patch('/transformers/me/waste-management', data),
+
+  // Produits publics (pour la boutique publique)
+  getPublicProducts: (transformerId) => api.get(`/transformers/${transformerId}/products`),
 
   // Statistiques et analytics
   getBusinessStats: () => api.get('/transformers/me/business-stats'),

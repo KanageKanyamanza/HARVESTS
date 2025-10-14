@@ -64,19 +64,6 @@ const transformerSchema = new mongoose.Schema({
     document: String
   }],
   
-  // Équipements de transformation
-  equipment: [{
-    type: {
-      type: String,
-      enum: ['processing-machine', 'packaging-machine', 'refrigeration', 'drying', 'grinding', 'pressing', 'other']
-    },
-    name: String,
-    capacity: String,
-    condition: {
-      type: String,
-      enum: ['excellent', 'good', 'fair', 'needs-repair']
-    }
-  }],
   
   // Capacités de stockage
   storageCapabilities: {

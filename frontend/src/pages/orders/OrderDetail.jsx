@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { consumerService, producerService, orderService } from '../../services';
+import { consumerService, producerService, transformerService, orderService } from '../../services';
 import { parseProductName } from '../../utils/productUtils';
 import ModularDashboardLayout from '../../components/layout/ModularDashboardLayout';
 import {
@@ -23,7 +23,8 @@ import {
 } from 'react-icons/fi';
 
 const OrderDetail = () => {
-  const { id } = useParams();
+  const { id, orderId } = useParams();
+  const orderIdParam = id || orderId;
   const navigate = useNavigate();
   const { user } = useAuth();
   const [order, setOrder] = useState(null);
@@ -33,7 +34,7 @@ const OrderDetail = () => {
 
   useEffect(() => {
     const loadOrderDetails = async () => {
-      if (!id || !user) {
+      if (!orderIdParam || !user) {
         navigate('/dashboard');
         return;
       }
@@ -46,12 +47,14 @@ const OrderDetail = () => {
         
         // Utiliser le service approprié selon le type d'utilisateur
         if (user.userType === 'consumer') {
-          response = await consumerService.getMyOrder(id);
+          response = await consumerService.getMyOrder(orderIdParam);
         } else if (user.userType === 'producer') {
-          response = await producerService.getOrder(id);
+          response = await producerService.getOrder(orderIdParam);
+        } else if (user.userType === 'transformer') {
+          response = await transformerService.getMyOrder(orderIdParam);
         } else {
           // Pour les autres types d'utilisateurs (admin, etc.), utiliser le service général
-          response = await orderService.getOrder(id);
+          response = await orderService.getOrder(orderIdParam);
         }
         
         if (response.data.status === 'success') {
@@ -68,7 +71,7 @@ const OrderDetail = () => {
     };
 
     loadOrderDetails();
-  }, [id, user, navigate]);
+  }, [orderIdParam, user, navigate]);
 
   const updateOrderStatus = async (newStatus) => {
     if (!order || updating) return;
@@ -80,6 +83,8 @@ const OrderDetail = () => {
       let response;
       if (user.userType === 'producer') {
         response = await producerService.updateOrderStatus(order._id, { status: newStatus });
+      } else if (user.userType === 'transformer') {
+        response = await transformerService.updateOrderStatus(order._id, { status: newStatus });
       } else {
         // Pour les autres types d'utilisateurs, utiliser le service général
         response = await orderService.updateOrderStatus(order._id, { status: newStatus });
@@ -91,8 +96,6 @@ const OrderDetail = () => {
           ...prevOrder,
           status: newStatus
         }));
-        
-        console.log(`Commande ${newStatus} avec succès`);
       }
     } catch (error) {
       console.error(`Erreur lors de la mise à jour du statut vers ${newStatus}:`, error);
@@ -148,6 +151,12 @@ const OrderDetail = () => {
         text: 'Livrée', 
         icon: FiCheckCircle,
         description: 'Votre commande a été livrée avec succès'
+      },
+      'completed': { 
+        color: 'text-green-600 bg-green-100', 
+        text: 'Terminée', 
+        icon: FiCheckCircle,
+        description: 'Votre commande a été terminée avec succès'
       },
       'cancelled': { 
         color: 'text-red-600 bg-red-100', 
@@ -209,6 +218,7 @@ const OrderDetail = () => {
               <Link
                 to={user?.userType === 'consumer' ? '/order-history' : 
                     user?.userType === 'producer' ? '/producer/orders' : 
+                    user?.userType === 'transformer' ? '/transformer/orders' :
                     '/dashboard'}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-harvests-green hover:bg-green-600"
               >
@@ -235,6 +245,7 @@ const OrderDetail = () => {
               <Link
                 to={user?.userType === 'consumer' ? '/order-history' : 
                     user?.userType === 'producer' ? '/producer/orders' : 
+                    user?.userType === 'transformer' ? '/transformer/orders' :
                     '/dashboard'}
                 className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               >
@@ -262,7 +273,7 @@ const OrderDetail = () => {
                 <FiRefreshCw className="h-4 w-4 mr-1" />
                 Actualiser
               </button>
-              {user?.userType === 'producer' && (
+              {(user?.userType === 'producer' || user?.userType === 'transformer') && (
                 <div className="flex space-x-2">
                   {order.status === 'pending' && (
                     <>
@@ -306,7 +317,7 @@ const OrderDetail = () => {
             <StatusIcon className="h-6 w-6 text-gray-400 mt-1" />
             <div>
               <h3 className="text-lg font-medium text-gray-900">
-                {user?.userType === 'producer' ? 'Statut de la commande' : 'Statut de votre commande'}
+                {(user?.userType === 'producer' || user?.userType === 'transformer') ? 'Statut de la commande' : 'Statut de votre commande'}
               </h3>
               <p className="text-gray-600 mt-1">{statusConfig.description}</p>
               {order.delivery?.estimatedDeliveryDate && order.status !== 'delivered' && order.status !== 'cancelled' && (
@@ -330,39 +341,50 @@ const OrderDetail = () => {
                    const productName = productSnapshot.name || item.name || 'Produit inconnu';
                    const productImages = productSnapshot.images || [];
                    const productPrice = productSnapshot.price || item.unitPrice || item.price || 0;
+                   const productUnit = productSnapshot.unit || item.unit || 'unité';
                    const quantity = item.quantity || 1;
                    const totalPrice = item.totalPrice || (productPrice * quantity);
                    
-                   
-                   // Essayer différentes approches pour extraire l'URL
+                   // Gestion des images - productSnapshot.images contient des chaînes JSON
                    let imageUrl = null;
                    let imageAlt = null;
                    
-                   if (productImages.length > 0) {
+                   if (productImages && productImages.length > 0) {
                      const firstImg = productImages[0];
                      
-                     // Si c'est déjà un objet avec une propriété url
-                     if (firstImg && typeof firstImg === 'object' && firstImg.url) {
+                     // Si c'est une chaîne JSON, la parser
+                     if (typeof firstImg === 'string') {
+                       try {
+                         const parsedImg = JSON.parse(firstImg);
+                         if (parsedImg && parsedImg.url) {
+                           imageUrl = parsedImg.url;
+                           imageAlt = parsedImg.alt || parseProductName(productName);
+                         }
+                       } catch {
+                         // Si ce n'est pas du JSON valide, essayer l'extraction par regex
+                         const urlMatch = firstImg.match(/url:\s*['"]([^'"]+)['"]/);
+                         if (urlMatch && urlMatch[1]) {
+                           imageUrl = urlMatch[1];
+                           
+                           // Chercher l'alt dans la chaîne avec une regex
+                           const altMatch = firstImg.match(/alt:\s*['"]([^'"]*)['"]/);
+                           if (altMatch && altMatch[1]) {
+                             imageAlt = altMatch[1];
+                           } else {
+                             imageAlt = parseProductName(productName);
+                           }
+                         }
+                         // Si ce n'est toujours pas trouvé, traiter comme une URL directe
+                         else if (firstImg.startsWith('http')) {
+                           imageUrl = firstImg;
+                           imageAlt = parseProductName(productName);
+                         }
+                       }
+                     }
+                     // Si c'est un objet avec une propriété url (fallback)
+                     else if (firstImg && typeof firstImg === 'object' && firstImg.url) {
                        imageUrl = firstImg.url;
-                       imageAlt = firstImg.alt;
-                     }
-                     // Si c'est une chaîne qui ressemble à une URL
-                     else if (typeof firstImg === 'string' && firstImg.startsWith('http')) {
-                       imageUrl = firstImg;
-                     }
-                     // Si c'est une chaîne avec une représentation d'objet, extraire l'URL avec regex
-                     else if (typeof firstImg === 'string') {
-                       // Chercher l'URL dans la chaîne avec une regex
-                       const urlMatch = firstImg.match(/url:\s*['"]([^'"]+)['"]/);
-                       if (urlMatch && urlMatch[1]) {
-                         imageUrl = urlMatch[1];
-                       }
-                       
-                       // Chercher l'alt dans la chaîne avec une regex
-                       const altMatch = firstImg.match(/alt:\s*['"]([^'"]*)['"]/);
-                       if (altMatch && altMatch[1]) {
-                         imageAlt = altMatch[1];
-                       }
+                       imageAlt = firstImg.alt || parseProductName(productName);
                      }
                    }
                    
@@ -390,10 +412,10 @@ const OrderDetail = () => {
                           {parseProductName(productName)}
                         </h4>
                         <p className="text-sm text-gray-500 mt-1">
-                          Quantité: {quantity}
+                          Quantité: {quantity} {productUnit}
                         </p>
                         <p className="text-sm text-gray-500">
-                          Prix unitaire: {productPrice.toLocaleString('fr-FR')} FCFA
+                          Prix unitaire: {productPrice.toLocaleString('fr-FR')} FCFA / {productUnit}
                         </p>
                       </div>
                       <div className="text-right">
@@ -413,9 +435,9 @@ const OrderDetail = () => {
             {/* Adresse de livraison ou informations client */}
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">
-                {user?.userType === 'producer' ? 'Informations client' : 'Adresse de livraison'}
+                {(user?.userType === 'producer' || user?.userType === 'transformer') ? 'Informations client' : 'Adresse de livraison'}
               </h3>
-              {user?.userType === 'producer' ? (
+              {(user?.userType === 'producer' || user?.userType === 'transformer') ? (
                 // Affichage pour les producteurs - informations de l'acheteur
                 <div className="space-y-3">
                   <div className="flex items-start space-x-3">

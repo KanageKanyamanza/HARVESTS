@@ -57,6 +57,11 @@ const OrderList = ({
         text: 'Livrée', 
         icon: FiCheckCircle 
       },
+      'completed': { 
+        color: 'text-green-600 bg-green-100', 
+        text: 'Terminée', 
+        icon: FiCheckCircle 
+      },
       'cancelled': { 
         color: 'text-red-600 bg-red-100', 
         text: 'Annulée', 
@@ -76,8 +81,8 @@ const OrderList = ({
   };
 
   const getClientInfo = (order) => {
-    if (userType === 'producer') {
-      // Côté producteur : afficher les infos du client
+    if (userType === 'producer' || userType === 'transformer') {
+      // Côté producteur/transformateur : afficher les infos du client
       const buyer = order.buyer;
       if (buyer) {
         const name = buyer.firstName && buyer.lastName 
@@ -121,10 +126,10 @@ const OrderList = ({
       <div className="bg-white rounded-lg shadow p-12 text-center">
         <FiPackage className="mx-auto h-16 w-16 text-gray-400" />
         <h3 className="mt-4 text-lg font-medium text-gray-900">
-          {userType === 'producer' ? 'Aucune commande reçue' : 'Aucune commande'}
+          {userType === 'producer' || userType === 'transformer' ? 'Aucune commande reçue' : 'Aucune commande'}
         </h3>
         <p className="mt-2 text-gray-600">
-          {userType === 'producer' 
+          {userType === 'producer' || userType === 'transformer'
             ? 'Vous n\'avez pas encore reçu de commandes.'
             : 'Commencez vos achats pour voir vos commandes ici.'
           }
@@ -150,7 +155,7 @@ const OrderList = ({
                   Commande #{order.orderNumber || order._id.slice(-8).toUpperCase()}
                 </h3>
                 <p className="text-sm text-gray-600">
-                  {userType === 'producer' ? 'Client' : 'Vendeur'} • {formatDate(order.createdAt)}
+                  {userType === 'producer' || userType === 'transformer' ? 'Client' : 'Vendeur'} • {formatDate(order.createdAt)}
                 </p>
               </div>
               <div className="flex items-center space-x-3">
@@ -159,7 +164,7 @@ const OrderList = ({
                   {statusConfig.text}
                 </span>
                 <Link
-                  to={`/orders/${order._id}`}
+                  to={userType === 'transformer' ? `/transformer/orders/${order._id}` : `/orders/${order._id}`}
                   className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                 >
                   <FiEye className="h-4 w-4 mr-1" />
@@ -248,7 +253,7 @@ const OrderList = ({
 
               <div>
                 <h4 className="text-sm font-medium text-gray-900 mb-2">
-                  {userType === 'producer' ? 'Client' : 'Vendeur'}
+                  {userType === 'producer' || userType === 'transformer' ? 'Client' : 'Vendeur'}
                 </h4>
                 <div className="text-sm text-gray-600 space-y-1">
                   <div className="flex items-center">
@@ -324,7 +329,7 @@ const OrderList = ({
                   )}
                 </div>
                 
-                {userType === 'producer' && onUpdateStatus && (
+                {(userType === 'producer' || userType === 'transformer') && onUpdateStatus && (
                   <div className="flex space-x-2">
                     {order.status === 'pending' && (
                       <>
@@ -374,6 +379,16 @@ const OrderList = ({
                       >
                         <FiCheckCircle className="h-4 w-4 mr-2" />
                         {updatingOrders.has(order._id) ? 'Livraison...' : 'Marquer livrée'}
+                      </button>
+                    )}
+                    {order.status === 'delivered' && (
+                      <button 
+                        onClick={() => onUpdateStatus(order._id, 'completed')}
+                        disabled={updatingOrders.has(order._id)}
+                        className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <FiCheckCircle className="h-4 w-4 mr-2" />
+                        {updatingOrders.has(order._id) ? 'Finalisation...' : 'Marquer terminée'}
                       </button>
                     )}
                   </div>

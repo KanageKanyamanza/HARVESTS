@@ -18,18 +18,18 @@ const ReviewStats = ({
         setLoading(true);
         let response;
         
-        if (userType === 'producer') {
+        if (userType === 'producer' && userId) {
           response = await reviewService.getProducerRatingStats(userId);
+          setStats(response.data || null);
         } else {
           // Pour les consommateurs, on ne charge pas de statistiques de producteur
           // On pourrait implémenter des stats spécifiques aux consommateurs plus tard
           setStats(null);
-          return;
         }
-        
-        setStats(response.data || null);
       } catch (error) {
         console.error('Erreur lors du chargement des statistiques:', error);
+        // En cas d'erreur, on affiche des stats par défaut
+        setStats(null);
       } finally {
         setLoading(false);
       }
@@ -37,6 +37,8 @@ const ReviewStats = ({
 
     if (userId) {
       loadStats();
+    } else {
+      setLoading(false);
     }
   }, [userId, userType]);
 

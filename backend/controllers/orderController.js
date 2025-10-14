@@ -65,7 +65,8 @@ exports.createOrder = catchAsync(async (req, res, next) => {
         name: product.name,
         description: product.shortDescription || product.description,
         images: product.images.map(img => img.url),
-        producer: product.producer
+        producer: product.producer,
+        transformer: product.transformer
       },
       quantity: item.quantity,
       unitPrice,
@@ -100,7 +101,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
   // Créer la commande
   const order = await Order.create({
     buyer: req.user.id,
-    seller: processedItems[0].productSnapshot.producer, // Tous les produits du même producteur
+    seller: processedItems[0].productSnapshot.producer || processedItems[0].productSnapshot.transformer, // Producteur ou transformateur
     items: processedItems,
     subtotal,
     deliveryFee,
