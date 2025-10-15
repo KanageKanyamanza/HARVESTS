@@ -180,6 +180,10 @@ const Register = () => {
       if (result.success) {
         // Afficher la modale de vérification d'email via ModalManager
         openEmailVerificationModal(formData.email, true);
+        
+        // Afficher un message de succès avec information sur l'email
+        console.log('✅ Inscription réussie:', result.message);
+        
         // Réinitialiser le formulaire après succès
         setFormData({
           firstName: '',

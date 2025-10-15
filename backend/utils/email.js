@@ -44,7 +44,7 @@ module.exports = class Email {
     });
   }
 
-  // Envoyer l'email avec fallback EmailJS
+  // Envoyer l'email avec fallback EmailJS (si configuré)
   async send(template, subject) {
     // 1) Générer le HTML basé sur un template pug
     const html = pug.renderFile(`${__dirname}/../views/email/${template}.pug`, {
@@ -67,15 +67,20 @@ module.exports = class Email {
       await this.newTransport().sendMail(mailOptions);
       console.log('✅ Email envoyé avec succès via Nodemailer');
     } catch (error) {
-      console.error('❌ Erreur Nodemailer, tentative avec EmailJS:', error.message);
+      console.error('❌ Erreur Nodemailer:', error.message);
       
-      // 4) Fallback avec EmailJS si Nodemailer échoue
-      try {
-        await this.sendWithEmailJS(subject, html);
-        console.log('✅ Email envoyé avec succès via EmailJS (fallback)');
-      } catch (emailjsError) {
-        console.error('❌ Erreur EmailJS également:', emailjsError.message);
-        throw new Error(`Échec envoi email: Nodemailer (${error.message}) et EmailJS (${emailjsError.message})`);
+      // 4) Fallback avec EmailJS seulement si configuré
+      if (this.isEmailJSConfigured()) {
+        try {
+          await this.sendWithEmailJS(subject, html);
+          console.log('✅ Email envoyé avec succès via EmailJS (fallback)');
+        } catch (emailjsError) {
+          console.error('❌ Erreur EmailJS également:', emailjsError.message);
+          throw new Error(`Échec envoi email: Nodemailer (${error.message}) et EmailJS (${emailjsError.message})`);
+        }
+      } else {
+        console.warn('⚠️ EmailJS non configuré, échec définitif de l\'envoi d\'email');
+        throw new Error(`Échec envoi email: Nodemailer (${error.message}) - EmailJS non configuré`);
       }
     }
   }
@@ -124,9 +129,14 @@ module.exports = class Email {
     }
   }
 
+  // Vérifier si EmailJS est configuré
+  isEmailJSConfigured() {
+    return !!(process.env.EMAILJS_SERVICE_ID && process.env.EMAILJS_TEMPLATE_ID && process.env.EMAILJS_PUBLIC_KEY);
+  }
+
   // Méthode EmailJS pour le fallback
   async sendWithEmailJS(subject, html) {
-    if (!process.env.EMAILJS_SERVICE_ID || !process.env.EMAILJS_TEMPLATE_ID || !process.env.EMAILJS_PUBLIC_KEY) {
+    if (!this.isEmailJSConfigured()) {
       throw new Error('Configuration EmailJS manquante. Vérifiez EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID et EMAILJS_PUBLIC_KEY');
     }
 
@@ -180,16 +190,21 @@ module.exports = class Email {
       console.log('✅ Email de test envoyé avec succès via Nodemailer !');
       return testEmail;
     } catch (error) {
-      console.error('❌ Erreur Nodemailer, test avec EmailJS:', error.message);
+      console.error('❌ Erreur Nodemailer:', error.message);
       
-      try {
-        // Fallback EmailJS
-        const emailjsResult = await this.sendWithEmailJS('🧪 Test Harvests - EmailJS', testHtml);
-        console.log('✅ Email de test envoyé avec succès via EmailJS (fallback) !');
-        return emailjsResult;
-      } catch (emailjsError) {
-        console.error('❌ Erreur EmailJS également:', emailjsError.message);
-        throw new Error(`Échec test email: Nodemailer (${error.message}) et EmailJS (${emailjsError.message})`);
+      if (this.isEmailJSConfigured()) {
+        try {
+          // Fallback EmailJS seulement si configuré
+          const emailjsResult = await this.sendWithEmailJS('🧪 Test Harvests - EmailJS', testHtml);
+          console.log('✅ Email de test envoyé avec succès via EmailJS (fallback) !');
+          return emailjsResult;
+        } catch (emailjsError) {
+          console.error('❌ Erreur EmailJS également:', emailjsError.message);
+          throw new Error(`Échec test email: Nodemailer (${error.message}) et EmailJS (${emailjsError.message})`);
+        }
+      } else {
+        console.warn('⚠️ EmailJS non configuré, échec définitif du test d\'email');
+        throw new Error(`Échec test email: Nodemailer (${error.message}) - EmailJS non configuré`);
       }
     }
   }

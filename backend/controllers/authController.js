@@ -5,6 +5,7 @@ const User = require('../models/User');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const Email = require('../utils/email');
+const emailQueue = require('../services/emailQueueService');
 
 // Note: Pour l'inscription simplifiée, nous utilisons seulement le modèle User de base
 // Les profils spécialisés seront créés lors de la complétion du profil
@@ -40,6 +41,8 @@ const createSendToken = (user, statusCode, req, res) => {
     token,
     data: {
       user,
+      emailVerified: user.isEmailVerified,
+      requiresEmailVerification: !user.isEmailVerified
     },
   });
 };
@@ -111,27 +114,24 @@ exports.signup = catchAsync(async (req, res, next) => {
     }
   };
 
-  // Essayer d'envoyer l'email de vérification
-  try {
-    const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
-    const verifyURL = `${frontendUrl}/verify-email/${verifyToken}`;
+  // Ajouter l'email à la queue d'envoi en arrière-plan
+  const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
+  const verifyURL = `${frontendUrl}/verify-email/${verifyToken}`;
+  
+  emailQueue.addToQueue({
+    user: newUser,
+    verifyURL,
+    language: req.language,
+    emailType: 'welcome',
+    email: newUser.email
+  });
 
-    await new Email(newUser, verifyURL, req.language).sendWelcome();
-    
-    // Email envoyé avec succès
-    res.success(res.t('auth.signup_success'), successResponse, 201);
-    
-  } catch (emailError) {
-    console.warn('⚠️ Erreur envoi email (inscription réussie quand même):', emailError.message);
-    
-    // Inscription réussie même si email échoue
-    res.status(201).json({
-      status: 'success',
-      message: 'Inscription réussie ! Email de vérification en cours d\'envoi.',
-      warning: 'Email de vérification peut arriver avec un délai.',
-      data: successResponse
-    });
-  }
+  // Réponse immédiate de succès d'inscription
+  res.status(201).json({
+    status: 'success',
+    message: 'Inscription réussie ! Un email de vérification vous sera envoyé sous peu.',
+    data: successResponse
+  });
 });
 
 
@@ -160,9 +160,10 @@ exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError('Email ou mot de passe incorrect', 401));
   }
 
-  // 3) Vérifier si l'email est vérifié
+  // 3) Vérifier si l'email est vérifié (avertissement mais pas d'erreur)
   if (!user.isEmailVerified) {
-    return next(new AppError('Veuillez vérifier votre email avant de vous connecter', 401));
+    console.log(`⚠️ Connexion avec email non vérifié: ${user.email}`);
+    // On continue la connexion mais on ajoutera un flag pour les restrictions
   }
 
   // 4) Vérifier si le compte est actif
@@ -197,6 +198,119 @@ exports.logout = (req, res) => {
   });
   res.status(200).json({ status: 'success' });
 };
+
+// Endpoint pour vérifier le statut de la queue d'emails (debug)
+exports.getEmailQueueStatus = (req, res) => {
+  const status = emailQueue.getQueueStatus();
+  res.status(200).json({
+    status: 'success',
+    data: {
+      emailQueue: status,
+      message: 'Statut de la queue d\'emails'
+    }
+  });
+};
+
+// Redemander l'envoi d'email de vérification
+exports.retryEmailVerification = catchAsync(async (req, res, next) => {
+  const { email } = req.body;
+  
+  if (!email) {
+    return next(new AppError('Email requis', 400));
+  }
+
+  // Trouver l'utilisateur
+  const user = await User.findOne({ email });
+  if (!user) {
+    return next(new AppError('Utilisateur non trouvé', 404));
+  }
+
+  // Vérifier si l'email est déjà vérifié
+  if (user.isEmailVerified) {
+    return res.status(200).json({
+      status: 'success',
+      message: 'Email déjà vérifié'
+    });
+  }
+
+  // Générer un nouveau token de vérification
+  const verifyToken = user.createEmailVerificationToken();
+  await user.save({ validateBeforeSave: false });
+
+  // Ajouter à la queue d'envoi
+  const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
+  const verifyURL = `${frontendUrl}/verify-email/${verifyToken}`;
+  
+  emailQueue.addToQueue({
+    user,
+    verifyURL,
+    language: req.language,
+    emailType: 'welcome',
+    email: user.email
+  });
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Email de vérification renvoyé en arrière-plan'
+  });
+});
+
+// Tester la configuration email
+exports.testEmailConfiguration = catchAsync(async (req, res, next) => {
+  const { email } = req.body;
+  
+  if (!email) {
+    return next(new AppError('Email requis pour le test', 400));
+  }
+
+  // Créer un utilisateur temporaire pour le test
+  const testUser = {
+    email,
+    firstName: 'Test',
+    preferredLanguage: req.language || 'fr'
+  };
+
+  const testEmail = new Email(testUser, 'https://harvests-khaki.vercel.app', req.language);
+  
+  try {
+    // Tester la connexion Nodemailer
+    const connectionTest = await testEmail.testConnection();
+    
+    if (connectionTest) {
+      // Envoyer un email de test
+      await testEmail.sendTestEmail();
+      
+      res.status(200).json({
+        status: 'success',
+        message: 'Configuration email testée avec succès',
+        data: {
+          nodemailer: 'OK',
+          emailjs: testEmail.isEmailJSConfigured() ? 'Configuré' : 'Non configuré',
+          testEmailSent: true
+        }
+      });
+    } else {
+      res.status(500).json({
+        status: 'error',
+        message: 'Échec de la connexion Nodemailer',
+        data: {
+          nodemailer: 'FAILED',
+          emailjs: testEmail.isEmailJSConfigured() ? 'Configuré' : 'Non configuré'
+        }
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: 'Erreur lors du test email',
+      error: error.message,
+      data: {
+        nodemailer: 'ERROR',
+        emailjs: testEmail.isEmailJSConfigured() ? 'Configuré' : 'Non configuré'
+      }
+    });
+  }
+});
 
 // Vérification email
 exports.verifyEmail = catchAsync(async (req, res, next) => {
@@ -406,6 +520,11 @@ exports.protect = catchAsync(async (req, res, next) => {
   // ACCÈS ACCORDÉ À LA ROUTE PROTÉGÉE
   req.user = currentUser;
   res.locals.user = currentUser;
+  
+  // Ajouter les informations de vérification d'email
+  req.user.emailVerified = currentUser.isEmailVerified;
+  req.user.requiresEmailVerification = !currentUser.isEmailVerified;
+  
   next();
 });
 
@@ -424,9 +543,60 @@ exports.restrictTo = (...userTypes) => {
 // Middleware pour vérifier si l'utilisateur est vérifié
 exports.requireVerification = (req, res, next) => {
   if (!req.user.isEmailVerified) {
-    return next(new AppError('Veuillez vérifier votre email pour accéder à cette fonctionnalité', 403));
+    return res.status(403).json({
+      status: 'error',
+      message: 'Cette fonctionnalité nécessite une vérification d\'email',
+      code: 'EMAIL_VERIFICATION_REQUIRED',
+      data: {
+        emailVerified: false,
+        requiresEmailVerification: true,
+        suggestion: 'Vérifiez votre email pour débloquer cette fonctionnalité',
+        allowedActions: [
+          'Voir le profil',
+          'Modifier les informations de base',
+          'Consulter les commandes existantes',
+          'Voir les notifications'
+        ],
+        restrictedActions: [
+          'Créer des commandes',
+          'Effectuer des paiements',
+          'Publier des produits',
+          'Gérer la boutique'
+        ]
+      }
+    });
   }
   next();
+};
+
+// Middleware flexible pour les actions qui nécessitent une vérification d'email
+exports.requireVerificationFlexible = (options = {}) => {
+  const {
+    allowReadOnly = true,
+    allowedMethods = ['GET', 'HEAD', 'OPTIONS'],
+    customMessage = 'Cette action nécessite une vérification d\'email'
+  } = options;
+
+  return (req, res, next) => {
+    if (!req.user.isEmailVerified) {
+      // Si on permet la lecture seule et que c'est une méthode de lecture
+      if (allowReadOnly && allowedMethods.includes(req.method)) {
+        return next();
+      }
+
+      return res.status(403).json({
+        status: 'error',
+        message: customMessage,
+        code: 'EMAIL_VERIFICATION_REQUIRED',
+        data: {
+          emailVerified: false,
+          requiresEmailVerification: true,
+          suggestion: 'Vérifiez votre email pour débloquer cette fonctionnalité'
+        }
+      });
+    }
+    next();
+  };
 };
 
 // Middleware pour vérifier si l'utilisateur est approuvé (pour les opérations sensibles)
