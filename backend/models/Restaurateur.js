@@ -225,6 +225,63 @@ const restaurateurSchema = new mongoose.Schema({
     }
   },
   
+  // Bannière du restaurant
+  restaurantBanner: {
+    type: String,
+    required: false,
+    default: null
+  },
+  
+  // Plats du restaurant
+  dishes: [{
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: [100, 'Le nom du plat ne peut pas dépasser 100 caractères']
+    },
+    description: {
+      type: String,
+      required: false,
+      trim: true,
+      maxlength: [500, 'La description ne peut pas dépasser 500 caractères']
+    },
+    price: {
+      type: Number,
+      required: true,
+      min: [0, 'Le prix ne peut pas être négatif']
+    },
+    image: {
+      type: String,
+      required: false,
+      default: null
+    },
+    category: {
+      type: String,
+      required: false,
+      enum: ['entree', 'plat', 'dessert', 'boisson', 'accompagnement'],
+      default: 'plat'
+    },
+    isAvailable: {
+      type: Boolean,
+      default: true
+    },
+    preparationTime: {
+      type: Number,
+      required: false,
+      min: [0, 'Le temps de préparation ne peut pas être négatif'],
+      default: 30 // en minutes
+    },
+    allergens: [{
+      type: String,
+      enum: ['gluten', 'lactose', 'nuts', 'eggs', 'soy', 'fish', 'shellfish', 'sesame']
+    }],
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  
   // Préférences de livraison
   deliveryPreferences: {
     preferredTimes: [{

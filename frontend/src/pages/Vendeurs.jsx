@@ -1,22 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { producerService, transformerService } from '../services';
+import { producerService, transformerService, restaurateurService } from '../services';
 import { FiMapPin, FiStar, FiPackage, FiArrowRight, FiTool, FiSun } from 'react-icons/fi';
 
 const Vendeurs = () => {
   const [vendeurs, setVendeurs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all'); // 'all', 'producers', 'transformers'
+  const [filter, setFilter] = useState('all'); // 'all', 'producers', 'transformers', 'restaurateurs'
 
   useEffect(() => {
     const loadVendeurs = async () => {
       try {
         setLoading(true);
         
-        // Charger producteurs et transformateurs en parallèle
-        const [producersResponse, transformersResponse] = await Promise.allSettled([
+        // Charger producteurs, transformateurs et restaurateurs en parallèle
+        const [producersResponse, transformersResponse, restaurateursResponse] = await Promise.allSettled([
           producerService.getAllProducers({ limit: 50 }),
-          transformerService.getAllTransformers({ limit: 50 })
+          transformerService.getAllTransformers({ limit: 50 }),
+          restaurateurService.getAllRestaurateurs({ limit: 50 })
         ]);
 
         const allVendeurs = [];
@@ -44,6 +45,19 @@ const Vendeurs = () => {
             profileUrl: `/transformers/${transformer._id}`,
             shopBanner: transformer.shopInfo?.shopBanner,
             avatar: transformer.shopInfo?.shopLogo
+          })));
+        }
+
+        // Ajouter les restaurateurs
+        if (restaurateursResponse.status === 'fulfilled' && restaurateursResponse.value.data.status === 'success') {
+          const restaurateurs = restaurateursResponse.value.data.data.restaurateurs || [];
+          allVendeurs.push(...restaurateurs.map(restaurateur => ({
+            ...restaurateur,
+            type: 'restaurateur',
+            displayName: restaurateur.restaurantName || `${restaurateur.firstName} ${restaurateur.lastName}`,
+            profileUrl: `/restaurateurs/${restaurateur._id}`,
+            shopBanner: restaurateur.restaurantBanner,
+            avatar: restaurateur.avatar
           })));
         }
         setVendeurs(allVendeurs);
@@ -85,6 +99,13 @@ const Vendeurs = () => {
           color: 'bg-purple-100 text-purple-800',
           iconColor: 'text-purple-600'
         };
+      case 'restaurateur':
+        return {
+          label: 'Restaurateur',
+          icon: FiPackage,
+          color: 'bg-orange-100 text-orange-800',
+          iconColor: 'text-orange-600'
+        };
       default:
         return {
           label: 'Vendeur',
@@ -101,6 +122,8 @@ const Vendeurs = () => {
         return 'from-green-400 to-green-600';
       case 'transformer':
         return 'from-purple-400 to-purple-600';
+      case 'restaurateur':
+        return 'from-orange-400 to-orange-600';
       default:
         return 'from-gray-400 to-gray-600';
     }
@@ -162,6 +185,16 @@ const Vendeurs = () => {
               }`}
             >
               Transformateurs
+            </button>
+            <button
+              onClick={() => setFilter('restaurateur')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                filter === 'restaurateur' 
+                  ? 'bg-orange-600 text-white' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Restaurateurs
             </button>
           </div>
         </div>

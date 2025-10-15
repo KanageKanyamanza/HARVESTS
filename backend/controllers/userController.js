@@ -1,5 +1,5 @@
-// const multer = require('multer');
-// const sharp = require('sharp'); // Temporairement désactivé
+const multer = require('multer');
+const { createDynamicStorage } = require('../config/cloudinary');
 const User = require('../models/User');
 const Producer = require('../models/Producer');
 const Transformer = require('../models/Transformer');
@@ -21,18 +21,50 @@ const userModels = {
   transporter: Transporter
 };
 
-// Configuration Multer pour upload d'avatar (temporairement désactivé)
-// const multerStorage = multer.memoryStorage();
-// const upload = multer({ storage: multerStorage });
-exports.uploadUserPhoto = (req, res, next) => next(); // Placeholder
+// Configuration Multer pour upload d'images utilisateur
+const createUploadMiddleware = (contentType, fieldName = 'avatar') => {
+  return (req, res, next) => {
+    const userType = req.user?.userType || 'consumer';
+    const storage = createDynamicStorage(userType, contentType);
+    const upload = multer({
+      storage: storage,
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+      fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image')) {
+          cb(null, true);
+        } else {
+          cb(new AppError('Veuillez télécharger uniquement des images!', 400), false);
+        }
+      }
+    });
+    upload.single(fieldName)(req, res, next);
+  };
+};
 
-// Redimensionnement de la photo utilisateur (temporairement désactivé)
+// Middleware d'upload d'avatar
+exports.uploadUserPhoto = (req, res, next) => {
+  const upload = createUploadMiddleware('profile', 'avatar');
+  upload(req, res, next);
+};
+
+// Middleware d'upload de bannière
+exports.uploadShopBanner = (req, res, next) => {
+  const upload = createUploadMiddleware('marketing', 'banner');
+  upload(req, res, next);
+};
+
+// Middleware d'upload de logo
+exports.uploadShopLogo = (req, res, next) => {
+  const upload = createUploadMiddleware('profile', 'logo');
+  upload(req, res, next);
+};
+
+// Traitement après upload
 exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
   if (!req.file) return next();
   
-  // Placeholder pour Sharp - à implémenter plus tard
-  req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
-  
+  // L'image est déjà traitée par Cloudinary
+  // On peut ajouter des transformations supplémentaires ici si nécessaire
   next();
 });
 
@@ -74,11 +106,26 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     'preferredLanguage',
     'country',
     'currency',
-    'notifications'
+    'notifications',
+    'avatar',
+    'shopBanner',
+    'shopLogo'
   );
 
-  // 3) Ajouter l'avatar si téléchargé
-  if (req.file) filteredBody.avatar = req.file.filename;
+  // 3) Ajouter l'image si téléchargée (Cloudinary)
+  if (req.file) {
+    // req.file.path contient l'URL Cloudinary
+    const imageUrl = req.file.path;
+    
+    // Déterminer le type d'image selon le champ name
+    if (req.file.fieldname === 'avatar') {
+      filteredBody.avatar = imageUrl;
+    } else if (req.file.fieldname === 'banner') {
+      filteredBody.shopBanner = imageUrl;
+    } else if (req.file.fieldname === 'logo') {
+      filteredBody.shopLogo = imageUrl;
+    }
+  }
 
   // 4) Mettre à jour le document utilisateur
   const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {

@@ -83,25 +83,36 @@ api.interceptors.response.use(
       return Promise.reject(timeoutError);
     }
     
-    console.error('API Error:', error);
+    // Ne pas afficher l'erreur dans la console pour les tentatives de connexion admin
+    // car c'est normal qu'elles échouent pour les utilisateurs non-admin
+    const isAdminLoginAttempt = error.config?.url?.includes('/admin/auth/login');
+    if (!isAdminLoginAttempt) {
+      console.error('API Error:', error);
+    }
     
     // Gérer les erreurs d'authentification
     if (error.response?.status === 401) {
       const errorMessage = error.response?.data?.message || 'Non autorisé';
       
-      // Vérifier si c'est une erreur de token spécifique
-      if (errorMessage.includes('jwt malformed') || errorMessage.includes('jwt expired')) {
-        console.warn('Token JWT invalide ou expiré, déconnexion...');
-        localStorage.removeItem('harvests_token');
-        localStorage.removeItem('harvests_user');
-        localStorage.removeItem('harvests_auth_data');
-        
-        // Rediriger vers la page de connexion seulement si ce n'est pas une vérification en arrière-plan
-        if (!error.config?.skipRedirect) {
-          window.location.href = '/login';
+      // Ignorer les erreurs 401 sur les routes admin de connexion car c'est normal
+      // quand un utilisateur non-admin essaie de se connecter
+      const isAdminLoginAttempt = error.config?.url?.includes('/admin/auth/login');
+      
+      if (!isAdminLoginAttempt) {
+        // Vérifier si c'est une erreur de token spécifique
+        if (errorMessage.includes('jwt malformed') || errorMessage.includes('jwt expired')) {
+          console.warn('Token JWT invalide ou expiré, déconnexion...');
+          localStorage.removeItem('harvests_token');
+          localStorage.removeItem('harvests_user');
+          localStorage.removeItem('harvests_auth_data');
+          
+          // Rediriger vers la page de connexion seulement si ce n'est pas une vérification en arrière-plan
+          if (!error.config?.skipRedirect) {
+            window.location.href = '/login';
+          }
+        } else {
+          console.warn('Token invalide ou expiré:', errorMessage);
         }
-      } else {
-        console.warn('Token invalide ou expiré:', errorMessage);
       }
     }
     

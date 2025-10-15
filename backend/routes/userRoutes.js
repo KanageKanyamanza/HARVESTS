@@ -13,14 +13,32 @@ router.get('/me', userController.getMe, userController.getUser);
 router.patch('/update-me', userController.updateMe);
 router.delete('/delete-me', userController.deleteMe);
 
+// Import des services centralisés
+const profileImageService = require('../services/profileImageService');
+const profileService = require('../services/profileService');
+
 // Upload d'avatar
 router.patch('/upload-avatar', 
   uploadLimiter,
-  userController.uploadUserPhoto,
-  fileTypeValidation(['image/jpeg', 'image/png', 'image/webp']),
-  fileSizeValidation(2 * 1024 * 1024), // 2MB
-  userController.resizeUserPhoto,
-  userController.updateMe
+  profileImageService.uploadAvatar,
+  profileImageService.processImageUpload,
+  profileService.updateProfile
+);
+
+// Upload de bannière de boutique
+router.patch('/upload-shop-banner', 
+  uploadLimiter,
+  profileImageService.uploadShopBanner,
+  profileImageService.processImageUpload,
+  profileService.updateProfile
+);
+
+// Upload de logo de boutique
+router.patch('/upload-shop-logo', 
+  uploadLimiter,
+  profileImageService.uploadShopLogo,
+  profileImageService.processImageUpload,
+  profileService.updateProfile
 );
 
 // Gestion des adresses (pour les consommateurs principalement)

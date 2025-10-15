@@ -44,6 +44,7 @@ const ProducerProfile = React.lazy(() => import('./pages/ProducerProfile'));
 const Vendeurs = React.lazy(() => import('./pages/Vendeurs'));
 const Transformers = React.lazy(() => import('./pages/Transformers'));
 const TransformerProfile = React.lazy(() => import('./pages/TransformerProfile'));
+const PublicRestaurateurProfile = React.lazy(() => import('./pages/RestaurateurProfile'));
 const CartPage = React.lazy(() => import('./pages/Cart'));
 const LoyaltyProgram = React.lazy(() => import('./pages/LoyaltyProgram'));
 
@@ -90,9 +91,17 @@ const TransformerProducts = React.lazy(() => import('./pages/dashboard/transform
 const NewProduct = React.lazy(() => import('./pages/dashboard/transformer/products/NewProduct'));
 const CertificationsList = React.lazy(() => import('./pages/dashboard/transformer/certifications/CertificationsList'));
 const BusinessAnalytics = React.lazy(() => import('./pages/dashboard/transformer/analytics/BusinessAnalytics'));
-const ProfileSettings = React.lazy(() => import('./pages/dashboard/transformer/settings/ProfileSettings'));
-const Settings = React.lazy(() => import('./pages/dashboard/transformer/settings/Settings'));
+const ProfileSettings = React.lazy(() => import('./pages/dashboard/transformer/ProfileTransformer'));
+const Settings = React.lazy(() => import('./pages/dashboard/transformer/SettingsTransformer'));
 const ShopManagement = React.lazy(() => import('./pages/dashboard/transformer/shop/ShopManagement'));
+
+// Restaurateur Dashboard
+const RestaurateurDashboard = React.lazy(() => import('./pages/dashboard/restaurateur/RestaurateurDashboard'));
+const RestaurateurOrders = React.lazy(() => import('./pages/dashboard/restaurateur/OrdersList'));
+const RestaurateurSuppliers = React.lazy(() => import('./pages/dashboard/restaurateur/SuppliersList'));
+const RestaurateurProfile = React.lazy(() => import('./pages/dashboard/restaurateur/ProfileRestaurateur'));
+const RestaurateurNewOrder = React.lazy(() => import('./pages/dashboard/restaurateur/NewOrder'));
+const RestaurateurDishes = React.lazy(() => import('./pages/dashboard/restaurateur/DishesManagement'));
 
 // Consumer Dashboard  
 const ConsumerDashboard = React.lazy(() => import('./pages/dashboard/consumer/ConsumerDashboard'));
@@ -282,6 +291,14 @@ function App() {
                   </PublicRoute>
                 } />
                 
+                <Route path="/restaurateurs/:id" element={
+                  <PublicRoute>
+                    <Layout>
+                      <PublicRestaurateurProfile />
+                    </Layout>
+                  </PublicRoute>
+                } />
+                
                 <Route path="/loyalty" element={
                   <PublicRoute>
                     <Layout>
@@ -431,6 +448,58 @@ function App() {
          <Route path="/transformer/shop" element={
            <ProtectedRoute>
              <ShopManagement />
+           </ProtectedRoute>
+         } />
+
+         {/* Restaurateur Dashboard Routes */}
+         <Route path="/restaurateur/dashboard" element={
+           <ProtectedRoute>
+             <RestaurateurDashboard />
+           </ProtectedRoute>
+         } />
+
+         {/* Restaurateur Orders Routes */}
+         <Route path="/restaurateur/orders" element={
+           <ProtectedRoute>
+             <RestaurateurOrders />
+           </ProtectedRoute>
+         } />
+
+         <Route path="/restaurateur/orders/new" element={
+           <ProtectedRoute>
+             <RestaurateurNewOrder />
+           </ProtectedRoute>
+         } />
+
+         <Route path="/restaurateur/orders/:orderId" element={
+           <ProtectedRoute>
+             <OrderDetail />
+           </ProtectedRoute>
+         } />
+
+         {/* Restaurateur Suppliers Routes */}
+         <Route path="/restaurateur/suppliers" element={
+           <ProtectedRoute>
+             <RestaurateurSuppliers />
+           </ProtectedRoute>
+         } />
+
+         <Route path="/restaurateur/suppliers/:supplierId" element={
+           <ProtectedRoute>
+             <ProducerProfile />
+           </ProtectedRoute>
+         } />
+
+         {/* Restaurateur Profile Routes */}
+         <Route path="/restaurateur/profile" element={
+           <ProtectedRoute>
+             <RestaurateurProfile />
+           </ProtectedRoute>
+         } />
+
+         <Route path="/restaurateur/dishes" element={
+           <ProtectedRoute>
+             <RestaurateurDishes />
            </ProtectedRoute>
          } />
                 

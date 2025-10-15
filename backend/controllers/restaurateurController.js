@@ -130,10 +130,23 @@ exports.getMyProfile = catchAsync(async (req, res, next) => {
 });
 
 exports.updateMyProfile = catchAsync(async (req, res, next) => {
-  const allowedFields = ['restaurantName', 'restaurantType', 'cuisineTypes', 'seatingCapacity'];
+  const allowedFields = [
+    'restaurantName', 
+    'restaurantType', 
+    'cuisineTypes', 
+    'seatingCapacity',
+    'address',
+    'additionalServices',
+    'operatingHours',
+    'restaurantBanner',
+    'dishes'
+  ];
+  
   const filteredBody = {};
   Object.keys(req.body).forEach(key => {
-    if (allowedFields.includes(key)) filteredBody[key] = req.body[key];
+    if (allowedFields.includes(key)) {
+      filteredBody[key] = req.body[key];
+    }
   });
 
   const restaurateur = await Restaurateur.findByIdAndUpdate(req.user.id, filteredBody, {
@@ -141,6 +154,126 @@ exports.updateMyProfile = catchAsync(async (req, res, next) => {
   });
 
   res.status(200).json({ status: 'success', data: { restaurateur } });
+});
+
+// Récupérer les plats du restaurateur
+exports.getMyDishes = catchAsync(async (req, res, next) => {
+  const restaurateur = await Restaurateur.findById(req.user.id).select('dishes');
+  if (!restaurateur) {
+    return res.status(404).json({
+      status: 'error',
+      message: 'Restaurateur non trouvé'
+    });
+  }
+  
+  res.status(200).json({
+    status: 'success',
+    data: { dishes: restaurateur.dishes }
+  });
+});
+
+// Récupérer les plats d'un restaurateur (public)
+exports.getRestaurateurDishes = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  
+  const restaurateur = await Restaurateur.findById(id).select('dishes restaurantName');
+  if (!restaurateur) {
+    return res.status(404).json({
+      status: 'error',
+      message: 'Restaurateur non trouvé'
+    });
+  }
+  
+  // Filtrer seulement les plats disponibles
+  const availableDishes = restaurateur.dishes.filter(dish => dish.isAvailable);
+  
+  res.status(200).json({
+    status: 'success',
+    data: { 
+      dishes: availableDishes,
+      restaurantName: restaurateur.restaurantName
+    }
+  });
+});
+
+// Gestion des plats
+exports.addDish = catchAsync(async (req, res, next) => {
+  const { name, description, price, image, category, preparationTime, allergens } = req.body;
+  
+  const restaurateur = await Restaurateur.findById(req.user.id);
+  if (!restaurateur) {
+    return res.status(404).json({
+      status: 'error',
+      message: 'Restaurateur non trouvé'
+    });
+  }
+  
+  const newDish = {
+    name,
+    description,
+    price,
+    image,
+    category: category || 'plat',
+    preparationTime: preparationTime || 30,
+    allergens: allergens || []
+  };
+  
+  restaurateur.dishes.push(newDish);
+  await restaurateur.save();
+  
+  res.status(201).json({
+    status: 'success',
+    data: { dish: newDish }
+  });
+});
+
+exports.updateDish = catchAsync(async (req, res, next) => {
+  const { dishId } = req.params;
+  const updateData = req.body;
+  
+  const restaurateur = await Restaurateur.findById(req.user.id);
+  if (!restaurateur) {
+    return res.status(404).json({
+      status: 'error',
+      message: 'Restaurateur non trouvé'
+    });
+  }
+  
+  const dish = restaurateur.dishes.id(dishId);
+  if (!dish) {
+    return res.status(404).json({
+      status: 'error',
+      message: 'Plat non trouvé'
+    });
+  }
+  
+  Object.assign(dish, updateData);
+  await restaurateur.save();
+  
+  res.status(200).json({
+    status: 'success',
+    data: { dish }
+  });
+});
+
+exports.deleteDish = catchAsync(async (req, res, next) => {
+  const { dishId } = req.params;
+  
+  const restaurateur = await Restaurateur.findById(req.user.id);
+  if (!restaurateur) {
+    return res.status(404).json({
+      status: 'error',
+      message: 'Restaurateur non trouvé'
+    });
+  }
+  
+  restaurateur.dishes.pull(dishId);
+  await restaurateur.save();
+  
+  res.status(200).json({
+    status: 'success',
+    message: 'Plat supprimé avec succès'
+  });
 });
 
 // Fonctions temporaires pour les fonctionnalités nécessitant d'autres modèles
@@ -275,5 +408,173 @@ exports.getStockAlerts = temporaryResponse('Alertes stock');
 exports.createStockAlert = temporaryResponse('Création alerte');
 exports.updateStockAlert = temporaryResponse('Mise à jour alerte');
 exports.deleteStockAlert = temporaryResponse('Suppression alerte');
+
+// DÉCOUVERTE DES FOURNISSEURS (PRODUCTEURS ET TRANSFORMATEURS)
+exports.discoverSuppliers = catchAsync(async (req, res, next) => {
+  const Producer = require('../models/Producer');
+  const Transformer = require('../models/Transformer');
+  
+  const { limit = 20, page = 1, type, region, search } = req.query;
+  const skip = (page - 1) * limit;
+  
+  try {
+    // Construire les filtres de base
+    const baseFilters = {
+      isActive: true,
+      isApproved: true,
+      isEmailVerified: true
+    };
+    
+    // Filtres optionnels
+    const filters = { ...baseFilters };
+    if (region) filters.region = new RegExp(region, 'i');
+    if (search) {
+      filters.$or = [
+        { companyName: new RegExp(search, 'i') },
+        { businessName: new RegExp(search, 'i') },
+        { description: new RegExp(search, 'i') }
+      ];
+    }
+    
+    let suppliers = [];
+    let total = 0;
+    
+    // Récupérer les producteurs
+    if (!type || type === 'producer') {
+      const producerFilters = { ...filters };
+      if (type === 'producer') {
+        // Filtres spécifiques aux producteurs
+      }
+      
+      const producers = await Producer.find(producerFilters)
+        .select('companyName businessName description region contactInfo businessStats createdAt')
+        .sort('-businessStats.supplierRating -createdAt')
+        .skip(type === 'producer' ? skip : 0)
+        .limit(type === 'producer' ? limit : Math.ceil(limit / 2));
+      
+      const producerCount = await Producer.countDocuments(producerFilters);
+      
+      suppliers = suppliers.concat(producers.map(p => ({
+        ...p.toObject(),
+        userType: 'producer',
+        supplierType: 'Producteur'
+      })));
+      
+      total += producerCount;
+    }
+    
+    // Récupérer les transformateurs
+    if (!type || type === 'transformer') {
+      const transformerFilters = { ...filters };
+      if (type === 'transformer') {
+        // Filtres spécifiques aux transformateurs
+      }
+      
+      const transformers = await Transformer.find(transformerFilters)
+        .select('companyName businessName description region contactInfo businessStats transformationType createdAt')
+        .sort('-businessStats.supplierRating -createdAt')
+        .skip(type === 'transformer' ? skip : 0)
+        .limit(type === 'transformer' ? limit : Math.ceil(limit / 2));
+      
+      const transformerCount = await Transformer.countDocuments(transformerFilters);
+      
+      suppliers = suppliers.concat(transformers.map(t => ({
+        ...t.toObject(),
+        userType: 'transformer',
+        supplierType: 'Transformateur'
+      })));
+      
+      total += transformerCount;
+    }
+    
+    // Trier par note de fournisseur et date de création
+    suppliers.sort((a, b) => {
+      const ratingA = a.businessStats?.supplierRating || 0;
+      const ratingB = b.businessStats?.supplierRating || 0;
+      if (ratingA !== ratingB) return ratingB - ratingA;
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+    
+    // Limiter les résultats si on a récupéré des deux types
+    if (!type) {
+      suppliers = suppliers.slice(0, limit);
+    }
+    
+    res.status(200).json({
+      status: 'success',
+      results: suppliers.length,
+      total,
+      data: {
+        suppliers
+      }
+    });
+    
+  } catch (error) {
+    console.error('Erreur lors de la découverte des fournisseurs:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Erreur lors de la récupération des fournisseurs'
+    });
+  }
+});
+
+exports.searchSuppliers = catchAsync(async (req, res, next) => {
+  // Utiliser la même logique que discoverSuppliers mais avec des filtres de recherche plus avancés
+  return exports.discoverSuppliers(req, res, next);
+});
+
+exports.getSupplierDetails = catchAsync(async (req, res, next) => {
+  const { supplierId } = req.params;
+  const Producer = require('../models/Producer');
+  const Transformer = require('../models/Transformer');
+  
+  try {
+    // Essayer de trouver dans les producteurs
+    let supplier = await Producer.findById(supplierId)
+      .select('-password -__v');
+    
+    if (supplier) {
+      return res.status(200).json({
+        status: 'success',
+        data: {
+          supplier: {
+            ...supplier.toObject(),
+            userType: 'producer',
+            supplierType: 'Producteur'
+          }
+        }
+      });
+    }
+    
+    // Essayer de trouver dans les transformateurs
+    supplier = await Transformer.findById(supplierId)
+      .select('-password -__v');
+    
+    if (supplier) {
+      return res.status(200).json({
+        status: 'success',
+        data: {
+          supplier: {
+            ...supplier.toObject(),
+            userType: 'transformer',
+            supplierType: 'Transformateur'
+          }
+        }
+      });
+    }
+    
+    res.status(404).json({
+      status: 'fail',
+      message: 'Fournisseur non trouvé'
+    });
+    
+  } catch (error) {
+    console.error('Erreur lors de la récupération du fournisseur:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Erreur lors de la récupération du fournisseur'
+    });
+  }
+});
 
 module.exports = exports;

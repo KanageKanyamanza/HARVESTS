@@ -93,6 +93,18 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse, 
       ];
     }
 
+    if (user?.userType === 'restaurateur') {
+      return [
+        { name: 'Tableau de bord', href: '/restaurateur/dashboard', icon: FiHome },
+        { name: 'Mes commandes', href: '/restaurateur/orders', icon: FiShoppingBag },
+        { name: 'Nouvelle commande', href: '/restaurateur/orders/new', icon: FiPlus },
+        { name: 'Mes plats', href: '/restaurateur/dishes', icon: FiPackage },
+        { name: 'Fournisseurs', href: '/restaurateur/suppliers', icon: FiTruck },
+        { name: 'Profil', href: '/restaurateur/profile', icon: FiUser },
+        { name: 'Paramètres', href: '/restaurateur/settings', icon: FiSettings }
+      ];
+    }
+
     return [
       { name: 'Tableau de bord', href: '/dashboard', icon: FiHome }
     ];
