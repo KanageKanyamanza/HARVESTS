@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }) => {
         };
         
         console.log('✅ Connexion admin réussie');
-      } catch (adminError) {
+      } catch {
         // Si l'auth admin échoue, essayer l'auth normale
         response = await authService.login(credentials);
         user = response.data.data.user;
@@ -123,7 +123,20 @@ export const AuthProvider = ({ children }) => {
         message: response.data.message || 'Inscription réussie' 
       };
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Erreur d\'inscription';
+      let errorMessage = 'Erreur d\'inscription';
+      
+      // Gérer les erreurs de timeout
+      if (error.isTimeout) {
+        errorMessage = 'La requête a pris trop de temps. Veuillez réessayer.';
+      } 
+      // Gérer les erreurs de serveur
+      else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      // Gérer les erreurs réseau
+      else if (error.code === 'NETWORK_ERROR' || !error.response) {
+        errorMessage = 'Problème de connexion. Vérifiez votre connexion internet.';
+      }
       
       dispatch({
         type: AUTH_ACTIONS.REGISTER_FAILURE,

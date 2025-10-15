@@ -57,7 +57,13 @@ exports.signup = catchAsync(async (req, res, next) => {
   // Vérifier si l'email existe déjà
   const existingUser = await User.findOne({ email: req.body.email });
   if (existingUser) {
-    return next(new AppError('Un utilisateur avec cet email existe déjà', 400));
+    // Retourner une réponse plus informative
+    return res.status(400).json({
+      status: 'fail',
+      message: 'Un utilisateur avec cet email existe déjà',
+      code: 'USER_EXISTS',
+      suggestion: 'Essayez de vous connecter ou utilisez un autre email'
+    });
   }
 
   // Données minimales pour l'inscription

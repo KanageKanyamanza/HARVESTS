@@ -71,6 +71,16 @@ app.use(express.json({ limit: '10mb' })); // Limite la taille du body pour les u
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
+// Middleware de timeout pour les requêtes longues (comme l'envoi d'emails)
+app.use((req, res, next) => {
+  // Timeout de 3 minutes pour les routes d'authentification
+  if (req.path.startsWith('/api/v1/auth/')) {
+    req.setTimeout(180000); // 3 minutes
+    res.setTimeout(180000);
+  }
+  next();
+});
+
 // Servir les fichiers statiques du backend
 app.use(express.static(path.join(__dirname, 'public')));
 

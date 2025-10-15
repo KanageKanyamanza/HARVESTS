@@ -197,7 +197,19 @@ const Register = () => {
       }
     } catch (error) {
       console.error('Erreur inscription:', error);
-      setErrors({ submit: 'Erreur lors de l\'inscription' });
+      
+      let errorMessage = 'Erreur lors de l\'inscription';
+      
+      // Gérer les erreurs spécifiques
+      if (error.isTimeout) {
+        errorMessage = 'La requête a pris trop de temps. Veuillez réessayer.';
+      } else if (error.message && error.message.includes('existe déjà')) {
+        errorMessage = 'Un compte avec cet email existe déjà. Essayez de vous connecter.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setErrors({ submit: errorMessage });
     } finally {
       setIsSubmitting(false);
     }

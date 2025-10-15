@@ -75,6 +75,14 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
     
+    // Gérer les erreurs de timeout
+    if (error.code === 'ECONNABORTED' && error.message.includes('timeout')) {
+      console.error('Timeout de requête:', error.message);
+      const timeoutError = new Error('La requête a pris trop de temps. Veuillez réessayer.');
+      timeoutError.isTimeout = true;
+      return Promise.reject(timeoutError);
+    }
+    
     console.error('API Error:', error);
     
     // Gérer les erreurs d'authentification
