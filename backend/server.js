@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 
 // Gestion des exceptions non capturées
 process.on('uncaughtException', (err) => {

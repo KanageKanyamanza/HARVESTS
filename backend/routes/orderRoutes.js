@@ -6,6 +6,13 @@ const router = express.Router();
 
 // Toutes les routes nécessitent une authentification
 router.use(authController.protect);
+
+// Routes de lecture (autorisées sans vérification d'email)
+router.get('/my', orderController.getMyOrders);
+router.get('/:id/tracking', orderController.trackOrder);
+router.get('/:id', orderController.getOrder);
+
+// Routes d'écriture (nécessitent une vérification d'email)
 router.use(authController.requireVerification);
 
 // ROUTES COMMUNES
@@ -16,11 +23,7 @@ router.post('/', orderController.createOrder);
 // Route de test pour créer une commande (TEMPORAIRE)
 router.post('/test', orderController.createTestOrder);
 
-// Obtenir mes commandes
-router.get('/my', orderController.getMyOrders);
-
-// Obtenir une commande spécifique
-router.get('/:id', orderController.getOrder);
+// Ces routes sont maintenant définies avant requireVerification
 
 // Mettre à jour le statut d'une commande
 router.patch('/:id/status', orderController.updateOrderStatus);
@@ -28,8 +31,7 @@ router.patch('/:id/status', orderController.updateOrderStatus);
 // Annuler une commande
 router.patch('/:id/cancel', orderController.cancelOrder);
 
-// Suivi d'une commande
-router.get('/:id/tracking', orderController.trackOrder);
+// Cette route est maintenant définie avant requireVerification
 
 // ROUTES ADMIN
 
