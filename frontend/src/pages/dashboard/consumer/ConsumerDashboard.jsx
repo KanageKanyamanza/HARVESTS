@@ -266,7 +266,7 @@ const ConsumerDashboard = () => {
               </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-harvests-light">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Commande
@@ -281,7 +281,7 @@ const ConsumerDashboard = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {recentOrders.map((order) => (
-                      <tr key={order._id || order.id} className="hover:bg-gray-50">
+                      <tr key={order._id || order.id} className="hover:bg-harvests-light">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
                             <div className="text-sm font-medium text-gray-900">

@@ -43,7 +43,7 @@ const BannersSection = () => {
   const formatTime = (value) => String(value).padStart(2, '0');
 
   return (
-    <section className="py-20 bg-gray-100">
+    <section className="py-20 bg-harvests-light">
       <div className="container-xl">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           {/* Bannière 1 - Sale of the Month */}

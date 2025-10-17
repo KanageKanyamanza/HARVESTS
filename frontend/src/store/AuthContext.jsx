@@ -70,6 +70,7 @@ export const AuthProvider = ({ children }) => {
         console.log('✅ Connexion admin réussie');
       } catch {
         // Si l'auth admin échoue, essayer l'auth normale
+        // Ne pas logger l'erreur admin car c'est normal pour les utilisateurs non-admin
         response = await authService.login(credentials);
         user = response.data.data.user;
         token = response.data.token;

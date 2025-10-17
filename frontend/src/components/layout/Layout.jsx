@@ -12,19 +12,19 @@ const Layout = ({ children, className = '' }) => {
   // Gérer le fond du body selon la page
   useEffect(() => {
     if (isHomePage) {
-      document.body.classList.remove('bg-gray-50');
+      document.body.classList.remove('bg-harvests-light');
     } else {
-      document.body.classList.add('bg-gray-50');
+      document.body.classList.add('bg-harvests-light');
     }
     
     // Cleanup
     return () => {
-      document.body.classList.remove('bg-gray-50');
+      document.body.classList.remove('bg-harvests-light');
     };
   }, [isHomePage]);
   
   return (
-    <div className={`min-h-screen flex flex-col ${isHomePage ? '' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen flex flex-col ${isHomePage ? '' : 'bg-harvests-light'}`}>
       <Header />
       
       <main className={`flex-1 ${className}`}>

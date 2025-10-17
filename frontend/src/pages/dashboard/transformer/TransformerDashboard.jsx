@@ -373,7 +373,7 @@ const TransformerDashboard = () => {
                   to={isDisabled ? '#' : action.link}
                   className={`flex items-center p-4 border border-gray-200 rounded-lg transition-colors ${
                     isDisabled 
-                      ? 'opacity-50 cursor-not-allowed bg-gray-50' 
+                      ? 'opacity-50 cursor-not-allowed bg-harvests-light' 
                       : 'hover:border-purple-300 hover:bg-purple-50'
                   }`}
                   onClick={isDisabled ? (e) => e.preventDefault() : undefined}
@@ -409,7 +409,7 @@ const TransformerDashboard = () => {
           {orders.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-harvests-light">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Commande

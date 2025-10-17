@@ -272,7 +272,7 @@ const Reviews = () => {
 
                   {/* Détails du produit */}
                   {review.order && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 bg-harvests-light rounded-lg">
                       <div className="flex items-center text-sm text-gray-600">
                         <FiPackage className="h-4 w-4 mr-2 text-harvests-green" />
                         <span>Commande #{review.order.orderNumber || review.order._id?.slice(-8)}</span>
@@ -288,10 +288,10 @@ const Reviews = () => {
 
                   {/* Actions */}
                   <div className="flex justify-end space-x-2">
-                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
+                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-harvests-light">
                       <FiEye className="h-4 w-4" />
                     </button>
-                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
+                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-harvests-light">
                       <FiEdit3 className="h-4 w-4" />
                     </button>
                     <button

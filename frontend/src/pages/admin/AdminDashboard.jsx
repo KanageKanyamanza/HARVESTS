@@ -286,7 +286,7 @@ const AdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-harvests-light flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Chargement...</p>
@@ -296,7 +296,7 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-harvests-light">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* En-tête */}
         <div className="mb-8">
@@ -389,7 +389,7 @@ const AdminDashboard = () => {
                   <Link
                     key={index}
                     to={action.link}
-                    className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                    className="flex items-center justify-between p-4 rounded-lg hover:bg-harvests-light transition-colors duration-200"
                   >
                     <div className="flex items-center space-x-3">
                       <action.icon className={`w-5 h-5 ${action.color}`} />

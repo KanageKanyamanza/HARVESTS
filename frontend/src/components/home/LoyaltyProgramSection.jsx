@@ -21,7 +21,7 @@ const LoyaltyProgramSection = () => {
           {/* CTA */}
           <Link
             to="/loyalty"
-            className="inline-flex items-center px-8 py-4 bg-white text-primary-600 font-semibold rounded-full hover:bg-gray-100 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300"
+            className="inline-flex items-center px-8 py-4 bg-white text-primary-600 font-semibold rounded-full hover:bg-harvests-light shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300"
           >
             Découvrir le Programme
             <ArrowRight className="ml-2 h-5 w-5" />

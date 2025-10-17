@@ -160,7 +160,7 @@ const NewBatch = () => {
           </div>
           <button
             onClick={() => navigate('/transformer/production/batches')}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light"
           >
             <FiX className="h-4 w-4 mr-2" />
             Annuler
@@ -323,7 +323,7 @@ const NewBatch = () => {
             {formData.inputMaterials.length > 0 && (
               <div className="space-y-2">
                 {formData.inputMaterials.map((material) => (
-                  <div key={material.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                  <div key={material.id} className="flex items-center justify-between p-3 bg-harvests-light rounded-md">
                     <div className="flex items-center space-x-4">
                       <FiPackage className="h-5 w-5 text-gray-400" />
                       <span className="font-medium">{material.name}</span>
@@ -495,7 +495,7 @@ const NewBatch = () => {
             {formData.processingSteps.length > 0 && (
               <div className="space-y-2">
                 {formData.processingSteps.map((step, index) => (
-                  <div key={step.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                  <div key={step.id} className="flex items-center justify-between p-3 bg-harvests-light rounded-md">
                     <div className="flex items-center space-x-4">
                       <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
                         {index + 1}
@@ -605,7 +605,7 @@ const NewBatch = () => {
             <button
               type="button"
               onClick={() => navigate('/transformer/production/batches')}
-              className="px-6 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              className="px-6 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light"
             >
               Annuler
             </button>

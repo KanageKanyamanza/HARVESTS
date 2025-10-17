@@ -54,6 +54,33 @@ const ProductCard = ({ product }) => {
     return categories[category] || category;
   };
 
+  const getVendorName = (vendor) => {
+    if (!vendor) return '';
+    
+    // Pour les producteurs
+    if (vendor.farmName) {
+      return vendor.farmName;
+    }
+    
+    // Pour les transformateurs
+    if (vendor.companyName) {
+      return vendor.companyName;
+    }
+    
+    // Pour les restaurateurs
+    if (vendor.restaurantName) {
+      return vendor.restaurantName;
+    }
+    
+    // Fallback : nom complet de la personne
+    if (vendor.firstName && vendor.lastName) {
+      return `${vendor.firstName} ${vendor.lastName}`;
+    }
+    
+    // Dernier fallback
+    return vendor.user?.companyName || 'Vendeur';
+  };
+
   return (
     <div className="bg-white border rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
       <Link to={`/products/${product._id}`} className="block">
@@ -118,18 +145,20 @@ const ProductCard = ({ product }) => {
             </div>
           </div>
 
-          {/* Producteur et bouton panier sur la même ligne */}
+          {/* Vendeur et bouton panier sur la même ligne */}
           <div className="flex items-center justify-between">
-            {product.producer && (
+            {(product.producer || product.transformer) && (
               <div className="flex items-center text-xs text-gray-500 flex-1 min-w-0 mr-2">
                 <FiMapPin className="h-3 w-3 mr-1 flex-shrink-0" />
                 <span className="truncate">
-                  {product.producer.farmName || `${product.producer.firstName} ${product.producer.lastName}`}
+                  {getVendorName(product.producer || product.transformer)}
                 </span>
-                {product.producer.address?.city && (
+                {(product.producer?.address?.city || product.transformer?.address?.city) && (
                   <>
                     <span className="mx-1">•</span>
-                    <span className="truncate">{product.producer.address.city}</span>
+                    <span className="truncate">
+                      {product.producer?.address?.city || product.transformer?.address?.city}
+                    </span>
                   </>
                 )}
               </div>

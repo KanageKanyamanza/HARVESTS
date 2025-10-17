@@ -240,7 +240,7 @@ const Subscriptions = () => {
                   </div>
 
                   {subscription.notes && (
-                    <div className="mb-4 p-3 bg-gray-50 rounded-md">
+                    <div className="mb-4 p-3 bg-harvests-light rounded-md">
                       <p className="text-sm text-gray-700">
                         <strong>Notes:</strong> {subscription.notes}
                       </p>
@@ -248,7 +248,7 @@ const Subscriptions = () => {
                   )}
 
                   <div className="flex justify-end space-x-2">
-                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
+                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-harvests-light">
                       <FiEdit3 className="h-4 w-4" />
                     </button>
                     <button
@@ -275,7 +275,7 @@ const Subscriptions = () => {
               <div className="flex justify-end space-x-2">
                 <button
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-harvests-light"
                 >
                   Fermer
                 </button>

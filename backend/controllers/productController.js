@@ -100,6 +100,7 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
   // Construction de la requête
   let query = Product.find(queryObj)
     .populate('producer', 'farmName firstName lastName address salesStats createdAt country')
+    .populate('transformer', 'companyName firstName lastName address salesStats createdAt country')
     .select('-__v');
 
   // Tri
@@ -164,7 +165,8 @@ exports.getProduct = catchAsync(async (req, res, next) => {
     status: 'approved',
     isActive: true
   })
-  .populate('producer', 'farmName firstName lastName address salesStats certifications createdAt country');
+  .populate('producer', 'farmName firstName lastName address salesStats certifications createdAt country')
+  .populate('transformer', 'companyName firstName lastName address salesStats certifications createdAt country');
 
   if (!product) {
     return next(new AppError('Produit non trouvé', 404));
@@ -184,6 +186,7 @@ exports.getProduct = catchAsync(async (req, res, next) => {
     isActive: true
   })
   .populate('producer', 'farmName firstName lastName createdAt country')
+  .populate('transformer', 'companyName firstName lastName createdAt country')
   .limit(6)
   .sort('-stats.averageRating');
 
@@ -206,6 +209,7 @@ exports.getFeaturedProducts = catchAsync(async (req, res, next) => {
     'availability.status': { $in: ['in-stock', 'low-stock'] }
   })
   .populate('producer', 'farmName firstName lastName address createdAt country')
+  .populate('transformer', 'companyName firstName lastName address createdAt country')
   .sort('-stats.averageRating -createdAt')
   .limit(12);
 
@@ -229,6 +233,7 @@ exports.getNewProducts = catchAsync(async (req, res, next) => {
     isActive: true
   })
   .populate('producer', 'farmName firstName lastName createdAt country')
+  .populate('transformer', 'companyName firstName lastName createdAt country')
   .sort('-createdAt')
   .limit(20);
 
@@ -293,6 +298,7 @@ exports.getProductsByCategory = catchAsync(async (req, res, next) => {
   // Construction de la requête
   let query = Product.find(queryObj)
     .populate('producer', 'farmName firstName lastName address salesStats createdAt country')
+    .populate('transformer', 'companyName firstName lastName address salesStats createdAt country')
     .select('-__v');
 
   // Tri
@@ -663,7 +669,8 @@ exports.approveProduct = catchAsync(async (req, res, next) => {
       publishedAt: new Date()
     },
     { new: true }
-  ).populate('producer', 'firstName lastName email');
+  ).populate('producer', 'firstName lastName email')
+  .populate('transformer', 'firstName lastName email');
 
   if (!product) {
     return next(new AppError('Produit non trouvé', 404));
@@ -696,7 +703,8 @@ exports.rejectProduct = catchAsync(async (req, res, next) => {
       rejectionReason: reason
     },
     { new: true }
-  ).populate('producer', 'firstName lastName email');
+  ).populate('producer', 'firstName lastName email')
+  .populate('transformer', 'firstName lastName email');
 
   if (!product) {
     return next(new AppError('Produit non trouvé', 404));
@@ -778,6 +786,7 @@ exports.getPendingProducts = catchAsync(async (req, res, next) => {
     status: 'pending-review'
   })
   .populate('producer', 'farmName firstName lastName email')
+  .populate('transformer', 'companyName firstName lastName email')
   .sort('-createdAt')
   .skip(skip)
   .limit(limit);

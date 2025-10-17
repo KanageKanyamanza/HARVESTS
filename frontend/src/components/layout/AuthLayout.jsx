@@ -26,7 +26,7 @@ const AuthLayout = ({ children, showBackButton = true }) => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-harvests-light">
       {/* Header simplifié - seulement retour et traduction */}
       <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
         <div className="flex items-center">

@@ -181,7 +181,7 @@ const SimpleReviewForm = ({
   return (
     <div className="space-y-6">
       {/* Informations sur le produit */}
-      <div className="p-4 bg-gray-50 rounded-lg">
+      <div className="p-4 bg-harvests-light rounded-lg">
         <div className="flex items-center space-x-4">
           {product.images?.[0] && (
             <CloudinaryImage
@@ -264,7 +264,7 @@ const SimpleReviewForm = ({
             </div>
           </div>
         ) : (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="bg-harvests-light border border-gray-200 rounded-lg p-4">
             <div className="flex items-center space-x-2">
               <ShoppingBag className="h-5 w-5 text-gray-400" />
               <div>
@@ -395,7 +395,7 @@ const SimpleReviewForm = ({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-harvests-light focus:outline-none focus:ring-2 focus:ring-green-500"
           >
             Annuler
           </button>

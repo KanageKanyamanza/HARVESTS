@@ -322,7 +322,7 @@ const CertificationsList = () => {
             <div className="flex items-end">
               <button
                 onClick={() => setFilters({ type: '', status: '', search: '' })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-harvests-light"
               >
                 <FiRefreshCw className="h-4 w-4 mr-2 inline" />
                 Réinitialiser
@@ -342,7 +342,7 @@ const CertificationsList = () => {
           {filteredCertifications.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-harvests-light">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Certification
@@ -372,7 +372,7 @@ const CertificationsList = () => {
                     const status = getCertificationStatus(cert.validUntil);
                     const StatusIcon = getStatusIcon(status);
                     return (
-                      <tr key={cert._id} className="hover:bg-gray-50">
+                      <tr key={cert._id} className="hover:bg-harvests-light">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <FiAward className="h-5 w-5 text-gray-400 mr-3" />

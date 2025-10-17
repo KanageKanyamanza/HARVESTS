@@ -200,13 +200,13 @@ const Favorites = () => {
               <div className="flex border border-gray-300 rounded-md">
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-2 ${viewMode === 'grid' ? 'bg-harvests-green text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+                  className={`p-2 ${viewMode === 'grid' ? 'bg-harvests-green text-white' : 'text-gray-600 hover:bg-harvests-light'}`}
                 >
                   <FiGrid className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-2 ${viewMode === 'list' ? 'bg-harvests-green text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+                  className={`p-2 ${viewMode === 'list' ? 'bg-harvests-green text-white' : 'text-gray-600 hover:bg-harvests-light'}`}
                 >
                   <FiList className="h-4 w-4" />
                 </button>
@@ -327,7 +327,7 @@ const Favorites = () => {
                       <FiShoppingCart className="h-4 w-4" />
                       <span>Ajouter au panier</span>
                     </button>
-                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">
+                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-harvests-light">
                       <FiEye className="h-4 w-4" />
                     </button>
                   </div>

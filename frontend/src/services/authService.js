@@ -28,7 +28,7 @@ export const authService = {
   
   // Mot de passe oublié
   forgotPassword: (email) => apiRequest.post('/auth/forgot-password', { email }),
-  resetPassword: (token, password) => apiRequest.post('/auth/reset-password', { token, password }),
+  resetPassword: (token, password) => apiRequest.patch(`/auth/reset-password/${token}`, { password }),
   
   // Changement de mot de passe
   changePassword: (currentPassword, newPassword) => 

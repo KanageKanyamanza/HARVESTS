@@ -188,9 +188,14 @@ adminSchema.methods.incLoginAttempts = function() {
   
   const updates = { $inc: { loginAttempts: 1 } };
   
-  // Verrouiller le compte après 5 tentatives pour 2 heures
+  // Verrouiller le compte après 5 tentatives
   if (this.loginAttempts + 1 >= 5 && !this.isLocked()) {
-    updates.$set = { accountLockedUntil: Date.now() + 2 * 60 * 60 * 1000 }; // 2 heures
+    // 30 minutes en production, 2 minutes en développement
+    const lockoutDuration = process.env.NODE_ENV === 'production' 
+      ? 30 * 60 * 1000  // 30 minutes
+      : 2 * 60 * 1000;  // 2 minutes
+    
+    updates.$set = { accountLockedUntil: Date.now() + lockoutDuration };
   }
   
   return this.updateOne(updates);

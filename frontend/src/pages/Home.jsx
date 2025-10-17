@@ -10,7 +10,7 @@ import FeaturedProductsSection from '../components/home/FeaturedProductsSection'
 
 const Home = () => {
   return (
-    <div className="overflow-hidden">
+    <div className="overflow-hidden bg-harvests-light">
       <HeroSection />
       <TrustBadgesSection />
       <CategoriesSection />

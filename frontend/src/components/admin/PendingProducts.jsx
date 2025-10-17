@@ -49,7 +49,7 @@ const PendingProducts = ({ products = [] }) => {
       
       <div className="divide-y divide-gray-200">
         {products.map((product) => (
-          <div key={product._id} className="px-6 py-4 hover:bg-gray-50">
+          <div key={product._id} className="px-6 py-4 hover:bg-harvests-light">
             <div className="flex items-start space-x-4">
               <div className="flex-shrink-0">
                 <CloudinaryImage

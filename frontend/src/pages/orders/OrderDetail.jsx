@@ -247,7 +247,7 @@ const OrderDetail = () => {
                     user?.userType === 'producer' ? '/producer/orders' : 
                     user?.userType === 'transformer' ? '/transformer/orders' :
                     '/dashboard'}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-harvests-light"
               >
                 <FiArrowLeft className="mr-2 h-4 w-4" />
                 Retour
@@ -268,7 +268,7 @@ const OrderDetail = () => {
               </span>
               <button
                 onClick={() => window.location.reload()}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-harvests-light"
               >
                 <FiRefreshCw className="h-4 w-4 mr-1" />
                 Actualiser
@@ -512,7 +512,7 @@ const OrderDetail = () => {
                   )}
                   
                   {order.delivery.deliveryAddress.deliveryInstructions && (
-                    <div className="mt-3 p-3 bg-gray-50 rounded-md">
+                    <div className="mt-3 p-3 bg-harvests-light rounded-md">
                       <p className="text-sm text-gray-600">
                         <strong>Instructions:</strong> {order.delivery.deliveryAddress.deliveryInstructions}
                       </p>

@@ -92,7 +92,7 @@ const AdminLayout = ({ children }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-harvests-light">
       {/* Mobile sidebar */}
       <div className={`fixed inset-0 z-50 lg:hidden ${sidebarOpen ? 'block' : 'hidden'}`}>
         <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
@@ -122,7 +122,7 @@ const AdminLayout = ({ children }) => {
                     className={`${
                       item.current
                         ? 'bg-green-100 text-green-900'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        : 'text-gray-600 hover:bg-harvests-light hover:text-gray-900'
                     } group flex items-center px-2 py-2 text-base font-medium rounded-md`}
                   >
                     <Icon className="mr-4 h-6 w-6" />
@@ -170,7 +170,7 @@ const AdminLayout = ({ children }) => {
                     className={`${
                       item.current
                         ? 'bg-green-100 text-green-900'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        : 'text-gray-600 hover:bg-harvests-light hover:text-gray-900'
                     } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
                     title={sidebarCollapsed ? item.name : ''}
                   >

@@ -289,7 +289,7 @@ const Loyalty = () => {
             ) : (
               <div className="space-y-4">
                 {loyaltyHistory.map((transaction, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-4 bg-harvests-light rounded-lg">
                     <div className="flex items-center space-x-3">
                       {getTransactionIcon(transaction.type)}
                       <div>
@@ -325,7 +325,7 @@ const Loyalty = () => {
               <div className="flex justify-end space-x-2">
                 <button
                   onClick={() => setShowRedeemModal(false)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-harvests-light"
                 >
                   Fermer
                 </button>

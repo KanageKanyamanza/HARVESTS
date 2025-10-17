@@ -276,7 +276,7 @@ const ShopManagement = () => {
               href={`/transformers/${user?._id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light"
             >
               <FiEye className="h-4 w-4 mr-2" />
               Aperçu
@@ -604,7 +604,7 @@ const ShopManagement = () => {
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="px-6 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              className="px-6 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light"
             >
               Annuler
             </button>

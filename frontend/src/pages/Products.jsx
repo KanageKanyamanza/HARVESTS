@@ -275,14 +275,14 @@ const Products = () => {
 
 	if (loading && products.length === 0) {
 		return (
-			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
+			<div className="min-h-screen bg-harvests-light flex items-center justify-center">
 				<LoadingSpinner />
 			</div>
 		);
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-50">
+		<div className="min-h-screen bg-harvests-light">
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				{/* En-tête */}
 				<div className="mb-8">
@@ -328,7 +328,7 @@ const Products = () => {
 										setSearchQuery("");
 										setCurrentPage(1);
 									}}
-									className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+									className="px-4 py-2 bg-harvests-light0 text-white rounded-md hover:bg-gray-600 transition-colors"
 								>
 									Effacer
 								</button>
@@ -340,7 +340,7 @@ const Products = () => {
 					<div className="flex flex-wrap gap-2">
 						<button
 							onClick={() => setShowFilters(!showFilters)}
-							className=" flex items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+							className=" flex items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-harvests-light"
 						>
 							<FiFilter className="h-4 w-4 mr-2" />
 							Filtres
@@ -467,7 +467,7 @@ const Products = () => {
 											setCurrentPage(newPage);
 										}}
 										disabled={currentPage === 1}
-										className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+										className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-harvests-light disabled:opacity-50 disabled:cursor-not-allowed"
 									>
 										Précédent
 									</button>
@@ -499,7 +499,7 @@ const Products = () => {
 												className={`px-3 py-2 text-sm font-medium rounded-md ${
 													isCurrentPage
 														? "bg-green-600 text-white"
-														: "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
+														: "text-gray-700 bg-white border border-gray-300 hover:bg-harvests-light"
 												}`}
 											>
 												{page}
@@ -513,7 +513,7 @@ const Products = () => {
 											setCurrentPage(newPage);
 										}}
 										disabled={currentPage === totalPages}
-										className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+										className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-harvests-light disabled:opacity-50 disabled:cursor-not-allowed"
 									>
 										Suivant
 									</button>

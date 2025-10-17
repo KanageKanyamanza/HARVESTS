@@ -145,7 +145,7 @@ const SearchDropdown = ({ searchQuery, isOpen, onClose, onProductClick }) => {
             <div
               key={product._id}
               onClick={(event) => handleProductClick(product, event)}
-              className="flex items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0
+              className="flex items-center p-3 hover:bg-harvests-light cursor-pointer border-b border-gray-100 last:border-b-0
                          sm:p-2 md:p-3"
             >
               {/* Image du produit */}
@@ -188,7 +188,7 @@ const SearchDropdown = ({ searchQuery, isOpen, onClose, onProductClick }) => {
           ))}
 
           {/* Lien vers tous les résultats */}
-          <div className="p-2 sm:p-3 border-t border-gray-200 bg-gray-50">
+          <div className="p-2 sm:p-3 border-t border-gray-200 bg-harvests-light">
             <Link
               to={`/products?q=${encodeURIComponent(searchQuery)}`}
               onClick={(event) => {

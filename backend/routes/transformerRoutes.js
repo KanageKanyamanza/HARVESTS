@@ -1,7 +1,6 @@
 const express = require('express');
 const transformerController = require('../controllers/transformerController');
 const authController = require('../controllers/authController');
-const uploadController = require('../controllers/uploadController');
 const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
 
 const router = express.Router();
@@ -237,19 +236,7 @@ router.route('/me/shop-info')
 router.patch('/me/shop-info/activate', transformerController.activateShop);
 router.patch('/me/shop-info/deactivate', transformerController.deactivateShop);
 
-router.post('/me/shop-info/banner',
-  uploadLimiter,
-  uploadController.uploadTransformerShopBanner,
-  uploadController.processTransformerShopBanner,
-  transformerController.uploadShopBanner
-);
-
-router.post('/me/shop-info/logo',
-  uploadLimiter,
-  uploadController.uploadTransformerShopLogo,
-  uploadController.processTransformerShopLogo,
-  transformerController.uploadShopLogo
-);
+// Routes d'upload supprimées - utiliser le système d'upload existant
 
 // Notifications et alertes
 router.route('/me/notifications')

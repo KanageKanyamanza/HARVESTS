@@ -336,7 +336,7 @@ const ProductDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-harvests-light flex items-center justify-center">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
           <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
@@ -355,7 +355,7 @@ const ProductDetail = () => {
 
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-harvests-light flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Produit non trouvé</h1>
           <p className="text-gray-600 mb-6">Le produit que vous recherchez n'existe pas ou n'est plus disponible</p>
@@ -374,7 +374,7 @@ const ProductDetail = () => {
   // Vérifier si l'utilisateur peut voir ce produit
   if (!canViewProduct()) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-harvests-light flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Accès non autorisé</h1>
           <p className="text-gray-600 mb-6">
@@ -391,7 +391,7 @@ const ProductDetail = () => {
             {!user && (
               <button
                 onClick={() => navigate('/login')}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light"
               >
                 Se connecter
               </button>
@@ -408,7 +408,7 @@ const ProductDetail = () => {
   const StatusIcon = statusConfig.icon;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-harvests-light">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Navigation */}
           <div className="mb-6">
@@ -583,14 +583,14 @@ const ProductDetail = () => {
                     className={`p-3 rounded-md border ${
                       isFavorite 
                         ? 'bg-red-50 border-red-200 text-red-600' 
-                        : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                        : 'bg-white border-gray-300 text-gray-600 hover:bg-harvests-light'
                     }`}
                   >
                     <FiHeart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
                   </button>
                   <button
                     onClick={handleShare}
-                    className="p-3 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50"
+                    className="p-3 rounded-md border border-gray-300 text-gray-600 hover:bg-harvests-light"
                   >
                     <FiShare2 className="h-5 w-5" />
                   </button>
@@ -599,7 +599,7 @@ const ProductDetail = () => {
 
               {/* Informations du producteur */}
               {producer && (
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-harvests-light rounded-lg p-4">
                   <div className="flex items-center space-x-3">
                     <div className="w-12 h-12 bg-harvests-green rounded-full flex items-center justify-center">
                       <FiUser className="h-6 w-6 text-white" />

@@ -77,7 +77,7 @@ const DashboardLayout = ({ children }) => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-harvests-light">
       {/* Sidebar mobile overlay */}
       {sidebarOpen && (
         <div 
@@ -142,7 +142,7 @@ const DashboardLayout = ({ children }) => {
                     group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors
                     ${isActive(item.href)
                       ? 'bg-harvests-green text-white'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      : 'text-gray-600 hover:bg-harvests-light hover:text-gray-900'
                     }
                   `}
                   onClick={() => setSidebarOpen(false)}
@@ -161,7 +161,7 @@ const DashboardLayout = ({ children }) => {
           <div className="p-4 border-t border-gray-200">
             <button
               onClick={handleLogout}
-              className="group flex items-center w-full px-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors"
+              className="group flex items-center w-full px-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-harvests-light hover:text-gray-900 transition-colors"
             >
               <FiLogOut className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
               Déconnexion
@@ -214,7 +214,7 @@ const DashboardLayout = ({ children }) => {
         </div>
 
         {/* Page content */}
-        <main className="flex-1 bg-gray-50 overflow-y-auto">
+        <main className="flex-1 bg-harvests-light overflow-y-auto">
           {children}
         </main>
       </div>

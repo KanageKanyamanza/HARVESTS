@@ -39,6 +39,24 @@ const HeroSection = () => {
             </Link>
           </div>
         </div>
+        
+        {/* Lien vers la section vidéo en bas à droite */}
+        <div className="absolute bottom-8 right-8">
+          <a
+            href="#why-harvests"
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('why-harvests')?.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+              });
+            }}
+            className="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm text-white font-semibold rounded-full hover:bg-white/30 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+          >
+            <span className="mr-2">Pourquoi choisir Harvests ?</span>
+            <ArrowRight className="h-4 w-4" />
+          </a>
+        </div>
       </div>
     </section>
   );

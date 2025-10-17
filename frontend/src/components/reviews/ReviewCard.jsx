@@ -90,7 +90,7 @@ const ReviewCard = ({
 
       {/* Product Info */}
       {showProductInfo && review.product && (
-        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+        <div className="mb-4 p-3 bg-harvests-light rounded-lg">
           <div className="flex items-center space-x-3">
             {review.product.images?.[0] && (
               <CloudinaryImage
@@ -113,7 +113,7 @@ const ReviewCard = ({
 
       {/* Rating Details */}
       {review.detailedRating && (
-        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+        <div className="mb-4 p-3 bg-harvests-light rounded-lg">
           <h5 className="text-sm font-medium text-gray-900 mb-2">Détails de l'évaluation</h5>
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div className="flex justify-between">
