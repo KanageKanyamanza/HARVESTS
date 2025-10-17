@@ -152,11 +152,11 @@ const Documents = () => {
                     <div className="flex space-x-2">
                       {document.fileUrl && (
                         <>
-                          <button className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                          <button className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light">
                             <FiEye className="h-4 w-4 mr-2" />
                             Voir
                           </button>
-                          <button className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                          <button className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light">
                             <FiDownload className="h-4 w-4 mr-2" />
                             Télécharger
                           </button>
@@ -178,7 +178,7 @@ const Documents = () => {
         </div>
 
         {/* Zone de téléchargement */}
-        <div className="mt-8 bg-gray-50 rounded-lg p-6">
+        <div className="mt-8 bg-harvests-light rounded-lg p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">
             Télécharger un nouveau document
           </h3>

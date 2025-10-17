@@ -78,7 +78,7 @@ const RecentOrders = ({ orders = [] }) => {
       
       <div className="divide-y divide-gray-200">
         {orders.map((order) => (
-          <div key={order._id} className="px-6 py-4 hover:bg-gray-50">
+          <div key={order._id} className="px-6 py-4 hover:bg-harvests-light">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-3">

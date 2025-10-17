@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { restaurateurService } from '../../../services';
 import { useNotifications } from '../../../contexts/NotificationContext';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
@@ -13,11 +13,12 @@ import {
   FiEyeOff,
   FiClock,
   FiDollarSign,
-  FiImage
+  FiImage,
+  FiExternalLink
 } from 'react-icons/fi';
 
 const DishesManagement = () => {
-  const { user } = useAuth();
+  const navigate = useNavigate();
   const { showSuccess, showError } = useNotifications();
   const [dishes, setDishes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,15 +27,12 @@ const DishesManagement = () => {
   const [filter, setFilter] = useState('all'); // all, available, unavailable
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    loadDishes();
-  }, []);
-
   const loadDishes = async () => {
     try {
       setLoading(true);
       const response = await restaurateurService.getMyDishes();
-      setDishes(response.data?.data?.dishes || []);
+      const dishes = response.data?.data?.dishes || [];
+      setDishes(dishes);
     } catch (error) {
       console.error('Erreur lors du chargement des plats:', error);
       showError('Erreur lors du chargement des plats');
@@ -42,6 +40,10 @@ const DishesManagement = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadDishes();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDishSubmit = async (dishData) => {
     try {
@@ -84,6 +86,12 @@ const DishesManagement = () => {
   };
 
   const handleToggleAvailability = async (dishId, isAvailable) => {
+    if (!dishId) {
+      console.error('ID du plat manquant:', dishId);
+      showError('ID du plat manquant');
+      return;
+    }
+    
     try {
       await restaurateurService.updateDish(dishId, { isAvailable: !isAvailable });
       setDishes(prev => prev.map(dish => 
@@ -187,18 +195,20 @@ const DishesManagement = () => {
           </div>
         </div>
 
-        {/* Formulaire de plat */}
+        {/* Modale de plat */}
         {showDishForm && (
-          <div className="mb-6">
-            <DishForm
-              dish={editingDish}
-              onSubmit={handleDishSubmit}
-              onCancel={() => {
-                setShowDishForm(false);
-                setEditingDish(null);
-              }}
-              loading={loading}
-            />
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto">
+              <DishForm
+                dish={editingDish}
+                onSubmit={handleDishSubmit}
+                onCancel={() => {
+                  setShowDishForm(false);
+                  setEditingDish(null);
+                }}
+                loading={loading}
+              />
+            </div>
           </div>
         )}
 
@@ -212,17 +222,36 @@ const DishesManagement = () => {
 
           <div className="p-6">
             {filteredDishes.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredDishes.map((dish) => (
                   <div key={dish._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                     {/* Image */}
                     {dish.image ? (
                       <div className="w-full h-32 mb-3 rounded-lg overflow-hidden">
-                        <CloudinaryImage
-                          publicId={dish.image}
-                          alt={dish.name}
-                          className="w-full h-full object-cover"
-                        />
+                        {dish.image.startsWith('data:image/') ? (
+                          <img
+                            src={dish.image}
+                            alt={dish.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'flex';
+                            }}
+                          />
+                        ) : (
+                          <img
+                            src={dish.image}
+                            alt={dish.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'flex';
+                            }}
+                          />
+                        )}
+                        <div className="w-full h-full bg-gray-100 flex items-center justify-center" style={{display: 'none'}}>
+                          <FiImage className="h-8 w-8 text-gray-400" />
+                        </div>
                       </div>
                     ) : (
                       <div className="w-full h-32 mb-3 rounded-lg bg-gray-100 flex items-center justify-center">
@@ -262,9 +291,23 @@ const DishesManagement = () => {
                     </div>
 
                     {/* Actions */}
-                    <div className="mt-4 flex space-x-2">
+                    <div className="mt-4 flex flex-wrap gap-2">
                       <button
-                        onClick={() => handleToggleAvailability(dish._id, dish.isAvailable)}
+                        onClick={() => navigate(`/dishes/${dish._id}`)}
+                        className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-blue-300 rounded-md text-sm font-medium text-blue-700 bg-white hover:bg-blue-50"
+                      >
+                        <FiExternalLink className="h-4 w-4 mr-2" />
+                        Voir
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (dish._id) {
+                            handleToggleAvailability(dish._id, dish.isAvailable);
+                          } else {
+                            console.error('ID du plat manquant dans le bouton:', dish);
+                            showError('ID du plat manquant');
+                          }
+                        }}
                         className={`flex-1 inline-flex items-center justify-center px-3 py-2 border rounded-md text-sm font-medium ${
                           dish.isAvailable
                             ? 'border-red-300 text-red-700 bg-white hover:bg-red-50'
@@ -285,7 +328,7 @@ const DishesManagement = () => {
                       </button>
                       <button
                         onClick={() => handleEditDish(dish)}
-                        className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                        className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-harvests-light"
                       >
                         <FiEdit className="h-4 w-4 mr-2" />
                         Modifier
@@ -369,6 +412,20 @@ const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
     }));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFormData(prev => ({
+          ...prev,
+          image: e.target.result
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleAllergenChange = (allergen) => {
     setFormData(prev => ({
       ...prev,
@@ -384,8 +441,8 @@ const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
   };
 
   return (
-    <div className="bg-gray-50 p-6 rounded-lg">
-      <h4 className="text-lg font-medium text-gray-900 mb-4">
+    <div className="p-6">
+      <h4 className="text-lg font-medium text-gray-900 mb-6">
         {dish ? 'Modifier le plat' : 'Ajouter un nouveau plat'}
       </h4>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -465,16 +522,24 @@ const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Image (URL)
+              Image
             </label>
             <input
-              type="url"
+              type="file"
               name="image"
-              value={formData.image}
-              onChange={handleChange}
-              placeholder="URL de l'image"
+              accept="image/*"
+              onChange={handleImageChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-harvests-green"
             />
+            {formData.image && (
+              <div className="mt-2">
+                <img 
+                  src={formData.image} 
+                  alt="Aperçu" 
+                  className="w-20 h-20 object-cover rounded-md"
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -482,16 +547,16 @@ const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Allergènes
           </label>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
             {allergenOptions.map(allergen => (
-              <label key={allergen.value} className="flex items-center">
+              <label key={allergen.value} className="flex items-center text-sm">
                 <input
                   type="checkbox"
                   checked={formData.allergens.includes(allergen.value)}
                   onChange={() => handleAllergenChange(allergen.value)}
                   className="h-4 w-4 text-harvests-green focus:ring-harvests-green border-gray-300 rounded"
                 />
-                <span className="ml-2 text-sm text-gray-700">
+                <span className="ml-2 text-xs text-gray-700">
                   {allergen.label}
                 </span>
               </label>
@@ -499,11 +564,11 @@ const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
           </div>
         </div>
 
-        <div className="flex justify-end space-x-3">
+        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-harvests-light"
           >
             Annuler
           </button>

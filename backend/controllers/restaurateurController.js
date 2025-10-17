@@ -20,7 +20,8 @@ exports.uploadDocument = upload.single('document');
 
 // ROUTES PUBLIQUES
 exports.getAllRestaurateurs = catchAsync(async (req, res, next) => {
-  const queryObj = { ...req.query, isActive: true, isApproved: true, isEmailVerified: true };
+  const queryObj = { ...req.query };
+  // Filtrer seulement les champs de requête, pas les champs de statut pour l'instant
   const excludedFields = ['page', 'sort', 'limit', 'fields'];
   excludedFields.forEach((el) => delete queryObj[el]);
 
@@ -158,7 +159,12 @@ exports.updateMyProfile = catchAsync(async (req, res, next) => {
 
 // Récupérer les plats du restaurateur
 exports.getMyDishes = catchAsync(async (req, res, next) => {
+  console.log('🔍 getMyDishes appelé pour user ID:', req.user.id);
+  
   const restaurateur = await Restaurateur.findById(req.user.id).select('dishes');
+  console.log('📋 Restaurateur trouvé:', !!restaurateur);
+  console.log('🍽️ Plats:', restaurateur?.dishes?.length || 0);
+  
   if (!restaurateur) {
     return res.status(404).json({
       status: 'error',
@@ -168,7 +174,7 @@ exports.getMyDishes = catchAsync(async (req, res, next) => {
   
   res.status(200).json({
     status: 'success',
-    data: { dishes: restaurateur.dishes }
+    data: { dishes: restaurateur.dishes || [] }
   });
 });
 

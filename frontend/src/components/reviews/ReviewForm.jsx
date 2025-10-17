@@ -156,7 +156,7 @@ const ReviewForm = ({
       </div>
 
       {/* Informations sur la commande */}
-      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+      <div className="mb-6 p-4 bg-harvests-light rounded-lg">
         <div className="flex items-center space-x-4">
           {product.images?.[0] && (
             <CloudinaryImage
@@ -344,7 +344,7 @@ const ReviewForm = ({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-harvests-light focus:outline-none focus:ring-2 focus:ring-green-500"
           >
             Annuler
           </button>

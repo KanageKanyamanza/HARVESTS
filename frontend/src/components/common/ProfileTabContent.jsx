@@ -254,7 +254,7 @@ export const HoursContent = ({ profile, onChange }) => {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {days.map(day => (
-          <div key={day.key} className="bg-gray-50 rounded-lg p-4">
+          <div key={day.key} className="bg-harvests-light rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-medium text-gray-900">{day.label}</h3>
               <label className="flex items-center">
@@ -309,7 +309,7 @@ export const ServicesContent = ({ profile, onChange }) => {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {services.map(service => (
-          <div key={service.key} className="bg-gray-50 rounded-lg p-4">
+          <div key={service.key} className="bg-harvests-light rounded-lg p-4">
             <div className="flex items-center">
               <service.icon className="h-5 w-5 text-gray-400 mr-3" />
               <label className="flex items-center">
@@ -366,7 +366,7 @@ export const NotificationsContent = ({ profile, onChange }) => {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {notificationTypes.map(type => (
-          <div key={type.key} className="bg-gray-50 rounded-lg p-4">
+          <div key={type.key} className="bg-harvests-light rounded-lg p-4">
             <div className="flex items-center">
               <type.icon className="h-5 w-5 text-gray-400 mr-3" />
               <label className="flex items-center">

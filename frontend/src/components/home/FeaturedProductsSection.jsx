@@ -39,7 +39,7 @@ const FeaturedProductsSection = () => {
   }
 
   return (
-    <section className="py-20 bg-gray-100">
+    <section className="py-20 bg-harvests-light">
       <div className="container-xl">
         {/* En-tête */}
         <div className="flex justify-between items-center mb-5">

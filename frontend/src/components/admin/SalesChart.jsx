@@ -14,7 +14,7 @@ import {
 const SalesChart = ({ data, type = 'line' }) => {
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg">
+      <div className="flex items-center justify-center h-64 bg-harvests-light rounded-lg">
         <p className="text-gray-500">Aucune donnée disponible</p>
       </div>
     );

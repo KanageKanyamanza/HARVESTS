@@ -62,7 +62,7 @@ const NotificationDropdown = () => {
       case 'marketing':
         return 'bg-pink-50 border-pink-200';
       default:
-        return 'bg-gray-50 border-gray-200';
+        return 'bg-harvests-light border-gray-200';
     }
   };
 
@@ -163,8 +163,8 @@ const NotificationDropdown = () => {
               notifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer ${
-                    notification.read ? 'bg-gray-50/30' : 'bg-blue-50/50'
+                  className={`px-4 py-3 border-b border-gray-100 hover:bg-harvests-light transition-colors cursor-pointer ${
+                    notification.read ? 'bg-harvests-light/30' : 'bg-blue-50/50'
                   }`}
                   onClick={() => handleNotificationClick(notification)}
                 >
@@ -222,7 +222,7 @@ const NotificationDropdown = () => {
 
           {/* Footer */}
           {notifications.length > 0 && (
-            <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+            <div className="px-4 py-3 border-t border-gray-200 bg-harvests-light rounded-b-lg">
               <p className="text-xs text-gray-500 text-center">
                 {notifications.length} notification{notifications.length > 1 ? 's' : ''} 
                 {unreadCount > 0 && (

@@ -10,6 +10,8 @@ router.get('/', restaurateurController.getAllRestaurateurs);
 router.get('/search', restaurateurController.searchRestaurateurs);
 router.get('/by-region/:region', restaurateurController.getRestaurateursByRegion);
 router.get('/by-cuisine/:cuisine', restaurateurController.getRestaurateursByCuisine);
+
+// Routes publiques pour profils individuels (DOIVENT être avant l'authentification)
 router.get('/:id', restaurateurController.getRestaurateur);
 router.get('/:id/dishes', restaurateurController.getRestaurateurDishes);
 
@@ -17,8 +19,11 @@ router.get('/:id/dishes', restaurateurController.getRestaurateurDishes);
 router.use(authController.protect);
 router.use(authController.restrictTo('restaurateur'));
 
-// Routes de lecture (autorisées sans vérification d'email)
+// Routes protégées spécifiques (doivent être AVANT les routes génériques)
 router.get('/me/profile', restaurateurController.getMyProfile);
+router.get('/me/dishes', restaurateurController.getMyDishes);
+
+// Routes de lecture (autorisées sans vérification d'email)
 router.get('/me/restaurant-info', restaurateurController.getRestaurantInfo);
 router.get('/me/operating-hours', restaurateurController.getOperatingHours);
 router.get('/me/procurement-needs', restaurateurController.getProcurementNeeds);
@@ -50,7 +55,6 @@ router.get('/suppliers/search', restaurateurController.searchSuppliers);
 router.get('/suppliers/:supplierId', restaurateurController.getSupplierDetails);
 
 // Routes pour les plats (lecture autorisée sans vérification d'email)
-router.get('/me/dishes', restaurateurController.getMyDishes);
 
 // Routes d'écriture (nécessitent une vérification d'email)
 router.use(authController.requireVerification);

@@ -4,7 +4,6 @@ import {
   CertificationsContent,
   RestaurantContent,
   HoursContent,
-  ServicesContent,
   CompanyContent,
   TransformationContent,
   PreferencesContent,
@@ -202,11 +201,6 @@ export const restaurateurProfileConfig = {
       id: 'hours',
       label: 'Horaires',
       content: HoursContent
-    },
-    {
-      id: 'services',
-      label: 'Services',
-      content: ServicesContent
     }
   ],
   fields: {
@@ -240,17 +234,7 @@ export const restaurateurProfileConfig = {
         { value: 'food-truck', label: 'Food truck' },
         { value: 'bakery', label: 'Boulangerie' }
       ]},
-      { name: 'cuisineTypes', label: 'Types de cuisine', type: 'multiselect', options: [
-        { value: 'african', label: 'Africaine' },
-        { value: 'french', label: 'Française' },
-        { value: 'italian', label: 'Italienne' },
-        { value: 'asian', label: 'Asiatique' },
-        { value: 'american', label: 'Américaine' },
-        { value: 'mediterranean', label: 'Méditerranéenne' },
-        { value: 'fusion', label: 'Fusion' },
-        { value: 'vegetarian', label: 'Végétarienne' },
-        { value: 'vegan', label: 'Végane' }
-      ]},
+      { name: 'cuisineTypes', label: 'Types de cuisine (séparés par des virgules)', type: 'text', placeholder: 'Ex: Africaine, Française, Italienne' },
       { name: 'seatingCapacity', label: 'Capacité d\'accueil', type: 'number', required: true }
     ]
   }

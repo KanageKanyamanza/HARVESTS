@@ -354,7 +354,7 @@ const UniversalSettings = ({ userType, service, settingsConfig }) => {
           </div>
 
           {/* Bouton de sauvegarde */}
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
+          <div className="px-6 py-4 bg-harvests-light border-t border-gray-200 flex justify-end">
             <button
               onClick={handleSave}
               disabled={loading}

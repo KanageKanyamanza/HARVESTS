@@ -172,7 +172,7 @@ const Stats = () => {
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {salesAnalytics?.monthlySales && salesAnalytics.monthlySales.length > 0 ? (
                 salesAnalytics.monthlySales.slice(0, 6).map((sale, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-3 bg-harvests-light rounded-lg">
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900">{sale.month}</p>
                       <p className="text-xs text-gray-500">{sale.orders} commande{sale.orders > 1 ? 's' : ''}</p>
@@ -239,7 +239,7 @@ const Stats = () => {
               {stats?.topProducts && stats.topProducts.length > 0 ? (
                 <div className="space-y-3">
                   {stats.topProducts.map((product, index) => (
-                    <div key={product.id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div key={product.id || index} className="flex items-center justify-between p-3 bg-harvests-light rounded-lg hover:bg-gray-100 transition-colors">
                       <div className="flex items-center flex-1">
                         <div className="flex-shrink-0 w-8 h-8 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
                           {index + 1}
@@ -279,7 +279,7 @@ const Stats = () => {
                 </div>
                 <span className="text-xl font-bold text-green-600">{stats?.activeProducts || 0}</span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-harvests-light rounded-lg">
                 <div className="flex items-center">
                   <FiPackage className="h-5 w-5 text-gray-500 mr-2" />
                   <span className="text-sm font-medium text-gray-700">Total produits</span>

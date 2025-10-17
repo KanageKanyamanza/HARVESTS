@@ -627,7 +627,7 @@ const Checkout = () => {
                       { value: 'cash', label: 'Paiement à la livraison', icon: '💵' },
                       { value: 'bank-transfer', label: 'Virement bancaire', icon: '🏦' }
                     ].map((method) => (
-                      <label key={method.value} className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                      <label key={method.value} className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-harvests-light">
                     <input
                       type="radio"
                       name="paymentMethod"
@@ -654,7 +654,7 @@ const Checkout = () => {
                           { value: 'mtn-money', label: 'MTN Mobile Money' },
                           { value: 'express-union', label: 'Express Union' }
                         ].map((provider) => (
-                          <label key={provider.value} className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                          <label key={provider.value} className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-harvests-light">
                             <input
                               type="radio"
                               name="paymentProvider"
@@ -683,7 +683,7 @@ const Checkout = () => {
                           { value: 'american-express', label: 'American Express' },
                           { value: 'local-card', label: 'Carte locale' }
                         ].map((provider) => (
-                          <label key={provider.value} className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                          <label key={provider.value} className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-harvests-light">
                             <input
                               type="radio"
                               name="paymentProvider"
@@ -822,7 +822,7 @@ const Checkout = () => {
                           { value: 'standard-chartered', label: 'Standard Chartered' },
                           { value: 'other', label: 'Autre banque' }
                         ].map((provider) => (
-                          <label key={provider.value} className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                          <label key={provider.value} className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-harvests-light">
                             <input
                               type="radio"
                               name="paymentProvider"
@@ -934,7 +934,7 @@ const Checkout = () => {
                         price: '5 000 FCFA'
                       }
                     ].map((method) => (
-                      <label key={method.value} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                      <label key={method.value} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-harvests-light">
                         <div className="flex items-center">
                     <input
                             type="radio"
@@ -1062,7 +1062,7 @@ const Checkout = () => {
               <button
                 onClick={prevStep}
                 disabled={currentStep === 1}
-                className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-harvests-light disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Précédent
               </button>

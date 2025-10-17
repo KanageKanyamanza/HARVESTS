@@ -29,7 +29,10 @@ const restaurateurService = {
   getSupplierDetails: (supplierId) => api.get(`/restaurateurs/suppliers/${supplierId}`),
   
   // Profils publics
-  getAllRestaurateurs: (params = {}) => api.get('/restaurateurs', { params }),
+  getAllRestaurateurs: (params = {}) => {
+    console.log('🔗 Appel API restaurateurs avec params:', params);
+    return api.get('/restaurateurs', { params });
+  },
   getRestaurateur: (id) => api.get(`/restaurateurs/${id}`),
   getRestaurateurDishes: (id) => api.get(`/restaurateurs/${id}/dishes`),
   

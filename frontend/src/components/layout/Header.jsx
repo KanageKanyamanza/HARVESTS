@@ -395,7 +395,7 @@ const Header = () => {
                   className={`${
                     item.current
                       ? 'bg-primary-50 border-primary-500 text-primary-700'
-                      : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'
+                      : 'border-transparent text-gray-600 hover:bg-harvests-light hover:border-gray-300 hover:text-gray-800'
                   } block pl-3 pr-4 py-2 border-l-4 text-base font-medium`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -413,7 +413,7 @@ const Header = () => {
                       <Link
                         key={item.name}
                         to={item.href}
-                        className="flex items-center px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                        className="flex items-center px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-harvests-light"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         <Icon className="h-5 w-5 mr-3" />

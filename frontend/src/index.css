@@ -262,6 +262,10 @@
     background-color: #FFFFFF !important;
   }
   
+  .bg-harvests-light {
+    background-color: #f3f9e5 !important;
+  }
+  
   .text-harvests-green {
     color: #4CAF50 !important;
   }

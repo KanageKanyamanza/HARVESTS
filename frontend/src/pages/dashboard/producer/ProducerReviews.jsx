@@ -330,7 +330,7 @@ const ProducerReviews = () => {
                   {!review.producerResponse && (
                     <button
                       onClick={() => setRespondingTo(review._id)}
-                      className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
+                      className="inline-flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-harvests-light"
                     >
                       <Reply className="h-4 w-4 mr-1" />
                       Répondre
@@ -385,7 +385,7 @@ const ProducerReviews = () => {
                           setRespondingTo(null);
                           setResponseText('');
                         }}
-                        className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                        className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-harvests-light"
                       >
                         Annuler
                       </button>

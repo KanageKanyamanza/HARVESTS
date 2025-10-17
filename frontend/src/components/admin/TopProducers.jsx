@@ -55,7 +55,7 @@ const TopProducers = ({ producers = [] }) => {
       
       <div className="divide-y divide-gray-200">
         {producers.map((producer, index) => (
-          <div key={producer.producerId} className="px-6 py-4 hover:bg-gray-50">
+          <div key={producer.producerId} className="px-6 py-4 hover:bg-harvests-light">
             <div className="flex items-center space-x-4">
               <div className="flex-shrink-0">
                 {getRankIcon(index)}

@@ -46,7 +46,7 @@ export const getConfig = () => {
   
   // Configuration de développement
   return {
-    API_BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1',
+    API_BASE_URL: 'http://localhost:8000/api/v1', // Forcé pour le debug
     FRONTEND_URL: 'http://localhost:5173',
     DEBUG: true,
     LOG_LEVEL: 'debug',

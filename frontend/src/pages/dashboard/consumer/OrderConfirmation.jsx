@@ -212,7 +212,7 @@ const OrderConfirmation = () => {
               )}
               <button
                 onClick={() => navigate('/')}
-                className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light"
               >
                 <FiHome className="mr-2 h-5 w-5" />
                 Accueil
@@ -266,21 +266,21 @@ const OrderConfirmation = () => {
           <div className="flex flex-wrap gap-3">
             <button
               onClick={handleDownloadInvoice}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-harvests-light"
             >
               <FiDownload className="h-4 w-4 mr-2" />
               Télécharger la facture
             </button>
             <button
               onClick={handleShareOrder}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-harvests-light"
             >
               <FiShare2 className="h-4 w-4 mr-2" />
               Partager
             </button>
             <button
               onClick={() => navigate('/order-history')}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-harvests-light"
             >
               <FiShoppingBag className="h-4 w-4 mr-2" />
               Voir toutes mes commandes
@@ -453,7 +453,7 @@ const OrderConfirmation = () => {
                 )}
                 
                 {order.delivery.deliveryAddress.deliveryInstructions && (
-                  <div className="mt-3 p-3 bg-gray-50 rounded-md">
+                  <div className="mt-3 p-3 bg-harvests-light rounded-md">
                     <p className="text-sm text-gray-600">
                       <span className="font-medium">Instructions de livraison:</span><br />
                       {order.delivery.deliveryAddress.deliveryInstructions}
@@ -538,7 +538,7 @@ const OrderConfirmation = () => {
           </button>
           <button
             onClick={() => navigate('/order-history')}
-            className="flex-1 inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+            className="flex-1 inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light"
           >
             <FiShoppingBag className="mr-2 h-5 w-5" />
             Voir mes commandes

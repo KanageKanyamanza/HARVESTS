@@ -282,8 +282,13 @@ baseUserSchema.methods.incLoginAttempts = function() {
   
   // Si nous atteignons la limite maximale et qu'il n'y a pas de verrouillage précédent, verrouiller le compte
   if (this.loginAttempts + 1 >= 5 && !this.isLocked()) {
+    // 30 minutes en production, 2 minutes en développement
+    const lockoutDuration = process.env.NODE_ENV === 'production' 
+      ? 30 * 60 * 1000  // 30 minutes
+      : 2 * 60 * 1000;  // 2 minutes
+    
     updates.$set = {
-      accountLockedUntil: Date.now() + 2 * 60 * 60 * 1000 // 2 heures
+      accountLockedUntil: Date.now() + lockoutDuration
     };
   }
   

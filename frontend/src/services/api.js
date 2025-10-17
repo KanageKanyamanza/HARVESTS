@@ -19,6 +19,10 @@ const api = axios.create({
 // Intercepteur de requête
 api.interceptors.request.use(
   (config) => {
+    // Log pour debug
+    console.log('🌐 Requête API:', config.baseURL + config.url);
+    console.log('📋 Paramètres:', config.params);
+    
     // Routes publiques qui ne nécessitent pas d'authentification
     const publicRoutes = [
       '/auth/signup',
@@ -48,10 +52,11 @@ api.interceptors.request.use(
     
     // Ajouter la langue actuelle
     const language = getCurrentLanguage();
-    config.params = {
-      ...config.params,
-      lang: language
-    };
+    // Temporairement désactivé pour debug
+    // config.params = {
+    //   ...config.params,
+    //   lang: language
+    // };
     
     // Ajouter les headers de langue
     config.headers['Accept-Language'] = language === 'fr' ? 'fr-FR,fr;q=0.9' : 'en-US,en;q=0.9';
@@ -66,6 +71,7 @@ api.interceptors.request.use(
 // Intercepteur de réponse
 api.interceptors.response.use(
   (response) => {
+    console.log('📥 Réponse API:', response.config.url, response.data);
     return response;
   },
   (error) => {

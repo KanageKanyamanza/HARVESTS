@@ -122,7 +122,7 @@ const AdminManagement = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-harvests-light flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Chargement...</p>
@@ -211,7 +211,7 @@ const AdminManagement = () => {
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-harvests-light">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Nom
@@ -238,7 +238,7 @@ const AdminManagement = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredAdmins.map((admin) => (
-                  <tr key={admin._id} className="hover:bg-gray-50">
+                  <tr key={admin._id} className="hover:bg-harvests-light">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
@@ -328,13 +328,13 @@ const AdminManagement = () => {
             Affichage de <span className="font-medium">1</span> à <span className="font-medium">{filteredAdmins.length}</span> sur <span className="font-medium">{admins.length}</span> résultats
           </div>
           <div className="flex space-x-2">
-            <button className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+            <button className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-harvests-light">
               Précédent
             </button>
             <button className="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700">
               1
             </button>
-            <button className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+            <button className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-harvests-light">
               Suivant
             </button>
           </div>

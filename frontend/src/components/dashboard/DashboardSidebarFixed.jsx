@@ -186,7 +186,7 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse, 
                 className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors ${
                   isActive(item.href)
                     ? 'bg-harvests-green text-white'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    : 'text-gray-600 hover:bg-harvests-light hover:text-gray-900'
                 } ${collapsed ? 'justify-center' : ''}`}
                 title={collapsed ? item.name : ''}
               >
@@ -203,7 +203,7 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse, 
         <div className="p-4 border-t border-gray-200 flex-shrink-0">
           <button
             onClick={onLogout}
-            className={`group flex items-center w-full px-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors ${
+            className={`group flex items-center w-full px-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-harvests-light hover:text-gray-900 transition-colors ${
               collapsed ? 'justify-center' : ''
             }`}
             title={collapsed ? 'Déconnexion' : ''}

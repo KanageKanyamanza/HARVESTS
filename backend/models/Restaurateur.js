@@ -29,7 +29,6 @@ const restaurateurSchema = new mongoose.Schema({
   // Cuisine servie
   cuisineTypes: {
     type: [String],
-    enum: ['african', 'french', 'italian', 'asian', 'american', 'mediterranean', 'fusion', 'vegetarian', 'vegan'],
     required: false, // Optionnel lors de l'inscription
     default: ['african']
   },

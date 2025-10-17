@@ -144,6 +144,7 @@ const transformerService = {
   getTransformersByType: (type) => api.get(`/transformers/by-type/${type}`),
   getTransformer: (id) => api.get(`/transformers/${id}`),
   getPublicTransformer: (id) => api.get(`/transformers/${id}/public`),
+  getPublicTransformerProducts: (id) => api.get(`/transformers/${id}/products`),
   getTransformerServices: (id) => api.get(`/transformers/${id}/services`),
   getTransformerReviews: (id) => api.get(`/transformers/${id}/reviews`)
 };

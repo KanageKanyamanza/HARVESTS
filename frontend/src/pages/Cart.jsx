@@ -10,7 +10,7 @@ const Cart = () => {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-harvests-light py-8">
         <div className="max-w-5xl mx-auto px-4">
           <div className="flex items-center mb-6">
             <button
@@ -39,7 +39,7 @@ const Cart = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-harvests-light py-8">
       <div className="max-w-5xl mx-auto px-4">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">

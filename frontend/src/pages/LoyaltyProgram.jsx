@@ -24,7 +24,7 @@ const LoyaltyProgram = () => {
       name: 'Silver',
       icon: '🥈',
       color: 'from-gray-400 to-gray-600',
-      bgColor: 'bg-gray-50',
+      bgColor: 'bg-harvests-light',
       borderColor: 'border-gray-200',
       points: '1,000 - 4,999',
       benefits: [
@@ -102,7 +102,7 @@ const LoyaltyProgram = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-harvests-light">
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary-500 to-primary-700 text-white py-20">
         <div className="container-xl text-center">
@@ -176,7 +176,7 @@ const LoyaltyProgram = () => {
       </section>
 
       {/* Niveaux de fidélité */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-harvests-light">
         <div className="container-xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -319,7 +319,7 @@ const LoyaltyProgram = () => {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-harvests-light">
         <div className="container-xl max-w-4xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">

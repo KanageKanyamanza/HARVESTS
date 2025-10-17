@@ -105,7 +105,7 @@ const CategoriesSection = () => {
   }
 
   return (
-    <section className="py-20 bg-gray-100">
+    <section className="py-20 bg-harvests-light">
       <div className="container-xl">
         {/* En-tête */}
         <div className="flex justify-between items-center mb-5">
@@ -157,7 +157,7 @@ const CategoriesSection = () => {
                   className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
                 >
                   {/* Image du produit */}
-                  <div className="aspect-[4/3] relative overflow-hidden bg-gray-100">
+                  <div className="aspect-[4/3] relative overflow-hidden bg-harvests-light">
                     {primaryImage ? (
                       <CloudinaryImage
                         src={primaryImage.url}

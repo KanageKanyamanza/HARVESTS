@@ -128,20 +128,26 @@ const UniversalProfile = ({ userType, service, profileFields, tabs }) => {
         const response = await getProfileMethod();
         const profileData = response.data?.data?.[userType] || response.data?.[userType] || response.data?.data?.user || response.data?.user || {};
         
+        // Convertir cuisineTypes de tableau en texte pour l'affichage
+        const processedProfileData = { ...profileData };
+        if (Array.isArray(processedProfileData.cuisineTypes)) {
+          processedProfileData.cuisineTypes = processedProfileData.cuisineTypes.join(', ');
+        }
+        
         setProfile(prev => ({
           ...prev,
-          ...profileData,
+          ...processedProfileData,
           address: {
             ...prev.address,
-            ...profileData.address
+            ...processedProfileData.address
           },
           operatingHours: {
             ...prev.operatingHours,
-            ...profileData.operatingHours
+            ...processedProfileData.operatingHours
           },
           additionalServices: {
             ...prev.additionalServices,
-            ...profileData.additionalServices
+            ...processedProfileData.additionalServices
           }
         }));
       } catch (error) {
@@ -160,18 +166,30 @@ const UniversalProfile = ({ userType, service, profileFields, tabs }) => {
     const { name, value, type, checked } = e.target;
     
     if (name.includes('.')) {
-      const [parent, child] = name.split('.');
-      setProfile(prev => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent],
-          [child]: type === 'checkbox' ? checked : value
+      const keys = name.split('.');
+      setProfile(prev => {
+        const newProfile = { ...prev };
+        let current = newProfile;
+        
+        // Naviguer jusqu'au parent
+        for (let i = 0; i < keys.length - 1; i++) {
+          if (!current[keys[i]]) {
+            current[keys[i]] = {};
+          }
+          current = current[keys[i]];
         }
-      }));
+        
+        // Définir la valeur finale
+        const finalKey = keys[keys.length - 1];
+        current[finalKey] = type === 'checkbox' ? checked : value;
+        
+        return newProfile;
+      });
     } else {
+      const newValue = type === 'checkbox' ? checked : value;
       setProfile(prev => ({
         ...prev,
-        [name]: type === 'checkbox' ? checked : value
+        [name]: newValue
       }));
     }
   };
@@ -180,9 +198,21 @@ const UniversalProfile = ({ userType, service, profileFields, tabs }) => {
   const handleSave = async () => {
     try {
       setLoading(true);
+      
+      // Préparer les données à envoyer
+      const dataToSend = { ...profile };
+      
+      // Convertir cuisineTypes de texte en tableau si c'est une chaîne
+      if (typeof dataToSend.cuisineTypes === 'string' && dataToSend.cuisineTypes.trim()) {
+        dataToSend.cuisineTypes = dataToSend.cuisineTypes
+          .split(',')
+          .map(item => item.trim())
+          .filter(item => item.length > 0);
+      }
+      
       // Gérer les différentes conventions de nommage des services
       const updateProfileMethod = service.updateMyProfile || service.updateProfile;
-      const response = await updateProfileMethod(profile);
+      const response = await updateProfileMethod(dataToSend);
       
       if (response.data?.status === 'success') {
         showSuccess('Profil mis à jour avec succès');
@@ -299,7 +329,7 @@ const UniversalProfile = ({ userType, service, profileFields, tabs }) => {
                 </button>
                 <button
                   onClick={handleCancel}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light"
                 >
                   <FiX className="h-4 w-4 mr-2" />
                   Annuler
@@ -308,7 +338,7 @@ const UniversalProfile = ({ userType, service, profileFields, tabs }) => {
             ) : (
               <button
                 onClick={() => setEditing(true)}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light"
               >
                 <FiEdit className="h-4 w-4 mr-2" />
                 Modifier
@@ -397,7 +427,7 @@ const UniversalProfile = ({ userType, service, profileFields, tabs }) => {
 
         {/* Section d'upload d'images */}
         {editing && (
-          <div className="mt-8 bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <div className="mt-8 bg-harvests-light border border-gray-200 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               📸 Gestion des Images
             </h3>

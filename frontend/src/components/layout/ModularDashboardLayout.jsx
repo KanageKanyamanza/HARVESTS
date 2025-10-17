@@ -33,7 +33,7 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
   };
 
   return (
-    <div className="h-screen bg-gray-50 overflow-hidden">
+    <div className="h-screen bg-harvests-light overflow-hidden">
       {/* Sidebar - FIXED position, 100vh */}
       <div className={`fixed top-0 left-0 h-screen z-30 hidden lg:block transition-all duration-300 ${
         sidebarCollapsed ? 'w-16' : 'w-64'
@@ -66,7 +66,7 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
       
       {/* Contenu - SEULE zone scrollable */}
       <div 
-        className={`fixed top-16 right-0 bottom-0 overflow-y-auto bg-gray-50 transition-all duration-300 ${
+        className={`fixed top-16 right-0 bottom-0 overflow-y-auto bg-harvests-light transition-all duration-300 ${
           sidebarCollapsed ? 'left-16' : 'left-0 lg:left-64'
         }`}
         style={{ height: 'calc(100vh - 64px)' }}
