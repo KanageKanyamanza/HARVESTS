@@ -134,8 +134,6 @@ const EmailVerification = () => {
               className="w-[400px] h-[190px] mx-auto mb-6 drop-shadow-lg"
             />
             <p className="text-green-700 text-lg mb-6">
-              Agricultural Products Rural<br />
-              Entrepreneurship Management System: AgriConnect Hub
             </p>
             
             {/* Réseaux sociaux */}
