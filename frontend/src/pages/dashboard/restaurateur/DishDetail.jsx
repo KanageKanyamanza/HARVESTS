@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiClock, FiDollarSign, FiTag, FiAlertTriangle, FiEdit, FiTrash2 } from 'react-icons/fi';
 import { restaurateurService } from '../../../services';
-import { useNotification } from '../../../hooks/useNotification';
+import { useNotifications } from '../../../contexts/NotificationContext';
 
 const DishDetail = () => {
   const { dishId } = useParams();
   const navigate = useNavigate();
-  const { showError, showSuccess } = useNotification();
+  const { showError, showSuccess } = useNotifications();
   
   const [dish, setDish] = useState(null);
   const [loading, setLoading] = useState(true);
