@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import SocialLinks from '../../components/common/SocialLinks';
-import { useModal } from '../../components/modals/ModalManager';
+import { useModal } from '../../hooks/useModal';
 import logo from '../../assets/logo.png';
 import authbg from '../../assets/images/authbg.png';
 

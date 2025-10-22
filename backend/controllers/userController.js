@@ -512,3 +512,335 @@ exports.reactivateUser = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+// ========================================
+// MÉTHODES COMMUNES POUR TOUS LES UTILISATEURS
+// ========================================
+
+// Obtenir les statistiques communes
+exports.getCommonStats = catchAsync(async (req, res, next) => {
+  const user = req.user;
+  
+  // Statistiques de base communes à tous les utilisateurs
+  const commonStats = {
+    totalOrders: 0,
+    totalProducts: 0,
+    totalRevenue: 0,
+    averageRating: 0,
+    totalReviews: 0,
+    accountAge: Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24)), // en jours
+    lastLogin: user.lastLoginAt || user.createdAt,
+    profileCompletion: calculateProfileCompletion(user),
+    verificationStatus: {
+      emailVerified: user.isEmailVerified,
+      phoneVerified: user.isPhoneVerified,
+      identityVerified: user.isIdentityVerified,
+      businessVerified: user.isBusinessVerified
+    }
+  };
+
+  // Ajouter des statistiques spécifiques selon le type d'utilisateur
+  if (user.userType === 'producer' || user.userType === 'transformer' || user.userType === 'restaurateur') {
+    // Pour les vendeurs, ajouter des statistiques de vente
+    const UserModel = userModels[user.userType];
+    if (UserModel) {
+      const profile = await UserModel.findOne({ user: user._id });
+      if (profile) {
+        commonStats.totalProducts = profile.products?.length || 0;
+        commonStats.totalOrders = profile.orders?.length || 0;
+        commonStats.totalRevenue = profile.totalRevenue || 0;
+        commonStats.averageRating = profile.averageRating || 0;
+        commonStats.totalReviews = profile.totalReviews || 0;
+      }
+    }
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: commonStats
+  });
+});
+
+// Obtenir les informations financières
+exports.getFinancialInfo = catchAsync(async (req, res, next) => {
+  const user = req.user;
+  
+  const financialInfo = {
+    bankAccount: user.bankAccount || null,
+    paymentMethods: user.paymentMethods || [],
+    totalEarnings: user.totalEarnings || 0,
+    pendingPayments: user.pendingPayments || 0,
+    totalWithdrawals: user.totalWithdrawals || 0,
+    currency: user.currency || 'XAF',
+    taxInfo: user.taxInfo || null
+  };
+
+  res.status(200).json({
+    status: 'success',
+    data: financialInfo
+  });
+});
+
+// Obtenir les paramètres de notification
+exports.getNotificationSettings = catchAsync(async (req, res, next) => {
+  const user = req.user;
+  
+  const notificationSettings = {
+    email: user.notificationSettings?.email || {
+      orders: true,
+      payments: true,
+      promotions: true,
+      updates: true
+    },
+    push: user.notificationSettings?.push || {
+      orders: true,
+      payments: true,
+      promotions: false,
+      updates: true
+    },
+    sms: user.notificationSettings?.sms || {
+      orders: false,
+      payments: true,
+      promotions: false,
+      updates: false
+    },
+    frequency: user.notificationSettings?.frequency || 'immediate'
+  };
+
+  res.status(200).json({
+    status: 'success',
+    data: notificationSettings
+  });
+});
+
+// Obtenir le statut de vérification
+exports.getVerificationStatus = catchAsync(async (req, res, next) => {
+  const user = req.user;
+  
+  const verificationStatus = {
+    email: {
+      verified: user.isEmailVerified,
+      verifiedAt: user.emailVerifiedAt,
+      pending: !user.isEmailVerified
+    },
+    phone: {
+      verified: user.isPhoneVerified,
+      verifiedAt: user.phoneVerifiedAt,
+      pending: !user.isPhoneVerified
+    },
+    identity: {
+      verified: user.isIdentityVerified,
+      verifiedAt: user.identityVerifiedAt,
+      pending: !user.isIdentityVerified,
+      documents: user.identityDocuments || []
+    },
+    business: {
+      verified: user.isBusinessVerified,
+      verifiedAt: user.businessVerifiedAt,
+      pending: !user.isBusinessVerified,
+      documents: user.businessDocuments || []
+    },
+    overall: {
+      verified: user.isEmailVerified && user.isPhoneVerified,
+      level: calculateVerificationLevel(user)
+    }
+  };
+
+  res.status(200).json({
+    status: 'success',
+    data: verificationStatus
+  });
+});
+
+// Obtenir les adresses de livraison
+exports.getDeliveryAddresses = catchAsync(async (req, res, next) => {
+  const user = req.user;
+  
+  const deliveryAddresses = user.deliveryAddresses || [];
+  
+  res.status(200).json({
+    status: 'success',
+    data: deliveryAddresses
+  });
+});
+
+// Mettre à jour les informations financières
+exports.updateFinancialInfo = catchAsync(async (req, res, next) => {
+  const user = req.user;
+  const { bankAccount, paymentMethods, currency, taxInfo } = req.body;
+  
+  const updateData = {};
+  if (bankAccount) updateData.bankAccount = bankAccount;
+  if (paymentMethods) updateData.paymentMethods = paymentMethods;
+  if (currency) updateData.currency = currency;
+  if (taxInfo) updateData.taxInfo = taxInfo;
+  
+  const updatedUser = await User.findByIdAndUpdate(
+    user._id,
+    updateData,
+    { new: true, runValidators: true }
+  );
+  
+  res.status(200).json({
+    status: 'success',
+    message: 'Informations financières mises à jour avec succès',
+    data: {
+      user: updatedUser
+    }
+  });
+});
+
+// Mettre à jour les paramètres de notification
+exports.updateNotificationSettings = catchAsync(async (req, res, next) => {
+  const user = req.user;
+  const { email, push, sms, frequency } = req.body;
+  
+  const notificationSettings = {
+    email: email || user.notificationSettings?.email,
+    push: push || user.notificationSettings?.push,
+    sms: sms || user.notificationSettings?.sms,
+    frequency: frequency || user.notificationSettings?.frequency
+  };
+  
+  const updatedUser = await User.findByIdAndUpdate(
+    user._id,
+    { notificationSettings },
+    { new: true, runValidators: true }
+  );
+  
+  res.status(200).json({
+    status: 'success',
+    message: 'Paramètres de notification mis à jour avec succès',
+    data: {
+      user: updatedUser
+    }
+  });
+});
+
+// Ajouter une adresse de livraison
+exports.addDeliveryAddress = catchAsync(async (req, res, next) => {
+  const user = req.user;
+  const { name, address, city, region, country, postalCode, phone, isDefault } = req.body;
+  
+  const newAddress = {
+    name,
+    address,
+    city,
+    region,
+    country,
+    postalCode,
+    phone,
+    isDefault: isDefault || false
+  };
+  
+  // Si c'est l'adresse par défaut, désactiver les autres
+  if (isDefault) {
+    await User.updateMany(
+      { _id: user._id, 'deliveryAddresses.isDefault': true },
+      { $set: { 'deliveryAddresses.$.isDefault': false } }
+    );
+  }
+  
+  const updatedUser = await User.findByIdAndUpdate(
+    user._id,
+    { $push: { deliveryAddresses: newAddress } },
+    { new: true, runValidators: true }
+  );
+  
+  res.status(201).json({
+    status: 'success',
+    message: 'Adresse de livraison ajoutée avec succès',
+    data: {
+      user: updatedUser
+    }
+  });
+});
+
+// Mettre à jour une adresse de livraison
+exports.updateDeliveryAddress = catchAsync(async (req, res, next) => {
+  const user = req.user;
+  const { addressId } = req.params;
+  const updateData = req.body;
+  
+  // Si c'est l'adresse par défaut, désactiver les autres
+  if (updateData.isDefault) {
+    await User.updateMany(
+      { _id: user._id, 'deliveryAddresses.isDefault': true },
+      { $set: { 'deliveryAddresses.$.isDefault': false } }
+    );
+  }
+  
+  const updatedUser = await User.findOneAndUpdate(
+    { _id: user._id, 'deliveryAddresses._id': addressId },
+    { $set: { 'deliveryAddresses.$': { ...updateData, _id: addressId } } },
+    { new: true, runValidators: true }
+  );
+  
+  if (!updatedUser) {
+    return next(new AppError('Adresse de livraison non trouvée', 404));
+  }
+  
+  res.status(200).json({
+    status: 'success',
+    message: 'Adresse de livraison mise à jour avec succès',
+    data: {
+      user: updatedUser
+    }
+  });
+});
+
+// Supprimer une adresse de livraison
+exports.deleteDeliveryAddress = catchAsync(async (req, res, next) => {
+  const user = req.user;
+  const { addressId } = req.params;
+  
+  const updatedUser = await User.findByIdAndUpdate(
+    user._id,
+    { $pull: { deliveryAddresses: { _id: addressId } } },
+    { new: true, runValidators: true }
+  );
+  
+  if (!updatedUser) {
+    return next(new AppError('Adresse de livraison non trouvée', 404));
+  }
+  
+  res.status(200).json({
+    status: 'success',
+    message: 'Adresse de livraison supprimée avec succès',
+    data: {
+      user: updatedUser
+    }
+  });
+});
+
+// ========================================
+// FONCTIONS UTILITAIRES
+// ========================================
+
+// Calculer le pourcentage de complétion du profil
+function calculateProfileCompletion(user) {
+  let completion = 0;
+  const fields = [
+    'firstName', 'lastName', 'email', 'phone', 'address', 'city', 'region'
+  ];
+  
+  fields.forEach(field => {
+    if (user[field] && user[field] !== 'À compléter') {
+      completion += 100 / fields.length;
+    }
+  });
+  
+  return Math.round(completion);
+}
+
+// Calculer le niveau de vérification
+function calculateVerificationLevel(user) {
+  let level = 0;
+  if (user.isEmailVerified) level += 1;
+  if (user.isPhoneVerified) level += 1;
+  if (user.isIdentityVerified) level += 1;
+  if (user.isBusinessVerified) level += 1;
+  
+  const levels = ['Non vérifié', 'Basique', 'Standard', 'Avancé', 'Complet'];
+  return levels[level] || 'Non vérifié';
+}

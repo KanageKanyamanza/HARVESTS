@@ -1,11 +1,8 @@
 // Configuration des champs de profil par type d'utilisateur
 import {
   GeneralContent,
-  CertificationsContent,
   RestaurantContent,
-  HoursContent,
   CompanyContent,
-  TransformationContent,
   PreferencesContent,
   NotificationsContent
 } from './ProfileTabContent';
@@ -18,11 +15,6 @@ export const producerProfileConfig = {
       id: 'general',
       label: 'Général',
       content: GeneralContent
-    },
-    {
-      id: 'certifications',
-      label: 'Certifications',
-      content: CertificationsContent
     }
   ],
   fields: {
@@ -35,14 +27,7 @@ export const producerProfileConfig = {
       { name: 'address.street', label: 'Adresse', type: 'text' },
       { name: 'address.city', label: 'Ville', type: 'text', required: true },
       { name: 'address.region', label: 'Région', type: 'text', required: true },
-      { name: 'address.country', label: 'Pays', type: 'select', options: [
-        { value: 'SN', label: 'Sénégal' },
-        { value: 'CM', label: 'Cameroun' },
-        { value: 'CI', label: 'Côte d\'Ivoire' },
-        { value: 'GH', label: 'Ghana' },
-        { value: 'NG', label: 'Nigeria' },
-        { value: 'KE', label: 'Kenya' }
-      ]},
+      { name: 'address.country', label: 'Pays', type: 'text', placeholder: 'Saisissez votre pays', defaultValue: 'Sénégal' },
       { name: 'address.postalCode', label: 'Code postal', type: 'text' }
     ]
   }
@@ -61,16 +46,6 @@ export const transformerProfileConfig = {
       id: 'company',
       label: 'Entreprise',
       content: CompanyContent
-    },
-    {
-      id: 'transformation',
-      label: 'Transformation',
-      content: TransformationContent
-    },
-    {
-      id: 'certifications',
-      label: 'Certifications',
-      content: CertificationsContent
     }
   ],
   fields: {
@@ -83,39 +58,12 @@ export const transformerProfileConfig = {
       { name: 'address.street', label: 'Adresse', type: 'text' },
       { name: 'address.city', label: 'Ville', type: 'text', required: true },
       { name: 'address.region', label: 'Région', type: 'text', required: true },
-      { name: 'address.country', label: 'Pays', type: 'select', options: [
-        { value: 'SN', label: 'Sénégal' },
-        { value: 'CM', label: 'Cameroun' },
-        { value: 'CI', label: 'Côte d\'Ivoire' },
-        { value: 'GH', label: 'Ghana' },
-        { value: 'NG', label: 'Nigeria' },
-        { value: 'KE', label: 'Kenya' }
-      ]},
+      { name: 'address.country', label: 'Pays', type: 'text', placeholder: 'Saisissez votre pays', defaultValue: 'Sénégal' },
       { name: 'address.postalCode', label: 'Code postal', type: 'text' }
     ],
     company: [
       { name: 'companyName', label: 'Nom de l\'entreprise', type: 'text', required: true },
-      { name: 'companyRegistrationNumber', label: 'Numéro d\'enregistrement', type: 'text' },
-      { name: 'website', label: 'Site web', type: 'url' },
-      { name: 'foundedYear', label: 'Année de création', type: 'number' },
-      { name: 'employeeCount', label: 'Nombre d\'employés', type: 'number' }
-    ],
-    transformation: [
-      { name: 'transformationType', label: 'Type de transformation', type: 'select', options: [
-        { value: 'processing', label: 'Transformation' },
-        { value: 'packaging', label: 'Emballage' },
-        { value: 'preservation', label: 'Conservation' },
-        { value: 'milling', label: 'Mouture' },
-        { value: 'drying', label: 'Séchage' }
-      ]},
-      { name: 'specialties', label: 'Spécialités', type: 'multiselect', options: [
-        { value: 'cereals', label: 'Céréales' },
-        { value: 'vegetables', label: 'Légumes' },
-        { value: 'fruits', label: 'Fruits' },
-        { value: 'spices', label: 'Épices' },
-        { value: 'herbs', label: 'Herbes' }
-      ]},
-      { name: 'capacity', label: 'Capacité de transformation (kg/jour)', type: 'number' }
+      { name: 'website', label: 'Site web', type: 'url' }
     ]
   }
 };
@@ -150,14 +98,7 @@ export const consumerProfileConfig = {
       { name: 'address.street', label: 'Adresse', type: 'text' },
       { name: 'address.city', label: 'Ville', type: 'text', required: true },
       { name: 'address.region', label: 'Région', type: 'text', required: true },
-      { name: 'address.country', label: 'Pays', type: 'select', options: [
-        { value: 'SN', label: 'Sénégal' },
-        { value: 'CM', label: 'Cameroun' },
-        { value: 'CI', label: 'Côte d\'Ivoire' },
-        { value: 'GH', label: 'Ghana' },
-        { value: 'NG', label: 'Nigeria' },
-        { value: 'KE', label: 'Kenya' }
-      ]},
+      { name: 'address.country', label: 'Pays', type: 'text', placeholder: 'Saisissez votre pays', defaultValue: 'Sénégal' },
       { name: 'address.postalCode', label: 'Code postal', type: 'text' }
     ],
     preferences: [
@@ -196,11 +137,6 @@ export const restaurateurProfileConfig = {
       id: 'restaurant',
       label: 'Restaurant',
       content: RestaurantContent
-    },
-    {
-      id: 'hours',
-      label: 'Horaires',
-      content: HoursContent
     }
   ],
   fields: {
@@ -212,14 +148,7 @@ export const restaurateurProfileConfig = {
       { name: 'address.street', label: 'Adresse', type: 'text' },
       { name: 'address.city', label: 'Ville', type: 'text', required: true },
       { name: 'address.region', label: 'Région', type: 'text', required: true },
-      { name: 'address.country', label: 'Pays', type: 'select', options: [
-        { value: 'SN', label: 'Sénégal' },
-        { value: 'CM', label: 'Cameroun' },
-        { value: 'CI', label: 'Côte d\'Ivoire' },
-        { value: 'GH', label: 'Ghana' },
-        { value: 'NG', label: 'Nigeria' },
-        { value: 'KE', label: 'Kenya' }
-      ]},
+      { name: 'address.country', label: 'Pays', type: 'text', placeholder: 'Saisissez votre pays', defaultValue: 'Sénégal' },
       { name: 'address.postalCode', label: 'Code postal', type: 'text' }
     ],
     restaurant: [
@@ -230,12 +159,8 @@ export const restaurateurProfileConfig = {
         { value: 'fast-food', label: 'Restauration rapide' },
         { value: 'cafe', label: 'Café' },
         { value: 'bar', label: 'Bar' },
-        { value: 'catering', label: 'Traiteur' },
-        { value: 'food-truck', label: 'Food truck' },
-        { value: 'bakery', label: 'Boulangerie' }
-      ]},
-      { name: 'cuisineTypes', label: 'Types de cuisine (séparés par des virgules)', type: 'text', placeholder: 'Ex: Africaine, Française, Italienne' },
-      { name: 'seatingCapacity', label: 'Capacité d\'accueil', type: 'number', required: true }
+        { value: 'catering', label: 'Traiteur' }
+      ]}
     ]
   }
 };

@@ -94,59 +94,112 @@ const getTranslations = (locale = 'fr') => {
 };
 
 // Fonction pour traduire selon la région/pays
-const getRegionalSettings = (country = 'CM', language = 'fr') => {
-  const settings = {
-    // Cameroun
-    'CM': {
-      currency: 'XAF',
-      currencySymbol: 'FCFA',
-      phoneFormat: '+237',
-      dateFormat: 'DD/MM/YYYY',
-      timeFormat: '24h'
-    },
-    // Sénégal
-    'SN': {
+const getRegionalSettings = (country = 'Sénégal', language = 'fr') => {
+  // Configuration par défaut (Sénégal)
+  const defaultSettings = {
+    currency: 'XOF',
+    currencySymbol: 'FCFA',
+    phoneFormat: '+221',
+    dateFormat: 'DD/MM/YYYY',
+    timeFormat: '24h'
+  };
+
+  // Détection automatique des paramètres régionaux basée sur le nom du pays
+  const countryLower = country.toLowerCase();
+  
+  // Pays francophones (Afrique de l'Ouest et Centrale)
+  const francophoneCountries = ['sénégal', 'cameroun', 'côte d\'ivoire', 'mali', 'burkina faso', 'niger', 'tchad', 'madagascar', 'congo', 'gabon', 'togo', 'bénin', 'guinée', 'sénégal', 'cameroun', 'côte d\'ivoire', 'mali', 'burkina faso', 'niger', 'tchad', 'madagascar', 'congo', 'gabon', 'togo', 'bénin', 'guinée'];
+  
+  // Pays anglophones
+  const anglophoneCountries = ['ghana', 'nigeria', 'kenya', 'uganda', 'tanzania', 'south africa', 'zambia', 'zimbabwe', 'botswana', 'namibia', 'malawi', 'zambia', 'zimbabwe', 'botswana', 'namibia', 'malawi'];
+  
+  // Pays lusophones
+  const lusophoneCountries = ['angola', 'mozambique', 'guinée-bissau', 'cap-vert', 'são tomé-et-príncipe', 'angola', 'mozambique', 'guinée-bissau', 'cap-vert', 'são tomé-et-príncipe'];
+  
+  // Pays arabophones
+  const arabophoneCountries = ['maroc', 'algérie', 'tunisie', 'égypte', 'libye', 'soudan', 'mauritanie', 'djibouti', 'somalie', 'maroc', 'algérie', 'tunisie', 'égypte', 'libye', 'soudan', 'mauritanie', 'djibouti', 'somalie'];
+
+  let settings = { ...defaultSettings };
+
+  // Détection de la langue basée sur le pays
+  if (francophoneCountries.some(c => countryLower.includes(c))) {
+    settings = {
       currency: 'XOF',
       currencySymbol: 'FCFA',
       phoneFormat: '+221',
       dateFormat: 'DD/MM/YYYY',
       timeFormat: '24h'
-    },
-    // Côte d'Ivoire
-    'CI': {
-      currency: 'XOF',
-      currencySymbol: 'FCFA',
-      phoneFormat: '+225',
+    };
+  } else if (anglophoneCountries.some(c => countryLower.includes(c))) {
+    settings = {
+      currency: 'USD',
+      currencySymbol: '$',
+      phoneFormat: '+1',
+      dateFormat: 'MM/DD/YYYY',
+      timeFormat: '12h'
+    };
+  } else if (lusophoneCountries.some(c => countryLower.includes(c))) {
+    settings = {
+      currency: 'AOA',
+      currencySymbol: 'Kz',
+      phoneFormat: '+244',
       dateFormat: 'DD/MM/YYYY',
       timeFormat: '24h'
-    },
-    // Ghana (anglophone)
-    'GH': {
+    };
+  } else if (arabophoneCountries.some(c => countryLower.includes(c))) {
+    settings = {
+      currency: 'MAD',
+      currencySymbol: 'د.م.',
+      phoneFormat: '+212',
+      dateFormat: 'DD/MM/YYYY',
+      timeFormat: '24h'
+    };
+  }
+
+  // Configuration spécifique pour certains pays
+  if (countryLower.includes('sénégal') || countryLower.includes('senegal')) {
+    settings = {
+      currency: 'XOF',
+      currencySymbol: 'FCFA',
+      phoneFormat: '+221',
+      dateFormat: 'DD/MM/YYYY',
+      timeFormat: '24h'
+    };
+  } else if (countryLower.includes('cameroun') || countryLower.includes('cameroon')) {
+    settings = {
+      currency: 'XAF',
+      currencySymbol: 'FCFA',
+      phoneFormat: '+237',
+      dateFormat: 'DD/MM/YYYY',
+      timeFormat: '24h'
+    };
+  } else if (countryLower.includes('ghana')) {
+    settings = {
       currency: 'GHS',
       currencySymbol: '₵',
       phoneFormat: '+233',
       dateFormat: 'MM/DD/YYYY',
       timeFormat: '12h'
-    },
-    // Nigeria (anglophone)
-    'NG': {
+    };
+  } else if (countryLower.includes('nigeria')) {
+    settings = {
       currency: 'NGN',
       currencySymbol: '₦',
       phoneFormat: '+234',
       dateFormat: 'MM/DD/YYYY',
       timeFormat: '12h'
-    },
-    // Kenya (anglophone)
-    'KE': {
+    };
+  } else if (countryLower.includes('kenya')) {
+    settings = {
       currency: 'KES',
       currencySymbol: 'KSh',
       phoneFormat: '+254',
       dateFormat: 'MM/DD/YYYY',
       timeFormat: '12h'
-    }
-  };
-  
-  return settings[country] || settings['CM'];
+    };
+  }
+
+  return settings;
 };
 
 module.exports = {

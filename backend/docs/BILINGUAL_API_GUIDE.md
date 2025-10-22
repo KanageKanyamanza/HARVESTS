@@ -137,16 +137,20 @@ Authorization: Bearer <token>
 }
 ```
 
-## 🌍 Pays et devises supportés
+## 🌍 Support Mondial
 
-| Pays | Code | Langue par défaut | Devise | Symbole | Format téléphone |
-|------|------|-------------------|--------|---------|------------------|
-| 🇨🇲 Cameroun | CM | Français | XAF | FCFA | +237 |
-| 🇸🇳 Sénégal | SN | Français | XOF | FCFA | +221 |
-| 🇨🇮 Côte d'Ivoire | CI | Français | XOF | FCFA | +225 |
-| 🇬🇭 Ghana | GH | Anglais | GHS | ₵ | +233 |
-| 🇳🇬 Nigeria | NG | Anglais | NGN | ₦ | +234 |
-| 🇰🇪 Kenya | KE | Anglais | KES | KSh | +254 |
+- **Pays par défaut :** 🇸🇳 Sénégal
+- **Saisie libre :** Les utilisateurs peuvent saisir n'importe quel pays
+- **Détection automatique :** Configuration régionale basée sur le nom du pays
+- **Langues supportées :** Français, Anglais, Portugais, Arabe
+- **Devises :** Détection automatique selon le pays (XOF, XAF, USD, GHS, NGN, KES, etc.)
+
+### Exemples de pays supportés
+- **Afrique francophone :** Sénégal, Cameroun, Côte d'Ivoire, Mali, Burkina Faso, etc.
+- **Afrique anglophone :** Ghana, Nigeria, Kenya, Ouganda, Tanzanie, etc.
+- **Afrique lusophone :** Angola, Mozambique, Guinée-Bissau, etc.
+- **Afrique arabophone :** Maroc, Algérie, Tunisie, Égypte, etc.
+- **Autres continents :** France, États-Unis, Canada, Brésil, etc.
 
 ## 📧 Emails automatiques bilingues
 

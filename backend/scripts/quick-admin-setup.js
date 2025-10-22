@@ -218,22 +218,22 @@ const main = async () => {
   }
 };
 
-// Fonction pour créer automatiquement un admin en production
+// Fonction pour créer automatiquement un admin si nécessaire
 const createAdminIfNeeded = async () => {
   try {
-    // Vérifier si on est en production et qu'aucun admin n'existe
-    if (process.env.NODE_ENV === 'production') {
-      await connectDB();
-      
-      const adminCount = await Admin.countDocuments();
-      if (adminCount === 0) {
-        console.log('🚀 Production: Création automatique du premier admin...');
-        await createFirstSuperAdmin();
-        console.log('✅ Premier admin créé automatiquement en production');
-      }
-      
-      await mongoose.connection.close();
+    await connectDB();
+    
+    const adminCount = await Admin.countDocuments();
+    if (adminCount === 0) {
+      const env = process.env.NODE_ENV || 'development';
+      console.log(`🚀 ${env.toUpperCase()}: Création automatique du premier admin...`);
+      await createFirstSuperAdmin();
+      console.log(`✅ Premier admin créé automatiquement en ${env}`);
+    } else {
+      console.log(`ℹ️ ${adminCount} administrateur(s) existent déjà dans le système`);
     }
+    
+    await mongoose.connection.close();
   } catch (error) {
     console.error('❌ Erreur lors de la création automatique de l\'admin:', error.message);
   }

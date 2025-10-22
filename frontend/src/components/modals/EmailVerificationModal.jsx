@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../hooks/useAuth';
 import { authService } from '../../services';
 import { FiMail, FiX, FiRefreshCw, FiCheck, FiAlertCircle } from 'react-icons/fi';
 
 const EmailVerificationModal = ({ isOpen, onClose, email, isRegistration = false }) => {
-  const { verifyEmail } = useAuth();
   const [isResending, setIsResending] = useState(false);
   const [resendStatus, setResendStatus] = useState(null);
 
@@ -144,7 +142,7 @@ const EmailVerificationModal = ({ isOpen, onClose, email, isRegistration = false
             </div>
 
             {/* Instructions */}
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+            {/* <div className="mt-6 p-4 bg-blue-50 rounded-lg">
               <h5 className="text-sm font-medium text-blue-900 mb-2">
                 Instructions :
               </h5>
@@ -154,7 +152,7 @@ const EmailVerificationModal = ({ isOpen, onClose, email, isRegistration = false
                 <li>• Cliquez sur le lien de vérification</li>
                 <li>• Revenez vous connecter</li>
               </ul>
-            </div>
+            </div> */}
           </div>
 
           {/* Footer */}

@@ -223,19 +223,7 @@ const transporterSchema = new mongoose.Schema({
     }
   }],
   
-  // Informations financières
-  bankAccount: {
-    accountName: String,
-    accountNumber: String,
-    bankName: String,
-    bankCode: String,
-    isVerified: {
-      type: Boolean,
-      default: false
-    }
-  },
-  
-  // Statistiques de performance
+  // Statistiques spécifiques au transporteur
   performanceStats: {
     totalDeliveries: {
       type: Number,
@@ -246,20 +234,6 @@ const transporterSchema = new mongoose.Schema({
       default: 0,
       min: 0,
       max: 100
-    },
-    averageRating: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 5
-    },
-    totalReviews: {
-      type: Number,
-      default: 0
-    },
-    totalRevenue: {
-      type: Number,
-      default: 0
     },
     damageClaims: {
       type: Number,
@@ -353,7 +327,46 @@ const transporterSchema = new mongoose.Schema({
         default: false
       }
     }
-  }
+  },
+
+  // Méthodes de paiement préférées (centralisées depuis User)
+  paymentMethods: [String],
+
+  // Préférences de notification (centralisées depuis User)
+  notifications: {
+    email: { type: Boolean, default: true },
+    sms: { type: Boolean, default: false },
+    push: { type: Boolean, default: true },
+    marketing: { type: Boolean, default: false },
+    orderUpdates: { type: Boolean, default: true },
+    priceAlerts: { type: Boolean, default: false }
+  },
+
+  // Statut de vérification (centralisé depuis User)
+  verificationStatus: {
+    isVerified: { type: Boolean, default: false },
+    verifiedAt: Date,
+    verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+    verificationDocuments: [{
+      type: { type: String, enum: ['identity', 'business-license', 'tax-certificate', 'bank-statement', 'other'] },
+      documentUrl: String,
+      uploadedAt: { type: Date, default: Date.now },
+      status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' }
+    }]
+  },
+
+  // Adresses de livraison (centralisées depuis User)
+  deliveryAddresses: [{
+    label: { type: String, required: true },
+    street: { type: String, required: true },
+    city: { type: String, required: true },
+    region: { type: String, required: true },
+    country: { type: String, default: 'Sénégal' },
+    postalCode: String,
+    coordinates: { latitude: Number, longitude: Number },
+    instructions: String,
+    isDefault: { type: Boolean, default: false }
+  }]
 });
 
 // Index pour recherche et performance

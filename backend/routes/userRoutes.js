@@ -50,6 +50,21 @@ router.route('/addresses/:addressId')
   .patch(userController.updateAddress)
   .delete(userController.deleteAddress);
 
+// Routes communes pour tous les utilisateurs
+// Statistiques communes
+router.get('/me/common-stats', userController.getCommonStats);
+router.get('/me/financial-info', userController.getFinancialInfo);
+router.get('/me/notification-settings', userController.getNotificationSettings);
+router.get('/me/verification-status', userController.getVerificationStatus);
+router.get('/me/delivery-addresses', userController.getDeliveryAddresses);
+
+// Mise à jour des informations communes
+router.patch('/me/financial-info', userController.updateFinancialInfo);
+router.patch('/me/notification-settings', userController.updateNotificationSettings);
+router.post('/me/delivery-addresses', userController.addDeliveryAddress);
+router.patch('/me/delivery-addresses/:addressId', userController.updateDeliveryAddress);
+router.delete('/me/delivery-addresses/:addressId', userController.deleteDeliveryAddress);
+
 // Routes administratives (admin seulement)
 router.use(authController.restrictTo('admin'));
 

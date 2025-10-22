@@ -39,9 +39,10 @@ const backend = startProcess(
 );
 
 // Attendre un peu avant de démarrer le frontend
+let frontend;
 setTimeout(() => {
   // Démarrer le frontend sur le port 5173
-  const frontend = startProcess(
+  frontend = startProcess(
     'Frontend (Port 5173)', 
     'npm', 
     ['run', 'dev'], 
@@ -53,7 +54,9 @@ setTimeout(() => {
 process.on('SIGINT', () => {
   console.log('\n🛑 Arrêt des serveurs...');
   backend.kill();
-  frontend.kill();
+  if (frontend && typeof frontend.kill === 'function') {
+    frontend.kill();
+  }
   process.exit(0);
 });
 

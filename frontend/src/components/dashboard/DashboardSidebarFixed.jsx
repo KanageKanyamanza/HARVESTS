@@ -54,13 +54,8 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse, 
         { name: 'Tableau de bord', href: '/consumer/dashboard', icon: FiHome },
         { name: 'Mes commandes', href: '/order-history', icon: FiShoppingBag },
         { name: 'Panier', href: '/cart', icon: FiShoppingCart },
-        { name: 'Favoris', href: '/favorites', icon: FiHeart },
-        { name: 'Abonnements', href: '/subscriptions', icon: FiRefreshCw },
-        { name: 'Mes avis', href: '/reviews', icon: FiStar },
-        { name: 'Fidélité', href: '/consumer/loyalty', icon: FiGift },
-        { name: 'Statistiques', href: '/stats', icon: FiTrendingUp },
-        { name: 'Profil', href: '/consumer/profile', icon: FiUser },
-        { name: 'Paramètres', href: '/consumer/settings', icon: FiSettings }
+        { name: 'Profil', href: '/dashboard/profile', icon: FiUser },
+        { name: 'Paramètres', href: '/dashboard/settings', icon: FiSettings }
       ];
     }
 
@@ -72,11 +67,8 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse, 
         { name: 'Commandes', href: '/producer/orders', icon: FiShoppingBag },
         { name: 'Avis reçus', href: '/producer/reviews', icon: FiStar },
         { name: 'Statistiques', href: '/producer/stats', icon: FaChartBar },
-        { name: 'Certifications', href: '/producer/certifications', icon: FiAward },
-        { name: 'Transporteurs', href: '/producer/transporters', icon: FiTruck },
-        { name: 'Documents', href: '/producer/documents', icon: FiFileText },
-        { name: 'Profil', href: '/producer/profile', icon: FiUser },
-        { name: 'Paramètres', href: '/producer/settings', icon: FiSettings }
+        { name: 'Profil', href: '/dashboard/profile', icon: FiUser },
+        { name: 'Paramètres', href: '/dashboard/settings', icon: FiSettings }
       ];
     }
 
@@ -85,11 +77,8 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse, 
         { name: 'Tableau de bord', href: '/transformer/dashboard', icon: FiHome },
         { name: 'Commandes', href: '/transformer/orders', icon: FiShoppingBag },
         { name: 'Mes Produits', href: '/transformer/products', icon: FiPackage },
-        { name: 'Certifications', href: '/transformer/certifications', icon: FiAward },
-        { name: 'Boutique', href: '/transformer/shop', icon: FiGlobe },
-        { name: 'Analytics', href: '/transformer/analytics/business', icon: FaChartBar },
-        { name: 'Profil', href: '/transformer/profile', icon: FiUser },
-        { name: 'Paramètres', href: '/transformer/settings', icon: FiSettings }
+        { name: 'Profil', href: '/dashboard/profile', icon: FiUser },
+        { name: 'Paramètres', href: '/dashboard/settings', icon: FiSettings }
       ];
     }
 
@@ -99,9 +88,8 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse, 
         { name: 'Mes commandes', href: '/restaurateur/orders', icon: FiShoppingBag },
         { name: 'Nouvelle commande', href: '/restaurateur/orders/new', icon: FiPlus },
         { name: 'Mes plats', href: '/restaurateur/dishes', icon: FiPackage },
-        { name: 'Fournisseurs', href: '/restaurateur/suppliers', icon: FiTruck },
-        { name: 'Profil', href: '/restaurateur/profile', icon: FiUser },
-        { name: 'Paramètres', href: '/restaurateur/settings', icon: FiSettings }
+        { name: 'Profil', href: '/dashboard/profile', icon: FiUser },
+        { name: 'Paramètres', href: '/dashboard/settings', icon: FiSettings }
       ];
     }
 

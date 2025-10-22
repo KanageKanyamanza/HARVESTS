@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Eye, EyeOff, User, Mail, Lock, Phone, Users, ChevronDown } from 'lucide-react';
+import { Eye, EyeOff, User, Mail, Lock, Phone, Users, ChevronDown, MapPin } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import SocialLinks from '../../components/common/SocialLinks';
-import { useModal } from '../../components/modals/ModalManager';
+import { useModal } from '../../hooks/useModal';
 import logo from '../../assets/logo.png';
 import authbg from '../../assets/images/authbg.png';
 
@@ -19,7 +19,7 @@ const Register = () => {
     confirmPassword: '',
     phone: '',
     userType: '',
-    country: 'SN',
+    country: 'Sénégal',
     preferredLanguage: 'fr'
   });
 
@@ -133,6 +133,10 @@ const Register = () => {
       newErrors.userType = 'Le type d\'utilisateur est requis';
     }
     
+    if (!formData.country.trim()) {
+      newErrors.country = 'Le pays est requis';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -193,7 +197,7 @@ const Register = () => {
           confirmPassword: '',
           phone: '',
           userType: '',
-          country: 'SN',
+          country: 'Sénégal',
           preferredLanguage: 'fr'
         });
       } else {
@@ -507,6 +511,26 @@ const Register = () => {
                 )}
               </div>
 
+              {/* Pays */}
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <MapPin className="h-5 w-5 text-black" />
+                </div>
+                <input
+                  type="text"
+                  name="country"
+                  value={formData.country}
+                  onChange={handleChange}
+                  placeholder="Saisissez votre pays (ex: Sénégal, Cameroun, Ghana...)"
+                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+                    errors.country ? 'border-red-300' : 'border-gray-300'
+                  }`}
+                />
+                {errors.country && (
+                  <p className="mt-1 text-sm text-red-600">{errors.country}</p>
+                )}
+              </div>
+
               {/* Lien de connexion */}
               <div className="text-center">
                   <Link 
@@ -553,7 +577,6 @@ const Register = () => {
         </div>
       </div>
       
-      {/* Les modales sont maintenant gérées globalement par ModalManager */}
     </div>
   );
 };

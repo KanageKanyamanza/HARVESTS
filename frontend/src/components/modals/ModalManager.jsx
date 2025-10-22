@@ -1,18 +1,10 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useState } from 'react';
 import EmailVerificationModal from './EmailVerificationModal';
 
 // Contexte pour gérer les modales globalement
 const ModalContext = createContext();
 
-export const useModal = () => {
-  const context = useContext(ModalContext);
-  if (!context) {
-    throw new Error('useModal must be used within a ModalProvider');
-  }
-  return context;
-};
-
-export const ModalProvider = ({ children }) => {
+const ModalProvider = ({ children }) => {
   const [modals, setModals] = useState({
     emailVerification: {
       isOpen: false,
@@ -63,4 +55,5 @@ export const ModalProvider = ({ children }) => {
   );
 };
 
+export { ModalProvider, ModalContext };
 export default ModalProvider;
