@@ -97,6 +97,7 @@ router.route('/me/products/:productId')
 // Gestion des commandes (modification nécessite vérification)
 router.get('/me/orders/:orderId', producerController.getMyOrder);
 router.patch('/me/orders/:orderId/status', producerController.updateOrderStatus);
+router.get('/me/stats', producerController.getStats);
 router.get('/me/sales-analytics', producerController.getSalesAnalytics);
 router.get('/me/revenue-analytics', producerController.getRevenueAnalytics);
 

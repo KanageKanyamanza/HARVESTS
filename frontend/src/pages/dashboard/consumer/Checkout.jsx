@@ -169,11 +169,11 @@ const Checkout = () => {
                 lastName: userData.lastName || '',
                 phone: userData.phone || '',
                 email: userData.email || '',
-                street: defaultAddress.street || '',
-                city: defaultAddress.city || userData.address?.city || '',
-                region: defaultAddress.region || userData.address?.region || '',
+                street: defaultAddress.street || userData.address || '',
+                city: defaultAddress.city || userData.city || '',
+                region: defaultAddress.region || userData.region || '',
                 country: finalCountry,
-                postalCode: defaultAddress.postalCode || userData.address?.postalCode || '',
+                postalCode: defaultAddress.postalCode || '',
                 instructions: defaultAddress.instructions || ''
               },
               billingAddress: {
@@ -182,11 +182,11 @@ const Checkout = () => {
                 lastName: userData.lastName || '',
                 phone: userData.phone || '',
                 email: userData.email || '',
-                street: defaultAddress.street || '',
-                city: defaultAddress.city || userData.address?.city || '',
-                region: defaultAddress.region || userData.address?.region || '',
+                street: defaultAddress.street || userData.address || '',
+                city: defaultAddress.city || userData.city || '',
+                region: defaultAddress.region || userData.region || '',
                 country: finalCountry,
-                postalCode: defaultAddress.postalCode || userData.address?.postalCode || ''
+                postalCode: defaultAddress.postalCode || ''
               }
             }));
           }
@@ -202,6 +202,9 @@ const Checkout = () => {
                 lastName: user.lastName,
                 phone: user.phone || '',
                 email: user.email || '',
+                street: user.address || '',
+                city: user.city || '',
+                region: user.region || '',
                 country: getCountryName(user.country)
               },
               billingAddress: {
@@ -210,6 +213,9 @@ const Checkout = () => {
                 lastName: user.lastName,
                 phone: user.phone || '',
                 email: user.email || '',
+                street: user.address || '',
+                city: user.city || '',
+                region: user.region || '',
                 country: getCountryName(user.country)
               }
             }));

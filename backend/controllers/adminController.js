@@ -921,11 +921,23 @@ exports.getUserById = catchAsync(async (req, res, next) => {
 });
 
 exports.updateUser = catchAsync(async (req, res, next) => {
-  const { firstName, lastName, email, phone, address, isActive } = req.body;
+  const { firstName, lastName, email, phone, address, isActive, isEmailVerified, emailVerified } = req.body;
+  
+  // Préparer les données de mise à jour
+  const updateData = { firstName, lastName, email, phone, address, isActive };
+  
+  // Synchroniser les champs de vérification email
+  if (isEmailVerified !== undefined) {
+    updateData.isEmailVerified = isEmailVerified;
+    updateData.emailVerified = isEmailVerified;
+  } else if (emailVerified !== undefined) {
+    updateData.emailVerified = emailVerified;
+    updateData.isEmailVerified = emailVerified;
+  }
   
   const user = await User.findByIdAndUpdate(
     req.params.id,
-    { firstName, lastName, email, phone, address, isActive },
+    updateData,
     { new: true, runValidators: true }
   ).select('-password -passwordResetToken -passwordResetExpires');
 
@@ -994,6 +1006,7 @@ exports.verifyUser = catchAsync(async (req, res, next) => {
     req.params.id,
     { 
       isEmailVerified: true,
+      emailVerified: true, // Synchroniser les deux champs
       isApproved: true 
     },
     { new: true }
@@ -1126,6 +1139,37 @@ exports.approveProduct = catchAsync(async (req, res, next) => {
     return next(new AppError('Produit non trouvé', 404));
   }
 
+  // Créer une notification pour le producteur
+  if (product.producer) {
+    const Notification = require('../models/Notification');
+    
+    const productName = typeof product.name === 'object' ? product.name.fr || product.name.en : product.name;
+    const producerName = `${product.producer.firstName} ${product.producer.lastName}`;
+    
+    await Notification.create({
+      recipient: product.producer._id,
+      type: 'product_approved',
+      category: 'product',
+      title: 'Produit approuvé',
+      message: `Votre produit "${productName}" a été approuvé et est maintenant visible sur la plateforme`,
+      data: {
+        productId: product._id,
+        productName: productName,
+        producerName: producerName,
+        action: 'product_approved'
+      },
+      actions: [{
+        type: 'view',
+        label: 'Voir le produit',
+        url: `/products/${product._id}`
+      }],
+      isRead: false,
+      priority: 'medium'
+    });
+
+    console.log(`✅ Notification envoyée au producteur ${producerName} pour l'approbation du produit "${productName}"`);
+  }
+
   res.status(200).json({
     status: 'success',
     message: 'Produit approuvé avec succès',
@@ -1148,6 +1192,38 @@ exports.rejectProduct = catchAsync(async (req, res, next) => {
 
   if (!product) {
     return next(new AppError('Produit non trouvé', 404));
+  }
+
+  // Créer une notification pour le producteur
+  if (product.producer) {
+    const Notification = require('../models/Notification');
+    
+    const productName = typeof product.name === 'object' ? product.name.fr || product.name.en : product.name;
+    const producerName = `${product.producer.firstName} ${product.producer.lastName}`;
+    
+    await Notification.create({
+      recipient: product.producer._id,
+      type: 'product_rejected',
+      category: 'product',
+      title: 'Produit rejeté',
+      message: `Votre produit "${productName}" a été rejeté. Raison: ${reason || 'Non spécifiée'}`,
+      data: {
+        productId: product._id,
+        productName: productName,
+        producerName: producerName,
+        rejectionReason: reason,
+        action: 'product_rejected'
+      },
+      actions: [{
+        type: 'edit',
+        label: 'Modifier le produit',
+        url: `/producer/products/${product._id}/edit`
+      }],
+      isRead: false,
+      priority: 'high'
+    });
+
+    console.log(`❌ Notification envoyée au producteur ${producerName} pour le rejet du produit "${productName}"`);
   }
 
   res.status(200).json({

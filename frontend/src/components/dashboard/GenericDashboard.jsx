@@ -15,7 +15,8 @@ const GenericDashboard = ({
   description, 
   icon,
   statsConfig,
-  sections = []
+  sections = [],
+  loading: externalLoading
 }) => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -43,8 +44,8 @@ const GenericDashboard = ({
                orderDate.getFullYear() === currentYear &&
                order.status === 'completed';
       })
-      .reduce((total, order) => total + (order.totalAmount || 0), 0);
-  }, []);
+      .reduce((total, order) => total + (order.total || order.totalAmount || 0), 0);
+  }, [userType]);
 
   // Fonction pour charger les données du dashboard
   const loadDashboardData = useCallback(async () => {
@@ -54,24 +55,14 @@ const GenericDashboard = ({
     try {
       console.log('🔄 Chargement des données du dashboard...');
       
-      const [
-        statsResponse,
-        productsResponse,
-        ordersResponse
-      ] = await Promise.all([
+      // Pour les consommateurs, ne pas charger les produits
+      const promises = [
         service.getStats().catch(err => {
           console.warn('Erreur lors du chargement des stats:', err);
           if (err.response?.status === 403 && err.response?.data?.code === 'EMAIL_VERIFICATION_REQUIRED') {
             setEmailVerificationRequired(true);
           }
           return { data: { stats: {} } };
-        }),
-        service.getProducts({ limit: 5 }).catch(err => {
-          console.warn('Erreur lors du chargement des produits:', err);
-          if (err.response?.status === 403 && err.response?.data?.code === 'EMAIL_VERIFICATION_REQUIRED') {
-            setEmailVerificationRequired(true);
-          }
-          return { data: { products: [] } };
         }),
         service.getOrders({ limit: 5 }).catch(err => {
           console.warn('Erreur lors du chargement des commandes:', err);
@@ -80,7 +71,30 @@ const GenericDashboard = ({
           }
           return { data: { orders: [] } };
         })
-      ]);
+      ];
+
+      // Ajouter le chargement des produits seulement si ce n'est pas un consommateur
+      if (userType !== 'consumer') {
+        promises.splice(1, 0, service.getProducts({ limit: 5 }).catch(err => {
+          console.warn('Erreur lors du chargement des produits:', err);
+          if (err.response?.status === 403 && err.response?.data?.code === 'EMAIL_VERIFICATION_REQUIRED') {
+            setEmailVerificationRequired(true);
+          }
+          return { data: { products: [] } };
+        }));
+      }
+
+      const responses = await Promise.all(promises);
+      
+      // Extraire les réponses selon le type d'utilisateur
+      let statsResponse, productsResponse, ordersResponse;
+      
+      if (userType === 'consumer') {
+        [statsResponse, ordersResponse] = responses;
+        productsResponse = { data: { products: [] } }; // Pas de produits pour les consommateurs
+      } else {
+        [statsResponse, productsResponse, ordersResponse] = responses;
+      }
 
       // Extraire les données correctement selon la structure de l'API
       setStats(statsResponse.data.data?.stats || statsResponse.data.stats || {});
@@ -117,7 +131,7 @@ const GenericDashboard = ({
       
       return () => clearTimeout(timeoutId);
     }
-  }, [isAuthenticated, user, loadDashboardData]);
+  }, [isAuthenticated, user]);
 
   // Recharger les données toutes les 5 minutes
   useEffect(() => {
@@ -128,7 +142,7 @@ const GenericDashboard = ({
     }, 5 * 60 * 1000); // 5 minutes
 
     return () => clearInterval(interval);
-  }, [isAuthenticated, user, loadDashboardData]);
+  }, [isAuthenticated, user]);
 
   // Calculer les revenus du mois
   const monthlyRevenue = useMemo(() => {
@@ -137,15 +151,27 @@ const GenericDashboard = ({
 
   // Configuration des statistiques selon le type d'utilisateur
   const getStatsConfig = () => {
-    const baseConfig = {
+    // Si un statsConfig est fourni, l'utiliser directement
+    if (statsConfig) {
+      const baseConfig = {
+        monthlyRevenue,
+        totalOrders: orders.length,
+        totalProducts: products.length,
+        averageRating: stats?.averageRating || 0,
+        totalReviews: stats?.totalReviews || 0
+      };
+
+      return statsConfig(baseConfig);
+    }
+
+    // Sinon, utiliser la configuration par défaut
+    return {
       monthlyRevenue,
       totalOrders: orders.length,
       totalProducts: products.length,
       averageRating: stats?.averageRating || 0,
       totalReviews: stats?.totalReviews || 0
     };
-
-    return statsConfig ? statsConfig(baseConfig) : baseConfig;
   };
 
   if (!isAuthenticated || !user) {
@@ -167,7 +193,10 @@ const GenericDashboard = ({
     );
   }
 
-  if (loading) {
+  // Combiner le loading externe et interne
+  const isLoading = loading || externalLoading;
+
+  if (isLoading) {
     return (
       <ModularDashboardLayout>
         <div className="p-6 max-w-7xl mx-auto pb-20">
@@ -263,7 +292,7 @@ const GenericDashboard = ({
           <CommonStats 
             stats={getStatsConfig()} 
             userType={userType} 
-            loading={loading}
+            loading={isLoading}
           />
         </div>
 
@@ -290,7 +319,13 @@ const GenericDashboard = ({
                   </Link>
                 )}
               </div>
-              {section.content}
+              {React.cloneElement(section.content, {
+                products,
+                userType,
+                loading: isLoading,
+                orders,
+                stats
+              })}
             </div>
           ))}
         </div>

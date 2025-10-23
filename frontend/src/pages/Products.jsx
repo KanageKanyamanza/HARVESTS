@@ -269,8 +269,6 @@ const Products = () => {
 		{ value: "-price", label: "Prix décroissant" },
 		{ value: "name.fr", label: "Nom A-Z" },
 		{ value: "-name.fr", label: "Nom Z-A" },
-		{ value: "-stats.averageRating", label: "Mieux notés" },
-		{ value: "-stats.salesCount", label: "Plus populaires" },
 	];
 
 	if (loading && products.length === 0) {

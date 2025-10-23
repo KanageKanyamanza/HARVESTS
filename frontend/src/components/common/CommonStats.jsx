@@ -7,7 +7,7 @@ const CommonStats = ({ stats, userType, loading = false }) => {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[...Array(4)].map((_, index) => (
-          <div key={index} className="bg-white rounded-lg shadow p-6 animate-pulse">
+          <div key={index} className="bg-white rounded-lg shadow p-2 animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
             <div className="h-8 bg-gray-200 rounded w-1/2"></div>
           </div>
@@ -43,7 +43,7 @@ const CommonStats = ({ stats, userType, loading = false }) => {
         return [
           {
             name: 'Produits en vente',
-            value: stats?.totalSales || 0,
+            value: stats?.activeProducts || 0,
             icon: FiShoppingBag,
             color: 'text-green-500',
             bgColor: 'bg-green-50',
@@ -116,7 +116,23 @@ const CommonStats = ({ stats, userType, loading = false }) => {
             bgColor: 'bg-purple-50',
             format: (value) => `${value.toLocaleString()} FCFA`
           },
-          ...baseStats
+          {
+            name: 'Avis laissés',
+            value: stats?.reviewsWritten || 0,
+            icon: FiStar,
+            color: 'text-yellow-500',
+            bgColor: 'bg-yellow-50',
+            format: (value) => value.toLocaleString(),
+            subtitle: `Note moyenne: ${stats?.averageRatingGiven?.toFixed(1) || '0.0'}/5`
+          },
+          {
+            name: 'Vues du profil',
+            value: stats?.profileViews || 0,
+            icon: FiEye,
+            color: 'text-blue-500',
+            bgColor: 'bg-blue-50',
+            format: (value) => value.toLocaleString()
+          }
         ];
 
       case 'transporter':

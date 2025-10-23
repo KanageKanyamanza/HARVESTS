@@ -53,43 +53,40 @@ const baseUserSchema = new mongoose.Schema({
     default: 'Sénégal'
   },
   address: {
-    street: {
-      type: String,
-      trim: true,
-      maxlength: [200, 'L\'adresse ne peut pas dépasser 200 caractères']
+    type: String,
+    trim: true,
+    maxlength: [200, 'L\'adresse ne peut pas dépasser 200 caractères']
+  },
+  city: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'Le nom de la ville ne peut pas dépasser 100 caractères']
+  },
+  region: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'Le nom de la région ne peut pas dépasser 100 caractères']
+  },
+  bio: {
+    type: String,
+    trim: true,
+    maxlength: [500, 'La biographie ne peut pas dépasser 500 caractères']
+  },
+  postalCode: {
+    type: String,
+    trim: true,
+    maxlength: [20, 'Le code postal ne peut pas dépasser 20 caractères']
+  },
+  coordinates: {
+    latitude: {
+      type: Number,
+      min: -90,
+      max: 90
     },
-    city: {
-      type: String,
-      trim: true,
-      maxlength: [100, 'Le nom de la ville ne peut pas dépasser 100 caractères']
-    },
-    region: {
-      type: String,
-      trim: true,
-      maxlength: [100, 'Le nom de la région ne peut pas dépasser 100 caractères']
-    },
-    country: {
-      type: String,
-      trim: true,
-      maxlength: [100, 'Le nom du pays ne peut pas dépasser 100 caractères'],
-      default: 'Sénégal'
-    },
-    postalCode: {
-      type: String,
-      trim: true,
-      maxlength: [20, 'Le code postal ne peut pas dépasser 20 caractères']
-    },
-    coordinates: {
-      latitude: {
-        type: Number,
-        min: -90,
-        max: 90
-      },
-      longitude: {
-        type: Number,
-        min: -180,
-        max: 180
-      }
+    longitude: {
+      type: Number,
+      min: -180,
+      max: 180
     }
   },
   isActive: {
@@ -183,6 +180,20 @@ const baseUserSchema = new mongoose.Schema({
     }
   },
 
+  // Images de profil et boutique
+  avatar: {
+    type: String,
+    default: null
+  },
+  shopBanner: {
+    type: String,
+    default: null
+  },
+  shopLogo: {
+    type: String,
+    default: null
+  },
+
 
 
 
@@ -195,7 +206,7 @@ const baseUserSchema = new mongoose.Schema({
 // Index pour performance
 baseUserSchema.index({ email: 1 });
 baseUserSchema.index({ userType: 1 });
-baseUserSchema.index({ country: 1, 'address.region': 1 });
+baseUserSchema.index({ country: 1, region: 1 });
 baseUserSchema.index({ isActive: 1, isApproved: 1 });
 
 // Middleware pre-save pour hasher le mot de passe
@@ -297,6 +308,45 @@ baseUserSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
   }
   return false;
 };
+
+// Middleware pour synchroniser les champs de vérification email
+baseUserSchema.pre('save', function(next) {
+  // Synchroniser isEmailVerified avec emailVerified
+  if (this.isModified('emailVerified')) {
+    this.isEmailVerified = this.emailVerified;
+  }
+  if (this.isModified('isEmailVerified')) {
+    this.emailVerified = this.isEmailVerified;
+  }
+  next();
+});
+
+// Middleware pour synchroniser lors des mises à jour
+baseUserSchema.pre(['updateOne', 'findOneAndUpdate', 'updateMany'], function(next) {
+  const update = this.getUpdate();
+  
+  if (update && typeof update === 'object') {
+    // Synchroniser emailVerified avec isEmailVerified
+    if (update.emailVerified !== undefined) {
+      update.isEmailVerified = update.emailVerified;
+    }
+    if (update.isEmailVerified !== undefined) {
+      update.emailVerified = update.isEmailVerified;
+    }
+    
+    // Gérer les opérations $set
+    if (update.$set) {
+      if (update.$set.emailVerified !== undefined) {
+        update.$set.isEmailVerified = update.$set.emailVerified;
+      }
+      if (update.$set.isEmailVerified !== undefined) {
+        update.$set.emailVerified = update.$set.isEmailVerified;
+      }
+    }
+  }
+  
+  next();
+});
 
 // Transformation JSON pour masquer les champs sensibles
 baseUserSchema.methods.toJSON = function() {

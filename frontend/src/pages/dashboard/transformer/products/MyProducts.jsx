@@ -45,6 +45,20 @@ const MyProducts = () => {
     loadProducts();
   }, []);
 
+  // Supprimer un produit
+  const handleDeleteProduct = async (productId) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
+      try {
+        await transformerService.deleteProduct(productId);
+        setProducts(products.filter(p => p._id !== productId));
+        showSuccess('Produit supprimé avec succès');
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+        showError('Erreur lors de la suppression du produit');
+      }
+    }
+  };
+
   // Filtrer les produits
   const filteredProducts = products.filter(product => {
     const matchesStatus = !filters.status || product.status === filters.status;
@@ -271,10 +285,7 @@ const MyProducts = () => {
                       // Soumettre pour révision
                       handleSubmitForReview(productId);
                     }}
-                    onDelete={(productId) => {
-                      // Supprimer le produit (à implémenter)
-                      console.log('Supprimer produit:', productId);
-                    }}
+                    onDelete={handleDeleteProduct}
                   />
                 ))}
               </div>

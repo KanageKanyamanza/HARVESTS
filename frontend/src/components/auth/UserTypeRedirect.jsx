@@ -7,9 +7,24 @@ import { useAuth } from '../../hooks/useAuth';
  * en fonction de leur type d'utilisateur
  */
 const UserTypeRedirect = ({ children }) => {
-  const { isAuthenticated, userType, getDefaultRoute, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Vérifier si useAuth est disponible
+  let isAuthenticated = false;
+  let userType = null;
+  let getDefaultRoute = () => '/';
+  let isLoading = false;
+  
+  try {
+    const auth = useAuth();
+    isAuthenticated = auth?.isAuthenticated || false;
+    userType = auth?.userType || null;
+    getDefaultRoute = auth?.getDefaultRoute || (() => '/');
+    isLoading = auth?.isLoading || false;
+  } catch (error) {
+    console.warn('useAuth non disponible dans UserTypeRedirect:', error);
+  }
 
   // Vérifier s'il y a des modales ouvertes dans le DOM
   const hasOpenModal = () => {

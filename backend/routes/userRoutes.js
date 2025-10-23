@@ -20,25 +20,25 @@ const profileService = require('../services/profileService');
 // Upload d'avatar
 router.patch('/upload-avatar', 
   uploadLimiter,
-  profileImageService.uploadAvatar,
-  profileImageService.processImageUpload,
-  profileService.updateProfile
+  userController.uploadUserPhoto,
+  userController.resizeUserPhoto,
+  userController.updateMe
 );
 
 // Upload de bannière de boutique
 router.patch('/upload-shop-banner', 
   uploadLimiter,
-  profileImageService.uploadShopBanner,
-  profileImageService.processImageUpload,
-  profileService.updateProfile
+  userController.uploadShopBanner,
+  userController.resizeUserPhoto,
+  userController.updateMe
 );
 
 // Upload de logo de boutique
 router.patch('/upload-shop-logo', 
   uploadLimiter,
-  profileImageService.uploadShopLogo,
-  profileImageService.processImageUpload,
-  profileService.updateProfile
+  userController.uploadShopLogo,
+  userController.resizeUserPhoto,
+  userController.updateMe
 );
 
 // Gestion des adresses (pour les consommateurs principalement)

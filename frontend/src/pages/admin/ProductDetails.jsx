@@ -327,25 +327,25 @@ const ProductDetails = () => {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">Vues</span>
-              <span className="font-medium">{product.stats?.views || 0}</span>
+              <span className="font-medium">0</span>
             </div>
             
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">Commandes</span>
-              <span className="font-medium">{product.stats?.purchases || 0}</span>
+              <span className="font-medium">0</span>
             </div>
             
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">Note moyenne</span>
               <div className="flex items-center">
                 <Star className="h-4 w-4 text-yellow-400 mr-1" />
-                <span className="font-medium">{product.stats?.averageRating?.toFixed(1) || 'N/A'}</span>
+                <span className="font-medium">N/A</span>
               </div>
             </div>
             
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">Avis</span>
-              <span className="font-medium">{product.stats?.totalReviews || 0}</span>
+              <span className="font-medium">0</span>
             </div>
             
             <div className="flex items-center justify-between">
@@ -442,37 +442,6 @@ const ProductDetails = () => {
           <div className="space-y-4">
             <div className="flex items-center">
               <Truck className="h-5 w-5 text-gray-400 mr-3" />
-              <div>
-                <p className="text-sm text-gray-500">Poids</p>
-                <p className="font-medium">
-                  {product.shipping?.weight ? 
-                    `${product.shipping.weight.value} ${product.shipping.weight.unit}` : 
-                    'Non spécifié'
-                  }
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-center">
-              <MapPin className="h-5 w-5 text-gray-400 mr-3" />
-              <div>
-                <p className="text-sm text-gray-500">Dimensions</p>
-                <p className="font-medium">
-                  {product.shipping?.dimensions ? 
-                    `${product.shipping.dimensions.length}x${product.shipping.dimensions.width}x${product.shipping.dimensions.height} ${product.shipping.dimensions.unit}` : 
-                    'Non spécifiées'
-                  }
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-center">
-              <Shield className="h-5 w-5 text-gray-400 mr-3" />
-              <div>
-                <p className="text-sm text-gray-500">Fragile</p>
-                <p className="font-medium">{product.shipping?.fragile ? 'Oui' : 'Non'}</p>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -480,31 +449,9 @@ const ProductDetails = () => {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Qualité</h2>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">Périssable</span>
-              <div className="flex items-center">
-                {product.shipping?.perishable ? (
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                ) : (
-                  <XCircle className="h-5 w-5 text-red-500" />
-                )}
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-500">Réfrigération requise</span>
-              <div className="flex items-center">
-                {product.shipping?.requiresRefrigeration ? (
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                ) : (
-                  <XCircle className="h-5 w-5 text-red-500" />
-                )}
-              </div>
-            </div>
-            
-            <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500">Disponibilité</span>
               <span className="font-medium capitalize">
-                {product.availability?.status?.replace('-', ' ') || 'En stock'}
+                En stock
               </span>
             </div>
             
@@ -517,37 +464,6 @@ const ProductDetails = () => {
       </div>
 
       {/* Informations SEO */}
-      {product.seo && (product.seo.title || product.seo.description || product.seo.keywords) && (
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Informations SEO</h2>
-          <div className="space-y-4">
-            {product.seo.title && (
-              <div>
-                <p className="text-sm text-gray-500">Titre SEO</p>
-                <p className="font-medium">{product.seo.title}</p>
-              </div>
-            )}
-            {product.seo.description && (
-              <div>
-                <p className="text-sm text-gray-500">Description SEO</p>
-                <p className="font-medium">{product.seo.description}</p>
-              </div>
-            )}
-            {product.seo.keywords && product.seo.keywords.length > 0 && (
-              <div>
-                <p className="text-sm text-gray-500">Mots-clés</p>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {product.seo.keywords.map((keyword, index) => (
-                    <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      {keyword}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Historique des modifications */}
       {product.updatedAt !== product.createdAt && (

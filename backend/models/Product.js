@@ -192,55 +192,6 @@ const productSchema = new mongoose.Schema({
   // Variantes du produit
   variants: [variantSchema],
   
-  // Informations agricoles spécifiques
-  agricultureInfo: {
-    harvestDate: Date,
-    expiryDate: Date,
-    shelfLife: {
-      value: Number,
-      unit: {
-        type: String,
-        enum: ['days', 'weeks', 'months', 'years']
-      }
-    },
-    storageConditions: {
-      type: String,
-      enum: ['room-temperature', 'cool-dry', 'refrigerated', 'frozen', 'special']
-    },
-    storageInstructions: String,
-    seasonality: [String], // ex: ['spring', 'summer']
-    region: String,
-    farmingMethod: {
-      type: String,
-      enum: ['organic', 'conventional', 'biodynamic', 'hydroponic', 'greenhouse']
-    }
-  },
-  
-  // Certifications
-  certifications: [{
-    name: String,
-    certifyingBody: String,
-    certificateNumber: String,
-    validUntil: Date,
-    document: String
-  }],
-  
-  // Informations nutritionnelles
-  nutritionalInfo: {
-    servingSize: {
-      value: Number,
-      unit: String
-    },
-    calories: Number,
-    nutrients: [{
-      name: String,
-      value: Number,
-      unit: String,
-      dailyValue: Number
-    }],
-    allergens: [String],
-    ingredients: [String] // Pour les produits transformés
-  },
   
   // Images
   images: [{
@@ -284,40 +235,6 @@ const productSchema = new mongoose.Schema({
     }
   },
   
-  // Expédition
-  shipping: {
-    weight: {
-      value: Number,
-      unit: {
-        type: String,
-        enum: ['g', 'kg', 'lb', 'oz'],
-        default: 'kg'
-      }
-    },
-    dimensions: {
-      length: Number,
-      width: Number,
-      height: Number,
-      unit: {
-        type: String,
-        enum: ['cm', 'm', 'in', 'ft'],
-        default: 'cm'
-      }
-    },
-    fragile: {
-      type: Boolean,
-      default: false
-    },
-    perishable: {
-      type: Boolean,
-      default: true
-    },
-    requiresRefrigeration: {
-      type: Boolean,
-      default: false
-    }
-  },
-  
   // Commande minimum
   minimumOrderQuantity: {
     type: Number,
@@ -328,18 +245,6 @@ const productSchema = new mongoose.Schema({
   maximumOrderQuantity: {
     type: Number,
     min: [1, 'La quantité maximum doit être au moins 1']
-  },
-  
-  // Disponibilité
-  availability: {
-    status: {
-      type: String,
-      enum: ['in-stock', 'low-stock', 'out-of-stock', 'discontinued', 'pre-order'],
-      default: 'in-stock'
-    },
-    availableFrom: Date,
-    availableUntil: Date,
-    estimatedRestockDate: Date
   },
   
   // Statut et modération
@@ -361,12 +266,10 @@ const productSchema = new mongoose.Schema({
     default: false
   },
   
-  // SEO
-  seo: {
-    title: String,
-    description: String,
-    keywords: [String]
-  },
+  
+  // Métadonnées
+  publishedAt: Date,
+  lastStockUpdate: Date,
   
   // Statistiques
   stats: {
@@ -374,33 +277,15 @@ const productSchema = new mongoose.Schema({
       type: Number,
       default: 0
     },
-    purchases: {
+    sales: {
       type: Number,
       default: 0
     },
-    revenue: {
-      type: Number,
-      default: 0
-    },
-    averageRating: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 5
-    },
-    totalReviews: {
-      type: Number,
-      default: 0
-    },
-    totalSales: {
+    favorites: {
       type: Number,
       default: 0
     }
-  },
-  
-  // Métadonnées
-  publishedAt: Date,
-  lastStockUpdate: Date,
+  }
   
 }, {
   timestamps: true,
@@ -413,12 +298,10 @@ productSchema.index({ name: 'text', description: 'text', tags: 'text' });
 productSchema.index({ producer: 1, status: 1 });
 productSchema.index({ transformer: 1, status: 1 });
 productSchema.index({ category: 1, subcategory: 1 });
-productSchema.index({ 'availability.status': 1 });
 productSchema.index({ producer: 1, slug: 1 }, { unique: true, sparse: true });
 productSchema.index({ transformer: 1, slug: 1 }, { unique: true, sparse: true });
-productSchema.index({ isFeatured: 1, 'stats.averageRating': -1 });
+productSchema.index({ isFeatured: 1 });
 productSchema.index({ createdAt: -1 });
-productSchema.index({ 'agricultureInfo.region': 1 });
 productSchema.index({ price: 1 });
 
 // Index géospatial pour la recherche par localisation
@@ -508,8 +391,6 @@ productSchema.pre('save', async function(next) {
     this.slug = slug;
   }
   
-  // Mettre à jour le statut de disponibilité
-  this.updateAvailabilityStatus();
   
   // Valider qu'il y a au moins une image principale
   if (this.images && this.images.length > 0) {
@@ -528,75 +409,7 @@ productSchema.pre('save', async function(next) {
 });
 
 // Méthodes du schéma
-productSchema.methods.updateAvailabilityStatus = function() {
-  let totalQuantity = 0;
-  
-  if (this.hasVariants) {
-    totalQuantity = this.variants
-      .filter(v => v.isActive)
-      .reduce((sum, variant) => sum + variant.inventory.quantity, 0);
-  } else {
-    totalQuantity = this.inventory.quantity;
-  }
-  
-  if (totalQuantity === 0) {
-    this.availability.status = 'out-of-stock';
-  } else if (this.isLowStock) {
-    this.availability.status = 'low-stock';
-  } else {
-    this.availability.status = 'in-stock';
-  }
-};
 
-productSchema.methods.updateStats = async function() {
-  const Order = mongoose.model('Order');
-  const Review = mongoose.model('Review');
-  
-  // Statistiques des commandes
-  const orderStats = await Order.aggregate([
-    { 
-      $match: { 
-        'items.product': this._id, 
-        status: 'completed' 
-      } 
-    },
-    { $unwind: '$items' },
-    { $match: { 'items.product': this._id } },
-    {
-      $group: {
-        _id: null,
-        totalSales: { $sum: '$items.quantity' },
-        revenue: { $sum: { $multiply: ['$items.quantity', '$items.price'] } },
-        purchases: { $sum: 1 }
-      }
-    }
-  ]);
-  
-  // Statistiques des avis
-  const reviewStats = await Review.aggregate([
-    { $match: { product: this._id } },
-    {
-      $group: {
-        _id: null,
-        avgRating: { $avg: '$rating' },
-        totalReviews: { $sum: 1 }
-      }
-    }
-  ]);
-  
-  if (orderStats.length > 0) {
-    this.stats.totalSales = orderStats[0].totalSales || 0;
-    this.stats.revenue = orderStats[0].revenue || 0;
-    this.stats.purchases = orderStats[0].purchases || 0;
-  }
-  
-  if (reviewStats.length > 0) {
-    this.stats.averageRating = Math.round(reviewStats[0].avgRating * 10) / 10;
-    this.stats.totalReviews = reviewStats[0].totalReviews;
-  }
-  
-  await this.save();
-};
 
 productSchema.methods.reserveStock = function(quantity, variantId = null) {
   if (this.hasVariants && variantId) {
@@ -615,7 +428,6 @@ productSchema.methods.reserveStock = function(quantity, variantId = null) {
   }
   
   this.lastStockUpdate = new Date();
-  this.updateAvailabilityStatus();
 };
 
 productSchema.methods.releaseStock = function(quantity, variantId = null) {
@@ -631,10 +443,12 @@ productSchema.methods.releaseStock = function(quantity, variantId = null) {
   }
   
   this.lastStockUpdate = new Date();
-  this.updateAvailabilityStatus();
 };
 
 productSchema.methods.incrementViews = function() {
+  if (!this.stats) {
+    this.stats = { views: 0, sales: 0, favorites: 0 };
+  }
   this.stats.views += 1;
   return this.save({ validateBeforeSave: false });
 };

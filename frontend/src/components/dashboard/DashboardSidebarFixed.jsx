@@ -53,6 +53,9 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse, 
       return [
         { name: 'Tableau de bord', href: '/consumer/dashboard', icon: FiHome },
         { name: 'Mes commandes', href: '/order-history', icon: FiShoppingBag },
+        { name: 'Mes favoris', href: '/consumer/favorites', icon: FiHeart },
+        { name: 'Mes avis', href: '/consumer/reviews', icon: FiStar },
+        { name: 'Statistiques', href: '/consumer/statistics', icon: FiTrendingUp },
         { name: 'Panier', href: '/cart', icon: FiShoppingCart },
         { name: 'Profil', href: '/dashboard/profile', icon: FiUser },
         { name: 'Paramètres', href: '/dashboard/settings', icon: FiSettings }

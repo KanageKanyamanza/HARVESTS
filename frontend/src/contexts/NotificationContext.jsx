@@ -8,7 +8,16 @@ const NotificationContext = createContext();
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const { isAuthenticated } = useAuth();
+  
+  // Vérifier si useAuth est disponible
+  let isAuthenticated = false;
+  try {
+    const auth = useAuth();
+    isAuthenticated = auth?.isAuthenticated || false;
+  } catch (error) {
+    console.warn('useAuth non disponible dans NotificationProvider:', error);
+    isAuthenticated = false;
+  }
 
   // Nettoyer les notifications anciennes (plus de 30 jours)
   const cleanupOldNotifications = () => {

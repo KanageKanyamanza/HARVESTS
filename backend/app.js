@@ -24,6 +24,7 @@ const adminManagementRoutes = require('./routes/adminManagementRoutes');
 const userRoutes = require('./routes/userRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const producerRoutes = require('./routes/producerRoutes');
+const publicProducerRoutes = require('./routes/publicProducerRoutes');
 const transformerRoutes = require('./routes/transformerRoutes');
 const consumerRoutes = require('./routes/consumerRoutes');
 const restaurateurRoutes = require('./routes/restaurateurRoutes');
@@ -175,6 +176,7 @@ app.use('/api/v1/profiles', profileRoutes);
 
 // Routes spécialisées par type d'utilisateur
 app.use('/api/v1/producers', producerRoutes);
+app.use('/api/v1/public/producers', publicProducerRoutes);
 app.use('/api/v1/transformers', transformerRoutes);
 app.use('/api/v1/consumers', consumerRoutes);
 app.use('/api/v1/restaurateurs', restaurateurRoutes);

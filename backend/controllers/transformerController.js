@@ -922,8 +922,9 @@ exports.updateOperatingHours = temporaryResponse('Mise à jour horaires');
 // Produits de la boutique
 exports.getMyProducts = catchAsync(async (req, res, next) => {
   const products = await Product.find({ 
-    producer: req.user.id,
-    userType: 'transformer'
+    transformer: req.user.id,
+    userType: 'transformer',
+    isActive: true  // Ne retourner que les produits actifs
   }).sort({ createdAt: -1 });
 
   res.status(200).json({
@@ -988,7 +989,24 @@ exports.createProduct = catchAsync(async (req, res, next) => {
   });
 });
 exports.updateProduct = temporaryResponse('Mise à jour produit');
-exports.deleteProduct = temporaryResponse('Suppression produit');
+exports.deleteProduct = catchAsync(async (req, res, next) => {
+  const Product = require('../models/Product');
+  
+  const product = await Product.findOneAndUpdate(
+    { _id: req.params.productId, transformer: req.user._id },
+    { isActive: false, status: 'inactive' },
+    { new: true }
+  );
+
+  if (!product) {
+    return next(new AppError('Produit non trouvé', 404));
+  }
+
+  res.status(204).json({
+    status: 'success',
+    data: null
+  });
+});
 
 // Soumettre un produit pour révision
 exports.submitProductForReview = catchAsync(async (req, res, next) => {

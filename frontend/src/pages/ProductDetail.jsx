@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useCart } from '../contexts/CartContext';
 import { useNotifications } from '../contexts/NotificationContext';
-import { productService, producerService, reviewService } from '../services';
+import { productService, producerService, reviewService, consumerService } from '../services';
 import CloudinaryImage from '../components/common/CloudinaryImage';
 import ReviewList from '../components/reviews/ReviewList';
 import SimpleReviewForm from '../components/reviews/SimpleReviewForm';
@@ -148,6 +148,24 @@ const ProductDetail = () => {
       loadReviews();
     }
   }, [product?._id]);
+
+  // Charger l'état des favoris quand le produit est chargé
+  useEffect(() => {
+    const loadFavoriteStatus = async () => {
+      if (product?._id && user?.userType === 'consumer') {
+        try {
+          const response = await consumerService.getFavorites();
+          const favorites = response.data.data?.favorites || [];
+          const isProductFavorite = favorites.some(fav => fav.product._id === product._id);
+          setIsFavorite(isProductFavorite);
+        } catch (error) {
+          console.error('Erreur lors du chargement des favoris:', error);
+        }
+      }
+    };
+
+    loadFavoriteStatus();
+  }, [product?._id, user]);
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('fr-FR', {
@@ -316,9 +334,28 @@ const ProductDetail = () => {
     }
   };
 
-  const handleToggleFavorite = () => {
-    // TODO: Implémenter l'ajout/suppression des favoris
-    setIsFavorite(!isFavorite);
+  const handleToggleFavorite = async () => {
+    if (!user || user.userType !== 'consumer' || !product?._id) {
+      showError('Vous devez être connecté en tant que consommateur pour gérer vos favoris');
+      return;
+    }
+
+    try {
+      if (isFavorite) {
+        // Supprimer des favoris
+        await consumerService.removeFavorite(product._id);
+        setIsFavorite(false);
+        showSuccess('Produit retiré de vos favoris');
+      } else {
+        // Ajouter aux favoris
+        await consumerService.addFavorite(product._id);
+        setIsFavorite(true);
+        showSuccess('Produit ajouté à vos favoris');
+      }
+    } catch (error) {
+      console.error('Erreur lors de la gestion des favoris:', error);
+      showError('Erreur lors de la gestion des favoris');
+    }
   };
 
   const handleShare = () => {
@@ -782,359 +819,11 @@ const ProductDetail = () => {
                     </div>
                   )}
 
-                  {/* Informations agricoles */}
-                  {product.agricultureInfo && Object.keys(product.agricultureInfo).some(key => {
-                    const value = product.agricultureInfo[key];
-                    return value !== null && value !== undefined && value !== '' && 
-                           (Array.isArray(value) ? value.length > 0 : true);
-                  }) && (
-                    <div className="bg-white rounded-lg p-6 shadow-sm border">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <FiInfo className="h-5 w-5 mr-2" />
-                        Informations agricoles
-                      </h3>
-                      <div className="grid grid-cols-1 gap-4">
-                        <div className="space-y-3">
-                          {product.agricultureInfo.farmingMethod && (
-                            <div className="flex justify-between">
-                              <dt className="text-gray-600">Méthode de culture</dt>
-                              <dd className="font-medium capitalize">{product.agricultureInfo.farmingMethod}</dd>
-                            </div>
-                          )}
-                          {product.agricultureInfo.region && (
-                            <div className="flex justify-between">
-                              <dt className="text-gray-600">Région de production</dt>
-                              <dd className="font-medium">{product.agricultureInfo.region}</dd>
-                            </div>
-                          )}
-                          {product.agricultureInfo.harvestDate && (
-                            <div className="flex justify-between">
-                              <dt className="text-gray-600">Date de récolte</dt>
-                              <dd className="font-medium">
-                                {new Date(product.agricultureInfo.harvestDate).toLocaleDateString('fr-FR')}
-                              </dd>
-                            </div>
-                          )}
-                          {product.agricultureInfo.expiryDate && (
-                            <div className="flex justify-between">
-                              <dt className="text-gray-600">Date d'expiration</dt>
-                              <dd className="font-medium">
-                                {new Date(product.agricultureInfo.expiryDate).toLocaleDateString('fr-FR')}
-                              </dd>
-                            </div>
-                          )}
-                          {product.agricultureInfo.shelfLife && product.agricultureInfo.shelfLife.value && (
-                            <div className="flex justify-between">
-                              <dt className="text-gray-600">Durée de conservation</dt>
-                              <dd className="font-medium">
-                                {product.agricultureInfo.shelfLife.value} {product.agricultureInfo.shelfLife.unit}
-                              </dd>
-                            </div>
-                          )}
-                          {product.agricultureInfo.storageConditions && (
-                            <div className="flex justify-between">
-                              <dt className="text-gray-600">Conditions de stockage</dt>
-                              <dd className="font-medium capitalize">
-                                {product.agricultureInfo.storageConditions.replace('-', ' ')}
-                              </dd>
-                            </div>
-                          )}
-                          {product.agricultureInfo.seasonality && product.agricultureInfo.seasonality.length > 0 && (
-                            <div>
-                              <dt className="text-gray-600 mb-2 block">Saisonnalité</dt>
-                              <dd className="flex flex-wrap gap-2">
-                                {product.agricultureInfo.seasonality.map((season, index) => (
-                                  <span key={index} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    {season === 'spring' ? 'Printemps' : 
-                                     season === 'summer' ? 'Été' : 
-                                     season === 'autumn' ? 'Automne' : 
-                                     season === 'winter' ? 'Hiver' : season}
-                                  </span>
-                                ))}
-                              </dd>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      {product.agricultureInfo.storageInstructions && (
-                        <div className="mt-4">
-                          <dt className="text-gray-600 mb-2 block">Instructions de stockage</dt>
-                          <dd className="text-gray-700">{product.agricultureInfo.storageInstructions}</dd>
-                        </div>
-                      )}
-                    </div>
-                  )}
 
-                  {/* Informations nutritionnelles */}
-                  {product.nutritionalInfo && Object.keys(product.nutritionalInfo).some(key => {
-                    const value = product.nutritionalInfo[key];
-                    return value !== null && value !== undefined && value !== '' && 
-                           (Array.isArray(value) ? value.length > 0 : true);
-                  }) && (
-                    <div className="bg-white rounded-lg p-6 shadow-sm border">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <FiInfo className="h-5 w-5 mr-2" />
-                        Informations nutritionnelles
-                      </h3>
-                      <div className="space-y-4">
-                        {(product.nutritionalInfo.servingSize?.value || product.nutritionalInfo.calories) && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {product.nutritionalInfo.servingSize?.value && (
-                              <div className="flex justify-between">
-                                <dt className="text-gray-600">Taille de portion</dt>
-                                <dd className="font-medium">
-                                  {product.nutritionalInfo.servingSize.value} {product.nutritionalInfo.servingSize.unit}
-                                </dd>
-                              </div>
-                            )}
-                            {product.nutritionalInfo.calories && (
-                              <div className="flex justify-between">
-                                <dt className="text-gray-600">Calories (pour 100g)</dt>
-                                <dd className="font-medium">{product.nutritionalInfo.calories} kcal</dd>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        
-                        {/* Valeurs nutritionnelles */}
-                        {product.nutritionalInfo.nutrients && product.nutritionalInfo.nutrients.length > 0 && (
-                          <div>
-                            <h4 className="text-md font-medium text-gray-900 mb-3">Valeurs nutritionnelles</h4>
-                            <div className="space-y-2">
-                              {product.nutritionalInfo.nutrients.map((nutrient, index) => (
-                                <div key={index} className="flex justify-between items-center py-1">
-                                  <span className="text-gray-600">{nutrient.name}</span>
-                                  <span className="font-medium">
-                                    {nutrient.value} {nutrient.unit}
-                                    {nutrient.dailyValue && (
-                                      <span className="text-sm text-gray-500 ml-1">
-                                        ({nutrient.dailyValue}% VQ*)
-                                      </span>
-                                    )}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Allergènes */}
-                        {product.nutritionalInfo.allergens && product.nutritionalInfo.allergens.length > 0 && (
-                          <div>
-                            <h4 className="text-md font-medium text-gray-900 mb-2">Allergènes</h4>
-                            <div className="flex flex-wrap gap-2">
-                              {product.nutritionalInfo.allergens.map((allergen, index) => (
-                                <span key={index} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                  {allergen}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Ingrédients */}
-                        {product.nutritionalInfo.ingredients && product.nutritionalInfo.ingredients.length > 0 && (
-                          <div>
-                            <h4 className="text-md font-medium text-gray-900 mb-2">Ingrédients</h4>
-                            <p className="text-gray-700">{product.nutritionalInfo.ingredients.join(', ')}</p>
-                          </div>
-                        )}
-                        
-                        {product.nutritionalInfo.nutrients && product.nutritionalInfo.nutrients.length > 0 && (
-                          <p className="text-xs text-gray-500 mt-2">*VQ = Valeur quotidienne</p>
-                        )}
-                      </div>
-                    </div>
-                  )}
 
-                  {/* Informations d'expédition */}
-                  {product.shipping && Object.keys(product.shipping).some(key => {
-                    const value = product.shipping[key];
-                    return value !== null && value !== undefined && value !== '' && 
-                           (Array.isArray(value) ? value.length > 0 : true);
-                  }) && (
-                    <div className="bg-white rounded-lg p-6 shadow-sm border">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <FiTruck className="h-5 w-5 mr-2" />
-                        Informations d'expédition
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-3">
-                          {product.shipping.weight?.value && (
-                            <div className="flex justify-between">
-                              <dt className="text-gray-600">Poids</dt>
-                              <dd className="font-medium">
-                                {product.shipping.weight.value} {product.shipping.weight.unit}
-                              </dd>
-                            </div>
-                          )}
-                          {product.shipping.dimensions && (
-                            <div className="flex justify-between">
-                              <dt className="text-gray-600">Dimensions</dt>
-                              <dd className="font-medium">
-                                {product.shipping.dimensions.length} x {product.shipping.dimensions.width} x {product.shipping.dimensions.height} {product.shipping.dimensions.unit}
-                              </dd>
-                            </div>
-                          )}
-                        </div>
-                        <div className="space-y-3">
-                          <div className="flex items-center space-x-2">
-                            <dt className="text-gray-600">Fragile</dt>
-                            <dd className="font-medium">
-                              {product.shipping.fragile ? (
-                                <FiCheckCircle className="h-4 w-4 text-red-500" />
-                              ) : (
-                                <FiXCircle className="h-4 w-4 text-gray-400" />
-                              )}
-                            </dd>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <dt className="text-gray-600">Périssable</dt>
-                            <dd className="font-medium">
-                              {product.shipping.perishable ? (
-                                <FiCheckCircle className="h-4 w-4 text-orange-500" />
-                              ) : (
-                                <FiXCircle className="h-4 w-4 text-gray-400" />
-                              )}
-                            </dd>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <dt className="text-gray-600">Réfrigération requise</dt>
-                            <dd className="font-medium">
-                              {product.shipping.requiresRefrigeration ? (
-                                <FiCheckCircle className="h-4 w-4 text-blue-500" />
-                              ) : (
-                                <FiXCircle className="h-4 w-4 text-gray-400" />
-                              )}
-                            </dd>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
-                  {/* Disponibilité */}
-                  {product.availability && Object.keys(product.availability).some(key => {
-                    const value = product.availability[key];
-                    return value !== null && value !== undefined && value !== '' && 
-                           (Array.isArray(value) ? value.length > 0 : true);
-                  }) && (
-                    <div className="bg-white rounded-lg p-6 shadow-sm border">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <FiCalendar className="h-5 w-5 mr-2" />
-                        Disponibilité
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-3">
-                          {product.availability.status && (
-                            <div className="flex justify-between">
-                              <dt className="text-gray-600">Statut</dt>
-                              <dd className="font-medium capitalize">
-                                {product.availability.status === 'in-stock' ? 'En stock' :
-                                 product.availability.status === 'low-stock' ? 'Stock faible' :
-                                 product.availability.status === 'out-of-stock' ? 'Rupture de stock' :
-                                 product.availability.status === 'pre-order' ? 'Pré-commande' :
-                                 product.availability.status === 'discontinued' ? 'Discontinué' :
-                                 product.availability.status}
-                              </dd>
-                            </div>
-                          )}
-                          {product.availability.availableFrom && (
-                            <div className="flex justify-between">
-                              <dt className="text-gray-600">Disponible à partir du</dt>
-                              <dd className="font-medium">
-                                {new Date(product.availability.availableFrom).toLocaleDateString('fr-FR')}
-                              </dd>
-                            </div>
-                          )}
-                          {product.availability.availableUntil && (
-                            <div className="flex justify-between">
-                              <dt className="text-gray-600">Disponible jusqu'au</dt>
-                              <dd className="font-medium">
-                                {new Date(product.availability.availableUntil).toLocaleDateString('fr-FR')}
-                              </dd>
-                            </div>
-                          )}
-                        </div>
-                        <div className="space-y-3">
-                          {product.availability.estimatedRestockDate && (
-                            <div className="flex justify-between">
-                              <dt className="text-gray-600">Réapprovisionnement estimé</dt>
-                              <dd className="font-medium">
-                                {new Date(product.availability.estimatedRestockDate).toLocaleDateString('fr-FR')}
-                              </dd>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
-                  {/* Statistiques du produit - Visible seulement pour le propriétaire et l'admin */}
-                  {user && (user.userType === 'admin' || (product.producer && product.producer._id === user._id)) && product.stats && (
-                    <div className="bg-white rounded-lg p-6 shadow-sm border">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <FiAward className="h-5 w-5 mr-2" />
-                        Statistiques
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-harvests-green">
-                            {product.stats.views || 0}
-                          </div>
-                          <div className="text-sm text-gray-600">Vues</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-harvests-green">
-                            {product.stats.sales || 0}
-                          </div>
-                          <div className="text-sm text-gray-600">Ventes</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-harvests-green">
-                            {product.stats.favorites || 0}
-                          </div>
-                          <div className="text-sm text-gray-600">Favoris</div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
-                  {/* Informations SEO - Visible seulement pour le propriétaire et l'admin */}
-                  {user && (user.userType === 'admin' || (product.producer && product.producer._id === user._id)) && product.seo && (
-                    <div className="bg-white rounded-lg p-6 shadow-sm border">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <FiInfo className="h-5 w-5 mr-2" />
-                        Informations SEO
-                      </h3>
-                      <div className="space-y-4">
-                        {product.seo.title && (
-                          <div>
-                            <dt className="text-gray-600 mb-1 block">Titre SEO</dt>
-                            <dd className="text-gray-700">{product.seo.title}</dd>
-                          </div>
-                        )}
-                        {product.seo.description && (
-                          <div>
-                            <dt className="text-gray-600 mb-1 block">Description SEO</dt>
-                            <dd className="text-gray-700">{product.seo.description}</dd>
-                          </div>
-                        )}
-                        {product.seo.keywords && product.seo.keywords.length > 0 && (
-                          <div>
-                            <dt className="text-gray-600 mb-2 block">Mots-clés</dt>
-                            <dd className="flex flex-wrap gap-2">
-                              {product.seo.keywords.map((keyword, index) => (
-                                <span key={index} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                  {keyword}
-                                </span>
-                              ))}
-                            </dd>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
 
                   {/* Informations de publication - Visible seulement pour le propriétaire et l'admin */}
                   {user && (user.userType === 'admin' || (product.producer && product.producer._id === user._id)) && (
@@ -1205,46 +894,6 @@ const ProductDetail = () => {
                   )}
 
                   {/* Certifications */}
-                  {product.certifications && product.certifications.length > 0 && (
-                    <div className="bg-white rounded-lg p-6 shadow-sm border">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <FiShield className="h-5 w-5 mr-2" />
-                        Certifications et labels
-                      </h3>
-                      <div className="space-y-4">
-                        {product.certifications.map((cert, index) => (
-                          <div key={index} className="border border-gray-200 rounded-lg p-4">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <h4 className="font-medium text-gray-900">{cert.name}</h4>
-                                {cert.certifyingBody && (
-                                  <p className="text-sm text-gray-600">Organisme: {cert.certifyingBody}</p>
-                                )}
-                                {cert.certificateNumber && (
-                                  <p className="text-sm text-gray-600">N°: {cert.certificateNumber}</p>
-                                )}
-                                {cert.validUntil && (
-                                  <p className="text-sm text-gray-600">
-                                    Valide jusqu'au: {new Date(cert.validUntil).toLocaleDateString('fr-FR')}
-                                  </p>
-                                )}
-                              </div>
-                              {cert.document && (
-                                <a
-                                  href={cert.document}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-harvests-green hover:text-green-600 text-sm font-medium"
-                                >
-                                  Voir le certificat
-                                </a>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
 
                   {/* Informations producteur */}
                   {producer && (

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import CloudinaryImage from '../../../components/common/CloudinaryImage';
+import ProfileImageUpload from '../../../components/common/ProfileImageUpload';
 import { 
   FiUser, 
   FiEdit3, 
@@ -14,7 +15,9 @@ import {
   FiCalendar,
   FiShield,
   FiCheckCircle,
-  FiAlertCircle
+  FiAlertCircle,
+  FiImage,
+  FiRefreshCw
 } from 'react-icons/fi';
 import commonService from '../../../services/commonService';
 
@@ -25,7 +28,9 @@ const ProfilePage = () => {
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({});
   const [verificationStatus, setVerificationStatus] = useState(null);
-  const [profileCompletion, setProfileCompletion] = useState(0);
+  const [shopBanner, setShopBanner] = useState(user?.shopBanner || '');
+  const [shopLogo, setShopLogo] = useState(user?.shopLogo || '');
+  const [avatar, setAvatar] = useState(user?.avatar || '');
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -33,21 +38,33 @@ const ProfilePage = () => {
     }
   }, [isAuthenticated, user]);
 
+  // Mettre à jour les états d'images et le statut de vérification quand l'utilisateur change
+  useEffect(() => {
+    if (user) {
+      setShopBanner(user.shopBanner || '');
+      setShopLogo(user.shopLogo || '');
+      setAvatar(user.avatar || '');
+      
+      // Calculer le statut de vérification directement depuis l'utilisateur
+      const verificationStatus = {
+        email: {
+          verified: user.isEmailVerified || user.emailVerified
+        },
+        phone: {
+          verified: user.isPhoneVerified || user.phoneVerified
+        },
+        overall: {
+          level: user.verificationLevel || 'Non vérifié'
+        }
+      };
+      setVerificationStatus(verificationStatus);
+    }
+  }, [user]);
+
   const loadProfileData = async () => {
     try {
       setLoading(true);
-      
-      // Recharger d'abord les données de l'utilisateur
-      await refreshUser();
-      
-      const [verificationResponse, commonStatsResponse] = await Promise.all([
-        commonService.getVerificationStatus().catch(() => ({ data: null })),
-        commonService.getCommonStats().catch(() => ({ data: {} }))
-      ]);
-
-      setVerificationStatus(verificationResponse.data);
-      setProfileCompletion(commonStatsResponse.data?.profileCompletion || 0);
-      
+      // Les données de profil sont déjà chargées via refreshUser()
     } catch (error) {
       console.error('Erreur lors du chargement du profil:', error);
     } finally {
@@ -78,17 +95,21 @@ const ProfilePage = () => {
     try {
       setSaving(true);
       
-      // Ici, vous pouvez appeler l'API pour mettre à jour le profil
-      // await commonService.updateProfile(formData);
+      // Appeler l'API pour mettre à jour le profil
+      await commonService.updateCommonProfile(formData);
       
-      // Pour l'instant, on simule la sauvegarde
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Recharger les données utilisateur pour mettre à jour l'interface
+      await refreshUser();
       
       setEditing(false);
       setFormData({});
       
+      // Afficher un message de succès
+      alert('Profil mis à jour avec succès !');
+      
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
+      alert('Erreur lors de la sauvegarde du profil');
     } finally {
       setSaving(false);
     }
@@ -100,6 +121,81 @@ const ProfilePage = () => {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleBannerChange = async (imageUrl) => {
+    try {
+      setShopBanner(imageUrl);
+      
+      // Rafraîchir l'utilisateur pour que les changements soient visibles immédiatement
+      await refreshUser();
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de la bannière:', error);
+    }
+  };
+
+  const handleLogoChange = async (imageUrl) => {
+    try {
+      setShopLogo(imageUrl);
+      
+      // Rafraîchir l'utilisateur pour que les changements soient visibles immédiatement
+      await refreshUser();
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du logo:', error);
+    }
+  };
+
+  const handleBannerRemove = async () => {
+    try {
+      setShopBanner('');
+      
+      // Appeler l'API pour supprimer la bannière
+      await commonService.updateCommonProfile({ shopBanner: null });
+      
+      // Rafraîchir l'utilisateur pour que les changements soient visibles immédiatement
+      await refreshUser();
+    } catch (error) {
+      console.error('Erreur lors de la suppression de la bannière:', error);
+    }
+  };
+
+  const handleLogoRemove = async () => {
+    try {
+      setShopLogo('');
+      
+      // Appeler l'API pour supprimer le logo
+      await commonService.updateCommonProfile({ shopLogo: null });
+      
+      // Rafraîchir l'utilisateur pour que les changements soient visibles immédiatement
+      await refreshUser();
+    } catch (error) {
+      console.error('Erreur lors de la suppression du logo:', error);
+    }
+  };
+
+  const handleAvatarChange = async (imageUrl) => {
+    try {
+      setAvatar(imageUrl);
+      
+      // Rafraîchir l'utilisateur pour que les changements soient visibles immédiatement
+      await refreshUser();
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de l\'avatar:', error);
+    }
+  };
+
+  const handleAvatarRemove = async () => {
+    try {
+      setAvatar('');
+      
+      // Appeler l'API pour supprimer l'avatar
+      await commonService.updateCommonProfile({ avatar: null });
+      
+      // Rafraîchir l'utilisateur pour que les changements soient visibles immédiatement
+      await refreshUser();
+    } catch (error) {
+      console.error('Erreur lors de la suppression de l\'avatar:', error);
+    }
   };
 
   // Fonction utilitaire pour afficher de manière sécurisée les propriétés utilisateur
@@ -163,25 +259,20 @@ const ProfilePage = () => {
         <div className="space-y-6">
           {/* Carte de profil principale */}
           <div className="bg-white rounded-lg shadow">
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-6">
+            <div className="p-4">
+              <div className="flex flex-wrap gap-4 items-start justify-between mb-6">
                 <div className="flex items-center space-x-6">
                   {/* Avatar */}
-                  <div className="relative">
-                    {user.avatar ? (
-                      <CloudinaryImage
-                        publicId={user.avatar}
-                        className="w-24 h-24 rounded-full object-cover"
-                        alt="Avatar"
-                      />
-                    ) : (
-                      <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-                        <FiUser className="w-12 h-12 text-gray-400" />
-                      </div>
-                    )}
-                    <button className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-2 hover:bg-blue-700 transition-colors">
-                      <FiCamera className="w-4 h-4" />
-                    </button>
+                  <div className="relative ">
+                    <ProfileImageUpload
+                      imageType="avatar"
+                      currentImage={avatar}
+                      onImageChange={handleAvatarChange}
+                      onImageRemove={handleAvatarRemove}
+                      size="w-24 h-24"
+                      aspectRatio="1:1"
+                      className="rounded-full w-16 h-16"
+                    />
                   </div>
                   
                   {/* Informations de base */}
@@ -193,25 +284,11 @@ const ProfilePage = () => {
                     <p className="text-sm text-gray-500">
                       {safeDisplay(user.email, '')}
                     </p>
-                    
-                    {/* Barre de progression du profil */}
-                    <div className="mt-4">
-                      <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
-                        <span>Complétion du profil</span>
-                        <span>{profileCompletion}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${profileCompletion}%` }}
-                        ></div>
-                      </div>
-                    </div>
                   </div>
                 </div>
                 
                 {/* Bouton d'édition */}
-                <div className="flex space-x-2">
+                <div className="flex flex-wrap space-x-2">
                   {editing ? (
                     <>
                       <button
@@ -413,11 +490,25 @@ const ProfilePage = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Sélectionner un pays</option>
-                      <option value="CM">Cameroun</option>
                       <option value="SN">Sénégal</option>
+                      <option value="CM">Cameroun</option>
                       <option value="CI">Côte d'Ivoire</option>
                       <option value="BF">Burkina Faso</option>
                       <option value="ML">Mali</option>
+                      <option value="GN">Guinée</option>
+                      <option value="GM">Gambie</option>
+                      <option value="GW">Guinée-Bissau</option>
+                      <option value="CV">Cap-Vert</option>
+                      <option value="MR">Mauritanie</option>
+                      <option value="NE">Niger</option>
+                      <option value="TD">Tchad</option>
+                      <option value="CF">République centrafricaine</option>
+                      <option value="GQ">Guinée équatoriale</option>
+                      <option value="GA">Gabon</option>
+                      <option value="CG">Congo</option>
+                      <option value="CD">République démocratique du Congo</option>
+                      <option value="AO">Angola</option>
+                      <option value="ST">São Tomé-et-Príncipe</option>
                     </select>
                   ) : (
                     <p className="text-gray-900">
@@ -454,9 +545,20 @@ const ProfilePage = () => {
           {verificationStatus && (
             <div className="bg-white rounded-lg shadow">
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
-                  <FiShield className="mr-2" />
-                  Statut de vérification
+                <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center justify-between">
+                  <div className="flex items-center">
+                    <FiShield className="mr-2" />
+                    Statut de vérification
+                  </div>
+                  <button
+                    onClick={async () => {
+                      await refreshUser();
+                    }}
+                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                    title="Rafraîchir le statut"
+                  >
+                    <FiRefreshCw className="w-4 h-4" />
+                  </button>
                 </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -507,6 +609,95 @@ const ProfilePage = () => {
                     </p>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Section Boutique */}
+          {(user?.userType === 'producer' || user?.userType === 'transformer' || user?.userType === 'restaurateur') && (
+            <div className="bg-white rounded-lg shadow">
+              <div className="p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+                  <FiImage className="mr-2" />
+                  Ma Boutique
+                </h3>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Bannière de boutique */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Bannière de boutique
+                    </label>
+                    <ProfileImageUpload
+                      currentImage={shopBanner}
+                      onImageChange={handleBannerChange}
+                      onImageRemove={handleBannerRemove}
+                      imageType="banner"
+                      size="large"
+                      aspectRatio="banner"
+                      className="w-full"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      Recommandé: 1200x400px (ratio 3:1)
+                    </p>
+                  </div>
+
+                  {/* Logo de boutique */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Logo de boutique
+                    </label>
+                    <ProfileImageUpload
+                      currentImage={shopLogo}
+                      onImageChange={handleLogoChange}
+                      onImageRemove={handleLogoRemove}
+                      imageType="logo"
+                      size="medium"
+                      aspectRatio="square"
+                      className="w-full"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      Recommandé: 400x400px (carré)
+                    </p>
+                  </div>
+                </div>
+
+                {/* Aperçu de la boutique */}
+                {(shopBanner || shopLogo) && (
+                  <div className="mt-6">
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">Aperçu de votre boutique</h4>
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      {shopBanner && (
+                        <div className="aspect-[3/1] bg-gray-100">
+                          <CloudinaryImage
+                            src={shopBanner}
+                            alt="Bannière de boutique"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                      <div className="p-4 flex items-center space-x-3">
+                        {shopLogo && (
+                          <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                            <CloudinaryImage
+                              src={shopLogo}
+                              alt="Logo de boutique"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <div>
+                          <h5 className="font-medium text-gray-900">
+                            {user?.farmName || user?.companyName || user?.businessName || 'Ma Boutique'}
+                          </h5>
+                          <p className="text-sm text-gray-500">
+                            {user?.firstName} {user?.lastName}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

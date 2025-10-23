@@ -1,8 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { FiShoppingCart, FiClock, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 
-const OrdersSection = ({ orders, userType, loading = false }) => {
+const OrdersSection = ({ orders, userType, loading = false, service }) => {
+  const [localOrders, setLocalOrders] = useState([]);
+  const [localLoading, setLocalLoading] = useState(false);
+
+  const loadOrders = useCallback(async () => {
+    try {
+      setLocalLoading(true);
+      const response = await service.getOrders({ limit: 5 });
+      const ordersData = response.data.data?.orders || response.data.orders || [];
+      setLocalOrders(Array.isArray(ordersData) ? ordersData : []);
+    } catch (error) {
+      console.error('Erreur lors du chargement des commandes:', error);
+      setLocalOrders([]);
+    } finally {
+      setLocalLoading(false);
+    }
+  }, [service]);
+
+  // Si un service est fourni et pas d'orders, charger les commandes
+  useEffect(() => {
+    if (service && !orders) {
+      loadOrders();
+    }
+  }, [service, orders, loadOrders]);
+
+  // Utiliser les orders passés en prop ou les orders chargés localement
+  const displayOrders = orders || localOrders;
+  const displayLoading = loading || localLoading;
   const getStatusIcon = (status) => {
     switch (status) {
       case 'pending':
@@ -48,7 +75,7 @@ const OrdersSection = ({ orders, userType, loading = false }) => {
     }
   };
 
-  if (loading) {
+  if (displayLoading) {
     return (
       <div className="space-y-3">
         {[1, 2, 3].map(i => (
@@ -67,7 +94,7 @@ const OrdersSection = ({ orders, userType, loading = false }) => {
     );
   }
 
-  if (!orders || orders.length === 0) {
+  if (!displayOrders || displayOrders.length === 0) {
     return (
       <div className="text-center py-8">
         <FiShoppingCart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
@@ -86,25 +113,25 @@ const OrdersSection = ({ orders, userType, loading = false }) => {
 
   return (
     <div className="space-y-3 w-full">
-      {orders.slice(0, 5).map((order) => (
-        <div key={order._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-          <div className="flex items-center space-x-3">
+      {displayOrders.slice(0, 5).map((order) => (
+        <div key={order._id} className="flex flex-wrap gap-2 items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+          <div className="flex gap-2 items-center">
             {getStatusIcon(order.status)}
             <div>
               <h4 className="text-sm font-medium text-gray-900">
                 Commande #{order.orderNumber || order._id.slice(-8)}
               </h4>
               <p className="text-sm text-gray-500">
-                {order.totalAmount ? `${order.totalAmount} XAF` : 'Montant non défini'}
+                {order.total ? `${order.total} ${order.currency || 'XAF'}` : 'Montant non défini'}
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap gap-2 items-center">
             <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(order.status)}`}>
               {getStatusText(order.status)}
             </span>
             <Link
-              to={`/dashboard/${userType}/orders/${order._id}`}
+              to={`/orders/${order._id}`}
               className="text-blue-600 hover:text-blue-800 text-sm font-medium"
             >
               Voir

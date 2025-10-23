@@ -74,7 +74,7 @@ const PendingProducts = ({ products = [] }) => {
                         {formatCurrency(product.price)}
                       </span>
                       <span className="text-sm text-gray-500">
-                        Stock: {product.availability?.quantity || 0}
+                        Stock: {product.inventory?.quantity || 0}
                       </span>
                     </div>
                   </div>

@@ -49,13 +49,13 @@ exports.uploadUserPhoto = (req, res, next) => {
 
 // Middleware d'upload de bannière
 exports.uploadShopBanner = (req, res, next) => {
-  const upload = createUploadMiddleware('marketing', 'banner');
+  const upload = createUploadMiddleware('marketing', 'shopBanner');
   upload(req, res, next);
 };
 
 // Middleware d'upload de logo
 exports.uploadShopLogo = (req, res, next) => {
-  const upload = createUploadMiddleware('profile', 'logo');
+  const upload = createUploadMiddleware('profile', 'shopLogo');
   upload(req, res, next);
 };
 
@@ -102,6 +102,9 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     'lastName',
     'phone',
     'address',
+    'city',
+    'region',
+    'bio',
     'language',
     'preferredLanguage',
     'country',
@@ -120,23 +123,56 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     // Déterminer le type d'image selon le champ name
     if (req.file.fieldname === 'avatar') {
       filteredBody.avatar = imageUrl;
-    } else if (req.file.fieldname === 'banner') {
+    } else if (req.file.fieldname === 'shopBanner') {
       filteredBody.shopBanner = imageUrl;
-    } else if (req.file.fieldname === 'logo') {
+    } else if (req.file.fieldname === 'shopLogo') {
       filteredBody.shopLogo = imageUrl;
     }
   }
 
   // 4) Mettre à jour le document utilisateur
-  const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
-    new: true,
-    runValidators: true,
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    return next(new AppError('Utilisateur non trouvé', 404));
+  }
+
+  // Mettre à jour les champs autorisés
+  Object.keys(filteredBody).forEach(key => {
+    user[key] = filteredBody[key];
   });
+
+  const updatedUser = await user.save();
+
+  // Filtrer les données utilisateur pour ne retourner que les champs nécessaires
+  const filteredUser = {
+    _id: updatedUser._id,
+    firstName: updatedUser.firstName,
+    lastName: updatedUser.lastName,
+    email: updatedUser.email,
+    phone: updatedUser.phone,
+    userType: updatedUser.userType,
+    address: updatedUser.address,
+    city: updatedUser.city,
+    region: updatedUser.region,
+    country: updatedUser.country,
+    bio: updatedUser.bio,
+    avatar: updatedUser.avatar,
+    shopBanner: updatedUser.shopBanner,
+    shopLogo: updatedUser.shopLogo,
+    isEmailVerified: updatedUser.isEmailVerified,
+    isPhoneVerified: updatedUser.isPhoneVerified,
+    isActive: updatedUser.isActive,
+    isApproved: updatedUser.isApproved,
+    language: updatedUser.language,
+    currency: updatedUser.currency,
+    createdAt: updatedUser.createdAt,
+    updatedAt: updatedUser.updatedAt
+  };
 
   res.status(200).json({
     status: 'success',
     data: {
-      user: updatedUser,
+      user: filteredUser,
     },
   });
 });
@@ -334,10 +370,36 @@ exports.getUser = catchAsync(async (req, res, next) => {
     return next(new AppError('Aucun utilisateur trouvé avec cet ID', 404));
   }
 
+  // Filtrer les données utilisateur pour ne retourner que les champs nécessaires
+  const filteredUser = {
+    _id: user._id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    phone: user.phone,
+    userType: user.userType,
+    address: user.address,
+    city: user.city,
+    region: user.region,
+    country: user.country,
+    bio: user.bio,
+    avatar: user.avatar,
+    shopBanner: user.shopBanner,
+    shopLogo: user.shopLogo,
+    isEmailVerified: user.isEmailVerified,
+    isPhoneVerified: user.isPhoneVerified,
+    isActive: user.isActive,
+    isApproved: user.isApproved,
+    language: user.language,
+    currency: user.currency,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt
+  };
+
   res.status(200).json({
     status: 'success',
     data: {
-      user,
+      user: filteredUser,
     },
   });
 });

@@ -13,6 +13,7 @@ import {
 	FiEdit3,
 	FiSave,
 	FiX,
+	FiRefreshCw,
 } from "react-icons/fi";
 import commonService from "../../../services/commonService";
 
@@ -26,45 +27,92 @@ const SettingsPage = () => {
 	const [notificationSettings, setNotificationSettings] = useState(null);
 	const [verificationStatus, setVerificationStatus] = useState(null);
 	const [deliveryAddresses, setDeliveryAddresses] = useState([]);
+	const [isRefreshing, setIsRefreshing] = useState(false);
 
-
-	// Charger les données
+	// Charger les données une seule fois
 	useEffect(() => {
-		if (isAuthenticated && user) {
-			loadSettingsData();
-		}
+		if (!isAuthenticated || !user) return;
+
+		const loadSettingsData = async () => {
+			try {
+				setLoading(true);
+
+				const [
+					financialResponse,
+					notificationResponse,
+					addressesResponse,
+				] = await Promise.all([
+					commonService.getFinancialInfo().catch(() => ({ data: null })),
+					commonService.getNotificationSettings().catch(() => ({ data: null })),
+					commonService.getDeliveryAddresses().catch(() => ({ data: [] })),
+				]);
+
+				setFinancialInfo(financialResponse.data);
+				setNotificationSettings(notificationResponse.data);
+				setDeliveryAddresses(addressesResponse.data || []);
+				
+				// Créer le statut de vérification basé sur les données utilisateur
+				const verificationData = {
+					email: {
+						verified: user.isEmailVerified,
+						verifiedAt: user.emailVerifiedAt,
+						pending: !user.isEmailVerified
+					},
+					phone: {
+						verified: user.isPhoneVerified,
+						verifiedAt: user.phoneVerifiedAt,
+						pending: !user.isPhoneVerified
+					},
+					overall: {
+						verified: user.isEmailVerified && user.isPhoneVerified,
+						level: user.isEmailVerified ? 'Vérifié' : 'Non vérifié'
+					}
+				};
+				
+				setVerificationStatus(verificationData);
+				console.log('Données de vérification calculées:', verificationData);
+			} catch (error) {
+				console.error("Erreur lors du chargement des paramètres:", error);
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		loadSettingsData();
 	}, [isAuthenticated, user]);
 
-	const loadSettingsData = async () => {
+	// Fonction pour actualiser manuellement
+	const handleRefresh = async () => {
 		try {
-			setLoading(true);
-
-			// Recharger d'abord les données de l'utilisateur
+			setIsRefreshing(true);
 			await refreshUser();
-
-			const [
-				financialResponse,
-				notificationResponse,
-				verificationResponse,
-				addressesResponse,
-			] = await Promise.all([
-				commonService.getFinancialInfo().catch(() => ({ data: null })),
-				commonService.getNotificationSettings().catch(() => ({ data: null })),
-				commonService.getVerificationStatus().catch(() => ({ data: null })),
-				commonService.getDeliveryAddresses().catch(() => ({ data: [] })),
-			]);
-
-			setFinancialInfo(financialResponse.data);
-			setNotificationSettings(notificationResponse.data);
-			setVerificationStatus(verificationResponse.data);
-			setDeliveryAddresses(addressesResponse.data || []);
+			
+			// Recalculer le statut après le refresh
+			const verificationData = {
+				email: {
+					verified: user.isEmailVerified,
+					verifiedAt: user.emailVerifiedAt,
+					pending: !user.isEmailVerified
+				},
+				phone: {
+					verified: user.isPhoneVerified,
+					verifiedAt: user.phoneVerifiedAt,
+					pending: !user.isPhoneVerified
+				},
+				overall: {
+					verified: user.isEmailVerified && user.isPhoneVerified,
+					level: user.isEmailVerified ? 'Vérifié' : 'Non vérifié'
+				}
+			};
+			
+			setVerificationStatus(verificationData);
+			console.log('🔄 Données actualisées manuellement:', verificationData);
 		} catch (error) {
-			console.error("Erreur lors du chargement des paramètres:", error);
+			console.error('Erreur lors de l\'actualisation:', error);
 		} finally {
-			setLoading(false);
+			setIsRefreshing(false);
 		}
 	};
-
 
 	const tabs = [
 		{ id: "profile", label: "Profil", icon: FiUser },
@@ -129,7 +177,7 @@ const SettingsPage = () => {
 				<div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
 					{/* Sidebar des onglets */}
 					<div className="lg:col-span-1">
-						<nav className="space-y-1">
+						<nav className="md:space-y-1 flex md:flex-col">
 							{tabs.map((tab) => {
 								const Icon = tab.icon;
 								return (
@@ -161,13 +209,13 @@ const SettingsPage = () => {
 											<FiUser className="mr-2" />
 											Informations du profil
 										</h2>
-										<button
+										{/* <button
 											onClick={() => {}}
 											className="flex items-center px-3 py-2 text-sm font-medium text-blue-600 hover:text-blue-800"
 										>
 											<FiEdit3 className="mr-1" />
 											Modifier
-										</button>
+										</button> */}
 									</div>
 
 									<div className="space-y-4">
@@ -240,10 +288,24 @@ const SettingsPage = () => {
 							{/* Onglet Sécurité */}
 							{activeTab === "security" && (
 								<div className="p-6">
-									<h2 className="text-lg font-semibold text-gray-900 flex items-center mb-6">
-										<FiShield className="mr-2" />
-										Sécurité et vérification
-									</h2>
+									<div className="flex items-center justify-between mb-6">
+										<h2 className="text-lg font-semibold text-gray-900 flex items-center">
+											<FiShield className="mr-2" />
+											Sécurité et vérification
+										</h2>
+										<button
+											onClick={handleRefresh}
+											disabled={isRefreshing}
+											className={`flex items-center px-3 py-2 text-sm font-medium ${
+												isRefreshing 
+													? 'text-gray-400 cursor-not-allowed' 
+													: 'text-blue-600 hover:text-blue-800'
+											}`}
+										>
+											<FiRefreshCw className={`mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+											{isRefreshing ? 'Actualisation...' : 'Actualiser'}
+										</button>
+									</div>
 
 									{verificationStatus && (
 										<div className="space-y-4">

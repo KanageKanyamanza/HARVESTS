@@ -177,10 +177,36 @@ exports.getProducer = catchAsync(async (req, res, next) => {
     return next(new AppError('Producteur non trouvé', 404));
   }
 
+  // Calculer les statistiques de notation
+  const Review = require('../models/Review');
+  const reviews = await Review.find({ 
+    producer: req.params.id,
+    status: 'approved'
+  });
+
+  const totalReviews = reviews.length;
+  const averageRating = totalReviews > 0 
+    ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
+    : 0;
+
+  // Ajouter les statistiques de notation au producteur
+  const producerWithStats = {
+    ...producer.toObject(),
+    ratings: {
+      average: averageRating,
+      count: totalReviews
+    },
+    stats: {
+      totalReviews,
+      averageRating,
+      ...producer.stats
+    }
+  };
+
   res.status(200).json({
     status: 'success',
     data: {
-      producer,
+      producer: producerWithStats,
     },
   });
 });
@@ -477,7 +503,10 @@ exports.getMyProducts = catchAsync(async (req, res, next) => {
   const Product = require('../models/Product');
   
   // Utiliser _id au lieu de id car req.user est un document Mongoose
-  const queryObj = { producer: req.user._id };
+  const queryObj = { 
+    producer: req.user._id,
+    isActive: true  // Ne retourner que les produits actifs
+  };
   if (req.query.status) queryObj.status = req.query.status;
   if (req.query.category) queryObj.category = req.query.category;
 
@@ -753,6 +782,73 @@ exports.getMyStats = catchAsync(async (req, res, next) => {
         customerRetentionRate,
         totalProducts: products.length,
         activeProducts
+      }
+    }
+  });
+});
+
+exports.getStats = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  const Product = require('../models/Product');
+  
+  // Récupérer toutes les commandes du producteur
+  const orders = await Order.find({ seller: req.user._id });
+  const completedOrders = orders.filter(o => o.status === 'completed' || o.status === 'delivered');
+  
+  // Calculer les revenus totaux
+  const totalRevenue = completedOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+  
+  // Récupérer les produits du producteur
+  const products = await Product.find({ producer: req.user._id });
+  const activeProducts = products.filter(p => p.isActive && p.status === 'approved');
+  
+  // Calculer les produits vendus
+  const totalProductsSold = completedOrders.reduce((sum, order) => {
+    return sum + order.items.reduce((itemSum, item) => itemSum + item.quantity, 0);
+  }, 0);
+  
+  // Clients uniques
+  const uniqueCustomers = new Set(completedOrders.map(order => order.buyer.toString())).size;
+  
+  // Produits les plus vendus
+  const productSales = {};
+  completedOrders.forEach(order => {
+    order.items.forEach(item => {
+      if (!productSales[item.product]) {
+        productSales[item.product] = {
+          name: item.name,
+          category: item.category,
+          quantitySold: 0,
+          revenue: 0
+        };
+      }
+      productSales[item.product].quantitySold += item.quantity;
+      productSales[item.product].revenue += item.price * item.quantity;
+    });
+  });
+  
+  const topProducts = Object.values(productSales)
+    .sort((a, b) => b.quantitySold - a.quantitySold)
+    .slice(0, 5);
+  
+  // Valeur moyenne des commandes
+  const averageOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
+  
+  res.status(200).json({
+    status: 'success',
+    data: {
+      stats: {
+        totalRevenue,
+        totalOrders: orders.length,
+        completedOrders: completedOrders.length,
+        totalProducts: products.length,
+        activeProducts: activeProducts.length,
+        totalProductsSold,
+        uniqueCustomers,
+        topProducts,
+        averageOrderValue,
+        conversionRate: orders.length > 0 ? (completedOrders.length / orders.length) * 100 : 0,
+        customerRetentionRate: 0 // À implémenter si nécessaire
       }
     }
   });

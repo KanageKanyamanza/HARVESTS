@@ -81,6 +81,18 @@ const consumerSchema = new mongoose.Schema({
     }
   },
   
+  // Produits favoris
+  favorites: [{
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product'
+    },
+    addedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  
   // Liste de souhaits
   wishlist: [{
     product: {

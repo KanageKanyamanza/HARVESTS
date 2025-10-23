@@ -864,10 +864,16 @@ async function sendOrderNotifications(order) {
 
 // Avis et évaluations
 exports.getMyReviews = catchAsync(async (req, res, next) => {
+  const Review = require('../models/Review');
+  
+  const reviews = await Review.find({ reviewer: req.user.id })
+    .populate('product', 'name images price')
+    .populate('order', 'orderNumber createdAt')
+    .sort({ createdAt: -1 });
+  
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle Review requis',
-    data: { reviews: [] },
+    data: { reviews },
   });
 });
 
@@ -896,6 +902,74 @@ exports.deleteMyReview = catchAsync(async (req, res, next) => {
   res.status(204).json({
     status: 'success',
     data: null,
+  });
+});
+
+// Gestion des favoris
+exports.getFavorites = catchAsync(async (req, res, next) => {
+  const consumer = await Consumer.findById(req.user.id)
+    .populate({
+      path: 'favorites.product',
+      populate: {
+        path: 'producer',
+        select: 'firstName lastName businessName avatar'
+      }
+    });
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      favorites: consumer.favorites || []
+    }
+  });
+});
+
+exports.addFavorite = catchAsync(async (req, res, next) => {
+  const { productId } = req.body;
+  
+  if (!productId) {
+    return next(new AppError('ID du produit requis', 400));
+  }
+
+  const consumer = await Consumer.findById(req.user.id);
+  
+  // Vérifier si le produit est déjà en favori
+  const existingFavorite = consumer.favorites.find(fav => 
+    fav.product.toString() === productId
+  );
+  
+  if (existingFavorite) {
+    return next(new AppError('Ce produit est déjà dans vos favoris', 400));
+  }
+
+  // Ajouter le produit aux favoris
+  consumer.favorites.push({ product: productId });
+  await consumer.save();
+
+  res.status(201).json({
+    status: 'success',
+    message: 'Produit ajouté aux favoris',
+    data: {
+      favorite: { product: productId }
+    }
+  });
+});
+
+exports.removeFavorite = catchAsync(async (req, res, next) => {
+  const { productId } = req.params;
+  
+  const consumer = await Consumer.findById(req.user.id);
+  
+  // Retirer le produit des favoris
+  consumer.favorites = consumer.favorites.filter(fav => 
+    fav.product.toString() !== productId
+  );
+  
+  await consumer.save();
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Produit retiré des favoris'
   });
 });
 
@@ -1127,11 +1201,19 @@ exports.getMyStats = catchAsync(async (req, res, next) => {
   const completedOrders = orders.filter(o => o.status === 'completed' || o.status === 'delivered');
   const cancelledOrders = orders.filter(o => o.status === 'cancelled');
   
-  // Récupérer les avis
-  const reviews = await Review.find({ user: req.user.id });
-  const averageRating = reviews.length > 0 
-    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length 
+  // Calculer le montant total dépensé
+  const totalSpent = completedOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+  
+  // Récupérer les avis donnés par le consommateur
+  const reviewsGiven = await Review.find({ reviewer: req.user.id });
+  const averageRatingGiven = reviewsGiven.length > 0 
+    ? reviewsGiven.reduce((sum, r) => sum + r.rating, 0) / reviewsGiven.length 
     : 0;
+  
+  // Les consommateurs ne reçoivent pas d'avis, ils en donnent sur les produits
+  // Donc la note moyenne reçue est toujours 0
+  const averageRatingReceived = 0;
+  const reviewsReceived = [];
   
   // Dernière commande
   const sortedOrders = orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -1140,12 +1222,19 @@ exports.getMyStats = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     data: {
+      stats: {
+        totalOrders: orders.length,
+        totalSpent: totalSpent,
+        reviewsWritten: reviewsGiven.length,
+        averageRatingGiven: averageRatingGiven,
+        profileViews: consumer.activityStats?.profileViews || 0
+      },
       activityStats: {
         totalOrders: orders.length,
         cancelledOrders: cancelledOrders.length,
         completedOrders: completedOrders.length,
-        averageRatingGiven: averageRating,
-        reviewsWritten: reviews.length,
+        averageRatingGiven: averageRatingGiven,
+        reviewsWritten: reviewsGiven.length,
         lastOrderDate
       },
       loyaltyStats: consumer.loyaltyProgram,

@@ -7,7 +7,30 @@ const router = express.Router();
 // Toutes les routes nécessitent une authentification
 router.use(authController.protect);
 router.use(authController.restrictTo('consumer'));
-router.use(authController.requireVerification);
+
+// Routes qui nécessitent une vérification d'email
+const requireVerificationRoutes = [
+  '/me/orders',
+  '/me/cart',
+  '/me/checkout',
+  '/me/payments',
+  '/me/favorites',
+  '/me/reviews',
+  '/me/notifications'
+];
+
+// Appliquer la vérification d'email seulement aux routes spécifiées
+router.use((req, res, next) => {
+  const requiresVerification = requireVerificationRoutes.some(route => 
+    req.path.startsWith(route)
+  );
+  
+  if (requiresVerification) {
+    return authController.requireVerification(req, res, next);
+  }
+  
+  next();
+});
 
 // Gestion du profil consommateur
 router.get('/me/profile', consumerController.getMyProfile);
@@ -101,6 +124,13 @@ router.route('/me/reviews/:reviewId')
   .get(consumerController.getMyReview)
   .patch(consumerController.updateMyReview)
   .delete(consumerController.deleteMyReview);
+
+// Gestion des favoris
+router.route('/me/favorites')
+  .get(consumerController.getFavorites)
+  .post(consumerController.addFavorite);
+
+router.delete('/me/favorites/:productId', consumerController.removeFavorite);
 
 // Programme de fidélité
 router.get('/me/loyalty', consumerController.getLoyaltyStatus);

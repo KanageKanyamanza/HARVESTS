@@ -57,12 +57,55 @@ const ProfileImageUpload = ({
       const response = await profileService[config.uploadFunction](formData);
       
       // Extraire l'URL de l'image de la réponse
-      const imageUrl = response.data?.profile?.avatar || 
-                      response.data?.profile?.shopBanner || 
-                      response.data?.profile?.shopLogo;
+      let imageUrl = null;
+      
+      // Debug: afficher la structure de la réponse
+      console.log('🔍 Structure de la réponse:', response.data);
+      
+      // Structure 1: response.data.data.user.fieldName (structure avec data wrapper)
+      if (response.data?.data?.user) {
+        imageUrl = response.data.data.user.avatar || 
+                  response.data.data.user.shopBanner || 
+                  response.data.data.user.shopLogo;
+        console.log('✅ URL trouvée dans response.data.data.user:', imageUrl);
+      }
+      
+      // Structure 2: response.data.user.fieldName (structure directe)
+      if (!imageUrl && response.data?.user) {
+        imageUrl = response.data.user.avatar || 
+                  response.data.user.shopBanner || 
+                  response.data.user.shopLogo;
+        console.log('✅ URL trouvée dans response.data.user:', imageUrl);
+      }
+      
+      // Structure 3: response.data.profile.fieldName (fallback)
+      if (!imageUrl && response.data?.profile) {
+        imageUrl = response.data.profile.avatar || 
+                  response.data.profile.shopBanner || 
+                  response.data.profile.shopLogo;
+        console.log('✅ URL trouvée dans response.data.profile:', imageUrl);
+      }
+      
+      // Structure 4: response.data.fieldName (fallback)
+      if (!imageUrl) {
+        imageUrl = response.data?.avatar || 
+                  response.data?.shopBanner || 
+                  response.data?.shopLogo;
+        console.log('✅ URL trouvée dans response.data:', imageUrl);
+      }
+      
+      // Structure 5: response.data.data.fieldName (fallback)
+      if (!imageUrl && response.data?.data) {
+        imageUrl = response.data.data.avatar || 
+                  response.data.data.shopBanner || 
+                  response.data.data.shopLogo;
+        console.log('✅ URL trouvée dans response.data.data:', imageUrl);
+      }
       
       if (imageUrl) {
         onImageChange(imageUrl);
+      } else {
+        console.error('❌ Aucune URL d\'image trouvée dans la réponse:', response.data);
       }
     } catch (error) {
       console.error('Erreur lors de l\'upload:', error);
@@ -186,12 +229,12 @@ const ProfileImageUpload = ({
         </div>
       )}
 
-      {currentImage && !error && (
+      {/* {currentImage && !error && (
         <div className="mt-2 text-sm text-green-600 flex items-center">
           <FiCheck className="h-4 w-4 mr-1" />
           Image uploadée avec succès
         </div>
-      )}
+      )} */}
     </div>
   );
 };

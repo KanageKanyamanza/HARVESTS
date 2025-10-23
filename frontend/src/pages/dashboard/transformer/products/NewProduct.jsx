@@ -18,7 +18,6 @@ const NewProduct = () => {
   const [loading, setLoading] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [productImages, setProductImages] = useState([]);
-  const [errors, setErrors] = useState({});
   const [product, setProduct] = useState({
     name: '',
     description: '',
@@ -70,57 +69,48 @@ const NewProduct = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
-    // Validation
-    const newErrors = {};
-    if (!product.name.trim()) newErrors.name = 'Le nom du produit est requis';
-    if (!product.description.trim()) newErrors.description = 'La description est requise';
-    if (!product.category) newErrors.category = 'La catégorie est requise';
-    if (!product.price || product.price <= 0) newErrors.price = 'Le prix doit être supérieur à 0';
-    if (!product.stock || product.stock < 0) newErrors.stock = 'Le stock doit être supérieur ou égal à 0';
-    if (productImages.length === 0) newErrors.images = 'Au moins une image est requise';
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      setLoading(false);
+    
+    // Validation simple
+    if (!product.name || !product.description || !product.category || !product.price || !product.stock) {
+      showError('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
     try {
+      setLoading(true);
+      
       const productData = {
         ...product,
-        price: parseFloat(product.price),
-        stock: parseInt(product.stock),
-        // Le statut sera 'draft' par défaut (géré par le backend)
-        images: productImages
+        images: productImages,
+        status: 'draft'
       };
 
       await transformerService.createProduct(productData);
-      showSuccess('Produit créé avec succès !', 'Succès');
+      showSuccess('Produit créé avec succès');
       navigate('/transformer/products');
     } catch (error) {
       console.error('Erreur lors de la création du produit:', error);
-      showError('Erreur lors de la création du produit', 'Erreur');
+      showError('Erreur lors de la création du produit');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <ModularDashboardLayout userType="transformer">
-      <div className="space-y-6 px-4 pb-20 pt-4">
-        {/* En-tête */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Nouveau Produit</h1>
-          <p className="text-gray-600 mt-1">Ajoutez un nouveau produit à votre boutique</p>
+    <ModularDashboardLayout>
+      <div className="max-w-4xl mx-auto p-6">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Nouveau produit</h1>
+          <p className="text-gray-600 mt-2">Créez un nouveau produit transformé</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-8">
           {/* Informations de base */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">Informations de base</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nom du produit *
@@ -133,23 +123,23 @@ const NewProduct = () => {
                     value={product.name}
                     onChange={handleInputChange}
                     required
-                    placeholder="Ex: Confiture de mangue artisanale"
                     className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Nom de votre produit transformé"
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Catégorie *
-                </label>
-                <div className="relative">
-                  <FiTag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Catégorie *
+                  </label>
                   <select
                     name="category"
                     value={product.category}
                     onChange={handleInputChange}
                     required
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                   >
                     <option value="">Sélectionner une catégorie</option>
                     {categories.map(category => (
@@ -159,24 +149,41 @@ const NewProduct = () => {
                     ))}
                   </select>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Unité
+                  </label>
+                  <select
+                    name="unit"
+                    value={product.unit}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    {units.map(unit => (
+                      <option key={unit} value={unit}>
+                        {unit}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-            </div>
-            
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description *
-              </label>
-              <div className="relative">
-                <FiAlignLeft className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <textarea
-                  name="description"
-                  value={product.description}
-                  onChange={handleInputChange}
-                  required
-                  rows={3}
-                  placeholder="Décrivez votre produit..."
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description *
+                </label>
+                <div className="relative">
+                  <FiAlignLeft className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <textarea
+                    name="description"
+                    value={product.description}
+                    onChange={handleInputChange}
+                    required
+                    rows={3}
+                    placeholder="Décrivez votre produit..."
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -235,24 +242,6 @@ const NewProduct = () => {
                 />
               </div>
             </div>
-            
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Unité
-              </label>
-              <select
-                name="unit"
-                value={product.unit}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                {units.map(unit => (
-                  <option key={unit} value={unit}>
-                    {unit}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
 
           {/* Images du produit */}
@@ -265,7 +254,7 @@ const NewProduct = () => {
               maxImages={5}
               uploading={uploadingImages}
               setUploading={setUploadingImages}
-              errors={errors}
+              errors={{}}
             />
           </div>
 

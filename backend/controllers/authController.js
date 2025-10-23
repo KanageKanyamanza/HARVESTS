@@ -339,6 +339,7 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
   }
 
   user.isEmailVerified = true;
+  user.emailVerified = true; // Synchroniser les deux champs
   user.emailVerificationToken = undefined;
   user.emailVerificationExpires = undefined;
   await user.save({ validateBeforeSave: false });

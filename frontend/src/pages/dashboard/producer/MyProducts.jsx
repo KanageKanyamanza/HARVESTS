@@ -221,7 +221,7 @@ const MyProducts = () => {
                       </div>
                     )}
                   </div>
-                  <div className="p-6">
+                  <div className="p-3">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
                         {product.name?.fr || product.name?.en || product.name || 'Produit sans nom'}
@@ -259,7 +259,7 @@ const MyProducts = () => {
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <Link
                           to={`/producer/products/edit/${product._id}`}
                           className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light"

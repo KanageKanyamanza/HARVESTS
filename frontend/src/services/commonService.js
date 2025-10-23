@@ -3,8 +3,8 @@ import api from './api';
 // Service centralisé pour les informations communes à tous les utilisateurs
 const commonService = {
   // Informations de profil communes
-  getCommonProfile: () => api.get('/users/me/common-profile'),
-  updateCommonProfile: (data) => api.patch('/users/me/common-profile', data),
+  getCommonProfile: () => api.get('/users/me'),
+  updateCommonProfile: (data) => api.patch('/users/update-me', data),
 
   // Informations financières communes
   getFinancialInfo: () => api.get('/users/me/financial-info'),

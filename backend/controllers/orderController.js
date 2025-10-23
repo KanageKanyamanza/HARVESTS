@@ -88,7 +88,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
 
   if (req.body.useLoyaltyPoints && req.user.userType === 'consumer') {
     const Consumer = require('../models/Consumer');
-    const consumer = await Consumer.findById(req.user.id);
+    const consumer = await Consumer.findById(req.user._id);
     if (consumer && req.body.loyaltyPointsToUse <= consumer.loyaltyProgram.points) {
       discount = await consumer.redeemLoyaltyPoints(req.body.loyaltyPointsToUse);
       loyaltyPointsUsed = req.body.loyaltyPointsToUse;
@@ -100,7 +100,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
 
   // Créer la commande
   const order = await Order.create({
-    buyer: req.user.id,
+    buyer: req.user._id,
     seller: processedItems[0].productSnapshot.producer || processedItems[0].productSnapshot.transformer, // Producteur ou transformateur
     items: processedItems,
     subtotal,
@@ -135,7 +135,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
   // Calculer les points de fidélité gagnés
   if (req.user.userType === 'consumer') {
     const Consumer = require('../models/Consumer');
-    const consumer = await Consumer.findById(req.user.id);
+    const consumer = await Consumer.findById(req.user._id);
     if (consumer) {
       const pointsEarned = await consumer.addLoyaltyPoints(total, order._id);
       order.loyaltyPointsEarned = pointsEarned;
@@ -185,11 +185,11 @@ exports.getMyOrders = catchAsync(async (req, res, next) => {
   
   // Filtrer selon le type d'utilisateur
   if (['consumer', 'restaurateur'].includes(req.user.userType)) {
-    query.buyer = req.user.id;
+    query.buyer = req.user._id;
   } else if (['producer', 'transformer'].includes(req.user.userType)) {
-    query.seller = req.user.id;
+    query.seller = req.user._id;
   } else if (req.user.userType === 'transporter') {
-    query['delivery.transporter'] = req.user.id;
+    query['delivery.transporter'] = req.user._id;
   }
 
   // Filtres optionnels
@@ -237,9 +237,9 @@ exports.getOrder = catchAsync(async (req, res, next) => {
 
   // Vérifier que l'utilisateur a accès à cette commande
   const hasAccess = 
-    order.buyer.toString() === req.user.id ||
-    order.seller.toString() === req.user.id ||
-    (order.delivery.transporter && order.delivery.transporter._id.toString() === req.user.id) ||
+    order.buyer.toString() === req.user._id.toString() ||
+    order.seller.toString() === req.user._id.toString() ||
+    (order.delivery.transporter && order.delivery.transporter._id.toString() === req.user._id.toString()) ||
     req.user.role === 'admin';
 
   if (!hasAccess) {
@@ -265,8 +265,8 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
 
   // Vérifier les permissions
   const canUpdate = 
-    (order.seller.toString() === req.user.id) ||
-    (order.delivery.transporter && order.delivery.transporter.toString() === req.user.id) ||
+    (order.seller.toString() === req.user._id.toString()) ||
+    (order.delivery.transporter && order.delivery.transporter.toString() === req.user._id.toString()) ||
     req.user.role === 'admin';
 
   if (!canUpdate) {
@@ -279,7 +279,7 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
     return next(new AppError(`Transition de statut invalide: ${order.status} -> ${status}`, 400));
   }
 
-  await order.updateStatus(status, req.user.id, reason, note);
+  await order.updateStatus(status, req.user._id, reason, note);
 
   // Envoyer notifications selon le nouveau statut
   await sendStatusNotifications(order, status);
@@ -308,8 +308,8 @@ exports.cancelOrder = catchAsync(async (req, res, next) => {
 
   // Vérifier les permissions
   const canCancel = 
-    order.buyer.toString() === req.user.id ||
-    order.seller.toString() === req.user.id ||
+    order.buyer.toString() === req.user._id.toString() ||
+    order.seller.toString() === req.user._id.toString() ||
     req.user.role === 'admin';
 
   if (!canCancel) {
@@ -320,7 +320,7 @@ exports.cancelOrder = catchAsync(async (req, res, next) => {
   await order.releaseStock();
 
   // Mettre à jour le statut
-  await order.updateStatus('cancelled', req.user.id, reason);
+  await order.updateStatus('cancelled', req.user._id, reason);
 
   // Traiter le remboursement si paiement effectué
   if (order.payment.status === 'completed') {
@@ -351,9 +351,9 @@ exports.trackOrder = catchAsync(async (req, res, next) => {
 
   // Vérifier l'accès
   const hasAccess = 
-    order.buyer.toString() === req.user.id ||
-    order.seller.toString() === req.user.id ||
-    (order.delivery.transporter && order.delivery.transporter._id.toString() === req.user.id);
+    order.buyer.toString() === req.user._id.toString() ||
+    order.seller.toString() === req.user._id.toString() ||
+    (order.delivery.transporter && order.delivery.transporter._id.toString() === req.user._id.toString());
 
   if (!hasAccess) {
     return next(new AppError('Accès non autorisé', 403));

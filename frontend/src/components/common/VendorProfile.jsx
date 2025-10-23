@@ -59,13 +59,7 @@ const VendorProfile = ({
 
         // Charger les informations du vendeur
         try {
-          if (vendorType === 'producer') {
-            vendorResponse = await service.getPublicProducer(id);
-          } else if (vendorType === 'restaurateur') {
-            vendorResponse = await service.getRestaurateur(id);
-          } else if (vendorType === 'transformer') {
-            vendorResponse = await service.getPublicTransformer(id);
-          }
+          vendorResponse = await service.getPublic(id);
           
           if (vendorResponse.data.status === 'success') {
             setVendor(vendorResponse.data.data[vendorType] || vendorResponse.data[vendorType]);
@@ -76,13 +70,7 @@ const VendorProfile = ({
 
         // Charger les items (produits/plats)
         try {
-          if (vendorType === 'producer') {
-            itemsResponse = await service.getPublicProducerProducts(id);
-          } else if (vendorType === 'restaurateur') {
-            itemsResponse = await service.getRestaurateurDishes(id);
-          } else if (vendorType === 'transformer') {
-            itemsResponse = await service.getPublicTransformerProducts(id);
-          }
+          itemsResponse = await service.getPublicProducts(id);
           
           if (itemsResponse.data.status === 'success') {
             setItems(itemsResponse.data.data.products || itemsResponse.data.data.dishes || []);

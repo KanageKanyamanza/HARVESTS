@@ -1,9 +1,12 @@
 import api from './api';
+import axios from 'axios';
 
 // Service générique pour les différents types d'utilisateurs
 const createGenericService = (userType) => ({
   // Statistiques
   getStats: () => api.get(`/${userType}s/me/stats`),
+  getSalesAnalytics: () => api.get(`/${userType}s/me/sales-analytics`),
+  getRevenueAnalytics: () => api.get(`/${userType}s/me/revenue-analytics`),
   
   // Produits
   getProducts: (params = {}) => api.get(`/${userType}s/me/products`, { params }),
@@ -14,8 +17,12 @@ const createGenericService = (userType) => ({
   
   // Commandes
   getOrders: (params = {}) => api.get(`/${userType}s/me/orders`, { params }),
+  getMyOrders: (params = {}) => api.get(`/${userType}s/me/orders`, { params }), // Alias pour getOrders
   getOrder: (id) => api.get(`/${userType}s/me/orders/${id}`),
+  getMyOrder: (id) => api.get(`/${userType}s/me/orders/${id}`), // Alias pour getOrder
+  createOrder: (data) => api.post(`/${userType}s/me/orders`, data),
   updateOrder: (id, data) => api.patch(`/${userType}s/me/orders/${id}`, data),
+  updateOrderStatus: (id, data) => api.patch(`/${userType}s/me/orders/${id}/status`, data),
   
   // Profil
   getProfile: () => api.get(`/${userType}s/me`),
@@ -55,12 +62,39 @@ const createGenericService = (userType) => ({
   
   // Favoris (pour consommateurs)
   getFavorites: (params = {}) => api.get(`/${userType}s/me/favorites`, { params }),
-  addFavorite: (data) => api.post(`/${userType}s/me/favorites`, data),
+  addFavorite: (productId) => api.post(`/${userType}s/me/favorites`, { productId }),
   removeFavorite: (id) => api.delete(`/${userType}s/me/favorites/${id}`),
+  
+  // Avis (pour consommateurs)
+  getMyReviews: (params = {}) => api.get(`/${userType}s/me/reviews`, { params }),
+  createReview: (data) => api.post(`/${userType}s/me/reviews`, data),
+  updateReview: (id, data) => api.patch(`/${userType}s/me/reviews/${id}`, data),
+  deleteReview: (id) => api.delete(`/${userType}s/me/reviews/${id}`),
+  
+  // Analytics de dépenses (pour consommateurs)
+  getSpendingAnalytics: () => api.get(`/${userType}s/me/spending-analytics`),
   
   // Zones de livraison (pour transporteurs)
   getDeliveryZones: () => api.get(`/${userType}s/me/delivery-zones`),
   updateDeliveryZones: (data) => api.patch(`/${userType}s/me/delivery-zones`, data),
+  
+  // Routes publiques (sans paramètre lang automatique)
+  getAllPublic: (params = {}) => {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+    return axios.get(`${API_BASE_URL}/${userType}s`, { params });
+  },
+  getPublic: (id) => {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+    return axios.get(`${API_BASE_URL}/${userType}s/${id}`);
+  },
+  getPublicProducts: (id, params = {}) => {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+    return axios.get(`${API_BASE_URL}/${userType}s/${id}/products`, { params });
+  },
+  getPublicReviews: (id, params = {}) => {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+    return axios.get(`${API_BASE_URL}/${userType}s/${id}/reviews`, { params });
+  }
 });
 
 // Services spécifiques pour chaque type d'utilisateur

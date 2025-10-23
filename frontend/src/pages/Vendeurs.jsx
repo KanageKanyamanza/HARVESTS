@@ -57,7 +57,7 @@ const Vendeurs = () => {
 
 				// Test Axios seul
 				try {
-					const axiosTest = await restaurateurService.getAllRestaurateurs();
+					const axiosTest = await restaurateurService.getAllPublic();
 					console.log("🧪 Test Axios seul:", axiosTest.data);
 				} catch (error) {
 					console.error("❌ Erreur test Axios:", error);
@@ -81,9 +81,9 @@ const Vendeurs = () => {
 
 				const [producersResponse, transformersResponse, restaurateursResponse] =
 					await Promise.allSettled([
-						producerService.getAllProducers({ limit: 50 }),
-						transformerService.getAllTransformers({ limit: 50 }),
-						restaurateurService.getAllRestaurateurs(), // Sans paramètres
+						producerService.getAllPublic({ limit: 50 }),
+						transformerService.getAllPublic({ limit: 50 }),
+						restaurateurService.getAllPublic({ limit: 50 }),
 					]);
 
 				const allVendeurs = [];

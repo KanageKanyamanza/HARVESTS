@@ -43,11 +43,11 @@ const ProductsSection = ({ products, userType, loading = false }) => {
         <div key={product._id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
           <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
             {product.images && product.images.length > 0 ? (
-              <CloudinaryImage
-                publicId={product.images[0]}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
+                 <CloudinaryImage
+                   src={product.images[0].url}
+                   alt={typeof product.name === 'object' ? product.name.fr || product.name.en || 'Produit' : product.name}
+                   className="w-full h-full object-cover"
+                 />
             ) : (
               <div className="w-full h-full bg-gray-200 flex items-center justify-center">
                 <FiPackage className="h-6 w-6 text-gray-400" />
@@ -56,7 +56,7 @@ const ProductsSection = ({ products, userType, loading = false }) => {
           </div>
           <div className="flex-1 min-w-0">
             <h4 className="text-sm font-medium text-gray-900 truncate">
-              {product.name}
+              {typeof product.name === 'object' ? product.name.fr || product.name.en || 'Sans nom' : product.name}
             </h4>
             <p className="text-sm text-gray-500">
               {product.price ? `${product.price} XAF` : 'Prix non défini'}
@@ -64,14 +64,14 @@ const ProductsSection = ({ products, userType, loading = false }) => {
           </div>
           <div className="flex space-x-1">
             <Link
-              to={`/${userType}/products/${product._id}`}
+              to={`/products/${product._id}`}
               className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
               title="Voir"
             >
               <FiEye className="h-4 w-4" />
             </Link>
             <Link
-              to={`/${userType}/products/${product._id}/edit`}
+              to={`/${userType}/products/edit/${product._id}`}
               className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
               title="Modifier"
             >

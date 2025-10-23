@@ -79,7 +79,18 @@ const SettingsPage = React.lazy(() =>
 );
 
 // Consumer Dashboard
-const Stats = React.lazy(() => import("./pages/dashboard/consumer/Stats"));
+const ConsumerDashboard = React.lazy(() =>
+	import("./pages/dashboard/consumer/ConsumerDashboardNew")
+);
+const ConsumerFavorites = React.lazy(() =>
+	import("./pages/dashboard/consumer/Favorites")
+);
+const ConsumerReviews = React.lazy(() =>
+	import("./pages/dashboard/consumer/Reviews")
+);
+const ConsumerStatistics = React.lazy(() =>
+	import("./pages/dashboard/consumer/Statistics")
+);
 
 // Producer Dashboard
 const ProducerDashboard = React.lazy(() =>
@@ -138,11 +149,6 @@ const RestaurateurDishes = React.lazy(() =>
 );
 const DishDetail = React.lazy(() =>
 	import("./pages/dashboard/restaurateur/DishDetail")
-);
-
-// Consumer Dashboard
-const ConsumerDashboard = React.lazy(() =>
-	import("./pages/dashboard/consumer/ConsumerDashboardNew")
 );
 
 // Exporter Dashboard
@@ -723,6 +729,30 @@ function App() {
 															</ProtectedRoute>
 														}
 													/>
+													<Route
+														path="/consumer/favorites"
+														element={
+															<ProtectedRoute>
+																<ConsumerFavorites />
+															</ProtectedRoute>
+														}
+													/>
+													<Route
+														path="/consumer/reviews"
+														element={
+															<ProtectedRoute>
+																<ConsumerReviews />
+															</ProtectedRoute>
+														}
+													/>
+													<Route
+														path="/consumer/statistics"
+														element={
+															<ProtectedRoute>
+																<ConsumerStatistics />
+															</ProtectedRoute>
+														}
+													/>
 
 													{/* Routes Exporter Dashboard */}
 													<Route
@@ -907,15 +937,6 @@ function App() {
 																<AdminLayout>
 																	<AdminAnalytics />
 																</AdminLayout>
-															</ProtectedRoute>
-														}
-													/>
-
-													<Route
-														path="/stats"
-														element={
-															<ProtectedRoute>
-																<Stats />
 															</ProtectedRoute>
 														}
 													/>
