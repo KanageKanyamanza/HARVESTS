@@ -250,12 +250,69 @@ exports.getProducerProducts = catchAsync(async (req, res, next) => {
 
 // Obtenir les avis d'un producteur
 exports.getProducerReviews = catchAsync(async (req, res, next) => {
-  // Cette fonction nécessitera le modèle Review qui n'est pas encore créé
+  const producerId = req.params.id;
+  
+  // Vérifier que le producteur existe
+  const producer = await Producer.findById(producerId);
+  if (!producer) {
+    return next(new AppError('Producteur non trouvé', 404));
+  }
+
+  // Récupérer tous les produits du producteur
+  const products = await Product.find({ 
+    producer: producerId,
+    isActive: true,
+    status: 'approved'
+  }).select('_id');
+
+  const productIds = products.map(p => p._id);
+
+  // Récupérer les avis pour les produits de ce producteur
+  const reviews = await Review.find({ 
+    product: { $in: productIds },
+    isActive: true 
+  })
+  .populate('reviewer', 'firstName lastName avatar')
+  .populate('product', 'name.fr name.en images')
+  .sort('-createdAt')
+  .limit(20);
+
+  // Calculer les statistiques des avis
+  const stats = await Review.aggregate([
+    { $match: { product: { $in: productIds }, isActive: true } },
+    {
+      $group: {
+        _id: null,
+        totalReviews: { $sum: 1 },
+        averageRating: { $avg: '$rating' },
+        ratingDistribution: {
+          $push: '$rating'
+        }
+      }
+    }
+  ]);
+
+  const reviewStats = stats[0] || {
+    totalReviews: 0,
+    averageRating: 0,
+    ratingDistribution: []
+  };
+
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle Review requis',
-    data: {
-      reviews: [],
+    data: { 
+      reviews,
+      stats: {
+        totalReviews: reviewStats.totalReviews,
+        averageRating: Math.round(reviewStats.averageRating * 10) / 10,
+        ratingDistribution: {
+          5: reviewStats.ratingDistribution.filter(r => r === 5).length,
+          4: reviewStats.ratingDistribution.filter(r => r === 4).length,
+          3: reviewStats.ratingDistribution.filter(r => r === 3).length,
+          2: reviewStats.ratingDistribution.filter(r => r === 2).length,
+          1: reviewStats.ratingDistribution.filter(r => r === 1).length,
+        }
+      }
     },
   });
 });
@@ -539,18 +596,55 @@ exports.getMyProducts = catchAsync(async (req, res, next) => {
 exports.createProduct = catchAsync(async (req, res, next) => {
   const Product = require('../models/Product');
   
-  req.body.producer = req.user._id;
-  
-  // Traiter les images si présentes
-  if (req.body.images && req.body.images.length > 0) {
-    req.body.images = req.body.images.map((img, index) => ({
+  const {
+    name,
+    description,
+    shortDescription,
+    category,
+    subcategory,
+    tags,
+    price,
+    compareAtPrice,
+    stock,
+    minimumOrderQuantity,
+    maximumOrderQuantity,
+    unit,
+    status,
+    images
+  } = req.body;
+
+  // Validation des champs obligatoires
+  if (!name || !description || !category || !price || stock === undefined) {
+    return next(new AppError('Tous les champs obligatoires doivent être remplis', 400));
+  }
+
+  // Créer le produit avec structure multilingue
+  const productData = {
+    name: typeof name === 'object' ? name : { fr: name, en: name },
+    description: typeof description === 'object' ? description : { fr: description, en: description },
+    shortDescription: typeof shortDescription === 'object' ? shortDescription : { fr: shortDescription, en: shortDescription },
+    category,
+    subcategory: subcategory || category,
+    tags: tags || [],
+    price: parseFloat(price),
+    compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : undefined,
+    inventory: {
+      quantity: parseInt(stock) || 0
+    },
+    minimumOrderQuantity: minimumOrderQuantity || 1,
+    maximumOrderQuantity: maximumOrderQuantity || undefined,
+    unit: unit || 'kg',
+    status: status || 'draft',
+    images: images ? images.map((img, index) => ({
       ...img,
       order: index,
       isPrimary: index === 0
-    }));
-  }
+    })) : [],
+    producer: req.user._id,
+    userType: 'producer'
+  };
   
-  const product = await Product.create(req.body);
+  const product = await Product.create(productData);
 
   res.status(201).json({
     status: 'success',

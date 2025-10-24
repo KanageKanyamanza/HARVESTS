@@ -2,6 +2,7 @@ const multer = require('multer');
 const Transformer = require('../models/Transformer');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
+const Review = require('../models/Review');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 
@@ -180,19 +181,28 @@ exports.getTransformerReviews = catchAsync(async (req, res, next) => {
     return next(new AppError('Transformateur non trouvé', 404));
   }
 
-  // Récupérer les avis pour ce transformateur
-  const reviews = await Review.find({ 
+  // Récupérer tous les produits du transformateur
+  const products = await Product.find({ 
     transformer: transformerId,
+    isActive: true,
+    status: 'approved'
+  }).select('_id');
+
+  const productIds = products.map(p => p._id);
+
+  // Récupérer les avis pour les produits de ce transformateur
+  const reviews = await Review.find({ 
+    product: { $in: productIds },
     isActive: true 
   })
   .populate('reviewer', 'firstName lastName avatar')
-  .populate('product', 'name.fr name.en')
+  .populate('product', 'name.fr name.en images')
   .sort('-createdAt')
   .limit(20);
 
   // Calculer les statistiques des avis
   const stats = await Review.aggregate([
-    { $match: { transformer: transformer._id, isActive: true } },
+    { $match: { product: { $in: productIds }, isActive: true } },
     {
       $group: {
         _id: null,
@@ -940,41 +950,47 @@ exports.createProduct = catchAsync(async (req, res, next) => {
   const {
     name,
     description,
+    shortDescription,
     category,
     subcategory,
+    tags,
     price,
-    currency,
+    compareAtPrice,
     stock,
+    minimumOrderQuantity,
+    maximumOrderQuantity,
     unit,
     status,
     images
   } = req.body;
 
   // Validation des champs obligatoires
-  if (!name || !description || !category || !price || !stock) {
+  if (!name || !description || !category || !price || stock === undefined) {
     return next(new AppError('Tous les champs obligatoires doivent être remplis', 400));
   }
 
   // Créer le produit avec structure multilingue
   const productData = {
-    name: {
-      fr: name,
-      en: name // Pour l'instant, même valeur en français et anglais
-    },
-    description: {
-      fr: description,
-      en: description // Pour l'instant, même valeur en français et anglais
-    },
+    name: typeof name === 'object' ? name : { fr: name, en: name },
+    description: typeof description === 'object' ? description : { fr: description, en: description },
+    shortDescription: typeof shortDescription === 'object' ? shortDescription : { fr: shortDescription, en: shortDescription },
     category,
     subcategory: subcategory || category,
+    tags: tags || [],
     price: parseFloat(price),
-    currency: currency || 'FCFA',
+    compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : undefined,
     inventory: {
-      quantity: parseInt(stock)
+      quantity: parseInt(stock) || 0
     },
-    unit: unit || 'unité',
-    status: status || 'draft', // Statut par défaut : brouillon
-    images: images || [],
+    minimumOrderQuantity: minimumOrderQuantity || 1,
+    maximumOrderQuantity: maximumOrderQuantity || undefined,
+    unit: unit || 'kg',
+    status: status || 'draft',
+    images: images ? images.map((img, index) => ({
+      ...img,
+      order: index,
+      isPrimary: index === 0
+    })) : [],
     transformer: req.user.id,
     userType: 'transformer'
   };
@@ -1236,7 +1252,163 @@ exports.getBusinessStats = catchAsync(async (req, res, next) => {
     data: stats
   });
 });
-exports.getProductionAnalytics = temporaryResponse('Analytics production');
+exports.getProductionAnalytics = catchAsync(async (req, res, next) => {
+  const transformerId = req.user.id;
+  const { period = '30d' } = req.query; // 7d, 30d, 90d, 1y
+
+  // Calculer la période
+  const now = new Date();
+  let startDate;
+  
+  switch (period) {
+    case '7d':
+      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      break;
+    case '30d':
+      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      break;
+    case '90d':
+      startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+      break;
+    case '1y':
+      startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+      break;
+    default:
+      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  }
+
+  // Analytics de production par jour
+  const dailyProduction = await Order.aggregate([
+    {
+      $match: {
+        seller: transformerId,
+        status: 'completed',
+        createdAt: { $gte: startDate, $lte: now }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          year: { $year: '$createdAt' },
+          month: { $month: '$createdAt' },
+          day: { $dayOfMonth: '$createdAt' }
+        },
+        totalOrders: { $sum: 1 },
+        totalRevenue: { $sum: '$total' },
+        totalItems: { $sum: { $sum: '$items.quantity' } }
+      }
+    },
+    {
+      $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 }
+    }
+  ]);
+
+  // Analytics par catégorie de produit
+  const categoryAnalytics = await Order.aggregate([
+    {
+      $match: {
+        seller: transformerId,
+        status: 'completed',
+        createdAt: { $gte: startDate, $lte: now }
+      }
+    },
+    { $unwind: '$items' },
+    {
+      $group: {
+        _id: '$items.category',
+        totalQuantity: { $sum: '$items.quantity' },
+        totalRevenue: { $sum: { $multiply: ['$items.quantity', '$items.unitPrice'] } },
+        averagePrice: { $avg: '$items.unitPrice' }
+      }
+    },
+    { $sort: { totalQuantity: -1 } }
+  ]);
+
+  // Analytics de performance temporelle
+  const timeAnalytics = await Order.aggregate([
+    {
+      $match: {
+        seller: transformerId,
+        status: 'completed',
+        createdAt: { $gte: startDate, $lte: now },
+        completedAt: { $exists: true }
+      }
+    },
+    {
+      $project: {
+        processingDays: {
+          $divide: [
+            { $subtract: ['$completedAt', '$createdAt'] },
+            1000 * 60 * 60 * 24
+          ]
+        },
+        orderValue: '$total'
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        averageProcessingTime: { $avg: '$processingDays' },
+        minProcessingTime: { $min: '$processingDays' },
+        maxProcessingTime: { $max: '$processingDays' },
+        totalOrders: { $sum: 1 }
+      }
+    }
+  ]);
+
+  // Tendances de croissance
+  const growthTrends = await Order.aggregate([
+    {
+      $match: {
+        seller: transformerId,
+        status: 'completed',
+        createdAt: { $gte: startDate, $lte: now }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          year: { $year: '$createdAt' },
+          month: { $month: '$createdAt' }
+        },
+        monthlyRevenue: { $sum: '$total' },
+        monthlyOrders: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { '_id.year': 1, '_id.month': 1 }
+    }
+  ]);
+
+  // Calculer le taux de croissance
+  let growthRate = 0;
+  if (growthTrends.length >= 2) {
+    const current = growthTrends[growthTrends.length - 1];
+    const previous = growthTrends[growthTrends.length - 2];
+    growthRate = previous.monthlyRevenue > 0 
+      ? ((current.monthlyRevenue - previous.monthlyRevenue) / previous.monthlyRevenue) * 100 
+      : 0;
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      period,
+      startDate,
+      endDate: now,
+      dailyProduction,
+      categoryAnalytics,
+      timeAnalytics: timeAnalytics[0] || {
+        averageProcessingTime: 0,
+        minProcessingTime: 0,
+        maxProcessingTime: 0,
+        totalOrders: 0
+      },
+      growthTrends,
+      growthRate: Math.round(growthRate * 100) / 100
+    }
+  });
+});
 exports.getEfficiencyMetrics = temporaryResponse('Métriques efficacité');
 exports.getRevenueAnalytics = temporaryResponse('Analytics revenus');
 
@@ -1248,8 +1420,159 @@ exports.updateContract = temporaryResponse('Mise à jour contrat');
 exports.terminateContract = temporaryResponse('Résiliation contrat');
 
 // Avis
-exports.getMyReviews = temporaryResponse('Mes avis');
+exports.getMyReviews = catchAsync(async (req, res, next) => {
+  const transformerId = req.user.id;
+  const { page = 1, limit = 20, status = 'all' } = req.query;
+  
+  // Construire le filtre de statut
+  let statusFilter = {};
+  if (status === 'unread') {
+    statusFilter.isRead = false;
+  } else if (status === 'read') {
+    statusFilter.isRead = true;
+  }
+  // Si status === 'all', pas de filtre
+
+  // Récupérer les avis du transformateur
+  const reviews = await Review.find({ 
+    transformer: transformerId,
+    isActive: true,
+    ...statusFilter
+  })
+  .populate('reviewer', 'firstName lastName avatar email')
+  .populate('product', 'name.fr name.en images')
+  .populate('order', 'orderNumber total createdAt')
+  .sort('-createdAt')
+  .limit(limit * 1)
+  .skip((page - 1) * limit);
+
+  // Compter le total d'avis
+  const totalReviews = await Review.countDocuments({ 
+    transformer: transformerId,
+    isActive: true,
+    ...statusFilter
+  });
+
+  // Compter les avis non lus
+  const unreadCount = await Review.countDocuments({ 
+    transformer: transformerId,
+    isActive: true,
+    isRead: false
+  });
+
+  // Calculer les statistiques des avis
+  const stats = await Review.aggregate([
+    { $match: { transformer: transformerId, isActive: true } },
+    {
+      $group: {
+        _id: null,
+        totalReviews: { $sum: 1 },
+        averageRating: { $avg: '$rating' },
+        ratingDistribution: {
+          $push: '$rating'
+        },
+        recentReviews: {
+          $sum: {
+            $cond: [
+              { $gte: ['$createdAt', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)] },
+              1,
+              0
+            ]
+          }
+        }
+      }
+    }
+  ]);
+
+  const reviewStats = stats[0] || {
+    totalReviews: 0,
+    averageRating: 0,
+    ratingDistribution: [],
+    recentReviews: 0
+  };
+
+  // Calculer la distribution des notes
+  const ratingDistribution = {
+    5: reviewStats.ratingDistribution.filter(r => r === 5).length,
+    4: reviewStats.ratingDistribution.filter(r => r === 4).length,
+    3: reviewStats.ratingDistribution.filter(r => r === 3).length,
+    2: reviewStats.ratingDistribution.filter(r => r === 2).length,
+    1: reviewStats.ratingDistribution.filter(r => r === 1).length,
+  };
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      reviews,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(totalReviews / limit),
+        totalReviews,
+        hasNext: page * limit < totalReviews,
+        hasPrev: page > 1
+      },
+      stats: {
+        totalReviews: reviewStats.totalReviews,
+        averageRating: Math.round(reviewStats.averageRating * 10) / 10,
+        ratingDistribution,
+        recentReviews: reviewStats.recentReviews,
+        unreadCount
+      }
+    }
+  });
+});
 exports.respondToReview = temporaryResponse('Réponse avis');
+
+// Marquer un avis comme lu
+exports.markReviewAsRead = catchAsync(async (req, res, next) => {
+  const { reviewId } = req.params;
+  const transformerId = req.user.id;
+
+  // Vérifier que l'avis appartient au transformateur
+  const review = await Review.findOne({
+    _id: reviewId,
+    transformer: transformerId,
+    isActive: true
+  });
+
+  if (!review) {
+    return next(new AppError('Avis non trouvé ou non autorisé', 404));
+  }
+
+  // Marquer comme lu
+  review.isRead = true;
+  review.readAt = new Date();
+  await review.save();
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Avis marqué comme lu',
+    data: { review }
+  });
+});
+
+// Marquer tous les avis comme lus
+exports.markAllReviewsAsRead = catchAsync(async (req, res, next) => {
+  const transformerId = req.user.id;
+
+  const result = await Review.updateMany(
+    { 
+      transformer: transformerId,
+      isActive: true,
+      isRead: false
+    },
+    { 
+      isRead: true,
+      readAt: new Date()
+    }
+  );
+
+  res.status(200).json({
+    status: 'success',
+    message: `${result.modifiedCount} avis marqués comme lus`,
+    data: { modifiedCount: result.modifiedCount }
+  });
+});
 
 // Réclamations
 exports.getComplaints = temporaryResponse('Réclamations');
@@ -1282,162 +1605,6 @@ exports.createProductionAlert = temporaryResponse('Création alerte');
 exports.getComplianceReports = temporaryResponse('Rapports conformité');
 exports.generateComplianceReport = temporaryResponse('Génération rapport');
 
-// GESTION DE BOUTIQUE
-exports.getMyShopInfo = catchAsync(async (req, res, next) => {
-  const transformer = await Transformer.findById(req.user._id);
-  
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
-  }
 
-  res.status(200).json({
-    status: 'success',
-    data: {
-      shopInfo: transformer.shopInfo || {
-        isShopActive: false,
-        shopName: '',
-        shopDescription: '',
-        shopBanner: null,
-        shopLogo: null,
-        openingHours: {
-          monday: { open: '08:00', close: '18:00', isOpen: true },
-          tuesday: { open: '08:00', close: '18:00', isOpen: true },
-          wednesday: { open: '08:00', close: '18:00', isOpen: true },
-          thursday: { open: '08:00', close: '18:00', isOpen: true },
-          friday: { open: '08:00', close: '18:00', isOpen: true },
-          saturday: { open: '08:00', close: '16:00', isOpen: true },
-          sunday: { open: '', close: '', isOpen: false }
-        },
-        contactInfo: {
-          phone: '',
-          email: '',
-          website: '',
-          socialMedia: {
-            facebook: '',
-            instagram: '',
-            twitter: ''
-          }
-        }
-      }
-    }
-  });
-});
-
-exports.updateMyShopInfo = catchAsync(async (req, res, next) => {
-  const transformer = await Transformer.findByIdAndUpdate(
-    req.user._id,
-    { shopInfo: req.body },
-    { new: true, runValidators: true }
-  );
-
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      shopInfo: transformer.shopInfo
-    }
-  });
-});
-
-exports.activateShop = catchAsync(async (req, res, next) => {
-  const transformer = await Transformer.findByIdAndUpdate(
-    req.user._id,
-    { 'shopInfo.isShopActive': true },
-    { new: true, runValidators: true }
-  );
-
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Boutique activée avec succès',
-    data: {
-      shopInfo: transformer.shopInfo
-    }
-  });
-});
-
-exports.deactivateShop = catchAsync(async (req, res, next) => {
-  const transformer = await Transformer.findByIdAndUpdate(
-    req.user._id,
-    { 'shopInfo.isShopActive': false },
-    { new: true, runValidators: true }
-  );
-
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Boutique désactivée avec succès',
-    data: {
-      shopInfo: transformer.shopInfo
-    }
-  });
-});
-
-// Upload de bannière
-exports.uploadShopBanner = catchAsync(async (req, res, next) => {
-  if (!req.body.shopBanner) {
-    return next(new AppError('Aucune image fournie', 400));
-  }
-
-  // L'URL Cloudinary est déjà dans req.body.shopBanner grâce au middleware processTransformerShopBanner
-  const imageUrl = req.body.shopBanner;
-
-  const transformer = await Transformer.findByIdAndUpdate(
-    req.user._id,
-    { 'shopInfo.shopBanner': imageUrl },
-    { new: true, runValidators: true }
-  );
-
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Bannière mise à jour avec succès',
-    data: {
-      url: imageUrl,
-      shopInfo: transformer.shopInfo
-    }
-  });
-});
-
-// Upload de logo
-exports.uploadShopLogo = catchAsync(async (req, res, next) => {
-  if (!req.body.shopLogo) {
-    return next(new AppError('Aucune image fournie', 400));
-  }
-
-  // L'URL Cloudinary est déjà dans req.body.shopLogo grâce au middleware processTransformerShopLogo
-  const imageUrl = req.body.shopLogo;
-
-  const transformer = await Transformer.findByIdAndUpdate(
-    req.user._id,
-    { 'shopInfo.shopLogo': imageUrl },
-    { new: true, runValidators: true }
-  );
-
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Logo mis à jour avec succès',
-    data: {
-      url: imageUrl,
-      shopInfo: transformer.shopInfo
-    }
-  });
-});
 
 module.exports = exports;

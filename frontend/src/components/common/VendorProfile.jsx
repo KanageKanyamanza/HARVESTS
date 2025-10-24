@@ -23,7 +23,6 @@ const VendorProfile = ({
   getVendorStats,
   getVendorContact,
   getVendorTags,
-  getVendorItems,
   formatPrice,
   getItemName,
   getItemDescription,
@@ -47,6 +46,7 @@ const VendorProfile = ({
   const navigate = useNavigate();
   const [vendor, setVendor] = useState(null);
   const [items, setItems] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(tabs[0]);
 
@@ -77,6 +77,17 @@ const VendorProfile = ({
           }
         } catch (error) {
           console.error(`Erreur lors du chargement des items:`, error);
+        }
+
+        // Charger les avis
+        try {
+          const reviewsResponse = await service.getReviews(id);
+          
+          if (reviewsResponse.data.status === 'success') {
+            setReviews(reviewsResponse.data.data.reviews || []);
+          }
+        } catch (error) {
+          console.error(`Erreur lors du chargement des avis:`, error);
         }
       } catch (error) {
         console.error('Erreur lors du chargement:', error);
@@ -155,9 +166,9 @@ const VendorProfile = ({
         <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
             {/* Bannière en arrière-plan */}
           <div className="relative sm:h-[300px] h-[200px] md:h-[375px] bg-gradient-to-r from-green-400 to-green-600">
-            {vendor.restaurantBanner || vendor.shopBanner || vendor.shopInfo?.shopBanner ? (
+            {vendor.restaurantBanner || vendor.shopBanner || vendor.shopLogo ? (
               <img 
-                src={vendor.restaurantBanner || vendor.shopBanner || vendor.shopInfo?.shopBanner} 
+                src={vendor.restaurantBanner || vendor.shopBanner || vendor.shopLogo} 
                 alt={`Bannière de ${getVendorName(vendor)}`}
                 className="w-full h-full object-cover"
               />
@@ -174,9 +185,9 @@ const VendorProfile = ({
             <div className="absolute bottom-5 left-5 transform -translate-x-2 translate-y-2">
               <div className="w-20 h-20 rounded-full bg-white p-1 shadow-lg">
                 <div className="w-full h-full rounded-full bg-gray-200 overflow-hidden">
-                  {(vendor.avatar || vendor.shopInfo?.shopLogo) ? (
+                  {(vendor.logo || vendor.shopLogo) ? (
                     <img 
-                      src={vendor.avatar || vendor.shopInfo?.shopLogo} 
+                      src={vendor.logo || vendor.shopLogo} 
                       alt={getVendorName(vendor)}
                       className="w-full h-full object-cover"
                     />
@@ -203,8 +214,11 @@ const VendorProfile = ({
             <div className="flex items-center text-gray-500 mb-6">
               <FiMapPin className="mr-1" />
               <span>{getCountryName(vendor.country)}</span>
-              {vendor.address?.city && (
-                <span className="ml-2">• {vendor.address.city}</span>
+              {vendor.city && (
+                <span className="ml-2">• {vendor.city}</span>
+              )}
+              {vendor.region && (
+                <span className="ml-2">• {vendor.region}</span>
               )}
             </div>
 
@@ -274,7 +288,7 @@ const VendorProfile = ({
                       : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  {getTabLabel(tab)} ({getTabCount(tab, items)})
+                  {getTabLabel(tab)} ({getTabCount(tab, items, reviews)})
                 </button>
               ))}
             </nav>
@@ -296,7 +310,7 @@ const VendorProfile = ({
               getEmptyStateDescription,
               addToCart,
               navigate
-            })}
+            }, reviews)}
           </div>
         </div>
       </div>
