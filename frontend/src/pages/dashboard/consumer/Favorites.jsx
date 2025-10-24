@@ -82,7 +82,7 @@ const Favorites = () => {
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
             >
               <FiShoppingCart className="h-4 w-4 mr-2" />
-              Découvrir plus de produits
+              Plus de produits
             </Link>
           </div>
         </div>
@@ -107,15 +107,22 @@ const Favorites = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {favorites.map((favorite) => (
-              <div key={favorite._id} className="relative">
-                <ProductCard
-                  product={favorite.product}
-                  showActions={true}
-                  onRemoveFavorite={() => handleRemoveFavorite(favorite.product._id)}
-                />
-              </div>
-            ))}
+            {favorites.map((favorite) => {
+              // Vérification de sécurité pour éviter les erreurs si product est null
+              if (!favorite.product) {
+                return null;
+              }
+              
+              return (
+                <div key={favorite._id} className="relative">
+                  <ProductCard
+                    product={favorite.product}
+                    showActions={true}
+                    onRemoveFavorite={() => handleRemoveFavorite(favorite.product._id)}
+                  />
+                </div>
+              );
+            })}
           </div>
         )}
         </div>

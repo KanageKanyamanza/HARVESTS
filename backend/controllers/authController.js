@@ -77,7 +77,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     phone: req.body.phone,
     userType,
     preferredLanguage: req.body.preferredLanguage || 'fr',
-    country: req.body.country || 'CM'
+    country: req.body.country || 'Sénégal'
   };
 
   // Gérer lastName selon le type d'utilisateur

@@ -12,6 +12,12 @@ import {
   FiPackage,
   FiShoppingCart
 } from 'react-icons/fi';
+import { 
+  getProfileRoute, 
+  getSettingsRoute,
+  getAddProductRoute,
+  getOrdersRoute
+} from '../../../utils/routeUtils';
 
 const QuickActionsSection = ({ userType, actions = [] }) => {
   const getDefaultActions = () => {
@@ -20,21 +26,21 @@ const QuickActionsSection = ({ userType, actions = [] }) => {
         icon: <FiPlus className="h-5 w-5" />,
         title: 'Ajouter un produit',
         description: 'Créer un nouveau produit',
-        href: `/${userType}/products/add`,
+        href: getAddProductRoute({ userType }),
         color: 'bg-blue-500 hover:bg-blue-600'
       },
       {
         icon: <FiEdit className="h-5 w-5" />,
         title: 'Modifier le profil',
         description: 'Mettre à jour vos informations',
-        href: `/dashboard/profile`,
+        href: getProfileRoute({ userType }),
         color: 'bg-green-500 hover:bg-green-600'
       },
       {
         icon: <FiSettings className="h-5 w-5" />,
         title: 'Paramètres',
         description: 'Configurer votre compte',
-        href: `/dashboard/settings`,
+        href: getSettingsRoute({ userType }),
         color: 'bg-gray-500 hover:bg-gray-600'
       }
     ];
@@ -66,7 +72,7 @@ const QuickActionsSection = ({ userType, actions = [] }) => {
             icon: <FiShoppingCart className="h-5 w-5" />,
             title: 'Mes commandes',
             description: 'Voir mes commandes',
-            href: `/${userType}/orders`,
+            href: getOrdersRoute({ userType }),
             color: 'bg-blue-500 hover:bg-blue-600'
           },
           {
@@ -80,14 +86,14 @@ const QuickActionsSection = ({ userType, actions = [] }) => {
             icon: <FiEdit className="h-5 w-5" />,
             title: 'Modifier le profil',
             description: 'Mettre à jour vos informations',
-            href: `/dashboard/profile`,
+            href: getProfileRoute({ userType }),
             color: 'bg-green-500 hover:bg-green-600'
           },
           {
             icon: <FiSettings className="h-5 w-5" />,
             title: 'Paramètres',
             description: 'Configurer votre compte',
-            href: `/${userType}/settings`,
+            href: getSettingsRoute({ userType }),
             color: 'bg-gray-500 hover:bg-gray-600'
           }
         ];
@@ -131,14 +137,14 @@ const QuickActionsSection = ({ userType, actions = [] }) => {
             icon: <FiShoppingCart className="h-5 w-5" />,
             title: 'Commandes',
             description: 'Voir les commandes',
-            href: `/${userType}/orders`,
+            href: getOrdersRoute({ userType }),
             color: 'bg-purple-500 hover:bg-purple-600'
           },
           {
             icon: <FiEdit className="h-5 w-5" />,
             title: 'Modifier le profil',
             description: 'Mettre à jour vos informations',
-            href: `/dashboard/profile`,
+            href: getProfileRoute({ userType }),
             color: 'bg-gray-500 hover:bg-gray-600'
           }
         ];
@@ -163,7 +169,7 @@ const QuickActionsSection = ({ userType, actions = [] }) => {
             icon: <FiEdit className="h-5 w-5" />,
             title: 'Modifier le profil',
             description: 'Mettre à jour vos informations',
-            href: `/dashboard/profile`,
+            href: getProfileRoute({ userType }),
             color: 'bg-gray-500 hover:bg-gray-600'
           }
         ];
@@ -188,7 +194,7 @@ const QuickActionsSection = ({ userType, actions = [] }) => {
             icon: <FiEdit className="h-5 w-5" />,
             title: 'Modifier le profil',
             description: 'Mettre à jour vos informations',
-            href: `/dashboard/profile`,
+            href: getProfileRoute({ userType }),
             color: 'bg-gray-500 hover:bg-gray-600'
           }
         ];

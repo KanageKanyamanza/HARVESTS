@@ -1,11 +1,13 @@
 import React from 'react';
 import { useCart } from '../contexts/CartContext';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 import { FiShoppingCart, FiPlus, FiMinus, FiTrash2, FiArrowLeft } from 'react-icons/fi';
 import CloudinaryImage from '../components/common/CloudinaryImage';
 
 const Cart = () => {
   const { items, totalItems, totalPrice, updateQuantity, removeFromCart, clearCart } = useCart();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   if (items.length === 0) {
@@ -132,7 +134,12 @@ const Cart = () => {
               </div>
 
               <button 
-                onClick={() => navigate('/checkout')}
+                onClick={() => {
+                  // Navigation conditionnelle selon le type d'utilisateur
+                  const checkoutRoute = user?.userType === 'consumer' ? '/consumer/checkout' : '/checkout';
+                  console.log('🛒 Navigation vers:', checkoutRoute, 'pour utilisateur:', user?.userType);
+                  navigate(checkoutRoute);
+                }}
                 className="w-full bg-harvests-green text-white py-3 rounded-lg hover:bg-green-600 transition-colors font-medium"
               >
                 Passer la commande

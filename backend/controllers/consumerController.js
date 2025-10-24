@@ -907,6 +907,11 @@ exports.deleteMyReview = catchAsync(async (req, res, next) => {
 
 // Gestion des favoris
 exports.getFavorites = catchAsync(async (req, res, next) => {
+  // Vérifier que l'utilisateur est bien un consommateur
+  if (req.user.userType !== 'consumer') {
+    return next(new AppError('Seuls les consommateurs peuvent voir leurs favoris', 403));
+  }
+
   const consumer = await Consumer.findById(req.user.id)
     .populate({
       path: 'favorites.product',
@@ -915,6 +920,15 @@ exports.getFavorites = catchAsync(async (req, res, next) => {
         select: 'firstName lastName businessName avatar'
       }
     });
+
+  if (!consumer) {
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        favorites: []
+      }
+    });
+  }
 
   res.status(200).json({
     status: 'success',
@@ -931,7 +945,21 @@ exports.addFavorite = catchAsync(async (req, res, next) => {
     return next(new AppError('ID du produit requis', 400));
   }
 
-  const consumer = await Consumer.findById(req.user.id);
+  // Vérifier que l'utilisateur est bien un consommateur
+  if (req.user.userType !== 'consumer') {
+    return next(new AppError('Seuls les consommateurs peuvent ajouter des favoris', 403));
+  }
+
+  // Trouver ou créer le document Consumer
+  let consumer = await Consumer.findById(req.user.id);
+  
+  if (!consumer) {
+    // Si le document Consumer n'existe pas, le créer
+    consumer = await Consumer.create({
+      _id: req.user.id,
+      favorites: []
+    });
+  }
   
   // Vérifier si le produit est déjà en favori
   const existingFavorite = consumer.favorites.find(fav => 
@@ -946,6 +974,12 @@ exports.addFavorite = catchAsync(async (req, res, next) => {
   consumer.favorites.push({ product: productId });
   await consumer.save();
 
+  // Mettre à jour les statistiques de favoris du produit
+  const Product = require('../models/Product');
+  await Product.findByIdAndUpdate(productId, {
+    $inc: { 'stats.favorites': 1 }
+  });
+
   res.status(201).json({
     status: 'success',
     message: 'Produit ajouté aux favoris',
@@ -958,7 +992,16 @@ exports.addFavorite = catchAsync(async (req, res, next) => {
 exports.removeFavorite = catchAsync(async (req, res, next) => {
   const { productId } = req.params;
   
+  // Vérifier que l'utilisateur est bien un consommateur
+  if (req.user.userType !== 'consumer') {
+    return next(new AppError('Seuls les consommateurs peuvent retirer des favoris', 403));
+  }
+
   const consumer = await Consumer.findById(req.user.id);
+  
+  if (!consumer) {
+    return next(new AppError('Consommateur non trouvé', 404));
+  }
   
   // Retirer le produit des favoris
   consumer.favorites = consumer.favorites.filter(fav => 
@@ -966,6 +1009,12 @@ exports.removeFavorite = catchAsync(async (req, res, next) => {
   );
   
   await consumer.save();
+
+  // Mettre à jour les statistiques de favoris du produit
+  const Product = require('../models/Product');
+  await Product.findByIdAndUpdate(productId, {
+    $inc: { 'stats.favorites': -1 }
+  });
 
   res.status(200).json({
     status: 'success',

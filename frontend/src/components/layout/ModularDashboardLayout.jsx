@@ -52,7 +52,13 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
         <>
           <div className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden" onClick={() => setSidebarOpen(false)} />
           <div className="fixed top-0 left-0 h-screen w-64 z-50 lg:hidden">
-            <DashboardSidebarFixed onLogout={handleLogout} />
+            <DashboardSidebarFixed 
+              onLogout={handleLogout} 
+              collapsed={false}
+              onToggleCollapse={handleToggleCollapse}
+              navigationItems={navigationItems}
+              user={user}
+            />
           </div>
         </>
       )}

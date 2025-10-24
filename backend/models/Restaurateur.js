@@ -11,6 +11,7 @@ const restaurateurSchema = new mongoose.Schema({
     maxlength: [100, 'Le nom du restaurant ne peut pas dépasser 100 caractères'],
     default: 'À compléter'
   },
+
   
   businessLicense: {
     type: String,

@@ -202,6 +202,10 @@ exports.createReview = catchAsync(async (req, res, next) => {
         return next(new AppError('Produit non trouvé', 404));
       }
       
+      if (!product.producer) {
+        return next(new AppError('Producteur non trouvé pour ce produit', 404));
+      }
+      
       producerId = product.producer._id;
       order = null; // Pas de commande associée
     } else {

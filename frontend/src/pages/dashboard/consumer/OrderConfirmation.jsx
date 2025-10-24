@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import { consumerService, orderService } from '../../../services';
 import { parseProductName } from '../../../utils/productUtils';
-import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import {
   FiCheckCircle,
   FiClock,
@@ -152,7 +151,7 @@ const OrderConfirmation = () => {
 
   if (loading) {
     return (
-      <ModularDashboardLayout>
+      <div>
         <div className="p-6 max-w-4xl mx-auto">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
@@ -170,13 +169,13 @@ const OrderConfirmation = () => {
             </div>
           </div>
         </div>
-      </ModularDashboardLayout>
+      </div>
     );
   }
 
   if (error || !order) {
     return (
-      <ModularDashboardLayout>
+      <div>
         <div className="p-6 max-w-4xl mx-auto">
           <div className="text-center py-12">
             <FiShoppingBag className="mx-auto h-16 w-16 text-gray-400" />
@@ -203,7 +202,7 @@ const OrderConfirmation = () => {
                 </button>
               ) : (
                 <button
-                  onClick={() => navigate('/order-history')}
+                  onClick={() => navigate('/consumer/orders')}
                   className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-harvests-green hover:bg-green-600"
                 >
                   <FiArrowRight className="mr-2 h-5 w-5" />
@@ -220,7 +219,7 @@ const OrderConfirmation = () => {
             </div>
           </div>
         </div>
-      </ModularDashboardLayout>
+      </div>
     );
   }
 
@@ -228,7 +227,7 @@ const OrderConfirmation = () => {
   const StatusIcon = statusConfig.icon;
 
   return (
-    <ModularDashboardLayout>
+    <div>
       <div className="p-6 max-w-4xl mx-auto">
         {/* Success Header */}
         <div className="text-center mb-8">
@@ -279,7 +278,7 @@ const OrderConfirmation = () => {
               Partager
             </button>
             <button
-              onClick={() => navigate('/order-history')}
+              onClick={() => navigate('/consumer/orders')}
               className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-harvests-light"
             >
               <FiShoppingBag className="h-4 w-4 mr-2" />
@@ -537,7 +536,7 @@ const OrderConfirmation = () => {
             Retour à l'accueil
           </button>
           <button
-            onClick={() => navigate('/order-history')}
+            onClick={() => navigate('/consumer/orders')}
             className="flex-1 inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light"
           >
             <FiShoppingBag className="mr-2 h-5 w-5" />
@@ -545,7 +544,7 @@ const OrderConfirmation = () => {
           </button>
         </div>
       </div>
-    </ModularDashboardLayout>
+    </div>
   );
 };
 

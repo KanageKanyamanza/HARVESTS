@@ -177,7 +177,7 @@ const SettingsPage = () => {
 				<div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
 					{/* Sidebar des onglets */}
 					<div className="lg:col-span-1">
-						<nav className="md:space-y-1 flex md:flex-col">
+						<nav className="md:space-y-1 flex md:flex-col overflow-x-auto">
 							{tabs.map((tab) => {
 								const Icon = tab.icon;
 								return (

@@ -9,7 +9,7 @@ const Footer = () => {
 
   const footerLinks = {
     myAccount: [
-      { name: 'Mon Compte', href: '/dashboard' },
+      { name: 'Mon Compte', href: '/consumer/dashboard' },
       { name: 'Historique', href: '/order-history' },
       { name: 'Panier', href: '/cart' },
       { name: 'Liste de souhaits', href: '/favorites' },

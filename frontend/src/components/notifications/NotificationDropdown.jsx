@@ -2,12 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiBell, FiX, FiCheck, FiTrash2, FiShoppingBag, FiPackage, FiTruck, FiAlertCircle, FiRefreshCw } from 'react-icons/fi';
 import { useNotifications } from '../../contexts/NotificationContext';
+import { useAuth } from '../../hooks/useAuth';
 
 const NotificationDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification, refreshNotifications } = useNotifications();
 
   // Fermer le dropdown quand on clique à l'extérieur
@@ -87,8 +89,9 @@ const NotificationDropdown = () => {
 
     // Rediriger selon le type de notification
     if (notification.data?.orderId) {
-      // Notification de commande
-      navigate(`/orders/${notification.data.orderId}`);
+      // Notification de commande - utiliser le préfixe utilisateur
+      const orderRoute = user?.userType ? `/${user.userType}/orders/${notification.data.orderId}` : `/orders/${notification.data.orderId}`;
+      navigate(orderRoute);
       setIsOpen(false);
     } else if (notification.data?.productId) {
       // Notification de produit

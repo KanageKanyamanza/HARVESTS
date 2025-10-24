@@ -8,6 +8,9 @@ import NotificationDropdown from "../notifications/NotificationDropdown";
 const DashboardTopbar = ({ onMenuClick }) => {
 	const { user, userInitials } = useAuth();
 	const { displayIcon } = useUserType();
+	
+	// Ne pas afficher le menu utilisateur pour l'admin
+	const isAdmin = user?.role === 'admin';
 
 	return (
 		<div className="h-16 bg-white shadow-sm border-b border-gray-200 flex-shrink-0">
@@ -21,41 +24,43 @@ const DashboardTopbar = ({ onMenuClick }) => {
 					</button>
 				</div>
 				<div className="flex items-center space-x-4 ">
-					{/* Notifications */}
-					<NotificationDropdown />
+					{/* Notifications - seulement si pas admin */}
+					{!isAdmin && <NotificationDropdown />}
 
-					{/* User menu */}
-					<div className="relative">
-						<button className="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
-							<div className="h-8 w-8 bg-harvests-green rounded-full flex items-center justify-center">
-								{user?.avatar ? (
-									<CloudinaryImage
-										src={user?.avatar}
-										alt="Avatar"
-										className="h-8 w-8 rounded-full object-cover"
-										width={32}
-										height={32}
-										crop="fill"
-										quality="auto"
-									/>
-								) : (
-									<span className="text-white text-sm font-medium">
-										{userInitials ||
-											user?.firstName?.charAt(0)?.toUpperCase() ||
-											"?"}
-									</span>
-								)}
-							</div>
-							<div className="hidden md:block">
-								<div className="flex items-center space-x-1">
-									<span className="text-xs">{displayIcon}</span>
-									<span className="text-sm font-medium">
-										{user?.firstName || "Utilisateur"}
-									</span>
+					{/* User menu - seulement si pas admin */}
+					{!isAdmin && (
+						<div className="relative">
+							<button className="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
+								<div className="h-8 w-8 bg-harvests-green rounded-full flex items-center justify-center">
+									{user?.avatar ? (
+										<CloudinaryImage
+											src={user?.avatar}
+											alt="Avatar"
+											className="h-8 w-8 rounded-full object-cover"
+											width={32}
+											height={32}
+											crop="fill"
+											quality="auto"
+										/>
+									) : (
+										<span className="text-white text-sm font-medium">
+											{userInitials ||
+												user?.firstName?.charAt(0)?.toUpperCase() ||
+												"?"}
+										</span>
+									)}
 								</div>
-							</div>
-						</button>
-					</div>
+								<div className="hidden md:block">
+									<div className="flex items-center space-x-1">
+										<span className="text-xs">{displayIcon}</span>
+										<span className="text-sm font-medium">
+											{user?.firstName || "Utilisateur"}
+										</span>
+									</div>
+								</div>
+							</button>
+						</div>
+					)}
 				</div>
 			</div>
 		</div>

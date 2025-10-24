@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { FiUpload, FiX, FiImage, FiCheck } from 'react-icons/fi';
 import { uploadService } from '../../services';
+import { useAuth } from '../../hooks/useAuth';
 import CloudinaryImage from './CloudinaryImage';
 
 const ImageUpload = ({
@@ -17,6 +18,7 @@ const ImageUpload = ({
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
+  const { refreshUser } = useAuth();
 
   // Configuration par type
   const configs = {
@@ -87,14 +89,39 @@ const ImageUpload = ({
       const formData = uploadService.createFormData(file, config.fieldName);
       const response = await config.uploadFunction(formData);
       
+      // Gérer différentes structures de réponse selon le type d'upload
       if (response.data?.user?.avatar) {
         onImageChange(response.data.user.avatar);
       } else if (response.data?.user?.shopBanner) {
         onImageChange(response.data.user.shopBanner);
+      } else if (response.data?.user?.shopLogo) {
+        onImageChange(response.data.user.shopLogo);
+      } else if (response.data?.data?.shopBanner) {
+        onImageChange(response.data.data.shopBanner);
+      } else if (response.data?.data?.shopLogo) {
+        onImageChange(response.data.data.shopLogo);
       } else if (response.data?.data?.images) {
         onImageChange(response.data.data.images[0]?.url);
       } else if (response.data?.images) {
         onImageChange(response.data.images[0]?.url);
+      } else if (response.data?.data?.banner) {
+        onImageChange(response.data.data.banner);
+      } else if (response.data?.data?.logo) {
+        onImageChange(response.data.data.logo);
+      } else if (response.data?.banner) {
+        onImageChange(response.data.banner);
+      } else if (response.data?.logo) {
+        onImageChange(response.data.logo);
+      } else {
+        console.warn('Structure de réponse non reconnue pour l\'upload d\'image:', response.data);
+      }
+      
+      // Mettre à jour automatiquement les données utilisateur après l'upload
+      try {
+        await refreshUser();
+      } catch (refreshError) {
+        console.warn('Erreur lors de la mise à jour des données utilisateur:', refreshError);
+        // Ne pas bloquer l'upload si la mise à jour échoue
       }
     } catch (error) {
       console.error('Erreur lors de l\'upload:', error);

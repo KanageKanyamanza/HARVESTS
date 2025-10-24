@@ -77,6 +77,9 @@ const ProfilePage = () => {
     setFormData({
       firstName: user.firstName || '',
       lastName: user.lastName || '',
+      companyName: user.companyName || '',
+      farmName: user.farmName || '',
+      restaurantName: user.restaurantName || '',
       phone: user.phone || '',
       address: user.address || '',
       city: user.city || '',
@@ -244,7 +247,7 @@ const ProfilePage = () => {
 
   return (
     <ModularDashboardLayout>
-      <div className="p-6 max-w-4xl mx-auto">
+      <div className="p-3 max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 flex items-center">
@@ -368,6 +371,78 @@ const ProfilePage = () => {
                     </p>
                   )}
                 </div>
+
+                {/* Nom de l'entreprise (pour transformateurs) */}
+                {user?.userType === 'transformer' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <FiUser className="inline mr-1" />
+                      Nom de l'entreprise
+                    </label>
+                    {editing ? (
+                      <input
+                        type="text"
+                        name="companyName"
+                        value={formData.companyName || ''}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Nom de votre entreprise"
+                      />
+                    ) : (
+                      <p className="text-gray-900">
+                        {safeDisplay(user.companyName, 'Non renseigné')}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Nom de la ferme (pour producteurs) */}
+                {user?.userType === 'producer' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <FiUser className="inline mr-1" />
+                      Nom de la ferme
+                    </label>
+                    {editing ? (
+                      <input
+                        type="text"
+                        name="farmName"
+                        value={formData.farmName || ''}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Nom de votre ferme"
+                      />
+                    ) : (
+                      <p className="text-gray-900">
+                        {safeDisplay(user.farmName, 'Non renseigné')}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Nom du restaurant (pour restaurateurs) */}
+                {user?.userType === 'restaurateur' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <FiUser className="inline mr-1" />
+                      Nom du restaurant
+                    </label>
+                    {editing ? (
+                      <input
+                        type="text"
+                        name="restaurantName"
+                        value={formData.restaurantName || ''}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Nom de votre restaurant"
+                      />
+                    ) : (
+                      <p className="text-gray-900">
+                        {safeDisplay(user.restaurantName, 'Non renseigné')}
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* Email */}
                 <div>

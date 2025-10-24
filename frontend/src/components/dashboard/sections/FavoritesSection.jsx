@@ -86,8 +86,14 @@ const FavoritesSection = () => {
 
   return (
     <div className="space-y-3">
-      {favorites.map((favorite) => (
-        <div key={favorite._id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+      {favorites.map((favorite) => {
+        // Vérification de sécurité pour éviter les erreurs si product est null
+        if (!favorite.product) {
+          return null;
+        }
+        
+        return (
+          <div key={favorite._id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
           <div className="flex-shrink-0">
             <CloudinaryImage
               src={favorite.product.images?.[0]?.url}
@@ -134,7 +140,8 @@ const FavoritesSection = () => {
             </button>
           </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 };

@@ -61,6 +61,7 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [favoritesCount, setFavoritesCount] = useState(0);
   const [activeTab, setActiveTab] = useState('description');
   const [showAddedToCart, setShowAddedToCart] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -128,6 +129,9 @@ const ProductDetail = () => {
             console.log('🔍 Données du producteur:', productData.producer);
             setProducer(productData.producer);
           }
+          
+          // Mettre à jour le compteur de favoris
+          setFavoritesCount(productData.stats?.favorites || 0);
         }
       } catch (error) {
         console.error('Erreur lors du chargement du produit:', error);
@@ -154,9 +158,18 @@ const ProductDetail = () => {
     const loadFavoriteStatus = async () => {
       if (product?._id && user?.userType === 'consumer') {
         try {
+          console.log('🔍 Vérification des favoris pour le produit:', product._id);
           const response = await consumerService.getFavorites();
           const favorites = response.data.data?.favorites || [];
-          const isProductFavorite = favorites.some(fav => fav.product._id === product._id);
+          console.log('📋 Favoris récupérés:', favorites);
+          
+          const isProductFavorite = favorites.some(fav => {
+            const productId = fav.product?._id || fav.product;
+            console.log('🔍 Comparaison:', productId, '===', product._id);
+            return productId === product._id;
+          });
+          
+          console.log('❤️ Produit en favori:', isProductFavorite);
           setIsFavorite(isProductFavorite);
         } catch (error) {
           console.error('Erreur lors du chargement des favoris:', error);
@@ -210,13 +223,13 @@ const ProductDetail = () => {
       console.log('📝 Données de l\'avis à envoyer:', {
         ...reviewData,
         productId: product._id,
-        producer: producer._id
+        producer: producer?._id
       });
       
       const response = await reviewService.createReview({
         ...reviewData,
         productId: product._id,
-        producer: producer._id
+        producer: producer?._id
       });
       
       console.log('✅ Avis créé avec succès:', response);
@@ -345,16 +358,33 @@ const ProductDetail = () => {
         // Supprimer des favoris
         await consumerService.removeFavorite(product._id);
         setIsFavorite(false);
+        setFavoritesCount(prev => Math.max(0, prev - 1));
         showSuccess('Produit retiré de vos favoris');
       } else {
         // Ajouter aux favoris
         await consumerService.addFavorite(product._id);
         setIsFavorite(true);
+        setFavoritesCount(prev => prev + 1);
         showSuccess('Produit ajouté à vos favoris');
       }
     } catch (error) {
       console.error('Erreur lors de la gestion des favoris:', error);
-      showError('Erreur lors de la gestion des favoris');
+      
+      // Gérer les erreurs spécifiques
+      if (error.response?.data?.message) {
+        const errorMessage = error.response.data.message;
+        
+        if (errorMessage.includes('déjà dans vos favoris')) {
+          // Le produit est déjà en favori, mettre à jour l'état
+          setIsFavorite(true);
+          setFavoritesCount(prev => Math.max(prev, 1)); // S'assurer qu'il y a au moins 1 favori
+          showError('Ce produit est déjà dans vos favoris');
+        } else {
+          showError(errorMessage);
+        }
+      } else {
+        showError('Erreur lors de la gestion des favoris');
+      }
     }
   };
 
@@ -555,7 +585,7 @@ const ProductDetail = () => {
                       </div>
                       <div className="flex items-center text-sm text-gray-600">
                         <FiHeart className="h-4 w-4 mr-1" />
-                        {product.stats.favorites || 0} favoris
+                        {favoritesCount} favoris
                       </div>
                     </>
                   )}

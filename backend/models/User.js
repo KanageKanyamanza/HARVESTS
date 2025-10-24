@@ -39,6 +39,22 @@ const baseUserSchema = new mongoose.Schema({
     trim: true,
     maxlength: [50, 'Le nom ne peut pas dépasser 50 caractères']
   },
+  // Noms d'entreprise spécifiques par type d'utilisateur
+  companyName: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'Le nom de l\'entreprise ne peut pas dépasser 100 caractères']
+  },
+  farmName: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'Le nom de la ferme ne peut pas dépasser 100 caractères']
+  },
+  restaurantName: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'Le nom du restaurant ne peut pas dépasser 100 caractères']
+  },
   phone: {
     type: String,
     required: [true, 'Numéro de téléphone requis'],

@@ -159,14 +159,6 @@ const producerSchema = new mongoose.Schema({
       type: String,
       maxlength: [500, 'La description de la boutique ne peut pas dépasser 500 caractères']
     },
-    shopBanner: {
-      type: String,
-      default: null
-    },
-    shopLogo: {
-      type: String,
-      default: null
-    },
     openingHours: {
       monday: { open: String, close: String },
       tuesday: { open: String, close: String },

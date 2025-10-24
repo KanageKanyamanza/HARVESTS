@@ -11,6 +11,7 @@ const transformerSchema = new mongoose.Schema({
     maxlength: [100, 'Le nom de l\'entreprise ne peut pas dépasser 100 caractères'],
     default: 'À compléter'
   },
+
   
   companyRegistrationNumber: {
     type: String,
@@ -205,49 +206,6 @@ const transformerSchema = new mongoose.Schema({
     }
   },
 
-  // Informations de boutique
-  shopInfo: {
-    isShopActive: {
-      type: Boolean,
-      default: false
-    },
-    shopName: {
-      type: String,
-      trim: true,
-      maxlength: [100, 'Le nom de la boutique ne peut pas dépasser 100 caractères']
-    },
-    shopDescription: {
-      type: String,
-      maxlength: [500, 'La description de la boutique ne peut pas dépasser 500 caractères']
-    },
-    shopBanner: {
-      type: String,
-      default: null
-    },
-    shopLogo: {
-      type: String,
-      default: null
-    },
-    openingHours: {
-      monday: { open: String, close: String, isOpen: Boolean },
-      tuesday: { open: String, close: String, isOpen: Boolean },
-      wednesday: { open: String, close: String, isOpen: Boolean },
-      thursday: { open: String, close: String, isOpen: Boolean },
-      friday: { open: String, close: String, isOpen: Boolean },
-      saturday: { open: String, close: String, isOpen: Boolean },
-      sunday: { open: String, close: String, isOpen: Boolean }
-    },
-    contactInfo: {
-      phone: String,
-      email: String,
-      website: String,
-      socialMedia: {
-        facebook: String,
-        instagram: String,
-        twitter: String
-      }
-    }
-  },
 
   // Méthodes de paiement préférées (centralisées depuis User)
   paymentMethods: [String],

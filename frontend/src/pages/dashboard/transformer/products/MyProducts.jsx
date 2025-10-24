@@ -30,7 +30,7 @@ const MyProducts = () => {
     const loadProducts = async () => {
       try {
         setLoading(true);
-        const response = await transformerService.getMyProducts();
+        const response = await transformerService.getProducts();
         setProducts(response.data?.data?.products || []);
       } catch (error) {
         console.error('Erreur lors du chargement des produits:', error);
@@ -130,7 +130,7 @@ const MyProducts = () => {
             <p className="text-gray-600 mt-1">Gérez les produits de votre boutique</p>
           </div>
           <Link
-            to="/transformer/products/new"
+            to="/transformer/products/add"
             className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
           >
             <FiPlus className="h-4 w-4 mr-2" />
@@ -261,7 +261,7 @@ const MyProducts = () => {
                 </p>
                 <div className="mt-6">
                   <Link
-                    to="/transformer/products/new"
+                    to="/transformer/products/add"
                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
                   >
                     <FiPlus className="h-4 w-4 mr-2" />

@@ -24,14 +24,6 @@ const SimpleReviewForm = ({
   const [formData, setFormData] = useState({
     rating: 0,
     comment: '',
-    detailedRating: {
-      quality: 0,
-      freshness: 0,
-      packaging: 0,
-      delivery: 0,
-      communication: 0,
-      valueForMoney: 0
-    },
     media: [],
     orderId: null
   });
@@ -89,15 +81,6 @@ const SimpleReviewForm = ({
     }
   };
 
-  const handleDetailedRatingChange = (criteria, rating) => {
-    setFormData(prev => ({
-      ...prev,
-      detailedRating: {
-        ...prev.detailedRating,
-        [criteria]: rating
-      }
-    }));
-  };
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -136,13 +119,6 @@ const SimpleReviewForm = ({
       newErrors.rating = 'Veuillez donner une note';
     }
 
-    // Vérifier que tous les critères détaillés sont remplis
-    const detailedCriteria = ['quality', 'freshness', 'packaging', 'delivery', 'communication', 'valueForMoney'];
-    const missingCriteria = detailedCriteria.filter(criteria => formData.detailedRating[criteria] === 0);
-    
-    if (missingCriteria.length > 0) {
-      newErrors.detailedRating = 'Veuillez évaluer tous les critères';
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -159,7 +135,7 @@ const SimpleReviewForm = ({
     try {
       await onSubmit({
         productId: product._id,
-        producer: producer._id,
+        producer: producer?._id,
         ...formData
       });
     } catch (error) {
@@ -169,14 +145,6 @@ const SimpleReviewForm = ({
     }
   };
 
-  const criteriaLabels = {
-    quality: 'Qualité du produit',
-    freshness: 'Fraîcheur',
-    packaging: 'Emballage',
-    delivery: 'Livraison',
-    communication: 'Communication',
-    valueForMoney: 'Rapport qualité/prix'
-  };
 
   return (
     <div className="space-y-6">
@@ -194,7 +162,7 @@ const SimpleReviewForm = ({
             <h4 className="font-medium text-gray-900">{parseProductName(product.name)}</h4>
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <User className="h-4 w-4" />
-              <span>Par {producer.firstName} {producer.lastName}</span>
+              <span>Par {producer ? `${producer.firstName || ''} ${producer.lastName || ''}`.trim() : 'Producteur inconnu'}</span>
             </div>
           </div>
         </div>
@@ -279,31 +247,6 @@ const SimpleReviewForm = ({
           </div>
         )}
 
-        {/* Critères détaillés */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Évaluation détaillée *
-          </label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Object.entries(criteriaLabels).map(([key, label]) => (
-              <div key={key} className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">{label}</span>
-                <StarRating
-                  rating={formData.detailedRating[key]}
-                  interactive={true}
-                  onRatingChange={(rating) => handleDetailedRatingChange(key, rating)}
-                  size="sm"
-                />
-              </div>
-            ))}
-          </div>
-          {errors.detailedRating && (
-            <p className="mt-2 text-sm text-red-600 flex items-center">
-              <AlertCircle className="h-4 w-4 mr-1" />
-              {errors.detailedRating}
-            </p>
-          )}
-        </div>
 
         {/* Commentaire */}
         <div>

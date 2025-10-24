@@ -19,6 +19,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../contexts/CartContext';
 import NotificationDropdown from '../notifications/NotificationDropdown';
 import SearchDropdown from '../common/SearchDropdown';
+import { generateUserNavigation } from '../../navigation';
 
 const Header = () => {
   const location = useLocation();
@@ -83,25 +84,17 @@ const Header = () => {
     { name: 'Produits', href: '/products', current: location.pathname === '/products' },
     { name: 'Catégories', href: '/categories', current: location.pathname === '/categories' },
     { name: 'Nos Vendeurs', href: '/vendeurs', current: location.pathname === '/vendeurs' },
+    { name: 'Contact', href: '/contact', current: location.pathname === '/contact' },
   ];
 
-  // Navigation utilisateur connecté
-  const userNavigation = [
-    { name: 'Tableau de bord', href: '/dashboard', icon: Package },
-    { name: 'Commandes', href: '/orders', icon: Package },
-    { name: 'Messages', href: '/messages', icon: MessageCircle },
-    { name: 'Profil', href: '/profile', icon: User },
-    { name: 'Paramètres', href: '/settings', icon: Settings },
-  ];
-
-  // Ajouter le lien admin si l'utilisateur est admin
-  if (user?.role === 'admin') {
-    userNavigation.unshift({ 
-      name: 'Administration', 
-      href: '/admin', 
-      icon: Shield 
-    });
-  }
+  // Navigation utilisateur connecté - adaptée selon le type d'utilisateur
+  const userNavigation = generateUserNavigation(user, {
+    Package,
+    MessageCircle,
+    User,
+    Settings,
+    Shield
+  });
 
   const handleSearch = (e) => {
     e.preventDefault();

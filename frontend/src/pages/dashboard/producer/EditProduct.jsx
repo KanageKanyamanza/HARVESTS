@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';import { producerService } from '../../../services';
+import { useParams, useNavigate } from 'react-router-dom';
+import { producerService } from '../../../services';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import ProductImageUpload from '../../../components/common/ProductImageUpload';
 import CloudinaryImage from '../../../components/common/CloudinaryImage';

@@ -14,6 +14,7 @@ const createGenericService = (userType) => ({
   createProduct: (data) => api.post(`/${userType}s/me/products`, data),
   updateProduct: (id, data) => api.patch(`/${userType}s/me/products/${id}`, data),
   deleteProduct: (id) => api.delete(`/${userType}s/me/products/${id}`),
+  submitProductForReview: (id) => api.patch(`/${userType}s/me/products/${id}/submit`),
   
   // Commandes
   getOrders: (params = {}) => api.get(`/${userType}s/me/orders`, { params }),
@@ -22,7 +23,7 @@ const createGenericService = (userType) => ({
   getMyOrder: (id) => api.get(`/${userType}s/me/orders/${id}`), // Alias pour getOrder
   createOrder: (data) => api.post(`/${userType}s/me/orders`, data),
   updateOrder: (id, data) => api.patch(`/${userType}s/me/orders/${id}`, data),
-  updateOrderStatus: (id, data) => api.patch(`/${userType}s/me/orders/${id}/status`, data),
+  updateOrderStatus: (id, data) => api.patch(`/${userType}s/me/orders/${id}`, data),
   
   // Profil
   getProfile: () => api.get(`/${userType}s/me`),
@@ -60,6 +61,13 @@ const createGenericService = (userType) => ({
   updateDish: (id, data) => api.patch(`/${userType}s/me/dishes/${id}`, data),
   deleteDish: (id) => api.delete(`/${userType}s/me/dishes/${id}`),
   
+  // Panier (pour consommateurs)
+  getCart: (params = {}) => api.get(`/${userType}s/me/cart`, { params }),
+  addToCart: (data) => api.post(`/${userType}s/me/cart`, data),
+  updateCartItem: (id, data) => api.patch(`/${userType}s/me/cart/${id}`, data),
+  removeFromCart: (id) => api.delete(`/${userType}s/me/cart/${id}`),
+  clearCart: () => api.delete(`/${userType}s/me/cart`),
+  
   // Favoris (pour consommateurs)
   getFavorites: (params = {}) => api.get(`/${userType}s/me/favorites`, { params }),
   addFavorite: (productId) => api.post(`/${userType}s/me/favorites`, { productId }),
@@ -78,6 +86,10 @@ const createGenericService = (userType) => ({
   getDeliveryZones: () => api.get(`/${userType}s/me/delivery-zones`),
   updateDeliveryZones: (data) => api.patch(`/${userType}s/me/delivery-zones`, data),
   
+  // Notifications
+  getNotifications: () => api.get(`/${userType}s/me/notifications`),
+  markNotificationsAsRead: (data) => api.patch(`/${userType}s/me/notifications`, data),
+
   // Routes publiques (sans paramètre lang automatique)
   getAllPublic: (params = {}) => {
     const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
