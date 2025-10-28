@@ -12,7 +12,21 @@ router.get('/by-region/:region', transformerController.getTransformersByRegion);
 router.get('/by-type/:type', transformerController.getTransformersByType);
 router.get('/:id/public', transformerController.getPublicTransformer);
 router.get('/:id/services', transformerController.getTransformerServices);
-router.get('/:id/reviews', transformerController.getTransformerReviews);
+// Route pour les avis d'un transformateur spécifique (avec gestion spéciale pour "me")
+router.get('/:id/reviews', (req, res, next) => {
+  if (req.params.id === 'me') {
+    // Appliquer l'authentification pour la route /me/reviews
+    return authController.protect(req, res, () => {
+      authController.restrictTo('transformer')(req, res, () => {
+        authController.requireVerification(req, res, () => {
+          transformerController.getMyReviews(req, res, next);
+        });
+      });
+    });
+  }
+  // Continuer vers la route publique
+  transformerController.getTransformerReviews(req, res, next);
+});
 // Route publique pour les produits d'un transformateur spécifique (sans authentification)
 // Vérifier si l'ID est "me" et appliquer l'authentification
 router.get('/:id/products', (req, res, next) => {
@@ -42,12 +56,13 @@ router.use(authController.checkApprovalStatus); // Vérifier le statut d'approba
 router.get('/me/profile', transformerController.getMyProfile);
 router.patch('/me/profile', transformerController.updateMyProfile);
 router.get('/me/business-stats', transformerController.getBusinessStats);
+router.get('/me/stats', transformerController.getBusinessStats); // Alias pour compatibilité avec GenericDashboard
 router.get('/me/production-analytics', transformerController.getProductionAnalytics);
-router.get('/me/orders', transformerController.getMyOrders);
-router.get('/me/orders/:orderId', transformerController.getMyOrder);
 router.get('/me/production-batches', transformerController.getProductionBatches);
 router.get('/me/production-batches/:batchId', transformerController.getProductionBatch);
-router.get('/me/reviews', transformerController.getMyReviews);
+// Route /me/reviews gérée par la route générique /:id/reviews ci-dessus
+router.patch('/me/reviews/:reviewId/read', transformerController.markReviewAsRead);
+router.patch('/me/reviews/read-all', transformerController.markAllReviewsAsRead);
 router.get('/me/notifications', transformerController.getNotifications);
 router.get('/me/documents', transformerController.getMyDocuments);
 
@@ -178,9 +193,7 @@ router.route('/me/contracts/:contractId')
   .patch(transformerController.updateContract)
   .delete(transformerController.terminateContract);
 
-// Évaluations et avis
-router.route('/me/reviews')
-  .get(transformerController.getMyReviews);
+// Évaluations et avis - Route déjà définie plus haut
 
 // Répondre aux avis clients
 router.patch('/me/reviews/:reviewId/response', transformerController.respondToReview);
@@ -228,13 +241,6 @@ router.route('/me/documents')
     transformerController.addDocument
   );
 
-// Gestion de boutique
-router.route('/me/shop-info')
-  .get(transformerController.getMyShopInfo)
-  .patch(transformerController.updateMyShopInfo);
-
-router.patch('/me/shop-info/activate', transformerController.activateShop);
-router.patch('/me/shop-info/deactivate', transformerController.deactivateShop);
 
 // Routes d'upload supprimées - utiliser le système d'upload existant
 

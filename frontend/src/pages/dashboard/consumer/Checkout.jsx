@@ -4,7 +4,6 @@ import { useAuth } from '../../../hooks/useAuth';
 import { useCart } from '../../../contexts/CartContext';
 import { consumerService, authService } from '../../../services';
 import cartService from '../../../services/cartService';
-import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import CloudinaryImage from '../../../components/common/CloudinaryImage';
 import {
   FiArrowLeft,
@@ -27,10 +26,14 @@ import {
 } from 'react-icons/fi';
 
 const Checkout = () => {
+  console.log('🛒 Checkout component loaded!');
+  
   const { user } = useAuth();
   const { items: cartItems, clearCart } = useCart();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+
+  console.log('🛒 Checkout - user:', user, 'cartItems:', cartItems);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [orderData, setOrderData] = useState({
@@ -169,11 +172,11 @@ const Checkout = () => {
                 lastName: userData.lastName || '',
                 phone: userData.phone || '',
                 email: userData.email || '',
-                street: defaultAddress.street || '',
-                city: defaultAddress.city || userData.address?.city || '',
-                region: defaultAddress.region || userData.address?.region || '',
+                street: defaultAddress.street || userData.address || '',
+                city: defaultAddress.city || userData.city || '',
+                region: defaultAddress.region || userData.region || '',
                 country: finalCountry,
-                postalCode: defaultAddress.postalCode || userData.address?.postalCode || '',
+                postalCode: defaultAddress.postalCode || '',
                 instructions: defaultAddress.instructions || ''
               },
               billingAddress: {
@@ -182,11 +185,11 @@ const Checkout = () => {
                 lastName: userData.lastName || '',
                 phone: userData.phone || '',
                 email: userData.email || '',
-                street: defaultAddress.street || '',
-                city: defaultAddress.city || userData.address?.city || '',
-                region: defaultAddress.region || userData.address?.region || '',
+                street: defaultAddress.street || userData.address || '',
+                city: defaultAddress.city || userData.city || '',
+                region: defaultAddress.region || userData.region || '',
                 country: finalCountry,
-                postalCode: defaultAddress.postalCode || userData.address?.postalCode || ''
+                postalCode: defaultAddress.postalCode || ''
               }
             }));
           }
@@ -202,6 +205,9 @@ const Checkout = () => {
                 lastName: user.lastName,
                 phone: user.phone || '',
                 email: user.email || '',
+                street: user.address || '',
+                city: user.city || '',
+                region: user.region || '',
                 country: getCountryName(user.country)
               },
               billingAddress: {
@@ -210,6 +216,9 @@ const Checkout = () => {
                 lastName: user.lastName,
                 phone: user.phone || '',
                 email: user.email || '',
+                street: user.address || '',
+                city: user.city || '',
+                region: user.region || '',
                 country: getCountryName(user.country)
               }
             }));
@@ -382,11 +391,11 @@ const Checkout = () => {
       // Rediriger vers la page de confirmation
       const orderId = response.data.data?.order?._id || response.data.order?._id;
       if (orderId) {
-        navigate(`/orders/${orderId}/confirmation`);
+        navigate(`/consumer/orders/${orderId}/confirmation`);
       } else {
         console.error('❌ ID de commande non trouvé dans la réponse:', response.data);
         // Fallback vers la page d'historique des commandes
-        navigate('/order-history');
+        navigate('/consumer/orders');
       }
     } catch (error) {
       console.error('❌ Erreur lors de la création de la commande:', error);
@@ -400,31 +409,29 @@ const Checkout = () => {
 
   if (cartItems.length === 0) {
     return (
-      <ModularDashboardLayout>
-        <div className="p-6 max-w-4xl mx-auto">
-          <div className="text-center py-12">
-            <FiShoppingBag className="mx-auto h-16 w-16 text-gray-400" />
-            <h2 className="mt-4 text-xl font-semibold text-gray-900">Votre panier est vide</h2>
-            <p className="mt-2 text-gray-600">
-              Ajoutez des produits à votre panier avant de passer commande
-            </p>
-            <div className="mt-6">
-              <button
-                onClick={() => navigate('/cart')}
-                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-harvests-green hover:bg-green-600"
-              >
-                <FiArrowLeft className="mr-2 h-5 w-5" />
-                Retour au panier
-              </button>
-            </div>
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="text-center py-12">
+          <FiShoppingBag className="mx-auto h-16 w-16 text-gray-400" />
+          <h2 className="mt-4 text-xl font-semibold text-gray-900">Votre panier est vide</h2>
+          <p className="mt-2 text-gray-600">
+            Ajoutez des produits à votre panier avant de passer commande
+          </p>
+          <div className="mt-6">
+            <button
+              onClick={() => navigate('/cart')}
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-harvests-green hover:bg-green-600"
+            >
+              <FiArrowLeft className="mr-2 h-5 w-5" />
+              Retour au panier
+            </button>
           </div>
         </div>
-      </ModularDashboardLayout>
+      </div>
     );
   }
 
   return (
-    <ModularDashboardLayout>
+    <div>
       <div className="p-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -1173,7 +1180,7 @@ const Checkout = () => {
           </div>
         </div>
       </div>
-    </ModularDashboardLayout>
+    </div>
   );
 };
 

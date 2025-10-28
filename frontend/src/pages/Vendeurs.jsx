@@ -57,7 +57,7 @@ const Vendeurs = () => {
 
 				// Test Axios seul
 				try {
-					const axiosTest = await restaurateurService.getAllRestaurateurs();
+					const axiosTest = await restaurateurService.getAllPublic();
 					console.log("🧪 Test Axios seul:", axiosTest.data);
 				} catch (error) {
 					console.error("❌ Erreur test Axios:", error);
@@ -81,9 +81,9 @@ const Vendeurs = () => {
 
 				const [producersResponse, transformersResponse, restaurateursResponse] =
 					await Promise.allSettled([
-						producerService.getAllProducers({ limit: 50 }),
-						transformerService.getAllTransformers({ limit: 50 }),
-						restaurateurService.getAllRestaurateurs(), // Sans paramètres
+						producerService.getAllPublic({ limit: 50 }),
+						transformerService.getAllPublic({ limit: 50 }),
+						restaurateurService.getAllPublic({ limit: 50 }),
 					]);
 
 				const allVendeurs = [];
@@ -94,6 +94,17 @@ const Vendeurs = () => {
 					producersResponse.value.data.status === "success"
 				) {
 					const producers = producersResponse.value.data.data.producers || [];
+					
+					// Debug: Afficher la structure des données d'un producteur
+					if (producers.length > 0) {
+						console.log("🔍 Structure producteur:", {
+							address: producers[0].address,
+							city: producers[0].city,
+							region: producers[0].region,
+							country: producers[0].country
+						});
+					}
+					
 					allVendeurs.push(
 						...producers.map((producer) => ({
 							...producer,
@@ -103,7 +114,7 @@ const Vendeurs = () => {
 								`${producer.firstName} ${producer.lastName}`,
 							profileUrl: `/producers/${producer._id}`,
 							shopBanner: producer.shopBanner,
-							avatar: producer.avatar,
+							logo: producer.shopLogo,
 						}))
 					);
 				}
@@ -115,17 +126,27 @@ const Vendeurs = () => {
 				) {
 					const transformers =
 						transformersResponse.value.data.data.transformers || [];
+					
+					// Debug: Afficher la structure des données d'un transformateur
+					if (transformers.length > 0) {
+						console.log("🔍 Structure transformateur:", {
+							address: transformers[0].address,
+							city: transformers[0].city,
+							region: transformers[0].region,
+							country: transformers[0].country
+						});
+					}
+					
 					allVendeurs.push(
 						...transformers.map((transformer) => ({
 							...transformer,
 							type: "transformer",
 							displayName:
-								transformer.shopInfo?.shopName ||
 								transformer.companyName ||
 								`${transformer.firstName} ${transformer.lastName}`,
 							profileUrl: `/transformers/${transformer._id}`,
-							shopBanner: transformer.shopInfo?.shopBanner,
-							avatar: transformer.shopInfo?.shopLogo || transformer.avatar,
+							shopBanner: transformer.shopBanner,
+							logo: transformer.shopLogo,
 						}))
 					);
 				}
@@ -154,7 +175,7 @@ const Vendeurs = () => {
 							profileUrl: `/restaurateurs/${restaurateur._id}`,
 							shopBanner:
 								restaurateur.restaurantBanner || restaurateur.shopBanner,
-							avatar: restaurateur.avatar,
+							logo: restaurateur.shopLogo,
 						}))
 					);
 				} else {
@@ -369,9 +390,9 @@ const Vendeurs = () => {
 										<div className="absolute bottom-5 left-5 transform -translate-x-2 translate-y-2">
 											<div className="w-16 h-16 rounded-full bg-white p-1 shadow-lg">
 												<div className="w-full h-full rounded-full bg-gray-200 overflow-hidden">
-													{vendeur.avatar ? (
+													{vendeur.logo ? (
 														<img
-															src={vendeur.avatar}
+															src={vendeur.logo}
 															alt={`${vendeur.displayName}`}
 															className="w-full h-full object-cover"
 															onError={(e) => {
@@ -406,8 +427,11 @@ const Vendeurs = () => {
 										<div className="flex items-center text-gray-500 text-sm mb-3">
 											<FiMapPin className="mr-1" />
 											<span>{getCountryName(vendeur.country)}</span>
-											{vendeur.address?.city && (
-												<span className="ml-2">• {vendeur.address.city}</span>
+											{vendeur.city && (
+												<span className="ml-2">• {vendeur.city}</span>
+											)}
+											{vendeur.region && (
+												<span className="ml-2">• {vendeur.region}</span>
 											)}
 										</div>
 

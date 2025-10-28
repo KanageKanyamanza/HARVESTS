@@ -77,7 +77,8 @@ const transformerService = {
 
   // Statistiques et analytics
   getBusinessStats: () => api.get('/transformers/me/business-stats'),
-  getProductionAnalytics: () => api.get('/transformers/me/production-analytics'),
+  getStats: () => api.get('/transformers/me/business-stats'), // Alias pour compatibilité avec GenericDashboard
+  getProductionAnalytics: (params = {}) => api.get('/transformers/me/production-analytics', { params }),
   getEfficiencyMetrics: () => api.get('/transformers/me/efficiency-metrics'),
   getRevenueAnalytics: () => api.get('/transformers/me/revenue-analytics'),
 
@@ -89,7 +90,9 @@ const transformerService = {
   terminateContract: (contractId) => api.delete(`/transformers/me/contracts/${contractId}`),
 
   // Évaluations et avis
-  getMyReviews: () => api.get('/transformers/me/reviews'),
+  getMyReviews: (params = {}) => api.get('/transformers/me/reviews', { params }),
+  markReviewAsRead: (reviewId) => api.patch(`/transformers/me/reviews/${reviewId}/read`),
+  markAllReviewsAsRead: () => api.patch('/transformers/me/reviews/read-all'),
   respondToReview: (reviewId, data) => api.patch(`/transformers/me/reviews/${reviewId}/response`, data),
 
   // Gestion des réclamations
@@ -125,17 +128,6 @@ const transformerService = {
   getComplianceReports: () => api.get('/transformers/me/compliance-reports'),
   generateComplianceReport: (data) => api.post('/transformers/me/compliance-reports', data),
 
-  // Gestion de boutique
-  getMyShopInfo: () => api.get('/transformers/me/shop-info'),
-  updateMyShopInfo: (data) => api.patch('/transformers/me/shop-info', data),
-  activateShop: () => api.patch('/transformers/me/shop-info/activate'),
-  deactivateShop: () => api.patch('/transformers/me/shop-info/deactivate'),
-  uploadShopBanner: (formData) => api.post('/transformers/me/shop-info/banner', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }),
-  uploadShopLogo: (formData) => api.post('/transformers/me/shop-info/logo', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  }),
 
   // Routes publiques pour recherche
   getAllTransformers: (params) => api.get('/transformers', { params }),
@@ -146,7 +138,8 @@ const transformerService = {
   getPublicTransformer: (id) => api.get(`/transformers/${id}/public`),
   getPublicTransformerProducts: (id) => api.get(`/transformers/${id}/products`),
   getTransformerServices: (id) => api.get(`/transformers/${id}/services`),
-  getTransformerReviews: (id) => api.get(`/transformers/${id}/reviews`)
+  getTransformerReviews: (id) => api.get(`/transformers/${id}/reviews`),
+  getReviews: (id) => api.get(`/transformers/${id}/reviews`)
 };
 
 export default transformerService;

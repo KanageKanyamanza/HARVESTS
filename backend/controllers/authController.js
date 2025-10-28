@@ -77,7 +77,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     phone: req.body.phone,
     userType,
     preferredLanguage: req.body.preferredLanguage || 'fr',
-    country: req.body.country || 'CM'
+    country: req.body.country || 'Sénégal'
   };
 
   // Gérer lastName selon le type d'utilisateur
@@ -339,6 +339,7 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
   }
 
   user.isEmailVerified = true;
+  user.emailVerified = true; // Synchroniser les deux champs
   user.emailVerificationToken = undefined;
   user.emailVerificationExpires = undefined;
   await user.save({ validateBeforeSave: false });

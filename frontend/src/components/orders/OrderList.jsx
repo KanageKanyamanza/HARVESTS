@@ -164,7 +164,7 @@ const OrderList = ({
                   {statusConfig.text}
                 </span>
                 <Link
-                  to={userType === 'transformer' ? `/transformer/orders/${order._id}` : `/orders/${order._id}`}
+                  to={`/${userType}/orders/${order._id}`}
                   className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-harvests-light"
                 >
                   <FiEye className="h-4 w-4 mr-1" />

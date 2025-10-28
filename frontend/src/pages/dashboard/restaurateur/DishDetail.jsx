@@ -20,7 +20,7 @@ const DishDetail = () => {
   const loadDish = async () => {
     try {
       setLoading(true);
-      const response = await restaurateurService.getMyDishes();
+      const response = await restaurateurService.getDishes();
       const dishes = response.data?.data?.dishes || [];
       const foundDish = dishes.find(d => d._id === dishId);
       

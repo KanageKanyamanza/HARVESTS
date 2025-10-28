@@ -14,7 +14,8 @@ import {
   FiClock,
   FiDollarSign,
   FiImage,
-  FiExternalLink
+  FiExternalLink,
+  FiRefreshCw
 } from 'react-icons/fi';
 
 const DishesManagement = () => {
@@ -30,12 +31,21 @@ const DishesManagement = () => {
   const loadDishes = async () => {
     try {
       setLoading(true);
-      const response = await restaurateurService.getMyDishes();
+      const response = await restaurateurService.getDishes();
       const dishes = response.data?.data?.dishes || [];
       setDishes(dishes);
     } catch (error) {
       console.error('Erreur lors du chargement des plats:', error);
-      showError('Erreur lors du chargement des plats');
+      
+      // Vérifier si c'est l'erreur spécifique du backend
+      if (error.response?.status === 500 && 
+          error.response?.data?.message?.includes('Cast to ObjectId failed for value "me"')) {
+        showError('Le service des plats est temporairement indisponible. Veuillez contacter l\'administrateur.');
+      } else {
+        showError('Erreur lors du chargement des plats');
+      }
+      
+      setDishes([]);
     } finally {
       setLoading(false);
     }
@@ -55,7 +65,7 @@ const DishesManagement = () => {
         ));
         showSuccess('Plat modifié avec succès');
       } else {
-        const response = await restaurateurService.addDish(dishData);
+        const response = await restaurateurService.createDish(dishData);
         setDishes(prev => [...prev, response.data?.data?.dish]);
         showSuccess('Plat ajouté avec succès');
       }
@@ -293,7 +303,7 @@ const DishesManagement = () => {
                     {/* Actions */}
                     <div className="mt-4 flex flex-wrap gap-2">
                       <button
-                        onClick={() => navigate(`/dishes/${dish._id}`)}
+                        onClick={() => navigate(`/restaurateur/dishes/${dish._id}`)}
                         className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-blue-300 rounded-md text-sm font-medium text-blue-700 bg-white hover:bg-blue-50"
                       >
                         <FiExternalLink className="h-4 w-4 mr-2" />
@@ -347,21 +357,23 @@ const DishesManagement = () => {
               <div className="text-center py-12">
                 <FiPackage className="mx-auto h-12 w-12 text-gray-400" />
                 <h3 className="mt-2 text-sm font-medium text-gray-900">
-                  {searchTerm ? 'Aucun plat trouvé' : 'Aucun plat'}
+                  {searchTerm ? 'Aucun plat trouvé' : 'Aucun plat disponible'}
                 </h3>
                 <p className="mt-1 text-sm text-gray-500">
                   {searchTerm 
                     ? 'Essayez de modifier vos critères de recherche.'
-                    : 'Commencez par ajouter des plats à votre menu.'
+                    : dishes.length === 0 
+                      ? 'Le service des plats est temporairement indisponible. Veuillez réessayer plus tard.'
+                      : 'Commencez par ajouter des plats à votre menu.'
                   }
                 </p>
-                {!searchTerm && (
+                {!searchTerm && dishes.length === 0 && (
                   <button
-                    onClick={() => setShowDishForm(true)}
-                    className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-harvests-green hover:bg-green-700"
+                    onClick={loadDishes}
+                    className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
                   >
-                    <FiPlus className="h-4 w-4 mr-2" />
-                    Ajouter votre premier plat
+                    <FiRefreshCw className="h-4 w-4 mr-2" />
+                    Réessayer
                   </button>
                 )}
               </div>

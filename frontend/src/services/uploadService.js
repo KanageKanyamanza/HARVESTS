@@ -12,7 +12,7 @@ const uploadService = {
 
   // Upload de bannière de boutique
   uploadShopBanner: (formData) => {
-    return apiRequest.patch('/users/upload-shop-banner', formData, {
+    return apiRequest.post('/users/upload-shop-banner', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -21,7 +21,7 @@ const uploadService = {
 
   // Upload de logo de boutique
   uploadShopLogo: (formData) => {
-    return apiRequest.patch('/users/upload-shop-logo', formData, {
+    return apiRequest.post('/users/upload-shop-logo', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

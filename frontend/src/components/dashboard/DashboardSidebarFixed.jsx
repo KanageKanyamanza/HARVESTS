@@ -3,6 +3,14 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useUserType } from '../../hooks/useUserType';
 import CloudinaryImage from '../common/CloudinaryImage';
+import { 
+  getDashboardRoute, 
+  getOrdersRoute, 
+  getProfileRoute, 
+  getSettingsRoute,
+  getProductsRoute,
+  // getAddProductRoute
+} from '../../utils/routeUtils';
 import {
   FiHome,
   FiShoppingBag,
@@ -38,75 +46,74 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse, 
   const getNavigationItems = () => {
     // Si des navigationItems sont fournis en prop, les utiliser
     if (navigationItems && navigationItems.length > 0) {
-      // Convertir le format des navigationItems en format sidebar
-      return navigationItems.flatMap(section => 
-        section.items.map(item => ({
-          name: item.label,
-          href: item.link,
-          icon: item.icon || FiHome
-        }))
-      );
+      // Vérifier si c'est le nouveau format (tableau direct) ou l'ancien format (sections)
+      if (navigationItems[0] && navigationItems[0].name) {
+        // Nouveau format : tableau direct d'objets { name, href, icon }
+        return navigationItems;
+      } else {
+        // Ancien format : sections avec items
+        return navigationItems.flatMap(section => 
+          section.items ? section.items.map(item => ({
+            name: item.label,
+            href: item.link,
+            icon: item.icon || FiHome
+          })) : []
+        );
+      }
     }
 
     // Sinon, utiliser la logique par défaut
     if (user?.userType === 'consumer') {
       return [
-        { name: 'Tableau de bord', href: '/consumer/dashboard', icon: FiHome },
+        { name: 'Tableau de bord', href: getDashboardRoute(user), icon: FiHome },
         { name: 'Mes commandes', href: '/order-history', icon: FiShoppingBag },
-        { name: 'Panier', href: '/cart', icon: FiShoppingCart },
-        { name: 'Favoris', href: '/favorites', icon: FiHeart },
-        { name: 'Abonnements', href: '/subscriptions', icon: FiRefreshCw },
-        { name: 'Mes avis', href: '/reviews', icon: FiStar },
-        { name: 'Fidélité', href: '/consumer/loyalty', icon: FiGift },
-        { name: 'Statistiques', href: '/stats', icon: FiTrendingUp },
-        { name: 'Profil', href: '/consumer/profile', icon: FiUser },
-        { name: 'Paramètres', href: '/consumer/settings', icon: FiSettings }
+        { name: 'Mes favoris', href: '/consumer/favorites', icon: FiHeart },
+        { name: 'Mes avis', href: '/consumer/reviews', icon: FiStar },
+        { name: 'Statistiques', href: '/consumer/statistics', icon: FiTrendingUp },
+        { name: 'Panier', href: 'consumer/cart', icon: FiShoppingCart },
+        { name: 'Profil', href: getProfileRoute(user), icon: FiUser },
+        { name: 'Paramètres', href: getSettingsRoute(user), icon: FiSettings }
       ];
     }
 
     if (user?.userType === 'producer') {
       return [
-        { name: 'Tableau de bord', href: '/producer/dashboard', icon: FiHome },
-        { name: 'Mes produits', href: '/producer/products', icon: FiPackage },
-        { name: 'Ajouter produit', href: '/producer/products/add', icon: FiPlus },
-        { name: 'Commandes', href: '/producer/orders', icon: FiShoppingBag },
+        { name: 'Tableau de bord', href: getDashboardRoute(user), icon: FiHome },
+        { name: 'Mes produits', href: getProductsRoute(user), icon: FiPackage },
+        // { name: 'Ajouter produit', href: getAddProductRoute(user), icon: FiPlus },
+        { name: 'Commandes', href: getOrdersRoute(user), icon: FiShoppingBag },
         { name: 'Avis reçus', href: '/producer/reviews', icon: FiStar },
         { name: 'Statistiques', href: '/producer/stats', icon: FaChartBar },
-        { name: 'Certifications', href: '/producer/certifications', icon: FiAward },
-        { name: 'Transporteurs', href: '/producer/transporters', icon: FiTruck },
-        { name: 'Documents', href: '/producer/documents', icon: FiFileText },
-        { name: 'Profil', href: '/producer/profile', icon: FiUser },
-        { name: 'Paramètres', href: '/producer/settings', icon: FiSettings }
+        { name: 'Profil', href: getProfileRoute(user), icon: FiUser },
+        { name: 'Paramètres', href: getSettingsRoute(user), icon: FiSettings }
       ];
     }
 
     if (user?.userType === 'transformer') {
       return [
-        { name: 'Tableau de bord', href: '/transformer/dashboard', icon: FiHome },
-        { name: 'Commandes', href: '/transformer/orders', icon: FiShoppingBag },
-        { name: 'Mes Produits', href: '/transformer/products', icon: FiPackage },
-        { name: 'Certifications', href: '/transformer/certifications', icon: FiAward },
-        { name: 'Boutique', href: '/transformer/shop', icon: FiGlobe },
-        { name: 'Analytics', href: '/transformer/analytics/business', icon: FaChartBar },
-        { name: 'Profil', href: '/transformer/profile', icon: FiUser },
-        { name: 'Paramètres', href: '/transformer/settings', icon: FiSettings }
+        { name: 'Tableau de bord', href: getDashboardRoute(user), icon: FiHome },
+        { name: 'Mes Produits', href: getProductsRoute(user), icon: FiPackage },
+        { name: 'Commandes', href: getOrdersRoute(user), icon: FiShoppingBag },
+        {name: 'Avis reçus', href: '/transformer/reviews', icon: FiStar },
+        { name: 'Statistiques', href: '/transformer/stats', icon: FaChartBar },
+        { name: 'Profil', href: getProfileRoute(user), icon: FiUser },
+        { name: 'Paramètres', href: getSettingsRoute(user), icon: FiSettings }
       ];
     }
 
     if (user?.userType === 'restaurateur') {
       return [
-        { name: 'Tableau de bord', href: '/restaurateur/dashboard', icon: FiHome },
-        { name: 'Mes commandes', href: '/restaurateur/orders', icon: FiShoppingBag },
-        { name: 'Nouvelle commande', href: '/restaurateur/orders/new', icon: FiPlus },
-        { name: 'Mes plats', href: '/restaurateur/dishes', icon: FiPackage },
-        { name: 'Fournisseurs', href: '/restaurateur/suppliers', icon: FiTruck },
-        { name: 'Profil', href: '/restaurateur/profile', icon: FiUser },
-        { name: 'Paramètres', href: '/restaurateur/settings', icon: FiSettings }
+        { name: 'Tableau de bord', href: getDashboardRoute(user), icon: FiHome },
+        { name: 'Mes plats', href: getProductsRoute(user), icon: FiPackage },
+        { name: 'Mes commandes', href: getOrdersRoute(user), icon: FiShoppingBag },
+        { name: 'Nouvelle commande', href: '/restaurateur/orders/add', icon: FiPlus },
+        { name: 'Profil', href: getProfileRoute(user), icon: FiUser },
+        { name: 'Paramètres', href: getSettingsRoute(user), icon: FiSettings }
       ];
     }
 
     return [
-      { name: 'Tableau de bord', href: '/dashboard', icon: FiHome }
+      { name: 'Tableau de bord', href: getDashboardRoute(user), icon: FiHome }
     ];
   };
 
@@ -190,14 +197,26 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse, 
                 } ${collapsed ? 'justify-center' : ''}`}
                 title={collapsed ? item.name : ''}
               >
-                <Icon className={`h-5 w-5 flex-shrink-0 ${
-                  isActive(item.href) ? 'text-white' : 'text-gray-400 group-hover:text-gray-500'
-                } ${collapsed ? '' : 'mr-3'}`} />
+                {React.createElement(Icon, {
+                  className: `h-5 w-5 flex-shrink-0 ${
+                    isActive(item.href) ? 'text-white' : 'text-gray-400 group-hover:text-gray-500'
+                  } ${collapsed ? '' : 'mr-3'}`
+                })}
                 {!collapsed && item.name}
               </Link>
             );
           })}
         </nav>
+
+        {/* voir le site */}
+        <div className="p-4 border-t border-gray-200 flex-shrink-0">
+          <Link to="/" className="group flex items-center w-full px-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-harvests-light hover:text-gray-900 transition-colors ${
+            collapsed ? 'justify-center' : ''
+          }">
+            <FiGlobe className={`h-5 w-5 text-gray-400 group-hover:text-gray-500 ${collapsed ? '' : 'mr-3'}`} />
+            {!collapsed && 'Voir le site'}
+          </Link>
+        </div>
 
         {/* Logout */}
         <div className="p-4 border-t border-gray-200 flex-shrink-0">

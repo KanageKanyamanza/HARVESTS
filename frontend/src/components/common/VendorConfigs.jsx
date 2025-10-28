@@ -13,7 +13,7 @@ import {
 export const producerConfig = {
   vendorType: 'producer',
   getVendorName: (producer) => producer.farmName || `${producer.firstName} ${producer.lastName}`,
-  getVendorSubtitle: (producer) => `${producer.firstName} ${producer.lastName}`,
+  getVendorSubtitle: (producer) => producer.farmName ? `${producer.firstName} ${producer.lastName}` : 'Producteur',
   getVendorStats: (producer, products) => [
     {
       icon: <FiStar className="w-5 h-5 text-yellow-500" />,
@@ -52,10 +52,10 @@ export const producerConfig = {
         href: `mailto:${producer.email}`
       });
     }
-    if (producer.address) {
+    if (producer.address || producer.city) {
       contact.push({
         icon: <FiMapPin className="h-5 w-5 text-gray-400 mt-0.5 mr-3" />,
-        text: `${producer.address.street ? producer.address.street + ', ' : ''}${producer.address.city}${producer.address.region ? ', ' + producer.address.region : ''}`
+        text: `${producer.address ? producer.address + ', ' : ''}${producer.city || ''}${producer.region ? ', ' + producer.region : ''}`
       });
     }
     return contact;
@@ -82,10 +82,20 @@ export const producerConfig = {
   getEmptyStateIcon: <FiPackage className="w-12 h-12 text-gray-400 mx-auto mb-4" />,
   getEmptyStateTitle: 'Aucun produit disponible',
   getEmptyStateDescription: 'Ce producteur n\'a pas encore de produits en vente.',
-  tabs: ['products'],
-  getTabLabel: (tab) => tab === 'products' ? 'Produits' : tab,
-  getTabCount: (tab, items) => items.length,
-  getTabContent: (tab, items, vendor, helpers) => {
+  tabs: ['products', 'reviews'],
+  getTabLabel: (tab) => {
+    const labels = {
+      'products': 'Produits',
+      'reviews': 'Avis'
+    };
+    return labels[tab] || tab;
+  },
+  getTabCount: (tab, items, reviews = []) => {
+    if (tab === 'products') return items.length;
+    if (tab === 'reviews') return reviews.length;
+    return 0;
+  },
+  getTabContent: (tab, items, vendor, helpers, reviews = []) => {
     if (tab === 'products') {
       return (
         <div>
@@ -152,6 +162,56 @@ export const producerConfig = {
         </div>
       );
     }
+    if (tab === 'reviews') {
+      return (
+        <div>
+          {reviews.length > 0 ? (
+            <div className="space-y-6">
+              {reviews.map((review) => (
+                <div key={review._id} className="bg-white border border-gray-200 rounded-lg p-6">
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-shrink-0">
+                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-medium text-gray-600">
+                          {review.reviewer?.firstName?.[0] || 'A'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <h4 className="text-sm font-medium text-gray-900">
+                          {review.reviewer?.firstName} {review.reviewer?.lastName}
+                        </h4>
+                        <div className="flex items-center">
+                          {[...Array(5)].map((_, i) => (
+                            <FiStar
+                              key={i}
+                              className={`w-4 h-4 ${
+                                i < review.rating ? 'text-yellow-400' : 'text-gray-300'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">{review.comment}</p>
+                      <div className="text-xs text-gray-500">
+                        {new Date(review.createdAt).toLocaleDateString('fr-FR')}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <FiStar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun avis</h3>
+              <p className="text-gray-500">Ce vendeur n'a pas encore reçu d'avis.</p>
+            </div>
+          )}
+        </div>
+      );
+    }
     return null;
   }
 };
@@ -211,10 +271,10 @@ export const restaurateurConfig = {
         href: `mailto:${restaurateur.email}`
       });
     }
-    if (restaurateur.address) {
+    if (restaurateur.address || restaurateur.city) {
       contact.push({
         icon: <FiMapPin className="h-5 w-5 text-gray-400 mt-0.5 mr-3" />,
-        text: `${restaurateur.address.street ? restaurateur.address.street + ', ' : ''}${restaurateur.address.city}${restaurateur.address.region ? ', ' + restaurateur.address.region : ''}`
+        text: `${restaurateur.address ? restaurateur.address + ', ' : ''}${restaurateur.city || ''}${restaurateur.region ? ', ' + restaurateur.region : ''}`
       });
     }
     return contact;
@@ -254,19 +314,21 @@ export const restaurateurConfig = {
   getEmptyStateIcon: <FiPackage className="w-12 h-12 text-gray-400 mx-auto mb-4" />,
   getEmptyStateTitle: 'Menu en cours de préparation',
   getEmptyStateDescription: 'Notre menu sera bientôt disponible.',
-  tabs: ['menu', 'hours'],
+  tabs: ['menu', 'reviews', 'hours'],
   getTabLabel: (tab) => {
     const labels = {
       'menu': 'Menu',
+      'reviews': 'Avis',
       'hours': 'Horaires'
     };
     return labels[tab] || tab;
   },
-  getTabCount: (tab, items) => {
+  getTabCount: (tab, items, reviews = []) => {
     if (tab === 'menu') return items.length;
+    if (tab === 'reviews') return reviews.length;
     return 0;
   },
-  getTabContent: (tab, items, vendor, helpers) => {
+  getTabContent: (tab, items, vendor, helpers, reviews = []) => {
     if (tab === 'menu') {
       return (
         <div>
@@ -381,8 +443,8 @@ export const restaurateurConfig = {
 // Configuration pour les transformateurs
 export const transformerConfig = {
   vendorType: 'transformer',
-  getVendorName: (transformer) => transformer.shopInfo?.shopName || transformer.companyName || `${transformer.firstName} ${transformer.lastName}`,
-  getVendorSubtitle: (transformer) => transformer.shopInfo?.shopDescription || `${transformer.firstName} ${transformer.lastName}`,
+  getVendorName: (transformer) => transformer.companyName || `${transformer.firstName} ${transformer.lastName}`,
+  getVendorSubtitle: (transformer) => transformer.companyName ? `${transformer.firstName} ${transformer.lastName}` : 'Transformateur',
   getVendorStats: (transformer, products) => [
     {
       icon: <FiStar className="w-5 h-5 text-yellow-500" />,
@@ -421,10 +483,10 @@ export const transformerConfig = {
         href: `mailto:${transformer.email}`
       });
     }
-    if (transformer.address) {
+    if (transformer.address || transformer.city) {
       contact.push({
         icon: <FiMapPin className="h-5 w-5 text-gray-400 mt-0.5 mr-3" />,
-        text: `${transformer.address.street ? transformer.address.street + ', ' : ''}${transformer.address.city}${transformer.address.region ? ', ' + transformer.address.region : ''}`
+        text: `${transformer.address ? transformer.address + ', ' : ''}${transformer.city || ''}${transformer.region ? ', ' + transformer.region : ''}`
       });
     }
     return contact;
@@ -451,19 +513,21 @@ export const transformerConfig = {
   getEmptyStateIcon: <FiPackage className="w-12 h-12 text-gray-400 mx-auto mb-4" />,
   getEmptyStateTitle: 'Aucun produit disponible',
   getEmptyStateDescription: 'Ce transformateur n\'a pas encore de produits en vente.',
-  tabs: ['products', 'hours'],
+  tabs: ['products', 'reviews', 'hours'],
   getTabLabel: (tab) => {
     const labels = {
       'products': 'Produits',
+      'reviews': 'Avis',
       'hours': 'Horaires'
     };
     return labels[tab] || tab;
   },
-  getTabCount: (tab, items) => {
+  getTabCount: (tab, items, reviews = []) => {
     if (tab === 'products') return items.length;
+    if (tab === 'reviews') return reviews.length;
     return 0;
   },
-  getTabContent: (tab, items, vendor, helpers) => {
+  getTabContent: (tab, items, vendor, helpers, reviews = []) => {
     if (tab === 'products') {
       return (
         <div>
@@ -547,9 +611,9 @@ export const transformerConfig = {
 
       return (
         <div>
-          {vendor.shopInfo?.openingHours ? (
+          {vendor.openingHours ? (
             <div className="space-y-3">
-              {Object.entries(vendor.shopInfo.openingHours).map(([day, hours]) => (
+              {Object.entries(vendor.openingHours).map(([day, hours]) => (
                 <div key={day} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
                   <span className="text-sm font-medium text-gray-900">
                     {getDayLabel(day)}

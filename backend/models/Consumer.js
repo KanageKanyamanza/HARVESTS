@@ -49,47 +49,8 @@ const consumerSchema = new mongoose.Schema({
         type: String,
         default: 'XAF'
       }
-    },
-    preferredPaymentMethods: {
-      type: [String],
-      enum: ['cash', 'card', 'mobile-money', 'bank-transfer'],
-      default: ['cash', 'mobile-money']
     }
   },
-  
-  // Adresses de livraison multiples
-  deliveryAddresses: [{
-    label: {
-      type: String,
-      required: true // ex: "Domicile", "Bureau", "Chez maman"
-    },
-    street: {
-      type: String,
-      required: true
-    },
-    city: {
-      type: String,
-      required: true
-    },
-    region: {
-      type: String,
-      required: true
-    },
-    country: {
-      type: String,
-      default: 'Senegal'
-    },
-    postalCode: String,
-    coordinates: {
-      latitude: Number,
-      longitude: Number
-    },
-    instructions: String, // Instructions spéciales pour la livraison
-    isDefault: {
-      type: Boolean,
-      default: false
-    }
-  }],
   
   // Historique d'achat et préférences
   purchaseHistory: {
@@ -119,6 +80,18 @@ const consumerSchema = new mongoose.Schema({
       default: 0
     }
   },
+  
+  // Produits favoris
+  favorites: [{
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product'
+    },
+    addedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
   
   // Liste de souhaits
   wishlist: [{
@@ -231,21 +204,43 @@ const consumerSchema = new mongoose.Schema({
     lastOrderDate: Date
   },
   
-  // Informations de paiement (tokenisées)
-  paymentMethods: [{
-    type: {
-      type: String,
-      enum: ['card', 'mobile-money', 'bank-account'],
-      required: true
-    },
-    provider: String, // ex: "Orange Money", "MTN Mobile Money", "Visa"
-    lastFourDigits: String,
-    token: String, // Token sécurisé du fournisseur de paiement
-    isDefault: {
-      type: Boolean,
-      default: false
-    },
-    expiresAt: Date // Pour les cartes
+  // Méthodes de paiement préférées (centralisées depuis User)
+  paymentMethods: [String],
+
+  // Préférences de notification (centralisées depuis User)
+  notifications: {
+    email: { type: Boolean, default: true },
+    sms: { type: Boolean, default: false },
+    push: { type: Boolean, default: true },
+    marketing: { type: Boolean, default: false },
+    orderUpdates: { type: Boolean, default: true },
+    priceAlerts: { type: Boolean, default: false }
+  },
+
+  // Statut de vérification (centralisé depuis User)
+  verificationStatus: {
+    isVerified: { type: Boolean, default: false },
+    verifiedAt: Date,
+    verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+    verificationDocuments: [{
+      type: { type: String, enum: ['identity', 'business-license', 'tax-certificate', 'bank-statement', 'other'] },
+      documentUrl: String,
+      uploadedAt: { type: Date, default: Date.now },
+      status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' }
+    }]
+  },
+
+  // Adresses de livraison (centralisées depuis User)
+  deliveryAddresses: [{
+    label: { type: String, required: true },
+    street: { type: String, required: true },
+    city: { type: String, required: true },
+    region: { type: String, required: true },
+    country: { type: String, default: 'Sénégal' },
+    postalCode: String,
+    coordinates: { latitude: Number, longitude: Number },
+    instructions: String,
+    isDefault: { type: Boolean, default: false }
   }]
 });
 
@@ -279,21 +274,9 @@ consumerSchema.methods.addLoyaltyPoints = async function(orderAmount, orderId = 
   
   this.updateLoyaltyTier();
   
-  // Créer une transaction de fidélité
-  const LoyaltyTransaction = mongoose.model('LoyaltyTransaction');
-  await LoyaltyTransaction.create({
-    consumer: this._id,
-    type: 'earn',
-    points: pointsEarned,
-    description: `Points gagnés sur commande${orderId ? ` #${orderId}` : ''}`,
-    order: orderId,
-    balanceAfter: this.loyaltyProgram.points,
-    metadata: {
-      tierAtTransaction: this.loyaltyProgram.tier,
-      orderAmount,
-      conversionRate: orderAmount / pointsEarned
-    }
-  });
+  // TODO: Créer une transaction de fidélité quand le modèle LoyaltyTransaction sera disponible
+  // const LoyaltyTransaction = mongoose.model('LoyaltyTransaction');
+  // await LoyaltyTransaction.create({...});
   
   return pointsEarned;
 };
@@ -309,19 +292,9 @@ consumerSchema.methods.redeemLoyaltyPoints = async function(pointsToRedeem, orde
   
   this.updateLoyaltyTier();
   
-  // Créer une transaction de fidélité
-  const LoyaltyTransaction = mongoose.model('LoyaltyTransaction');
-  await LoyaltyTransaction.create({
-    consumer: this._id,
-    type: 'redeem',
-    points: -pointsToRedeem,
-    description: `Points utilisés${orderId ? ` sur commande #${orderId}` : ''}`,
-    order: orderId,
-    balanceAfter: this.loyaltyProgram.points,
-    metadata: {
-      tierAtTransaction: this.loyaltyProgram.tier
-    }
-  });
+  // TODO: Créer une transaction de fidélité quand le modèle LoyaltyTransaction sera disponible
+  // const LoyaltyTransaction = mongoose.model('LoyaltyTransaction');
+  // await LoyaltyTransaction.create({...});
   
   // 1 point = 1 XAF de réduction
   return pointsToRedeem;

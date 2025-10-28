@@ -43,8 +43,6 @@ export const productService = {
   // Ajouter un avis à un produit
   addProductReview: (productId, reviewData) => apiRequest.post(`/products/${productId}/reviews`, reviewData),
   
-  // Obtenir les statistiques d'un produit
-  getProductStats: (productId) => apiRequest.get(`/products/${productId}/stats`),
   
   // Marquer un produit comme favori
   addToFavorites: (productId) => apiRequest.post(`/products/${productId}/favorite`),

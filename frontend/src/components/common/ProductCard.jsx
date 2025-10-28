@@ -24,6 +24,30 @@ const ProductCard = ({
   showStatus = true,
   showFeatured = true
 }) => {
+  // Vérification de sécurité pour éviter les erreurs si product est null
+  if (!product) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+        <div className="text-center text-gray-500">
+          <FiPackage className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+          <p>Produit non disponible</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Vérification supplémentaire pour éviter les erreurs
+  if (!product || typeof product !== 'object') {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-4 border border-gray-200">
+        <div className="text-center text-gray-500">
+          <FiPackage className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+          <p>Données produit invalides</p>
+        </div>
+      </div>
+    );
+  }
+
   // Fonction pour obtenir le nom du produit (multilingue)
   const getProductName = (product) => {
     if (typeof product.name === 'object') {
@@ -87,7 +111,7 @@ const ProductCard = ({
           </h3>
           <div className="flex flex-col items-end space-y-1">
             {showStatus && (
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusConfig.color}`}>
+              <span className={`whitespace-nowrap inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusConfig.color}`}>
                 <StatusIcon className="w-3 h-3 mr-1" />
                 {statusConfig.text}
               </span>
@@ -109,10 +133,10 @@ const ProductCard = ({
         {/* Prix et stock */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-4">
-            <div className="flex items-center">
+            <div className="flex items-center whitespace-nowrap">
               <FiDollarSign className="h-4 w-4 text-gray-400 mr-1" />
               <div>
-                <span className="text-lg font-bold text-gray-900">
+                <span className="text-lg whitespace-nowrap font-bold text-gray-900">
                   {product.price?.toLocaleString()} {product.currency || 'FCFA'}
                 </span>
                 {product.unit && (
@@ -122,7 +146,7 @@ const ProductCard = ({
                 )}
               </div>
             </div>
-            <div className="flex items-center">
+            <div className="flex items-center whitespace-nowrap">
               <FiPackage className="h-4 w-4 text-gray-400 mr-1" />
               <span className="text-sm text-gray-600">
                 {product.inventory?.quantity || product.stock || 0} en stock

@@ -178,6 +178,27 @@ exports.getMyDishes = catchAsync(async (req, res, next) => {
   });
 });
 
+// Récupérer les produits du restaurateur connecté
+exports.getMyProducts = catchAsync(async (req, res, next) => {
+  console.log('🔍 getMyProducts appelé pour user ID:', req.user.id);
+  
+  const restaurateur = await Restaurateur.findById(req.user.id).select('products');
+  console.log('📋 Restaurateur trouvé:', !!restaurateur);
+  console.log('📦 Produits:', restaurateur?.products?.length || 0);
+  
+  if (!restaurateur) {
+    return res.status(404).json({
+      status: 'error',
+      message: 'Restaurateur non trouvé'
+    });
+  }
+  
+  res.status(200).json({
+    status: 'success',
+    data: { products: restaurateur.products || [] }
+  });
+});
+
 // Récupérer les plats d'un restaurateur (public)
 exports.getRestaurateurDishes = catchAsync(async (req, res, next) => {
   const { id } = req.params;
@@ -190,13 +211,39 @@ exports.getRestaurateurDishes = catchAsync(async (req, res, next) => {
     });
   }
   
-  // Filtrer seulement les plats disponibles
-  const availableDishes = restaurateur.dishes.filter(dish => dish.isAvailable);
+  // Filtrer seulement les plats disponibles ET approuvés
+  const availableDishes = restaurateur.dishes.filter(dish => 
+    dish.isAvailable && dish.status === 'approved'
+  );
   
   res.status(200).json({
     status: 'success',
     data: { 
       dishes: availableDishes,
+      restaurantName: restaurateur.restaurantName
+    }
+  });
+});
+
+// Récupérer les produits d'un restaurateur (public)
+exports.getRestaurateurProducts = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  
+  const restaurateur = await Restaurateur.findById(id).select('products restaurantName');
+  if (!restaurateur) {
+    return res.status(404).json({
+      status: 'error',
+      message: 'Restaurateur non trouvé'
+    });
+  }
+  
+  // Filtrer seulement les produits disponibles (vérifier que products existe)
+  const availableProducts = (restaurateur.products || []).filter(product => product.isAvailable);
+  
+  res.status(200).json({
+    status: 'success',
+    data: { 
+      products: availableProducts,
       restaurantName: restaurateur.restaurantName
     }
   });

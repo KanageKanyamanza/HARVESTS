@@ -194,7 +194,7 @@ const exporterSchema = new mongoose.Schema({
     }
   }],
   
-  // Informations financières
+  // Comptes bancaires multiples pour l'export (spécifique aux exportateurs)
   bankAccounts: [{
     accountName: String,
     accountNumber: String,
@@ -224,7 +224,7 @@ const exporterSchema = new mongoose.Schema({
     validUntil: Date
   }],
   
-  // Statistiques d'export
+  // Statistiques spécifiques à l'export
   exportStats: {
     totalExports: {
       type: Number,
@@ -234,25 +234,11 @@ const exporterSchema = new mongoose.Schema({
       type: Number,
       default: 0
     },
-    averageOrderValue: {
-      type: Number,
-      default: 0
-    },
     successfulDeliveryRate: {
       type: Number,
       default: 0,
       min: 0,
       max: 100
-    },
-    averageRating: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 5
-    },
-    totalReviews: {
-      type: Number,
-      default: 0
     }
   },
   
@@ -302,7 +288,46 @@ const exporterSchema = new mongoose.Schema({
         default: false
       }
     }
-  }
+  },
+
+  // Méthodes de paiement préférées (centralisées depuis User)
+  paymentMethods: [String],
+
+  // Préférences de notification (centralisées depuis User)
+  notifications: {
+    email: { type: Boolean, default: true },
+    sms: { type: Boolean, default: false },
+    push: { type: Boolean, default: true },
+    marketing: { type: Boolean, default: false },
+    orderUpdates: { type: Boolean, default: true },
+    priceAlerts: { type: Boolean, default: false }
+  },
+
+  // Statut de vérification (centralisé depuis User)
+  verificationStatus: {
+    isVerified: { type: Boolean, default: false },
+    verifiedAt: Date,
+    verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+    verificationDocuments: [{
+      type: { type: String, enum: ['identity', 'business-license', 'tax-certificate', 'bank-statement', 'other'] },
+      documentUrl: String,
+      uploadedAt: { type: Date, default: Date.now },
+      status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' }
+    }]
+  },
+
+  // Adresses de livraison (centralisées depuis User)
+  deliveryAddresses: [{
+    label: { type: String, required: true },
+    street: { type: String, required: true },
+    city: { type: String, required: true },
+    region: { type: String, required: true },
+    country: { type: String, default: 'Sénégal' },
+    postalCode: String,
+    coordinates: { latitude: Number, longitude: Number },
+    instructions: String,
+    isDefault: { type: Boolean, default: false }
+  }]
 });
 
 // Index pour recherche et performance

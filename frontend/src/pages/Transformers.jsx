@@ -10,7 +10,7 @@ const Transformers = () => {
   useEffect(() => {
     const loadTransformers = async () => {
       try {
-        const response = await transformerService.getAllTransformers({ limit: 20 });
+        const response = await transformerService.getAllPublic({ limit: 20 });
         if (response.data.status === 'success') {
           setTransformers(response.data.data.transformers || []);
         }

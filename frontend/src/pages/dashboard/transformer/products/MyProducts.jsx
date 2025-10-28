@@ -30,7 +30,7 @@ const MyProducts = () => {
     const loadProducts = async () => {
       try {
         setLoading(true);
-        const response = await transformerService.getMyProducts();
+        const response = await transformerService.getProducts();
         setProducts(response.data?.data?.products || []);
       } catch (error) {
         console.error('Erreur lors du chargement des produits:', error);
@@ -44,6 +44,20 @@ const MyProducts = () => {
 
     loadProducts();
   }, []);
+
+  // Supprimer un produit
+  const handleDeleteProduct = async (productId) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
+      try {
+        await transformerService.deleteProduct(productId);
+        setProducts(products.filter(p => p._id !== productId));
+        showSuccess('Produit supprimé avec succès');
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+        showError('Erreur lors de la suppression du produit');
+      }
+    }
+  };
 
   // Filtrer les produits
   const filteredProducts = products.filter(product => {
@@ -116,7 +130,7 @@ const MyProducts = () => {
             <p className="text-gray-600 mt-1">Gérez les produits de votre boutique</p>
           </div>
           <Link
-            to="/transformer/products/new"
+            to="/transformer/products/add"
             className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
           >
             <FiPlus className="h-4 w-4 mr-2" />
@@ -247,7 +261,7 @@ const MyProducts = () => {
                 </p>
                 <div className="mt-6">
                   <Link
-                    to="/transformer/products/new"
+                    to="/transformer/products/add"
                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
                   >
                     <FiPlus className="h-4 w-4 mr-2" />
@@ -271,10 +285,7 @@ const MyProducts = () => {
                       // Soumettre pour révision
                       handleSubmitForReview(productId);
                     }}
-                    onDelete={(productId) => {
-                      // Supprimer le produit (à implémenter)
-                      console.log('Supprimer produit:', productId);
-                    }}
+                    onDelete={handleDeleteProduct}
                   />
                 ))}
               </div>

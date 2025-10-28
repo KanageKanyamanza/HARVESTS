@@ -30,6 +30,13 @@ router.use(authController.protect);
 
 // Routes pour les producteurs seulement
 router.use(authController.restrictTo('producer'));
+
+// Routes de lecture qui ne nécessitent pas de vérification d'email
+router.get('/me/stats', producerController.getMyStats);
+router.get('/me/products', producerController.getMyProducts);
+router.get('/me/orders', producerController.getMyOrders);
+
+// Toutes les autres routes nécessitent une vérification d'email
 router.use(authController.requireVerification);
 
 // Routes protégées pour les producteurs connectés (/me/*)
@@ -71,9 +78,8 @@ router.route('/me/equipment/:equipmentId')
   .patch(producerController.updateEquipment)
   .delete(producerController.removeEquipment);
 
-// Gestion des produits
+// Gestion des produits (création, modification, suppression nécessitent vérification)
 router.route('/me/products')
-  .get(producerController.getMyProducts)
   .post(
     uploadLimiter,
     producerController.uploadProductImages,
@@ -88,13 +94,10 @@ router.route('/me/products/:productId')
   .patch(producerController.updateMyProduct)
   .delete(producerController.deleteMyProduct);
 
-// Gestion des commandes
-router.get('/me/orders', producerController.getMyOrders);
+// Gestion des commandes (modification nécessite vérification)
 router.get('/me/orders/:orderId', producerController.getMyOrder);
 router.patch('/me/orders/:orderId/status', producerController.updateOrderStatus);
-
-// Statistiques et analytics
-router.get('/me/stats', producerController.getMyStats);
+router.get('/me/stats', producerController.getStats);
 router.get('/me/sales-analytics', producerController.getSalesAnalytics);
 router.get('/me/revenue-analytics', producerController.getRevenueAnalytics);
 

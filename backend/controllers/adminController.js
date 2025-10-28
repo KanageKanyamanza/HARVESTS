@@ -921,11 +921,23 @@ exports.getUserById = catchAsync(async (req, res, next) => {
 });
 
 exports.updateUser = catchAsync(async (req, res, next) => {
-  const { firstName, lastName, email, phone, address, isActive } = req.body;
+  const { firstName, lastName, email, phone, address, isActive, isEmailVerified, emailVerified } = req.body;
+  
+  // Préparer les données de mise à jour
+  const updateData = { firstName, lastName, email, phone, address, isActive };
+  
+  // Synchroniser les champs de vérification email
+  if (isEmailVerified !== undefined) {
+    updateData.isEmailVerified = isEmailVerified;
+    updateData.emailVerified = isEmailVerified;
+  } else if (emailVerified !== undefined) {
+    updateData.emailVerified = emailVerified;
+    updateData.isEmailVerified = emailVerified;
+  }
   
   const user = await User.findByIdAndUpdate(
     req.params.id,
-    { firstName, lastName, email, phone, address, isActive },
+    updateData,
     { new: true, runValidators: true }
   ).select('-password -passwordResetToken -passwordResetExpires');
 
@@ -994,6 +1006,7 @@ exports.verifyUser = catchAsync(async (req, res, next) => {
     req.params.id,
     { 
       isEmailVerified: true,
+      emailVerified: true, // Synchroniser les deux champs
       isApproved: true 
     },
     { new: true }
@@ -1126,6 +1139,37 @@ exports.approveProduct = catchAsync(async (req, res, next) => {
     return next(new AppError('Produit non trouvé', 404));
   }
 
+  // Créer une notification pour le producteur
+  if (product.producer) {
+    const Notification = require('../models/Notification');
+    
+    const productName = typeof product.name === 'object' ? product.name.fr || product.name.en : product.name;
+    const producerName = `${product.producer.firstName} ${product.producer.lastName}`;
+    
+    await Notification.create({
+      recipient: product.producer._id,
+      type: 'product_approved',
+      category: 'product',
+      title: 'Produit approuvé',
+      message: `Votre produit "${productName}" a été approuvé et est maintenant visible sur la plateforme`,
+      data: {
+        productId: product._id,
+        productName: productName,
+        producerName: producerName,
+        action: 'product_approved'
+      },
+      actions: [{
+        type: 'view',
+        label: 'Voir le produit',
+        url: `/products/${product._id}`
+      }],
+      isRead: false,
+      priority: 'medium'
+    });
+
+    console.log(`✅ Notification envoyée au producteur ${producerName} pour l'approbation du produit "${productName}"`);
+  }
+
   res.status(200).json({
     status: 'success',
     message: 'Produit approuvé avec succès',
@@ -1148,6 +1192,38 @@ exports.rejectProduct = catchAsync(async (req, res, next) => {
 
   if (!product) {
     return next(new AppError('Produit non trouvé', 404));
+  }
+
+  // Créer une notification pour le producteur
+  if (product.producer) {
+    const Notification = require('../models/Notification');
+    
+    const productName = typeof product.name === 'object' ? product.name.fr || product.name.en : product.name;
+    const producerName = `${product.producer.firstName} ${product.producer.lastName}`;
+    
+    await Notification.create({
+      recipient: product.producer._id,
+      type: 'product_rejected',
+      category: 'product',
+      title: 'Produit rejeté',
+      message: `Votre produit "${productName}" a été rejeté. Raison: ${reason || 'Non spécifiée'}`,
+      data: {
+        productId: product._id,
+        productName: productName,
+        producerName: producerName,
+        rejectionReason: reason,
+        action: 'product_rejected'
+      },
+      actions: [{
+        type: 'edit',
+        label: 'Modifier le produit',
+        url: `/producer/products/${product._id}/edit`
+      }],
+      isRead: false,
+      priority: 'high'
+    });
+
+    console.log(`❌ Notification envoyée au producteur ${producerName} pour le rejet du produit "${productName}"`);
   }
 
   res.status(200).json({
@@ -2045,5 +2121,210 @@ exports.updateSystemSettings = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     message: 'Fonctionnalité en cours de développement'
+  });
+});
+
+// ========================================
+// GESTION DES PLATS (RESTAURATEURS)
+// ========================================
+
+exports.getAllDishes = catchAsync(async (req, res, next) => {
+  const { page = 1, limit = 10, search, status } = req.query;
+  
+  // Construire le filtre
+  const filter = {};
+  
+  if (search) {
+    filter.$or = [
+      { 'dishes.name': { $regex: search, $options: 'i' } },
+      { 'dishes.description': { $regex: search, $options: 'i' } }
+    ];
+  }
+  
+  if (status) {
+    filter['dishes.status'] = status;
+  }
+  
+  // Pagination
+  const skip = (page - 1) * limit;
+  
+  // Récupérer tous les restaurateurs avec leurs plats
+  const restaurateurs = await Restaurateur.find(filter).select('dishes restaurantName firstName lastName email');
+  
+  // Extraire tous les plats avec leurs restaurateurs
+  let allDishes = [];
+  restaurateurs.forEach(restaurateur => {
+    restaurateur.dishes.forEach(dish => {
+      allDishes.push({
+        ...dish.toObject(),
+        restaurateur: {
+          _id: restaurateur._id,
+          restaurantName: restaurateur.restaurantName,
+          firstName: restaurateur.firstName,
+          lastName: restaurateur.lastName,
+          email: restaurateur.email
+        }
+      });
+    });
+  });
+  
+  // Appliquer le filtre de recherche si nécessaire
+  if (search) {
+    allDishes = allDishes.filter(dish => 
+      dish.name.toLowerCase().includes(search.toLowerCase()) ||
+      (dish.description && dish.description.toLowerCase().includes(search.toLowerCase()))
+    );
+  }
+  
+  // Appliquer le filtre de status si nécessaire
+  if (status) {
+    allDishes = allDishes.filter(dish => dish.status === status);
+  }
+  
+  // Pagination
+  const total = allDishes.length;
+  const dishes = allDishes.slice(skip, skip + parseInt(limit));
+  
+  res.status(200).json({
+    status: 'success',
+    data: {
+      dishes,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / limit),
+        totalDishes: total,
+        hasNext: page < Math.ceil(total / limit),
+        hasPrev: page > 1
+      }
+    }
+  });
+});
+
+exports.getDishById = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  
+  // Rechercher dans tous les restaurateurs
+  const restaurateur = await Restaurateur.findOne({ 'dishes._id': id }).select('dishes restaurantName firstName lastName email');
+  
+  if (!restaurateur) {
+    return next(new AppError('Plat non trouvé', 404));
+  }
+  
+  const dish = restaurateur.dishes.id(id);
+  
+  res.status(200).json({
+    status: 'success',
+    data: {
+      dish: {
+        ...dish.toObject(),
+        restaurateur: {
+          _id: restaurateur._id,
+          restaurantName: restaurateur.restaurantName,
+          firstName: restaurateur.firstName,
+          lastName: restaurateur.lastName,
+          email: restaurateur.email
+        }
+      }
+    }
+  });
+});
+
+exports.updateDish = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const updates = req.body;
+  
+  // Rechercher le restaurateur
+  const restaurateur = await Restaurateur.findOne({ 'dishes._id': id });
+  
+  if (!restaurateur) {
+    return next(new AppError('Plat non trouvé', 404));
+  }
+  
+  const dish = restaurateur.dishes.id(id);
+  
+  // Mettre à jour les champs
+  Object.keys(updates).forEach(key => {
+    if (key !== '_id' && key !== 'restaurateur') {
+      dish[key] = updates[key];
+    }
+  });
+  
+  await restaurateur.save();
+  
+  res.status(200).json({
+    status: 'success',
+    message: 'Plat mis à jour avec succès',
+    data: { dish }
+  });
+});
+
+exports.deleteDish = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  
+  const restaurateur = await Restaurateur.findOne({ 'dishes._id': id });
+  
+  if (!restaurateur) {
+    return next(new AppError('Plat non trouvé', 404));
+  }
+  
+  const dish = restaurateur.dishes.id(id);
+  dish.remove();
+  await restaurateur.save();
+  
+  res.status(200).json({
+    status: 'success',
+    message: 'Plat supprimé avec succès'
+  });
+});
+
+exports.approveDish = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  
+  const restaurateur = await Restaurateur.findOne({ 'dishes._id': id });
+  
+  if (!restaurateur) {
+    return next(new AppError('Plat non trouvé', 404));
+  }
+  
+  const dish = restaurateur.dishes.id(id);
+  dish.status = 'approved';
+  dish.approvedAt = new Date();
+  dish.rejectionReason = undefined;
+  
+  await restaurateur.save();
+  
+  // Notification (optionnel)
+  // ...
+  
+  res.status(200).json({
+    status: 'success',
+    message: 'Plat approuvé avec succès',
+    data: { dish }
+  });
+});
+
+exports.rejectDish = catchAsync(async (req, res, next) => {
+  const { reason } = req.body;
+  
+  if (!reason) {
+    return next(new AppError('Raison du rejet requise', 400));
+  }
+  
+  const restaurateur = await Restaurateur.findOne({ 'dishes._id': req.params.id });
+  
+  if (!restaurateur) {
+    return next(new AppError('Plat non trouvé', 404));
+  }
+  
+  const dish = restaurateur.dishes.id(req.params.id);
+  dish.status = 'rejected';
+  dish.rejectionReason = reason;
+  
+  await restaurateur.save();
+  
+  res.status(200).json({
+    status: 'success',
+    message: 'Plat rejeté avec succès',
+    data: { dish }
   });
 });

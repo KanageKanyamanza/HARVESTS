@@ -126,7 +126,7 @@ const ProductCard = ({ product }) => {
             <div className="flex items-center text-yellow-500">
               <FiStar className="h-4 w-4 fill-current" />
               <span className="ml-1 text-sm text-gray-600 font-medium">
-                {product.stats?.averageRating?.toFixed(1) || '0.0'}
+                0.0
               </span>
             </div>
           </div>

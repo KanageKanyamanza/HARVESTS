@@ -58,8 +58,7 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
   // Construction de la requête de base
   const queryObj = { 
     status: 'approved', 
-    isActive: true,
-    'availability.status': { $in: ['in-stock', 'low-stock'] }
+    isActive: true
   };
 
   // Filtres
@@ -188,7 +187,7 @@ exports.getProduct = catchAsync(async (req, res, next) => {
   .populate('producer', 'farmName firstName lastName createdAt country')
   .populate('transformer', 'companyName firstName lastName createdAt country')
   .limit(6)
-  .sort('-stats.averageRating');
+  .sort('-createdAt');
 
   res.status(200).json({
     status: 'success',
@@ -205,12 +204,11 @@ exports.getFeaturedProducts = catchAsync(async (req, res, next) => {
   const products = await Product.find({
     isFeatured: true,
     status: 'approved',
-    isActive: true,
-    'availability.status': { $in: ['in-stock', 'low-stock'] }
+    isActive: true
   })
   .populate('producer', 'farmName firstName lastName address createdAt country')
   .populate('transformer', 'companyName firstName lastName address createdAt country')
-  .sort('-stats.averageRating -createdAt')
+  .sort('-createdAt')
   .limit(12);
 
   res.status(200).json({
@@ -268,8 +266,7 @@ exports.getProductsByCategory = catchAsync(async (req, res, next) => {
   const queryObj = { 
     category,
     status: 'approved', 
-    isActive: true,
-    'availability.status': { $in: ['in-stock', 'low-stock'] }
+    isActive: true
   };
 
   // Filtres additionnels
@@ -428,9 +425,7 @@ exports.updateMyProduct = catchAsync(async (req, res, next) => {
   const allowedFields = [
     'name', 'description', 'shortDescription', 'price', 'compareAtPrice',
     'category', 'subcategory', 'tags', 'hasVariants', 'variants',
-    'agricultureInfo', 'nutritionalInfo', 'images', 'inventory',
-    'shipping', 'minimumOrderQuantity', 'maximumOrderQuantity',
-    'availability', 'seo'
+    'images', 'inventory', 'minimumOrderQuantity', 'maximumOrderQuantity'
   ];
 
   const filteredBody = {};
@@ -617,10 +612,10 @@ exports.getMyProductStats = catchAsync(async (req, res, next) => {
         approvedProducts: {
           $sum: { $cond: [{ $eq: ['$status', 'approved'] }, 1, 0] }
         },
-        totalViews: { $sum: '$stats.views' },
-        totalSales: { $sum: '$stats.totalSales' },
-        totalRevenue: { $sum: '$stats.revenue' },
-        averageRating: { $avg: '$stats.averageRating' }
+        totalViews: { $sum: 0 },
+        totalSales: { $sum: 0 },
+        totalRevenue: { $sum: 0 },
+        averageRating: { $avg: 0 }
       }
     }
   ]);
@@ -632,8 +627,8 @@ exports.getMyProductStats = catchAsync(async (req, res, next) => {
       $group: {
         _id: '$category',
         count: { $sum: 1 },
-        totalSales: { $sum: '$stats.totalSales' },
-        revenue: { $sum: '$stats.revenue' }
+        totalSales: { $sum: 0 },
+        revenue: { $sum: 0 }
       }
     },
     { $sort: { revenue: -1 } }
@@ -644,9 +639,9 @@ exports.getMyProductStats = catchAsync(async (req, res, next) => {
     producer: req.user.id,
     isActive: true
   })
-  .sort('-stats.revenue')
+  .sort('-createdAt')
   .limit(5)
-  .select('name stats.revenue stats.totalSales stats.averageRating');
+  .select('name price createdAt');
 
   res.status(200).json({
     status: 'success',

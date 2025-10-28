@@ -177,10 +177,36 @@ exports.getProducer = catchAsync(async (req, res, next) => {
     return next(new AppError('Producteur non trouvé', 404));
   }
 
+  // Calculer les statistiques de notation
+  const Review = require('../models/Review');
+  const reviews = await Review.find({ 
+    producer: req.params.id,
+    status: 'approved'
+  });
+
+  const totalReviews = reviews.length;
+  const averageRating = totalReviews > 0 
+    ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
+    : 0;
+
+  // Ajouter les statistiques de notation au producteur
+  const producerWithStats = {
+    ...producer.toObject(),
+    ratings: {
+      average: averageRating,
+      count: totalReviews
+    },
+    stats: {
+      totalReviews,
+      averageRating,
+      ...producer.stats
+    }
+  };
+
   res.status(200).json({
     status: 'success',
     data: {
-      producer,
+      producer: producerWithStats,
     },
   });
 });
@@ -224,12 +250,69 @@ exports.getProducerProducts = catchAsync(async (req, res, next) => {
 
 // Obtenir les avis d'un producteur
 exports.getProducerReviews = catchAsync(async (req, res, next) => {
-  // Cette fonction nécessitera le modèle Review qui n'est pas encore créé
+  const producerId = req.params.id;
+  
+  // Vérifier que le producteur existe
+  const producer = await Producer.findById(producerId);
+  if (!producer) {
+    return next(new AppError('Producteur non trouvé', 404));
+  }
+
+  // Récupérer tous les produits du producteur
+  const products = await Product.find({ 
+    producer: producerId,
+    isActive: true,
+    status: 'approved'
+  }).select('_id');
+
+  const productIds = products.map(p => p._id);
+
+  // Récupérer les avis pour les produits de ce producteur
+  const reviews = await Review.find({ 
+    product: { $in: productIds },
+    isActive: true 
+  })
+  .populate('reviewer', 'firstName lastName avatar')
+  .populate('product', 'name.fr name.en images')
+  .sort('-createdAt')
+  .limit(20);
+
+  // Calculer les statistiques des avis
+  const stats = await Review.aggregate([
+    { $match: { product: { $in: productIds }, isActive: true } },
+    {
+      $group: {
+        _id: null,
+        totalReviews: { $sum: 1 },
+        averageRating: { $avg: '$rating' },
+        ratingDistribution: {
+          $push: '$rating'
+        }
+      }
+    }
+  ]);
+
+  const reviewStats = stats[0] || {
+    totalReviews: 0,
+    averageRating: 0,
+    ratingDistribution: []
+  };
+
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle Review requis',
-    data: {
-      reviews: [],
+    data: { 
+      reviews,
+      stats: {
+        totalReviews: reviewStats.totalReviews,
+        averageRating: Math.round(reviewStats.averageRating * 10) / 10,
+        ratingDistribution: {
+          5: reviewStats.ratingDistribution.filter(r => r === 5).length,
+          4: reviewStats.ratingDistribution.filter(r => r === 4).length,
+          3: reviewStats.ratingDistribution.filter(r => r === 3).length,
+          2: reviewStats.ratingDistribution.filter(r => r === 2).length,
+          1: reviewStats.ratingDistribution.filter(r => r === 1).length,
+        }
+      }
     },
   });
 });
@@ -477,7 +560,10 @@ exports.getMyProducts = catchAsync(async (req, res, next) => {
   const Product = require('../models/Product');
   
   // Utiliser _id au lieu de id car req.user est un document Mongoose
-  const queryObj = { producer: req.user._id };
+  const queryObj = { 
+    producer: req.user._id,
+    isActive: true  // Ne retourner que les produits actifs
+  };
   if (req.query.status) queryObj.status = req.query.status;
   if (req.query.category) queryObj.category = req.query.category;
 
@@ -510,18 +596,55 @@ exports.getMyProducts = catchAsync(async (req, res, next) => {
 exports.createProduct = catchAsync(async (req, res, next) => {
   const Product = require('../models/Product');
   
-  req.body.producer = req.user._id;
-  
-  // Traiter les images si présentes
-  if (req.body.images && req.body.images.length > 0) {
-    req.body.images = req.body.images.map((img, index) => ({
+  const {
+    name,
+    description,
+    shortDescription,
+    category,
+    subcategory,
+    tags,
+    price,
+    compareAtPrice,
+    stock,
+    minimumOrderQuantity,
+    maximumOrderQuantity,
+    unit,
+    status,
+    images
+  } = req.body;
+
+  // Validation des champs obligatoires
+  if (!name || !description || !category || !price || stock === undefined) {
+    return next(new AppError('Tous les champs obligatoires doivent être remplis', 400));
+  }
+
+  // Créer le produit avec structure multilingue
+  const productData = {
+    name: typeof name === 'object' ? name : { fr: name, en: name },
+    description: typeof description === 'object' ? description : { fr: description, en: description },
+    shortDescription: typeof shortDescription === 'object' ? shortDescription : { fr: shortDescription, en: shortDescription },
+    category,
+    subcategory: subcategory || category,
+    tags: tags || [],
+    price: parseFloat(price),
+    compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : undefined,
+    inventory: {
+      quantity: parseInt(stock) || 0
+    },
+    minimumOrderQuantity: minimumOrderQuantity || 1,
+    maximumOrderQuantity: maximumOrderQuantity || undefined,
+    unit: unit || 'kg',
+    status: status || 'draft',
+    images: images ? images.map((img, index) => ({
       ...img,
       order: index,
       isPrimary: index === 0
-    }));
-  }
+    })) : [],
+    producer: req.user._id,
+    userType: 'producer'
+  };
   
-  const product = await Product.create(req.body);
+  const product = await Product.create(productData);
 
   res.status(201).json({
     status: 'success',
@@ -753,6 +876,73 @@ exports.getMyStats = catchAsync(async (req, res, next) => {
         customerRetentionRate,
         totalProducts: products.length,
         activeProducts
+      }
+    }
+  });
+});
+
+exports.getStats = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  const Product = require('../models/Product');
+  
+  // Récupérer toutes les commandes du producteur
+  const orders = await Order.find({ seller: req.user._id });
+  const completedOrders = orders.filter(o => o.status === 'completed' || o.status === 'delivered');
+  
+  // Calculer les revenus totaux
+  const totalRevenue = completedOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+  
+  // Récupérer les produits du producteur
+  const products = await Product.find({ producer: req.user._id });
+  const activeProducts = products.filter(p => p.isActive && p.status === 'approved');
+  
+  // Calculer les produits vendus
+  const totalProductsSold = completedOrders.reduce((sum, order) => {
+    return sum + order.items.reduce((itemSum, item) => itemSum + item.quantity, 0);
+  }, 0);
+  
+  // Clients uniques
+  const uniqueCustomers = new Set(completedOrders.map(order => order.buyer.toString())).size;
+  
+  // Produits les plus vendus
+  const productSales = {};
+  completedOrders.forEach(order => {
+    order.items.forEach(item => {
+      if (!productSales[item.product]) {
+        productSales[item.product] = {
+          name: item.name,
+          category: item.category,
+          quantitySold: 0,
+          revenue: 0
+        };
+      }
+      productSales[item.product].quantitySold += item.quantity;
+      productSales[item.product].revenue += item.price * item.quantity;
+    });
+  });
+  
+  const topProducts = Object.values(productSales)
+    .sort((a, b) => b.quantitySold - a.quantitySold)
+    .slice(0, 5);
+  
+  // Valeur moyenne des commandes
+  const averageOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
+  
+  res.status(200).json({
+    status: 'success',
+    data: {
+      stats: {
+        totalRevenue,
+        totalOrders: orders.length,
+        completedOrders: completedOrders.length,
+        totalProducts: products.length,
+        activeProducts: activeProducts.length,
+        totalProductsSold,
+        uniqueCustomers,
+        topProducts,
+        averageOrderValue,
+        conversionRate: orders.length > 0 ? (completedOrders.length / orders.length) * 100 : 0,
+        customerRetentionRate: 0 // À implémenter si nécessaire
       }
     }
   });

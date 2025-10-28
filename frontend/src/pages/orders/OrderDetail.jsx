@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { consumerService, producerService, transformerService, orderService } from '../../services';
 import { parseProductName } from '../../utils/productUtils';
-import ModularDashboardLayout from '../../components/layout/ModularDashboardLayout';
 import {
   FiArrowLeft,
   FiShoppingBag,
@@ -184,7 +183,7 @@ const OrderDetail = () => {
 
   if (loading) {
     return (
-      <ModularDashboardLayout>
+      <div>
         <div className="p-6 max-w-6xl mx-auto">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
@@ -198,13 +197,13 @@ const OrderDetail = () => {
             </div>
           </div>
         </div>
-      </ModularDashboardLayout>
+      </div>
     );
   }
 
   if (error || !order) {
     return (
-      <ModularDashboardLayout>
+      <div>
         <div className="p-6 max-w-6xl mx-auto">
           <div className="bg-white rounded-lg shadow p-12 text-center">
             <FiAlertCircle className="mx-auto h-16 w-16 text-red-400" />
@@ -216,7 +215,7 @@ const OrderDetail = () => {
             </p>
             <div className="mt-6">
               <Link
-                to={user?.userType === 'consumer' ? '/order-history' : 
+                to={user?.userType === 'consumer' ? '/consumer/orders' : 
                     user?.userType === 'producer' ? '/producer/orders' : 
                     user?.userType === 'transformer' ? '/transformer/orders' :
                     '/dashboard'}
@@ -228,7 +227,7 @@ const OrderDetail = () => {
             </div>
           </div>
         </div>
-      </ModularDashboardLayout>
+      </div>
     );
   }
 
@@ -236,14 +235,14 @@ const OrderDetail = () => {
   const StatusIcon = statusConfig.icon;
 
   return (
-    <ModularDashboardLayout>
+    <div>
       <div className="p-6 max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-6">
           <div className="flex flex-wrap gap-2 items-center justify-between">
             <div className="flex flex-wrap gap-2 items-center space-x-4">
               <Link
-                to={user?.userType === 'consumer' ? '/order-history' : 
+                to={user?.userType === 'consumer' ? '/consumer/orders' : 
                     user?.userType === 'producer' ? '/producer/orders' : 
                     user?.userType === 'transformer' ? '/transformer/orders' :
                     '/dashboard'}
@@ -592,7 +591,7 @@ const OrderDetail = () => {
           </div>
         </div>
       </div>
-    </ModularDashboardLayout>
+    </div>
   );
 };
 

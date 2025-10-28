@@ -11,6 +11,7 @@ const transformerSchema = new mongoose.Schema({
     maxlength: [100, 'Le nom de l\'entreprise ne peut pas dépasser 100 caractères'],
     default: 'À compléter'
   },
+
   
   companyRegistrationNumber: {
     type: String,
@@ -155,38 +156,8 @@ const transformerSchema = new mongoose.Schema({
     ref: 'User'
   }],
   
-  // Informations financières
-  bankAccount: {
-    accountName: String,
-    accountNumber: String,
-    bankName: String,
-    bankCode: String,
-    isVerified: {
-      type: Boolean,
-      default: false
-    }
-  },
-  
-  // Statistiques d'activité
+  // Statistiques spécifiques au transformateur
   businessStats: {
-    totalOrders: {
-      type: Number,
-      default: 0
-    },
-    totalRevenue: {
-      type: Number,
-      default: 0
-    },
-    averageRating: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 5
-    },
-    totalReviews: {
-      type: Number,
-      default: 0
-    },
     onTimeDeliveryRate: {
       type: Number,
       default: 0,
@@ -235,49 +206,45 @@ const transformerSchema = new mongoose.Schema({
     }
   },
 
-  // Informations de boutique
-  shopInfo: {
-    isShopActive: {
-      type: Boolean,
-      default: false
-    },
-    shopName: {
-      type: String,
-      trim: true,
-      maxlength: [100, 'Le nom de la boutique ne peut pas dépasser 100 caractères']
-    },
-    shopDescription: {
-      type: String,
-      maxlength: [500, 'La description de la boutique ne peut pas dépasser 500 caractères']
-    },
-    shopBanner: {
-      type: String,
-      default: null
-    },
-    shopLogo: {
-      type: String,
-      default: null
-    },
-    openingHours: {
-      monday: { open: String, close: String, isOpen: Boolean },
-      tuesday: { open: String, close: String, isOpen: Boolean },
-      wednesday: { open: String, close: String, isOpen: Boolean },
-      thursday: { open: String, close: String, isOpen: Boolean },
-      friday: { open: String, close: String, isOpen: Boolean },
-      saturday: { open: String, close: String, isOpen: Boolean },
-      sunday: { open: String, close: String, isOpen: Boolean }
-    },
-    contactInfo: {
-      phone: String,
-      email: String,
-      website: String,
-      socialMedia: {
-        facebook: String,
-        instagram: String,
-        twitter: String
-      }
-    }
-  }
+
+  // Méthodes de paiement préférées (centralisées depuis User)
+  paymentMethods: [String],
+
+  // Préférences de notification (centralisées depuis User)
+  notifications: {
+    email: { type: Boolean, default: true },
+    sms: { type: Boolean, default: false },
+    push: { type: Boolean, default: true },
+    marketing: { type: Boolean, default: false },
+    orderUpdates: { type: Boolean, default: true },
+    priceAlerts: { type: Boolean, default: false }
+  },
+
+  // Statut de vérification (centralisé depuis User)
+  verificationStatus: {
+    isVerified: { type: Boolean, default: false },
+    verifiedAt: Date,
+    verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+    verificationDocuments: [{
+      type: { type: String, enum: ['identity', 'business-license', 'tax-certificate', 'bank-statement', 'other'] },
+      documentUrl: String,
+      uploadedAt: { type: Date, default: Date.now },
+      status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' }
+    }]
+  },
+
+  // Adresses de livraison (centralisées depuis User)
+  deliveryAddresses: [{
+    label: { type: String, required: true },
+    street: { type: String, required: true },
+    city: { type: String, required: true },
+    region: { type: String, required: true },
+    country: { type: String, default: 'Sénégal' },
+    postalCode: String,
+    coordinates: { latitude: Number, longitude: Number },
+    instructions: String,
+    isDefault: { type: Boolean, default: false }
+  }]
 });
 
 // Index pour recherche et performance

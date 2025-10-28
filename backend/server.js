@@ -42,23 +42,21 @@ mongoose
   .then(async () => {
     console.log('✅ Connexion à la base de données réussie!');
     
-    // Créer automatiquement le premier admin en production si nécessaire
-    if (process.env.NODE_ENV === 'production') {
-      try {
-        const { exec } = require('child_process');
-        const path = require('path');
-        
-        // Exécuter le script de création d'admin en mode automatique
-        exec(`node ${path.join(__dirname, 'scripts', 'quick-admin-setup.js')} --auto-create`, (error, stdout, stderr) => {
-          if (error) {
-            console.log('⚠️ Erreur lors de la vérification/création de l\'admin:', error.message);
-          } else {
-            console.log(stdout);
-          }
-        });
-      } catch (error) {
-        console.log('⚠️ Impossible de vérifier/créer l\'admin automatiquement:', error.message);
-      }
+    // Créer automatiquement le premier admin si nécessaire (production et développement)
+    try {
+      const { exec } = require('child_process');
+      const path = require('path');
+      
+      // Exécuter le script de création d'admin en mode automatique
+      exec(`node ${path.join(__dirname, 'scripts', 'quick-admin-setup.js')} --auto-create`, (error, stdout, stderr) => {
+        if (error) {
+          console.log('⚠️ Erreur lors de la vérification/création de l\'admin:', error.message);
+        } else {
+          console.log(stdout);
+        }
+      });
+    } catch (error) {
+      console.log('⚠️ Impossible de vérifier/créer l\'admin automatiquement:', error.message);
     }
   })
   .catch((err) => {

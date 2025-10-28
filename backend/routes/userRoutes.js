@@ -20,25 +20,25 @@ const profileService = require('../services/profileService');
 // Upload d'avatar
 router.patch('/upload-avatar', 
   uploadLimiter,
-  profileImageService.uploadAvatar,
-  profileImageService.processImageUpload,
-  profileService.updateProfile
+  userController.uploadUserPhoto,
+  userController.resizeUserPhoto,
+  userController.updateMe
 );
 
 // Upload de bannière de boutique
 router.patch('/upload-shop-banner', 
   uploadLimiter,
-  profileImageService.uploadShopBanner,
-  profileImageService.processImageUpload,
-  profileService.updateProfile
+  userController.uploadShopBanner,
+  userController.resizeUserPhoto,
+  userController.updateMe
 );
 
 // Upload de logo de boutique
 router.patch('/upload-shop-logo', 
   uploadLimiter,
-  profileImageService.uploadShopLogo,
-  profileImageService.processImageUpload,
-  profileService.updateProfile
+  userController.uploadShopLogo,
+  userController.resizeUserPhoto,
+  userController.updateMe
 );
 
 // Gestion des adresses (pour les consommateurs principalement)
@@ -49,6 +49,21 @@ router.route('/addresses')
 router.route('/addresses/:addressId')
   .patch(userController.updateAddress)
   .delete(userController.deleteAddress);
+
+// Routes communes pour tous les utilisateurs
+// Statistiques communes
+router.get('/me/common-stats', userController.getCommonStats);
+router.get('/me/financial-info', userController.getFinancialInfo);
+router.get('/me/notification-settings', userController.getNotificationSettings);
+router.get('/me/verification-status', userController.getVerificationStatus);
+router.get('/me/delivery-addresses', userController.getDeliveryAddresses);
+
+// Mise à jour des informations communes
+router.patch('/me/financial-info', userController.updateFinancialInfo);
+router.patch('/me/notification-settings', userController.updateNotificationSettings);
+router.post('/me/delivery-addresses', userController.addDeliveryAddress);
+router.patch('/me/delivery-addresses/:addressId', userController.updateDeliveryAddress);
+router.delete('/me/delivery-addresses/:addressId', userController.deleteDeliveryAddress);
 
 // Routes administratives (admin seulement)
 router.use(authController.restrictTo('admin'));

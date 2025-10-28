@@ -74,5 +74,9 @@ export const producerService = {
   getPublicProducerReviews: (id, params = {}) => {
     const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
     return axios.get(`${API_BASE_URL}/producers/${id}/reviews`, { params });
+  },
+  getReviews: (id, params = {}) => {
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+    return axios.get(`${API_BASE_URL}/producers/${id}/reviews`, { params });
   }
 };

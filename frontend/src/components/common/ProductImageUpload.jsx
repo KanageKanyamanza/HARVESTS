@@ -63,11 +63,11 @@ const ProductImageUpload = ({
       
       if (response.data && response.data.data && response.data.data.images && response.data.data.images.length > 0) {
         // Structure: {status: 'success', data: {images: [...]}}
-        imageUrl = response.data.data.images[0].url;
+        imageUrl = response.data.data.images[0].secure_url || response.data.data.images[0].url;
         console.log('✅ Image trouvée dans data.data.images:', imageUrl);
       } else if (response.data && response.data.images && response.data.images.length > 0) {
         // Structure: {images: [...]}
-        imageUrl = response.data.images[0].url;
+        imageUrl = response.data.images[0].secure_url || response.data.images[0].url;
         console.log('✅ Image trouvée dans data.images:', imageUrl);
       } else if (response.data && response.data.data && response.data.data.url) {
         // Structure: {status: 'success', data: {url: '...'}}

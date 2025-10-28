@@ -124,12 +124,8 @@
     }
   },
   "countries": {
-    "CM": "Cameroon",
-    "SN": "Senegal",
-    "CI": "Ivory Coast",
-    "GH": "Ghana",
-    "NG": "Nigeria",
-    "KE": "Kenya"
+    "default": "Senegal",
+    "placeholder": "Enter your country"
   },
   "user_types": {
     "producer": "Producer",

@@ -10,7 +10,7 @@ const Producers = () => {
   useEffect(() => {
     const loadProducers = async () => {
       try {
-        const response = await producerService.getAllProducers({ limit: 20 });
+        const response = await producerService.getAllPublic({ limit: 20 });
         if (response.data.status === 'success') {
           setProducers(response.data.data.producers || []);
         }

@@ -33,8 +33,12 @@ const FeaturedProductsSection = () => {
     }
   };
 
+  // Debug: Logs pour comprendre le problème d'affichage
+  console.log('🔍 FeaturedProductsSection - loading:', loading, 'products:', products);
+
   // Ne pas afficher la section s'il n'y a pas de produits featured
   if (!loading && products.length === 0) {
+    console.log('❌ FeaturedProductsSection cachée - products.length === 0');
     return null;
   }
 

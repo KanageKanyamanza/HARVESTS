@@ -99,8 +99,12 @@ const CategoriesSection = () => {
     loadCategories();
   }, [loadCategories]);
 
+  // Debug: Logs pour comprendre le problème d'affichage
+  console.log('🔍 CategoriesSection - loading:', loading, 'categories:', categories, 'categoryProducts:', categoryProducts);
+
   // Ne pas afficher la section s'il y a une erreur de chargement
   if (!loading && categories.length === 0) {
+    console.log('❌ CategoriesSection cachée - categories.length === 0');
     return null;
   }
 

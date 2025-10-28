@@ -292,6 +292,56 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
   };
 
+  // Fonction pour recharger les données de l'utilisateur
+  const refreshUser = async () => {
+    if (!state.isAuthenticated || !state.user) {
+      console.warn('Impossible de recharger les données: utilisateur non connecté');
+      return { success: false, message: 'Utilisateur non connecté' };
+    }
+
+    try {
+      const token = localStorage.getItem('harvests_token');
+      let response;
+      
+      // Détecter si c'est un admin ou un utilisateur normal
+      if (state.user.role === 'admin' || state.user.userType === 'admin') {
+        response = await adminAuthService.getProfile();
+        if (response.success) {
+          const updatedAdmin = response.data.admin;
+          const updatedUser = {
+            ...updatedAdmin,
+            role: 'admin',
+            userType: 'admin'
+          };
+          
+          saveAuthData(updatedUser, token);
+          dispatch({
+            type: AUTH_ACTIONS.UPDATE_PROFILE,
+            payload: updatedUser,
+          });
+          return { success: true, message: 'Données utilisateur mises à jour' };
+        }
+      } else {
+        response = await authService.getProfile();
+        if (response.success) {
+          const updatedUser = response.data.user;
+          
+          saveAuthData(updatedUser, token);
+          dispatch({
+            type: AUTH_ACTIONS.UPDATE_PROFILE,
+            payload: updatedUser,
+          });
+          return { success: true, message: 'Données utilisateur mises à jour' };
+        }
+      }
+      
+      return { success: false, message: 'Erreur lors de la mise à jour' };
+    } catch (error) {
+      console.error('Erreur lors du rechargement des données utilisateur:', error);
+      return { success: false, message: 'Erreur lors de la mise à jour' };
+    }
+  };
+
   // Fonction pour vérifier l'email
   const verifyEmail = async (token) => {
     try {
@@ -401,6 +451,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateProfile,
     clearError,
+    refreshUser,
     verifyEmail,
     forgotPassword,
     resetPassword,

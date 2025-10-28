@@ -3,26 +3,26 @@ import { apiRequest } from './api';
 // Service centralisé pour la gestion des profils
 const profileService = {
   // Obtenir le profil complet
-  getProfile: () => apiRequest.get('/profiles/me'),
+  getProfile: () => apiRequest.get('/users/me'),
   
   // Mettre à jour le profil
-  updateProfile: (data) => apiRequest.patch('/profiles/me', data),
+  updateProfile: (data) => apiRequest.patch('/users/update-me', data),
   
   // Upload d'images
   uploadAvatar: (formData) => {
-    return apiRequest.patch('/profiles/me/avatar', formData, {
+    return apiRequest.patch('/users/upload-avatar', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
   
   uploadBanner: (formData) => {
-    return apiRequest.patch('/profiles/me/banner', formData, {
+    return apiRequest.patch('/users/upload-shop-banner', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
   
   uploadLogo: (formData) => {
-    return apiRequest.patch('/profiles/me/logo', formData, {
+    return apiRequest.patch('/users/upload-shop-logo', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
   },
@@ -66,13 +66,13 @@ const profileService = {
       banner: {
         maxSize: 5 * 1024 * 1024, // 5MB
         allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
-        fieldName: 'banner',
+        fieldName: 'shopBanner',
         uploadFunction: 'uploadBanner'
       },
       logo: {
         maxSize: 2 * 1024 * 1024, // 2MB
         allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
-        fieldName: 'logo',
+        fieldName: 'shopLogo',
         uploadFunction: 'uploadLogo'
       }
     };

@@ -76,6 +76,28 @@ router.post('/products/:id/feature', adminController.featureProduct);
 router.post('/products/:id/unfeature', adminController.unfeatureProduct);
 
 // ========================================
+// GESTION DES PLATS (RESTAURATEURS)
+// ========================================
+
+// Obtenir tous les plats avec filtres
+router.get('/dishes', adminController.getAllDishes);
+
+// Obtenir un plat spécifique
+router.get('/dishes/:id', adminController.getDishById);
+
+// Mettre à jour un plat
+router.patch('/dishes/:id', adminController.updateDish);
+
+// Supprimer un plat
+router.delete('/dishes/:id', adminController.deleteDish);
+
+// Approuver un plat
+router.post('/dishes/:id/approve', adminController.approveDish);
+
+// Rejeter un plat
+router.post('/dishes/:id/reject', adminController.rejectDish);
+
+// ========================================
 // GESTION DES COMMANDES
 // ========================================
 

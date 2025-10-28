@@ -4,204 +4,215 @@ const crypto = require('crypto');
 
 // Schéma de base pour tous les utilisateurs
 const baseUserSchema = new mongoose.Schema({
-  // Informations de base communes
+  // Informations de base
   email: {
     type: String,
     required: [true, 'Email requis'],
     unique: true,
     lowercase: true,
-    validate: {
-      validator: function(email) {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-      },
-      message: 'Format d\'email invalide'
-    }
+    trim: true,
+    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Format email invalide']
   },
-  
   password: {
     type: String,
     required: [true, 'Mot de passe requis'],
     minlength: [8, 'Le mot de passe doit contenir au moins 8 caractères'],
-    select: false // N'inclut pas le mot de passe dans les requêtes par défaut
-  },
-  
-  passwordChangedAt: {
-    type: Date,
     select: false
   },
-  
   userType: {
     type: String,
     required: [true, 'Type d\'utilisateur requis'],
-    enum: ['producer', 'transformer', 'consumer', 'restaurateur', 'exporter', 'transporter'],
-    immutable: true // Ne peut pas être modifié après création
+    enum: {
+      values: ['producer', 'transformer', 'consumer', 'restaurateur', 'exporter', 'transporter', 'admin'],
+      message: 'Type d\'utilisateur invalide'
+    }
   },
-  
-  // Rôle système (admin, user, etc.)
-  role: {
-    type: String,
-    enum: ['user', 'admin', 'super-admin'],
-    default: 'user'
-  },
-  
-  // Informations de profil communes
   firstName: {
     type: String,
     required: [true, 'Prénom requis'],
     trim: true,
     maxlength: [50, 'Le prénom ne peut pas dépasser 50 caractères']
   },
-  
   lastName: {
     type: String,
-    required: function() {
-      // Requis seulement pour les consommateurs
-      return this.userType === 'consumer';
-    },
+    required: [true, 'Nom requis'],
     trim: true,
-    maxlength: [50, 'Le nom ne peut pas dépasser 50 caractères'],
-    default: function() {
-      // Valeur par défaut pour les non-consommateurs
-      return this.userType !== 'consumer' ? 'À compléter' : undefined;
-    }
+    maxlength: [50, 'Le nom ne peut pas dépasser 50 caractères']
   },
-  
+  // Noms d'entreprise spécifiques par type d'utilisateur
+  companyName: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'Le nom de l\'entreprise ne peut pas dépasser 100 caractères']
+  },
+  farmName: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'Le nom de la ferme ne peut pas dépasser 100 caractères']
+  },
+  restaurantName: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'Le nom du restaurant ne peut pas dépasser 100 caractères']
+  },
   phone: {
     type: String,
     required: [true, 'Numéro de téléphone requis'],
-    validate: {
-      validator: function(phone) {
-        // Accepter tous les formats de téléphone internationaux
-        if (!phone || typeof phone !== 'string') return false;
-        
-        // Nettoyer le numéro (garder seulement les chiffres)
-        const cleaned = phone.replace(/\D/g, '');
-        
-        // Vérifier la longueur (7-15 chiffres selon les standards internationaux)
-        return cleaned.length >= 7 && cleaned.length <= 15;
-      },
-      message: 'Format de téléphone invalide (7-15 chiffres requis)'
-    },
-    // Transformer le numéro avant sauvegarde
-    set: function(phone) {
-      if (!phone) return phone;
-      // Garder le format original mais nettoyer pour la validation
-      return phone;
-    }
+    trim: true,
+    match: [/^[\+]?[0-9\s\-\(\)]{8,20}$/, 'Format de téléphone invalide']
   },
-  
-  avatar: {
-    type: String,
-    default: null
-  },
-  
-  // Badge de profil (pour tous sauf consumer)
-  badge: {
-    type: String,
-    enum: ['verified', 'premium', 'gold', 'platinum', 'diamond'],
-    required: false
-  },
-  
-  // Bannière de boutique (pour les profils vendeurs)
-  shopBanner: {
-    type: String,
-    default: null
-  },
-  
-  // Description de la boutique (pour les profils vendeurs)
-  shopDescription: {
-    type: String,
-    maxlength: [500, 'La description de la boutique ne peut pas dépasser 500 caractères'],
-    default: null
-  },
-  
-  // Préférences linguistiques
-  preferredLanguage: {
-    type: String,
-    enum: ['fr', 'en'],
-    default: 'fr'
-  },
-  
   country: {
     type: String,
-    enum: ['SN', 'CM', 'CI', 'GH', 'NG', 'KE', 'MA', 'DZ', 'TN', 'EG', 'ZA', 'TZ', 'UG', 'RW', 'BF', 'ML', 'NE', 'TD', 'CF', 'CD', 'AO', 'ZM', 'ZW', 'BW', 'NA', 'SZ', 'LS', 'MW', 'MZ', 'MG', 'MU', 'SC', 'KM', 'DJ', 'SO', 'ET', 'ER', 'SS', 'SD', 'LY', 'MR', 'GM', 'GW', 'GN', 'SL', 'LR', 'TG', 'BJ', 'GH', 'CI', 'LR', 'SL', 'GN', 'GW', 'CV', 'ST', 'GQ', 'GA', 'CG', 'AO', 'ZM', 'ZW', 'BW', 'NA', 'SZ', 'LS', 'MW', 'MZ', 'MG', 'MU', 'SC', 'KM', 'DJ', 'SO', 'ET', 'ER', 'SS', 'SD', 'LY', 'MR', 'FR', 'US', 'CA', 'GB', 'DE', 'IT', 'ES', 'PT', 'NL', 'BE', 'CH', 'AT', 'SE', 'NO', 'DK', 'FI', 'IS', 'IE', 'LU', 'MT', 'CY', 'GR', 'PL', 'CZ', 'SK', 'HU', 'SI', 'HR', 'RO', 'BG', 'LT', 'LV', 'EE', 'AU', 'NZ', 'JP', 'KR', 'CN', 'IN', 'BR', 'AR', 'MX', 'CL', 'CO', 'PE', 'VE', 'UY', 'PY', 'BO', 'EC', 'GY', 'SR', 'GF', 'FK', 'CR', 'PA', 'NI', 'HN', 'GT', 'BZ', 'SV', 'CU', 'JM', 'HT', 'DO', 'TT', 'BB', 'LC', 'VC', 'GD', 'AG', 'KN', 'DM', 'RU', 'UA', 'BY', 'MD', 'KZ', 'UZ', 'KG', 'TJ', 'TM', 'MN', 'AF', 'PK', 'BD', 'LK', 'MV', 'NP', 'BT', 'MM', 'TH', 'LA', 'VN', 'KH', 'MY', 'SG', 'ID', 'PH', 'TL', 'BN', 'FJ', 'PG', 'SB', 'VU', 'NC', 'PF', 'WS', 'TO', 'KI', 'TV', 'NR', 'MH', 'FM', 'PW', 'AS', 'GU', 'MP', 'VI', 'PR'],
-    default: 'SN'
+    required: [true, 'Pays requis'],
+    trim: true,
+    maxlength: [100, 'Le nom du pays ne peut pas dépasser 100 caractères'],
+    default: 'Sénégal'
   },
-  
-  // Localisation (optionnelle lors de l'inscription)
   address: {
-    street: { type: String, required: false, default: 'À compléter' },
-    city: { type: String, required: false, default: 'À compléter' },
-    region: { type: String, required: false, default: 'À compléter' },
-    postalCode: { type: String },
-    coordinates: {
-      latitude: { type: Number },
-      longitude: { type: Number }
+    type: String,
+    trim: true,
+    maxlength: [200, 'L\'adresse ne peut pas dépasser 200 caractères']
+  },
+  city: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'Le nom de la ville ne peut pas dépasser 100 caractères']
+  },
+  region: {
+    type: String,
+    trim: true,
+    maxlength: [100, 'Le nom de la région ne peut pas dépasser 100 caractères']
+  },
+  bio: {
+    type: String,
+    trim: true,
+    maxlength: [500, 'La biographie ne peut pas dépasser 500 caractères']
+  },
+  postalCode: {
+    type: String,
+    trim: true,
+    maxlength: [20, 'Le code postal ne peut pas dépasser 20 caractères']
+  },
+  coordinates: {
+    latitude: {
+      type: Number,
+      min: -90,
+      max: 90
+    },
+    longitude: {
+      type: Number,
+      min: -180,
+      max: 180
     }
   },
-  
-  // Vérification et sécurité
-  isEmailVerified: {
-    type: Boolean,
-    default: false
-  },
-  
-  emailVerificationToken: String,
-  emailVerificationExpires: Date,
-  
-  passwordResetToken: String,
-  passwordResetExpires: Date,
-  
-  // Statut du compte
   isActive: {
     type: Boolean,
     default: true
   },
-  
   isApproved: {
     type: Boolean,
-    default: false // Nécessite approbation admin pour certains types
+    default: false
   },
-  
-  // Statut du profil
-  isProfileComplete: {
+  emailVerified: {
     type: Boolean,
-    default: function() {
-      // Les consommateurs ont un profil complet après inscription
-      return this.userType === 'consumer';
-    }
+    default: false
+  },
+  emailVerificationToken: String,
+  emailVerificationExpires: Date,
+  
+  // Champs de vérification pour compatibilité avec l'API
+  isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
+  isPhoneVerified: {
+    type: Boolean,
+    default: false
+  },
+  isIdentityVerified: {
+    type: Boolean,
+    default: false
+  },
+  isBusinessVerified: {
+    type: Boolean,
+    default: false
   },
   
-  suspendedUntil: Date,
-  suspensionReason: String,
-  
-  // Métadonnées
-  lastLogin: Date,
+  // Dates de vérification
+  emailVerifiedAt: Date,
+  phoneVerifiedAt: Date,
+  identityVerifiedAt: Date,
+  businessVerifiedAt: Date,
+  passwordResetToken: String,
+  passwordResetExpires: Date,
   loginAttempts: {
     type: Number,
     default: 0
   },
   accountLockedUntil: Date,
-  
-  // Préférences
-  language: {
+  passwordChangedAt: Date,
+  lastLogin: Date,
+  preferredLanguage: {
     type: String,
-    enum: ['fr', 'en', 'es'],
+    enum: ['fr', 'en', 'pt', 'ar'],
     default: 'fr'
   },
-  
-  currency: {
+  timezone: {
     type: String,
-    enum: ['XOF', 'EUR', 'USD', 'XAF'],
-    default: 'XOF'
+    default: 'Africa/Dakar'
   },
-  
-  notifications: {
-    email: { type: Boolean, default: true },
-    sms: { type: Boolean, default: false },
-    push: { type: Boolean, default: true }
-  }
-  
+
+  // Système de notation centralisé
+  ratings: {
+    average: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5
+    },
+    count: {
+      type: Number,
+      default: 0
+    }
+  },
+
+  // Statistiques de vente centralisées
+  salesStats: {
+    totalSales: {
+      type: Number,
+      default: 0
+    },
+    totalOrders: {
+      type: Number,
+      default: 0
+    },
+    totalRevenue: {
+      type: Number,
+      default: 0
+    },
+    averageOrderValue: {
+      type: Number,
+      default: 0
+    }
+  },
+
+  // Images de profil et boutique
+  avatar: {
+    type: String,
+    default: null
+  },
+  shopBanner: {
+    type: String,
+    default: null
+  },
+  shopLogo: {
+    type: String,
+    default: null
+  },
+
+
+
+
 }, {
   timestamps: true,
   discriminatorKey: 'userType',
@@ -211,7 +222,7 @@ const baseUserSchema = new mongoose.Schema({
 // Index pour performance
 baseUserSchema.index({ email: 1 });
 baseUserSchema.index({ userType: 1 });
-baseUserSchema.index({ country: 1, 'address.region': 1 });
+baseUserSchema.index({ country: 1, region: 1 });
 baseUserSchema.index({ isActive: 1, isApproved: 1 });
 
 // Middleware pre-save pour hasher le mot de passe
@@ -313,6 +324,45 @@ baseUserSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
   }
   return false;
 };
+
+// Middleware pour synchroniser les champs de vérification email
+baseUserSchema.pre('save', function(next) {
+  // Synchroniser isEmailVerified avec emailVerified
+  if (this.isModified('emailVerified')) {
+    this.isEmailVerified = this.emailVerified;
+  }
+  if (this.isModified('isEmailVerified')) {
+    this.emailVerified = this.isEmailVerified;
+  }
+  next();
+});
+
+// Middleware pour synchroniser lors des mises à jour
+baseUserSchema.pre(['updateOne', 'findOneAndUpdate', 'updateMany'], function(next) {
+  const update = this.getUpdate();
+  
+  if (update && typeof update === 'object') {
+    // Synchroniser emailVerified avec isEmailVerified
+    if (update.emailVerified !== undefined) {
+      update.isEmailVerified = update.emailVerified;
+    }
+    if (update.isEmailVerified !== undefined) {
+      update.emailVerified = update.isEmailVerified;
+    }
+    
+    // Gérer les opérations $set
+    if (update.$set) {
+      if (update.$set.emailVerified !== undefined) {
+        update.$set.isEmailVerified = update.$set.emailVerified;
+      }
+      if (update.$set.isEmailVerified !== undefined) {
+        update.$set.emailVerified = update.$set.isEmailVerified;
+      }
+    }
+  }
+  
+  next();
+});
 
 // Transformation JSON pour masquer les champs sensibles
 baseUserSchema.methods.toJSON = function() {

@@ -17,22 +17,14 @@ const ProductImageManager = ({
       return;
     }
 
-    try {
-      setUploading(true);
-      
-      if (imageUrl && imageUrl.startsWith('http')) {
-        onImagesChange(prev => [...prev, {
-          url: imageUrl,
-          publicId: '',
-          alt: `Image produit ${prev.length + 1}`,
-          isPrimary: prev.length === 0, // Seule la première image est principale
-          order: prev.length
-        }]);
-      }
-    } catch (error) {
-      console.error('Erreur lors de l\'ajout de l\'image:', error);
-    } finally {
-      setUploading(false);
+    if (imageUrl && imageUrl.startsWith('http')) {
+      onImagesChange(prev => [...prev, {
+        url: imageUrl,
+        publicId: '',
+        alt: `Image produit ${prev.length + 1}`,
+        isPrimary: prev.length === 0, // Seule la première image est principale
+        order: prev.length
+      }]);
     }
   };
 

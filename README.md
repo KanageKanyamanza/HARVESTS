@@ -55,7 +55,7 @@ HARVESTS/
 - 🛡️ **Sécurité enterprise** (rate limiting, XSS, NoSQL injection)
 - 📊 **Logging avancé** avec Winston
 - 📚 **Documentation Swagger** interactive
-- 🌍 **Support 6 pays** africains (CM, SN, CI, GH, NG, KE)
+- 🌍 **Support mondial** avec pays par défaut Sénégal
 
 ### ✅ **Frontend (Interface Moderne)**
 - ⚡ **React 19** + Vite (build ultra-rapide)
@@ -67,16 +67,13 @@ HARVESTS/
 - 📡 **TanStack Query** pour gestion d'état serveur
 - 🎭 **Lazy loading** et optimisations performance
 
-## 🌍 Pays Supportés
+## 🌍 Support Mondial
 
-| Pays | Code | Langue | Devise | Format Tel |
-|------|------|--------|--------|------------|
-| 🇨🇲 Cameroun | CM | Français | XAF (FCFA) | +237 |
-| 🇸🇳 Sénégal | SN | Français | XOF (FCFA) | +221 |
-| 🇨🇮 Côte d'Ivoire | CI | Français | XOF (FCFA) | +225 |
-| 🇬🇭 Ghana | GH | English | GHS (₵) | +233 |
-| 🇳🇬 Nigeria | NG | English | NGN (₦) | +234 |
-| 🇰🇪 Kenya | KE | English | KES (KSh) | +254 |
+- **Pays par défaut :** 🇸🇳 Sénégal
+- **Saisie libre :** Les utilisateurs peuvent saisir n'importe quel pays
+- **Détection automatique :** Configuration régionale basée sur le nom du pays
+- **Langues supportées :** Français, Anglais, Portugais, Arabe
+- **Devises :** Détection automatique selon le pays (XOF, XAF, USD, GHS, NGN, KES, etc.)
 
 ## 👥 Types d'Utilisateurs
 

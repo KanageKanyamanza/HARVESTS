@@ -153,7 +153,7 @@ const OrdersList = () => {
             <p className="text-gray-600 mt-1">Gérez vos commandes d'approvisionnement</p>
           </div>
           <Link
-            to="/restaurateur/orders/new"
+            to="/restaurateur/orders/add"
             className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-harvests-green hover:bg-green-600"
           >
             <FiPlus className="h-4 w-4 mr-2" />
@@ -213,7 +213,7 @@ const OrdersList = () => {
               {!filters.search && !filters.status && (
                 <div className="mt-6">
                   <Link
-                    to="/restaurateur/orders/new"
+                    to="/restaurateur/orders/add"
                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-harvests-green hover:bg-green-600"
                   >
                     <FiPlus className="h-4 w-4 mr-2" />

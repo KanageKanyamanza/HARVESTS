@@ -1,75 +1,55 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { FiStar, FiEdit, FiTrash2, FiClock, FiUser } from 'react-icons/fi';
+import { consumerService } from '../../../services/genericService';
+import LoadingSpinner from '../../../components/common/LoadingSpinner';
+import ErrorMessage from '../../../components/common/ErrorMessage';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
-import { useAuth } from '../../../hooks/useAuth';
-import { consumerService } from '../../../services';
-import { parseProductName } from '../../../utils/productUtils';
-import CloudinaryImage from '../../../components/common/CloudinaryImage';
-import { 
-  FiStar, 
-  FiEdit3, 
-  FiTrash2, 
-  FiEye,
-  FiCalendar,
-  FiPackage,
-  FiUser,
-  FiThumbsUp,
-  FiThumbsDown,
-  FiPlus,
-  FiShoppingBag
-} from 'react-icons/fi';
 
 const Reviews = () => {
-  const { user } = useAuth();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
+  const [error, setError] = useState(null);
 
-  // Charger les avis
   useEffect(() => {
-    const loadReviews = async () => {
-      if (user?.userType === 'consumer') {
-        try {
-          setLoading(true);
-          const response = await consumerService.getMyReviews();
-          console.log('📡 Réponse API Reviews:', response);
-          
-          // Gérer différentes structures de réponse
-          let reviewsData = [];
-          if (response && response.data) {
-            if (response.data.data && response.data.data.reviews && Array.isArray(response.data.data.reviews)) {
-              reviewsData = response.data.data.reviews;
-            } else if (Array.isArray(response.data)) {
-              reviewsData = response.data;
-            } else if (response.data.reviews && Array.isArray(response.data.reviews)) {
-              reviewsData = response.data.reviews;
-            }
-          }
-          
-          console.log('📝 Avis extraits:', reviewsData);
-          setReviews(reviewsData);
-        } catch (error) {
-          console.error('Erreur lors du chargement des avis:', error);
-          setReviews([]);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
     loadReviews();
-  }, [user]);
+  }, []);
 
-  const deleteReview = async (reviewId) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cet avis ?')) {
-      try {
-        console.log('🗑️ Delete review:', reviewId);
-        await consumerService.deleteMyReview(reviewId);
-        setReviews(reviews.filter(review => review.id !== reviewId));
-      } catch (error) {
-        console.error('Erreur lors de la suppression:', error);
+  const loadReviews = async () => {
+    try {
+      setLoading(true);
+      const response = await consumerService.getMyReviews();
+      
+      if (response.data.status === 'success') {
+        setReviews(response.data.data.reviews || []);
       }
+    } catch (err) {
+      console.error('Erreur lors du chargement des avis:', err);
+      setError('Impossible de charger vos avis');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet avis ?')) {
+      return;
+    }
+
+    try {
+      await consumerService.deleteReview(reviewId);
+      setReviews(prev => prev.filter(review => review._id !== reviewId));
+    } catch (err) {
+      console.error('Erreur lors de la suppression de l\'avis:', err);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
 
   const renderStars = (rating) => {
@@ -83,229 +63,116 @@ const Reviews = () => {
     ));
   };
 
-  const getRatingText = (rating) => {
-    switch (rating) {
-      case 5: return 'Excellent';
-      case 4: return 'Très bien';
-      case 3: return 'Bien';
-      case 2: return 'Moyen';
-      case 1: return 'Mauvais';
-      default: return 'Non évalué';
-    }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return 'Date non disponible';
-    
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return 'Date invalide';
-    
-    return date.toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const filteredReviews = reviews.filter(review => {
-    if (filter === 'all') return true;
-    if (filter === 'positive') return review.rating >= 4;
-    if (filter === 'negative') return review.rating <= 2;
-    return true;
-  });
-
   if (loading) {
     return (
-      <ModularDashboardLayout>
-        <div className="p-6 max-w-7xl mx-auto pb-20">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
-            <div className="space-y-4">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="bg-white rounded-lg shadow p-6">
-                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-                  <div className="h-8 bg-gray-200 rounded"></div>
-                </div>
-              ))}
-            </div>
-          </div>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <LoadingSpinner />
         </div>
-      </ModularDashboardLayout>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ErrorMessage message={error} />
+        </div>
+      </div>
     );
   }
 
   return (
     <ModularDashboardLayout>
-      <div className="p-6 max-w-7xl mx-auto pb-20">
-        {/* Header */}
+      <div className="py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* En-tête */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-                <FiStar className="h-8 w-8 mr-3 text-yellow-500" />
-                Mes avis et évaluations
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Gérez vos avis sur les produits et producteurs
-              </p>
-            </div>
-            <div className="flex space-x-3">
-              <Link
-                to="/products"
-                className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-              >
-                <FiShoppingBag className="h-4 w-4 mr-2" />
-                Voir les produits
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Filtres */}
-        <div className="mb-6 flex justify-between items-center">
-          <div className="flex space-x-4">
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
-                filter === 'all'
-                  ? 'bg-harvests-green text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Tous ({reviews.length})
-            </button>
-            <button
-              onClick={() => setFilter('positive')}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
-                filter === 'positive'
-                  ? 'bg-harvests-green text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Positifs ({reviews.filter(r => r.rating >= 4).length})
-            </button>
-            <button
-              onClick={() => setFilter('negative')}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
-                filter === 'negative'
-                  ? 'bg-harvests-green text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Négatifs ({reviews.filter(r => r.rating <= 2).length})
-            </button>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+            <FiStar className="h-8 w-8 text-yellow-500 mr-3" />
+            Mes Avis
+          </h1>
+          <p className="mt-2 text-gray-600">
+            {reviews.length} avis laissé{reviews.length > 1 ? 's' : ''} sur des produits
+          </p>
         </div>
 
         {/* Liste des avis */}
-        {filteredReviews.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-12 text-center">
-            <FiStar className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+        {reviews.length === 0 ? (
+          <div className="text-center py-12">
+            <FiStar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {filter === 'all' ? 'Aucun avis' : 'Aucun avis trouvé'}
+              Aucun avis laissé
             </h3>
-            <p className="text-gray-600 mb-6">
-              {filter === 'all' 
-                ? 'Vous n\'avez pas encore écrit d\'avis. Commencez à évaluer vos achats !'
-                : 'Aucun avis ne correspond à ce filtre.'
-              }
+            <p className="text-gray-500 mb-6">
+              Vous n'avez pas encore laissé d'avis sur des produits.
             </p>
-            {filter === 'all' && (
-              <button className="px-6 py-2 bg-harvests-green text-white rounded-md hover:bg-harvests-green/90">
-                Voir mes commandes
-              </button>
-            )}
+            <Link
+              to="/products"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+            >
+              Découvrir les produits
+            </Link>
           </div>
         ) : (
-          <div className="space-y-6">
-            {filteredReviews.map((review) => (
-              <div key={review.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <div className="flex">
-                          {renderStars(review.rating)}
-                        </div>
-                        <span className="text-sm font-medium text-gray-900">
-                          {getRatingText(review.rating)}
-                        </span>
+          <div className="space-y-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {reviews.map((review) => (
+              <div key={review._id} className="bg-white rounded-lg shadow p-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    {/* En-tête de l'avis */}
+                    <div className="flex items-center mb-3">
+                      <div className="flex items-center">
+                        {renderStars(review.rating)}
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                        {parseProductName(review.product?.name) || 'Produit'}
+                      <span className="ml-2 text-sm text-gray-500">
+                        {review.rating}/5
+                      </span>
+                      <span className="mx-2 text-gray-300">•</span>
+                      <span className="text-sm text-gray-500">
+                        {formatDate(review.createdAt)}
+                      </span>
+                    </div>
+
+                    {/* Produit concerné */}
+                    <div className="mb-3">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        {review.product?.name?.fr || review.product?.name || 'Produit supprimé'}
                       </h3>
-                      <p className="text-gray-600 text-sm">
-                        Producteur: {review.producer?.farmName || `${review.producer?.firstName || ''} ${review.producer?.lastName || ''}`.trim() || 'N/A'}
+                      <p className="text-sm text-gray-500">
+                        Vendu par {review.producer?.businessName || review.producer?.firstName + ' ' + review.producer?.lastName || 'Producteur inconnu'}
                       </p>
                     </div>
+
+                    {/* Commentaire */}
+                    {review.comment && (
+                      <p className="text-gray-700 mb-4">{review.comment}</p>
+                    )}
+
+                    {/* Actions */}
                     <div className="flex items-center space-x-4">
-                      {/* Image du produit */}
-                      {review.product?.images?.[0]?.url && (
-                        <CloudinaryImage
-                          src={review.product.images[0].url}
-                          alt={parseProductName(review.product?.name)}
-                          className="h-16 w-16 object-cover rounded-lg"
-                        />
-                      )}
-                      <div className="text-right">
-                        <span className="text-sm text-gray-500 block">
-                          {formatDate(review.createdAt)}
-                        </span>
-                        {review.order && (
-                          <span className="text-xs text-gray-400 block">
-                            Commande #{review.order.orderNumber || review.order._id?.slice(-8) || 'N/A'}
-                          </span>
-                        )}
-                      </div>
+                      <Link
+                        to={`/products/${review.product?._id}`}
+                        className="text-sm text-green-600 hover:text-green-700"
+                      >
+                        Voir le produit
+                      </Link>
+                      <button
+                        onClick={() => handleDeleteReview(review._id)}
+                        className="text-sm text-red-600 hover:text-red-700 flex items-center"
+                      >
+                        <FiTrash2 className="h-4 w-4 mr-1" />
+                        Supprimer
+                      </button>
                     </div>
-                  </div>
-
-                  {review.comment && (
-                    <div className="mb-4">
-                      <p className="text-gray-700 leading-relaxed">
-                        {review.comment}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Détails du produit */}
-                  {review.order && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 bg-harvests-light rounded-lg">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <FiPackage className="h-4 w-4 mr-2 text-harvests-green" />
-                        <span>Commande #{review.order.orderNumber || review.order._id?.slice(-8)}</span>
-                      </div>
-                      {review.order.delivery?.deliveredAt && (
-                        <div className="flex items-center text-sm text-gray-600">
-                          <FiCalendar className="h-4 w-4 mr-2 text-harvests-green" />
-                          <span>Livré le {formatDate(review.order.delivery.deliveredAt)}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex justify-end space-x-2">
-                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-harvests-light">
-                      <FiEye className="h-4 w-4" />
-                    </button>
-                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-harvests-light">
-                      <FiEdit3 className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => deleteReview(review.id)}
-                      className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-md"
-                    >
-                      <FiTrash2 className="h-4 w-4" />
-                    </button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
         )}
+        </div>
       </div>
     </ModularDashboardLayout>
   );
