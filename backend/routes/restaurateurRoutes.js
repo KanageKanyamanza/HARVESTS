@@ -11,17 +11,15 @@ router.get('/search', restaurateurController.searchRestaurateurs);
 router.get('/by-region/:region', restaurateurController.getRestaurateursByRegion);
 router.get('/by-cuisine/:cuisine', restaurateurController.getRestaurateursByCuisine);
 
-// Routes publiques pour profils individuels (DOIVENT être avant l'authentification)
-router.get('/:id', restaurateurController.getRestaurateur);
-router.get('/:id/dishes', restaurateurController.getRestaurateurDishes);
-
-// Toutes les routes suivantes nécessitent une authentification
-router.use(authController.protect);
-router.use(authController.restrictTo('restaurateur'));
+// Toutes les routes 
+// Protégées uniquement pour le préfixe /me afin de ne pas bloquer les routes publiques /:id*
+router.use('/me', authController.protect);
+router.use('/me', authController.restrictTo('restaurateur'));
 
 // Routes protégées spécifiques (doivent être AVANT les routes génériques)
 router.get('/me/profile', restaurateurController.getMyProfile);
 router.get('/me/dishes', restaurateurController.getMyDishes);
+router.get('/me/products', restaurateurController.getMyProducts);
 
 // Routes de lecture (autorisées sans vérification d'email)
 router.get('/me/restaurant-info', restaurateurController.getRestaurantInfo);
@@ -57,7 +55,8 @@ router.get('/suppliers/:supplierId', restaurateurController.getSupplierDetails);
 // Routes pour les plats (lecture autorisée sans vérification d'email)
 
 // Routes d'écriture (nécessitent une vérification d'email)
-router.use(authController.requireVerification);
+// Appliquer requireVerification uniquement aux routes /me/* qui en ont besoin
+router.use('/me', authController.requireVerification);
 
 // Gestion du profil restaurateur
 router.patch('/me/profile', restaurateurController.updateMyProfile);
@@ -170,5 +169,10 @@ router.post('/me/stock-alerts', restaurateurController.createStockAlert);
 router.route('/me/stock-alerts/:alertId')
   .patch(restaurateurController.updateStockAlert)
   .delete(restaurateurController.deleteStockAlert);
+
+// Routes publiques pour profils individuels (MUST be after /me/*)
+router.get('/:id', restaurateurController.getRestaurateur);
+router.get('/:id/dishes', restaurateurController.getRestaurateurDishes);
+router.get('/:id/products', restaurateurController.getRestaurateurProducts);
 
 module.exports = router;

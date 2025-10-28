@@ -104,7 +104,7 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse, 
     if (user?.userType === 'restaurateur') {
       return [
         { name: 'Tableau de bord', href: getDashboardRoute(user), icon: FiHome },
-        { name: 'Mes Produits', href: getProductsRoute(user), icon: FiPackage },
+        { name: 'Mes plats', href: getProductsRoute(user), icon: FiPackage },
         { name: 'Mes commandes', href: getOrdersRoute(user), icon: FiShoppingBag },
         { name: 'Nouvelle commande', href: '/restaurateur/orders/add', icon: FiPlus },
         { name: 'Profil', href: getProfileRoute(user), icon: FiUser },

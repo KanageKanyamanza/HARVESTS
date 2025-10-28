@@ -247,6 +247,13 @@ const restaurateurSchema = new mongoose.Schema({
       type: String,
       enum: ['gluten', 'lactose', 'nuts', 'eggs', 'soy', 'fish', 'shellfish', 'sesame']
     }],
+    status: {
+      type: String,
+      enum: ['draft', 'pending-review', 'approved', 'rejected'],
+      default: 'pending-review'
+    },
+    rejectionReason: String,
+    approvedAt: Date,
     createdAt: {
       type: Date,
       default: Date.now

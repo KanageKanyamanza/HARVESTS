@@ -7,6 +7,8 @@ import React from 'react';
 const RestaurateurDashboard = React.lazy(() => import('../../../pages/dashboard/restaurateur/RestaurateurDashboardNew'));
 const RestaurateurOrders = React.lazy(() => import('../../../pages/dashboard/restaurateur/OrdersList'));
 const RestaurateurAddOrder = React.lazy(() => import('../../../pages/dashboard/restaurateur/AddOrder'));
+const DishesManagement = React.lazy(() => import('../../../pages/dashboard/restaurateur/DishesManagement'));
+const DishDetail = React.lazy(() => import('../../../pages/dashboard/restaurateur/DishDetail'));
 const ProfilePage = React.lazy(() => import('../../../pages/dashboard/common/ProfilePage'));
 const SettingsPage = React.lazy(() => import('../../../pages/dashboard/common/SettingsPage'));
 const OrderDetail = React.lazy(() => import('../../../pages/orders/OrderDetail'));
@@ -16,6 +18,16 @@ export const restaurateurRoutes = [
     path: '/restaurateur/dashboard',
     element: <RestaurateurDashboard />,
     title: 'Tableau de bord'
+  },
+  {
+    path: '/restaurateur/dishes',
+    element: <DishesManagement />,
+    title: 'Mes plats'
+  },
+  {
+    path: '/restaurateur/dishes/:dishId',
+    element: <DishDetail />,
+    title: 'Détails du plat'
   },
   {
     path: '/restaurateur/orders',

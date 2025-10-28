@@ -80,6 +80,7 @@ const ProfilePage = () => {
       companyName: user.companyName || '',
       farmName: user.farmName || '',
       restaurantName: user.restaurantName || '',
+      cuisineTypes: user.cuisineTypes || [],
       phone: user.phone || '',
       address: user.address || '',
       city: user.city || '',
@@ -124,6 +125,24 @@ const ProfilePage = () => {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleCuisineTypeChange = (e) => {
+    const { value, checked } = e.target;
+    setFormData(prev => {
+      const currentTypes = prev.cuisineTypes || [];
+      if (checked) {
+        return {
+          ...prev,
+          cuisineTypes: [...currentTypes, value]
+        };
+      } else {
+        return {
+          ...prev,
+          cuisineTypes: currentTypes.filter(type => type !== value)
+        };
+      }
+    });
   };
 
   const handleBannerChange = async (imageUrl) => {
@@ -440,6 +459,73 @@ const ProfilePage = () => {
                       <p className="text-gray-900">
                         {safeDisplay(user.restaurantName, 'Non renseigné')}
                       </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Types de cuisine (pour restaurateurs) */}
+                {user?.userType === 'restaurateur' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <FiUser className="inline mr-1" />
+                      Types de cuisine
+                    </label>
+                    {editing ? (
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { value: 'african', label: 'Africaine' },
+                            { value: 'french', label: 'Française' },
+                            { value: 'italian', label: 'Italienne' },
+                            { value: 'asian', label: 'Asiatique' },
+                            { value: 'american', label: 'Américaine' },
+                            { value: 'mediterranean', label: 'Méditerranéenne' },
+                            { value: 'fusion', label: 'Fusion' },
+                            { value: 'vegetarian', label: 'Végétarienne' },
+                            { value: 'vegan', label: 'Végane' }
+                          ].map((cuisine) => (
+                            <label key={cuisine.value} className="flex items-center">
+                              <input
+                                type="checkbox"
+                                name="cuisineTypes"
+                                value={cuisine.value}
+                                checked={(formData.cuisineTypes || []).includes(cuisine.value)}
+                                onChange={handleCuisineTypeChange}
+                                className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              />
+                              <span className="text-sm text-gray-700">{cuisine.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {(user.cuisineTypes || []).length > 0 ? (
+                          (user.cuisineTypes || []).map((type, index) => {
+                            const cuisineLabels = {
+                              'african': 'Africaine',
+                              'french': 'Française',
+                              'italian': 'Italienne',
+                              'asian': 'Asiatique',
+                              'american': 'Américaine',
+                              'mediterranean': 'Méditerranéenne',
+                              'fusion': 'Fusion',
+                              'vegetarian': 'Végétarienne',
+                              'vegan': 'Végane'
+                            };
+                            return (
+                              <span
+                                key={index}
+                                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800"
+                              >
+                                {cuisineLabels[type] || type}
+                              </span>
+                            );
+                          })
+                        ) : (
+                          <span className="text-gray-500">Aucun type de cuisine renseigné</span>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}

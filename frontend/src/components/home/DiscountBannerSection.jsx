@@ -19,15 +19,15 @@ const DiscountBannerSection = () => {
         </div>
 
         {/* Conteneur principal avec image de fond et vidéo à droite */}
-        <div className="relative rounded-3xl overflow-hidden h-[400px] md:h-[500px] bg-cover bg-center shadow-2xl"
+        <div className="relative rounded-3xl overflow-hidden min-h-[600px] md:h-[500px] bg-cover bg-center shadow-2xl"
              style={{ backgroundImage: `url(${DiscountBanner})` }}>
           {/* Overlay pour améliorer la lisibilité */}
           <div className="absolute inset-0 bg-black/30"></div>
           
           {/* Contenu en deux colonnes */}
-          <div className="relative h-full flex flex-col md:flex-row">
+          <div className="relative h-full flex flex-col md:flex-row py-4">
             {/* Colonne gauche - Contenu textuel */}
-            <div className="flex-1 flex flex-col justify-center p-8 md:p-12 text-white">
+            <div className="flex-1 flex flex-col justify-center p-6 md:p-12 text-white">
               <div className="max-w-lg">
                 <h3 className="text-3xl md:text-4xl font-bold mb-6">
                   Votre Partenaire Agricole de Confiance
@@ -69,12 +69,13 @@ const DiscountBannerSection = () => {
             </div>
 
             {/* Colonne droite - Vidéo */}
-            <div className="w-full md:w-1/2 lg:w-2/5 p-4 md:p-8">
-              <div className="relative h-full rounded-2xl overflow-hidden bg-gray-900 shadow-xl">
+            <div className="w-full md:w-1/2 lg:w-2/5 p-4 md:p-8 flex items-center">
+              <div className="relative w-full h-[280px] md:h-full rounded-2xl overflow-hidden bg-gray-900 shadow-xl">
                 <video
                   className="w-full h-full object-cover"
                   controls
                   preload="metadata"
+                  playsInline
                   onError={(e) => {
                     console.error('Erreur de chargement de la vidéo:', e);
                   }}

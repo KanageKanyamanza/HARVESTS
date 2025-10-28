@@ -21,6 +21,7 @@ import Home from '../pages/Home';
 import NotFound from '../pages/NotFound';
 import Products from '../pages/Products';
 import ProductDetail from '../pages/ProductDetail';
+import DishDetail from '../pages/DishDetail';
 import Categories from '../pages/Categories';
 import Producers from '../pages/Producers';
 import ProducerProfile from '../pages/ProducerProfile';
@@ -144,6 +145,7 @@ const AppRoutes = () => {
       <Route path="/" element={<Layout><SuspenseRoute element={<Home />} /></Layout>} />
       <Route path="/products" element={<Layout><SuspenseRoute element={<Products />} /></Layout>} />
       <Route path="/products/:id" element={<Layout><SuspenseRoute element={<ProductDetail />} /></Layout>} />
+      <Route path="/dishes/:id" element={<Layout><SuspenseRoute element={<DishDetail />} /></Layout>} />
       <Route path="/categories" element={<Layout><SuspenseRoute element={<Categories />} /></Layout>} />
       <Route path="/producers" element={<Layout><SuspenseRoute element={<Producers />} /></Layout>} />
       <Route path="/producers/:id" element={<Layout><SuspenseRoute element={<ProducerProfile />} /></Layout>} />

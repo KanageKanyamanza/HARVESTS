@@ -101,7 +101,11 @@ const createGenericService = (userType) => ({
   },
   getPublicProducts: (id, params = {}) => {
     const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
-    return axios.get(`${API_BASE_URL}/${userType}s/${id}/products`, { params });
+    // Pour les restaurateurs, utiliser /dishes au lieu de /products
+    const endpoint = userType === 'restaurateur' 
+      ? `${API_BASE_URL}/${userType}s/${id}/dishes` 
+      : `${API_BASE_URL}/${userType}s/${id}/products`;
+    return axios.get(endpoint, { params });
   },
   getPublicReviews: (id, params = {}) => {
     const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';

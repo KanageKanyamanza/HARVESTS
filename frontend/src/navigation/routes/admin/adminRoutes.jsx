@@ -7,6 +7,7 @@ import React from 'react';
 const AdminDashboard = React.lazy(() => import('../../../pages/admin/AdminDashboard'));
 const AdminUsers = React.lazy(() => import('../../../pages/admin/AdminUsers'));
 const AdminProducts = React.lazy(() => import('../../../pages/admin/AdminProducts'));
+const AdminDishes = React.lazy(() => import('../../../pages/admin/AdminDishes'));
 const AdminOrders = React.lazy(() => import('../../../pages/admin/AdminOrders'));
 const AdminReviews = React.lazy(() => import('../../../pages/admin/AdminReviews'));
 const AdminMessages = React.lazy(() => import('../../../pages/admin/AdminMessages'));
@@ -28,6 +29,11 @@ export const adminRoutes = [
     path: '/admin/products',
     element: <AdminProducts />,
     title: 'Gestion des produits'
+  },
+  {
+    path: '/admin/dishes',
+    element: <AdminDishes />,
+    title: 'Gestion des plats'
   },
   {
     path: '/admin/orders',
