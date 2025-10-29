@@ -293,7 +293,7 @@ const ProfilePage = () => {
                       onImageRemove={handleAvatarRemove}
                       size="w-24 h-24"
                       aspectRatio="1:1"
-                      className="rounded-full w-16 h-16"
+                      className="rounded-full w-24 h-16"
                     />
                   </div>
                   

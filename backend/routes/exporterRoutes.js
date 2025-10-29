@@ -70,6 +70,17 @@ router.route('/me/international-certifications/:certId')
   .patch(exporterController.updateInternationalCertification)
   .delete(exporterController.removeInternationalCertification);
 
+// Gestion de la flotte d'export
+router.route('/me/fleet')
+  .get(exporterController.getMyFleet)
+  .post(exporterController.addVehicle);
+
+router.route('/me/fleet/:vehicleId')
+  .patch(exporterController.updateVehicle)
+  .delete(exporterController.removeVehicle);
+
+router.patch('/me/fleet/:vehicleId/availability', exporterController.updateVehicleAvailability);
+
 // Gestion des capacités logistiques
 router.route('/me/logistics-capabilities')
   .get(exporterController.getLogisticsCapabilities)
@@ -166,7 +177,8 @@ router.route('/me/letters-of-credit/:lcId')
   .patch(exporterController.updateLetterOfCredit);
 
 // Statistiques et analytics d'export
-router.get('/me/export-stats', exporterController.getExportStats);
+router.get('/me/stats', exporterController.getStats); // Route générique
+router.get('/me/export-stats', exporterController.getExportStats); // Route spécifique
 router.get('/me/export-analytics', exporterController.getExportAnalytics);
 router.get('/me/market-performance', exporterController.getMarketPerformance);
 router.get('/me/revenue-analytics', exporterController.getRevenueAnalytics);

@@ -465,6 +465,7 @@ export const AuthProvider = ({ children }) => {
     isRestaurateur: state.user?.userType === 'restaurateur',
     isExporter: state.user?.userType === 'exporter',
     isTransporter: state.user?.userType === 'transporter',
+    isExplorer: state.user?.userType === 'explorer',
     userType: state.user?.userType || null,
     
     // Vérifications de statut

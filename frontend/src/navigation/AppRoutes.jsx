@@ -13,7 +13,8 @@ import {
   transformerRoutes,
   restaurateurRoutes,
   transporterRoutes,
-  exporterRoutes
+  exporterRoutes,
+  explorerRoutes
 } from './routes';
 
 // Import des pages publiques
@@ -29,6 +30,7 @@ import Vendeurs from '../pages/Vendeurs';
 import Transformers from '../pages/Transformers';
 import TransformerProfile from '../pages/TransformerProfile';
 import PublicRestaurateurProfile from '../pages/RestaurateurProfile';
+import TransporterProfile from '../pages/TransporterProfile';
 import CartPage from '../pages/Cart';
 import Contact from '../pages/Contact';
 import LoyaltyProgram from '../pages/LoyaltyProgram';
@@ -153,6 +155,7 @@ const AppRoutes = () => {
       <Route path="/transformers" element={<Layout><SuspenseRoute element={<Transformers />} /></Layout>} />
       <Route path="/transformers/:id" element={<Layout><SuspenseRoute element={<TransformerProfile />} /></Layout>} />
       <Route path="/restaurateurs/:id" element={<Layout><SuspenseRoute element={<PublicRestaurateurProfile />} /></Layout>} />
+      <Route path="/transporters/:id" element={<Layout><SuspenseRoute element={<TransporterProfile />} /></Layout>} />
       <Route path="/cart" element={<Layout><SuspenseRoute element={<CartPage />} /></Layout>} />
       <Route path="/contact" element={<Layout><SuspenseRoute element={<Contact />} /></Layout>} />
       <Route path="/loyalty" element={<Layout><SuspenseRoute element={<LoyaltyProgram />} /></Layout>} />
@@ -281,6 +284,21 @@ const AppRoutes = () => {
           path={route.path}
           element={
             <ProtectedRoute requiredUserType="exporter">
+              <DashboardRouteWrapper>
+                <SuspenseRoute element={route.element} />
+              </DashboardRouteWrapper>
+            </ProtectedRoute>
+          }
+        />
+      ))}
+
+      {/* Routes explorer */}
+      {explorerRoutes.map((route) => (
+        <Route
+          key={route.path}
+          path={route.path}
+          element={
+            <ProtectedRoute requiredUserType="explorer">
               <DashboardRouteWrapper>
                 <SuspenseRoute element={route.element} />
               </DashboardRouteWrapper>

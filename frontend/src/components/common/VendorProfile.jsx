@@ -68,12 +68,19 @@ const VendorProfile = ({
           console.error(`Erreur lors du chargement du ${vendorType}:`, error);
         }
 
-        // Charger les items (produits/plats)
+        // Charger les items (produits/plats pour producteurs/transformateurs, flotte pour transporteurs)
         try {
-          itemsResponse = await service.getPublicProducts(id);
-          
-          if (itemsResponse.data.status === 'success') {
-            setItems(itemsResponse.data.data.products || itemsResponse.data.data.dishes || []);
+          if (vendorType === 'transporter') {
+            // Pour les transporteurs, charger la flotte depuis le profil
+            if (vendor?.fleet) {
+              setItems(vendor.fleet || []);
+            }
+          } else {
+            itemsResponse = await service.getPublicProducts(id);
+            
+            if (itemsResponse.data.status === 'success') {
+              setItems(itemsResponse.data.data.products || itemsResponse.data.data.dishes || []);
+            }
           }
         } catch (error) {
           console.error(`Erreur lors du chargement des items:`, error);

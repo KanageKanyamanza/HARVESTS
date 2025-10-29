@@ -118,8 +118,42 @@ export const producerService = createGenericService('producer');
 export const consumerService = createGenericService('consumer');
 export const transformerService = createGenericService('transformer');
 export const restaurateurService = createGenericService('restaurateur');
-export const transporterService = createGenericService('transporter');
-export const exporterService = createGenericService('exporter');
+export const transporterService = {
+  ...createGenericService('transporter'),
+  // Override pour le profil (route spécifique)
+  getProfile: () => api.get('/transporters/me/profile'),
+  // Gestion de la flotte
+  getFleet: (params = {}) => api.get('/transporters/me/fleet', { params }),
+  addFleetVehicle: (data) => api.post('/transporters/me/fleet', data),
+  updateFleetVehicle: (id, data) => api.patch(`/transporters/me/fleet/${id}`, data),
+  removeFleetVehicle: (id) => api.delete(`/transporters/me/fleet/${id}`),
+  updateVehicleAvailability: (id, data) => api.patch(`/transporters/me/fleet/${id}/availability`, data),
+  // Livraisons locales
+  getOrders: (params = {}) => api.get('/transporters/me/deliveries', { params }),
+  getMyOrders: (params = {}) => api.get('/transporters/me/deliveries', { params }),
+  getOrder: (id) => api.get(`/transporters/me/deliveries/${id}`),
+  // Désactiver getProducts pour les transporteurs
+  getProducts: () => Promise.reject(new Error('Les transporteurs n\'ont pas de produits, utilisez la flotte')),
+};
+export const exporterService = {
+  ...createGenericService('exporter'),
+  // Override pour le profil (route spécifique)
+  getProfile: () => api.get('/exporters/me/profile'),
+  // Override pour les commandes d'export (route spécifique)
+  getOrders: (params = {}) => api.get('/exporters/me/export-orders', { params }),
+  getMyOrders: (params = {}) => api.get('/exporters/me/export-orders', { params }),
+  getOrder: (id) => api.get(`/exporters/me/export-orders/${id}`),
+  getMyOrder: (id) => api.get(`/exporters/me/export-orders/${id}`),
+  // Désactiver getProducts pour les exportateurs (ils n'ont pas de produits)
+  getProducts: () => Promise.reject(new Error('Les exportateurs n\'ont pas de produits, utilisez la flotte')),
+  // Gestion de la flotte
+  getFleet: (params = {}) => api.get('/exporters/me/fleet', { params }),
+  addFleetVehicle: (data) => api.post('/exporters/me/fleet', data),
+  updateFleetVehicle: (id, data) => api.patch(`/exporters/me/fleet/${id}`, data),
+  removeFleetVehicle: (id) => api.delete(`/exporters/me/fleet/${id}`),
+  updateVehicleAvailability: (id, data) => api.patch(`/exporters/me/fleet/${id}/availability`, data),
+};
+export const explorerService = createGenericService('explorer');
 
 // Service pour créer un service personnalisé
 export const createService = (userType) => createGenericService(userType);
@@ -131,5 +165,6 @@ export default {
   restaurateurService,
   transporterService,
   exporterService,
+  explorerService,
   createService
 };

@@ -6,7 +6,8 @@ export {
   transformerService, 
   restaurateurService, 
   transporterService, 
-  exporterService 
+  exporterService,
+  explorerService 
 } from './genericService';
 export { userService } from './userService';
 export { productService } from './productService';

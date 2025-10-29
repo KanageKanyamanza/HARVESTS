@@ -87,8 +87,8 @@ export const getProductsRoute = (user) => {
   if (user?.userType === 'producer') return '/producer/products';
   if (user?.userType === 'transformer') return '/transformer/products';
   if (user?.userType === 'restaurateur') return '/restaurateur/dishes';
-  if (user?.userType === 'transporter') return '/transporter/deliveries';
-  if (user?.userType === 'exporter') return '/exporter/exports';
+  if (user?.userType === 'transporter') return '/transporter/fleet';
+  if (user?.userType === 'exporter') return '/exporter/fleet';
   return '/products';
 };
 
@@ -102,8 +102,8 @@ export const getAddProductRoute = (user) => {
   if (user?.userType === 'producer') return '/producer/products/add';
   if (user?.userType === 'transformer') return '/transformer/products/add';
   if (user?.userType === 'restaurateur') return '/restaurateur/dishes/add';
-  if (user?.userType === 'transporter') return '/transporter/deliveries/add';
-  if (user?.userType === 'exporter') return '/exporter/exports/add';
+  if (user?.userType === 'transporter') return '/transporter/fleet/add';
+  if (user?.userType === 'exporter') return '/exporter/fleet/add';
   return '/products/add';
 };
 

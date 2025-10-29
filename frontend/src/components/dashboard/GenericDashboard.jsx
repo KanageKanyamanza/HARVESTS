@@ -73,8 +73,8 @@ const GenericDashboard = ({
         })
       ];
 
-      // Ajouter le chargement des produits seulement si ce n'est pas un consommateur
-      if (userType !== 'consumer') {
+      // Ajouter le chargement des produits seulement si ce n'est pas un consommateur, exportateur ou transporteur
+      if (userType !== 'consumer' && userType !== 'exporter' && userType !== 'transporter') {
         promises.splice(1, 0, service.getProducts({ limit: 5 }).catch(err => {
           console.warn('Erreur lors du chargement des produits:', err);
           if (err.response?.status === 403 && err.response?.data?.code === 'EMAIL_VERIFICATION_REQUIRED') {
@@ -89,9 +89,9 @@ const GenericDashboard = ({
       // Extraire les réponses selon le type d'utilisateur
       let statsResponse, productsResponse, ordersResponse;
       
-      if (userType === 'consumer') {
+      if (userType === 'consumer' || userType === 'exporter' || userType === 'transporter') {
         [statsResponse, ordersResponse] = responses;
-        productsResponse = { data: { products: [] } }; // Pas de produits pour les consommateurs
+        productsResponse = { data: { products: [] } }; // Pas de produits pour les consommateurs, exportateurs et transporteurs
       } else {
         [statsResponse, productsResponse, ordersResponse] = responses;
       }
