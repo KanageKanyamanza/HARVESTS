@@ -74,7 +74,13 @@ const transporterSchema = new mongoose.Schema({
       default: true
     },
     lastMaintenanceDate: Date,
-    nextMaintenanceDate: Date
+    nextMaintenanceDate: Date,
+    // Image du véhicule (optionnel)
+    image: {
+      url: String,
+      publicId: String,
+      alt: String
+    }
   }],
   
   // Zones de couverture

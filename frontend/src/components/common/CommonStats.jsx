@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiTrendingUp, FiDollarSign, FiStar, FiShoppingBag, FiShoppingCart, FiUsers, FiEye } from 'react-icons/fi';
+import { FiTrendingUp, FiDollarSign, FiStar, FiShoppingBag, FiShoppingCart, FiUsers, FiEye, FiGlobe } from 'react-icons/fi';
 
 // Composant pour afficher les statistiques communes
 const CommonStats = ({ stats, userType, loading = false }) => {
@@ -77,7 +77,6 @@ const CommonStats = ({ stats, userType, loading = false }) => {
 
       case 'transformer':
       case 'restaurateur':
-      case 'exporter':
         return [
           ...baseStats,
           {
@@ -95,6 +94,43 @@ const CommonStats = ({ stats, userType, loading = false }) => {
             color: 'text-purple-500',
             bgColor: 'bg-purple-50',
             format: (value) => `${value.toLocaleString()} FCFA`
+          }
+        ];
+
+      case 'exporter':
+        return [
+          {
+            name: 'Exportations totales',
+            value: stats?.totalExports || 0,
+            icon: FiShoppingBag,
+            color: 'text-teal-500',
+            bgColor: 'bg-teal-50',
+            format: (value) => value.toLocaleString()
+          },
+          {
+            name: 'Valeur des exports',
+            value: stats?.totalValue || stats?.exportValue || 0,
+            icon: FiDollarSign,
+            color: 'text-green-500',
+            bgColor: 'bg-green-50',
+            format: (value) => `${value.toLocaleString()} FCFA`
+          },
+          {
+            name: 'Pays d\'export',
+            value: stats?.exportCountries || 0,
+            icon: FiGlobe,
+            color: 'text-blue-500',
+            bgColor: 'bg-blue-50',
+            format: (value) => value.toLocaleString()
+          },
+          {
+            name: 'Note moyenne',
+            value: stats?.averageRating || 0,
+            icon: FiStar,
+            color: 'text-yellow-500',
+            bgColor: 'bg-yellow-50',
+            format: (value) => `${value.toFixed(1)}/5`,
+            subtitle: `${stats?.totalReviews || 0} avis`
           }
         ];
 

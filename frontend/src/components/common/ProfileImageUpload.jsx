@@ -187,7 +187,7 @@ const ProfileImageUpload = ({
             )}
           </div>
         ) : (
-          <div className="text-center">
+          <div className="text-center ">
             {uploading ? (
               <div className="flex flex-col items-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-harvests-green"></div>

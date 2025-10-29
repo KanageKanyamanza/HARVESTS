@@ -190,6 +190,63 @@ exports.removeExportLicense = catchAsync(async (req, res, next) => {
   res.status(204).json({ status: 'success', data: null });
 });
 
+// Gestion de la flotte d'export
+exports.getMyFleet = catchAsync(async (req, res, next) => {
+  const exporter = await Exporter.findById(req.user.id).select('fleet');
+  res.status(200).json({
+    status: 'success',
+    results: exporter.fleet.length,
+    data: { fleet: exporter.fleet },
+  });
+});
+
+exports.addVehicle = catchAsync(async (req, res, next) => {
+  const exporter = await Exporter.findById(req.user.id);
+  exporter.fleet.push(req.body);
+  await exporter.save();
+
+  res.status(201).json({
+    status: 'success',
+    data: { vehicle: exporter.fleet[exporter.fleet.length - 1] },
+  });
+});
+
+exports.updateVehicle = catchAsync(async (req, res, next) => {
+  const exporter = await Exporter.findById(req.user.id);
+  const vehicle = exporter.fleet.id(req.params.vehicleId);
+
+  if (!vehicle) return next(new AppError('Véhicule non trouvé', 404));
+
+  Object.keys(req.body).forEach(key => {
+    vehicle[key] = req.body[key];
+  });
+
+  await exporter.save();
+  res.status(200).json({ status: 'success', data: { vehicle } });
+});
+
+exports.removeVehicle = catchAsync(async (req, res, next) => {
+  const exporter = await Exporter.findById(req.user.id);
+  exporter.fleet.pull(req.params.vehicleId);
+  await exporter.save();
+  res.status(204).json({ status: 'success', data: null });
+});
+
+exports.updateVehicleAvailability = catchAsync(async (req, res, next) => {
+  const exporter = await Exporter.findById(req.user.id);
+  const vehicle = exporter.fleet.id(req.params.vehicleId);
+
+  if (!vehicle) return next(new AppError('Véhicule non trouvé', 404));
+
+  vehicle.isAvailable = req.body.isAvailable !== undefined ? req.body.isAvailable : vehicle.isAvailable;
+  await exporter.save();
+
+  res.status(200).json({
+    status: 'success',
+    data: { vehicle },
+  });
+});
+
 // Fonctions temporaires pour les fonctionnalités nécessitant d'autres modèles
 const temporaryResponse = (message) => catchAsync(async (req, res, next) => {
   res.status(200).json({
@@ -262,7 +319,77 @@ exports.createLetterOfCredit = temporaryResponse('Création LC');
 exports.getLetterOfCredit = temporaryResponse('Détail LC');
 exports.updateLetterOfCredit = temporaryResponse('Mise à jour LC');
 
-exports.getExportStats = temporaryResponse('Statistiques export');
+exports.getExportStats = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  const Review = require('../models/Review');
+  
+  const exporter = await Exporter.findById(req.user.id);
+  if (!exporter) {
+    return next(new AppError('Exportateur non trouvé', 404));
+  }
+
+  // Mettre à jour les stats via la méthode du modèle
+  await exporter.updateExportStats();
+  await exporter.save();
+
+  // Récupérer les commandes
+  const orders = await Order.find({ seller: req.user._id, isExport: true });
+  const completedOrders = orders.filter(o => o.status === 'completed' || o.status === 'delivered');
+  
+  // Commandes en attente
+  const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'processing');
+  
+  // Calculer les revenus du mois en cours
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthlyOrders = completedOrders.filter(o => 
+    new Date(o.createdAt) >= startOfMonth
+  );
+  const monthlyRevenue = monthlyOrders.reduce((sum, order) => sum + (order.total || order.totalAmount || 0), 0);
+
+  // Compter les marchés cibles
+  const exportCountries = exporter.targetMarkets?.length || 0;
+  
+  // Compter les produits d'export
+  const exportProductsCount = exporter.exportProducts?.length || 0;
+  
+  // Licences actives
+  const activeLicenses = exporter.exportLicenses?.filter(license => {
+    if (!license.validUntil) return license.isVerified;
+    return license.isVerified && new Date(license.validUntil) > new Date();
+  }).length || 0;
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      stats: {
+        // Stats d'export depuis le modèle
+        totalExports: exporter.exportStats?.totalExports || 0,
+        totalValue: exporter.exportStats?.totalValue || 0,
+        averageRating: exporter.exportStats?.averageRating || 0,
+        totalReviews: exporter.exportStats?.totalReviews || 0,
+        successfulDeliveryRate: exporter.exportStats?.successfulDeliveryRate || 0,
+        
+        // Stats calculées
+        totalOrders: orders.length,
+        completedOrders: completedOrders.length,
+        pendingOrders: pendingOrders.length,
+        monthlyRevenue,
+        totalRevenue: exporter.exportStats?.totalValue || 0,
+        exportCountries,
+        exportProductsCount,
+        activeLicenses,
+        
+        // Produits d'export (depuis exportProducts du modèle, pas le modèle Product)
+        totalProducts: exportProductsCount,
+        activeProducts: exportProductsCount
+      }
+    }
+  });
+});
+
+// Alias pour compatibilité avec le service générique
+exports.getStats = exports.getExportStats;
 exports.getExportAnalytics = temporaryResponse('Analytics export');
 exports.getMarketPerformance = temporaryResponse('Performance marchés');
 exports.getRevenueAnalytics = temporaryResponse('Analytics revenus');

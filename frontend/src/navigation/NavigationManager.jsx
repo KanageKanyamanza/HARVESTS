@@ -26,7 +26,9 @@ import {
   FiEdit,
   FiUsers,
   FiTruck,
-  FiGlobe
+  FiGlobe,
+  FiCompass,
+  FiSearch
 } from 'react-icons/fi';
 import { FaChartBar } from 'react-icons/fa';
 
@@ -111,6 +113,19 @@ export const generateSidebarNavigation = (user, icons = {}) => {
       ];
     }
 
+    if (user?.userType === 'explorer') {
+      return [
+        { name: 'Tableau de bord', href: getDashboardRoute(user), icon: HomeIcon },
+        { name: 'Explorer', href: '/explorer/discover', icon: FiCompass },
+        { name: 'Mes favoris', href: '/explorer/favorites', icon: HeartIcon },
+        { name: 'Mes commandes', href: '/explorer/orders', icon: ShoppingBagIcon },
+        { name: 'Mes avis', href: '/explorer/reviews', icon: StarIcon },
+        { name: 'Statistiques', href: '/explorer/statistics', icon: TrendingUpIcon },
+        { name: 'Profil', href: getProfileRoute(user), icon: UserIcon },
+        { name: 'Paramètres', href: getSettingsRoute(user), icon: SettingsIcon }
+      ];
+    }
+
   if (user?.userType === 'producer') {
     return [
       { name: 'Tableau de bord', href: getDashboardRoute(user), icon: HomeIcon },
@@ -142,6 +157,28 @@ export const generateSidebarNavigation = (user, icons = {}) => {
       { name: 'Mes commandes', href: getOrdersRoute(user), icon: ShoppingBagIcon },
       { name: 'Nouvelle commande', href: '/restaurateur/orders/add', icon: PlusIcon },
       { name: 'Mes plats', href: getProductsRoute(user), icon: PackageIcon },
+      { name: 'Profil', href: getProfileRoute(user), icon: UserIcon },
+      { name: 'Paramètres', href: getSettingsRoute(user), icon: SettingsIcon }
+    ];
+  }
+
+  if (user?.userType === 'exporter') {
+    return [
+      { name: 'Tableau de bord', href: getDashboardRoute(user), icon: HomeIcon },
+      { name: 'Commandes d\'export', href: getOrdersRoute(user), icon: ShoppingBagIcon },
+      { name: 'Ma flotte', href: getProductsRoute(user), icon: PackageIcon },
+      { name: 'Statistiques', href: '/exporter/statistics', icon: ChartBarIcon },
+      { name: 'Profil', href: getProfileRoute(user), icon: UserIcon },
+      { name: 'Paramètres', href: getSettingsRoute(user), icon: SettingsIcon }
+    ];
+  }
+
+  if (user?.userType === 'transporter') {
+    return [
+      { name: 'Tableau de bord', href: getDashboardRoute(user), icon: HomeIcon },
+      { name: 'Livraisons locales', href: getOrdersRoute(user), icon: ShoppingBagIcon },
+      { name: 'Ma flotte', href: getProductsRoute(user), icon: PackageIcon },
+      { name: 'Statistiques', href: '/transporter/statistics', icon: ChartBarIcon },
       { name: 'Profil', href: getProfileRoute(user), icon: UserIcon },
       { name: 'Paramètres', href: getSettingsRoute(user), icon: SettingsIcon }
     ];
@@ -254,6 +291,38 @@ export const generateQuickActions = (userType, icons = {}) => {
           description: 'Créer un nouvel export',
           href: '/exporter/exports/add',
           color: 'bg-green-500 hover:bg-green-600'
+        }
+      ];
+
+    case 'explorer':
+      return [
+        {
+          icon: <FiCompass className="h-5 w-5" />,
+          title: 'Explorer',
+          description: 'Découvrir de nouveaux produits et producteurs',
+          href: '/explorer/discover',
+          color: 'bg-cyan-500 hover:bg-cyan-600'
+        },
+        {
+          icon: <HeartIcon className="h-5 w-5" />,
+          title: 'Mes favoris',
+          description: 'Voir mes favoris',
+          href: '/explorer/favorites',
+          color: 'bg-pink-500 hover:bg-pink-600'
+        },
+        {
+          icon: <ShoppingBagIcon className="h-5 w-5" />,
+          title: 'Mes commandes',
+          description: 'Voir mes commandes',
+          href: '/explorer/orders',
+          color: 'bg-orange-500 hover:bg-orange-600'
+        },
+        {
+          icon: <SettingsIcon className="h-5 w-5" />,
+          title: 'Paramètres',
+          description: 'Configurer votre compte',
+          href: getSettingsRoute({ userType }),
+          color: 'bg-gray-500 hover:bg-gray-600'
         }
       ];
 

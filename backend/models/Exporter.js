@@ -138,6 +138,56 @@ const exporterSchema = new mongoose.Schema({
     }
   },
   
+  // Flotte de véhicules et conteneurs d'export
+  fleet: [{
+    vehicleType: {
+      type: String,
+      enum: ['container', 'container-20ft', 'container-40ft', 'container-refrigerated', 'truck', 'refrigerated-truck', 'trailer', 'vessel', 'aircraft'],
+      required: true
+    },
+    registrationNumber: String,
+    containerNumber: String,
+    capacity: {
+      weight: {
+        value: Number,
+        unit: {
+          type: String,
+          enum: ['kg', 'tons'],
+          default: 'tons'
+        }
+      },
+      volume: {
+        value: Number,
+        unit: {
+          type: String,
+          enum: ['m³', 'liters'],
+          default: 'm³'
+        }
+      }
+    },
+    specialFeatures: {
+      type: [String],
+      enum: ['refrigerated', 'insulated', 'ventilated', 'covered', 'gps-tracked', 'temperature-controlled']
+    },
+    condition: {
+      type: String,
+      enum: ['excellent', 'good', 'fair', 'needs-maintenance'],
+      default: 'good'
+    },
+    isAvailable: {
+      type: Boolean,
+      default: true
+    },
+    lastMaintenanceDate: Date,
+    nextMaintenanceDate: Date,
+    // Image du véhicule (optionnel)
+    image: {
+      url: String,
+      publicId: String,
+      alt: String
+    }
+  }],
+  
   // Partenaires logistiques
   shippingPartners: [{
     companyName: String,
