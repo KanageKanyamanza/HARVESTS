@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import {
@@ -23,7 +23,8 @@ import {
   Star,
   Search,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  UtensilsCrossed
 } from 'lucide-react';
 import NotificationDropdown from '../notifications/NotificationDropdown';
 
@@ -33,6 +34,11 @@ const AdminLayout = ({ children }) => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  
+  // Fermer le sidebar mobile lors d'un changement de route
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
 
 
   const handleLogout = () => {
@@ -58,6 +64,12 @@ const AdminLayout = ({ children }) => {
       href: '/admin/products',
       icon: Package,
       current: location.pathname.startsWith('/admin/products')
+    },
+    {
+      name: 'Plats restaurateurs',
+      href: '/admin/dishes',
+      icon: UtensilsCrossed,
+      current: location.pathname.startsWith('/admin/dishes')
     },
     {
       name: 'Utilisateurs',

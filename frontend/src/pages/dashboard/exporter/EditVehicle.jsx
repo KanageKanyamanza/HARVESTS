@@ -90,8 +90,41 @@ const EditVehicle = () => {
             nextMaintenanceDate: vehicle.nextMaintenanceDate ? new Date(vehicle.nextMaintenanceDate).toISOString().split('T')[0] : ''
           });
 
+          // Gérer l'image : peut être une chaîne URL ou un objet
           if (vehicle.image) {
-            setVehicleImage(vehicle.image);
+            if (typeof vehicle.image === 'string') {
+              // Si c'est une chaîne URL, créer un objet
+              setVehicleImage({
+                url: vehicle.image,
+                alt: 'Véhicule'
+              });
+            } else if (vehicle.image.url) {
+              // Si c'est déjà un objet avec url
+              setVehicleImage(vehicle.image);
+            } else if (vehicle.image.secure_url) {
+              // Si l'API retourne secure_url
+              setVehicleImage({
+                url: vehicle.image.secure_url,
+                publicId: vehicle.image.public_id || vehicle.image.publicId,
+                alt: vehicle.image.alt || 'Véhicule'
+              });
+            } else if (vehicle.image.publicId || vehicle.image.public_id) {
+              // Construire l'URL depuis publicId
+              const publicId = vehicle.image.public_id || vehicle.image.publicId;
+              setVehicleImage({
+                url: `https://res.cloudinary.com/${process.env.REACT_APP_CLOUDINARY_CLOUD_NAME || 'dlbwu1dld'}/image/upload/${publicId}`,
+                publicId: publicId,
+                alt: vehicle.image.alt || 'Véhicule'
+              });
+            } else {
+              // Dernier recours
+              const imageUrl = vehicle.image.src || vehicle.image;
+              setVehicleImage({
+                url: imageUrl,
+                publicId: vehicle.image.public_id || vehicle.image.publicId,
+                alt: 'Véhicule'
+              });
+            }
           }
         } catch (error) {
           console.error('Erreur lors du chargement du véhicule:', error);
@@ -188,22 +221,31 @@ const EditVehicle = () => {
       formDataUpload.append('images', file);
       
       const response = await uploadService.uploadProductImages(formDataUpload);
-      const imageUrl = response.data?.data?.images?.[0]?.url || response.data?.images?.[0]?.url;
+      
+      // Extraire l'URL de l'image depuis la réponse API
+      // La structure peut être : data.images[0].secure_url ou data.images[0].url
+      const imageData = response.data?.data?.images?.[0] || response.data?.images?.[0];
+      const imageUrl = imageData?.secure_url || imageData?.url || imageData?.src;
+      const publicId = imageData?.public_id || imageData?.publicId || imageData?.publicId;
       
       if (imageUrl) {
         setVehicleImage({
           url: imageUrl,
-          publicId: response.data?.data?.images?.[0]?.publicId || response.data?.images?.[0]?.publicId,
-          alt: file.name
+          publicId: publicId,
+          alt: imageData?.original_filename || file.name || 'Véhicule'
         });
+        showSuccess('Image uploadée avec succès !');
+      } else {
+        console.error('URL d\'image non trouvée dans la réponse:', response.data);
+        showError('Erreur : URL d\'image non trouvée dans la réponse');
       }
     } catch (error) {
       console.error('Erreur lors de l\'upload de l\'image:', error);
-      showError('Erreur lors de l\'upload de l\'image');
+      showError(error.response?.data?.message || 'Erreur lors de l\'upload de l\'image');
     } finally {
       setUploadingImage(false);
     }
-  }, [showError]);
+  }, [showError, showSuccess]);
 
   const handleFileSelect = useCallback((e) => {
     const file = e.target.files?.[0];
@@ -258,9 +300,46 @@ const EditVehicle = () => {
         image: vehicleImage || undefined
       };
 
-      await exporterService.updateFleetVehicle(vehicleId, vehicleData);
+      const response = await exporterService.updateFleetVehicle(vehicleId, vehicleData);
+      
+      // Mettre à jour l'image depuis la réponse du serveur si disponible
+      const updatedVehicle = response.data?.data?.vehicle;
+      if (updatedVehicle?.image) {
+        if (typeof updatedVehicle.image === 'string') {
+          setVehicleImage({
+            url: updatedVehicle.image,
+            alt: 'Véhicule'
+          });
+        } else if (updatedVehicle.image.url) {
+          setVehicleImage(updatedVehicle.image);
+        } else if (updatedVehicle.image.secure_url) {
+          // Si l'API retourne secure_url
+          setVehicleImage({
+            url: updatedVehicle.image.secure_url,
+            publicId: updatedVehicle.image.public_id || updatedVehicle.image.publicId,
+            alt: updatedVehicle.image.alt || 'Véhicule'
+          });
+        } else if (updatedVehicle.image.publicId || updatedVehicle.image.public_id) {
+          // Construire l'URL depuis publicId
+          const publicId = updatedVehicle.image.public_id || updatedVehicle.image.publicId;
+          setVehicleImage({
+            url: `https://res.cloudinary.com/${process.env.REACT_APP_CLOUDINARY_CLOUD_NAME || 'dlbwu1dld'}/image/upload/${publicId}`,
+            publicId: publicId,
+            alt: updatedVehicle.image.alt || 'Véhicule'
+          });
+        } else {
+          // Dernier recours
+          setVehicleImage({
+            url: updatedVehicle.image.src || updatedVehicle.image,
+            publicId: updatedVehicle.image.public_id || updatedVehicle.image.publicId,
+            alt: updatedVehicle.image.alt || 'Véhicule'
+          });
+        }
+      }
+      
       showSuccess('Véhicule modifié avec succès !');
-      navigate('/exporter/fleet');
+      // Ne pas naviguer immédiatement pour permettre à l'utilisateur de voir l'image mise à jour
+      // navigate('/exporter/fleet');
     } catch (error) {
       console.error('Erreur:', error);
       showError(error.response?.data?.message || 'Erreur lors de la modification du véhicule. Veuillez réessayer.');
@@ -332,12 +411,12 @@ const EditVehicle = () => {
             <label className="block text-sm font-medium text-gray-700 mb-3">
               Photo du véhicule (optionnel)
             </label>
-            {vehicleImage ? (
+            {vehicleImage && (vehicleImage.url || typeof vehicleImage === 'string') ? (
               <div className="relative inline-block">
                 <div className="w-48 h-32 rounded-lg overflow-hidden border-2 border-gray-300">
                   <CloudinaryImage
-                    src={vehicleImage.url}
-                    alt={vehicleImage.alt || 'Véhicule'}
+                    src={typeof vehicleImage === 'string' ? vehicleImage : (vehicleImage.url || vehicleImage)}
+                    alt={typeof vehicleImage === 'string' ? 'Véhicule' : (vehicleImage.alt || 'Véhicule')}
                     className="w-full h-full object-cover"
                     width={200}
                     height={150}

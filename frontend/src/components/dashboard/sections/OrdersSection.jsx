@@ -140,13 +140,13 @@ const OrdersSection = ({ orders, userType, loading = false, service }) => {
         </div>
       ))}
       
-      {orders.length > 5 && (
+      {displayOrders.length > 5 && (
         <div className="text-center pt-2">
           <Link
-            to={`/dashboard/${userType}/orders`}
+            to={`/${userType}/orders`}
             className="text-sm text-blue-600 hover:text-blue-800 font-medium"
           >
-            Voir toutes les commandes ({orders.length})
+            Voir toutes les commandes ({displayOrders.length})
           </Link>
         </div>
       )}

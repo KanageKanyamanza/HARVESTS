@@ -8,14 +8,21 @@ const Dashboard = () => {
   const { userType, getDefaultRoute } = useUserType();
 
   // Rediriger vers le dashboard spécifique selon le type d'utilisateur
-  React.useEffect(() => {
+  // Utiliser navigate au lieu de window.location.href pour éviter un rechargement complet
+  const navigate = React.useCallback(() => {
     if (userType) {
-      const specificDashboard = getDefaultRoute(userType);
-      if (specificDashboard !== '/dashboard') {
+      const specificDashboard = getDefaultRoute();
+      if (specificDashboard && specificDashboard !== '/dashboard') {
+        // Utiliser navigate du routeur au lieu de window.location.href
+        // pour éviter de perdre l'état et la position de scroll
         window.location.href = specificDashboard;
       }
     }
   }, [userType, getDefaultRoute]);
+
+  React.useEffect(() => {
+    navigate();
+  }, [navigate]);
 
   return (
     <ModularDashboardLayout>

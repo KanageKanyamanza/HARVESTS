@@ -4,6 +4,7 @@ import {
 	producerService,
 	transformerService,
 	restaurateurService,
+	reviewService,
 } from "../services";
 import {
 	FiMapPin,
@@ -13,11 +14,25 @@ import {
 	FiTool,
 	FiSun,
 } from "react-icons/fi";
+import {
+	getVendorAverageRating,
+	getVendorReviewCount,
+	formatAverageRating,
+} from "../utils/vendorRatings";
 
 const Vendeurs = () => {
 	const [vendeurs, setVendeurs] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [filter, setFilter] = useState("all"); // 'all', 'producers', 'transformers', 'restaurateurs'
+
+	const buildVendorRating = (vendor) => {
+		const average = getVendorAverageRating(vendor);
+		const count = getVendorReviewCount(vendor);
+		return {
+			averageDisplay: formatAverageRating(average),
+			reviewCount: count,
+		};
+	};
 
 	useEffect(() => {
 		const loadVendeurs = async () => {
@@ -109,9 +124,7 @@ const Vendeurs = () => {
 						...producers.map((producer) => ({
 							...producer,
 							type: "producer",
-							displayName:
-								producer.farmName ||
-								`${producer.firstName} ${producer.lastName}`,
+							displayName: producer.farmName || "Producteur",
 							profileUrl: `/producers/${producer._id}`,
 							shopBanner: producer.shopBanner,
 							logo: producer.shopLogo,
@@ -141,9 +154,7 @@ const Vendeurs = () => {
 						...transformers.map((transformer) => ({
 							...transformer,
 							type: "transformer",
-							displayName:
-								transformer.companyName ||
-								`${transformer.firstName} ${transformer.lastName}`,
+							displayName: transformer.companyName || "Transformateur",
 							profileUrl: `/transformers/${transformer._id}`,
 							shopBanner: transformer.shopBanner,
 							logo: transformer.shopLogo,
@@ -169,9 +180,7 @@ const Vendeurs = () => {
 						...restaurateurs.map((restaurateur) => ({
 							...restaurateur,
 							type: "restaurateur",
-							displayName:
-								restaurateur.restaurantName ||
-								`${restaurateur.firstName} ${restaurateur.lastName}`,
+							displayName: restaurateur.restaurantName || "Restaurant",
 							profileUrl: `/restaurateurs/${restaurateur._id}`,
 							shopBanner:
 								restaurateur.restaurantBanner || restaurateur.shopBanner,
@@ -186,7 +195,40 @@ const Vendeurs = () => {
 					"📋 Types de vendeurs:",
 					allVendeurs.map((v) => v.type)
 				);
-				setVendeurs(allVendeurs);
+				const vendeursAvecNotes = await Promise.all(
+					allVendeurs.map(async (vendeur) => {
+						if (!vendeur?._id || !["producer", "transformer"].includes(vendeur.type)) {
+							return vendeur;
+						}
+
+						try {
+							const statsResponse = await reviewService.getProducerRatingStats(vendeur._id);
+							const statsData = statsResponse?.data;
+							if (statsData) {
+								return {
+									...vendeur,
+									ratings: {
+										...(vendeur.ratings || {}),
+										average: statsData.averageRating || 0,
+										count: statsData.totalReviews || 0,
+									},
+									stats: {
+										...(vendeur.stats || {}),
+										averageRating: statsData.averageRating || 0,
+										totalReviews: statsData.totalReviews || 0,
+									},
+									reviewStats: statsData,
+								};
+							}
+						} catch (statsError) {
+							console.error('Erreur lors du chargement des statistiques d\'avis du vendeur:', statsError);
+						}
+
+						return vendeur;
+					})
+				);
+
+				setVendeurs(vendeursAvecNotes);
 			} catch (error) {
 				console.error("Erreur lors du chargement des vendeurs:", error);
 			} finally {
@@ -332,7 +374,8 @@ const Vendeurs = () => {
 
 				{filteredVendeurs.length > 0 ? (
 					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-						{filteredVendeurs.map((vendeur) => {
+				{filteredVendeurs.map((vendeur) => {
+					const { averageDisplay, reviewCount } = buildVendorRating(vendeur);
 							const typeBadge = getTypeBadge(vendeur.type);
 							const BadgeIcon = typeBadge.icon;
 
@@ -421,9 +464,6 @@ const Vendeurs = () => {
 										<h3 className="font-semibold text-gray-900 mb-1 text-lg">
 											{vendeur.displayName}
 										</h3>
-										<p className="text-sm text-gray-600 mb-2">
-											{vendeur.firstName} {vendeur.lastName}
-										</p>
 										<div className="flex items-center text-gray-500 text-sm mb-3">
 											<FiMapPin className="mr-1" />
 											<span>{getCountryName(vendeur.country)}</span>
@@ -437,13 +477,13 @@ const Vendeurs = () => {
 
 										{/* Statistiques */}
 										<div className="flex items-center justify-between text-sm">
-											<div className="flex items-center text-yellow-600">
-												<FiStar className="mr-1" />
-												<span>
-													{vendeur.salesStats?.averageRating?.toFixed(1) ||
-														"0.0"}
-												</span>
-											</div>
+								<div className="flex items-center text-yellow-600">
+									<FiStar className="mr-1" />
+									<span>{averageDisplay}</span>
+									<span className="ml-1 text-xs text-gray-500">
+										({reviewCount} avis)
+									</span>
+								</div>
 											<div className="flex items-center text-gray-500">
 												<FiPackage className="mr-1" />
 												<span className="mr-1">

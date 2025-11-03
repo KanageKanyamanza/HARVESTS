@@ -137,7 +137,6 @@ const Cart = () => {
                 onClick={() => {
                   // Navigation conditionnelle selon le type d'utilisateur
                   const checkoutRoute = user?.userType === 'consumer' ? '/consumer/checkout' : '/checkout';
-                  console.log('🛒 Navigation vers:', checkoutRoute, 'pour utilisateur:', user?.userType);
                   navigate(checkoutRoute);
                 }}
                 className="w-full bg-harvests-green text-white py-3 rounded-lg hover:bg-green-600 transition-colors font-medium"

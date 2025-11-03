@@ -1,6 +1,7 @@
 const Admin = require('../models/Admin');
 const User = require('../models/User');
 const Product = require('../models/Product');
+const Restaurateur = require('../models/Restaurateur');
 const Order = require('../models/Order');
 const Review = require('../models/Review');
 const Message = require('../models/Message');
@@ -2130,71 +2131,106 @@ exports.updateSystemSettings = catchAsync(async (req, res, next) => {
 
 exports.getAllDishes = catchAsync(async (req, res, next) => {
   const { page = 1, limit = 10, search, status } = req.query;
-  
-  // Construire le filtre
-  const filter = {};
-  
+
+  const parsedLimit = Math.max(parseInt(limit) || 10, 1);
+  const skip = (Math.max(parseInt(page) || 1, 1) - 1) * parsedLimit;
+
+  // Construire la requête de base pour Product
+  const query = {
+    originType: 'dish',
+    userType: 'restaurateur'
+  };
+
+  if (status) {
+    query.status = status;
+  }
+
   if (search) {
-    filter.$or = [
-      { 'dishes.name': { $regex: search, $options: 'i' } },
-      { 'dishes.description': { $regex: search, $options: 'i' } }
+    const regex = new RegExp(search, 'i');
+    query.$or = [
+      { 'name.fr': regex },
+      { 'name.en': regex },
+      { 'description.fr': regex },
+      { 'description.en': regex }
     ];
   }
-  
-  if (status) {
-    filter['dishes.status'] = status;
-  }
-  
-  // Pagination
-  const skip = (page - 1) * limit;
-  
-  // Récupérer tous les restaurateurs avec leurs plats
-  const restaurateurs = await Restaurateur.find(filter).select('dishes restaurantName firstName lastName email');
-  
-  // Extraire tous les plats avec leurs restaurateurs
-  let allDishes = [];
-  restaurateurs.forEach(restaurateur => {
-    restaurateur.dishes.forEach(dish => {
-      allDishes.push({
-        ...dish.toObject(),
-        restaurateur: {
-          _id: restaurateur._id,
-          restaurantName: restaurateur.restaurantName,
-          firstName: restaurateur.firstName,
-          lastName: restaurateur.lastName,
-          email: restaurateur.email
-        }
-      });
-    });
+
+  // Compter le total
+  const total = await Product.countDocuments(query);
+
+  // Récupérer les produits avec les images
+  const products = await Product.find(query)
+    .select('name description price images primaryImage image dishInfo status isActive createdAt restaurateur')
+    .populate('restaurateur', 'restaurantName firstName lastName email')
+    .sort('-createdAt')
+    .skip(skip)
+    .limit(parsedLimit);
+
+  // Formater pour compatibilité avec le frontend
+  const dishes = products.map(product => {
+    // Extraire l'image principale - gérer différents formats
+    let imageUrl = null;
+    
+    // Vérifier d'abord si product.images existe et est un tableau
+    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+      const firstImage = product.images[0];
+      // Si c'est un objet avec une propriété url
+      if (typeof firstImage === 'object' && firstImage !== null) {
+        imageUrl = firstImage.url || firstImage.src || null;
+      } 
+      // Si c'est directement une string URL
+      else if (typeof firstImage === 'string') {
+        imageUrl = firstImage;
+      }
+    }
+    // Fallback sur primaryImage
+    else if (product.primaryImage) {
+      if (typeof product.primaryImage === 'object' && product.primaryImage.url) {
+        imageUrl = product.primaryImage.url;
+      } else if (typeof product.primaryImage === 'string') {
+        imageUrl = product.primaryImage;
+      }
+    }
+    // Fallback sur image directe
+    else if (typeof product.image === 'string') {
+      imageUrl = product.image;
+    }
+
+    return {
+      _id: product._id,
+      name: product.name?.fr || product.name?.en || '',
+      description: product.description?.fr || product.description?.en || '',
+      price: product.price,
+      image: imageUrl,
+      images: product.images || [],
+      category: product.dishInfo?.category || product.category,
+      status: product.status,
+      isAvailable: product.isActive,
+      preparationTime: product.dishInfo?.preparationTime,
+      allergens: product.dishInfo?.allergens || [],
+      createdAt: product.createdAt,
+      restaurateur: product.restaurateur ? {
+        _id: product.restaurateur._id,
+        restaurantName: product.restaurateur.restaurantName,
+        firstName: product.restaurateur.firstName,
+        lastName: product.restaurateur.lastName,
+        email: product.restaurateur.email
+      } : null
+    };
   });
-  
-  // Appliquer le filtre de recherche si nécessaire
-  if (search) {
-    allDishes = allDishes.filter(dish => 
-      dish.name.toLowerCase().includes(search.toLowerCase()) ||
-      (dish.description && dish.description.toLowerCase().includes(search.toLowerCase()))
-    );
-  }
-  
-  // Appliquer le filtre de status si nécessaire
-  if (status) {
-    allDishes = allDishes.filter(dish => dish.status === status);
-  }
-  
-  // Pagination
-  const total = allDishes.length;
-  const dishes = allDishes.slice(skip, skip + parseInt(limit));
-  
+
+  const totalPages = Math.max(Math.ceil(total / parsedLimit), 1);
+
   res.status(200).json({
     status: 'success',
     data: {
       dishes,
       pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / limit),
+        currentPage: Math.max(parseInt(page) || 1, 1),
+        totalPages,
         totalDishes: total,
-        hasNext: page < Math.ceil(total / limit),
-        hasPrev: page > 1
+        hasNext: Math.max(parseInt(page) || 1, 1) < totalPages,
+        hasPrev: Math.max(parseInt(page) || 1, 1) > 1
       }
     }
   });
@@ -2203,29 +2239,42 @@ exports.getAllDishes = catchAsync(async (req, res, next) => {
 exports.getDishById = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   
-  // Rechercher dans tous les restaurateurs
-  const restaurateur = await Restaurateur.findOne({ 'dishes._id': id }).select('dishes restaurantName firstName lastName email');
+  // Rechercher directement dans Product
+  const product = await Product.findOne({
+    _id: id,
+    originType: 'dish',
+    userType: 'restaurateur'
+  }).populate('restaurateur', 'restaurantName firstName lastName email');
   
-  if (!restaurateur) {
+  if (!product) {
     return next(new AppError('Plat non trouvé', 404));
   }
   
-  const dish = restaurateur.dishes.id(id);
+  // Formater pour compatibilité avec le frontend
+  const dish = {
+    _id: product._id,
+    name: product.name?.fr || product.name?.en || '',
+    description: product.description?.fr || product.description?.en || '',
+    price: product.price,
+    image: product.images?.[0]?.url,
+    category: product.dishInfo?.category,
+    status: product.status,
+    isAvailable: product.isActive,
+    preparationTime: product.dishInfo?.preparationTime,
+    allergens: product.dishInfo?.allergens || [],
+    createdAt: product.createdAt,
+    restaurateur: product.restaurateur ? {
+      _id: product.restaurateur._id,
+      restaurantName: product.restaurateur.restaurantName,
+      firstName: product.restaurateur.firstName,
+      lastName: product.restaurateur.lastName,
+      email: product.restaurateur.email
+    } : null
+  };
   
   res.status(200).json({
     status: 'success',
-    data: {
-      dish: {
-        ...dish.toObject(),
-        restaurateur: {
-          _id: restaurateur._id,
-          restaurantName: restaurateur.restaurantName,
-          firstName: restaurateur.firstName,
-          lastName: restaurateur.lastName,
-          email: restaurateur.email
-        }
-      }
-    }
+    data: { dish }
   });
 });
 
@@ -2233,43 +2282,47 @@ exports.updateDish = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const updates = req.body;
   
-  // Rechercher le restaurateur
-  const restaurateur = await Restaurateur.findOne({ 'dishes._id': id });
+  // Rechercher directement dans Product
+  const product = await Product.findOne({
+    _id: id,
+    originType: 'dish',
+    userType: 'restaurateur'
+  });
   
-  if (!restaurateur) {
+  if (!product) {
     return next(new AppError('Plat non trouvé', 404));
   }
   
-  const dish = restaurateur.dishes.id(id);
-  
-  // Mettre à jour les champs
+  // Filtrer les champs à mettre à jour
+  const allowedFields = ['name', 'description', 'price', 'images', 'dishInfo', 'isActive'];
   Object.keys(updates).forEach(key => {
-    if (key !== '_id' && key !== 'restaurateur') {
-      dish[key] = updates[key];
+    if (allowedFields.includes(key) && key !== '_id' && key !== 'restaurateur') {
+      product[key] = updates[key];
     }
   });
   
-  await restaurateur.save();
+  await product.save();
   
   res.status(200).json({
     status: 'success',
     message: 'Plat mis à jour avec succès',
-    data: { dish }
+    data: { dish: product }
   });
 });
 
 exports.deleteDish = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   
-  const restaurateur = await Restaurateur.findOne({ 'dishes._id': id });
+  // Supprimer directement depuis Product
+  const product = await Product.findOneAndDelete({
+    _id: id,
+    originType: 'dish',
+    userType: 'restaurateur'
+  });
   
-  if (!restaurateur) {
+  if (!product) {
     return next(new AppError('Plat non trouvé', 404));
   }
-  
-  const dish = restaurateur.dishes.id(id);
-  dish.remove();
-  await restaurateur.save();
   
   res.status(200).json({
     status: 'success',
@@ -2280,18 +2333,25 @@ exports.deleteDish = catchAsync(async (req, res, next) => {
 exports.approveDish = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   
-  const restaurateur = await Restaurateur.findOne({ 'dishes._id': id });
+  // Approuver directement dans Product
+  const product = await Product.findOneAndUpdate(
+    {
+      _id: id,
+      originType: 'dish',
+      userType: 'restaurateur'
+    },
+    {
+      status: 'approved',
+      isActive: true,
+      approvedAt: new Date(),
+      $unset: { rejectionReason: 1 }
+    },
+    { new: true }
+  ).populate('restaurateur', 'restaurantName firstName lastName email');
   
-  if (!restaurateur) {
+  if (!product) {
     return next(new AppError('Plat non trouvé', 404));
   }
-  
-  const dish = restaurateur.dishes.id(id);
-  dish.status = 'approved';
-  dish.approvedAt = new Date();
-  dish.rejectionReason = undefined;
-  
-  await restaurateur.save();
   
   // Notification (optionnel)
   // ...
@@ -2299,7 +2359,7 @@ exports.approveDish = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     message: 'Plat approuvé avec succès',
-    data: { dish }
+    data: { dish: product }
   });
 });
 
@@ -2310,21 +2370,29 @@ exports.rejectDish = catchAsync(async (req, res, next) => {
     return next(new AppError('Raison du rejet requise', 400));
   }
   
-  const restaurateur = await Restaurateur.findOne({ 'dishes._id': req.params.id });
+  // Rejeter directement dans Product
+  const product = await Product.findOneAndUpdate(
+    {
+      _id: req.params.id,
+      originType: 'dish',
+      userType: 'restaurateur'
+    },
+    {
+      status: 'rejected',
+      isActive: false,
+      rejectionReason: reason,
+      $unset: { approvedAt: 1 }
+    },
+    { new: true }
+  ).populate('restaurateur', 'restaurantName firstName lastName email');
   
-  if (!restaurateur) {
+  if (!product) {
     return next(new AppError('Plat non trouvé', 404));
   }
-  
-  const dish = restaurateur.dishes.id(req.params.id);
-  dish.status = 'rejected';
-  dish.rejectionReason = reason;
-  
-  await restaurateur.save();
   
   res.status(200).json({
     status: 'success',
     message: 'Plat rejeté avec succès',
-    data: { dish }
+    data: { dish: product }
   });
 });

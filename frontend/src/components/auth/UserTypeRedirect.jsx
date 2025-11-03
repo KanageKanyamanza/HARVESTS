@@ -44,19 +44,22 @@ const UserTypeRedirect = ({ children }) => {
       
       // Si l'utilisateur est sur la page de connexion ou d'inscription, rediriger
       if (currentPath === '/login' || currentPath === '/register') {
-        const defaultRoute = getDefaultRoute(userType);
+        const defaultRoute = getDefaultRoute();
         navigate(defaultRoute, { replace: true });
         return;
       }
 
       // Si l'utilisateur est sur le dashboard général, rediriger vers son dashboard spécifique
+      // MAIS seulement s'il n'est pas déjà sur une route valide du dashboard
       if (currentPath === '/dashboard') {
-        const defaultRoute = getDefaultRoute(userType);
+        const defaultRoute = getDefaultRoute();
         if (defaultRoute !== '/dashboard') {
           navigate(defaultRoute, { replace: true });
         }
       }
 
+      // Ne pas rediriger si l'utilisateur est déjà sur une route valide
+      // (laisser ProtectedRoute gérer les vérifications d'accès)
     }
   }, [isAuthenticated, userType, isLoading, location.pathname, navigate, getDefaultRoute]);
 

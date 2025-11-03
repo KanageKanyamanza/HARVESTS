@@ -93,15 +93,22 @@ const ProtectedRoute = ({
   }
 
   // Vérifier l'accès à la route
-  if (!canAccessRoute(location.pathname)) {
-    return <Navigate 
-      to="/unauthorized" 
-      state={{ 
-        from: location.pathname,
-        message: 'Accès non autorisé à cette page' 
-      }} 
-      replace 
-    />;
+  // Seulement si l'utilisateur est authentifié et que le type d'utilisateur est connu
+  // Ne pas bloquer l'accès si canAccessRoute retourne false pour éviter des redirections intempestives
+  // Laisser les routes individuelles gérer leurs propres vérifications d'accès
+  if (userType && !canAccessRoute(location.pathname, userType, isAuthenticated, user?.role)) {
+    // Ne rediriger que vers unauthorized si on est vraiment sûr que l'accès est refusé
+    // Pour éviter les redirections lors du refresh
+    if (!location.pathname.startsWith('/unauthorized')) {
+      return <Navigate 
+        to="/unauthorized" 
+        state={{ 
+          from: location.pathname,
+          message: 'Accès non autorisé à cette page' 
+        }} 
+        replace 
+      />;
+    }
   }
 
   return children;

@@ -631,7 +631,7 @@ exports.createProduct = catchAsync(async (req, res, next) => {
     inventory: {
       quantity: parseInt(stock) || 0
     },
-    minimumOrderQuantity: minimumOrderQuantity || 1,
+    minimumOrderQuantity: minimumOrderQuantity !== undefined ? minimumOrderQuantity : 0,
     maximumOrderQuantity: maximumOrderQuantity || undefined,
     unit: unit || 'kg',
     status: status || 'draft',

@@ -47,19 +47,31 @@ export const canAccessRoute = (route, userType, isAuthenticated, role = null) =>
   }
   
   // Routes publiques accessibles à tous les utilisateurs connectés
-  const publicRoutes = ['/dashboard', '/profile', '/settings', '/messages'];
+  const publicRoutes = ['/dashboard', '/profile', '/settings', '/messages', '/orders', '/cart', '/checkout'];
   if (publicRoutes.some(publicRoute => route.startsWith(publicRoute))) {
     return true;
   }
 
   // Routes spécifiques par type d'utilisateur
-  if (route.startsWith(`/${userType}/`)) {
+  const userTypeRoutes = ['consumer', 'producer', 'transformer', 'restaurateur', 'exporter', 'transporter', 'explorer'];
+  if (userType && userTypeRoutes.includes(userType) && route.startsWith(`/${userType}/`)) {
     return true;
   }
 
   // Routes communes aux consommateurs
   if (userType === 'consumer' && 
       ['/cart', '/checkout', '/order-history', '/favorites', '/addresses', '/payment-methods', '/reviews'].some(r => route.startsWith(r))) {
+    return true;
+  }
+
+  // Routes communes à tous les types d'utilisateurs (commandes, produits, etc.)
+  const commonRoutes = ['/products', '/vendors', '/dishes'];
+  if (commonRoutes.some(commonRoute => route.startsWith(commonRoute))) {
+    return true;
+  }
+
+  // Si aucune condition n'est remplie, vérifier si c'est la route racine
+  if (route === '/') {
     return true;
   }
 

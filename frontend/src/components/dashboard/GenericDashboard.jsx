@@ -53,8 +53,6 @@ const GenericDashboard = ({
     isLoadingRef.current = true;
 
     try {
-      console.log('🔄 Chargement des données du dashboard...');
-      
       // Pour les consommateurs, ne pas charger les produits
       const promises = [
         service.getStats().catch(err => {
@@ -75,7 +73,12 @@ const GenericDashboard = ({
 
       // Ajouter le chargement des produits seulement si ce n'est pas un consommateur, exportateur ou transporteur
       if (userType !== 'consumer' && userType !== 'exporter' && userType !== 'transporter') {
-        promises.splice(1, 0, service.getProducts({ limit: 5 }).catch(err => {
+        // Pour les restaurateurs, utiliser getDishes() au lieu de getProducts()
+        const productsPromise = userType === 'restaurateur' 
+          ? service.getDishes({ limit: 5 })
+          : service.getProducts({ limit: 5 });
+        
+        promises.splice(1, 0, productsPromise.catch(err => {
           console.warn('Erreur lors du chargement des produits:', err);
           if (err.response?.status === 403 && err.response?.data?.code === 'EMAIL_VERIFICATION_REQUIRED') {
             setEmailVerificationRequired(true);
@@ -99,7 +102,13 @@ const GenericDashboard = ({
       // Extraire les données correctement selon la structure de l'API
       setStats(statsResponse.data.data?.stats || statsResponse.data.stats || {});
       
-      const productsData = productsResponse.data.data?.products || productsResponse.data.products || [];
+      // Pour les restaurateurs, les plats peuvent être dans data.data.dishes ou data.dishes
+      let productsData = [];
+      if (userType === 'restaurateur') {
+        productsData = productsResponse.data.data?.dishes || productsResponse.data.data?.products || productsResponse.data.dishes || productsResponse.data.products || [];
+      } else {
+        productsData = productsResponse.data.data?.products || productsResponse.data.products || [];
+      }
       setProducts(Array.isArray(productsData) ? productsData : []);
       
       const ordersData = ordersResponse.data.data?.orders || ordersResponse.data.orders || [];
@@ -151,27 +160,23 @@ const GenericDashboard = ({
 
   // Configuration des statistiques selon le type d'utilisateur
   const getStatsConfig = () => {
-    // Si un statsConfig est fourni, l'utiliser directement
-    if (statsConfig) {
-      const baseConfig = {
-        monthlyRevenue,
-        totalOrders: orders.length,
-        totalProducts: products.length,
-        averageRating: stats?.averageRating || 0,
-        totalReviews: stats?.totalReviews || 0
-      };
-
-      return statsConfig(baseConfig);
-    }
-
-    // Sinon, utiliser la configuration par défaut
-    return {
+    // Combiner les stats du backend avec les stats calculées localement
+    const baseConfig = {
+      ...stats, // Inclure toutes les stats du backend
       monthlyRevenue,
       totalOrders: orders.length,
       totalProducts: products.length,
-      averageRating: stats?.averageRating || 0,
-      totalReviews: stats?.totalReviews || 0
+      averageRating: stats?.averageRating || stats?.ratings?.average || 0,
+      totalReviews: stats?.totalReviews || stats?.ratings?.count || 0
     };
+
+    // Si un statsConfig est fourni, l'utiliser pour transformer les stats
+    if (statsConfig) {
+      return statsConfig(baseConfig);
+    }
+
+    // Sinon, retourner la configuration par défaut
+    return baseConfig;
   };
 
   if (!isAuthenticated || !user) {
@@ -324,7 +329,8 @@ const GenericDashboard = ({
                 userType,
                 loading: isLoading,
                 orders,
-                stats
+                stats,
+                service
               })}
             </div>
           ))}

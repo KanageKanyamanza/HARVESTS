@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import DashboardSidebarFixed from '../dashboard/DashboardSidebarFixed';
 import DashboardTopbar from '../dashboard/DashboardTopbar';
 
 const ModularDashboardLayout = ({ children, navigationItems, user }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
   // Charger l'état collapsed depuis localStorage
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     const saved = localStorage.getItem('harvests_sidebar_collapsed');
@@ -18,6 +19,11 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
   useEffect(() => {
     localStorage.setItem('harvests_sidebar_collapsed', JSON.stringify(sidebarCollapsed));
   }, [sidebarCollapsed]);
+
+  // Fermer le sidebar mobile lors d'un changement de route
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     try {

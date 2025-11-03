@@ -1,5 +1,8 @@
 const multer = require('multer');
+const jwt = require('jsonwebtoken');
+const { promisify } = require('util');
 const Restaurateur = require('../models/Restaurateur');
+const Product = require('../models/Product');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 
@@ -159,22 +162,49 @@ exports.updateMyProfile = catchAsync(async (req, res, next) => {
 
 // Récupérer les plats du restaurateur
 exports.getMyDishes = catchAsync(async (req, res, next) => {
-  console.log('🔍 getMyDishes appelé pour user ID:', req.user.id);
+  // Récupérer tous les produits de type 'dish' du restaurateur avec les images
+  const dishes = await Product.find({
+    restaurateur: req.user.id,
+    originType: 'dish'
+  })
+  .select('name description shortDescription price images primaryImage image dishInfo status isActive createdAt updatedAt slug restaurateur inventory')
+  .sort('-createdAt');
   
-  const restaurateur = await Restaurateur.findById(req.user.id).select('dishes');
-  console.log('📋 Restaurateur trouvé:', !!restaurateur);
-  console.log('🍽️ Plats:', restaurateur?.dishes?.length || 0);
+  // Pour les plats existants sans gestion de stock, initialiser le stock à 10 par défaut
+  const dishesToUpdate = [];
+  dishes.forEach(p => {
+    if (!p.inventory || p.inventory.trackQuantity === false) {
+      if (!p.inventory) p.inventory = {};
+      p.inventory.quantity = p.inventory.quantity || 10;
+      p.inventory.lowStockThreshold = p.inventory.lowStockThreshold || Math.max(1, Math.floor(p.inventory.quantity * 0.2));
+      p.inventory.trackQuantity = true;
+      p.inventory.allowBackorder = false;
+      p.inventory.reservedQuantity = p.inventory.reservedQuantity || 0;
+      dishesToUpdate.push(p._id);
+    }
+  });
   
-  if (!restaurateur) {
-    return res.status(404).json({
-      status: 'error',
-      message: 'Restaurateur non trouvé'
-    });
+  if (dishesToUpdate.length > 0) {
+    await Promise.all(dishesToUpdate.map(id => {
+      const dish = dishes.find(d => d._id.toString() === id.toString());
+      return Product.findByIdAndUpdate(id, { inventory: dish.inventory }, { new: true });
+    }));
+  }
+  
+  // S'assurer que tous les plats approuvés ont isActive à true
+  const approvedDishesToUpdate = dishes.filter(p => p.status === 'approved' && !p.isActive);
+  if (approvedDishesToUpdate.length > 0) {
+    await Product.updateMany(
+      { _id: { $in: approvedDishesToUpdate.map(p => p._id) } },
+      { $set: { isActive: true } }
+    );
+    // Mettre à jour localement pour la réponse
+    approvedDishesToUpdate.forEach(p => { p.isActive = true; });
   }
   
   res.status(200).json({
     status: 'success',
-    data: { dishes: restaurateur.dishes || [] }
+    data: { dishes }
   });
 });
 
@@ -203,7 +233,7 @@ exports.getMyProducts = catchAsync(async (req, res, next) => {
 exports.getRestaurateurDishes = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   
-  const restaurateur = await Restaurateur.findById(id).select('dishes restaurantName');
+  const restaurateur = await Restaurateur.findById(id).select('restaurantName');
   if (!restaurateur) {
     return res.status(404).json({
       status: 'error',
@@ -211,16 +241,221 @@ exports.getRestaurateurDishes = catchAsync(async (req, res, next) => {
     });
   }
   
-  // Filtrer seulement les plats disponibles ET approuvés
-  const availableDishes = restaurateur.dishes.filter(dish => 
-    dish.isAvailable && dish.status === 'approved'
-  );
+  // Récupérer directement depuis Product (comme producteurs/transformateurs)
+  // Récupérer tous les plats approuvés avec stock disponible
+  const products = await Product.find({
+    restaurateur: id,
+    originType: 'dish',
+    status: 'approved',
+    $or: [
+      { 'inventory.trackQuantity': false }, // Anciens plats sans gestion de stock
+      { 'inventory.trackQuantity': true, 'inventory.quantity': { $gt: 0 } }, // Plats avec stock > 0
+      { 'inventory': { $exists: false } } // Plats sans inventory (fallback)
+    ]
+  }).select('name description shortDescription price images primaryImage image dishInfo slug isActive inventory').sort('-createdAt');
+  
+  // Pour les plats existants sans gestion de stock, initialiser le stock à 10 par défaut
+  const productsToUpdateStock = [];
+  products.forEach(p => {
+    if (!p.inventory || p.inventory.trackQuantity === false) {
+      if (!p.inventory) p.inventory = {};
+      p.inventory.quantity = p.inventory.quantity || 10;
+      p.inventory.lowStockThreshold = p.inventory.lowStockThreshold || Math.max(1, Math.floor(p.inventory.quantity * 0.2));
+      p.inventory.trackQuantity = true;
+      p.inventory.allowBackorder = false;
+      p.inventory.reservedQuantity = p.inventory.reservedQuantity || 0;
+      productsToUpdateStock.push(p._id);
+    }
+  });
+  
+  if (productsToUpdateStock.length > 0) {
+    await Promise.all(productsToUpdateStock.map(id => {
+      const product = products.find(p => p._id.toString() === id.toString());
+      return Product.findByIdAndUpdate(id, { inventory: product.inventory }, { new: true });
+    }));
+    // Recharger les produits mis à jour
+    const updatedProducts = await Product.find({
+      restaurateur: id,
+      originType: 'dish',
+      status: 'approved'
+    }).select('name description shortDescription price images primaryImage image dishInfo slug isActive inventory').sort('-createdAt');
+    updatedProducts.forEach((updated, idx) => {
+      const original = products.find(p => p._id.toString() === updated._id.toString());
+      if (original) {
+        products[idx] = updated;
+      }
+    });
+  }
+  
+  // S'assurer que tous les plats approuvés ont isActive à true
+  const productsToUpdate = products.filter(p => !p.isActive);
+  if (productsToUpdate.length > 0) {
+    await Product.updateMany(
+      { _id: { $in: productsToUpdate.map(p => p._id) } },
+      { $set: { isActive: true } }
+    );
+    // Mettre à jour localement pour la réponse
+    productsToUpdate.forEach(p => { p.isActive = true; });
+  }
+
+  // Formater pour compatibilité avec le frontend existant
+  const dishes = products.map((product) => {
+    // Extraire l'image de manière exhaustive
+    let imageUrl = null;
+    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+      const firstImage = product.images[0];
+      if (typeof firstImage === 'object' && firstImage !== null) {
+        imageUrl = firstImage.url || firstImage.src || null;
+      } else if (typeof firstImage === 'string') {
+        imageUrl = firstImage;
+      }
+    }
+    
+    if (!imageUrl && product.primaryImage) {
+      if (typeof product.primaryImage === 'object' && product.primaryImage !== null) {
+        imageUrl = product.primaryImage.url || product.primaryImage.src || null;
+      } else if (typeof product.primaryImage === 'string') {
+        imageUrl = product.primaryImage;
+      }
+    }
+    
+    if (!imageUrl) {
+      imageUrl = product.image || null;
+    }
+    
+    return {
+      _id: product._id,
+      productId: product._id,
+      name: product.name?.fr || product.name?.en || '',
+      description: product.description?.fr || product.description?.en || product.shortDescription?.fr || '',
+      price: product.price,
+      image: imageUrl,
+      images: product.images || [],
+      dishInfo: product.dishInfo,
+      category: product.dishInfo?.category,
+      preparationTime: product.dishInfo?.preparationTime || null,
+      allergens: product.dishInfo?.allergens || [],
+      slug: product.slug,
+      inventory: product.inventory || { quantity: 10, trackQuantity: true },
+      stock: product.inventory?.quantity || 10,
+      isInStock: (product.inventory?.quantity || 10) > 0,
+      trackQuantity: product.inventory?.trackQuantity !== false
+    };
+  });
   
   res.status(200).json({
     status: 'success',
     data: { 
-      dishes: availableDishes,
+      dishes,
       restaurantName: restaurateur.restaurantName
+    }
+  });
+});
+
+exports.getDishDetail = catchAsync(async (req, res, next) => {
+  const dishId = req.params.dishId;
+  
+  // Chercher le plat sans restriction de status d'abord
+  const product = await Product.findOne({
+    originType: 'dish',
+    _id: dishId
+  })
+    .select('name description shortDescription price images primaryImage image dishInfo status isActive createdAt updatedAt slug restaurateur inventory')
+    .populate('restaurateur', 'restaurantName firstName lastName address city region phone email');
+  
+  if (!product) {
+    return next(new AppError('Plat non trouvé', 404));
+  }
+  
+  // Si le plat est approuvé, il est visible par tous - pas besoin de vérifier l'authentification
+  if (product.status === 'approved') {
+    // Plat approuvé, accessible à tous
+  } else {
+    // Pour les plats non approuvés, vérifier si l'utilisateur est le propriétaire
+    let currentUser = null;
+    try {
+      let token;
+      if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        token = req.headers.authorization.split(' ')[1];
+      } else if (req.cookies && req.cookies.jwt) {
+        token = req.cookies.jwt;
+      }
+      
+      if (token) {
+        const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+        const User = require('../models/User');
+        currentUser = await User.findById(decoded.id).select('userType');
+      }
+    } catch (error) {
+      // Si le token est invalide, on continue sans utilisateur
+      currentUser = null;
+    }
+    
+    const isOwner = currentUser && 
+                    currentUser.userType === 'restaurateur' && 
+                    product.restaurateur && 
+                    (product.restaurateur._id?.toString() === currentUser._id?.toString() || 
+                     product.restaurateur.toString() === currentUser._id?.toString());
+    
+    if (!isOwner) {
+      return next(new AppError('Plat non trouvé', 404));
+    }
+  }
+  
+  // Si le plat est approuvé mais isActive est false, le mettre à true (pas de gestion de stock)
+  if (product && product.status === 'approved' && !product.isActive) {
+    product.isActive = true;
+    await product.save();
+  }
+
+  // Formater pour compatibilité avec le frontend
+  // Extraire l'image de manière exhaustive
+  let imageUrl = null;
+  if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+    const firstImage = product.images[0];
+    if (typeof firstImage === 'object' && firstImage !== null) {
+      imageUrl = firstImage.url || firstImage.src || null;
+    } else if (typeof firstImage === 'string') {
+      imageUrl = firstImage;
+    }
+  }
+  
+  if (!imageUrl && product.primaryImage) {
+    if (typeof product.primaryImage === 'object' && product.primaryImage !== null) {
+      imageUrl = product.primaryImage.url || product.primaryImage.src || null;
+    } else if (typeof product.primaryImage === 'string') {
+      imageUrl = product.primaryImage;
+    }
+  }
+  
+  if (!imageUrl) {
+    imageUrl = product.image || null;
+  }
+  
+  const dish = {
+    _id: product._id,
+    productId: product._id,
+    name: product.name?.fr || product.name?.en || '',
+    description: product.description?.fr || product.description?.en || product.shortDescription?.fr || '',
+    price: product.price,
+    images: product.images || [],
+    image: imageUrl,
+    dishInfo: product.dishInfo,
+    category: product.dishInfo?.category,
+    preparationTime: product.dishInfo?.preparationTime || null,
+    allergens: product.dishInfo?.allergens || [],
+    slug: product.slug,
+    inventory: product.inventory || { quantity: 0, trackQuantity: true },
+    stock: product.inventory?.quantity || 0,
+    isInStock: (product.inventory?.quantity || 0) > 0,
+    trackQuantity: product.inventory?.trackQuantity !== false
+  };
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      dish,
+      restaurateur: product.restaurateur
     }
   });
 });
@@ -251,7 +486,7 @@ exports.getRestaurateurProducts = catchAsync(async (req, res, next) => {
 
 // Gestion des plats
 exports.addDish = catchAsync(async (req, res, next) => {
-  const { name, description, price, image, category, preparationTime, allergens } = req.body;
+  const { name, description, price, image, category, preparationTime, allergens, stock } = req.body;
   
   const restaurateur = await Restaurateur.findById(req.user.id);
   if (!restaurateur) {
@@ -261,22 +496,56 @@ exports.addDish = catchAsync(async (req, res, next) => {
     });
   }
   
-  const newDish = {
-    name,
-    description,
-    price,
-    image,
-    category: category || 'plat',
-    preparationTime: preparationTime || 30,
-    allergens: allergens || []
+  // Validation des champs obligatoires
+  if (!name || !price) {
+    return next(new AppError('Le nom et le prix sont requis', 400));
+  }
+
+  // Préparer les images
+  const images = [];
+  if (image) {
+    images.push({ url: image, alt: typeof name === 'string' ? name : (name.fr || name.en || 'Plat'), isPrimary: true, order: 0 });
+  }
+
+  // Gérer le stock : par défaut 10, ou la valeur fournie (doit être >= 0)
+  const initialStock = stock !== undefined && stock !== null ? Math.max(0, parseInt(stock) || 10) : 10;
+
+  // Créer le produit avec structure multilingue (comme producteurs/transformateurs)
+  const productData = {
+    name: typeof name === 'object' ? name : { fr: name, en: name },
+    description: typeof description === 'object' ? description : { fr: description || '', en: description || '' },
+    shortDescription: description ? { fr: (typeof description === 'string' ? description : description.fr || '').slice(0, 160), en: (typeof description === 'string' ? description : description.en || '').slice(0, 160) } : { fr: 'Plat proposé par le restaurateur', en: 'Dish offered by the restaurant' },
+    price: parseFloat(price),
+    images,
+    userType: 'restaurateur',
+    restaurateur: req.user.id,
+    category: 'processed-foods',
+    subcategory: `dish-${category || 'plat'}`,
+    originType: 'dish',
+    dishInfo: {
+      category: category || 'plat',
+      preparationTime: preparationTime || 30,
+      allergens: allergens || []
+    },
+    status: 'pending-review', // Toujours en attente de validation
+    isActive: false, // Non disponible jusqu'à approbation
+    isPublic: false, // Jamais visible dans les pages produits publiques
+    inventory: {
+      quantity: initialStock,
+      lowStockThreshold: Math.max(1, Math.floor(initialStock * 0.2)), // 20% du stock initial
+      trackQuantity: true, // Activer la gestion de stock pour les plats
+      allowBackorder: false, // Pas de commande en arrière-plan
+      reservedQuantity: 0
+    },
+    minimumOrderQuantity: 0
   };
   
-  restaurateur.dishes.push(newDish);
-  await restaurateur.save();
+  const product = await Product.create(productData);
   
   res.status(201).json({
     status: 'success',
-    data: { dish: newDish }
+    message: 'Plat soumis pour validation',
+    data: { dish: product }
   });
 });
 
@@ -284,44 +553,114 @@ exports.updateDish = catchAsync(async (req, res, next) => {
   const { dishId } = req.params;
   const updateData = req.body;
   
-  const restaurateur = await Restaurateur.findById(req.user.id);
-  if (!restaurateur) {
-    return res.status(404).json({
-      status: 'error',
-      message: 'Restaurateur non trouvé'
-    });
+  // Vérifier que le produit appartient au restaurateur
+  const product = await Product.findOne({
+    _id: dishId,
+    restaurateur: req.user.id,
+    originType: 'dish'
+  });
+
+  if (!product) {
+    return next(new AppError('Plat non trouvé', 404));
   }
-  
-  const dish = restaurateur.dishes.id(dishId);
-  if (!dish) {
-    return res.status(404).json({
-      status: 'error',
-      message: 'Plat non trouvé'
-    });
+
+  // Empêcher les restaurateurs de modifier manuellement l'état d'approbation
+  delete updateData.status;
+  delete updateData.approvedAt;
+  delete updateData.rejectionReason;
+  delete updateData.isPublic; // Ne jamais permettre de changer isPublic
+
+  // Préparer les données de mise à jour
+  const fieldsRequiringReview = ['name', 'description', 'price', 'category', 'image'];
+  let requiresReview = fieldsRequiringReview.some((field) => Object.prototype.hasOwnProperty.call(updateData, field));
+
+  // Traiter les champs spécifiques aux plats
+  if (updateData.category || updateData.preparationTime !== undefined || updateData.allergens) {
+    if (!product.dishInfo) product.dishInfo = {};
+    if (updateData.category) product.dishInfo.category = updateData.category;
+    if (updateData.preparationTime !== undefined) product.dishInfo.preparationTime = updateData.preparationTime;
+    if (updateData.allergens) product.dishInfo.allergens = updateData.allergens;
+    delete updateData.category;
+    delete updateData.preparationTime;
+    delete updateData.allergens;
+    requiresReview = true; // Les modifications de dishInfo nécessitent une révision
   }
-  
-  Object.assign(dish, updateData);
-  await restaurateur.save();
+
+  // Traiter les champs multilingues
+  if (updateData.name) {
+    updateData.name = typeof updateData.name === 'object' ? updateData.name : { fr: updateData.name, en: updateData.name };
+  }
+  if (updateData.description) {
+    updateData.description = typeof updateData.description === 'object' ? updateData.description : { fr: updateData.description, en: updateData.description };
+    if (updateData.description.fr || updateData.description.en) {
+      updateData.shortDescription = {
+        fr: (updateData.description.fr || product.description?.fr || '').slice(0, 160),
+        en: (updateData.description.en || product.description?.en || '').slice(0, 160)
+      };
+    }
+  }
+
+  // Traiter l'image
+  if (updateData.image) {
+    const imageUrl = typeof updateData.image === 'string' ? updateData.image : updateData.image.url;
+    updateData.images = [{ url: imageUrl, alt: updateData.name?.fr || updateData.name?.en || product.name?.fr || 'Plat', isPrimary: true, order: 0 }];
+    delete updateData.image;
+  }
+
+  // Traiter le prix
+  if (updateData.price !== undefined) {
+    updateData.price = parseFloat(updateData.price);
+  }
+
+  // Traiter le stock
+  if (updateData.stock !== undefined && updateData.stock !== null) {
+    const newStock = Math.max(0, parseInt(updateData.stock) || 0);
+    if (!product.inventory) {
+      product.inventory = {
+        quantity: newStock,
+        lowStockThreshold: Math.max(1, Math.floor(newStock * 0.2)),
+        trackQuantity: true,
+        allowBackorder: false,
+        reservedQuantity: 0
+      };
+    } else {
+      product.inventory.quantity = newStock;
+      product.inventory.lowStockThreshold = Math.max(1, Math.floor(newStock * 0.2));
+      product.inventory.trackQuantity = true; // Toujours activer pour les plats
+    }
+    delete updateData.stock;
+  }
+
+  // Mettre à jour le statut si nécessaire
+  if (requiresReview) {
+    updateData.status = 'pending-review';
+    updateData.isActive = false;
+  }
+
+  // Mettre à jour le produit
+  Object.assign(product, updateData);
+  await product.save();
   
   res.status(200).json({
     status: 'success',
-    data: { dish }
+    message: requiresReview ? 'Plat mis à jour. Une nouvelle validation est nécessaire.' : 'Plat mis à jour avec succès',
+    data: { dish: product }
   });
 });
 
 exports.deleteDish = catchAsync(async (req, res, next) => {
   const { dishId } = req.params;
   
-  const restaurateur = await Restaurateur.findById(req.user.id);
-  if (!restaurateur) {
-    return res.status(404).json({
-      status: 'error',
-      message: 'Restaurateur non trouvé'
-    });
+  // Vérifier que le produit appartient au restaurateur
+  const product = await Product.findOneAndDelete({
+    _id: dishId,
+    restaurateur: req.user.id,
+    originType: 'dish'
+  });
+
+  if (!product) {
+    return next(new AppError('Plat non trouvé', 404));
   }
-  
-  restaurateur.dishes.pull(dishId);
-  await restaurateur.save();
   
   res.status(200).json({
     status: 'success',
@@ -412,10 +751,122 @@ exports.removeKitchenEquipment = temporaryResponse('Suppression équipement');
 exports.getStorageCapacity = temporaryResponse('Capacité stockage');
 exports.updateStorageCapacity = temporaryResponse('Mise à jour stockage');
 
-exports.getMyOrders = temporaryResponse('Commandes - Modèle Order requis');
+exports.getMyOrders = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 20;
+  const skip = (page - 1) * limit;
+
+  // Un restaurateur peut être à la fois acheteur (quand il achète des produits) 
+  // et vendeur (quand ses plats sont commandés par des consommateurs)
+  const query = {
+    $or: [
+      { buyer: req.user._id },      // Commandes où le restaurateur est acheteur
+      { seller: req.user._id }      // Commandes où le restaurateur est vendeur
+    ]
+  };
+
+  // Filtres optionnels
+  if (req.query.status) query.status = req.query.status;
+  if (req.query.dateFrom) {
+    query.createdAt = { $gte: new Date(req.query.dateFrom) };
+  }
+  if (req.query.dateTo) {
+    query.createdAt = { ...query.createdAt, $lte: new Date(req.query.dateTo) };
+  }
+
+  const orders = await Order.find(query)
+    .populate('buyer', 'firstName lastName email userType')
+    .populate('seller', 'restaurantName companyName farmName firstName lastName email userType')
+    .populate('items.product', 'name images originType')
+    .sort('-createdAt')
+    .skip(skip)
+    .limit(limit);
+
+  const total = await Order.countDocuments(query);
+
+  // Enrichir les commandes avec le rôle du restaurateur (acheteur ou vendeur)
+  const enrichedOrders = orders.map(order => {
+    const orderObj = order.toObject();
+    orderObj.role = order.buyer?._id?.toString() === req.user._id.toString() 
+      ? 'buyer' 
+      : 'seller';
+    return orderObj;
+  });
+
+  res.status(200).json({
+    status: 'success',
+    results: enrichedOrders.length,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+    data: {
+      orders: enrichedOrders
+    }
+  });
+});
 exports.createOrder = temporaryResponse('Création commande');
-exports.getMyOrder = temporaryResponse('Détail commande');
+
+exports.getMyOrder = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  
+  // Un restaurateur peut être à la fois acheteur et vendeur
+  const order = await Order.findOne({
+    _id: req.params.orderId,
+    $or: [
+      { buyer: req.user._id },      // Commandes où le restaurateur est acheteur
+      { seller: req.user._id }      // Commandes où le restaurateur est vendeur
+    ]
+  })
+  .populate('buyer', 'firstName lastName email phone userType')
+  .populate('seller', 'restaurantName companyName farmName firstName lastName email phone userType')
+  .populate('items.product', 'name images category originType')
+  .populate('delivery.transporter', 'companyName firstName lastName phone');
+
+  if (!order) {
+    return next(new AppError('Commande non trouvée ou vous n\'êtes pas autorisé à voir cette commande', 404));
+  }
+
+  // Ajouter le rôle du restaurateur dans cette commande
+  const orderObj = order.toObject();
+  orderObj.role = order.buyer?._id?.toString() === req.user._id.toString() 
+    ? 'buyer' 
+    : 'seller';
+
+  res.status(200).json({
+    status: 'success',
+    data: { order: orderObj }
+  });
+});
+
 exports.updateOrder = temporaryResponse('Mise à jour commande');
+
+exports.updateOrderStatus = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  const { sendStatusNotifications } = require('./orderController');
+  const { status, reason, note } = req.body;
+
+  // Vérifier que la commande appartient au restaurateur (en tant que vendeur)
+  const order = await Order.findOne({
+    _id: req.params.orderId,
+    seller: req.user._id
+  });
+
+  if (!order) {
+    return next(new AppError('Commande non trouvée ou vous n\'êtes pas autorisé à modifier cette commande', 404));
+  }
+
+  await order.updateStatus(status, req.user._id, reason, note);
+
+  // Envoyer notifications selon le nouveau statut
+  await sendStatusNotifications(order, status);
+
+  res.status(200).json({
+    status: 'success',
+    data: { order }
+  });
+});
+
 exports.cancelOrder = temporaryResponse('Annulation commande');
 exports.trackOrder = temporaryResponse('Suivi commande');
 
@@ -436,7 +887,267 @@ exports.createReview = temporaryResponse('Création avis');
 exports.updateMyReview = temporaryResponse('Mise à jour avis');
 exports.deleteMyReview = temporaryResponse('Suppression avis');
 
-exports.getMyStats = temporaryResponse('Mes statistiques');
+exports.getMyStats = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  const Product = require('../models/Product');
+  
+  // Récupérer toutes les commandes où le restaurateur est vendeur (vente de plats)
+  const orders = await Order.find({ 
+    seller: req.user._id 
+  }).populate('buyer', 'firstName lastName');
+  
+  // Récupérer tous les plats du restaurateur
+  const dishes = await Product.find({ 
+    restaurateur: req.user._id,
+    originType: 'dish'
+  });
+  
+  // Calculer les statistiques
+  const completedOrders = orders.filter(o => o.status === 'completed' || o.status === 'delivered');
+  const totalRevenue = completedOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+  const averageOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
+  
+  // Total de plats vendus
+  let totalDishesSold = 0;
+  completedOrders.forEach(order => {
+    order.items.forEach(item => {
+      totalDishesSold += item.quantity;
+    });
+  });
+  
+  // Clients uniques
+  const uniqueCustomers = new Set(orders.map(o => o.buyer?._id?.toString() || o.buyer?.toString())).size;
+  
+  // Plats les plus vendus
+  const dishSales = {};
+  completedOrders.forEach(order => {
+    order.items.forEach(item => {
+      const productId = item.product?._id?.toString() || item.product?.toString();
+      if (!dishSales[productId]) {
+        dishSales[productId] = {
+          quantity: 0,
+          revenue: 0
+        };
+      }
+      dishSales[productId].quantity += item.quantity;
+      dishSales[productId].revenue += item.totalPrice || (item.quantity * item.unitPrice);
+    });
+  });
+  
+  const topDishes = await Promise.all(
+    Object.entries(dishSales)
+      .sort((a, b) => b[1].quantity - a[1].quantity)
+      .slice(0, 5)
+      .map(async ([dishId, sales]) => {
+        const dish = await Product.findById(dishId).select('name category dishInfo');
+        return {
+          id: dishId,
+          name: dish?.name?.fr || dish?.name?.en || 'Plat',
+          category: dish?.dishInfo?.category || dish?.category || 'plat',
+          quantitySold: sales.quantity,
+          revenue: sales.revenue
+        };
+      })
+  );
+  
+  // Taux de conversion (plats actifs / total plats)
+  const activeDishes = dishes.filter(d => d.isActive && d.status === 'approved').length;
+  const conversionRate = dishes.length > 0 ? Math.round((activeDishes / dishes.length) * 100) : 0;
+  
+  // Taux de fidélisation (clients qui ont commandé plus d'une fois)
+  const customerOrderCounts = {};
+  orders.forEach(order => {
+    const customerId = order.buyer?._id?.toString() || order.buyer?.toString();
+    customerOrderCounts[customerId] = (customerOrderCounts[customerId] || 0) + 1;
+  });
+  const repeatCustomers = Object.values(customerOrderCounts).filter(count => count > 1).length;
+  const customerRetentionRate = uniqueCustomers > 0 ? Math.round((repeatCustomers / uniqueCustomers) * 100) : 0;
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      stats: {
+        totalRevenue,
+        totalOrders: orders.length,
+        completedOrders: completedOrders.length,
+        totalDishesSold,
+        uniqueCustomers,
+        topProducts: topDishes, // Utilisé comme topProducts dans le frontend pour compatibilité
+        averageOrderValue,
+        conversionRate,
+        customerRetentionRate,
+        totalProducts: dishes.length,
+        activeProducts: activeDishes,
+        totalProductsSold: totalDishesSold // Alias pour compatibilité
+      }
+    }
+  });
+});
+
+exports.getStats = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  const Product = require('../models/Product');
+  
+  // Récupérer toutes les commandes où le restaurateur est vendeur
+  const orders = await Order.find({ seller: req.user._id });
+  const completedOrders = orders.filter(o => o.status === 'completed' || o.status === 'delivered');
+  
+  // Calculer les revenus totaux
+  const totalRevenue = completedOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+  
+  // Récupérer les plats du restaurateur
+  const dishes = await Product.find({ 
+    restaurateur: req.user._id,
+    originType: 'dish'
+  });
+  const activeDishes = dishes.filter(d => d.isActive && d.status === 'approved');
+  
+  // Calculer les plats vendus
+  const totalDishesSold = completedOrders.reduce((sum, order) => {
+    return sum + order.items.reduce((itemSum, item) => itemSum + item.quantity, 0);
+  }, 0);
+  
+  // Clients uniques
+  const uniqueCustomers = new Set(completedOrders.map(order => {
+    const buyerId = order.buyer?._id?.toString() || order.buyer?.toString();
+    return buyerId;
+  }).filter(Boolean)).size;
+  
+  // Plats les plus vendus
+  const dishSales = {};
+  completedOrders.forEach(order => {
+    order.items.forEach(item => {
+      const productId = item.product?._id?.toString() || item.product?.toString();
+      if (!dishSales[productId]) {
+        dishSales[productId] = {
+          name: item.productSnapshot?.name?.fr || item.productSnapshot?.name?.en || 'Plat',
+          category: item.productSnapshot?.dishInfo?.category || 'plat',
+          quantitySold: 0,
+          revenue: 0
+        };
+      }
+      dishSales[productId].quantitySold += item.quantity;
+      dishSales[productId].revenue += item.totalPrice || (item.quantity * item.unitPrice);
+    });
+  });
+  
+  const topProducts = Object.values(dishSales)
+    .sort((a, b) => b.quantitySold - a.quantitySold)
+    .slice(0, 5);
+  
+  // Valeur moyenne des commandes
+  const averageOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
+  
+  res.status(200).json({
+    status: 'success',
+    data: {
+      stats: {
+        totalRevenue,
+        totalOrders: orders.length,
+        completedOrders: completedOrders.length,
+        totalProducts: dishes.length,
+        activeProducts: activeDishes.length,
+        totalProductsSold: totalDishesSold,
+        uniqueCustomers,
+        topProducts,
+        averageOrderValue,
+        conversionRate: orders.length > 0 ? (completedOrders.length / orders.length) * 100 : 0,
+        customerRetentionRate: 0
+      }
+    }
+  });
+});
+
+exports.getSalesAnalytics = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  
+  // Récupérer les commandes des 12 derniers mois où le restaurateur est vendeur
+  const twelveMonthsAgo = new Date();
+  twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+  
+  const orders = await Order.find({ 
+    seller: req.user._id,
+    status: { $in: ['completed', 'delivered'] },
+    createdAt: { $gte: twelveMonthsAgo }
+  });
+  
+  // Grouper par mois
+  const monthlySales = {};
+  orders.forEach(order => {
+    const month = new Date(order.createdAt).toLocaleDateString('fr-FR', { year: 'numeric', month: 'short' });
+    if (!monthlySales[month]) {
+      monthlySales[month] = {
+        orders: 0,
+        revenue: 0,
+        products: 0
+      };
+    }
+    monthlySales[month].orders += 1;
+    monthlySales[month].revenue += order.total || 0;
+    order.items.forEach(item => {
+      monthlySales[month].products += item.quantity;
+    });
+  });
+  
+  res.status(200).json({
+    status: 'success',
+    data: {
+      analytics: {
+        monthlySales: Object.entries(monthlySales).map(([month, data]) => ({
+          month,
+          ...data
+        }))
+      }
+    }
+  });
+});
+
+exports.getRevenueAnalytics = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  
+  const twelveMonthsAgo = new Date();
+  twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+  
+  const orders = await Order.find({ 
+    seller: req.user._id,
+    status: { $in: ['completed', 'delivered'] },
+    createdAt: { $gte: twelveMonthsAgo }
+  });
+  
+  // Grouper les revenus par mois
+  const monthlyRevenue = {};
+  orders.forEach(order => {
+    const month = new Date(order.createdAt).toLocaleDateString('fr-FR', { year: 'numeric', month: 'short' });
+    if (!monthlyRevenue[month]) {
+      monthlyRevenue[month] = 0;
+    }
+    monthlyRevenue[month] += order.total || 0;
+  });
+  
+  // Mois actuel
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const currentMonthRevenue = orders
+    .filter(order => {
+      const orderDate = new Date(order.createdAt);
+      return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
+    })
+    .reduce((sum, order) => sum + (order.total || 0), 0);
+  
+  res.status(200).json({
+    status: 'success',
+    data: {
+      analytics: {
+        monthlyRevenue: Object.entries(monthlyRevenue).map(([month, revenue]) => ({
+          month,
+          revenue
+        })),
+        currentMonthRevenue,
+        totalRevenue: orders.reduce((sum, order) => sum + (order.total || 0), 0)
+      }
+    }
+  });
+});
 exports.getPurchaseAnalytics = temporaryResponse('Analytics achats');
 exports.getSupplierPerformance = temporaryResponse('Performance fournisseurs');
 

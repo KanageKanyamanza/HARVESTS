@@ -29,38 +29,18 @@ const DishDetail = () => {
     const loadDishData = async () => {
       try {
         setLoading(true);
-        
-        // Trouver le plat dans tous les restaurateurs
-        const restaurateurs = await restaurateurService.getAllPublic();
-        
-        if (restaurateurs.data.status === 'success') {
-          const allRestaurateurs = restaurateurs.data.data.restaurateurs || [];
-          
-          // Chercher le plat dans tous les restaurateurs
-          let foundDish = null;
-          let foundRestaurateur = null;
-          
-          for (const rest of allRestaurateurs) {
-            const dishFound = rest.dishes?.find(d => d._id === id && d.status === 'approved');
-            if (dishFound) {
-              foundDish = dishFound;
-              foundRestaurateur = rest;
-              break;
-            }
-          }
-          
-          if (foundDish && foundRestaurateur) {
-            setDish(foundDish);
-            setRestaurateur(foundRestaurateur);
-          } else {
-            setError('Plat non trouvé ou non disponible');
-          }
+
+        const response = await restaurateurService.getDishDetail(id);
+        if (response.data.status === 'success') {
+          setDish(response.data.data.dish);
+          setRestaurateur(response.data.data.restaurateur);
         } else {
-          setError('Erreur lors du chargement des données');
+          setError('Plat non trouvé ou non disponible');
         }
       } catch (error) {
         console.error('Erreur lors du chargement du plat:', error);
-        setError('Erreur lors du chargement du plat');
+        const errorMessage = error.response?.data?.message || 'Erreur lors du chargement du plat';
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -105,7 +85,12 @@ const DishDetail = () => {
   };
 
   const handleAddToCart = () => {
+    // Vérifier le stock avant d'ajouter au panier
     if (dish && restaurateur) {
+      if (dish.trackQuantity && dish.stock <= 0) {
+        alert('Ce plat est en rupture de stock');
+        return;
+      }
       addToCart({
         ...dish,
         restaurateur: {
@@ -151,6 +136,8 @@ const DishDetail = () => {
     );
   }
 
+  const dishImage = dish.image || dish.images?.[0]?.url;
+
   return (
     <div className="min-h-screen bg-harvests-light">
       {/* Header avec bouton retour */}
@@ -171,9 +158,9 @@ const DishDetail = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Image du plat */}
           <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            {dish.image ? (
+            {dishImage ? (
               <img 
-                src={dish.image} 
+                src={dishImage} 
                 alt={dish.name}
                 className="w-full h-96 object-cover"
               />
@@ -199,6 +186,12 @@ const DishDetail = () => {
                       <FiClock className="mr-1" />
                       {dish.preparationTime || 30} min
                     </span>
+                    {dish.trackQuantity && (
+                      <span className={`flex items-center ${dish.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <FiPackage className="mr-1" />
+                        Stock: {dish.stock || 0}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="text-right">
@@ -232,14 +225,30 @@ const DishDetail = () => {
                 </div>
               )}
 
+              {/* Affichage du stock épuisé */}
+              {dish.trackQuantity && dish.stock === 0 && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center text-red-800">
+                    <FiAlertTriangle className="mr-2" />
+                    <span className="font-medium">Stock épuisé</span>
+                  </div>
+                  <p className="text-sm text-red-600 mt-1">Ce plat n'est plus disponible pour le moment.</p>
+                </div>
+              )}
+
               {/* Boutons d'action */}
               <div className="flex space-x-4">
                 <button
                   onClick={handleAddToCart}
-                  className="flex-1 bg-orange-600 text-white py-3 px-6 rounded-lg hover:bg-orange-700 transition-colors flex items-center justify-center"
+                  disabled={dish.trackQuantity && dish.stock === 0}
+                  className={`flex-1 py-3 px-6 rounded-lg transition-colors flex items-center justify-center ${
+                    dish.trackQuantity && dish.stock === 0
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-orange-600 text-white hover:bg-orange-700'
+                  }`}
                 >
                   <FiShoppingCart className="mr-2" />
-                  Ajouter au panier
+                  {dish.trackQuantity && dish.stock === 0 ? 'Rupture de stock' : 'Ajouter au panier'}
                 </button>
                 <button
                   onClick={handleGoToRestaurant}

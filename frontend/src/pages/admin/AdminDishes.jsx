@@ -14,7 +14,7 @@ import {
   AlertTriangle,
   MoreVertical
 } from 'lucide-react';
-import { adminService } from '../../services/adminService';
+import { getDishes, approveDish, rejectDish } from '../../services/adminService';
 import CloudinaryImage from '../../components/common/CloudinaryImage';
 
 const AdminDishes = () => {
@@ -40,19 +40,52 @@ const AdminDishes = () => {
         search: searchTerm,
         status: statusFilter
       };
-      const response = await adminService.getDishes(params);
+      const response = await getDishes(params);
       // Vérifier si la réponse contient des plats
+      let dishesData = [];
+      let paginationData = {};
+      
       if (response.data && response.data.dishes) {
-        setDishes(response.data.dishes || []);
-        setTotalPages(response.data.pagination?.totalPages || 1);
-      } else if (response.data && response.data.data && response.data.data.dishes) {
-        // Structure alternative avec data.dishes
-        setDishes(response.data.data.dishes || []);
-        setTotalPages(response.data.data.pagination?.totalPages || 1);
-      } else {
-        setDishes([]);
-        setTotalPages(1);
+        dishesData = response.data.dishes || [];
+        paginationData = response.data.pagination || {};
+      } else if (response.data && response.data.data) {
+        if (response.data.data.dishes) {
+          dishesData = response.data.data.dishes || [];
+          paginationData = response.data.data.pagination || {};
+        } else if (Array.isArray(response.data.data)) {
+          // Si c'est directement un tableau
+          dishesData = response.data.data;
+        }
       }
+      
+      // Normaliser les données pour s'assurer que l'image est accessible
+      dishesData = dishesData.map(dish => {
+        // Extraire l'image de manière exhaustive
+        if (!dish.image) {
+          if (dish.images && Array.isArray(dish.images) && dish.images.length > 0) {
+            const firstImage = dish.images[0];
+            if (typeof firstImage === 'object' && firstImage !== null) {
+              dish.image = firstImage.url || firstImage.src || firstImage.path || '';
+            } else if (typeof firstImage === 'string') {
+              dish.image = firstImage;
+            }
+          }
+        }
+        
+        // Fallback sur primaryImage si pas d'image dans images
+        if (!dish.image && dish.primaryImage) {
+          if (typeof dish.primaryImage === 'object' && dish.primaryImage !== null) {
+            dish.image = dish.primaryImage.url || dish.primaryImage.src || '';
+          } else if (typeof dish.primaryImage === 'string') {
+            dish.image = dish.primaryImage;
+          }
+        }
+        
+        return dish;
+      });
+      
+      setDishes(dishesData);
+      setTotalPages(paginationData.totalPages || 1);
     } catch (error) {
       console.error('Erreur lors du chargement des plats:', error);
       setDishes([]);
@@ -91,7 +124,7 @@ const AdminDishes = () => {
   const handleApproveDish = async (dishId) => {
     if (window.confirm('Êtes-vous sûr de vouloir approuver ce plat ?')) {
       try {
-        await adminService.approveDish(dishId);
+        await approveDish(dishId);
         loadDishes();
       } catch (error) {
         console.error('Erreur lors de l\'approbation:', error);
@@ -103,7 +136,7 @@ const AdminDishes = () => {
     const reason = window.prompt('Raison du rejet:');
     if (reason) {
       try {
-        await adminService.rejectDish(dishId, reason);
+        await rejectDish(dishId, reason);
         loadDishes();
       } catch (error) {
         console.error('Erreur lors du rejet:', error);
@@ -294,17 +327,23 @@ const AdminDishes = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-12 w-12">
-                              {dish.image ? (
+                              {(dish.image || (dish.images && Array.isArray(dish.images) && dish.images.length > 0)) ? (
                                 <img
-                                  src={dish.image}
-                                  alt={dish.name}
+                                  src={dish.image || (dish.images?.[0]?.url || dish.images?.[0])}
+                                  alt={dish.name || 'Plat'}
                                   className="h-12 w-12 rounded-lg object-cover"
+                                  onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    e.target.nextSibling.style.display = 'flex';
+                                  }}
                                 />
-                              ) : (
-                                <div className="h-12 w-12 rounded-lg bg-gray-200 flex items-center justify-center">
-                                  <Package className="h-6 w-6 text-gray-400" />
-                                </div>
-                              )}
+                              ) : null}
+                              <div 
+                                className="h-12 w-12 rounded-lg bg-gray-200 flex items-center justify-center"
+                                style={{ display: (dish.image || (dish.images && Array.isArray(dish.images) && dish.images.length > 0)) ? 'none' : 'flex' }}
+                              >
+                                <Package className="h-6 w-6 text-gray-400" />
+                              </div>
                             </div>
                             <div className="ml-4">
                               <div className="text-sm font-medium text-gray-900">

@@ -117,11 +117,25 @@ const createGenericService = (userType) => ({
 export const producerService = createGenericService('producer');
 export const consumerService = createGenericService('consumer');
 export const transformerService = createGenericService('transformer');
-export const restaurateurService = createGenericService('restaurateur');
+export const restaurateurService = {
+  ...createGenericService('restaurateur'),
+  // Override pour le profil (route spécifique)
+  getMyProfile: () => api.get('/restaurateurs/me/profile'),
+  updateMyProfile: (data) => api.patch('/restaurateurs/me/profile', data),
+  discoverSuppliers: (params = {}) => api.get('/restaurateurs/suppliers/discover', { params }),
+  searchSuppliers: (params = {}) => api.get('/restaurateurs/suppliers/search', { params }),
+  getSupplierDetails: (supplierId, params = {}) => api.get(`/restaurateurs/suppliers/${supplierId}`, { params }),
+  getDishDetail: (dishId) => api.get(`/restaurateurs/dishes/${dishId}`),
+  createOrder: (data) => api.post('/restaurateurs/me/orders', data),
+  updateOrder: (orderId, data) => api.patch(`/restaurateurs/me/orders/${orderId}`, data),
+  updateOrderStatus: (orderId, data) => api.patch(`/restaurateurs/me/orders/${orderId}/status`, data),
+  cancelOrder: (orderId) => api.delete(`/restaurateurs/me/orders/${orderId}`)
+};
 export const transporterService = {
   ...createGenericService('transporter'),
   // Override pour le profil (route spécifique)
   getProfile: () => api.get('/transporters/me/profile'),
+  updateProfile: (data) => api.patch('/transporters/me/profile', data),
   // Gestion de la flotte
   getFleet: (params = {}) => api.get('/transporters/me/fleet', { params }),
   addFleetVehicle: (data) => api.post('/transporters/me/fleet', data),
@@ -139,6 +153,7 @@ export const exporterService = {
   ...createGenericService('exporter'),
   // Override pour le profil (route spécifique)
   getProfile: () => api.get('/exporters/me/profile'),
+  updateProfile: (data) => api.patch('/exporters/me/profile', data),
   // Override pour les commandes d'export (route spécifique)
   getOrders: (params = {}) => api.get('/exporters/me/export-orders', { params }),
   getMyOrders: (params = {}) => api.get('/exporters/me/export-orders', { params }),

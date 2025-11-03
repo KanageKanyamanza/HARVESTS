@@ -329,7 +329,7 @@ const OrderList = ({
                   )}
                 </div>
                 
-                {(userType === 'producer' || userType === 'transformer') && onUpdateStatus && (
+                {(userType === 'producer' || userType === 'transformer' || userType === 'restaurateur') && onUpdateStatus && (
                   <div className="flex space-x-2">
                     {order.status === 'pending' && (
                       <>
