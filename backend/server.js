@@ -42,6 +42,30 @@ mongoose
   .then(async () => {
     console.log('✅ Connexion à la base de données réussie!');
     
+    // Vérifier la configuration email (non-bloquant)
+    try {
+      const hasGmail = !!(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
+      const hasSMTP = !!(process.env.EMAIL_HOST && process.env.EMAIL_USERNAME && process.env.EMAIL_PASSWORD);
+      
+      if (hasGmail) {
+        console.log('📧 Configuration email: Gmail détectée');
+      } else if (hasSMTP) {
+        console.log(`📧 Configuration email: SMTP détectée (${process.env.EMAIL_HOST}:${process.env.EMAIL_PORT || 587})`);
+      } else {
+        console.warn('⚠️  Configuration email manquante!');
+        console.warn('   Les emails ne pourront pas être envoyés.');
+        console.warn('   Configurez GMAIL_USER + GMAIL_APP_PASSWORD');
+        console.warn('   OU EMAIL_HOST + EMAIL_USERNAME + EMAIL_PASSWORD');
+        console.warn('   Voir: backend/docs/EMAIL_CONFIGURATION_RENDER.md');
+      }
+      
+      if (process.env.EMAILJS_SERVICE_ID && process.env.EMAILJS_TEMPLATE_ID && process.env.EMAILJS_PUBLIC_KEY) {
+        console.log('📧 EmailJS (fallback) configuré');
+      }
+    } catch (error) {
+      console.warn('⚠️ Erreur lors de la vérification de la configuration email:', error.message);
+    }
+    
     // Créer automatiquement le premier admin si nécessaire (production et développement)
     try {
       const { exec } = require('child_process');

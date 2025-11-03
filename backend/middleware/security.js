@@ -1,7 +1,7 @@
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
+const xssLib = require('xss');
 const hpp = require('hpp');
 const cors = require('cors');
 const compression = require('compression');
@@ -231,12 +231,69 @@ const compressionConfig = compression({
   threshold: 1024 // Compresser seulement si > 1KB
 });
 
+// Middleware XSS personnalisé utilisant le package xss
+const xssMiddleware = (req, res, next) => {
+  // Fonction récursive pour nettoyer les objets
+  const cleanObject = (obj, visited = new WeakSet()) => {
+    if (obj === null || obj === undefined) {
+      return obj;
+    }
+    
+    // Éviter les références circulaires
+    if (typeof obj === 'object' && visited.has(obj)) {
+      return obj;
+    }
+    
+    if (typeof obj === 'object') {
+      visited.add(obj);
+      
+      // Traiter les tableaux
+      if (Array.isArray(obj)) {
+        return obj.map(item => cleanObject(item, visited));
+      }
+      
+      // Traiter les objets
+      const cleaned = {};
+      for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          cleaned[key] = cleanObject(obj[key], visited);
+        }
+      }
+      return cleaned;
+    }
+    
+    // Nettoyer les chaînes de caractères
+    if (typeof obj === 'string') {
+      return xssLib(obj);
+    }
+    
+    return obj;
+  };
+  
+  // Nettoyer les données de req.body
+  if (req.body && typeof req.body === 'object') {
+    req.body = cleanObject(req.body);
+  }
+  
+  // Nettoyer les données de req.query
+  if (req.query && typeof req.query === 'object') {
+    req.query = cleanObject(req.query);
+  }
+  
+  // Nettoyer les données de req.params
+  if (req.params && typeof req.params === 'object') {
+    req.params = cleanObject(req.params);
+  }
+  
+  next();
+};
+
 module.exports = {
   // Middlewares de sécurité de base
   helmet: helmetConfig,
   cors: cors(corsOptions),
   mongoSanitize: mongoSanitize(),
-  xss: xss(),
+  xss: xssMiddleware,
   hpp: hpp({
     whitelist: [
       'category',
