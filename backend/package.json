@@ -35,7 +35,7 @@
     "express-async-errors": "^3.1.1",
     "cookie-parser": "^1.4.6",
     "express-slow-down": "^1.6.0",
-    "express-brute": "^1.0.1",
+    "express-brute": "~0.4.2",
     "express-brute-mongo": "^0.0.1",
     "express-brute-redis": "^0.0.1",
     "redis": "^4.6.5",
