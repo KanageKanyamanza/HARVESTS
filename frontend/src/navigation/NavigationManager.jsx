@@ -154,9 +154,10 @@ export const generateSidebarNavigation = (user, icons = {}) => {
   if (user?.userType === 'restaurateur') {
     return [
       { name: 'Tableau de bord', href: getDashboardRoute(user), icon: HomeIcon },
+      { name: 'Mon panier', href: '/restaurateur/cart', icon: ShoppingCartIcon },
       { name: 'Mes commandes', href: getOrdersRoute(user), icon: ShoppingBagIcon },
-      { name: 'Nouvelle commande', href: '/restaurateur/orders/add', icon: PlusIcon },
       { name: 'Mes plats', href: getProductsRoute(user), icon: PackageIcon },
+      { name: 'Statistiques', href: '/restaurateur/stats', icon: ChartBarIcon },
       { name: 'Profil', href: getProfileRoute(user), icon: UserIcon },
       { name: 'Paramètres', href: getSettingsRoute(user), icon: SettingsIcon }
     ];
@@ -259,16 +260,7 @@ export const generateQuickActions = (userType, icons = {}) => {
       ];
 
     case 'restaurateur':
-      return [
-        ...baseActions,
-        {
-          icon: <PlusIcon className="h-5 w-5" />,
-          title: 'Nouvelle commande',
-          description: 'Créer une nouvelle commande',
-          href: '/restaurateur/orders/add',
-          color: 'bg-orange-500 hover:bg-orange-600'
-        }
-      ];
+      return baseActions;
 
     case 'transporter':
       return [

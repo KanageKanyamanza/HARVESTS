@@ -131,7 +131,7 @@ const productSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: function() {
-      return !this.transformer;
+      return this.userType === 'producer';
     }
   },
   
@@ -140,15 +140,44 @@ const productSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: function() {
-      return !this.producer;
+      return this.userType === 'transformer';
+    }
+  },
+
+  restaurateur: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: function() {
+      return this.userType === 'restaurateur';
     }
   },
   
   // Type d'utilisateur (producer ou transformer)
   userType: {
     type: String,
-    enum: ['producer', 'transformer'],
+    enum: ['producer', 'transformer', 'restaurateur'],
     required: true
+  },
+  originType: {
+    type: String,
+    enum: ['catalog', 'dish'],
+    default: 'catalog'
+  },
+
+  sourceDish: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Restaurateur.dishes'
+  },
+
+  dishInfo: {
+    category: String,
+    preparationTime: Number,
+    allergens: [String]
+  },
+
+  isPublic: {
+    type: Boolean,
+    default: true
   },
   
   // Catégorisation
@@ -235,11 +264,10 @@ const productSchema = new mongoose.Schema({
     }
   },
   
-  // Commande minimum
+  // Commande minimum (désactivé - les clients peuvent commander n'importe quelle quantité)
   minimumOrderQuantity: {
     type: Number,
-    default: 1,
-    min: [1, 'La quantité minimum doit être au moins 1']
+    default: 0
   },
   
   maximumOrderQuantity: {
@@ -297,9 +325,13 @@ const productSchema = new mongoose.Schema({
 productSchema.index({ name: 'text', description: 'text', tags: 'text' });
 productSchema.index({ producer: 1, status: 1 });
 productSchema.index({ transformer: 1, status: 1 });
+productSchema.index({ restaurateur: 1, status: 1 });
 productSchema.index({ category: 1, subcategory: 1 });
 productSchema.index({ producer: 1, slug: 1 }, { unique: true, sparse: true });
 productSchema.index({ transformer: 1, slug: 1 }, { unique: true, sparse: true });
+productSchema.index({ restaurateur: 1, slug: 1 }, { unique: true, sparse: true });
+// Index pour originType et sourceDish (non-unique car plusieurs produits peuvent avoir originType: catalog et sourceDish: null)
+productSchema.index({ originType: 1, sourceDish: 1 });
 productSchema.index({ isFeatured: 1 });
 productSchema.index({ createdAt: -1 });
 productSchema.index({ price: 1 });
@@ -370,12 +402,14 @@ productSchema.pre('save', async function(next) {
     
     while (true) {
       try {
-        const existingProduct = await this.constructor.findOne({ 
-          $or: [
-            { producer: this.producer, slug },
-            { transformer: this.transformer, slug }
-          ]
-        });
+        const slugQueries = [];
+        if (this.producer) slugQueries.push({ producer: this.producer, slug });
+        if (this.transformer) slugQueries.push({ transformer: this.transformer, slug });
+        if (this.restaurateur) slugQueries.push({ restaurateur: this.restaurateur, slug });
+
+        const query = slugQueries.length > 0 ? { $or: slugQueries } : { slug };
+
+        const existingProduct = await this.constructor.findOne(query);
         if (!existingProduct || existingProduct._id.toString() === this._id.toString()) {
           break;
         }
@@ -483,6 +517,7 @@ productSchema.statics.search = function(query, filters = {}) {
   const searchQuery = {
     status: 'approved',
     isActive: true,
+    isPublic: { $ne: false },
     ...filters
   };
   

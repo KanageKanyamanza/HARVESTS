@@ -48,12 +48,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     }
 
     // Vérifier la quantité minimum
-    if (item.quantity < product.minimumOrderQuantity) {
-      return next(new AppError(
-        `Quantité minimum pour ${product.name}: ${product.minimumOrderQuantity}`, 
-        400
-      ));
-    }
+    // La quantité minimum n'est plus requise - les clients peuvent commander n'importe quelle quantité
 
     const totalPrice = unitPrice * item.quantity;
     subtotal += totalPrice;
@@ -236,10 +231,15 @@ exports.getOrder = catchAsync(async (req, res, next) => {
   }
 
   // Vérifier que l'utilisateur a accès à cette commande
+  const buyerId = order.buyer?._id?.toString() || order.buyer?.toString() || (typeof order.buyer === 'object' ? order.buyer.toString() : order.buyer);
+  const sellerId = order.seller?._id?.toString() || order.seller?.toString() || (typeof order.seller === 'object' ? order.seller.toString() : order.seller);
+  const transporterId = order.delivery?.transporter?._id?.toString() || order.delivery?.transporter?.toString();
+  const userId = req.user._id.toString();
+
   const hasAccess = 
-    order.buyer.toString() === req.user._id.toString() ||
-    order.seller.toString() === req.user._id.toString() ||
-    (order.delivery.transporter && order.delivery.transporter._id.toString() === req.user._id.toString()) ||
+    buyerId === userId ||
+    sellerId === userId ||
+    (transporterId && transporterId === userId) ||
     req.user.role === 'admin';
 
   if (!hasAccess) {

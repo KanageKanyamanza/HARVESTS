@@ -544,6 +544,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
   // Vérifier la disponibilité et calculer les totaux
   let subtotal = 0;
   const processedItems = [];
+  const sellerIds = new Set(); // Collecter tous les vendeurs pour vérification
 
   for (const item of items) {
     const product = await Product.findById(item.productId);
@@ -551,9 +552,31 @@ exports.createOrder = catchAsync(async (req, res, next) => {
       return next(new AppError(`Produit ${item.productId} non disponible`, 400));
     }
 
+    // Déterminer le vendeur de ce produit
+    let productSellerId = null;
+    if (product.originType === 'dish' && product.restaurateur) {
+      productSellerId = product.restaurateur;
+    } else if (product.producer) {
+      productSellerId = product.producer;
+    } else if (product.transformer) {
+      productSellerId = product.transformer;
+    } else if (product.restaurateur) {
+      // Fallback : si le produit a un restaurateur mais n'est pas un plat, utiliser quand même le restaurateur
+      productSellerId = product.restaurateur;
+    }
+    
+    if (!productSellerId) {
+      return next(new AppError(`Impossible de déterminer le vendeur pour le produit ${product._id}. Le produit doit avoir un producteur, transformateur ou restaurateur.`, 400));
+    }
+    
+    sellerIds.add(productSellerId.toString());
+
     // Vérifier le stock
     let availableQuantity;
     let unitPrice;
+    // Pour les plats de restaurateur, gestion de stock activée
+    const isDish = product.originType === 'dish';
+    let trackQuantity = product.inventory?.trackQuantity !== false; // Par défaut true, sauf si explicitement false
 
     if (product.hasVariants && item.variantId) {
       const variant = product.variants.id(item.variantId);
@@ -563,18 +586,20 @@ exports.createOrder = catchAsync(async (req, res, next) => {
       availableQuantity = variant.inventory.quantity;
       unitPrice = variant.price;
     } else {
-      availableQuantity = product.inventory.quantity;
       unitPrice = product.price;
+      availableQuantity = trackQuantity ? product.inventory.quantity : Infinity;
     }
 
-    if (availableQuantity < item.quantity) {
-      return next(new AppError(`Stock insuffisant pour ${product.name}`, 400));
+    // Extraire le nom du produit (peut être un objet multilingue ou une string)
+    const productName = typeof product.name === 'string' 
+      ? product.name 
+      : (product.name?.fr || product.name?.en || 'Produit');
+    
+    if (trackQuantity && availableQuantity < item.quantity) {
+      return next(new AppError(`Stock insuffisant pour ${productName}`, 400));
     }
 
-    // Vérifier la quantité minimum
-    if (item.quantity < product.minimumOrderQuantity) {
-      return next(new AppError(`Quantité minimum de ${product.minimumOrderQuantity} requise pour ${product.name}`, 400));
-    }
+    // La quantité minimum n'est plus requise - les clients peuvent commander n'importe quelle quantité
 
     const totalPrice = unitPrice * item.quantity;
     subtotal += totalPrice;
@@ -587,7 +612,8 @@ exports.createOrder = catchAsync(async (req, res, next) => {
         description: product.description,
         images: product.images,
         producer: product.producer,
-        transformer: product.transformer
+        transformer: product.transformer,
+        restaurateur: product.restaurateur
       },
       quantity: item.quantity,
       unitPrice,
@@ -684,11 +710,31 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     orderNumber
   });
 
+  // Vérifier que tous les produits proviennent du même vendeur
+  // (Pour l'instant, une commande ne peut contenir que des produits d'un seul vendeur)
+  if (sellerIds.size === 0) {
+    console.error('❌ Erreur création commande: Aucun vendeur trouvé pour les produits:', items.map(i => i.productId));
+    return next(new AppError('Impossible de déterminer le vendeur pour cette commande. Vérifiez que tous les produits ont un vendeur assigné (producteur, transformateur ou restaurateur).', 400));
+  }
+  
+  if (sellerIds.size > 1) {
+    return next(new AppError('Tous les produits doivent provenir du même vendeur. Veuillez créer des commandes séparées pour différents vendeurs.', 400));
+  }
+
+  // Déterminer le vendeur (seller) : peut être un producteur, transformateur, ou restaurateur
+  // Un restaurateur peut être vendeur (pour ses plats) ou acheteur (quand il achète des produits)
+  const sellerId = Array.from(sellerIds)[0];
+  
+  if (!sellerId) {
+    console.error('❌ Erreur création commande: sellerId est null ou undefined');
+    return next(new AppError('Erreur lors de la détermination du vendeur', 400));
+  }
+
   // Créer la commande
   const order = await Order.create({
     orderNumber, // Ajouter explicitement le orderNumber
     buyer: req.user.id,
-    seller: processedItems[0].productSnapshot.producer || processedItems[0].productSnapshot.transformer, // Producteur ou transformateur
+    seller: sellerId, // Vendeur (peut être producteur, transformateur ou restaurateur)
     items: processedItems,
     subtotal,
     deliveryFee,

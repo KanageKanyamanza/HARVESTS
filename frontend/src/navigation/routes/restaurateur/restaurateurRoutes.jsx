@@ -6,9 +6,10 @@ import React from 'react';
 // Import des composants restaurateur (lazy loading)
 const RestaurateurDashboard = React.lazy(() => import('../../../pages/dashboard/restaurateur/RestaurateurDashboardNew'));
 const RestaurateurOrders = React.lazy(() => import('../../../pages/dashboard/restaurateur/OrdersList'));
-const RestaurateurAddOrder = React.lazy(() => import('../../../pages/dashboard/restaurateur/AddOrder'));
+const RestaurateurCart = React.lazy(() => import('../../../pages/dashboard/consumer/Cart'));
 const DishesManagement = React.lazy(() => import('../../../pages/dashboard/restaurateur/DishesManagement'));
 const DishDetail = React.lazy(() => import('../../../pages/dashboard/restaurateur/DishDetail'));
+const RestaurateurStats = React.lazy(() => import('../../../pages/dashboard/restaurateur/Stats'));
 const ProfilePage = React.lazy(() => import('../../../pages/dashboard/common/ProfilePage'));
 const SettingsPage = React.lazy(() => import('../../../pages/dashboard/common/SettingsPage'));
 const OrderDetail = React.lazy(() => import('../../../pages/orders/OrderDetail'));
@@ -23,6 +24,11 @@ export const restaurateurRoutes = [
     path: '/restaurateur/dishes',
     element: <DishesManagement />,
     title: 'Mes plats'
+  },
+  {
+    path: '/restaurateur/cart',
+    element: <RestaurateurCart />,
+    title: 'Mon panier'
   },
   {
     path: '/restaurateur/dishes/:dishId',
@@ -40,9 +46,9 @@ export const restaurateurRoutes = [
     title: 'Détails de la commande'
   },
   {
-    path: '/restaurateur/orders/add',
-    element: <RestaurateurAddOrder />,
-    title: 'Nouvelle commande'
+    path: '/restaurateur/stats',
+    element: <RestaurateurStats />,
+    title: 'Statistiques'
   },
   {
     path: '/restaurateur/profile',

@@ -1,15 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import CloudinaryImage from '../common/CloudinaryImage';
 import { FiStar, FiPackage, FiMapPin, FiShoppingCart, FiCheck } from 'react-icons/fi';
 import { useCart } from '../../contexts/CartContext';
+import { reviewService } from '../../services';
+import { formatAverageRating, getProductAverageRating, getProductReviewCount } from '../../utils/vendorRatings';
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
   const [isAdded, setIsAdded] = useState(false);
+  const initialAverage = getProductAverageRating(product);
+  const initialCount = getProductReviewCount(product);
+  const [ratingStats, setRatingStats] = useState({
+    average: initialAverage,
+    totalReviews: initialCount
+  });
   
   const productName = product.name?.fr || product.name?.en || product.name;
   const primaryImage = product.images?.find(img => img.isPrimary) || product.images?.[0];
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadRatingStats = async () => {
+    const productId = product?._id || product?.id;
+    if (!productId) {
+        return;
+      }
+
+      try {
+      const statsResponse = await reviewService.getProductRatingStats(productId);
+        const statsData = statsResponse?.data;
+        if (!isMounted || !statsData) {
+          return;
+        }
+
+        setRatingStats({
+        average: statsData.averageRating ?? initialAverage ?? 0,
+        totalReviews: statsData.totalReviews ?? initialCount ?? 0
+        });
+      } catch (error) {
+        console.error('Erreur lors du chargement des statistiques d\'avis du produit:', error);
+      }
+    };
+
+    loadRatingStats();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [product?._id, product?.id]);
 
   const handleAddToCart = (e) => {
     e.preventDefault();
@@ -126,8 +166,13 @@ const ProductCard = ({ product }) => {
             <div className="flex items-center text-yellow-500">
               <FiStar className="h-4 w-4 fill-current" />
               <span className="ml-1 text-sm text-gray-600 font-medium">
-                0.0
+                {formatAverageRating(ratingStats.average)}
               </span>
+              {ratingStats.totalReviews > 0 && (
+                <span className="ml-1 text-xs text-gray-500">
+                  ({ratingStats.totalReviews})
+                </span>
+              )}
             </div>
           </div>
 

@@ -35,12 +35,15 @@ const restaurateurService = {
   },
   getRestaurateur: (id) => api.get(`/restaurateurs/${id}`),
   getRestaurateurDishes: (id) => api.get(`/restaurateurs/${id}/dishes`),
+  getDishDetail: (dishId) => api.get(`/restaurateurs/dishes/${dishId}`),
+  getReviews: (id) => api.get(`/restaurateurs/${id}/reviews`),
   
   // Gestion des commandes
   getOrders: (params = {}) => api.get('/restaurateurs/me/orders', { params }),
   getOrder: (orderId) => api.get(`/restaurateurs/me/orders/${orderId}`),
   createOrder: (data) => api.post('/restaurateurs/me/orders', data),
   updateOrder: (orderId, data) => api.patch(`/restaurateurs/me/orders/${orderId}`, data),
+  updateOrderStatus: (orderId, data) => api.patch(`/restaurateurs/me/orders/${orderId}/status`, data),
   cancelOrder: (orderId) => api.patch(`/restaurateurs/me/orders/${orderId}/cancel`),
   
   // Gestion des horaires d'ouverture
@@ -98,6 +101,8 @@ const restaurateurService = {
   
   // Statistiques et analytics
   getStats: () => api.get('/restaurateurs/me/stats'),
+  getSalesAnalytics: () => api.get('/restaurateurs/me/sales-analytics'),
+  getRevenueAnalytics: () => api.get('/restaurateurs/me/revenue-analytics'),
   getBusinessStats: () => api.get('/restaurateurs/me/business-stats'),
   getPurchaseAnalytics: () => api.get('/restaurateurs/me/purchase-analytics'),
   getSupplierAnalytics: () => api.get('/restaurateurs/me/supplier-analytics'),

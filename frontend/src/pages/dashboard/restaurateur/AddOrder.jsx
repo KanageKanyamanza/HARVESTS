@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { restaurateurService } from '../../../services';
+import { restaurateurService, producerService, transformerService, exporterService } from '../../../services';
+import { getVendorAverageRating, getVendorReviewCount } from '../../../utils/vendorRatings';
 import { useNotifications } from '../../../contexts/NotificationContext';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import CloudinaryImage from '../../../components/common/CloudinaryImage';
@@ -16,7 +17,8 @@ import {
   FiAlertCircle,
   FiUsers,
   FiMapPin,
-  FiClock
+  FiClock,
+  FiStar
 } from 'react-icons/fi';
 
 const NewOrder = () => {
@@ -65,45 +67,100 @@ const NewOrder = () => {
 
   // Charger les produits du fournisseur sélectionné
   useEffect(() => {
-    if (selectedSupplier) {
-      const loadProducts = async () => {
-        try {
-          const response = await restaurateurService.getSupplierDetails(selectedSupplier._id);
-          setProducts(response.data?.data?.supplier?.products || []);
-        } catch (error) {
-          console.error('Erreur lors du chargement des produits:', error);
-          showError('Erreur lors du chargement des produits');
-        }
-      };
-
-      loadProducts();
+    if (!selectedSupplier?._id) {
+      setProducts([]);
+      return;
     }
-  }, [selectedSupplier]);
+
+    const loadProducts = async () => {
+      try {
+        const supplierId = selectedSupplier._id;
+        let productsData = [];
+
+        if (selectedSupplier.userType === 'producer') {
+          const response = await producerService.getPublicProducts(supplierId);
+          productsData = response.data?.data?.products || [];
+        } else if (selectedSupplier.userType === 'transformer') {
+          const response = await transformerService.getPublicProducts(supplierId);
+          productsData = response.data?.data?.products || response.data?.data?.dishes || [];
+        } else if (selectedSupplier.userType === 'exporter') {
+          const response = await exporterService.getFleet({ supplier: supplierId });
+          productsData = response.data?.data?.fleet || [];
+        }
+
+        if (!Array.isArray(productsData) || productsData.length === 0) {
+          const fallbackResponse = await restaurateurService.getSupplierDetails(supplierId);
+          const supplierData = fallbackResponse.data?.data?.supplier || fallbackResponse.data?.data;
+          productsData = supplierData?.products || supplierData?.availableProducts || [];
+        }
+
+        setProducts(Array.isArray(productsData) ? productsData : []);
+      } catch (error) {
+        console.error('Erreur lors du chargement des produits:', error);
+        showError('Erreur lors du chargement des produits');
+        setProducts([]);
+      }
+    };
+
+    loadProducts();
+  }, [selectedSupplier, showError]);
 
   // Filtrer les fournisseurs
-  const filteredSuppliers = suppliers.filter(supplier =>
-    supplier.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supplier.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    supplier.companyName?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredSuppliers = suppliers.filter(supplier => {
+    const displayName = (supplier.companyName || supplier.profile?.displayName || `${supplier.firstName || ''} ${supplier.lastName || ''}`)
+      .toLowerCase();
+    const typeLabel = (supplier.supplierType || supplier.profile?.vendorTypeLabel || supplier.userType || '').toLowerCase();
+    const term = searchTerm.toLowerCase();
+    return displayName.includes(term) || typeLabel.includes(term);
+  });
 
   // Filtrer les produits
   const filteredProducts = products.filter(product =>
-    product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    (product.name?.fr || product.name?.en || product.name || '').toString()
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase()) ||
+    (product.description?.fr || product.description?.en || product.description || '').toString()
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
   );
 
   // Ajouter au panier
+  const formatProductForCart = (product) => ({
+    _id: product._id || product.id,
+    name: product.name?.fr || product.name?.en || product.name || 'Produit',
+    description: product.description?.fr || product.description?.en || product.description || '',
+    price: product.price?.value ?? product.price ?? 0,
+    images: product.images || [],
+    image: product.images?.[0]?.url || product.image || product.coverImage || '',
+    relatedProductId: product.productId || product._id || product.id,
+    supplier: {
+      id: selectedSupplier?._id,
+      name: selectedSupplier?.companyName || selectedSupplier?.profile?.displayName || `${selectedSupplier?.firstName || ''} ${selectedSupplier?.lastName || ''}`.trim() || 'Fournisseur'
+    }
+  });
+
   const addToCart = (product) => {
-    const existingItem = cart.find(item => item.product._id === product._id);
+    const formattedProduct = formatProductForCart(product);
+
+    // Ajouter aussi dans le CartContext global seulement si relié à un vrai produit catalogue
+    if (
+      typeof window !== 'undefined' &&
+      formattedProduct.relatedProductId &&
+      formattedProduct.relatedProductId !== formattedProduct._id
+    ) {
+      const event = new CustomEvent('cart:add-item', { detail: formattedProduct });
+      window.dispatchEvent(event);
+    }
+
+    const existingItem = cart.find(item => item.product._id === formattedProduct._id);
     if (existingItem) {
       setCart(cart.map(item =>
-        item.product._id === product._id
+        item.product._id === formattedProduct._id
           ? { ...item, quantity: item.quantity + 1 }
           : item
       ));
     } else {
-      setCart([...cart, { product, quantity: 1 }]);
+      setCart([...cart, { product: formattedProduct, quantity: 1 }]);
     }
   };
 
@@ -175,7 +232,7 @@ const NewOrder = () => {
       const orderData = {
         supplier: selectedSupplier._id,
         items: cart.map(item => ({
-          productId: item.product._id,
+          productId: item.product.relatedProductId || item.product._id,
           quantity: item.quantity,
           price: item.product.price
         })),
@@ -261,19 +318,22 @@ const NewOrder = () => {
                 <div
                   key={supplier._id}
                   onClick={() => setSelectedSupplier(supplier)}
-                  className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                  className={`relative p-4 border rounded-lg cursor-pointer transition-colors ${
                     selectedSupplier?._id === supplier._id
                       ? 'border-harvests-green bg-green-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
+                  <span className="absolute bottom-3 right-3 bg-harvests-green text-white text-[10px] font-semibold px-2 py-0.5 rounded-full shadow">
+                    {supplier.supplierType || supplier.profile?.vendorTypeLabel || supplier.userType || 'Fournisseur'}
+                  </span>
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                      {supplier.avatar ? (
+                    <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center">
+                      {supplier.shopLogo || supplier.logo || supplier.avatar ? (
                         <CloudinaryImage
-                          src={supplier.avatar}
-                          alt={supplier.firstName}
-                          className="w-12 h-12 object-cover rounded-lg"
+                          src={supplier.shopLogo || supplier.logo || supplier.avatar}
+                          alt={supplier.companyName || supplier.profile?.displayName || 'Logo fournisseur'}
+                          className="w-full h-full object-cover"
                           width={200}
                           height={200}
                           quality="auto"
@@ -285,15 +345,19 @@ const NewOrder = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="text-sm font-medium text-gray-900 truncate">
-                        {supplier.firstName} {supplier.lastName}
+                        {supplier.companyName || supplier.profile?.displayName || `${supplier.firstName || ''} ${supplier.lastName || ''}`.trim() || 'Fournisseur'}
                       </h3>
                       <p className="text-sm text-gray-500 truncate">
-                        {supplier.companyName || supplier.userType}
+                        {supplier.city || supplier.region || 'Localisation non renseignée'}
                       </p>
                       <div className="flex items-center mt-1">
                         <FiStar className="h-4 w-4 text-yellow-400 mr-1" />
                         <span className="text-sm text-gray-500">
-                          {supplier.rating || 'N/A'}
+                          {(() => {
+                            const average = getVendorAverageRating(supplier);
+                            const count = getVendorReviewCount(supplier);
+                            return `${average.toFixed(1)} (${count})`;
+                          })()}
                         </span>
                       </div>
                     </div>
@@ -307,7 +371,7 @@ const NewOrder = () => {
                 <div className="flex items-center">
                   <FiCheckCircle className="h-5 w-5 text-green-600 mr-2" />
                   <span className="text-sm font-medium text-green-800">
-                    Fournisseur sélectionné: {selectedSupplier.firstName} {selectedSupplier.lastName}
+                    Fournisseur sélectionné: {selectedSupplier.companyName || selectedSupplier.profile?.displayName || `${selectedSupplier.firstName || ''} ${selectedSupplier.lastName || ''}`.trim() || 'Fournisseur'}
                   </span>
                 </div>
               </div>
@@ -322,7 +386,7 @@ const NewOrder = () => {
             <div className="lg:col-span-2">
               <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  Produits de {selectedSupplier?.firstName} {selectedSupplier?.lastName}
+                  Produits de {selectedSupplier?.profile?.displayName || selectedSupplier?.companyName || `${selectedSupplier?.firstName || ''} ${selectedSupplier?.lastName || ''}`.trim() || 'fournisseur'}
                 </h2>
                 
                 {/* Recherche de produits */}
@@ -341,14 +405,17 @@ const NewOrder = () => {
 
                 {/* Liste des produits */}
                 <div className="space-y-4">
-                  {filteredProducts.map((product) => (
-                    <div key={product._id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                  {filteredProducts.length === 0 ? (
+                    <p className="text-gray-500 text-center py-6">Aucun produit disponible pour ce fournisseur pour le moment.</p>
+                  ) : (
+                    filteredProducts.map((product) => (
+                      <div key={product._id || product.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                       <div className="flex items-center space-x-4">
                         <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
                           {product.images && product.images.length > 0 ? (
                             <CloudinaryImage
                               src={product.images[0].url}
-                              alt={product.name}
+                              alt={product.name?.fr || product.name?.en || product.name}
                               className="w-16 h-16 object-cover rounded-lg"
                               width={200}
                               height={200}
@@ -360,14 +427,19 @@ const NewOrder = () => {
                           )}
                         </div>
                         <div>
+                          {product.category && (
+                            <span className="inline-flex items-center px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700 mb-1">
+                              {product.category}
+                            </span>
+                          )}
                           <h3 className="text-sm font-medium text-gray-900">
-                            {product.name}
+                            {(product.name?.fr || product.name?.en || product.name || '').toString() || 'Produit'}
                           </h3>
                           <p className="text-sm text-gray-500">
-                            {product.description}
+                            {(product.description?.fr || product.description?.en || product.description || '').toString().slice(0, 80) || 'Description non disponible'}
                           </p>
                           <p className="text-sm font-medium text-gray-900">
-                            {product.price?.toLocaleString()} FCFA
+                            {(Number(product.price?.value ?? product.price ?? 0)).toLocaleString()} FCFA
                           </p>
                         </div>
                       </div>
@@ -378,8 +450,9 @@ const NewOrder = () => {
                         <FiPlus className="h-4 w-4 mr-1" />
                         Ajouter
                       </button>
-                    </div>
-                  ))}
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -390,17 +463,25 @@ const NewOrder = () => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Panier</h3>
                 
                 {cart.length === 0 ? (
-                  <p className="text-gray-500 text-center py-4">Votre panier est vide</p>
+                  <div className="text-center py-6">
+                    <p className="text-gray-500 mb-4">Votre panier est vide</p>
+                    <button
+                      onClick={() => setStep(1)}
+                      className="inline-flex items-center px-4 py-2 bg-harvests-green text-white rounded-md hover:bg-green-600 transition-colors"
+                    >
+                      Voir les produits
+                    </button>
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     {cart.map((item) => (
                       <div key={item.product._id} className="flex items-center justify-between">
                         <div className="flex-1">
                           <h4 className="text-sm font-medium text-gray-900">
-                            {item.product.name}
+                            {(item.product.name?.fr || item.product.name?.en || item.product.name || '').toString() || 'Produit'}
                           </h4>
                           <p className="text-sm text-gray-500">
-                            {item.product.price?.toLocaleString()} FCFA
+                            {(Number(item.product.price?.value ?? item.product.price ?? 0)).toLocaleString()} FCFA
                           </p>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -421,9 +502,9 @@ const NewOrder = () => {
                           </button>
                           <button
                             onClick={() => removeFromCart(item.product._id)}
-                            className="p-1 text-red-400 hover:text-red-600"
+                            className="px-2 py-1 text-xs font-medium text-red-500 hover:text-red-700"
                           >
-                            <FiMinus className="h-4 w-4" />
+                            Retirer
                           </button>
                         </div>
                       </div>

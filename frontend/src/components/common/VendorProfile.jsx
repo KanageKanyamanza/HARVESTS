@@ -14,6 +14,7 @@ import {
   FiPhone,
   FiMail
 } from 'react-icons/fi';
+import { reviewService } from '../../services';
 
 const VendorProfile = ({ 
   vendorType, 
@@ -62,24 +63,76 @@ const VendorProfile = ({
           vendorResponse = await service.getPublic(id);
           
           if (vendorResponse.data.status === 'success') {
-            setVendor(vendorResponse.data.data[vendorType] || vendorResponse.data[vendorType]);
+            const vendorData = vendorResponse.data.data[vendorType] || vendorResponse.data[vendorType];
+            console.log(`[VendorProfile] ${vendorType} - Full vendor data:`, vendorData);
+            console.log(`[VendorProfile] ${vendorType} - companyName:`, vendorData?.companyName);
+            console.log(`[VendorProfile] ${vendorType} - shopBanner:`, vendorData?.shopBanner);
+            console.log(`[VendorProfile] ${vendorType} - shopLogo:`, vendorData?.shopLogo);
+            console.log(`[VendorProfile] ${vendorType} - avatar:`, vendorData?.avatar);
+            setVendor(vendorData);
+            
+            // Pour les transporteurs et exportateurs, charger la flotte depuis les données du vendeur
+            if (vendorType === 'transporter' || vendorType === 'exporter') {
+              // Vérifier que fleet existe et est un tableau
+              const fleetData = vendorData?.fleet;
+              console.log(`[VendorProfile] ${vendorType} - fleet data:`, fleetData);
+              if (Array.isArray(fleetData) && fleetData.length > 0) {
+                console.log(`[VendorProfile] ${vendorType} - Setting ${fleetData.length} fleet items`);
+                setItems(fleetData);
+              } else {
+                // Initialiser avec un tableau vide si pas de flotte
+                console.log(`[VendorProfile] ${vendorType} - No fleet data, initializing empty array`);
+                setItems([]);
+              }
+            }
           }
         } catch (error) {
           console.error(`Erreur lors du chargement du ${vendorType}:`, error);
         }
 
-        // Charger les items (produits/plats pour producteurs/transformateurs, flotte pour transporteurs)
+        // Charger les items (produits/plats pour producteurs/transformateurs/restaurateurs)
         try {
-          if (vendorType === 'transporter') {
-            // Pour les transporteurs, charger la flotte depuis le profil
-            if (vendor?.fleet) {
-              setItems(vendor.fleet || []);
-            }
+          if (vendorType === 'transporter' || vendorType === 'exporter') {
+            // La flotte est déjà chargée depuis vendor.fleet ci-dessus
+            // Pas besoin de charger depuis une autre API
           } else {
             itemsResponse = await service.getPublicProducts(id);
             
             if (itemsResponse.data.status === 'success') {
-              setItems(itemsResponse.data.data.products || itemsResponse.data.data.dishes || []);
+              const rawItems = itemsResponse.data.data.products || itemsResponse.data.data.dishes || [];
+              const itemsWithRatings = await Promise.all(
+                rawItems.map(async (item) => {
+                  if (!item?._id) {
+                    return item;
+                  }
+
+                  try {
+                    const statsResponse = await reviewService.getProductRatingStats(item._id);
+                    const statsData = statsResponse?.data;
+                    if (statsData) {
+                      return {
+                        ...item,
+                        ratingStats: {
+                          averageRating: statsData.averageRating || 0,
+                          totalReviews: statsData.totalReviews || 0
+                        }
+                      };
+                    }
+                  } catch (statsError) {
+                    console.error(`Erreur lors du chargement des statistiques d'avis du produit ${item._id}:`, statsError);
+                  }
+
+                  return {
+                    ...item,
+                    ratingStats: {
+                      averageRating: 0,
+                      totalReviews: 0
+                    }
+                  };
+                })
+              );
+
+              setItems(itemsWithRatings);
             }
           }
         } catch (error) {
@@ -107,6 +160,55 @@ const VendorProfile = ({
       loadVendorData();
     }
   }, [id, user, service, vendorType]);
+
+  useEffect(() => {
+    const shouldFetchStats = ['producer', 'transformer'].includes(vendorType);
+    if (!shouldFetchStats || !vendor?._id) {
+      return;
+    }
+
+    let isActive = true;
+
+    const loadVendorRatingStats = async () => {
+      try {
+        const statsResponse = await reviewService.getProducerRatingStats(vendor._id);
+        const statsData = statsResponse?.data;
+
+        if (!isActive || !statsData) {
+          return;
+        }
+
+        setVendor((prev) => {
+          if (!prev) {
+            return prev;
+          }
+
+          return {
+            ...prev,
+            ratings: {
+              ...(prev.ratings || {}),
+              average: statsData.averageRating || 0,
+              count: statsData.totalReviews || 0
+            },
+            stats: {
+              ...(prev.stats || {}),
+              averageRating: statsData.averageRating || 0,
+              totalReviews: statsData.totalReviews || 0
+            },
+            reviewStats: statsData
+          };
+        });
+      } catch (error) {
+        console.error('Erreur lors du chargement des statistiques d\'avis du vendeur:', error);
+      }
+    };
+
+    loadVendorRatingStats();
+
+    return () => {
+      isActive = false;
+    };
+  }, [vendor?._id, vendorType]);
 
   const getCountryName = (code) => {
     const countries = {
@@ -148,7 +250,7 @@ const VendorProfile = ({
     );
   }
 
-  const stats = getVendorStats(vendor, items);
+  const stats = getVendorStats(vendor, items, reviews);
   const contact = getVendorContact(vendor);
   const tags = getVendorTags(vendor);
 
@@ -173,17 +275,28 @@ const VendorProfile = ({
         <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
             {/* Bannière en arrière-plan */}
           <div className="relative sm:h-[300px] h-[200px] md:h-[375px] bg-gradient-to-r from-green-400 to-green-600">
-            {vendor.restaurantBanner || vendor.shopBanner || vendor.shopLogo ? (
-              <img 
-                src={vendor.restaurantBanner || vendor.shopBanner || vendor.shopLogo} 
-                alt={`Bannière de ${getVendorName(vendor)}`}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
-                <FiPackage className="w-16 h-16 text-white opacity-50" />
-              </div>
-            )}
+            {/* Extraction de l'URL de la bannière (peut être string ou objet) */}
+            {(() => {
+              let bannerUrl = null;
+              if (vendor.restaurantBanner) {
+                bannerUrl = typeof vendor.restaurantBanner === 'string' ? vendor.restaurantBanner : vendor.restaurantBanner.url;
+              } else if (vendor.shopBanner) {
+                bannerUrl = typeof vendor.shopBanner === 'string' ? vendor.shopBanner : vendor.shopBanner.url;
+              } else if (vendor.shopLogo) {
+                bannerUrl = typeof vendor.shopLogo === 'string' ? vendor.shopLogo : vendor.shopLogo.url;
+              }
+              return bannerUrl ? (
+                <img 
+                  src={bannerUrl} 
+                  alt={`Bannière de ${getVendorName(vendor)}`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
+                  <FiPackage className="w-16 h-16 text-white opacity-50" />
+                </div>
+              );
+            })()}
             
             {/* Overlay pour améliorer la lisibilité */}
             <div className="absolute inset-0 bg-black bg-opacity-20"></div>
@@ -192,19 +305,27 @@ const VendorProfile = ({
             <div className="absolute bottom-5 left-5 transform -translate-x-2 translate-y-2">
               <div className="w-20 h-20 rounded-full bg-white p-1 shadow-lg">
                 <div className="w-full h-full rounded-full bg-gray-200 overflow-hidden">
-                  {(vendor.logo || vendor.shopLogo) ? (
-                    <img 
-                      src={vendor.logo || vendor.shopLogo} 
-                      alt={getVendorName(vendor)}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-green-100 flex items-center justify-center">
-                      <span className="text-lg font-bold text-green-600">
-                        {vendor.firstName?.[0]}{vendor.lastName?.[0]}
-                      </span>
-                    </div>
-                  )}
+                  {(() => {
+                    let logoUrl = null;
+                    if (vendor.logo) {
+                      logoUrl = typeof vendor.logo === 'string' ? vendor.logo : vendor.logo.url;
+                    } else if (vendor.shopLogo) {
+                      logoUrl = typeof vendor.shopLogo === 'string' ? vendor.shopLogo : vendor.shopLogo.url;
+                    }
+                    return logoUrl ? (
+                      <img 
+                        src={logoUrl} 
+                        alt={getVendorName(vendor)}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-green-100 flex items-center justify-center">
+                        <span className="text-lg font-bold text-green-600">
+                          {getVendorName(vendor)?.[0] || vendor.firstName?.[0] || 'U'}
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

@@ -505,16 +505,24 @@ reviewSchema.methods.generateAutoTags = function() {
 
 // Méthodes statiques
 reviewSchema.statics.getProductRatingStats = function(productId) {
+  const match = { status: 'approved' };
+
+  if (productId) {
+    if (mongoose.Types.ObjectId.isValid(productId)) {
+      match.product = new mongoose.Types.ObjectId(productId);
+    } else {
+      match.product = productId;
+    }
+  }
+
   return this.aggregate([
-    { $match: { product: productId, status: 'approved' } },
+    { $match: match },
     {
       $group: {
         _id: null,
         averageRating: { $avg: '$rating' },
         totalReviews: { $sum: 1 },
-        ratingDistribution: {
-          $push: '$rating'
-        }
+        ratingDistribution: { $push: '$rating' }
       }
     },
     {

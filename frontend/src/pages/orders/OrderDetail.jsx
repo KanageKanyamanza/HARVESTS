@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { consumerService, producerService, transformerService, orderService } from '../../services';
+import { consumerService, producerService, transformerService, restaurateurService, orderService } from '../../services';
 import { parseProductName } from '../../utils/productUtils';
 import {
   FiArrowLeft,
@@ -51,6 +51,8 @@ const OrderDetail = () => {
           response = await producerService.getOrder(orderIdParam);
         } else if (user.userType === 'transformer') {
           response = await transformerService.getMyOrder(orderIdParam);
+        } else if (user.userType === 'restaurateur') {
+          response = await restaurateurService.getOrder(orderIdParam);
         } else {
           // Pour les autres types d'utilisateurs (admin, etc.), utiliser le service général
           response = await orderService.getOrder(orderIdParam);
@@ -84,6 +86,8 @@ const OrderDetail = () => {
         response = await producerService.updateOrderStatus(order._id, { status: newStatus });
       } else if (user.userType === 'transformer') {
         response = await transformerService.updateOrderStatus(order._id, { status: newStatus });
+      } else if (user.userType === 'restaurateur') {
+        response = await restaurateurService.updateOrderStatus(order._id, { status: newStatus });
       } else {
         // Pour les autres types d'utilisateurs, utiliser le service général
         response = await orderService.updateOrderStatus(order._id, { status: newStatus });

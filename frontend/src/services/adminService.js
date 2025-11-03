@@ -115,35 +115,12 @@ export const unfeatureProduct = async (id) => {
 };
 
 // Service pour la gestion des plats
-export const getDishes = async (params = {}) => {
-  const response = await api.get('/admin/dishes', { params });
-  return response.data;
-};
-
-export const getDishById = async (id) => {
-  const response = await api.get(`/admin/dishes/${id}`);
-  return response.data;
-};
-
-export const updateDish = async (id, data) => {
-  const response = await api.patch(`/admin/dishes/${id}`, data);
-  return response.data;
-};
-
-export const deleteDish = async (id) => {
-  const response = await api.delete(`/admin/dishes/${id}`);
-  return response.data;
-};
-
-export const approveDish = async (id) => {
-  const response = await api.post(`/admin/dishes/${id}/approve`);
-  return response.data;
-};
-
-export const rejectDish = async (id, reason) => {
-  const response = await api.post(`/admin/dishes/${id}/reject`, { reason });
-  return response.data;
-};
+export const getDishes = async (params = {}) => api.get('/admin/dishes', { params });
+export const getDishById = async (id) => api.get(`/admin/dishes/${id}`);
+export const updateDish = async (id, data) => api.patch(`/admin/dishes/${id}`, data);
+export const deleteDish = async (id) => api.delete(`/admin/dishes/${id}`);
+export const approveDish = async (id) => api.post(`/admin/dishes/${id}/approve`);
+export const rejectDish = async (id, reason) => api.post(`/admin/dishes/${id}/reject`, { reason });
 
 // Service pour la gestion des commandes
 export const getOrders = async (params = {}) => {

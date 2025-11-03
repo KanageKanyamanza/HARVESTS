@@ -58,7 +58,8 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
   // Construction de la requête de base
   const queryObj = { 
     status: 'approved', 
-    isActive: true
+    isActive: true,
+    isPublic: { $ne: false }
   };
 
   // Filtres
@@ -119,7 +120,7 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
 
   // Statistiques pour les filtres
   const categoryStats = await Product.aggregate([
-    { $match: { status: 'approved', isActive: true } },
+    { $match: { status: 'approved', isActive: true, isPublic: { $ne: false } } },
     { $group: { _id: '$category', count: { $sum: 1 } } },
     { $sort: { count: -1 } }
   ]);
@@ -162,7 +163,8 @@ exports.getProduct = catchAsync(async (req, res, next) => {
       { slug: req.params.id }
     ],
     status: 'approved',
-    isActive: true
+    isActive: true,
+    isPublic: { $ne: false }
   })
   .populate('producer', 'farmName firstName lastName address salesStats certifications createdAt country')
   .populate('transformer', 'companyName firstName lastName address salesStats certifications createdAt country');
@@ -182,7 +184,8 @@ exports.getProduct = catchAsync(async (req, res, next) => {
     _id: { $ne: product._id },
     category: product.category,
     status: 'approved',
-    isActive: true
+    isActive: true,
+    isPublic: { $ne: false }
   })
   .populate('producer', 'farmName firstName lastName createdAt country')
   .populate('transformer', 'companyName firstName lastName createdAt country')

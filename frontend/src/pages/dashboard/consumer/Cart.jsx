@@ -8,9 +8,6 @@ const Cart = () => {
   const { items, totalItems, totalPrice, updateQuantity, removeFromCart, clearCart } = useCart();
   const navigate = useNavigate();
 
-  // Debug: Logs pour comprendre l'état du panier
-  console.log('🛒 Cart - items:', items, 'totalItems:', totalItems, 'totalPrice:', totalPrice);
-
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-harvests-light py-8">
@@ -136,17 +133,8 @@ const Cart = () => {
 
               <button 
                 onClick={() => {
-                  console.log('🛒 Clic sur "Passer la commande" - Test de navigation');
-                  console.log('🛒 URL actuelle:', window.location.href);
-                  console.log('🛒 Tentative de navigation vers /consumer/checkout');
-                  
                   // Navigation vers la route checkout du consommateur
-                  try {
-                    navigate('/consumer/checkout');
-                    console.log('🛒 navigate() vers /consumer/checkout appelé avec succès');
-                  } catch (error) {
-                    console.error('🛒 Erreur lors de la navigation:', error);
-                  }
+                  navigate('/consumer/checkout');
                 }}
                 className="w-full bg-harvests-green text-white py-3 rounded-lg hover:bg-green-600 transition-colors font-medium"
               >

@@ -17,12 +17,15 @@ import {
   FiCheckCircle,
   FiAlertCircle,
   FiImage,
-  FiRefreshCw
+  FiRefreshCw,
+  FiStar
 } from 'react-icons/fi';
 import commonService from '../../../services/commonService';
+import { producerService, transformerService, restaurateurService, exporterService, transporterService, reviewService } from '../../../services';
+import { getVendorAverageRating, getVendorReviewCount, formatAverageRating } from '../../../utils/vendorRatings';
 
 const ProfilePage = () => {
-  const { user, isAuthenticated, refreshUser } = useAuth();
+  const { user, isAuthenticated, refreshUser, updateProfile, setUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -31,6 +34,8 @@ const ProfilePage = () => {
   const [shopBanner, setShopBanner] = useState(user?.shopBanner || '');
   const [shopLogo, setShopLogo] = useState(user?.shopLogo || '');
   const [avatar, setAvatar] = useState(user?.avatar || '');
+  const [vendorStats, setVendorStats] = useState(null);
+  const [vendorStatsLoading, setVendorStatsLoading] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -41,6 +46,7 @@ const ProfilePage = () => {
   // Mettre à jour les états d'images et le statut de vérification quand l'utilisateur change
   useEffect(() => {
     if (user) {
+      // Mettre à jour tous les états locaux avec les données fraîches de l'utilisateur
       setShopBanner(user.shopBanner || '');
       setShopLogo(user.shopLogo || '');
       setAvatar(user.avatar || '');
@@ -59,6 +65,81 @@ const ProfilePage = () => {
       };
       setVerificationStatus(verificationStatus);
     }
+  }, [user]);
+
+  useEffect(() => {
+    const vendorTypes = ['producer', 'transformer', 'restaurateur', 'exporter', 'transporter'];
+    if (!user || !vendorTypes.includes(user.userType)) {
+      setVendorStats(null);
+      return;
+    }
+
+    const servicesMap = {
+      producer: producerService,
+      transformer: transformerService,
+      restaurateur: restaurateurService,
+      exporter: exporterService,
+      transporter: transporterService
+    };
+
+    const loadVendorStats = async () => {
+      try {
+        setVendorStatsLoading(true);
+        const service = servicesMap[user.userType];
+        if (!service?.getPublic || !user?._id) {
+          setVendorStats(null);
+          setVendorStatsLoading(false);
+          return;
+        }
+
+        const response = await service.getPublic(user._id);
+        const responseData = response?.data;
+
+        let vendorData = null;
+        if (responseData?.data) {
+          vendorData = responseData.data[user.userType] || responseData.data.vendor || responseData.data;
+        }
+
+        if (!vendorData && responseData) {
+          vendorData = responseData[user.userType] || responseData.vendor || responseData;
+        }
+
+        if (vendorData?.data) {
+          vendorData = vendorData.data[user.userType] || vendorData.data.vendor || vendorData.data;
+        }
+
+        if (!vendorData) {
+          setVendorStats(null);
+          setVendorStatsLoading(false);
+          return;
+        }
+
+        let averageRating = getVendorAverageRating(vendorData);
+        let reviewCount = getVendorReviewCount(vendorData);
+
+        if (['producer', 'transformer'].includes(user.userType)) {
+          try {
+            const statsResponse = await reviewService.getProducerRatingStats(user._id);
+            const statsData = statsResponse?.data;
+            if (statsData) {
+              averageRating = statsData.averageRating ?? averageRating;
+              reviewCount = statsData.totalReviews ?? reviewCount;
+            }
+          } catch (statsError) {
+            console.error('Erreur lors du chargement des statistiques d\'avis pour le vendeur connecté:', statsError);
+          }
+        }
+
+        setVendorStats({ averageRating, reviewCount });
+      } catch (error) {
+        console.error('Erreur lors du chargement des notes du vendeur:', error);
+        setVendorStats(null);
+      } finally {
+        setVendorStatsLoading(false);
+      }
+    };
+
+    loadVendorStats();
   }, [user]);
 
   const loadProfileData = async () => {
@@ -99,11 +180,75 @@ const ProfilePage = () => {
     try {
       setSaving(true);
       
-      // Appeler l'API pour mettre à jour le profil
-      await commonService.updateCommonProfile(formData);
+      let response;
       
-      // Recharger les données utilisateur pour mettre à jour l'interface
-      await refreshUser();
+      // Utiliser le service approprié selon le type d'utilisateur
+      // Pour les restaurateurs, utiliser restaurateurService qui gère cuisineTypes
+      if (user?.userType === 'restaurateur') {
+        // Préparer les données pour le backend
+        // Ne garder que les champs autorisés par le backend
+        const dataToSend = {
+          restaurantName: formData.restaurantName,
+          restaurantType: formData.restaurantType,
+          cuisineTypes: formData.cuisineTypes || [], // S'assurer que cuisineTypes est toujours un tableau
+          seatingCapacity: formData.seatingCapacity,
+          address: formData.address,
+          additionalServices: formData.additionalServices,
+          operatingHours: formData.operatingHours
+        };
+        
+        // Filtrer les valeurs undefined/null
+        Object.keys(dataToSend).forEach(key => {
+          if (dataToSend[key] === undefined || dataToSend[key] === null) {
+            delete dataToSend[key];
+          }
+        });
+        
+        response = await restaurateurService.updateMyProfile(dataToSend);
+      } else if (user?.userType === 'producer') {
+        response = await producerService.updateProfile(formData);
+      } else if (user?.userType === 'transformer') {
+        response = await transformerService.updateProfile(formData);
+      } else if (user?.userType === 'exporter') {
+        // Pour les exportateurs, utiliser exporterService qui gère companyName
+        response = await exporterService.updateProfile(formData);
+      } else if (user?.userType === 'transporter') {
+        // Pour les transporteurs, utiliser transporterService qui gère companyName
+        response = await transporterService.updateProfile(formData);
+      } else {
+        // Pour les autres types, utiliser le service commun
+        response = await commonService.updateCommonProfile(formData);
+      }
+      
+      // Extraire l'utilisateur mis à jour depuis la réponse
+      const updatedUser = response.data?.data?.restaurateur || 
+                         response.data?.data?.transformer || 
+                         response.data?.data?.producer || 
+                         response.data?.data?.consumer ||
+                         response.data?.data?.exporter ||
+                         response.data?.data?.transporter ||
+                         response.data?.data?.user ||
+                         response.data?.user;
+      
+      // Mettre à jour l'utilisateur dans le contexte d'authentification
+      // Utiliser setUser pour mettre à jour directement sans refaire un appel API
+      if (updatedUser) {
+        if (setUser) {
+          // Utiliser setUser qui met à jour directement le contexte avec les données retournées
+          setUser(updatedUser);
+        } else if (updateProfile) {
+          // Fallback: utiliser updateProfile mais ça va refaire un appel API
+          await updateProfile(updatedUser);
+        } else if (refreshUser) {
+          // Dernier recours: recharger depuis l'API
+          await refreshUser();
+        }
+      } else {
+        // Si updatedUser n'est pas disponible, recharger depuis l'API
+        if (refreshUser) {
+          await refreshUser();
+        }
+      }
       
       setEditing(false);
       setFormData({});
@@ -113,7 +258,8 @@ const ProfilePage = () => {
       
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
-      alert('Erreur lors de la sauvegarde du profil');
+      const errorMessage = error.response?.data?.message || 'Erreur lors de la sauvegarde du profil';
+      alert(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -306,6 +452,17 @@ const ProfilePage = () => {
                     <p className="text-sm text-gray-500">
                       {safeDisplay(user.email, '')}
                     </p>
+                    {['producer', 'transformer', 'restaurateur', 'exporter', 'transporter'].includes(user.userType) && (
+                      <div className="mt-2 flex items-center text-yellow-600 text-sm">
+                        <FiStar className="mr-1" />
+                        <span className="font-semibold">
+                          {formatAverageRating(vendorStats?.averageRating ?? 0)}
+                        </span>
+                        <span className="ml-2 text-gray-500">
+                          {vendorStatsLoading ? 'Calcul...' : `(${vendorStats?.reviewCount ?? 0} avis)`}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 
@@ -391,8 +548,8 @@ const ProfilePage = () => {
                   )}
                 </div>
 
-                {/* Nom de l'entreprise (pour transformateurs) */}
-                {user?.userType === 'transformer' && (
+                {/* Nom de l'entreprise (pour transformateurs, exportateurs, transporteurs) */}
+                {(user?.userType === 'transformer' || user?.userType === 'exporter' || user?.userType === 'transporter') && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       <FiUser className="inline mr-1" />
@@ -775,7 +932,7 @@ const ProfilePage = () => {
           )}
 
           {/* Section Boutique */}
-          {(user?.userType === 'producer' || user?.userType === 'transformer' || user?.userType === 'restaurateur') && (
+          {(user?.userType === 'producer' || user?.userType === 'transformer' || user?.userType === 'restaurateur' || user?.userType === 'exporter' || user?.userType === 'transporter') && (
             <div className="bg-white rounded-lg shadow">
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">

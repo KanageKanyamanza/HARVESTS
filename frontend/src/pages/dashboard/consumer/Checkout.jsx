@@ -26,14 +26,10 @@ import {
 } from 'react-icons/fi';
 
 const Checkout = () => {
-  console.log('🛒 Checkout component loaded!');
-  
   const { user } = useAuth();
-  const { items: cartItems, clearCart } = useCart();
+  const { items: cartItems, clearCart, removeFromCart } = useCart();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
-
-  console.log('🛒 Checkout - user:', user, 'cartItems:', cartItems);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [orderData, setOrderData] = useState({
@@ -356,8 +352,23 @@ const Checkout = () => {
 
     setSubmitting(true);
     try {
+      const validCartItems = cartItems.filter(item => item.producer?.id);
+
+      if (validCartItems.length !== cartItems.length) {
+        cartItems
+          .filter(item => !item.producer?.id)
+          .forEach(item => removeFromCart(item.productId || item.id));
+
+        window.alert('Certains articles ne sont plus disponibles et ont été retirés de votre panier.');
+
+        if (validCartItems.length === 0) {
+          setSubmitting(false);
+          return;
+        }
+      }
+
       const orderPayload = {
-        items: cartItems.map(item => ({
+        items: validCartItems.map(item => ({
           productId: item.productId || item.id,
           quantity: item.quantity,
           specialInstructions: item.specialInstructions || ''

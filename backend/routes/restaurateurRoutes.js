@@ -22,6 +22,9 @@ router.get('/me/dishes', restaurateurController.getMyDishes);
 router.get('/me/products', restaurateurController.getMyProducts);
 
 // Routes de lecture (autorisées sans vérification d'email)
+router.get('/me/stats', restaurateurController.getStats);
+router.get('/me/sales-analytics', restaurateurController.getSalesAnalytics);
+router.get('/me/revenue-analytics', restaurateurController.getRevenueAnalytics);
 router.get('/me/restaurant-info', restaurateurController.getRestaurantInfo);
 router.get('/me/operating-hours', restaurateurController.getOperatingHours);
 router.get('/me/procurement-needs', restaurateurController.getProcurementNeeds);
@@ -31,6 +34,7 @@ router.get('/me/kitchen-equipment', restaurateurController.getKitchenEquipment);
 router.get('/me/storage-capacity', restaurateurController.getStorageCapacity);
 router.get('/me/orders', restaurateurController.getMyOrders);
 router.get('/me/orders/:orderId', restaurateurController.getMyOrder);
+router.patch('/me/orders/:orderId/status', restaurateurController.updateOrderStatus);
 router.get('/me/orders/:orderId/tracking', restaurateurController.trackOrder);
 router.get('/me/contracts', restaurateurController.getContracts);
 router.get('/me/contracts/:contractId', restaurateurController.getContract);
@@ -171,6 +175,7 @@ router.route('/me/stock-alerts/:alertId')
   .delete(restaurateurController.deleteStockAlert);
 
 // Routes publiques pour profils individuels (MUST be after /me/*)
+router.get('/dishes/:dishId', restaurateurController.getDishDetail);
 router.get('/:id', restaurateurController.getRestaurateur);
 router.get('/:id/dishes', restaurateurController.getRestaurateurDishes);
 router.get('/:id/products', restaurateurController.getRestaurateurProducts);

@@ -1,5 +1,5 @@
 import React, { createContext, useReducer, useEffect } from 'react';
-import { authService, consumerService, producerService } from '../services';
+import { authService, consumerService, producerService, transformerService, restaurateurService, exporterService, transporterService } from '../services';
 import { adminAuthService } from '../services/adminAuthService';
 import { getDefaultRoute, hasPermission, canAccessRoute } from '../utils/authUtils';
 import { initialState, AUTH_ACTIONS } from './authTypes';
@@ -172,12 +172,29 @@ export const AuthProvider = ({ children }) => {
         response = await consumerService.updateProfile(userData);
       } else if (state.user?.userType === 'producer') {
         response = await producerService.updateProfile(userData);
+      } else if (state.user?.userType === 'transformer') {
+        response = await transformerService.updateProfile(userData);
+      } else if (state.user?.userType === 'restaurateur') {
+        response = await restaurateurService.updateMyProfile(userData);
+      } else if (state.user?.userType === 'exporter') {
+        response = await exporterService.updateProfile(userData);
+      } else if (state.user?.userType === 'transporter') {
+        response = await transporterService.updateProfile(userData);
       } else {
         // Fallback vers le service générique
         response = await authService.updateProfile(userData);
       }
       
-      const updatedUser = response.data.data.user;
+      // Extraire l'utilisateur mis à jour selon la structure de la réponse
+      const updatedUser = response.data?.data?.restaurateur || 
+                         response.data?.data?.transformer || 
+                         response.data?.data?.producer || 
+                         response.data?.data?.consumer ||
+                         response.data?.data?.exporter ||
+                         response.data?.data?.transporter ||
+                         response.data?.data?.user ||
+                         response.data?.user ||
+                         response.data?.data;
 
       // Mettre à jour localStorage
       saveAuthData(updatedUser, state.token);
@@ -252,10 +269,35 @@ export const AuthProvider = ({ children }) => {
               });
             }
           } else {
-            response = await authService.getProfile();
-            if (response.success) {
-              const updatedUser = response.data.user;
-              
+            // Utiliser le service spécifique selon le type d'utilisateur
+            const userType = user.userType;
+            let response;
+            let updatedUser = null;
+            
+            if (userType === 'restaurateur') {
+              response = await restaurateurService.getMyProfile();
+              updatedUser = response.data?.data?.restaurateur || response.data?.restaurateur;
+            } else if (userType === 'transformer') {
+              response = await transformerService.getProfile();
+              updatedUser = response.data?.data?.transformer || response.data?.transformer || response.data?.data?.user || response.data?.user;
+            } else if (userType === 'producer') {
+              response = await producerService.getProfile();
+              updatedUser = response.data?.data?.producer || response.data?.producer || response.data?.data?.user || response.data?.user;
+            } else if (userType === 'consumer') {
+              response = await consumerService.getProfile();
+              updatedUser = response.data?.data?.consumer || response.data?.consumer || response.data?.data?.user || response.data?.user;
+            } else if (userType === 'exporter') {
+              response = await exporterService.getProfile();
+              updatedUser = response.data?.data?.exporter || response.data?.exporter || response.data?.data?.user || response.data?.user;
+            } else if (userType === 'transporter') {
+              response = await transporterService.getProfile();
+              updatedUser = response.data?.data?.transporter || response.data?.transporter || response.data?.data?.user || response.data?.user;
+            } else {
+              response = await authService.getProfile();
+              updatedUser = response.data?.user || response.data?.data?.user;
+            }
+            
+            if (updatedUser) {
               // Mettre à jour le localStorage avec les données complètes
               saveAuthData(updatedUser, token);
               
@@ -302,37 +344,55 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = localStorage.getItem('harvests_token');
       let response;
+      let updatedUser = null;
       
       // Détecter si c'est un admin ou un utilisateur normal
       if (state.user.role === 'admin' || state.user.userType === 'admin') {
         response = await adminAuthService.getProfile();
         if (response.success) {
           const updatedAdmin = response.data.admin;
-          const updatedUser = {
+          updatedUser = {
             ...updatedAdmin,
             role: 'admin',
             userType: 'admin'
           };
-          
-          saveAuthData(updatedUser, token);
-          dispatch({
-            type: AUTH_ACTIONS.UPDATE_PROFILE,
-            payload: updatedUser,
-          });
-          return { success: true, message: 'Données utilisateur mises à jour' };
         }
       } else {
-        response = await authService.getProfile();
-        if (response.success) {
-          const updatedUser = response.data.user;
-          
-          saveAuthData(updatedUser, token);
-          dispatch({
-            type: AUTH_ACTIONS.UPDATE_PROFILE,
-            payload: updatedUser,
-          });
-          return { success: true, message: 'Données utilisateur mises à jour' };
+        // Utiliser le service spécifique selon le type d'utilisateur
+        const userType = state.user.userType;
+        
+        if (userType === 'restaurateur') {
+          response = await restaurateurService.getMyProfile();
+          updatedUser = response.data?.data?.restaurateur || response.data?.restaurateur;
+        } else if (userType === 'transformer') {
+          response = await transformerService.getProfile();
+          updatedUser = response.data?.data?.transformer || response.data?.transformer || response.data?.data?.user || response.data?.user;
+        } else if (userType === 'producer') {
+          response = await producerService.getProfile();
+          updatedUser = response.data?.data?.producer || response.data?.producer || response.data?.data?.user || response.data?.user;
+        } else if (userType === 'consumer') {
+          response = await consumerService.getProfile();
+          updatedUser = response.data?.data?.consumer || response.data?.consumer || response.data?.data?.user || response.data?.user;
+        } else if (userType === 'exporter') {
+          response = await exporterService.getProfile();
+          updatedUser = response.data?.data?.exporter || response.data?.exporter || response.data?.data?.user || response.data?.user;
+        } else if (userType === 'transporter') {
+          response = await transporterService.getProfile();
+          updatedUser = response.data?.data?.transporter || response.data?.transporter || response.data?.data?.user || response.data?.user;
+        } else {
+          // Fallback vers le service générique
+          response = await authService.getProfile();
+          updatedUser = response.data?.user || response.data?.data?.user;
         }
+      }
+      
+      if (updatedUser) {
+        saveAuthData(updatedUser, token);
+        dispatch({
+          type: AUTH_ACTIONS.UPDATE_PROFILE,
+          payload: updatedUser,
+        });
+        return { success: true, message: 'Données utilisateur mises à jour', user: updatedUser };
       }
       
       return { success: false, message: 'Erreur lors de la mise à jour' };
@@ -440,6 +500,19 @@ export const AuthProvider = ({ children }) => {
     };
   }, [state.isAuthenticated, state.tokenExpiry]);
 
+  // Fonction pour mettre à jour l'utilisateur directement (sans appel API)
+  // Utilisée après une mise à jour réussie pour éviter un double appel
+  const setUser = (updatedUser) => {
+    if (!updatedUser) return;
+    
+    const token = localStorage.getItem('harvests_token');
+    saveAuthData(updatedUser, token);
+    dispatch({
+      type: AUTH_ACTIONS.UPDATE_PROFILE,
+      payload: updatedUser,
+    });
+  };
+
   // Valeur du contexte
   const value = {
     // État
@@ -450,6 +523,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     updateProfile,
+    setUser, // Nouvelle fonction pour mettre à jour directement
     clearError,
     refreshUser,
     verifyEmail,

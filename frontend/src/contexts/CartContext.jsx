@@ -79,6 +79,31 @@ export const CartProvider = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const { isAuthenticated, user } = useAuth();
 
+  useEffect(() => {
+    const handleExternalAdd = (event) => {
+      const product = event.detail;
+      if (product) {
+        dispatch({
+          type: CART_ACTIONS.ADD_ITEM,
+          payload: {
+            productId: product._id || product.id,
+            name: product.name,
+            price: product.price,
+            image: product.image,
+            quantity: product.quantity || 1,
+            producer: product.producer || {}
+          }
+        });
+      }
+    };
+
+    window.addEventListener('cart:add-item', handleExternalAdd);
+
+    return () => {
+      window.removeEventListener('cart:add-item', handleExternalAdd);
+    };
+  }, []);
+
   // Charger le panier depuis localStorage au montage
   useEffect(() => {
     const savedCart = localStorage.getItem('harvests_cart');
@@ -143,15 +168,62 @@ export const CartProvider = ({ children }) => {
 
   // Fonctions du panier
   const addToCart = (product) => {
+    // Vérifier le stock pour les plats
+    if (product.trackQuantity !== false) {
+      const stock = product.stock ?? product.inventory?.quantity ?? null;
+      if (stock !== null && stock <= 0) {
+        alert('Ce produit est en rupture de stock');
+        return;
+      }
+      
+      // Vérifier si la quantité demandée est disponible
+      const requestedQuantity = product.quantity || 1;
+      const existingItem = state.items.find(item => item.productId === (product._id || product.id));
+      const currentQuantity = existingItem ? existingItem.quantity : 0;
+      const totalQuantity = currentQuantity + requestedQuantity;
+      
+      if (stock !== null && totalQuantity > stock) {
+        alert(`Stock insuffisant. Disponible: ${stock}, déjà dans le panier: ${currentQuantity}`);
+        return;
+      }
+    }
+    
+    const supplierInfo = product.producer || product.supplier || product.vendor || product.restaurateur || {};
+    
+    // Extraire l'image de manière exhaustive pour gérer tous les formats
+    let imageUrl = '';
+    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+      const firstImage = product.images[0];
+      if (typeof firstImage === 'object' && firstImage !== null) {
+        imageUrl = firstImage.url || firstImage.src || firstImage.path || '';
+      } else if (typeof firstImage === 'string') {
+        imageUrl = firstImage;
+      }
+    }
+    
+    if (!imageUrl) {
+      if (product.primaryImage) {
+        if (typeof product.primaryImage === 'object' && product.primaryImage !== null) {
+          imageUrl = product.primaryImage.url || product.primaryImage.src || '';
+        } else if (typeof product.primaryImage === 'string') {
+          imageUrl = product.primaryImage;
+        }
+      }
+    }
+    
+    if (!imageUrl) {
+      imageUrl = product.image || product.coverImage || product.thumbnail || '';
+    }
+    
     const cartItem = {
-      productId: product._id,
-      name: product.name?.fr || product.name?.en || product.name,
-      price: product.price,
-      image: product.images?.[0]?.url || product.primaryImage?.url,
-      quantity: product.quantity || 1, // Utiliser la quantité du produit ou 1 par défaut
+      productId: product._id || product.id,
+      name: product.name?.fr || product.name?.en || product.name || 'Produit',
+      price: product.price?.value ?? product.price ?? 0,
+      image: imageUrl,
+      quantity: product.quantity || 1,
       producer: {
-        id: product.producer?._id,
-        name: product.producer?.businessName || `${product.producer?.firstName} ${product.producer?.lastName}`
+        id: supplierInfo._id || supplierInfo.id || product.producerId || product.supplierId,
+        name: supplierInfo.businessName || supplierInfo.companyName || supplierInfo.restaurantName || `${supplierInfo.firstName || ''} ${supplierInfo.lastName || ''}`.trim() || product.producerName || product.supplierName || 'Fournisseur'
       }
     };
 

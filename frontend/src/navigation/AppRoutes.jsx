@@ -31,6 +31,8 @@ import Transformers from '../pages/Transformers';
 import TransformerProfile from '../pages/TransformerProfile';
 import PublicRestaurateurProfile from '../pages/RestaurateurProfile';
 import TransporterProfile from '../pages/TransporterProfile';
+import ExporterProfile from '../pages/ExporterProfile';
+import TransporteursExportateurs from '../pages/TransporteursExportateurs';
 import CartPage from '../pages/Cart';
 import Contact from '../pages/Contact';
 import LoyaltyProgram from '../pages/LoyaltyProgram';
@@ -149,13 +151,16 @@ const AppRoutes = () => {
       <Route path="/products/:id" element={<Layout><SuspenseRoute element={<ProductDetail />} /></Layout>} />
       <Route path="/dishes/:id" element={<Layout><SuspenseRoute element={<DishDetail />} /></Layout>} />
       <Route path="/categories" element={<Layout><SuspenseRoute element={<Categories />} /></Layout>} />
+      <Route path="/categories/:category" element={<Layout><SuspenseRoute element={<Products />} /></Layout>} />
       <Route path="/producers" element={<Layout><SuspenseRoute element={<Producers />} /></Layout>} />
       <Route path="/producers/:id" element={<Layout><SuspenseRoute element={<ProducerProfile />} /></Layout>} />
       <Route path="/vendeurs" element={<Layout><SuspenseRoute element={<Vendeurs />} /></Layout>} />
       <Route path="/transformers" element={<Layout><SuspenseRoute element={<Transformers />} /></Layout>} />
       <Route path="/transformers/:id" element={<Layout><SuspenseRoute element={<TransformerProfile />} /></Layout>} />
       <Route path="/restaurateurs/:id" element={<Layout><SuspenseRoute element={<PublicRestaurateurProfile />} /></Layout>} />
+      <Route path="/logistics" element={<Layout><SuspenseRoute element={<TransporteursExportateurs />} /></Layout>} />
       <Route path="/transporters/:id" element={<Layout><SuspenseRoute element={<TransporterProfile />} /></Layout>} />
+      <Route path="/exporters/:id" element={<Layout><SuspenseRoute element={<ExporterProfile />} /></Layout>} />
       <Route path="/cart" element={<Layout><SuspenseRoute element={<CartPage />} /></Layout>} />
       <Route path="/contact" element={<Layout><SuspenseRoute element={<Contact />} /></Layout>} />
       <Route path="/loyalty" element={<Layout><SuspenseRoute element={<LoyaltyProgram />} /></Layout>} />
