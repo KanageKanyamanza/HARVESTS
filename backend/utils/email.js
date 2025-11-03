@@ -17,30 +17,46 @@ module.exports = class Email {
   newTransport() {
     // 🥇 Gmail avec Nodemailer (RECOMMANDÉ - 500 emails/jour)
     if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+      console.log('📧 Configuration email: Gmail (Nodemailer)');
       return nodemailer.createTransport({
         service: 'gmail',
         auth: {
           user: process.env.GMAIL_USER,
           pass: process.env.GMAIL_APP_PASSWORD,
         },
-        debug: process.env.NODE_ENV === 'development',
-        logger: process.env.NODE_ENV === 'development'
+        debug: true, // Toujours activer pour diagnostiquer en production
+        logger: true // Toujours activer pour diagnostiquer en production
       });
     }
     
     // 🔧 FALLBACK: Configuration SMTP générique
+    const emailHost = process.env.EMAIL_HOST || 'localhost';
+    const emailPort = parseInt(process.env.EMAIL_PORT) || 587;
+    const emailUser = process.env.EMAIL_USERNAME;
+    
+    if (!emailUser || !process.env.EMAIL_PASSWORD) {
+      console.error('❌ Configuration email SMTP incomplète:');
+      console.error(`   EMAIL_HOST: ${emailHost}`);
+      console.error(`   EMAIL_PORT: ${emailPort}`);
+      console.error(`   EMAIL_USERNAME: ${emailUser ? '✅ Configuré' : '❌ Manquant'}`);
+      console.error(`   EMAIL_PASSWORD: ${process.env.EMAIL_PASSWORD ? '✅ Configuré' : '❌ Manquant'}`);
+    } else {
+      console.log(`📧 Configuration email: SMTP (${emailHost}:${emailPort})`);
+    }
+    
     return nodemailer.createTransport({
-      host: process.env.EMAIL_HOST || 'localhost',
-      port: parseInt(process.env.EMAIL_PORT) || 587,
+      host: emailHost,
+      port: emailPort,
       secure: process.env.EMAIL_SECURE === 'true',
       auth: {
-        user: process.env.EMAIL_USERNAME,
+        user: emailUser,
         pass: process.env.EMAIL_PASSWORD,
       },
       tls: {
         rejectUnauthorized: false // Pour serveurs SMTP locaux
       },
-      debug: process.env.NODE_ENV === 'development'
+      debug: true, // Toujours activer pour diagnostiquer
+      logger: true // Toujours activer pour diagnostiquer
     });
   }
 
@@ -64,13 +80,36 @@ module.exports = class Email {
 
     // 3) Essayer d'envoyer avec Nodemailer d'abord
     try {
-      await this.newTransport().sendMail(mailOptions);
+      const transporter = this.newTransport();
+      console.log(`📧 Tentative d'envoi email à ${this.to} via ${process.env.GMAIL_USER ? 'Gmail' : 'SMTP'}`);
+      const result = await transporter.sendMail(mailOptions);
       console.log('✅ Email envoyé avec succès via Nodemailer');
+      console.log(`   Message ID: ${result.messageId}`);
+      console.log(`   Response: ${result.response}`);
+      return result;
     } catch (error) {
-      console.error('❌ Erreur Nodemailer:', error.message);
+      console.error('❌ Erreur Nodemailer détaillée:');
+      console.error(`   Message: ${error.message}`);
+      console.error(`   Code: ${error.code || 'N/A'}`);
+      console.error(`   Command: ${error.command || 'N/A'}`);
+      console.error(`   Response: ${error.response || 'N/A'}`);
+      console.error(`   Stack: ${error.stack}`);
+      
+      // Vérifier la configuration
+      if (error.code === 'EAUTH' || error.message.includes('Invalid login')) {
+        console.error('🔐 ERREUR D\'AUTHENTIFICATION:');
+        console.error('   - Vérifiez GMAIL_USER et GMAIL_APP_PASSWORD (pour Gmail)');
+        console.error('   - Ou EMAIL_USERNAME et EMAIL_PASSWORD (pour SMTP)');
+        console.error('   - Pour Gmail: Activez l\'authentification 2FA et créez un mot de passe d\'application');
+      } else if (error.code === 'ECONNECTION' || error.message.includes('connect')) {
+        console.error('🔌 ERREUR DE CONNEXION:');
+        console.error('   - Vérifiez EMAIL_HOST et EMAIL_PORT');
+        console.error('   - Vérifiez que le serveur SMTP est accessible depuis Render');
+      }
       
       // 4) Fallback avec EmailJS seulement si configuré
       if (this.isEmailJSConfigured()) {
+        console.log('🔄 Tentative de fallback avec EmailJS...');
         try {
           await this.sendWithEmailJS(subject, html);
           console.log('✅ Email envoyé avec succès via EmailJS (fallback)');
@@ -119,12 +158,20 @@ module.exports = class Email {
   // Méthode de test de connexion Nodemailer
   async testConnection() {
     try {
-      const transporter = await this.newTransport();
+      const transporter = this.newTransport();
+      console.log('🔌 Test de connexion email...');
       await transporter.verify();
-      console.log('✅ Connexion Nodemailer réussie !');
+      console.log('✅ Connexion email réussie !');
       return true;
     } catch (error) {
-      console.error('❌ Erreur connexion Nodemailer:', error.message);
+      console.error('❌ Erreur connexion email:');
+      console.error(`   Message: ${error.message}`);
+      console.error(`   Code: ${error.code || 'N/A'}`);
+      if (error.code === 'EAUTH') {
+        console.error('   🔐 Problème d\'authentification - Vérifiez vos identifiants');
+      } else if (error.code === 'ECONNECTION') {
+        console.error('   🔌 Problème de connexion - Vérifiez EMAIL_HOST et EMAIL_PORT');
+      }
       return false;
     }
   }
