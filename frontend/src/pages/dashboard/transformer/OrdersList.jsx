@@ -3,6 +3,7 @@ import { useAuth } from '../../../hooks/useAuth';
 import { transformerService } from '../../../services';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import OrderList from '../../../components/orders/OrderList';
+import EmailVerificationRequired from '../../../components/common/EmailVerificationRequired';
 import { FiSearch, FiRefreshCw } from 'react-icons/fi';
 import { useLocation } from 'react-router-dom';
 
@@ -14,6 +15,7 @@ const OrdersList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [updatingOrders, setUpdatingOrders] = useState(new Set());
+  const [emailVerificationError, setEmailVerificationError] = useState(null);
 
   // Initialiser le filtre basé sur les paramètres URL
   useEffect(() => {
@@ -30,6 +32,7 @@ const OrdersList = () => {
       if (user?.userType === 'transformer') {
       try {
         setLoading(true);
+        setEmailVerificationError(null);
           
         const response = await transformerService.getMyOrders();
           const ordersData = response.data.data?.orders || response.data.orders || [];
@@ -37,7 +40,13 @@ const OrdersList = () => {
           setOrders(ordersData);
       } catch (error) {
         console.error('Erreur lors du chargement des commandes:', error);
-          setOrders([]);
+        
+        // Vérifier si c'est une erreur de vérification d'email
+        if (error.response?.status === 403 && error.response?.data?.code === 'EMAIL_VERIFICATION_REQUIRED') {
+          setEmailVerificationError(error.response.data);
+        }
+        
+        setOrders([]);
       } finally {
         setLoading(false);
         }
@@ -110,6 +119,19 @@ const OrdersList = () => {
   return (
     <ModularDashboardLayout userType="transformer">
       <div className="p-6 max-w-7xl mx-auto">
+        {/* Message de vérification d'email */}
+        {emailVerificationError && (
+          <EmailVerificationRequired 
+            errorData={emailVerificationError} 
+            onResendEmail={() => {
+              setEmailVerificationError(null);
+              setTimeout(() => {
+                window.location.reload();
+              }, 2000);
+            }}
+          />
+        )}
+
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Mes commandes</h1>
