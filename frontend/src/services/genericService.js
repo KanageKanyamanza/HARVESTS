@@ -114,14 +114,33 @@ const createGenericService = (userType) => ({
 });
 
 // Services spécifiques pour chaque type d'utilisateur
-export const producerService = createGenericService('producer');
-export const consumerService = createGenericService('consumer');
-export const transformerService = createGenericService('transformer');
+export const producerService = {
+  ...createGenericService('producer'),
+  // Override pour le profil (route spécifique)
+  getProfile: () => api.get('/producers/me/profile'),
+  updateProfile: (data) => api.patch('/producers/me/profile', data),
+};
+export const consumerService = {
+  ...createGenericService('consumer'),
+  // Override pour le profil (route spécifique)
+  getProfile: () => api.get('/consumers/me/profile'),
+  updateProfile: (data) => api.patch('/consumers/me/profile', data),
+};
+export const transformerService = {
+  ...createGenericService('transformer'),
+  // Override pour le profil (route spécifique)
+  getMyProfile: () => api.get('/transformers/me/profile'),
+  getProfile: () => api.get('/transformers/me/profile'), // Alias
+  updateMyProfile: (data) => api.patch('/transformers/me/profile', data),
+  updateProfile: (data) => api.patch('/transformers/me/profile', data), // Alias pour compatibilité
+};
 export const restaurateurService = {
   ...createGenericService('restaurateur'),
   // Override pour le profil (route spécifique)
   getMyProfile: () => api.get('/restaurateurs/me/profile'),
+  getProfile: () => api.get('/restaurateurs/me/profile'), // Alias
   updateMyProfile: (data) => api.patch('/restaurateurs/me/profile', data),
+  updateProfile: (data) => api.patch('/restaurateurs/me/profile', data), // Alias pour compatibilité
   discoverSuppliers: (params = {}) => api.get('/restaurateurs/suppliers/discover', { params }),
   searchSuppliers: (params = {}) => api.get('/restaurateurs/suppliers/search', { params }),
   getSupplierDetails: (supplierId, params = {}) => api.get(`/restaurateurs/suppliers/${supplierId}`, { params }),

@@ -5,6 +5,7 @@ const transformerService = {
   // Gestion du profil
   getMyProfile: () => api.get('/transformers/me/profile'),
   updateMyProfile: (data) => api.patch('/transformers/me/profile', data),
+  updateProfile: (data) => api.patch('/transformers/me/profile', data), // Alias pour compatibilité
 
   // Informations de l'entreprise
   getCompanyInfo: () => api.get('/transformers/me/company-info'),
