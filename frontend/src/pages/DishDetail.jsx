@@ -13,6 +13,7 @@ import {
   FiAlertTriangle
 } from 'react-icons/fi';
 import { restaurateurService } from '../services';
+import { getDishImageUrl, normalizeDishImage } from '../utils/dishImageUtils';
 
 const DishDetail = () => {
   const { id } = useParams();
@@ -30,7 +31,10 @@ const DishDetail = () => {
 
         const response = await restaurateurService.getDishDetail(id);
         if (response.data.status === 'success') {
-          setDish(response.data.data.dish);
+          const dishData = response.data.data.dish;
+          // Normaliser l'image du plat avant de le définir
+          const normalizedDish = normalizeDishImage(dishData);
+          setDish(normalizedDish);
           setRestaurateur(response.data.data.restaurateur);
         } else {
           setError('Plat non trouvé ou non disponible');
@@ -91,6 +95,7 @@ const DishDetail = () => {
       }
       addToCart({
         ...dish,
+        originType: 'dish', // S'assurer que le type est défini pour les plats
         restaurateur: {
           _id: restaurateur._id,
           restaurantName: restaurateur.restaurantName,
@@ -134,7 +139,7 @@ const DishDetail = () => {
     );
   }
 
-  const dishImage = dish.image || dish.images?.[0]?.url;
+  const dishImage = getDishImageUrl(dish);
 
   return (
     <div className="min-h-screen bg-harvests-light">

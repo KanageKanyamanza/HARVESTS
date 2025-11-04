@@ -16,6 +16,7 @@ import {
 
 const ProductCard = ({ 
   product, 
+  userType = 'transformer', // Type d'utilisateur par défaut
   onEdit,
   onDelete,
   onPublish,
@@ -24,6 +25,18 @@ const ProductCard = ({
   showStatus = true,
   showFeatured = true
 }) => {
+  // Fonction pour obtenir la route de modification selon le type d'utilisateur
+  const getEditRoute = (productId) => {
+    if (userType === 'restaurateur') {
+      // Pour les restaurateurs, rediriger vers la page de gestion des plats
+      return '/restaurateur/dishes';
+    } else if (userType === 'transformer') {
+      return `/transformer/products/${productId}/edit`;
+    } else if (userType === 'producer') {
+      return `/producer/products/edit/${productId}`;
+    }
+    return `/${userType}/products/edit/${productId}`;
+  };
   // Vérification de sécurité pour éviter les erreurs si product est null
   if (!product) {
     return (
@@ -161,7 +174,7 @@ const ProductCard = ({
             <div className="flex items-center space-x-2">
               {onEdit && (
                 <Link
-                  to={`/transformer/products/${product._id}/edit`}
+                  to={getEditRoute(product._id)}
                   className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light"
                 >
                   <FiEdit className="h-4 w-4 mr-1" />

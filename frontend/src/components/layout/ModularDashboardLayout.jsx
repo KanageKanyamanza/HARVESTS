@@ -28,9 +28,13 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/');
+      // Utiliser window.location.href pour forcer une navigation complète
+      // et éviter les redirections automatiques vers /login
+      window.location.href = '/';
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);
+      // Rediriger quand même vers l'accueil en cas d'erreur
+      window.location.href = '/';
     }
   };
 

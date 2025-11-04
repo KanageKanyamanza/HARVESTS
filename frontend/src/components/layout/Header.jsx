@@ -149,7 +149,9 @@ const Header = () => {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/');
+    // Utiliser window.location.href pour forcer une navigation complète
+    // et éviter les redirections automatiques vers /login
+    window.location.href = '/';
   };
 
 
