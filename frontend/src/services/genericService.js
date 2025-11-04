@@ -133,6 +133,8 @@ export const transformerService = {
   getProfile: () => api.get('/transformers/me/profile'), // Alias
   updateMyProfile: (data) => api.patch('/transformers/me/profile', data),
   updateProfile: (data) => api.patch('/transformers/me/profile', data), // Alias pour compatibilité
+  // Alias pour les produits (compatibilité avec MyProducts.jsx)
+  getMyProducts: (params = {}) => api.get('/transformers/me/products', { params }),
 };
 export const restaurateurService = {
   ...createGenericService('restaurateur'),
