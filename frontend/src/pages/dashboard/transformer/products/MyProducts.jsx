@@ -4,6 +4,7 @@ import { transformerService } from '../../../../services';
 import { useNotifications } from '../../../../contexts/NotificationContext';
 import ModularDashboardLayout from '../../../../components/layout/ModularDashboardLayout';
 import ProductCard from '../../../../components/common/ProductCard';
+import EmailVerificationRequired from '../../../../components/common/EmailVerificationRequired';
 import {
   FiPackage,
   FiPlus,
@@ -20,6 +21,7 @@ const MyProducts = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [emailVerificationError, setEmailVerificationError] = useState(null);
   const [filters, setFilters] = useState({
     status: '',
     search: ''
@@ -30,13 +32,21 @@ const MyProducts = () => {
     const loadProducts = async () => {
       try {
         setLoading(true);
-        const response = await transformerService.getProducts();
+        setEmailVerificationError(null);
+        setError(null);
+        const response = await transformerService.getMyProducts();
         setProducts(response.data?.data?.products || []);
       } catch (error) {
         console.error('Erreur lors du chargement des produits:', error);
-        setError('Erreur lors du chargement des produits');
-        // Pas de données de démonstration - utiliser les vraies données du backend
-        setProducts([]);
+        
+        // Vérifier si c'est une erreur de vérification d'email
+        if (error.response?.status === 403 && error.response?.data?.code === 'EMAIL_VERIFICATION_REQUIRED') {
+          setEmailVerificationError(error.response.data);
+          setProducts([]);
+        } else {
+          setError('Erreur lors du chargement des produits');
+          setProducts([]);
+        }
       } finally {
         setLoading(false);
       }
@@ -123,6 +133,20 @@ const MyProducts = () => {
   return (
     <ModularDashboardLayout userType="transformer">
       <div className="space-y-6 px-4 pb-20 pt-4">
+        {/* Message de vérification d'email */}
+        {emailVerificationError && (
+          <EmailVerificationRequired 
+            errorData={emailVerificationError} 
+            onResendEmail={() => {
+              setEmailVerificationError(null);
+              // Recharger les produits après renvoi d'email
+              setTimeout(() => {
+                window.location.reload();
+              }, 2000);
+            }}
+          />
+        )}
+
         {/* En-tête */}
         <div className="flex items-center justify-between">
           <div>

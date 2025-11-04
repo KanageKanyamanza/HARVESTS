@@ -41,7 +41,7 @@ const ProtectedRoute = ({
   // Vérifier la vérification email si requise
   if (requireEmailVerification && !isEmailVerified) {
     return <Navigate 
-      to="/verify-email" 
+      to="/email-verification" 
       state={{ from: location.pathname }} 
       replace 
     />;

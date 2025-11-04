@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { transformerService } from '../../../services';
 import { useNotifications } from '../../../contexts/NotificationContext';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
+import EmailVerificationRequired from '../../../components/common/EmailVerificationRequired';
 import {
   FiStar,
   FiUser,
@@ -19,6 +20,7 @@ const TransformerReviews = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [emailVerificationError, setEmailVerificationError] = useState(null);
   const [stats, setStats] = useState({
     totalReviews: 0,
     averageRating: 0,
@@ -39,6 +41,8 @@ const TransformerReviews = () => {
   const loadReviews = async () => {
     try {
       setLoading(true);
+      setEmailVerificationError(null);
+      setError(null);
       const response = await transformerService.getMyReviews({
         status: filters.status,
         rating: filters.rating,
@@ -51,8 +55,14 @@ const TransformerReviews = () => {
       }
     } catch (error) {
       console.error('Erreur lors du chargement des avis:', error);
-      setError('Erreur lors du chargement des avis');
-      showError('Erreur lors du chargement des avis');
+      
+      // Vérifier si c'est une erreur de vérification d'email
+      if (error.response?.status === 403 && error.response?.data?.code === 'EMAIL_VERIFICATION_REQUIRED') {
+        setEmailVerificationError(error.response.data);
+      } else {
+        setError('Erreur lors du chargement des avis');
+        showError('Erreur lors du chargement des avis');
+      }
     } finally {
       setLoading(false);
     }
@@ -168,6 +178,19 @@ const TransformerReviews = () => {
   return (
     <ModularDashboardLayout userType="transformer">
       <div className="space-y-6 px-4 pb-20 pt-4">
+        {/* Message de vérification d'email */}
+        {emailVerificationError && (
+          <EmailVerificationRequired 
+            errorData={emailVerificationError} 
+            onResendEmail={() => {
+              setEmailVerificationError(null);
+              setTimeout(() => {
+                loadReviews();
+              }, 2000);
+            }}
+          />
+        )}
+
         {/* En-tête */}
         <div className="flex items-center justify-between">
           <div>
