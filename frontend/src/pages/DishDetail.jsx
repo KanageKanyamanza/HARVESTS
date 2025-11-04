@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
 import { useCart } from '../contexts/CartContext';
 import { 
   FiArrowLeft, 
@@ -17,7 +16,6 @@ import { restaurateurService } from '../services';
 
 const DishDetail = () => {
   const { id } = useParams();
-  const { user } = useAuth();
   const { addToCart } = useCart();
   const navigate = useNavigate();
   const [dish, setDish] = useState(null);
@@ -157,7 +155,7 @@ const DishDetail = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Image du plat */}
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="bg-white rounded-lg h-96 shadow-sm overflow-hidden">
             {dishImage ? (
               <img 
                 src={dishImage} 
@@ -177,7 +175,7 @@ const DishDetail = () => {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">{dish.name}</h1>
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
+                  <div className="flex flex-wrap items-center space-x-4 text-sm text-gray-500">
                     <span className="flex items-center">
                       <FiPackage className="mr-1" />
                       {getCategoryText(dish.category)}
@@ -237,7 +235,7 @@ const DishDetail = () => {
               )}
 
               {/* Boutons d'action */}
-              <div className="flex space-x-4">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={handleAddToCart}
                   disabled={dish.trackQuantity && dish.stock === 0}
@@ -252,7 +250,7 @@ const DishDetail = () => {
                 </button>
                 <button
                   onClick={handleGoToRestaurant}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-6 py-3 mx-auto border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Voir le restaurant
                 </button>

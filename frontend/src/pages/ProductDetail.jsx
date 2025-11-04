@@ -594,7 +594,7 @@ const ProductDetail = () => {
               )}
 
               {/* Image principale */}
-              <div className="flex-1 w-full rounded-lg overflow-hidden bg-white shadow-lg">
+              <div className="flex-1 w-full rounded-lg overflow-hidden bg-white shadow-lg flex items-stretch">
                 {product.images && product.images.length > 0 ? (
                   <div className="relative w-full aspect-square">
                     <CloudinaryImage
@@ -602,7 +602,7 @@ const ProductDetail = () => {
                         ? product.images[selectedImageIndex] 
                         : (product.images[selectedImageIndex]?.url || product.images[selectedImageIndex]?.secure_url || product.images[0]?.url || product.images[0]?.secure_url || (typeof product.images[0] === 'string' ? product.images[0] : ''))}
                       alt={productName}
-                      className="w-full h-full object-cover"
+                      className="absolute inset-0 w-full h-full object-cover"
                       width={800}
                       height={800}
                       quality="auto"
@@ -622,7 +622,7 @@ const ProductDetail = () => {
             <div className="space-y-6 relative">
               {/* En-tête */}
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between mb-2">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                     {getCategoryLabel(product.category)}
                   </span>
@@ -640,7 +640,7 @@ const ProductDetail = () => {
                   </div>
                 </div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">{productName}</h1>
-                <div className="flex items-center space-x-4">
+                <div className="flex flex-wrap gap-2 items-center">
                   <div className="flex items-center space-x-2">
                     <StarRating 
                       rating={reviewStats?.averageRating || 0} 
@@ -955,11 +955,6 @@ const ProductDetail = () => {
                   )}
 
 
-
-
-
-
-
                   {/* Informations de publication - Visible seulement pour le propriétaire et l'admin */}
                   {user && (user.userType === 'admin' || (product.producer && product.producer._id === user._id)) && (
                     <div className="bg-white rounded-lg p-6 shadow-sm border">
@@ -1028,7 +1023,6 @@ const ProductDetail = () => {
                     </div>
                   )}
 
-                  {/* Certifications */}
 
                   {/* Informations producteur */}
                   {producer && (
