@@ -342,6 +342,14 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
   user.emailVerified = true; // Synchroniser les deux champs
   user.emailVerificationToken = undefined;
   user.emailVerificationExpires = undefined;
+  
+  // Pour les types d'utilisateurs qui nécessitent une approbation (producer, transformer, exporter, transporter),
+  // l'approbation automatique se fait lors de la vérification de l'email (même logique que la validation admin)
+  const userTypesRequiringApproval = ['producer', 'transformer', 'exporter', 'transporter'];
+  if (userTypesRequiringApproval.includes(user.userType)) {
+    user.isApproved = true;
+  }
+  
   await user.save({ validateBeforeSave: false });
 
   // Retourner une réponse JSON de succès
