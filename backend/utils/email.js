@@ -15,17 +15,64 @@ module.exports = class Email {
   }
 
   newTransport() {
-    // 🥇 Gmail avec Nodemailer (RECOMMANDÉ - 500 emails/jour)
+    // 🥇 SendGrid (MEILLEUR pour Render - 100 emails/jour GRATUIT, très fiable)
+    if (process.env.SENDGRID_API_KEY) {
+      console.log('📧 Configuration email: SendGrid (Recommandé pour Render)');
+      return nodemailer.createTransport({
+        host: 'smtp.sendgrid.net',
+        port: 587,
+        secure: false,
+        auth: {
+          user: 'apikey',
+          pass: process.env.SENDGRID_API_KEY,
+        },
+        connectionTimeout: 30000, // 30 secondes
+        greetingTimeout: 30000,
+        socketTimeout: 30000,
+        debug: true,
+        logger: true
+      });
+    }
+    
+    // 🥈 Mailgun (EXCELLENT - 5000 emails/mois GRATUIT)
+    if (process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN) {
+      console.log('📧 Configuration email: Mailgun');
+      return nodemailer.createTransport({
+        host: `smtp.mailgun.org`,
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.MAILGUN_SMTP_USER || `postmaster@${process.env.MAILGUN_DOMAIN}`,
+          pass: process.env.MAILGUN_SMTP_PASSWORD || process.env.MAILGUN_API_KEY,
+        },
+        connectionTimeout: 30000,
+        greetingTimeout: 30000,
+        socketTimeout: 30000,
+        debug: true,
+        logger: true
+      });
+    }
+    
+    // 🥉 Gmail avec Nodemailer (500 emails/jour - peut avoir des timeouts sur Render)
     if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
       console.log('📧 Configuration email: Gmail (Nodemailer)');
+      console.log('⚠️  Note: Gmail peut avoir des problèmes de timeout sur Render');
+      console.log('💡 Recommandation: Utilisez SendGrid ou Mailgun pour plus de fiabilité');
       return nodemailer.createTransport({
         service: 'gmail',
         auth: {
           user: process.env.GMAIL_USER,
           pass: process.env.GMAIL_APP_PASSWORD,
         },
-        debug: true, // Toujours activer pour diagnostiquer en production
-        logger: true // Toujours activer pour diagnostiquer en production
+        // Timeouts augmentés pour éviter les erreurs de connexion
+        connectionTimeout: 60000, // 60 secondes (au lieu de 2 par défaut)
+        greetingTimeout: 60000,
+        socketTimeout: 60000,
+        pool: true, // Réutiliser les connexions
+        maxConnections: 1,
+        maxMessages: 3,
+        debug: true,
+        logger: true
       });
     }
     
@@ -40,6 +87,11 @@ module.exports = class Email {
       console.error(`   EMAIL_PORT: ${emailPort}`);
       console.error(`   EMAIL_USERNAME: ${emailUser ? '✅ Configuré' : '❌ Manquant'}`);
       console.error(`   EMAIL_PASSWORD: ${process.env.EMAIL_PASSWORD ? '✅ Configuré' : '❌ Manquant'}`);
+      console.error('');
+      console.error('💡 Solutions recommandées:');
+      console.error('   1. SendGrid (GRATUIT - 100 emails/jour): https://sendgrid.com');
+      console.error('   2. Mailgun (GRATUIT - 5000 emails/mois): https://mailgun.com');
+      console.error('   3. EmailJS (GRATUIT - 200 emails/mois): https://emailjs.com');
     } else {
       console.log(`📧 Configuration email: SMTP (${emailHost}:${emailPort})`);
     }
@@ -52,11 +104,14 @@ module.exports = class Email {
         user: emailUser,
         pass: process.env.EMAIL_PASSWORD,
       },
+      connectionTimeout: 30000,
+      greetingTimeout: 30000,
+      socketTimeout: 30000,
       tls: {
         rejectUnauthorized: false // Pour serveurs SMTP locaux
       },
-      debug: true, // Toujours activer pour diagnostiquer
-      logger: true // Toujours activer pour diagnostiquer
+      debug: true,
+      logger: true
     });
   }
 
@@ -101,10 +156,15 @@ module.exports = class Email {
         console.error('   - Vérifiez GMAIL_USER et GMAIL_APP_PASSWORD (pour Gmail)');
         console.error('   - Ou EMAIL_USERNAME et EMAIL_PASSWORD (pour SMTP)');
         console.error('   - Pour Gmail: Activez l\'authentification 2FA et créez un mot de passe d\'application');
-      } else if (error.code === 'ECONNECTION' || error.message.includes('connect')) {
-        console.error('🔌 ERREUR DE CONNEXION:');
+      } else if (error.code === 'ECONNECTION' || error.code === 'ETIMEDOUT' || error.message.includes('connect') || error.message.includes('timeout')) {
+        console.error('🔌 ERREUR DE CONNEXION/TIMEOUT:');
         console.error('   - Vérifiez EMAIL_HOST et EMAIL_PORT');
         console.error('   - Vérifiez que le serveur SMTP est accessible depuis Render');
+        console.error('   - Gmail peut être bloqué par les restrictions réseau de Render');
+        console.error('   💡 SOLUTIONS RECOMMANDÉES:');
+        console.error('      1. Utilisez SendGrid (GRATUIT - 100 emails/jour): https://sendgrid.com');
+        console.error('      2. Utilisez Mailgun (GRATUIT - 5000 emails/mois): https://mailgun.com');
+        console.error('      3. Configurez EmailJS comme fallback (GRATUIT - 200 emails/mois)');
       }
       
       // 4) Fallback avec EmailJS seulement si configuré
