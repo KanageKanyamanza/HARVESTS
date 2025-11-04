@@ -335,8 +335,18 @@ exports.getMyProfile = catchAsync(async (req, res, next) => {
 exports.updateMyProfile = catchAsync(async (req, res, next) => {
   // Filtrer les champs autorisés
   const allowedFields = [
-    'farmName', 'farmSize', 'farmingType', 'storageCapacity',
-    'deliveryOptions', 'minimumOrderQuantity'
+    'firstName',
+    'lastName',
+    'farmName', 
+    'farmSize', 
+    'farmingType', 
+    'storageCapacity',
+    'address',
+    'city',
+    'region',
+    'country',
+    'deliveryOptions', 
+    'minimumOrderQuantity'
   ];
   
   const filteredBody = {};

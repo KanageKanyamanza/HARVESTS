@@ -135,11 +135,16 @@ exports.getMyProfile = catchAsync(async (req, res, next) => {
 
 exports.updateMyProfile = catchAsync(async (req, res, next) => {
   const allowedFields = [
+    'firstName',
+    'lastName',
     'restaurantName', 
     'restaurantType', 
     'cuisineTypes', 
     'seatingCapacity',
     'address',
+    'city',
+    'region',
+    'country',
     'additionalServices',
     'operatingHours',
     'restaurantBanner',

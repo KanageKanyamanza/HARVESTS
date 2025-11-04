@@ -188,18 +188,23 @@ const ProfilePage = () => {
         // Préparer les données pour le backend
         // Ne garder que les champs autorisés par le backend
         const dataToSend = {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
           restaurantName: formData.restaurantName,
           restaurantType: formData.restaurantType,
           cuisineTypes: formData.cuisineTypes || [], // S'assurer que cuisineTypes est toujours un tableau
           seatingCapacity: formData.seatingCapacity,
           address: formData.address,
+          city: formData.city,
+          region: formData.region,
+          country: formData.country,
           additionalServices: formData.additionalServices,
           operatingHours: formData.operatingHours
         };
         
         // Filtrer les valeurs undefined/null
         Object.keys(dataToSend).forEach(key => {
-          if (dataToSend[key] === undefined || dataToSend[key] === null) {
+          if (dataToSend[key] === undefined || dataToSend[key] === null || dataToSend[key] === '') {
             delete dataToSend[key];
           }
         });

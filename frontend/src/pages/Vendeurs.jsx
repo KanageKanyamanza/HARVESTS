@@ -328,7 +328,7 @@ const Vendeurs = () => {
 
 				{/* Filtres */}
 				<div className="flex justify-center mb-8">
-					<div className="bg-white rounded-lg shadow-sm p-1 flex">
+					<div className="bg-white rounded-lg shadow-sm p-1 flex overflow-x-auto">
 						<button
 							onClick={() => setFilter("all")}
 							className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${

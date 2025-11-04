@@ -51,7 +51,7 @@ const FeaturedProductsSection = () => {
             Featured Products
           </h2>
           {/* CTA pour voir tous les produits */}
-          <div className="flex justify-end">
+          <div className="flex whitespace-nowrap justify-end">
               <Link
                 to="/products?featured=true"
                 className="font-semibold inline-flex items-center text-primary-500 hover:text-primary-600 hover:underline hover:-translate-y-1 transition-all duration-300 ease-in-out"
