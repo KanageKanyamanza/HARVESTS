@@ -945,7 +945,24 @@ exports.getMyProducts = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getProduct = temporaryResponse('Détail produit');
+exports.getProduct = catchAsync(async (req, res, next) => {
+  const Product = require('../models/Product');
+  
+  const product = await Product.findOne({
+    _id: req.params.productId,
+    transformer: req.user._id
+  })
+  .populate('transformer', 'companyName firstName lastName address salesStats certifications createdAt country');
+
+  if (!product) {
+    return next(new AppError('Produit non trouvé', 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: { product }
+  });
+});
 exports.createProduct = catchAsync(async (req, res, next) => {
   const {
     name,
