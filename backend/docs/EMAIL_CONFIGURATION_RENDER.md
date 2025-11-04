@@ -4,9 +4,65 @@
 
 **Mailinator** est un service de **réception** d'emails (pour tester), mais vous avez toujours besoin d'un service **SMTP** pour **ENVOYER** les emails depuis votre application.
 
-## 🔧 Solutions Recommandées
+## 🔧 Solutions Recommandées (par ordre de priorité)
 
-### Option 1: Gmail (Recommandé - Gratuit - 500 emails/jour)
+### 🥇 Option 1: SendGrid (MEILLEUR pour Render - 100 emails/jour GRATUIT)
+
+**SendGrid est la solution la plus fiable sur Render** car il n'a pas de problèmes de timeout réseau.
+
+#### Configuration sur Render:
+
+1. **Créez un compte SendGrid**
+   - Allez sur [sendgrid.com](https://sendgrid.com)
+   - Créez un compte gratuit (100 emails/jour)
+   - Vérifiez votre email
+   - Complétez le processus de vérification
+
+2. **Créez une API Key**
+   - Settings → API Keys → Create API Key
+   - Nommez-la "Harvests Render"
+   - Donnez les permissions **"Mail Send"** (Full Access)
+   - **Copiez la clé API** (commence par `SG.`)
+
+3. **Configurez les Variables d'Environnement sur Render:**
+   - Allez dans votre service Render → Environment
+   - Ajoutez ces variables:
+     ```
+     SENDGRID_API_KEY=SG.votre-cle-api-copier-ici
+     EMAIL_FROM=noreply@harvests.sn
+     ```
+   - **C'est tout !** Le système utilisera automatiquement SendGrid
+
+4. **Testez avec Mailinator:**
+   - Envoyez un email vers `test@mailinator.com`
+   - Consultez sur [mailinator.com](https://www.mailinator.com) avec l'adresse `test`
+
+### 🥈 Option 2: Mailgun (EXCELLENT - 5000 emails/mois GRATUIT)
+
+**Mailgun est aussi très fiable** et offre plus d'emails gratuits.
+
+#### Configuration sur Render:
+
+1. **Créez un compte Mailgun**
+   - Allez sur [mailgun.com](https://www.mailgun.com)
+   - Créez un compte gratuit (5000 emails/mois)
+   - Vérifiez votre email
+   - Vous pouvez utiliser le domaine sandbox pour tester
+
+2. **Récupérez les identifiants**
+   - Dashboard → Sending → SMTP credentials
+   - Notez le **SMTP Username** et **SMTP Password**
+   - Notez votre **Domain** (ex: `sandbox123.mailgun.org`)
+
+3. **Configurez sur Render:**
+   ```
+   MAILGUN_DOMAIN=sandbox123.mailgun.org
+   MAILGUN_SMTP_USER=postmaster@sandbox123.mailgun.org
+   MAILGUN_SMTP_PASSWORD=votre-password-mailgun
+   EMAIL_FROM=noreply@harvests.sn
+   ```
+
+### 🥉 Option 3: Gmail (500 emails/jour - peut avoir des timeouts sur Render)
 
 #### Configuration sur Render:
 
@@ -33,52 +89,7 @@
    - Envoyez un email vers `test@mailinator.com`
    - Consultez sur [mailinator.com](https://www.mailinator.com) avec l'adresse `test`
 
-### Option 2: SMTP Générique (SendGrid, Mailgun, etc.)
-
-#### Avec SendGrid (Gratuit - 100 emails/jour):
-
-1. **Créez un compte SendGrid**
-   - Allez sur [sendgrid.com](https://sendgrid.com)
-   - Créez un compte gratuit
-   - Vérifiez votre email
-
-2. **Créez une API Key**
-   - Settings → API Keys → Create API Key
-   - Donnez les permissions "Mail Send"
-   - **Copiez la clé API**
-
-3. **Configurez sur Render:**
-   ```
-   EMAIL_HOST=smtp.sendgrid.net
-   EMAIL_PORT=587
-   EMAIL_USERNAME=apikey
-   EMAIL_PASSWORD=votre-api-key-sendgrid
-   EMAIL_SECURE=false
-   EMAIL_FROM=noreply@harvests.sn
-   ```
-
-#### Avec Mailgun (Gratuit - 5000 emails/mois):
-
-1. **Créez un compte Mailgun**
-   - Allez sur [mailgun.com](https://www.mailgun.com)
-   - Créez un compte gratuit
-   - Vérifiez votre domaine (ou utilisez le domaine sandbox)
-
-2. **Récupérez les identifiants SMTP**
-   - Dashboard → Sending → SMTP credentials
-   - Notez le nom d'utilisateur et le mot de passe
-
-3. **Configurez sur Render:**
-   ```
-   EMAIL_HOST=smtp.mailgun.org
-   EMAIL_PORT=587
-   EMAIL_USERNAME=votre-username-mailgun
-   EMAIL_PASSWORD=votre-password-mailgun
-   EMAIL_SECURE=false
-   EMAIL_FROM=noreply@harvests.sn
-   ```
-
-### Option 3: EmailJS (Fallback - 200 emails/mois gratuit)
+### Option 4: EmailJS (Fallback - 200 emails/mois gratuit)
 
 EmailJS est configuré comme **fallback automatique** si Nodemailer échoue.
 
@@ -112,7 +123,9 @@ EmailJS est configuré comme **fallback automatique** si Nodemailer échoue.
 
 1. **Allez dans votre service Render → Logs**
 2. **Recherchez ces messages au démarrage:**
-   - `📧 Configuration email: Gmail (Nodemailer)` ✅
+   - `📧 Configuration email: SendGrid (Recommandé pour Render)` ✅ (MEILLEUR)
+   - OU `📧 Configuration email: Mailgun` ✅ (EXCELLENT)
+   - OU `📧 Configuration email: Gmail (Nodemailer)` ⚠️ (peut avoir des timeouts)
    - OU `📧 Configuration email: SMTP (smtp.xxx.com:587)` ✅
    - `❌ Configuration email SMTP incomplète` ❌
 
@@ -132,15 +145,18 @@ EmailJS est configuré comme **fallback automatique** si Nodemailer échoue.
 ```
 **Solution:** Vérifiez que vous utilisez un **mot de passe d'application** et non votre mot de passe Gmail normal.
 
-#### `ECONNECTION` - Erreur de Connexion:
+#### `ECONNECTION` / `ETIMEDOUT` - Erreur de Connexion/Timeout:
 ```
 ❌ Erreur Nodemailer détaillée:
-   Code: ECONNECTION
-   🔌 ERREUR DE CONNEXION:
-   - Vérifiez EMAIL_HOST et EMAIL_PORT
-   - Vérifiez que le serveur SMTP est accessible depuis Render
+   Code: ECONNECTION ou ETIMEDOUT
+   🔌 ERREUR DE CONNEXION/TIMEOUT:
+   - Gmail peut être bloqué par les restrictions réseau de Render
+   💡 SOLUTIONS RECOMMANDÉES:
+      1. Utilisez SendGrid (GRATUIT - 100 emails/jour): https://sendgrid.com
+      2. Utilisez Mailgun (GRATUIT - 5000 emails/mois): https://mailgun.com
+      3. Configurez EmailJS comme fallback (GRATUIT - 200 emails/mois)
 ```
-**Solution:** Vérifiez que `EMAIL_HOST` et `EMAIL_PORT` sont corrects et que le serveur SMTP accepte les connexions.
+**Solution:** **Utilisez SendGrid ou Mailgun** au lieu de Gmail. Ils sont beaucoup plus fiables sur Render et n'ont pas de problèmes de timeout.
 
 ## 🧪 Tester avec Mailinator
 
@@ -170,8 +186,11 @@ EmailJS est configuré comme **fallback automatique** si Nodemailer échoue.
 
 - **Mailinator** est pour **recevoir** des emails (tests)
 - Vous avez **toujours besoin** d'un service SMTP pour **envoyer** des emails
-- Gmail est la solution la plus simple et gratuite (500 emails/jour)
+- **SendGrid est la solution la plus fiable sur Render** (100 emails/jour gratuit, pas de timeout)
+- **Mailgun est aussi excellent** (5000 emails/mois gratuit)
+- **Gmail peut avoir des problèmes de timeout** sur Render à cause des restrictions réseau
 - Les logs détaillés sont maintenant activés pour diagnostiquer les problèmes
+- **EmailJS n'est pas obligatoire** - c'est juste un fallback optionnel
 
 ## 📞 Support
 
