@@ -50,26 +50,25 @@ mongoose
       const hasGmail = !!(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
       const hasSMTP = !!(process.env.EMAIL_HOST && process.env.EMAIL_USERNAME && process.env.EMAIL_PASSWORD);
       
-      if (hasSendGrid) {
-        console.log('📧 Configuration email: SendGrid détectée ✅ (Recommandé pour Render)');
-      } else if (hasMailgun) {
-        console.log('📧 Configuration email: Mailgun détectée ✅');
-      } else if (hasGmail) {
-        console.log('📧 Configuration email: Gmail détectée ⚠️  (peut avoir des timeouts sur Render)');
-        console.log('   💡 Recommandation: Utilisez SendGrid ou Mailgun pour plus de fiabilité');
-      } else if (hasSMTP) {
-        console.log(`📧 Configuration email: SMTP détectée (${process.env.EMAIL_HOST}:${process.env.EMAIL_PORT || 587})`);
+      const isProduction = process.env.NODE_ENV === 'production';
+      
+      if (isProduction) {
+        if (hasSendGrid) {
+          console.log('📧 Configuration email PRODUCTION: SendGrid API ✅ (Recommandé pour Render)');
+        } else {
+          console.warn('⚠️  Configuration email PRODUCTION manquante!');
+          console.warn('   En production, configurez SENDGRID_API_KEY');
+          console.warn('   📖 Voir: backend/docs/EMAIL_CONFIGURATION_RENDER.md');
+        }
       } else {
-        console.warn('⚠️  Configuration email manquante!');
-        console.warn('   Les emails ne pourront pas être envoyés.');
-        console.warn('');
-        console.warn('   💡 Solutions recommandées (par ordre):');
-        console.warn('      1. SendGrid (100 emails/jour GRATUIT): SENDGRID_API_KEY');
-        console.warn('      2. Mailgun (5000 emails/mois GRATUIT): MAILGUN_DOMAIN + MAILGUN_SMTP_PASSWORD');
-        console.warn('      3. Gmail (500 emails/jour): GMAIL_USER + GMAIL_APP_PASSWORD');
-        console.warn('      4. SMTP générique: EMAIL_HOST + EMAIL_USERNAME + EMAIL_PASSWORD');
-        console.warn('');
-        console.warn('   📖 Voir: backend/docs/EMAIL_CONFIGURATION_RENDER.md');
+        if (hasGmail) {
+          console.log('📧 Configuration email DÉVELOPPEMENT: Gmail (Nodemailer) ✅');
+        } else if (hasSendGrid) {
+          console.log('📧 Configuration email DÉVELOPPEMENT: SendGrid détectée (sera utilisé en production)');
+        } else {
+          console.warn('⚠️  Configuration email DÉVELOPPEMENT manquante!');
+          console.warn('   En développement, configurez GMAIL_USER + GMAIL_APP_PASSWORD');
+        }
       }
       
       if (process.env.EMAILJS_SERVICE_ID && process.env.EMAILJS_TEMPLATE_ID && process.env.EMAILJS_PUBLIC_KEY) {
