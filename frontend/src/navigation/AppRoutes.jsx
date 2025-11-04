@@ -186,7 +186,12 @@ const AppRoutes = () => {
           <AuthLayout><SuspenseRoute element={<EmailVerification />} /></AuthLayout>
         </PublicRoute>
       } />
-      <Route path="/reset-password" element={
+      <Route path="/verify-email/:token" element={
+        <PublicRoute>
+          <AuthLayout><SuspenseRoute element={<EmailVerification />} /></AuthLayout>
+        </PublicRoute>
+      } />
+      <Route path="/reset-password/:token" element={
         <PublicRoute>
           <AuthLayout><SuspenseRoute element={<ResetPassword />} /></AuthLayout>
         </PublicRoute>
