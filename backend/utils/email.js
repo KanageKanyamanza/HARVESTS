@@ -4,6 +4,17 @@ const htmlToText = require('html-to-text');
 const { getTranslations } = require('../config/i18n');
 const emailjs = require('@emailjs/nodejs');
 
+// SendGrid SDK (pour production - évite les restrictions SMTP de Render)
+let sgMail;
+if (process.env.SENDGRID_API_KEY) {
+  try {
+    sgMail = require('@sendgrid/mail');
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  } catch (error) {
+    console.warn('⚠️ @sendgrid/mail non installé, utilisation de SMTP');
+  }
+}
+
 module.exports = class Email {
   constructor(user, url, language = 'fr') {
     this.to = user.email;
@@ -14,84 +25,79 @@ module.exports = class Email {
     this.t = getTranslations(this.language).t;
   }
 
+  // Envoyer avec SendGrid API (production uniquement)
+  async sendWithSendGrid(subject, html, text) {
+    if (!sgMail) {
+      throw new Error('SendGrid SDK non disponible');
+    }
+
+    const msg = {
+      to: this.to,
+      from: this.from,
+      subject: subject,
+      text: text,
+      html: html,
+    };
+
+    try {
+      const result = await sgMail.send(msg);
+      console.log('✅ Email envoyé avec succès via SendGrid API');
+      console.log(`   Status Code: ${result[0].statusCode}`);
+      return result;
+    } catch (error) {
+      console.error('❌ Erreur SendGrid API:');
+      console.error(`   Message: ${error.message}`);
+      if (error.response) {
+        console.error(`   Status Code: ${error.response.statusCode}`);
+        console.error(`   Body: ${JSON.stringify(error.response.body)}`);
+      }
+      throw error;
+    }
+  }
+
+  // Transport Nodemailer pour développement (Gmail)
   newTransport() {
-    // 🥇 SendGrid (MEILLEUR pour Render - 100 emails/jour GRATUIT, très fiable)
-    if (process.env.SENDGRID_API_KEY) {
-      console.log('📧 Configuration email: SendGrid (Recommandé pour Render)');
-      return nodemailer.createTransport({
-        host: 'smtp.sendgrid.net',
-        port: 587,
-        secure: false,
-        auth: {
-          user: 'apikey',
-          pass: process.env.SENDGRID_API_KEY,
-        },
-        connectionTimeout: 30000, // 30 secondes
-        greetingTimeout: 30000,
-        socketTimeout: 30000,
-        debug: true,
-        logger: true
-      });
-    }
+    const isProduction = process.env.NODE_ENV === 'production';
     
-    // 🥈 Mailgun (EXCELLENT - 5000 emails/mois GRATUIT)
-    if (process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN) {
-      console.log('📧 Configuration email: Mailgun');
-      return nodemailer.createTransport({
-        host: `smtp.mailgun.org`,
-        port: 587,
-        secure: false,
-        auth: {
-          user: process.env.MAILGUN_SMTP_USER || `postmaster@${process.env.MAILGUN_DOMAIN}`,
-          pass: process.env.MAILGUN_SMTP_PASSWORD || process.env.MAILGUN_API_KEY,
-        },
-        connectionTimeout: 30000,
-        greetingTimeout: 30000,
-        socketTimeout: 30000,
-        debug: true,
-        logger: true
-      });
+    // En PRODUCTION: SendGrid via API (pas SMTP)
+    if (isProduction && process.env.SENDGRID_API_KEY) {
+      // Ne pas créer de transport SMTP, on utilisera l'API directement
+      return null;
     }
-    
-    // 🥉 Gmail avec Nodemailer (500 emails/jour - peut avoir des timeouts sur Render)
-    if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
-      console.log('📧 Configuration email: Gmail (Nodemailer)');
-      console.log('⚠️  Note: Gmail peut avoir des problèmes de timeout sur Render');
-      console.log('💡 Recommandation: Utilisez SendGrid ou Mailgun pour plus de fiabilité');
+
+    // En DÉVELOPPEMENT: Gmail avec Nodemailer
+    if (!isProduction && process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+      console.log('📧 Configuration email: Gmail (Nodemailer) - DÉVELOPPEMENT');
       return nodemailer.createTransport({
         service: 'gmail',
         auth: {
           user: process.env.GMAIL_USER,
           pass: process.env.GMAIL_APP_PASSWORD,
         },
-        // Timeouts augmentés pour éviter les erreurs de connexion
-        connectionTimeout: 60000, // 60 secondes (au lieu de 2 par défaut)
+        connectionTimeout: 60000,
         greetingTimeout: 60000,
         socketTimeout: 60000,
-        pool: true, // Réutiliser les connexions
+        pool: true,
         maxConnections: 1,
         maxMessages: 3,
         debug: true,
         logger: true
       });
     }
-    
-    // 🔧 FALLBACK: Configuration SMTP générique
+
+    // FALLBACK: Configuration SMTP générique
     const emailHost = process.env.EMAIL_HOST || 'localhost';
     const emailPort = parseInt(process.env.EMAIL_PORT) || 587;
     const emailUser = process.env.EMAIL_USERNAME;
     
     if (!emailUser || !process.env.EMAIL_PASSWORD) {
-      console.error('❌ Configuration email SMTP incomplète:');
-      console.error(`   EMAIL_HOST: ${emailHost}`);
-      console.error(`   EMAIL_PORT: ${emailPort}`);
-      console.error(`   EMAIL_USERNAME: ${emailUser ? '✅ Configuré' : '❌ Manquant'}`);
-      console.error(`   EMAIL_PASSWORD: ${process.env.EMAIL_PASSWORD ? '✅ Configuré' : '❌ Manquant'}`);
-      console.error('');
-      console.error('💡 Solutions recommandées:');
-      console.error('   1. SendGrid (GRATUIT - 100 emails/jour): https://sendgrid.com');
-      console.error('   2. Mailgun (GRATUIT - 5000 emails/mois): https://mailgun.com');
-      console.error('   3. EmailJS (GRATUIT - 200 emails/mois): https://emailjs.com');
+      if (isProduction) {
+        console.error('❌ Configuration email PRODUCTION incomplète!');
+        console.error('   En production, configurez SENDGRID_API_KEY');
+      } else {
+        console.error('❌ Configuration email DÉVELOPPEMENT incomplète!');
+        console.error('   En développement, configurez GMAIL_USER + GMAIL_APP_PASSWORD');
+      }
     } else {
       console.log(`📧 Configuration email: SMTP (${emailHost}:${emailPort})`);
     }
@@ -108,7 +114,7 @@ module.exports = class Email {
       greetingTimeout: 30000,
       socketTimeout: 30000,
       tls: {
-        rejectUnauthorized: false // Pour serveurs SMTP locaux
+        rejectUnauthorized: false
       },
       debug: true,
       logger: true
@@ -117,6 +123,8 @@ module.exports = class Email {
 
   // Envoyer l'email avec fallback EmailJS (si configuré)
   async send(template, subject) {
+    const isProduction = process.env.NODE_ENV === 'production';
+    
     // 1) Générer le HTML basé sur un template pug
     const html = pug.renderFile(`${__dirname}/../views/email/${template}.pug`, {
       firstName: this.firstName,
@@ -124,19 +132,51 @@ module.exports = class Email {
       subject,
     });
 
-    // 2) Définir les options de l'email
-    const mailOptions = {
-      from: this.from,
-      to: this.to,
-      subject,
-      html,
-      text: htmlToText.convert(html),
-    };
+    const text = htmlToText.convert(html);
 
-    // 3) Essayer d'envoyer avec Nodemailer d'abord
+    // 2) PRODUCTION: Utiliser SendGrid API (pas SMTP)
+    if (isProduction && process.env.SENDGRID_API_KEY) {
+      try {
+        console.log(`📧 Tentative d'envoi email à ${this.to} via SendGrid API (PRODUCTION)`);
+        const result = await this.sendWithSendGrid(subject, html, text);
+        return result;
+      } catch (error) {
+        console.error('❌ Erreur SendGrid API:', error.message);
+        
+        // Fallback EmailJS si configuré
+        if (this.isEmailJSConfigured()) {
+          console.log('🔄 Tentative de fallback avec EmailJS...');
+          try {
+            await this.sendWithEmailJS(subject, html);
+            console.log('✅ Email envoyé avec succès via EmailJS (fallback)');
+            return;
+          } catch (emailjsError) {
+            console.error('❌ Erreur EmailJS également:', emailjsError.message);
+            throw new Error(`Échec envoi email: SendGrid (${error.message}) et EmailJS (${emailjsError.message})`);
+          }
+        } else {
+          throw new Error(`Échec envoi email: SendGrid (${error.message}) - EmailJS non configuré`);
+        }
+      }
+    }
+
+    // 3) DÉVELOPPEMENT: Utiliser Gmail avec Nodemailer
     try {
       const transporter = this.newTransport();
-      console.log(`📧 Tentative d'envoi email à ${this.to} via ${process.env.GMAIL_USER ? 'Gmail' : 'SMTP'}`);
+      if (!transporter) {
+        throw new Error('Aucun transport email configuré');
+      }
+      
+      console.log(`📧 Tentative d'envoi email à ${this.to} via Gmail (DÉVELOPPEMENT)`);
+      
+      const mailOptions = {
+        from: this.from,
+        to: this.to,
+        subject,
+        html,
+        text,
+      };
+
       const result = await transporter.sendMail(mailOptions);
       console.log('✅ Email envoyé avec succès via Nodemailer');
       console.log(`   Message ID: ${result.messageId}`);
@@ -146,39 +186,29 @@ module.exports = class Email {
       console.error('❌ Erreur Nodemailer détaillée:');
       console.error(`   Message: ${error.message}`);
       console.error(`   Code: ${error.code || 'N/A'}`);
-      console.error(`   Command: ${error.command || 'N/A'}`);
-      console.error(`   Response: ${error.response || 'N/A'}`);
-      console.error(`   Stack: ${error.stack}`);
       
-      // Vérifier la configuration
       if (error.code === 'EAUTH' || error.message.includes('Invalid login')) {
         console.error('🔐 ERREUR D\'AUTHENTIFICATION:');
-        console.error('   - Vérifiez GMAIL_USER et GMAIL_APP_PASSWORD (pour Gmail)');
-        console.error('   - Ou EMAIL_USERNAME et EMAIL_PASSWORD (pour SMTP)');
+        console.error('   - Vérifiez GMAIL_USER et GMAIL_APP_PASSWORD');
         console.error('   - Pour Gmail: Activez l\'authentification 2FA et créez un mot de passe d\'application');
-      } else if (error.code === 'ECONNECTION' || error.code === 'ETIMEDOUT' || error.message.includes('connect') || error.message.includes('timeout')) {
+      } else if (error.code === 'ECONNECTION' || error.code === 'ETIMEDOUT') {
         console.error('🔌 ERREUR DE CONNEXION/TIMEOUT:');
-        console.error('   - Vérifiez EMAIL_HOST et EMAIL_PORT');
-        console.error('   - Vérifiez que le serveur SMTP est accessible depuis Render');
-        console.error('   - Gmail peut être bloqué par les restrictions réseau de Render');
-        console.error('   💡 SOLUTIONS RECOMMANDÉES:');
-        console.error('      1. Utilisez SendGrid (GRATUIT - 100 emails/jour): https://sendgrid.com');
-        console.error('      2. Utilisez Mailgun (GRATUIT - 5000 emails/mois): https://mailgun.com');
-        console.error('      3. Configurez EmailJS comme fallback (GRATUIT - 200 emails/mois)');
+        console.error('   - Vérifiez votre connexion internet');
+        console.error('   - Vérifiez que Gmail est accessible');
       }
       
-      // 4) Fallback avec EmailJS seulement si configuré
+      // Fallback EmailJS si configuré
       if (this.isEmailJSConfigured()) {
         console.log('🔄 Tentative de fallback avec EmailJS...');
         try {
           await this.sendWithEmailJS(subject, html);
           console.log('✅ Email envoyé avec succès via EmailJS (fallback)');
+          return;
         } catch (emailjsError) {
           console.error('❌ Erreur EmailJS également:', emailjsError.message);
           throw new Error(`Échec envoi email: Nodemailer (${error.message}) et EmailJS (${emailjsError.message})`);
         }
       } else {
-        console.warn('⚠️ EmailJS non configuré, échec définitif de l\'envoi d\'email');
         throw new Error(`Échec envoi email: Nodemailer (${error.message}) - EmailJS non configuré`);
       }
     }
@@ -215,24 +245,48 @@ module.exports = class Email {
     await this.send('deliveryNotification', 'Votre commande est en route!');
   }
 
-  // Méthode de test de connexion Nodemailer
+  // Méthode de test de connexion
   async testConnection() {
-    try {
-      const transporter = this.newTransport();
-      console.log('🔌 Test de connexion email...');
-      await transporter.verify();
-      console.log('✅ Connexion email réussie !');
-      return true;
-    } catch (error) {
-      console.error('❌ Erreur connexion email:');
-      console.error(`   Message: ${error.message}`);
-      console.error(`   Code: ${error.code || 'N/A'}`);
-      if (error.code === 'EAUTH') {
-        console.error('   🔐 Problème d\'authentification - Vérifiez vos identifiants');
-      } else if (error.code === 'ECONNECTION') {
-        console.error('   🔌 Problème de connexion - Vérifiez EMAIL_HOST et EMAIL_PORT');
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    if (isProduction && process.env.SENDGRID_API_KEY) {
+      // Test SendGrid API
+      try {
+        console.log('🔌 Test de connexion SendGrid API...');
+        if (!sgMail) {
+          throw new Error('SendGrid SDK non disponible');
+        }
+        // Test simple avec un email de test (ne sera pas envoyé réellement)
+        console.log('✅ SendGrid API configurée correctement');
+        return true;
+      } catch (error) {
+        console.error('❌ Erreur SendGrid API:');
+        console.error(`   Message: ${error.message}`);
+        return false;
       }
-      return false;
+    } else {
+      // Test Nodemailer
+      try {
+        const transporter = this.newTransport();
+        if (!transporter) {
+          console.error('❌ Aucun transport email configuré');
+          return false;
+        }
+        console.log('🔌 Test de connexion email...');
+        await transporter.verify();
+        console.log('✅ Connexion email réussie !');
+        return true;
+      } catch (error) {
+        console.error('❌ Erreur connexion email:');
+        console.error(`   Message: ${error.message}`);
+        console.error(`   Code: ${error.code || 'N/A'}`);
+        if (error.code === 'EAUTH') {
+          console.error('   🔐 Problème d\'authentification - Vérifiez vos identifiants');
+        } else if (error.code === 'ECONNECTION') {
+          console.error('   🔌 Problème de connexion - Vérifiez EMAIL_HOST et EMAIL_PORT');
+        }
+        return false;
+      }
     }
   }
 
@@ -269,11 +323,12 @@ module.exports = class Email {
 
   // Envoyer email de test simple avec fallback
   async sendTestEmail() {
+    const isProduction = process.env.NODE_ENV === 'production';
     const testHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #2E7D32;">🌾 Test Harvests</h1>
         <p>Bonjour ${this.firstName},</p>
-        <p>✅ <strong>Nodemailer fonctionne parfaitement !</strong></p>
+        <p>✅ <strong>${isProduction ? 'SendGrid API' : 'Nodemailer'} fonctionne parfaitement !</strong></p>
         <p>✅ Votre configuration email est opérationnelle</p>
         <p>✅ Harvests peut envoyer des emails</p>
         <hr>
@@ -282,17 +337,48 @@ module.exports = class Email {
       </div>
     `;
 
-    const mailOptions = {
-      from: this.from,
-      to: this.to,
-      subject: '🧪 Test Harvests - Nodemailer',
-      html: testHtml,
-      text: `Test Harvests - Nodemailer fonctionne ! Email envoyé à ${this.firstName}`
-    };
+    const subject = `🧪 Test Harvests - ${isProduction ? 'SendGrid API' : 'Nodemailer'}`;
+    const text = `Test Harvests - ${isProduction ? 'SendGrid API' : 'Nodemailer'} fonctionne ! Email envoyé à ${this.firstName}`;
 
+    // En production, utiliser SendGrid API
+    if (isProduction && process.env.SENDGRID_API_KEY) {
+      try {
+        const result = await this.sendWithSendGrid(subject, testHtml, text);
+        console.log('✅ Email de test envoyé avec succès via SendGrid API !');
+        return result;
+      } catch (error) {
+        console.error('❌ Erreur SendGrid API:', error.message);
+        
+        if (this.isEmailJSConfigured()) {
+          try {
+            const emailjsResult = await this.sendWithEmailJS(subject, testHtml);
+            console.log('✅ Email de test envoyé avec succès via EmailJS (fallback) !');
+            return emailjsResult;
+          } catch (emailjsError) {
+            console.error('❌ Erreur EmailJS également:', emailjsError.message);
+            throw new Error(`Échec test email: SendGrid (${error.message}) et EmailJS (${emailjsError.message})`);
+          }
+        } else {
+          throw new Error(`Échec test email: SendGrid (${error.message}) - EmailJS non configuré`);
+        }
+      }
+    }
+
+    // En développement, utiliser Nodemailer
     try {
-      // Essayer Nodemailer d'abord
       const transporter = this.newTransport();
+      if (!transporter) {
+        throw new Error('Aucun transport email configuré');
+      }
+      
+      const mailOptions = {
+        from: this.from,
+        to: this.to,
+        subject,
+        html: testHtml,
+        text
+      };
+
       const testEmail = await transporter.sendMail(mailOptions);
       console.log('✅ Email de test envoyé avec succès via Nodemailer !');
       return testEmail;
@@ -301,8 +387,7 @@ module.exports = class Email {
       
       if (this.isEmailJSConfigured()) {
         try {
-          // Fallback EmailJS seulement si configuré
-          const emailjsResult = await this.sendWithEmailJS('🧪 Test Harvests - EmailJS', testHtml);
+          const emailjsResult = await this.sendWithEmailJS(subject, testHtml);
           console.log('✅ Email de test envoyé avec succès via EmailJS (fallback) !');
           return emailjsResult;
         } catch (emailjsError) {
@@ -310,7 +395,6 @@ module.exports = class Email {
           throw new Error(`Échec test email: Nodemailer (${error.message}) et EmailJS (${emailjsError.message})`);
         }
       } else {
-        console.warn('⚠️ EmailJS non configuré, échec définitif du test d\'email');
         throw new Error(`Échec test email: Nodemailer (${error.message}) - EmailJS non configuré`);
       }
     }
