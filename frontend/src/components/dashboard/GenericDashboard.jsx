@@ -4,9 +4,129 @@ import { useAuth } from '../../hooks/useAuth';
 import { useOrderNotifications } from '../../hooks/useOrderNotifications';
 import ModularDashboardLayout from '../layout/ModularDashboardLayout';
 import CommonStats from '../common/CommonStats';
+import { authService } from '../../services';
 import {
   FiAlertCircle,
+  FiMail,
+  FiRefreshCw,
+  FiCheck,
 } from 'react-icons/fi';
+
+// Composant pour la bannière de vérification d'email
+const EmailVerificationBanner = ({ userEmail }) => {
+  const [isResending, setIsResending] = useState(false);
+  const [resendStatus, setResendStatus] = useState(null);
+  const [lastResendTime, setLastResendTime] = useState(0);
+
+  const handleResendEmail = async () => {
+    if (!userEmail) {
+      setResendStatus('error');
+      return;
+    }
+
+    // Protection contre les clics trop rapides (30 secondes minimum)
+    const now = Date.now();
+    const timeSinceLastResend = now - lastResendTime;
+    const minInterval = 30 * 1000; // 30 secondes
+
+    if (timeSinceLastResend < minInterval && lastResendTime > 0) {
+      const remainingTime = Math.ceil((minInterval - timeSinceLastResend) / 1000);
+      setResendStatus('wait');
+      setTimeout(() => setResendStatus(null), 2000);
+      return;
+    }
+
+    setIsResending(true);
+    setResendStatus(null);
+    setLastResendTime(now);
+
+    try {
+      await authService.resendVerification(userEmail);
+      setResendStatus('success');
+    } catch (error) {
+      console.error('Erreur lors du renvoi de l\'email:', error);
+      setResendStatus('error');
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  return (
+    <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+      <div className="flex items-start">
+        <FiAlertCircle className="h-5 w-5 text-yellow-400 mt-0.5 mr-3 flex-shrink-0" />
+        <div className="flex-1">
+          <h3 className="text-sm font-medium text-yellow-800">
+            Vérification d'email requise
+          </h3>
+          <p className="mt-1 text-sm text-yellow-700">
+            Pour accéder à toutes les fonctionnalités du dashboard, veuillez vérifier votre adresse email.
+            {userEmail && (
+              <span className="block mt-1 font-medium">Email : {userEmail}</span>
+            )}
+          </p>
+          
+          {/* Messages de statut */}
+          {resendStatus === 'success' && (
+            <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded-md">
+              <div className="flex items-center">
+                <FiCheck className="h-4 w-4 text-green-600 mr-2" />
+                <p className="text-sm text-green-700">
+                  Email de vérification renvoyé avec succès ! Vérifiez votre boîte de réception.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {resendStatus === 'error' && (
+            <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-md">
+              <div className="flex items-center">
+                <FiAlertCircle className="h-4 w-4 text-red-600 mr-2" />
+                <p className="text-sm text-red-700">
+                  Erreur lors du renvoi. Veuillez réessayer.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {resendStatus === 'wait' && (
+            <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
+              <p className="text-sm text-blue-700">
+                Veuillez attendre avant de renvoyer l'email.
+              </p>
+            </div>
+          )}
+
+          {/* Bouton de renvoi */}
+          <div className="mt-3">
+            <button
+              onClick={handleResendEmail}
+              disabled={isResending || resendStatus === 'success' || !userEmail}
+              className="inline-flex items-center px-3 py-2 border border-yellow-300 text-sm font-medium rounded-md text-yellow-800 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isResending ? (
+                <>
+                  <FiRefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Envoi en cours...
+                </>
+              ) : resendStatus === 'success' ? (
+                <>
+                  <FiCheck className="h-4 w-4 mr-2" />
+                  Email renvoyé
+                </>
+              ) : (
+                <>
+                  <FiMail className="h-4 w-4 mr-2" />
+                  Renvoyer l'email de vérification
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const GenericDashboard = ({ 
   userType, 
@@ -240,27 +360,7 @@ const GenericDashboard = ({
       <div className="p-6 max-w-7xl mx-auto pb-20">
         {/* Alerte de vérification d'email */}
         {emailVerificationRequired && (
-          <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <div className="flex items-start">
-              <FiAlertCircle className="h-5 w-5 text-yellow-400 mt-0.5 mr-3" />
-              <div className="flex-1">
-                <h3 className="text-sm font-medium text-yellow-800">
-                  Vérification d'email requise
-                </h3>
-                <p className="mt-1 text-sm text-yellow-700">
-                  Pour accéder à toutes les fonctionnalités du dashboard, veuillez vérifier votre adresse email.
-                </p>
-                <div className="mt-3">
-                  <button
-                    onClick={() => navigate('/verify-email')}
-                    className="text-sm font-medium text-yellow-800 hover:text-yellow-900 underline"
-                  >
-                    Vérifier mon email maintenant
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <EmailVerificationBanner userEmail={user?.email} />
         )}
 
         {/* Header */}
