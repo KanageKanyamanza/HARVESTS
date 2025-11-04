@@ -4,6 +4,7 @@ import { restaurateurService } from '../../../services';
 import { useNotifications } from '../../../contexts/NotificationContext';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import CloudinaryImage from '../../../components/common/CloudinaryImage';
+import { normalizeDishImage, getDishImageUrl } from '../../../utils/dishImageUtils';
 import {
   FiPlus,
   FiEdit,
@@ -65,7 +66,8 @@ const DishesManagement = () => {
           dish.description = { fr: '', en: '' };
         }
         
-        return dish;
+        // Normaliser l'image du plat
+        return normalizeDishImage(dish);
       });
       
       setDishes(dishes);
@@ -457,10 +459,10 @@ const DishesManagement = () => {
                   return (
                   <div key={dish._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                     {/* Image */}
-                    {(dish.images?.[0]?.url || dish.image) ? (
+                    {dish.image ? (
                       <div className="w-full h-32 mb-3 rounded-lg overflow-hidden">
-                        <img
-                          src={dish.images?.[0]?.url || dish.image}
+                        <CloudinaryImage
+                          src={dish.image}
                           alt={dish.name?.fr || dish.name?.en || dish.name || 'Plat'}
                           className="w-full h-full object-cover"
                           onError={(e) => {
@@ -594,7 +596,7 @@ const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
   // Extraire les données du Product pour le formulaire
   const dishName = dish?.name?.fr || dish?.name?.en || dish?.name || '';
   const dishDescription = dish?.description?.fr || dish?.description?.en || dish?.description || '';
-  const dishImage = dish?.images?.[0]?.url || dish?.image || '';
+  const dishImage = getDishImageUrl(dish) || '';
   const dishCategory = dish?.dishInfo?.category || dish?.category || 'plat';
   const dishPreparationTime = dish?.dishInfo?.preparationTime || dish?.preparationTime || 30;
   const dishAllergens = dish?.dishInfo?.allergens || dish?.allergens || [];

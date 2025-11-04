@@ -487,7 +487,10 @@ export const AuthProvider = ({ children }) => {
     const tokenCheckInterval = setInterval(() => {
       if (isTokenExpired()) {
         console.warn('Token expiré, déconnexion automatique');
-        logout();
+        logout().then(() => {
+          // Rediriger vers l'accueil après déconnexion automatique
+          window.location.href = '/';
+        });
       }
     }, 60000); // Vérifier chaque minute
 

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import cartService from '../services/cartService';
+import { getDishImageUrl } from '../utils/dishImageUtils';
 
 const CartContext = createContext();
 
@@ -83,13 +84,21 @@ export const CartProvider = ({ children }) => {
     const handleExternalAdd = (event) => {
       const product = event.detail;
       if (product) {
+        // Extraire l'image correctement pour les plats
+        let imageUrl = '';
+        if (product.originType === 'dish' || product.restaurateur) {
+          imageUrl = getDishImageUrl(product) || '';
+        } else {
+          imageUrl = product.image || '';
+        }
+        
         dispatch({
           type: CART_ACTIONS.ADD_ITEM,
           payload: {
             productId: product._id || product.id,
             name: product.name,
             price: product.price,
-            image: product.image,
+            image: imageUrl,
             quantity: product.quantity || 1,
             producer: product.producer || {}
           }
@@ -191,28 +200,35 @@ export const CartProvider = ({ children }) => {
     const supplierInfo = product.producer || product.supplier || product.vendor || product.restaurateur || {};
     
     // Extraire l'image de manière exhaustive pour gérer tous les formats
+    // Pour les plats (originType === 'dish'), utiliser la fonction utilitaire spécialisée
     let imageUrl = '';
-    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-      const firstImage = product.images[0];
-      if (typeof firstImage === 'object' && firstImage !== null) {
-        imageUrl = firstImage.url || firstImage.src || firstImage.path || '';
-      } else if (typeof firstImage === 'string') {
-        imageUrl = firstImage;
-      }
-    }
-    
-    if (!imageUrl) {
-      if (product.primaryImage) {
-        if (typeof product.primaryImage === 'object' && product.primaryImage !== null) {
-          imageUrl = product.primaryImage.url || product.primaryImage.src || '';
-        } else if (typeof product.primaryImage === 'string') {
-          imageUrl = product.primaryImage;
+    if (product.originType === 'dish' || product.restaurateur) {
+      // Utiliser la fonction utilitaire pour les plats
+      imageUrl = getDishImageUrl(product) || '';
+    } else {
+      // Pour les produits normaux, utiliser la logique standard
+      if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+        const firstImage = product.images[0];
+        if (typeof firstImage === 'object' && firstImage !== null) {
+          imageUrl = firstImage.url || firstImage.src || firstImage.path || firstImage.secure_url || '';
+        } else if (typeof firstImage === 'string') {
+          imageUrl = firstImage;
         }
       }
-    }
-    
-    if (!imageUrl) {
-      imageUrl = product.image || product.coverImage || product.thumbnail || '';
+      
+      if (!imageUrl) {
+        if (product.primaryImage) {
+          if (typeof product.primaryImage === 'object' && product.primaryImage !== null) {
+            imageUrl = product.primaryImage.url || product.primaryImage.src || product.primaryImage.secure_url || '';
+          } else if (typeof product.primaryImage === 'string') {
+            imageUrl = product.primaryImage;
+          }
+        }
+      }
+      
+      if (!imageUrl) {
+        imageUrl = product.image || product.coverImage || product.thumbnail || '';
+      }
     }
     
     const cartItem = {

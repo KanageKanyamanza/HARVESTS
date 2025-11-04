@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { getDishes, approveDish, rejectDish } from '../../services/adminService';
 import CloudinaryImage from '../../components/common/CloudinaryImage';
+import { normalizeDishImage } from '../../utils/dishImageUtils';
 
 const AdminDishes = () => {
   const [dishes, setDishes] = useState([]);
@@ -59,30 +60,7 @@ const AdminDishes = () => {
       }
       
       // Normaliser les données pour s'assurer que l'image est accessible
-      dishesData = dishesData.map(dish => {
-        // Extraire l'image de manière exhaustive
-        if (!dish.image) {
-          if (dish.images && Array.isArray(dish.images) && dish.images.length > 0) {
-            const firstImage = dish.images[0];
-            if (typeof firstImage === 'object' && firstImage !== null) {
-              dish.image = firstImage.url || firstImage.src || firstImage.path || '';
-            } else if (typeof firstImage === 'string') {
-              dish.image = firstImage;
-            }
-          }
-        }
-        
-        // Fallback sur primaryImage si pas d'image dans images
-        if (!dish.image && dish.primaryImage) {
-          if (typeof dish.primaryImage === 'object' && dish.primaryImage !== null) {
-            dish.image = dish.primaryImage.url || dish.primaryImage.src || '';
-          } else if (typeof dish.primaryImage === 'string') {
-            dish.image = dish.primaryImage;
-          }
-        }
-        
-        return dish;
-      });
+      dishesData = dishesData.map(dish => normalizeDishImage(dish));
       
       setDishes(dishesData);
       setTotalPages(paginationData.totalPages || 1);
@@ -327,9 +305,9 @@ const AdminDishes = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-12 w-12">
-                              {(dish.image || (dish.images && Array.isArray(dish.images) && dish.images.length > 0)) ? (
+                              {dish.image ? (
                                 <img
-                                  src={dish.image || (dish.images?.[0]?.url || dish.images?.[0])}
+                                  src={dish.image}
                                   alt={dish.name || 'Plat'}
                                   className="h-12 w-12 rounded-lg object-cover"
                                   onError={(e) => {
@@ -340,7 +318,7 @@ const AdminDishes = () => {
                               ) : null}
                               <div 
                                 className="h-12 w-12 rounded-lg bg-gray-200 flex items-center justify-center"
-                                style={{ display: (dish.image || (dish.images && Array.isArray(dish.images) && dish.images.length > 0)) ? 'none' : 'flex' }}
+                                style={{ display: dish.image ? 'none' : 'flex' }}
                               >
                                 <Package className="h-6 w-6 text-gray-400" />
                               </div>

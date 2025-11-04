@@ -12,6 +12,7 @@ import {
   FiGlobe
 } from 'react-icons/fi';
 import { getVendorAverageRating, getVendorReviewCount, formatAverageRating, getProductAverageRating, getProductReviewCount } from '../../utils/vendorRatings';
+import { getDishImageUrl } from '../../utils/dishImageUtils';
 
 // Configuration pour les producteurs
 export const producerConfig = {
@@ -341,7 +342,7 @@ export const restaurateurConfig = {
   getItemName: (dish) => dish.name?.fr || dish.name?.en || dish.name || 'Plat',
   getItemDescription: (dish) => dish.description?.fr || dish.description?.en || dish.description || 'Aucune description',
   getItemPrice: (dish) => dish.price?.value ?? dish.price ?? 0,
-  getItemImage: (dish) => dish.image || dish.images?.[0]?.url || dish.primaryImage?.url,
+  getItemImage: (dish) => getDishImageUrl(dish),
   getItemExtraInfo: (dish) => `${dish.preparationTime || dish.dishInfo?.preparationTime || 0} min`,
   getItemButtonText: 'Commander',
   getItemButtonIcon: <FiPackage className="w-4 h-4 mr-2" />,
