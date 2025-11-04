@@ -31,12 +31,31 @@ module.exports = class Email {
       throw new Error('SendGrid SDK non disponible');
     }
 
+    // Extraire l'email "from" (peut être "Harvests <email@example.com>" ou juste "email@example.com")
+    const fromEmail = this.from.match(/<(.+)>/)?.[1] || this.from;
+    
     const msg = {
       to: this.to,
-      from: this.from,
+      from: {
+        email: fromEmail,
+        name: 'Harvests'
+      },
       subject: subject,
       text: text,
       html: html,
+      // Amélioration de la délivrabilité (éviter le spam)
+      mailSettings: {
+        sandboxMode: {
+          enable: false // Désactiver le mode sandbox en production
+        }
+      },
+      // Catégories pour le tracking (optionnel)
+      categories: ['harvests', 'authentication'],
+      // Headers personnalisés pour améliorer la délivrabilité
+      customArgs: {
+        source: 'harvests-platform',
+        environment: process.env.NODE_ENV || 'production'
+      }
     };
 
     try {
