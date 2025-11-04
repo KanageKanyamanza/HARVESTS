@@ -7,6 +7,7 @@ import React from 'react';
 const TransformerDashboard = React.lazy(() => import('../../../pages/dashboard/transformer/TransformerDashboardNew'));
 const TransformerProducts = React.lazy(() => import('../../../pages/dashboard/transformer/products/MyProducts'));
 const TransformerAddProduct = React.lazy(() => import('../../../pages/dashboard/transformer/products/AddProduct'));
+const TransformerEditProduct = React.lazy(() => import('../../../pages/dashboard/transformer/products/EditProduct'));
 const OrdersList = React.lazy(() => import('../../../pages/dashboard/transformer/OrdersList'));
 const TransformerReviews = React.lazy(() => import('../../../pages/dashboard/transformer/TransformerReviews'));
 const TransformerStats = React.lazy(() => import('../../../pages/dashboard/transformer/TransformerStats'));
@@ -29,6 +30,11 @@ export const transformerRoutes = [
     path: '/transformer/products/add',
     element: <TransformerAddProduct />,
     title: 'Ajouter un produit'
+  },
+  {
+    path: '/transformer/products/:id/edit',
+    element: <TransformerEditProduct />,
+    title: 'Modifier un produit'
   },
   {
     path: '/transformer/orders',

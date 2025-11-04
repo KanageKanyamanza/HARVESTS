@@ -45,6 +45,77 @@ const getCountryName = (code) => {
   return countries[code] || code;
 };
 
+// Fonction utilitaire pour formater l'unité avec pluriel approprié
+const formatUnit = (quantity, unit) => {
+  const unitValue = unit || 'unité';
+  
+  // Unités qui ne prennent pas de "s" au pluriel
+  const unitsNoPlural = ['kg', 'g', 'L', 'ml', 'm³', 'm²', 'cm', 'mm', 'tons', 'tonnes'];
+  
+  if (unitsNoPlural.includes(unitValue)) {
+    return unitValue;
+  }
+  
+  // Pour les autres unités, ajouter "s" si quantité > 1
+  return quantity > 1 ? `${unitValue}s` : unitValue;
+};
+
+// Fonction utilitaire pour obtenir le nom du vendeur (priorité sur nom d'entreprise/ferme)
+const getVendorName = (vendor) => {
+  if (!vendor) return '';
+  return vendor.farmName || vendor.companyName || vendor.restaurantName || vendor.businessName || `${vendor.firstName || ''} ${vendor.lastName || ''}`.trim() || 'Vendeur';
+};
+
+// Fonction utilitaire pour obtenir le logo du vendeur
+const getVendorLogo = (vendor) => {
+  if (!vendor) return null;
+  // Priorité : shopLogo > shopBanner > avatar
+  if (vendor.shopLogo) {
+    return typeof vendor.shopLogo === 'string' ? vendor.shopLogo : vendor.shopLogo.url || vendor.shopLogo.secure_url;
+  }
+  if (vendor.shopBanner) {
+    return typeof vendor.shopBanner === 'string' ? vendor.shopBanner : vendor.shopBanner.url || vendor.shopBanner.secure_url;
+  }
+  if (vendor.avatar) {
+    return typeof vendor.avatar === 'string' ? vendor.avatar : vendor.avatar.url || vendor.avatar.secure_url;
+  }
+  return null;
+};
+
+// Fonction utilitaire pour formater l'adresse complète
+const formatAddress = (vendor) => {
+  if (!vendor) return '';
+  const parts = [];
+  // Gérer les deux structures : address.city ou city directement
+  const city = vendor.address?.city || vendor.city;
+  if (city) parts.push(city);
+  // Gérer les deux structures : address.region ou region directement
+  const region = vendor.address?.region || vendor.region;
+  if (region) parts.push(region);
+  if (vendor.country) parts.push(getCountryName(vendor.country));
+  return parts.length > 0 ? parts.join(', ') : '';
+};
+
+// Fonction pour obtenir la route du profil selon le type de vendeur
+const getVendorProfileRoute = (vendor) => {
+  if (!vendor) return '#';
+  const vendorId = vendor._id || vendor.id;
+  if (vendor.userType === 'transformer') {
+    return `/transformers/${vendorId}`;
+  }
+  if (vendor.userType === 'restaurateur') {
+    return `/restaurateurs/${vendorId}`;
+  }
+  if (vendor.userType === 'exporter') {
+    return `/exporters/${vendorId}`;
+  }
+  if (vendor.userType === 'transporter') {
+    return `/transporters/${vendorId}`;
+  }
+  // Par défaut pour producer
+  return `/producers/${vendorId}`;
+};
+
 const ProductDetail = () => {
   const { id } = useParams();
   const { user } = useAuth();
@@ -124,10 +195,13 @@ const ProductDetail = () => {
             setReviews(productData.reviews);
           }
           
-          // Les informations du producteur sont déjà incluses dans la réponse du produit
+          // Les informations du vendeur (producer ou transformer) sont déjà incluses dans la réponse du produit
           if (productData.producer) {
             console.log('🔍 Données du producteur:', productData.producer);
             setProducer(productData.producer);
+          } else if (productData.transformer) {
+            console.log('🔍 Données du transformateur:', productData.transformer);
+            setProducer(productData.transformer);
           }
           
           // Mettre à jour le compteur de favoris
@@ -490,52 +564,58 @@ const ProductDetail = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Images du produit */}
-            <div className="space-y-4">
-              <div className="rounded-lg overflow-hidden bg-white shadow-lg max-w-[400px] mx-auto">
-                {product.images && product.images.length > 0 ? (
-                  <CloudinaryImage
-                    src={product.images[selectedImageIndex]?.url || product.images[0]?.url}
-                    alt={productName}
-                    className="w-full h-[400px] max-w-[400px] mx-auto object-cover"
-                    width={400}
-                    height={400}
-                    quality="auto"
-                    crop="fit"
-                  />
-                ) : (
-                  <div className="w-full h-[400px] bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center text-gray-500">
-                    <FiPackage className="h-24 w-24 text-gray-400 mb-4" />
-                    <span className="text-lg font-medium">Aucune image</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Miniatures des images */}
+            <div className="flex flex-col lg:flex-row gap-4">
+              {/* Miniatures des images - À gauche sur desktop, en bas sur mobile */}
               {product.images && product.images.length > 1 && (
-                <div className="grid grid-cols-4 gap-2">
+                <div className="flex flex-row lg:flex-col gap-2 lg:order-first justify-center lg:justify-start overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
                   {product.images.map((image, index) => (
                     <button
                       key={index}
                       onClick={() => setSelectedImageIndex(index)}
-                      className={`aspect-square rounded-lg overflow-hidden border-2 ${
+                      className={`flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
                         selectedImageIndex === index 
-                          ? 'border-harvests-green' 
+                          ? 'border-harvests-green ring-2 ring-harvests-green ring-offset-2' 
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
+                      style={{ width: '80px', height: '80px', minWidth: '80px' }}
                     >
                       <CloudinaryImage
-                        src={image.url}
+                        src={typeof image === 'string' ? image : (image.url || image.secure_url)}
                         alt={`${productName} ${index + 1}`}
-                        className="w-full h-20 object-cover"
-                        width={100}
+                        className="w-full h-full object-cover"
+                        width={80}
                         height={80}
                         quality="auto"
-                        crop="fit"
+                        crop="fill"
                       />
                     </button>
                   ))}
                 </div>
               )}
+
+              {/* Image principale */}
+              <div className="flex-1 w-full rounded-lg overflow-hidden bg-white shadow-lg">
+                {product.images && product.images.length > 0 ? (
+                  <div className="relative w-full aspect-square">
+                    <CloudinaryImage
+                      src={typeof product.images[selectedImageIndex] === 'string' 
+                        ? product.images[selectedImageIndex] 
+                        : (product.images[selectedImageIndex]?.url || product.images[selectedImageIndex]?.secure_url || product.images[0]?.url || product.images[0]?.secure_url || (typeof product.images[0] === 'string' ? product.images[0] : ''))}
+                      alt={productName}
+                      className="w-full h-full object-cover"
+                      width={800}
+                      height={800}
+                      quality="auto"
+                      crop="fill"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full aspect-square bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center text-gray-500">
+                    <FiPackage className="h-24 w-24 text-gray-400 mb-4" />
+                    <span className="text-lg font-medium">Aucune image</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Informations du produit */}
@@ -597,7 +677,9 @@ const ProductDetail = () => {
                 <span className="text-3xl font-bold text-gray-900">
                   {formatPrice(product.price)}
                 </span>
-                <span className="text-sm text-gray-600">par kg</span>
+                <span className="text-sm text-gray-600">
+                  par {product.unit || 'unité'}
+                </span>
               </div>
 
               {/* Description courte */}
@@ -664,25 +746,40 @@ const ProductDetail = () => {
                 </div>
               </div>
 
-              {/* Informations du producteur */}
+              {/* Informations du vendeur */}
               {producer && (
                 <div className="bg-harvests-light rounded-lg p-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-harvests-green rounded-full flex items-center justify-center">
-                      <FiUser className="h-6 w-6 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">
-                        {producer.businessName || producer.firstName + ' ' + producer.lastName}
+                    {/* Logo du vendeur */}
+                    {getVendorLogo(producer) ? (
+                      <CloudinaryImage
+                        src={getVendorLogo(producer)}
+                        alt={getVendorName(producer)}
+                        className="w-12 h-12 rounded-full object-cover"
+                        width={48}
+                        height={48}
+                        quality="auto"
+                        crop="fill"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-harvests-green rounded-full flex items-center justify-center flex-shrink-0">
+                        <FiUser className="h-6 w-6 text-white" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-gray-900 truncate">
+                        {getVendorName(producer)}
                       </h3>
-                      <p className="text-sm text-gray-600 flex items-center">
-                        <FiMapPin className="h-4 w-4 mr-1" />
-                        {producer.address?.city}, {getCountryName(producer.country)}
-                      </p>
+                      {formatAddress(producer) && (
+                        <p className="text-sm text-gray-600 flex items-center mt-1">
+                          <FiMapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+                          <span className="truncate">{formatAddress(producer)}</span>
+                        </p>
+                      )}
                     </div>
                     <button
-                      onClick={() => navigate(`/producers/${producer._id}`)}
-                      className="text-harvests-green hover:text-green-600 text-sm font-medium"
+                      onClick={() => navigate(getVendorProfileRoute(producer))}
+                      className="text-harvests-green hover:text-green-600 text-sm font-medium whitespace-nowrap flex-shrink-0"
                     >
                       Visiter la boutique
                     </button>
@@ -775,19 +872,25 @@ const ProductDetail = () => {
                         {product.inventory?.quantity !== undefined && (
                           <div className="flex justify-between">
                             <dt className="text-gray-600">Stock disponible</dt>
-                            <dd className="font-medium">{product.inventory.quantity} unités</dd>
+                            <dd className="font-medium">
+                              {product.inventory.quantity} {formatUnit(product.inventory.quantity, product.unit)}
+                            </dd>
                           </div>
                         )}
                         {product.minimumOrderQuantity && (
                           <div className="flex justify-between">
                             <dt className="text-gray-600">Quantité minimum</dt>
-                            <dd className="font-medium">{product.minimumOrderQuantity} unité(s)</dd>
+                            <dd className="font-medium">
+                              {product.minimumOrderQuantity} {formatUnit(product.minimumOrderQuantity, product.unit)}
+                            </dd>
                           </div>
                         )}
                         {product.maximumOrderQuantity && (
                           <div className="flex justify-between">
                             <dt className="text-gray-600">Quantité maximum</dt>
-                            <dd className="font-medium">{product.maximumOrderQuantity} unité(s)</dd>
+                            <dd className="font-medium">
+                              {product.maximumOrderQuantity} {formatUnit(product.maximumOrderQuantity, product.unit)}
+                            </dd>
                           </div>
                         )}
                       </div>
@@ -834,7 +937,9 @@ const ProductDetail = () => {
                               )}
                               <div className="flex justify-between">
                                 <span className="text-gray-600">Stock</span>
-                                <span className="font-medium">{variant.inventory?.quantity || 0} unités</span>
+                                <span className="font-medium">
+                                  {variant.inventory?.quantity || 0} {formatUnit(variant.inventory?.quantity || 0, variant.unit || product.unit)}
+                                </span>
                               </div>
                               {variant.sku && (
                                 <div className="flex justify-between">
@@ -930,22 +1035,24 @@ const ProductDetail = () => {
                     <div className="bg-white rounded-lg p-6 shadow-sm border">
                       <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                         <FiUser className="h-5 w-5 mr-2" />
-                        Informations producteur
+                        Informations du vendeur
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-3">
                           <div className="flex justify-between">
                             <dt className="text-gray-600">Nom</dt>
                             <dd className="font-medium">
-                              {producer.businessName || producer.firstName + ' ' + producer.lastName}
+                              {getVendorName(producer)}
                             </dd>
                           </div>
-                          <div className="flex justify-between">
-                            <dt className="text-gray-600">Localisation</dt>
-                            <dd className="font-medium">
-                              {producer.address?.city}, {getCountryName(producer.country)}
-                            </dd>
-                          </div>
+                          {formatAddress(producer) && (
+                            <div className="flex justify-between">
+                              <dt className="text-gray-600">Localisation</dt>
+                              <dd className="font-medium">
+                                {formatAddress(producer)}
+                              </dd>
+                            </div>
+                          )}
                           <div className="flex justify-between">
                             <dt className="text-gray-600">Membre depuis</dt>
                             <dd className="font-medium">

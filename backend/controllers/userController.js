@@ -120,8 +120,19 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 
   // 3) Ajouter l'image si téléchargée (Cloudinary)
   if (req.file) {
-    // req.file.path contient l'URL Cloudinary
-    const imageUrl = req.file.path;
+    // Avec multer-storage-cloudinary, l'URL peut être dans path ou secure_url
+    const imageUrl = req.file.path || req.file.secure_url || req.file.url;
+    
+    if (!imageUrl) {
+      console.error('❌ Aucune URL trouvée dans req.file:', req.file);
+      return next(new AppError('Erreur lors de l\'upload de l\'image: URL manquante', 500));
+    }
+    
+    console.log('✅ Image uploadée avec succès:', {
+      fieldname: req.file.fieldname,
+      url: imageUrl,
+      public_id: req.file.filename || req.file.public_id
+    });
     
     // Déterminer le type d'image selon le champ name
     if (req.file.fieldname === 'avatar') {
@@ -133,18 +144,52 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     }
   }
 
-  // 4) Mettre à jour le document utilisateur
-  const user = await User.findById(req.user.id);
-  if (!user) {
-    return next(new AppError('Utilisateur non trouvé', 404));
+  // 4) Mettre à jour le document utilisateur selon le type
+  let updatedUser;
+  try {
+    const UserModel = userModels[req.user.userType] || User;
+    let user = await UserModel.findById(req.user.id);
+    
+    if (!user) {
+      // Si le modèle spécifique ne trouve pas l'utilisateur, essayer User
+      user = await User.findById(req.user.id);
+      if (!user) {
+        return next(new AppError('Utilisateur non trouvé', 404));
+      }
+    }
+
+    console.log('📝 Mise à jour du profil utilisateur:', {
+      userType: req.user.userType,
+      userId: req.user.id,
+      fieldsToUpdate: Object.keys(filteredBody),
+      hasFile: !!req.file
+    });
+
+    // Mettre à jour les champs autorisés
+    Object.keys(filteredBody).forEach(key => {
+      // Vérifier si le champ existe dans le schéma ou est un champ d'image standard
+      const schemaPath = user.schema?.paths?.[key];
+      const isImageField = ['shopLogo', 'shopBanner', 'avatar'].includes(key);
+      
+      if (schemaPath || isImageField) {
+        user[key] = filteredBody[key];
+        console.log(`✅ Champ ${key} mis à jour:`, filteredBody[key]);
+      } else {
+        console.warn(`⚠️ Champ ${key} ignoré (n'existe pas dans le schéma)`);
+      }
+    });
+
+    updatedUser = await user.save({ validateBeforeSave: false });
+    console.log('✅ Profil utilisateur mis à jour avec succès');
+  } catch (error) {
+    console.error('❌ Erreur lors de la mise à jour du profil:', error);
+    console.error('❌ Détails de l\'erreur:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    return next(new AppError(`Erreur lors de la mise à jour: ${error.message}`, 500));
   }
-
-  // Mettre à jour les champs autorisés
-  Object.keys(filteredBody).forEach(key => {
-    user[key] = filteredBody[key];
-  });
-
-  const updatedUser = await user.save();
 
   // Filtrer les données utilisateur pour ne retourner que les champs nécessaires
   const filteredUser = {

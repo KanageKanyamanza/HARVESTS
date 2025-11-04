@@ -166,8 +166,8 @@ exports.getProduct = catchAsync(async (req, res, next) => {
     isActive: true,
     isPublic: { $ne: false }
   })
-  .populate('producer', 'farmName firstName lastName address salesStats certifications createdAt country')
-  .populate('transformer', 'companyName firstName lastName address salesStats certifications createdAt country');
+  .populate('producer', 'farmName firstName lastName address salesStats certifications createdAt country region userType shopLogo shopBanner avatar')
+  .populate('transformer', 'companyName firstName lastName address salesStats certifications createdAt country region userType shopLogo shopBanner avatar');
 
   if (!product) {
     return next(new AppError('Produit non trouvé', 404));
