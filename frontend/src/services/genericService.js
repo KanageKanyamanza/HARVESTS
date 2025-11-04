@@ -114,8 +114,18 @@ const createGenericService = (userType) => ({
 });
 
 // Services spécifiques pour chaque type d'utilisateur
-export const producerService = createGenericService('producer');
-export const consumerService = createGenericService('consumer');
+export const producerService = {
+  ...createGenericService('producer'),
+  // Override pour le profil (route spécifique)
+  getProfile: () => api.get('/producers/me/profile'),
+  updateProfile: (data) => api.patch('/producers/me/profile', data),
+};
+export const consumerService = {
+  ...createGenericService('consumer'),
+  // Override pour le profil (route spécifique)
+  getProfile: () => api.get('/consumers/me/profile'),
+  updateProfile: (data) => api.patch('/consumers/me/profile', data),
+};
 export const transformerService = {
   ...createGenericService('transformer'),
   // Override pour le profil (route spécifique)
