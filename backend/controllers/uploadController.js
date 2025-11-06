@@ -36,6 +36,9 @@ const upload = multer({
 // Middleware d'upload
 exports.uploadProductImages = upload.array('images', 10);
 
+// Middleware d'upload pour un seul fichier (pour Cloudinary direct)
+exports.uploadSingleFile = upload.single('file');
+
 // Upload d'images de produits vers Cloudinary
 exports.uploadProductImagesToCloudinary = catchAsync(async (req, res, next) => {
   if (!req.files || req.files.length === 0) {
@@ -147,6 +150,56 @@ exports.deleteImageByUrl = catchAsync(async (req, res, next) => {
   } catch (error) {
     console.error('Erreur lors de la suppression:', error);
     return next(new AppError('Erreur lors de la suppression de l\'image', 500));
+  }
+});
+
+// Upload direct vers Cloudinary (pour les blogs, etc.)
+exports.uploadToCloudinary = catchAsync(async (req, res, next) => {
+  if (!req.file) {
+    return next(new AppError('Aucun fichier fourni', 400));
+  }
+
+  try {
+    const uploadResult = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: req.body.folder || 'harvests/general',
+          resource_type: 'image',
+          transformation: req.body.transformations ? JSON.parse(req.body.transformations) : [
+            { width: 1200, height: 800, crop: 'fit', quality: 'auto' },
+            { format: 'auto' }
+          ]
+        },
+        (error, result) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(result);
+          }
+        }
+      );
+
+      uploadStream.end(req.file.buffer);
+    });
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Image uploadée avec succès',
+      data: {
+        public_id: uploadResult.public_id,
+        secure_url: uploadResult.secure_url,
+        url: uploadResult.url,
+        original_filename: req.file.originalname,
+        size: req.file.size,
+        format: uploadResult.format,
+        width: uploadResult.width,
+        height: uploadResult.height,
+        folder: uploadResult.folder
+      }
+    });
+  } catch (error) {
+    console.error('Erreur lors de l\'upload Cloudinary:', error);
+    return next(new AppError('Erreur lors de l\'upload de l\'image', 500));
   }
 });
 

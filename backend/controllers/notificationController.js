@@ -94,9 +94,12 @@ exports.getNotificationsByCategory = catchAsync(async (req, res, next) => {
 
 // Marquer une notification comme lue
 exports.markAsRead = catchAsync(async (req, res, next) => {
+  // Gérer à la fois les utilisateurs normaux et les admins
+  const recipientId = req.admin ? req.admin._id : req.user.id;
+  
   const notification = await Notification.findOne({
     _id: req.params.id,
-    recipient: req.user.id
+    recipient: recipientId
   });
 
   if (!notification) {
@@ -116,8 +119,11 @@ exports.markAsRead = catchAsync(async (req, res, next) => {
 // Marquer toutes les notifications comme lues
 exports.markAllAsRead = catchAsync(async (req, res, next) => {
   const { category } = req.query;
+  
+  // Gérer à la fois les utilisateurs normaux et les admins
+  const recipientId = req.admin ? req.admin._id : req.user.id;
 
-  const result = await Notification.markAllAsRead(req.user.id, category);
+  const result = await Notification.markAllAsRead(recipientId, category);
 
   res.status(200).json({
     status: 'success',
@@ -285,10 +291,16 @@ exports.getAllNotifications = catchAsync(async (req, res, next) => {
 
   const queryObj = {};
   
+  // Si c'est un admin, filtrer par ses notifications uniquement
+  if (req.admin) {
+    queryObj.recipient = req.admin._id;
+  } else if (req.query.recipient) {
+    queryObj.recipient = req.query.recipient;
+  }
+  
   if (req.query.type) queryObj.type = req.query.type;
   if (req.query.category) queryObj.category = req.query.category;
   if (req.query.status) queryObj.status = req.query.status;
-  if (req.query.recipient) queryObj.recipient = req.query.recipient;
 
   const notifications = await Notification.find(queryObj)
     .populate('recipient', 'firstName lastName email userType')

@@ -36,6 +36,8 @@ import TransporteursExportateurs from '../pages/TransporteursExportateurs';
 import CartPage from '../pages/Cart';
 import Contact from '../pages/Contact';
 import LoyaltyProgram from '../pages/LoyaltyProgram';
+import BlogPage from '../pages/BlogPage';
+import BlogDetailPage from '../pages/BlogDetailPage';
 
 // Import des pages d'authentification
 import Login from '../pages/auth/Login';
@@ -164,6 +166,8 @@ const AppRoutes = () => {
       <Route path="/cart" element={<Layout><SuspenseRoute element={<CartPage />} /></Layout>} />
       <Route path="/contact" element={<Layout><SuspenseRoute element={<Contact />} /></Layout>} />
       <Route path="/loyalty" element={<Layout><SuspenseRoute element={<LoyaltyProgram />} /></Layout>} />
+      <Route path="/blog" element={<Layout><SuspenseRoute element={<BlogPage />} /></Layout>} />
+      <Route path="/blog/:slug" element={<Layout><SuspenseRoute element={<BlogDetailPage />} /></Layout>} />
 
       {/* Routes d'authentification */}
       <Route path="/login" element={

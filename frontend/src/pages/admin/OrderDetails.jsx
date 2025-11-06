@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
   User,
@@ -206,13 +206,13 @@ const OrderDetails = () => {
           <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Commande non trouvée</h2>
           <p className="text-gray-600 mb-4">Cette commande n'existe pas ou a été supprimée.</p>
-          <Link
-            to="/admin/orders"
+          <button
+            onClick={() => navigate(-1)}
             className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour aux commandes
-          </Link>
+            Retour
+          </button>
         </div>
       </div>
     );
@@ -230,13 +230,13 @@ const OrderDetails = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Link
-                to="/admin/orders"
+              <button
+                onClick={() => navigate(-1)}
                 className="inline-flex items-center text-gray-600 hover:text-gray-900"
               >
                 <ArrowLeft className="h-5 w-5 mr-2" />
-                Retour aux commandes
-              </Link>
+                Retour
+              </button>
             </div>
             <div className="flex items-center space-x-3">
               <div className="text-right">

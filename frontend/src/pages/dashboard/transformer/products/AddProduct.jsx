@@ -262,7 +262,7 @@ const NewProduct = () => {
           <div className="flex items-center justify-end space-x-4">
             <button
               type="button"
-              onClick={() => navigate('/transformer/products')}
+              onClick={() => navigate(-1)}
               className="px-6 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light"
             >
               Annuler

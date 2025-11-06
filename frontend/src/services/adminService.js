@@ -1,4 +1,5 @@
 import api from './api';
+import { adminBlogApiService } from './blogService';
 
 // Service pour les statistiques du dashboard
 export const getDashboardStats = async () => {
@@ -287,6 +288,52 @@ export const updateAdminProfile = async (profileData) => {
   return response.data;
 };
 
+// Service pour la gestion des blogs
+export const getBlogs = async (params = {}) => {
+  const response = await adminBlogApiService.getBlogs(params);
+  return response.data;
+};
+
+export const getBlogById = async (id) => {
+  const response = await adminBlogApiService.getBlog(id);
+  return response.data;
+};
+
+export const createBlog = async (blogData) => {
+  const response = await adminBlogApiService.createBlog(blogData);
+  return response.data;
+};
+
+export const updateBlog = async (id, blogData) => {
+  const response = await adminBlogApiService.updateBlog(id, blogData);
+  return response.data;
+};
+
+export const deleteBlog = async (id) => {
+  const response = await adminBlogApiService.deleteBlog(id);
+  return response.data;
+};
+
+export const getBlogStats = async () => {
+  const response = await adminBlogApiService.getStats();
+  return response.data;
+};
+
+export const getBlogVisits = async (blogId, params = {}) => {
+  const response = await adminBlogApiService.getBlogVisits(blogId, params);
+  return response.data;
+};
+
+export const getAllBlogVisits = async (params = {}) => {
+  const response = await adminBlogApiService.getAllVisits(params);
+  return response.data;
+};
+
+export const translateText = async (text, fromLang, toLang) => {
+  const response = await api.post('/blogs/translate', { text, fromLang, toLang });
+  return response.data;
+};
+
 // Export nommé pour adminService
 export const adminService = {
   // Dashboard
@@ -358,7 +405,18 @@ export const adminService = {
   toggleAdminStatus,
   getAdminStats,
   getAdminProfile,
-  updateAdminProfile
+  updateAdminProfile,
+  
+  // Blogs
+  getBlogs,
+  getBlogById,
+  createBlog,
+  updateBlog,
+  deleteBlog,
+  getBlogStats,
+  getBlogVisits,
+  getAllBlogVisits,
+  translateText
 };
 
 // Export par défaut aussi

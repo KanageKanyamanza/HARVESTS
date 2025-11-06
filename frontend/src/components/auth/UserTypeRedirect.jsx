@@ -32,6 +32,7 @@ const UserTypeRedirect = ({ children }) => {
   };
 
   useEffect(() => {
+    // Attendre que le chargement soit terminé avant toute redirection
     if (isLoading) return;
 
     // Ne pas rediriger s'il y a une modale ouverte
@@ -58,7 +59,8 @@ const UserTypeRedirect = ({ children }) => {
         }
       }
 
-      // Ne pas rediriger si l'utilisateur est déjà sur une route valide
+      // Ne JAMAIS rediriger si l'utilisateur est déjà sur une route valide
+      // Cela préserve la position de l'utilisateur après un refresh
       // (laisser ProtectedRoute gérer les vérifications d'accès)
     }
   }, [isAuthenticated, userType, isLoading, location.pathname, navigate, getDefaultRoute]);

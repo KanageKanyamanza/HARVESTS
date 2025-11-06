@@ -1,12 +1,63 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
+const Admin = require('../models/Admin');
+const User = require('../models/User');
 const uploadController = require('../controllers/uploadController');
 const authController = require('../controllers/authController');
+const adminAuthController = require('../controllers/adminAuthController');
 const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
+const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/appError');
 
 const router = express.Router();
 
-// Toutes les routes d'upload nécessitent une authentification
-router.use(authController.protect);
+// Middleware qui accepte à la fois les utilisateurs normaux et les admins
+const protectUserOrAdmin = catchAsync(async (req, res, next) => {
+  // 1) Récupérer le token
+  let token;
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
+  }
+
+  if (!token) {
+    return next(new AppError('Vous n\'êtes pas connecté. Veuillez vous connecter pour accéder à cette page.', 401));
+  }
+
+  // 2) Vérifier le token
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  // 3) Essayer d'abord de trouver un admin avec cet ID
+  const admin = await Admin.findById(decoded.id);
+  if (admin && admin.isActive) {
+    req.admin = admin;
+    return next();
+  }
+
+  // 4) Si ce n'est pas un admin, essayer de trouver un utilisateur normal
+  const user = await User.findById(decoded.id);
+  if (!user) {
+    return next(new AppError('L\'utilisateur propriétaire de ce token n\'existe plus.', 401));
+  }
+
+  // 5) Vérifier si l'utilisateur a changé de mot de passe après l'émission du token
+  if (user.changedPasswordAfter && user.changedPasswordAfter(decoded.iat)) {
+    return next(new AppError('L\'utilisateur a récemment changé de mot de passe! Veuillez vous reconnecter.', 401));
+  }
+
+  // 6) Vérifier si le compte est actif
+  if (!user.isActive) {
+    return next(new AppError('Votre compte a été désactivé.', 401));
+  }
+
+  // 7) Donner accès à la route protégée
+  req.user = user;
+  next();
+});
+
+// Toutes les routes d'upload nécessitent une authentification (utilisateur ou admin)
+router.use(protectUserOrAdmin);
 
 // Upload d'images de produits
 router.post(
@@ -26,5 +77,15 @@ router.delete('/image-by-url', uploadController.deleteImageByUrl);
 
 // Obtenir une URL optimisée
 router.get('/optimize/:publicId', uploadController.getOptimizedImageUrl);
+
+// Upload direct vers Cloudinary (pour les blogs, etc.)
+router.post(
+  '/cloudinary',
+  uploadLimiter,
+  uploadController.uploadSingleFile,
+  fileTypeValidation(['image/jpeg', 'image/png', 'image/webp', 'image/gif']),
+  fileSizeValidation(10 * 1024 * 1024), // 10MB pour les images de blog
+  uploadController.uploadToCloudinary
+);
 
 module.exports = router;

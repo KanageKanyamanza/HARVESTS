@@ -191,6 +191,8 @@ const messageRoutes = require('./routes/messageRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
+const blogRoutes = require('./routes/blogRoutes');
+const blogVisitorRoutes = require('./routes/blogVisitorRoutes');
 
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/orders', orderRoutes);
@@ -199,6 +201,8 @@ app.use('/api/v1/messages', messageRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/upload', uploadRoutes);
+app.use('/api/v1/blogs', blogRoutes);
+app.use('/api/v1/blog-visitors', blogVisitorRoutes);
 
 
 // Routes à implémenter plus tard

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { consumerService, producerService, transformerService, restaurateurService, orderService } from '../../services';
+import { adminService } from '../../services/adminService';
 import { parseProductName } from '../../utils/productUtils';
+import CloudinaryImage from '../../components/common/CloudinaryImage';
 import {
   FiArrowLeft,
   FiShoppingBag,
@@ -25,11 +27,15 @@ const OrderDetail = () => {
   const { id, orderId } = useParams();
   const orderIdParam = id || orderId;
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(false);
+  
+  // Vérifier si on est dans le contexte admin
+  const isAdminContext = location.pathname.startsWith('/admin/orders');
 
   useEffect(() => {
     const loadOrderDetails = async () => {
@@ -44,24 +50,35 @@ const OrderDetail = () => {
         
         let response;
         
-        // Utiliser le service approprié selon le type d'utilisateur
-        if (user.userType === 'consumer') {
-          response = await consumerService.getMyOrder(orderIdParam);
-        } else if (user.userType === 'producer') {
-          response = await producerService.getOrder(orderIdParam);
-        } else if (user.userType === 'transformer') {
-          response = await transformerService.getMyOrder(orderIdParam);
-        } else if (user.userType === 'restaurateur') {
-          response = await restaurateurService.getOrder(orderIdParam);
+        // Si on est dans le contexte admin, utiliser le service admin
+        if (isAdminContext) {
+          response = await adminService.getOrderById(orderIdParam);
+          // Le service admin retourne response.data qui contient { status: 'success', data: { order: {...} } }
+          if (response.status === 'success' && response.data && response.data.order) {
+            setOrder(response.data.order);
+          } else {
+            setError('Commande non trouvée');
+          }
         } else {
-          // Pour les autres types d'utilisateurs (admin, etc.), utiliser le service général
-          response = await orderService.getOrder(orderIdParam);
-        }
-        
-        if (response.data.status === 'success') {
-          setOrder(response.data.data.order);
-        } else {
-          setError('Commande non trouvée');
+          // Utiliser le service approprié selon le type d'utilisateur
+          if (user.userType === 'consumer') {
+            response = await consumerService.getMyOrder(orderIdParam);
+          } else if (user.userType === 'producer') {
+            response = await producerService.getOrder(orderIdParam);
+          } else if (user.userType === 'transformer') {
+            response = await transformerService.getMyOrder(orderIdParam);
+          } else if (user.userType === 'restaurateur') {
+            response = await restaurateurService.getOrder(orderIdParam);
+          } else {
+            // Pour les autres types d'utilisateurs, utiliser le service général
+            response = await orderService.getOrder(orderIdParam);
+          }
+          
+          if (response.data.status === 'success') {
+            setOrder(response.data.data.order);
+          } else {
+            setError('Commande non trouvée');
+          }
         }
       } catch (error) {
         console.error('Erreur lors du chargement des détails de la commande:', error);
@@ -72,7 +89,7 @@ const OrderDetail = () => {
     };
 
     loadOrderDetails();
-  }, [orderIdParam, user, navigate]);
+  }, [orderIdParam, user, navigate, isAdminContext]);
 
   const updateOrderStatus = async (newStatus) => {
     if (!order || updating) return;
@@ -82,7 +99,10 @@ const OrderDetail = () => {
       
       // Utiliser le service approprié selon le type d'utilisateur
       let response;
-      if (user.userType === 'producer') {
+      if (isAdminContext) {
+        // Si on est dans le contexte admin, utiliser le service admin
+        response = await adminService.updateOrderStatus(order._id, newStatus);
+      } else if (user.userType === 'producer') {
         response = await producerService.updateOrderStatus(order._id, { status: newStatus });
       } else if (user.userType === 'transformer') {
         response = await transformerService.updateOrderStatus(order._id, { status: newStatus });
@@ -93,7 +113,12 @@ const OrderDetail = () => {
         response = await orderService.updateOrderStatus(order._id, { status: newStatus });
       }
       
-      if (response.data.status === 'success') {
+      // Gérer la réponse selon le contexte (admin ou utilisateur normal)
+      const isSuccess = isAdminContext 
+        ? (response.status === 'success' || response.success)
+        : response.data.status === 'success';
+      
+      if (isSuccess) {
         // Mettre à jour l'état local
         setOrder(prevOrder => ({
           ...prevOrder,
@@ -218,16 +243,13 @@ const OrderDetail = () => {
               La commande que vous recherchez n'existe pas ou vous n'avez pas l'autorisation de la voir.
             </p>
             <div className="mt-6">
-              <Link
-                to={user?.userType === 'consumer' ? '/consumer/orders' : 
-                    user?.userType === 'producer' ? '/producer/orders' : 
-                    user?.userType === 'transformer' ? '/transformer/orders' :
-                    '/dashboard'}
+              <button
+                onClick={() => navigate(-1)}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-harvests-green hover:bg-green-600"
               >
                 <FiArrowLeft className="mr-2 h-4 w-4" />
-                Retour aux commandes
-              </Link>
+                Retour
+              </button>
             </div>
           </div>
         </div>
@@ -243,18 +265,15 @@ const OrderDetail = () => {
       <div className="p-6 max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex flex-wrap gap-2 items-center justify-between">
+            <div className="flex flex-wrap gap-2 items-center justify-between">
             <div className="flex flex-wrap gap-2 items-center space-x-4">
-              <Link
-                to={user?.userType === 'consumer' ? '/consumer/orders' : 
-                    user?.userType === 'producer' ? '/producer/orders' : 
-                    user?.userType === 'transformer' ? '/transformer/orders' :
-                    '/dashboard'}
+              <button
+                onClick={() => navigate(-1)}
                 className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-harvests-light"
               >
                 <FiArrowLeft className="mr-2 h-4 w-4" />
                 Retour
-              </Link>
+              </button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
                   Commande #{order.orderNumber || order._id.slice(-8).toUpperCase()}
@@ -340,54 +359,71 @@ const OrderDetail = () => {
               <h3 className="text-lg font-medium text-gray-900 mb-4">Articles commandés</h3>
               <div className="space-y-4">
                  {order.items?.map((item, index) => {
+                   // Gérer différentes structures de données (admin vs utilisateur normal)
+                   const productData = item.product || item.productSnapshot || {};
                    const productSnapshot = item.productSnapshot || {};
-                   const productName = productSnapshot.name || item.name || 'Produit inconnu';
-                   const productImages = productSnapshot.images || [];
-                   const productPrice = productSnapshot.price || item.unitPrice || item.price || 0;
+                   const productName = productData.name || productSnapshot.name || item.name || 'Produit inconnu';
+                   const productImages = productData.images || productSnapshot.images || item.images || [];
+                   const productPrice = productSnapshot.price || item.price || item.unitPrice || 0;
                    const productUnit = productSnapshot.unit || item.unit || 'unité';
                    const quantity = item.quantity || 1;
                    const totalPrice = item.totalPrice || (productPrice * quantity);
                    
-                   // Gestion des images - productSnapshot.images contient des chaînes JSON
+                   // Gestion des images - peut être un tableau de strings, objets, ou URLs
                    let imageUrl = null;
                    let imageAlt = null;
                    
                    if (productImages && productImages.length > 0) {
                      const firstImg = productImages[0];
                      
-                     // Si c'est une chaîne JSON, la parser
+                     // Si c'est une chaîne
                      if (typeof firstImg === 'string') {
-                       try {
-                         const parsedImg = JSON.parse(firstImg);
-                         if (parsedImg && parsedImg.url) {
-                           imageUrl = parsedImg.url;
-                           imageAlt = parsedImg.alt || parseProductName(productName);
-                         }
-                       } catch {
-                         // Si ce n'est pas du JSON valide, essayer l'extraction par regex
-                         const urlMatch = firstImg.match(/url:\s*['"]([^'"]+)['"]/);
-                         if (urlMatch && urlMatch[1]) {
-                           imageUrl = urlMatch[1];
-                           
-                           // Chercher l'alt dans la chaîne avec une regex
-                           const altMatch = firstImg.match(/alt:\s*['"]([^'"]*)['"]/);
-                           if (altMatch && altMatch[1]) {
-                             imageAlt = altMatch[1];
-                           } else {
+                       // Si c'est une URL directe (commence par http)
+                       if (firstImg.startsWith('http') || firstImg.startsWith('//')) {
+                         imageUrl = firstImg;
+                         imageAlt = parseProductName(productName);
+                       } 
+                       // Si c'est une chaîne JSON, la parser
+                       else {
+                         try {
+                           const parsedImg = JSON.parse(firstImg);
+                           if (parsedImg && parsedImg.url) {
+                             imageUrl = parsedImg.url;
+                             imageAlt = parsedImg.alt || parseProductName(productName);
+                           } else if (parsedImg && typeof parsedImg === 'string') {
+                             imageUrl = parsedImg;
                              imageAlt = parseProductName(productName);
                            }
-                         }
-                         // Si ce n'est toujours pas trouvé, traiter comme une URL directe
-                         else if (firstImg.startsWith('http')) {
-                           imageUrl = firstImg;
-                           imageAlt = parseProductName(productName);
+                         } catch {
+                           // Si ce n'est pas du JSON valide, essayer l'extraction par regex
+                           const urlMatch = firstImg.match(/url:\s*['"]([^'"]+)['"]/);
+                           if (urlMatch && urlMatch[1]) {
+                             imageUrl = urlMatch[1];
+                             
+                             // Chercher l'alt dans la chaîne avec une regex
+                             const altMatch = firstImg.match(/alt:\s*['"]([^'"]*)['"]/);
+                             if (altMatch && altMatch[1]) {
+                               imageAlt = altMatch[1];
+                             } else {
+                               imageAlt = parseProductName(productName);
+                             }
+                           }
                          }
                        }
                      }
-                     // Si c'est un objet avec une propriété url (fallback)
-                     else if (firstImg && typeof firstImg === 'object' && firstImg.url) {
-                       imageUrl = firstImg.url;
-                       imageAlt = firstImg.alt || parseProductName(productName);
+                     // Si c'est un objet avec une propriété url
+                     else if (firstImg && typeof firstImg === 'object') {
+                       if (firstImg.url) {
+                         imageUrl = firstImg.url;
+                         imageAlt = firstImg.alt || parseProductName(productName);
+                       } else if (firstImg.secure_url) {
+                         imageUrl = firstImg.secure_url;
+                         imageAlt = firstImg.alt || parseProductName(productName);
+                       } else if (firstImg.public_id) {
+                         // Cloudinary public_id, construire l'URL
+                         imageUrl = `https://res.cloudinary.com/${process.env.REACT_APP_CLOUDINARY_CLOUD_NAME || 'harvests'}/image/upload/${firstImg.public_id}`;
+                         imageAlt = firstImg.alt || parseProductName(productName);
+                       }
                      }
                    }
                    
@@ -396,19 +432,21 @@ const OrderDetail = () => {
                     <div key={index} className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
                        <div className="h-16 w-16 bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0">
                          {imageUrl ? (
-                           <img
+                           <CloudinaryImage
                              src={imageUrl}
                              alt={imageAlt || parseProductName(productName)}
                              className="h-full w-full object-cover"
-                             onError={(e) => {
-                               e.target.style.display = 'none';
-                               e.target.nextSibling.style.display = 'flex';
-                             }}
+                             fallback={
+                               <div className="h-full w-full flex items-center justify-center">
+                                 <FiPackage className="h-8 w-8 text-gray-400" />
+                               </div>
+                             }
                            />
-                         ) : null}
-                         <div className="h-full w-full flex items-center justify-center" style={{ display: imageUrl ? 'none' : 'flex' }}>
-                           <FiPackage className="h-8 w-8 text-gray-400" />
-                         </div>
+                         ) : (
+                           <div className="h-full w-full flex items-center justify-center">
+                             <FiPackage className="h-8 w-8 text-gray-400" />
+                           </div>
+                         )}
                        </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-medium text-gray-900">

@@ -604,5 +604,59 @@
     "productNotFoundDescription": "Le produit que vous recherchez n'existe pas ou n'est plus disponible",
     "loadProductError": "Erreur lors du chargement du produit",
     "units": "unités"
+  },
+  "blog": {
+    "title": "Blog",
+    "subtitle": "Découvrez nos articles, actualités et ressources",
+    "searchPlaceholder": "Rechercher...",
+    "back": "Retour",
+    "backToBlog": "Retour au blog",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "retry": "Réessayer",
+    "noBlogs": "Aucun blog trouvé",
+    "noBlogsDescription": "Essayez de modifier vos critères de recherche",
+    "views": "vues",
+    "share": "Partager",
+    "liked": "Article aimé !",
+    "likeError": "Erreur lors du like",
+    "linkCopied": "Lien copié dans le presse-papier !",
+    "relatedArticles": "Articles similaires",
+    "types": {
+      "all": "Tous les types",
+      "article": "Article",
+      "etude-cas": "Étude de cas",
+      "tutoriel": "Tutoriel",
+      "actualite": "Actualité",
+      "temoignage": "Témoignage"
+    },
+    "categories": {
+      "all": "Toutes les catégories",
+      "strategie": "Stratégie",
+      "technologie": "Technologie",
+      "finance": "Finance",
+      "ressources-humaines": "Ressources Humaines",
+      "marketing": "Marketing",
+      "operations": "Opérations",
+      "gouvernance": "Gouvernance"
+    },
+    "tags": {},
+    "modal": {
+      "title": "Bienvenue !",
+      "description": "Remplissez ce formulaire pour continuer à lire nos articles et recevoir nos dernières actualités.",
+      "welcomeBackTitle": "Bon retour !",
+      "welcomeBackMessage": "Bon retour, {{firstName}} !",
+      "returningVisitorInfo": "Vous avez visité {{count}} articles",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "email": "Email",
+      "country": "Pays",
+      "submit": "Continuer",
+      "submitting": "Envoi...",
+      "submitSuccess": "Merci pour votre inscription !",
+      "submitError": "Une erreur est survenue",
+      "validationError": "Veuillez remplir tous les champs",
+      "welcomeBackSuccess": "Bienvenue de retour !"
+    }
   }
 }

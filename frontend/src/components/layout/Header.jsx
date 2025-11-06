@@ -84,6 +84,7 @@ const Header = () => {
     { name: 'Produits', href: '/products', current: location.pathname === '/products' },
     { name: 'Catégories', href: '/categories', current: location.pathname === '/categories' },
     { name: 'Nos Vendeurs', href: '/vendeurs', current: location.pathname === '/vendeurs' },
+    { name: 'Blog', href: '/blog', current: location.pathname === '/blog' },
     { name: 'Contact', href: '/contact', current: location.pathname === '/contact' },
   ];
 
@@ -196,7 +197,7 @@ const Header = () => {
           </nav>
 
           {/* Barre de recherche - Desktop */}
-          <div className="hidden lg:block flex-1 max-w-[300px] relative">
+          <div className="hidden lg:block flex-1 max-w-[200px] relative">
             <form onSubmit={handleSearch} className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search className={`h-5 w-5 transition-colors duration-500 ease-in-out ${shouldBeTransparent ? 'text-white' : 'text-gray-400'}`} />

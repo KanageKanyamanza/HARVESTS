@@ -163,7 +163,7 @@ const ProductDetails = () => {
         <h2 className="text-2xl font-bold text-gray-900 mb-4">Produit non trouvé</h2>
         <p className="text-gray-600 mb-6">Le produit que vous recherchez n'existe pas.</p>
         <button
-          onClick={() => navigate('/admin/products')}
+          onClick={() => navigate(-1)}
           className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
         >
           Retour à la liste
@@ -178,7 +178,7 @@ const ProductDetails = () => {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-4">
           <button
-            onClick={() => navigate('/admin/products')}
+            onClick={() => navigate(-1)}
             className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
           >
             <ArrowLeft className="h-6 w-6" />

@@ -604,5 +604,59 @@
     "productNotFoundDescription": "The product you are looking for does not exist or is no longer available",
     "loadProductError": "Error loading product",
     "units": "units"
+  },
+  "blog": {
+    "title": "Blog",
+    "subtitle": "Discover our articles, news and resources",
+    "searchPlaceholder": "Search...",
+    "back": "Back",
+    "backToBlog": "Back to blog",
+    "previous": "Previous",
+    "next": "Next",
+    "retry": "Retry",
+    "noBlogs": "No blogs found",
+    "noBlogsDescription": "Try modifying your search criteria",
+    "views": "views",
+    "share": "Share",
+    "liked": "Article liked!",
+    "likeError": "Error liking article",
+    "linkCopied": "Link copied to clipboard!",
+    "relatedArticles": "Related articles",
+    "types": {
+      "all": "All types",
+      "article": "Article",
+      "etude-cas": "Case Study",
+      "tutoriel": "Tutorial",
+      "actualite": "News",
+      "temoignage": "Testimonial"
+    },
+    "categories": {
+      "all": "All categories",
+      "strategie": "Strategy",
+      "technologie": "Technology",
+      "finance": "Finance",
+      "ressources-humaines": "Human Resources",
+      "marketing": "Marketing",
+      "operations": "Operations",
+      "gouvernance": "Governance"
+    },
+    "tags": {},
+    "modal": {
+      "title": "Welcome!",
+      "description": "Fill out this form to continue reading our articles and receive our latest news.",
+      "welcomeBackTitle": "Welcome back!",
+      "welcomeBackMessage": "Welcome back, {{firstName}}!",
+      "returningVisitorInfo": "You have visited {{count}} articles",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "country": "Country",
+      "submit": "Continue",
+      "submitting": "Submitting...",
+      "submitSuccess": "Thank you for signing up!",
+      "submitError": "An error occurred",
+      "validationError": "Please fill in all fields",
+      "welcomeBackSuccess": "Welcome back!"
+    }
   }
 }

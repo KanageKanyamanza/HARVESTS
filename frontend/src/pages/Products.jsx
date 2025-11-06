@@ -305,7 +305,8 @@ const Products = () => {
 
 				{/* Barre de recherche et filtres */}
 				<div className="bg-white gap-2 flex flex-wrap justify-around rounded-lg shadow-sm border p-6 mb-8">
-					<div className="w-full md:flex-1">
+					<div className="w-full flex flex-wrap gap-2">
+						<div className="w-full md:w-1/2">
 						<div className="flex flex-col sm:flex-row gap-4">
 							<div className="flex-1">
 								<div className="relative">
@@ -364,7 +365,7 @@ const Products = () => {
 						<select
 							value={selectedCategory}
 							onChange={(e) => handleFilterChange("category", e.target.value)}
-							className="flex-1 px-2 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500"
+							className="flex-1 px-8 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500"
 						>
 							<option value="">Toutes les catégories</option>
 							{categories.map((category) => (
@@ -387,10 +388,11 @@ const Products = () => {
 							</button>
 						)}
 					</div>
+					</div>
 
 					{/* Filtres avancés */}
 					{showFilters && (
-						<div className="mt-6 pt-6 border-t border-gray-200">
+						<div className="w-full md:w-1/2 mt-6 pt-6 border-t border-gray-200">
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<div>
 									<label className="block text-sm font-medium text-gray-700 mb-2">

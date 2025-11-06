@@ -12,6 +12,12 @@ const AdminOrders = React.lazy(() => import('../../../pages/admin/AdminOrders'))
 const AdminReviews = React.lazy(() => import('../../../pages/admin/AdminReviews'));
 const AdminMessages = React.lazy(() => import('../../../pages/admin/AdminMessages'));
 const AdminAnalytics = React.lazy(() => import('../../../pages/admin/AdminAnalytics'));
+const AdminBlogs = React.lazy(() => import('../../../pages/admin/AdminBlogs'));
+const AdminBlogCreate = React.lazy(() => import('../../../pages/admin/AdminBlogCreate'));
+const AdminBlogEdit = React.lazy(() => import('../../../pages/admin/AdminBlogEdit'));
+const AdminBlogStats = React.lazy(() => import('../../../pages/admin/AdminBlogStats'));
+const AdminBlogAnalytics = React.lazy(() => import('../../../pages/admin/AdminBlogAnalytics'));
+const AdminManagement = React.lazy(() => import('../../../pages/admin/AdminManagement'));
 const OrderDetail = React.lazy(() => import('../../../pages/orders/OrderDetail'));
 
 export const adminRoutes = [
@@ -59,6 +65,36 @@ export const adminRoutes = [
     path: '/admin/analytics',
     element: <AdminAnalytics />,
     title: 'Analytiques'
+  },
+  {
+    path: '/admin/blog',
+    element: <AdminBlogs />,
+    title: 'Gestion des blogs'
+  },
+  {
+    path: '/admin/blog/create',
+    element: <AdminBlogCreate />,
+    title: 'Créer un blog'
+  },
+  {
+    path: '/admin/blog/edit/:id',
+    element: <AdminBlogEdit />,
+    title: 'Modifier un blog'
+  },
+  {
+    path: '/admin/blog/stats',
+    element: <AdminBlogStats />,
+    title: 'Statistiques des blogs'
+  },
+  {
+    path: '/admin/blog/analytics',
+    element: <AdminBlogAnalytics />,
+    title: 'Analytics des blogs'
+  },
+  {
+    path: '/admin/management',
+    element: <AdminManagement />,
+    title: 'Gestion des admins'
   },
 ];
 
