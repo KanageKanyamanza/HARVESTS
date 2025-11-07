@@ -148,41 +148,63 @@ export const NotificationProvider = ({ children }) => {
 
   // Marquer une notification comme lue
   const markAsRead = async (notificationId) => {
-    // Mettre à jour l'état local immédiatement
-    setNotifications(prev => 
-      prev.map(notif => 
-        notif.id === notificationId 
-          ? { ...notif, read: true }
-          : notif
-      )
-    );
-    setUnreadCount(prev => Math.max(0, prev - 1));
-
-    // Synchroniser avec le backend si l'utilisateur est connecté
+    // Synchroniser avec le backend d'abord si l'utilisateur est connecté
     if (isAuthenticated) {
       try {
         await notificationService.markAsRead(notificationId);
+        // Après succès, recharger les notifications depuis le backend pour s'assurer de la cohérence
+        const backendNotifications = await notificationService.getNotifications(1, 50);
+        setNotifications(backendNotifications.notifications || []);
+        setUnreadCount(backendNotifications.unreadCount || 0);
       } catch (error) {
         console.error('Erreur lors de la synchronisation avec le backend:', error);
+        // En cas d'erreur, mettre à jour l'état local quand même
+        setNotifications(prev => 
+          prev.map(notif => 
+            notif.id === notificationId 
+              ? { ...notif, read: true }
+              : notif
+          )
+        );
+        setUnreadCount(prev => Math.max(0, prev - 1));
       }
+    } else {
+      // Mode local : mettre à jour l'état local uniquement
+      setNotifications(prev => 
+        prev.map(notif => 
+          notif.id === notificationId 
+            ? { ...notif, read: true }
+            : notif
+        )
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
     }
   };
 
   // Marquer toutes les notifications comme lues
   const markAllAsRead = async () => {
-    // Mettre à jour l'état local immédiatement
-    setNotifications(prev => 
-      prev.map(notif => ({ ...notif, read: true }))
-    );
-    setUnreadCount(0);
-
-    // Synchroniser avec le backend si l'utilisateur est connecté
+    // Synchroniser avec le backend d'abord si l'utilisateur est connecté
     if (isAuthenticated) {
       try {
         await notificationService.markAllAsRead();
+        // Après succès, recharger les notifications depuis le backend pour s'assurer de la cohérence
+        const backendNotifications = await notificationService.getNotifications(1, 50);
+        setNotifications(backendNotifications.notifications || []);
+        setUnreadCount(backendNotifications.unreadCount || 0);
       } catch (error) {
         console.error('Erreur lors de la synchronisation avec le backend:', error);
+        // En cas d'erreur, mettre à jour l'état local quand même
+        setNotifications(prev => 
+          prev.map(notif => ({ ...notif, read: true }))
+        );
+        setUnreadCount(0);
       }
+    } else {
+      // Mode local : mettre à jour l'état local uniquement
+      setNotifications(prev => 
+        prev.map(notif => ({ ...notif, read: true }))
+      );
+      setUnreadCount(0);
     }
   };
 

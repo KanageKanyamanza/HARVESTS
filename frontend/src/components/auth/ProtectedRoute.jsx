@@ -21,15 +21,28 @@ const ProtectedRoute = ({
     isAccountApproved,
     hasPermission,
     canAccessRoute,
-    user
+    user,
+    isLoading
   } = useAuth();
   
   const { userType } = useUserType();
   const location = useLocation();
 
-  // Ne plus afficher de loader - laisser les pages gérer leur propre état de chargement
+  // Attendre que la session soit restaurée avant de rediriger
+  // Cela évite les redirections intempestives lors du refresh de la page
+  if (isLoading) {
+    // Afficher un loader pendant la restauration de session
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-harvests-light">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
 
-  // Rediriger si non authentifié
+  // Rediriger si non authentifié (seulement après que le chargement soit terminé)
   if (!isAuthenticated) {
     return <Navigate 
       to={fallbackRoute} 

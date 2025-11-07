@@ -65,6 +65,12 @@ router.post('/admin/system/create', adminAuthController.protect, notificationCon
 // Obtenir toutes les notifications
 router.get('/admin/all', adminAuthController.protect, notificationController.getAllNotifications);
 
+// Marquer une notification comme lue (pour les admins)
+router.patch('/admin/:id/read', adminAuthController.protect, notificationController.markAsRead);
+
+// Marquer toutes les notifications comme lues (pour les admins)
+router.patch('/admin/read-all', adminAuthController.protect, notificationController.markAllAsRead);
+
 // Statistiques des notifications
 router.get('/admin/stats', adminAuthController.protect, notificationController.getNotificationStats);
 

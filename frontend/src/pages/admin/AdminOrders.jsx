@@ -37,23 +37,41 @@ const AdminOrders = () => {
       
       console.log('📡 Réponse API Admin Orders:', response);
       
+      // Le backend retourne { status: 'success', data: { orders: [...], pagination: {...} } }
+      // adminService.getOrders retourne response.data, donc on a { status: 'success', data: {...} }
+      
       // Vérifier si la réponse contient des commandes
-      if (response.data && response.data.orders) {
+      if (response.status === 'success' && response.data && response.data.orders) {
         console.log('✅ Commandes trouvées dans response.data.orders:', response.data.orders.length);
         setOrders(response.data.orders || []);
         setTotalPages(response.data.pagination?.totalPages || 1);
-      } else if (response.data && response.data.data && response.data.data.orders) {
-        // Structure alternative avec data.orders
-        console.log('✅ Commandes trouvées dans response.data.data.orders:', response.data.data.orders.length);
-        setOrders(response.data.data.orders || []);
-        setTotalPages(response.data.data.pagination?.totalPages || 1);
+      } else if (response.data && response.data.orders) {
+        // Structure alternative
+        console.log('✅ Commandes trouvées dans response.data.orders (structure alternative):', response.data.orders.length);
+        setOrders(response.data.orders || []);
+        setTotalPages(response.data.pagination?.totalPages || 1);
+      } else if (response.orders) {
+        // Structure directe
+        console.log('✅ Commandes trouvées dans response.orders:', response.orders.length);
+        setOrders(response.orders || []);
+        setTotalPages(response.pagination?.totalPages || 1);
       } else {
-        console.log('❌ Aucune commande trouvée dans la réponse');
+        console.log('❌ Aucune commande trouvée dans la réponse. Structure:', Object.keys(response));
         setOrders([]);
         setTotalPages(1);
       }
     } catch (error) {
       console.error('Erreur lors du chargement des commandes:', error);
+      
+      // Afficher un message d'erreur plus détaillé
+      if (error.response?.status === 401) {
+        console.error('❌ Erreur 401: Non autorisé. Vérifiez que vous êtes connecté en tant qu\'admin.');
+      } else if (error.response?.status === 403) {
+        console.error('❌ Erreur 403: Accès refusé. Vous n\'avez pas les permissions nécessaires.');
+      } else {
+        console.error('❌ Erreur lors du chargement:', error.response?.data?.message || error.message);
+      }
+      
       setOrders([]);
       setTotalPages(1);
     } finally {

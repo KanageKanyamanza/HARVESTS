@@ -86,10 +86,10 @@ const DishDetail = () => {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Plat non trouvé</h1>
           <p className="text-gray-600 mb-6">{error || 'Ce plat n\'existe pas ou a été supprimé.'}</p>
           <button
-            onClick={() => navigate('/restaurateur/dishes')}
+            onClick={() => navigate(-1)}
             className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
           >
-            Retour aux plats
+            Retour
           </button>
         </div>
       </div>
@@ -102,11 +102,11 @@ const DishDetail = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <button
-            onClick={() => navigate('/restaurateur/dishes')}
+            onClick={() => navigate(-1)}
             className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
           >
             <FiArrowLeft className="mr-2" />
-            Retour aux plats
+            Retour
           </button>
           
           <div className="flex space-x-3">

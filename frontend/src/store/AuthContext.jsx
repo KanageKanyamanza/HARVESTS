@@ -213,6 +213,9 @@ export const AuthProvider = ({ children }) => {
 
   // Fonction pour restaurer la session et recharger les données complètes
   const restoreSession = async () => {
+    // Marquer comme en cours de chargement pour éviter les redirections prématurées
+    dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: true });
+    
     try {
       const token = localStorage.getItem('harvests_token');
       const userStr = localStorage.getItem('harvests_user');

@@ -297,11 +297,11 @@ const EditVehicle = () => {
         <div className="mb-6 flex justify-between items-start">
           <div>
             <button
-              onClick={() => navigate('/transporter/fleet')}
+              onClick={() => navigate(-1)}
               className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4"
             >
               <FiArrowLeft className="h-4 w-4 mr-2" />
-              Retour à la flotte
+              Retour
             </button>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center">
               <FiTruck className="h-7 w-7 mr-3 text-blue-500" />
@@ -559,7 +559,7 @@ const EditVehicle = () => {
           <div className="flex justify-end gap-4 border-t pt-6">
             <button
               type="button"
-              onClick={() => navigate('/transporter/fleet')}
+              onClick={() => navigate(-1)}
               className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
             >
               Annuler

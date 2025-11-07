@@ -24,7 +24,8 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  UtensilsCrossed
+  UtensilsCrossed,
+  FileText
 } from 'lucide-react';
 import NotificationDropdown from '../notifications/NotificationDropdown';
 
@@ -108,6 +109,12 @@ const AdminLayout = ({ children }) => {
       href: '/admin/analytics',
       icon: BarChart3,
       current: location.pathname.startsWith('/admin/analytics')
+    },
+    {
+      name: 'Blog',
+      href: '/admin/blog',
+      icon: FileText,
+      current: location.pathname.startsWith('/admin/blog')
     }
   ];
 

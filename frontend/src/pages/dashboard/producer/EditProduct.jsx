@@ -251,11 +251,11 @@ const EditProduct = () => {
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Produit non trouvé</h1>
             <p className="text-gray-600 mb-6">Le produit que vous recherchez n'existe pas ou n'est plus disponible</p>
             <button
-              onClick={() => navigate('/producer/products')}
+              onClick={() => navigate(-1)}
               className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-harvests-green hover:bg-green-600"
             >
               <FiArrowLeft className="h-4 w-4 mr-2" />
-              Retour aux produits
+              Retour
             </button>
           </div>
         </div>
@@ -269,7 +269,7 @@ const EditProduct = () => {
         <div className="mb-8">
           <div className="flex items-center space-x-4 mb-4">
             <button
-              onClick={() => navigate('/producer/products')}
+              onClick={() => navigate(-1)}
               className="p-2 text-gray-400 hover:text-gray-600"
             >
               <FiArrowLeft className="h-5 w-5" />

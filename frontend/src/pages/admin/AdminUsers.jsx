@@ -20,6 +20,7 @@ import {
   UserCheck
 } from 'lucide-react';
 import { adminService } from '../../services/adminService';
+import CloudinaryImage from '../../components/common/CloudinaryImage';
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
@@ -312,11 +313,26 @@ const AdminUsers = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
-                            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                              <span className="text-sm font-medium text-gray-600">
-                                {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
-                              </span>
-                            </div>
+                            {user.avatar ? (
+                              <CloudinaryImage
+                                src={user.avatar}
+                                alt={`${user.firstName} ${user.lastName}`}
+                                className="h-10 w-10 rounded-full object-cover"
+                                fallback={
+                                  <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                    <span className="text-sm font-medium text-gray-600">
+                                      {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
+                                    </span>
+                                  </div>
+                                }
+                              />
+                            ) : (
+                              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                <span className="text-sm font-medium text-gray-600">
+                                  {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
+                                </span>
+                              </div>
+                            )}
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">

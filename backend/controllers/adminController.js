@@ -1030,12 +1030,24 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
   // Construire le filtre
   const filter = {};
   
+  // Exclure les plats (originType: 'dish') de la liste des produits
+  filter.$and = [
+    {
+      $or: [
+        { originType: { $exists: false } },
+        { originType: { $ne: 'dish' } }
+      ]
+    }
+  ];
+  
   if (search) {
-    filter.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { description: { $regex: search, $options: 'i' } },
-      { category: { $regex: search, $options: 'i' } }
-    ];
+    filter.$and.push({
+      $or: [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { category: { $regex: search, $options: 'i' } }
+      ]
+    });
   }
   
   if (status) {
@@ -1306,16 +1318,27 @@ exports.getAllOrders = catchAsync(async (req, res, next) => {
     _id: order._id,
     orderNumber: order.orderNumber,
     status: order.status,
-    paymentStatus: order.payment.status,
+    paymentStatus: order.payment?.status || 'pending',
     totalAmount: order.total,
-    items: order.items.map(item => ({
-      product: {
-        name: item.productSnapshot?.name || item.product?.name || 'Produit supprimé',
-        images: item.productSnapshot?.images || item.product?.images || []
-      },
-      quantity: item.quantity,
-      price: item.unitPrice
-    })),
+    items: order.items.map(item => {
+      // Récupérer les images depuis productSnapshot ou product peuplé
+      let images = [];
+      if (item.productSnapshot?.images && item.productSnapshot.images.length > 0) {
+        images = item.productSnapshot.images;
+      } else if (item.product?.images && item.product.images.length > 0) {
+        images = item.product.images;
+      }
+      
+      return {
+        product: {
+          name: item.productSnapshot?.name || item.product?.name || 'Produit supprimé',
+          images: images
+        },
+        productSnapshot: item.productSnapshot, // Garder aussi productSnapshot pour compatibilité
+        quantity: item.quantity,
+        price: item.unitPrice
+      };
+    }),
     customer: {
       firstName: order.buyer?.firstName || 'N/A',
       lastName: order.buyer?.lastName || 'N/A',
@@ -1352,7 +1375,11 @@ exports.getOrderById = catchAsync(async (req, res, next) => {
   const order = await Order.findById(req.params.id)
     .populate('buyer', 'firstName lastName email phone address userType')
     .populate('seller', 'firstName lastName email phone farmName companyName userType')
-    .populate('items.product', 'name images description price')
+    .populate({
+      path: 'items.product',
+      select: 'name images description price',
+      // S'assurer que les images sont bien incluses
+    })
     .populate('delivery.transporter', 'firstName lastName email phone companyName');
 
   if (!order) {
@@ -1364,22 +1391,40 @@ exports.getOrderById = catchAsync(async (req, res, next) => {
     _id: order._id,
     orderNumber: order.orderNumber,
     status: order.status,
-    paymentStatus: order.payment.status,
+    paymentStatus: order.payment?.status || 'pending',
     totalAmount: order.total,
     subtotal: order.subtotal,
     deliveryFee: order.deliveryFee,
     taxes: order.taxes,
     discount: order.discount,
-    items: order.items.map(item => ({
-      product: {
-        name: item.productSnapshot?.name || item.product?.name || 'Produit supprimé',
-        images: item.productSnapshot?.images || item.product?.images || [],
-        description: item.productSnapshot?.description || item.product?.description || ''
-      },
-      quantity: item.quantity,
-      price: item.unitPrice,
-      totalPrice: item.totalPrice
-    })),
+    items: order.items.map(item => {
+      // Récupérer les images depuis productSnapshot ou product peuplé
+      let images = [];
+      
+      // Priorité 1: productSnapshot.images (données sauvegardées au moment de la commande)
+      if (item.productSnapshot?.images && Array.isArray(item.productSnapshot.images) && item.productSnapshot.images.length > 0) {
+        images = item.productSnapshot.images;
+      } 
+      // Priorité 2: product.images (produit peuplé depuis la base de données)
+      else if (item.product?.images && Array.isArray(item.product.images) && item.product.images.length > 0) {
+        images = item.product.images;
+      }
+      
+      // Récupérer le nom du produit
+      const productName = item.productSnapshot?.name || item.product?.name || 'Produit supprimé';
+      
+      return {
+        product: {
+          name: productName,
+          images: images,
+          description: item.productSnapshot?.description || item.product?.description || ''
+        },
+        productSnapshot: item.productSnapshot, // Garder aussi productSnapshot pour compatibilité
+        quantity: item.quantity,
+        price: item.unitPrice,
+        totalPrice: item.totalPrice
+      };
+    }),
     customer: {
       firstName: order.buyer?.firstName || 'N/A',
       lastName: order.buyer?.lastName || 'N/A',

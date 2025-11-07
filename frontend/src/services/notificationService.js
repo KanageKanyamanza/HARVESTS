@@ -63,8 +63,8 @@ class NotificationService {
   // Marquer une notification comme lue
   async markAsRead(notificationId) {
     try {
-      // Pour les admins, utiliser une route différente si nécessaire
-      const endpoint = this.isAdmin() ? `/notifications/${notificationId}/read` : `/notifications/${notificationId}/read`;
+      // Pour les admins, utiliser une route admin spécifique
+      const endpoint = this.isAdmin() ? `/notifications/admin/${notificationId}/read` : `/notifications/${notificationId}/read`;
       const response = await api.patch(endpoint);
       return response.data;
     } catch (error) {
