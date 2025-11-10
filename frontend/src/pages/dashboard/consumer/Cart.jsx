@@ -87,14 +87,14 @@ const Cart = () => {
                     <div className="flex items-center space-x-3">
                       <div className="flex items-center border border-gray-300 rounded-lg">
                         <button
-                          onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.productId, item.quantity - 1, item.originType)}
                           className="p-2 hover:bg-gray-100"
                         >
                           <FiMinus className="h-4 w-4" />
                         </button>
                         <span className="px-3 py-2 min-w-[3rem] text-center">{item.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.productId, item.quantity + 1, item.originType)}
                           className="p-2 hover:bg-gray-100"
                         >
                           <FiPlus className="h-4 w-4" />
@@ -102,7 +102,7 @@ const Cart = () => {
                       </div>
 
                       <button
-                        onClick={() => removeFromCart(item.productId)}
+                        onClick={() => removeFromCart(item.productId, item.originType)}
                         className="p-2 text-red-600 hover:text-red-800"
                       >
                         <FiTrash2 className="h-4 w-4" />

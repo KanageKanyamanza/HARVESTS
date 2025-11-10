@@ -162,7 +162,7 @@ export const useUserType = () => {
       return [
         ...baseRoutes,
         '/exporter/dashboard',
-        '/exporter/products',
+        '/exporter/fleet',
         '/exporter/orders',
         '/exporter/statistics',
         '/cart',

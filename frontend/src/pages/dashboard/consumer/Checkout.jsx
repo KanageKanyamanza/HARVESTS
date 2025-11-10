@@ -352,12 +352,63 @@ const Checkout = () => {
 
     setSubmitting(true);
     try {
-      const validCartItems = cartItems.filter(item => item.producer?.id);
+      const normalizedCartItems = cartItems.map(item => {
+        if (item.producer?.id) {
+          return {
+            ...item,
+            originType: item.originType || 'product',
+          };
+        }
 
-      if (validCartItems.length !== cartItems.length) {
-        cartItems
+        const fallbackId =
+          item.producerId ||
+          item.supplierId ||
+          item.vendorId ||
+          item.restaurateurId ||
+          item.transformerId ||
+          item.ownerId ||
+          null;
+
+        const fallbackName =
+          item.producerName ||
+          item.supplierName ||
+          item.vendorName ||
+          item.restaurateurName ||
+          item.transformerName ||
+          item.ownerName ||
+          'Fournisseur';
+
+        const fallbackType =
+          item.producer?.type ||
+          item.producerType ||
+          item.supplierType ||
+          item.vendorType ||
+          item.categoryOwnerType ||
+          (item.originType === 'dish'
+            ? 'restaurateur'
+            : item.originType === 'transformed-product'
+            ? 'transformer'
+            : item.originType === 'logistics'
+            ? 'transporter'
+            : 'producer');
+
+        return {
+          ...item,
+          originType: item.originType || 'product',
+          producer: {
+            id: fallbackId,
+            name: fallbackName,
+            type: fallbackType,
+          },
+        };
+      });
+
+      const validCartItems = normalizedCartItems.filter(item => item.producer?.id);
+
+      if (validCartItems.length !== normalizedCartItems.length) {
+        normalizedCartItems
           .filter(item => !item.producer?.id)
-          .forEach(item => removeFromCart(item.productId || item.id));
+          .forEach(item => removeFromCart(item.productId || item.id, item.originType || 'product'));
 
         window.alert('Certains articles ne sont plus disponibles et ont été retirés de votre panier.');
 
@@ -371,6 +422,9 @@ const Checkout = () => {
         items: validCartItems.map(item => ({
           productId: item.productId || item.id,
           quantity: item.quantity,
+          originType: item.originType || 'product',
+          supplierId: item.producer?.id,
+          supplierType: item.producer?.type || item.originType || 'producer',
           specialInstructions: item.specialInstructions || ''
         })),
         deliveryAddress: orderData.deliveryAddress,
@@ -386,26 +440,86 @@ const Checkout = () => {
         source: 'web'
       };
 
-      const response = await consumerService.createOrder(orderPayload);
+      const groupedBySupplier = validCartItems.reduce((groups, item) => {
+        const key = item.producer?.id || 'unknown';
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(item);
+        return groups;
+      }, {});
 
-      // Vider le panier après la création réussie
+      const createdOrders = [];
+      const supplierIds = Object.keys(groupedBySupplier);
+
+      for (const supplierId of supplierIds) {
+        const groupItems = groupedBySupplier[supplierId];
+        const supplierType = groupItems[0]?.producer?.type || 'producer';
+
+        const payload = {
+          items: groupItems.map(item => ({
+            productId: item.productId || item.id,
+            quantity: item.quantity,
+            originType: item.originType || 'product',
+            supplierId: item.producer?.id,
+            supplierType: item.producer?.type || item.originType || 'producer',
+            specialInstructions: item.specialInstructions || ''
+          })),
+          deliveryAddress: orderData.deliveryAddress,
+          billingAddress: orderData.billingAddress.sameAsDelivery
+            ? orderData.deliveryAddress
+            : orderData.billingAddress,
+          paymentMethod: orderData.paymentMethod,
+          paymentProvider: orderData.paymentProvider,
+          deliveryMethod: orderData.deliveryMethod,
+          notes: orderData.notes,
+          useLoyaltyPoints: orderData.useLoyaltyPoints,
+          loyaltyPointsToUse: orderData.loyaltyPointsToUse,
+          currency: 'XAF',
+          source: 'web',
+          supplierId: supplierId === 'unknown' ? undefined : supplierId,
+          supplierType,
+        };
+
+        try {
+          const response = await consumerService.createOrder(payload);
+          const orderId =
+            response.data?.data?.order?._id ||
+            response.data?.order?._id ||
+            response.data?.data?._id ||
+            null;
+
+          createdOrders.push({
+            supplierId,
+            supplierType,
+            orderId,
+            response,
+          });
+
+          groupItems.forEach(item =>
+            removeFromCart(item.productId || item.id, item.originType || 'product')
+          );
+        } catch (error) {
+          console.error(
+            `❌ Erreur lors de la création de la commande pour le fournisseur ${supplierId}:`,
+            error
+          );
+          window.alert(
+            "Une erreur est survenue lors de la création de la commande pour l'un des fournisseurs. Les autres commandes ont peut-être été créées."
+          );
+          throw error;
+        }
+      }
+
       clearCart();
-      
-      // Vider aussi le panier côté serveur si l'utilisateur est connecté
+
       try {
         await cartService.clearCart();
       } catch (error) {
         console.error('Erreur lors du vidage du panier serveur:', error);
-        // Continuer même si ça échoue
       }
 
-      // Rediriger vers la page de confirmation
-      const orderId = response.data.data?.order?._id || response.data.order?._id;
-      if (orderId) {
-        navigate(`/consumer/orders/${orderId}/confirmation`);
+      if (createdOrders.length === 1 && createdOrders[0]?.orderId) {
+        navigate(`/consumer/orders/${createdOrders[0].orderId}/confirmation`);
       } else {
-        console.error('❌ ID de commande non trouvé dans la réponse:', response.data);
-        // Fallback vers la page d'historique des commandes
         navigate('/consumer/orders');
       }
     } catch (error) {

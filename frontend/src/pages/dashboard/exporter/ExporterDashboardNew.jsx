@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import GenericDashboard from '../../../components/dashboard/GenericDashboard';
-import ProductsSection from '../../../components/dashboard/sections/ProductsSection';
 import OrdersSection from '../../../components/dashboard/sections/OrdersSection';
 import QuickActionsSection from '../../../components/dashboard/sections/QuickActionsSection';
+import FleetSummarySection from '../../../components/dashboard/sections/FleetSummarySection';
 import { exporterService } from '../../../services/genericService';
 import commonService from '../../../services/commonService';
-import { FiGlobe } from 'react-icons/fi';
+import { FiGlobe, FiTruck } from 'react-icons/fi';
 
 const ExporterDashboard = () => {
   const [exporterStats, setExporterStats] = useState(null);
@@ -59,15 +59,6 @@ const ExporterDashboard = () => {
   // Configuration des sections du dashboard
   const sections = [
     {
-      title: 'Produits d\'Export',
-      icon: <FiGlobe className="h-5 w-5" />,
-      action: {
-        text: 'Voir tous',
-        to: '/exporter/products'
-      },
-      content: <ProductsSection userType="exporter" />
-    },
-    {
       title: 'Commandes d\'Export',
       icon: <FiGlobe className="h-5 w-5" />,
       action: {
@@ -75,6 +66,11 @@ const ExporterDashboard = () => {
         to: '/exporter/orders'
       },
       content: <OrdersSection userType="exporter" />
+    },
+    {
+      title: 'Gestion de la flotte',
+      icon: <FiTruck className="h-5 w-5" />,
+      content: <FleetSummarySection />
     },
     {
       title: 'Actions Rapides',

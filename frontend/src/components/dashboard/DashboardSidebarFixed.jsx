@@ -112,6 +112,16 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse, 
         { name: 'Paramètres', href: getSettingsRoute(user), icon: FiSettings }
       ];
     }
+    if (user?.userType === 'exporter') {
+      return [
+        { name: 'Tableau de bord', href: getDashboardRoute(user), icon: FiHome },
+        { name: 'Commandes d\'export', href: getOrdersRoute(user), icon: FiShoppingBag },
+        { name: 'Ma flotte', href: '/exporter/fleet', icon: FiTruck },
+        { name: 'Statistiques', href: '/exporter/statistics', icon: FaChartBar },
+        { name: 'Profil', href: getProfileRoute(user), icon: FiUser },
+        { name: 'Paramètres', href: getSettingsRoute(user), icon: FiSettings }
+      ];
+    }
 
     return [
       { name: 'Tableau de bord', href: getDashboardRoute(user), icon: FiHome }

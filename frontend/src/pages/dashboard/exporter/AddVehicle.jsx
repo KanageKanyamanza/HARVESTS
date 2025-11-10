@@ -129,18 +129,36 @@ const AddVehicle = () => {
 
     try {
       setUploadingImage(true);
-      const formData = new FormData();
-      formData.append('images', file);
-      
-      const response = await uploadService.uploadProductImages(formData);
-      const imageUrl = response.data?.data?.images?.[0]?.url || response.data?.images?.[0]?.url;
-      
-      if (imageUrl) {
+      const imageFormData = new FormData();
+      imageFormData.append('images', file);
+      imageFormData.append('folder', 'fleet');
+      imageFormData.append('resourceType', 'image');
+
+      const response = await uploadService.uploadProductImages(imageFormData);
+
+      const payload = response?.data?.data || response?.data;
+      const uploaded = payload?.images?.[0]
+        ? {
+            url: payload.images[0].secure_url || payload.images[0].url,
+            secureUrl: payload.images[0].secure_url || payload.images[0].url,
+            publicId: payload.images[0].public_id || payload.images[0].publicId,
+            originalFilename: payload.images[0].original_filename,
+            format: payload.images[0].format,
+            size: payload.images[0].size,
+            width: payload.images[0].width,
+            height: payload.images[0].height
+          }
+        : payload;
+
+      if (uploaded?.secureUrl || uploaded?.url) {
         setVehicleImage({
-          url: imageUrl,
-          publicId: response.data?.data?.images?.[0]?.publicId || response.data?.images?.[0]?.publicId,
+          url: uploaded.secureUrl || uploaded.url,
+          secureUrl: uploaded.secureUrl || uploaded.url,
+          publicId: uploaded.publicId,
           alt: file.name
         });
+      } else {
+        throw new Error('Réponse upload invalide');
       }
     } catch (error) {
       console.error('Erreur lors de l\'upload de l\'image:', error);
@@ -200,12 +218,18 @@ const AddVehicle = () => {
         isAvailable: formData.isAvailable,
         lastMaintenanceDate: formData.lastMaintenanceDate || undefined,
         nextMaintenanceDate: formData.nextMaintenanceDate || undefined,
-        image: vehicleImage || undefined
+        image: vehicleImage?.url ? vehicleImage : undefined
       };
 
-      await exporterService.addFleetVehicle(vehicleData);
+      const response = await exporterService.addFleetVehicle(vehicleData);
       showSuccess('Véhicule ajouté avec succès à votre flotte !');
-      navigate('/exporter/fleet');
+      
+      const newVehicle = response?.data?.data || response?.data;
+      if (newVehicle && newVehicle._id) {
+        navigate(`/exporter/fleet/${newVehicle._id}`, { replace: true });
+      } else {
+        navigate('/exporter/fleet', { replace: true });
+      }
     } catch (error) {
       console.error('Erreur:', error);
       showError(error.response?.data?.message || 'Erreur lors de l\'ajout du véhicule. Veuillez réessayer.');

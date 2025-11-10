@@ -5,6 +5,7 @@ import { useOrderNotifications } from '../../hooks/useOrderNotifications';
 import ModularDashboardLayout from '../layout/ModularDashboardLayout';
 import CommonStats from '../common/CommonStats';
 import { authService } from '../../services';
+import { normalizeDishImage } from '../../utils/dishImageUtils';
 import {
   FiAlertCircle,
   FiMail,
@@ -225,9 +226,22 @@ const GenericDashboard = ({
       // Pour les restaurateurs, les plats peuvent être dans data.data.dishes ou data.dishes
       let productsData = [];
       if (userType === 'restaurateur') {
-        productsData = productsResponse.data.data?.dishes || productsResponse.data.data?.products || productsResponse.data.dishes || productsResponse.data.products || [];
+        const dishes =
+          productsResponse.data?.data?.dishes ||
+          productsResponse.data?.dishes ||
+          productsResponse.data?.data ||
+          productsResponse.data ||
+          [];
+
+        productsData = Array.isArray(dishes)
+          ? dishes.map((dish) => normalizeDishImage({ ...dish }))
+          : [];
       } else {
-        productsData = productsResponse.data.data?.products || productsResponse.data.products || [];
+        productsData =
+          productsResponse.data?.data?.products ||
+          productsResponse.data?.products ||
+          productsResponse.data ||
+          [];
       }
       setProducts(Array.isArray(productsData) ? productsData : []);
       
@@ -424,14 +438,14 @@ const GenericDashboard = ({
                   </Link>
                 )}
               </div>
-              {React.cloneElement(section.content, {
-                products,
-                userType,
-                loading: isLoading,
-                orders,
-                stats,
-                service
-              })}
+      {React.cloneElement(section.content, {
+        products,
+        userType,
+        loading: isLoading,
+        orders,
+        stats,
+        service
+      })}
             </div>
           ))}
         </div>

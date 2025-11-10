@@ -13,7 +13,14 @@ export const getDishImageUrl = (dish) => {
     if (typeof dish.image === 'string') {
       return dish.image;
     } else if (typeof dish.image === 'object' && dish.image !== null) {
-      return dish.image.url || dish.image.src || dish.image.path || dish.image.secure_url || null;
+      return (
+        dish.image.url ||
+        dish.image.secureUrl ||
+        dish.image.secure_url ||
+        dish.image.src ||
+        dish.image.path ||
+        null
+      );
     }
   }
 
@@ -21,7 +28,14 @@ export const getDishImageUrl = (dish) => {
   if (dish.images && Array.isArray(dish.images) && dish.images.length > 0) {
     const firstImage = dish.images[0];
     if (typeof firstImage === 'object' && firstImage !== null) {
-      return firstImage.url || firstImage.src || firstImage.path || firstImage.secure_url || null;
+      return (
+        firstImage.url ||
+        firstImage.secureUrl ||
+        firstImage.secure_url ||
+        firstImage.src ||
+        firstImage.path ||
+        null
+      );
     } else if (typeof firstImage === 'string') {
       return firstImage;
     }
@@ -30,7 +44,14 @@ export const getDishImageUrl = (dish) => {
   // 3. Fallback sur primaryImage si pas d'image dans images
   if (dish.primaryImage) {
     if (typeof dish.primaryImage === 'object' && dish.primaryImage !== null) {
-      return dish.primaryImage.url || dish.primaryImage.src || dish.primaryImage.secure_url || null;
+      return (
+        dish.primaryImage.url ||
+        dish.primaryImage.secureUrl ||
+        dish.primaryImage.secure_url ||
+        dish.primaryImage.src ||
+        dish.primaryImage.path ||
+        null
+      );
     } else if (typeof dish.primaryImage === 'string') {
       return dish.primaryImage;
     }
