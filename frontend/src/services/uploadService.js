@@ -58,6 +58,7 @@ const uploadService = {
     
     // Si c'est déjà une URL complète (Cloudinary ou autre), la retourner telle quelle
     if (imagePath.startsWith('http')) return imagePath;
+    if (imagePath.startsWith('data:') || imagePath.startsWith('blob:')) return imagePath;
     
     // Si c'est une URL Cloudinary (commence par res.cloudinary.com), la retourner
     if (imagePath.includes('cloudinary.com')) return imagePath;

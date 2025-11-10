@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import cartService from '../services/cartService';
 import { getDishImageUrl } from '../utils/dishImageUtils';
@@ -18,38 +18,52 @@ const CART_ACTIONS = {
 const cartReducer = (state, action) => {
   switch (action.type) {
     case CART_ACTIONS.ADD_ITEM:
-      const existingItem = state.items.find(item => item.productId === action.payload.productId);
-      
+      const existingItem = state.items.find(
+        (item) =>
+          item.productId === action.payload.productId &&
+          item.originType === action.payload.originType
+      );
+
       if (existingItem) {
         return {
           ...state,
-          items: state.items.map(item =>
-            item.productId === action.payload.productId
+          items: state.items.map((item) =>
+            item.productId === action.payload.productId &&
+            item.originType === action.payload.originType
               ? { ...item, quantity: item.quantity + action.payload.quantity }
               : item
-          )
-        };
-      } else {
-        return {
-          ...state,
-          items: [...state.items, action.payload]
+          ),
         };
       }
+
+      return {
+        ...state,
+        items: [...state.items, action.payload],
+      };
 
     case CART_ACTIONS.REMOVE_ITEM:
       return {
         ...state,
-        items: state.items.filter(item => item.productId !== action.payload.productId)
+        items: state.items.filter(
+          (item) =>
+            !(
+              item.productId === action.payload.productId &&
+              item.originType === action.payload.originType
+            )
+        ),
       };
 
     case CART_ACTIONS.UPDATE_QUANTITY:
       return {
         ...state,
-        items: state.items.map(item =>
-          item.productId === action.payload.productId
-            ? { ...item, quantity: action.payload.quantity }
-            : item
-        ).filter(item => item.quantity > 0)
+        items: state.items
+          .map((item) =>
+            item.productId === action.payload.productId &&
+            item.originType === action.payload.originType
+              ? { ...item, quantity: action.payload.quantity }
+              : item
+          )
+          .filter((item) => item.quantity > 0),
       };
 
     case CART_ACTIONS.CLEAR_CART:
@@ -58,12 +72,63 @@ const cartReducer = (state, action) => {
         items: []
       };
 
-    case CART_ACTIONS.LOAD_CART:
-      const items = action.payload.items || action.payload || [];
+    case CART_ACTIONS.LOAD_CART: {
+      const rawItems = action.payload.items || action.payload || [];
       return {
         ...state,
-        items: items
+        items: rawItems.map(item => {
+          const originType = item.originType || 'product';
+          const supplier = item.producer || {};
+          const supplierId =
+            supplier._id ||
+            supplier.id ||
+            item.producerId ||
+            item.supplierId ||
+            item.vendorId ||
+            item.restaurateurId ||
+            item.transformerId ||
+            item.ownerId ||
+            item.sellerId ||
+            null;
+          const supplierName =
+            supplier.name ||
+            supplier.businessName ||
+            supplier.companyName ||
+            supplier.restaurantName ||
+            item.producerName ||
+            item.supplierName ||
+            item.vendorName ||
+            item.restaurateurName ||
+            item.transformerName ||
+            item.ownerName ||
+            'Fournisseur';
+          const supplierType =
+            supplier.type ||
+            supplier.userType ||
+            item.producerType ||
+            item.supplierType ||
+            item.vendorType ||
+            item.categoryOwnerType ||
+            (originType === 'dish'
+              ? 'restaurateur'
+              : originType === 'transformed-product'
+              ? 'transformer'
+              : originType === 'logistics'
+              ? 'transporter'
+              : 'producer');
+
+          return {
+            ...item,
+            originType,
+            producer: {
+              id: supplierId,
+              name: supplierName,
+              type: supplierType,
+            },
+          };
+        }),
       };
+    }
 
     default:
       return state;
@@ -80,28 +145,198 @@ export const CartProvider = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const { isAuthenticated, user } = useAuth();
 
+  const buildCartItem = useCallback((product) => {
+    if (!product) return null;
+
+    const originType =
+      product.originType ||
+      product.userType ||
+      product.type ||
+      (product.restaurateur
+        ? 'dish'
+        : product.transformer
+        ? 'transformed-product'
+        : 'product');
+
+    const productId = product._id || product.id;
+    const quantity = product.quantity || 1;
+
+    let price = product.price;
+    if (typeof price === 'object' && price !== null) {
+      price = price.value ?? price.amount ?? Object.values(price)[0];
+    }
+    price = Number(price) || 0;
+
+    let imageUrl = '';
+    if (originType === 'restaurateur' || originType === 'dish' || product.restaurateur) {
+      imageUrl = getDishImageUrl(product) || '';
+    } else if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+      const firstImage = product.images[0];
+      if (typeof firstImage === 'object' && firstImage !== null) {
+        imageUrl =
+          firstImage.url ||
+          firstImage.secureUrl ||
+          firstImage.secure_url ||
+          firstImage.src ||
+          firstImage.path ||
+          '';
+      } else if (typeof firstImage === 'string') {
+        imageUrl = firstImage;
+      }
+    } else if (product.primaryImage) {
+      if (typeof product.primaryImage === 'object' && product.primaryImage !== null) {
+        imageUrl =
+          product.primaryImage.url ||
+          product.primaryImage.secureUrl ||
+          product.primaryImage.secure_url ||
+          product.primaryImage.src ||
+          product.primaryImage.path ||
+          '';
+      } else if (typeof product.primaryImage === 'string') {
+        imageUrl = product.primaryImage;
+      }
+    }
+
+    if (!imageUrl) {
+      imageUrl = product.image || product.coverImage || product.thumbnail || '';
+    }
+
+    const supplierInfo =
+      [
+        product.producer,
+        product.restaurateur,
+        product.transformer,
+        product.supplier,
+        product.vendor,
+        product.owner,
+        product.farmer,
+        product.seller,
+        product.provider,
+        product.merchant,
+        product.source,
+      ].find(Boolean) || {};
+
+    const supplierId =
+      supplierInfo.companyId ||
+      supplierInfo.organizationId ||
+      supplierInfo._id ||
+      supplierInfo.id ||
+      product.companyId ||
+      product.organizationId ||
+      product.producerId ||
+      product.restaurateurId ||
+      product.transformerId ||
+      product.supplierId ||
+      product.vendorId ||
+      product.ownerId ||
+      product.userId ||
+      product.owner?._id ||
+      product.sourceId ||
+      product.creatorId ||
+      product.sellerId ||
+      null;
+
+    let supplierName = '';
+    if (originType === 'dish' || originType === 'restaurateur') {
+      supplierName =
+        supplierInfo.restaurantName ||
+        product.restaurateur?.restaurantName ||
+        product.restaurantName ||
+        product.restaurateurName ||
+        supplierInfo.brandName ||
+        supplierInfo.companyName;
+    } else if (originType === 'transformed-product' || originType === 'transformer') {
+      supplierName =
+        supplierInfo.companyName ||
+        supplierInfo.organizationName ||
+        supplierInfo.businessName ||
+        product.transformer?.companyName ||
+        product.companyName ||
+        product.businessName ||
+        product.transformerName;
+    } else {
+      supplierName =
+        supplierInfo.farmName ||
+        supplierInfo.companyName ||
+        supplierInfo.businessName ||
+        product.producer?.farmName ||
+        product.farmName ||
+        product.companyName ||
+        product.businessName ||
+        product.producerName;
+    }
+
+    if (!supplierName) {
+      supplierName =
+        supplierInfo.displayName ||
+        supplierInfo.brandName ||
+        supplierInfo.organizationName ||
+        supplierInfo.businessName ||
+        supplierInfo.shopName ||
+        supplierInfo.storeName ||
+        supplierInfo.tradeName ||
+        supplierInfo.commercialName ||
+        supplierInfo.legalName ||
+        supplierInfo.profile?.restaurantName ||
+        supplierInfo.profile?.companyName ||
+        supplierInfo.profile?.businessName ||
+        supplierInfo.name ||
+        product.brandName ||
+        product.organizationName ||
+        product.businessName ||
+        product.shopName ||
+        product.storeName ||
+        product.tradeName ||
+        product.commercialName ||
+        product.legalName ||
+        product.owner?.businessName ||
+        product.owner?.companyName ||
+        product.owner?.restaurantName ||
+        product.owner?.displayName ||
+        product.owner?.name ||
+        'Fournisseur';
+    }
+
+    const supplierType =
+      supplierInfo.userType ||
+      supplierInfo.role ||
+      supplierInfo.type ||
+      product.supplierType ||
+      product.vendorType ||
+      product.categoryOwnerType ||
+      product.ownerType ||
+      product.owner?.userType ||
+      (originType === 'dish' || originType === 'restaurateur'
+        ? 'restaurateur'
+        : originType === 'transformed-product' || originType === 'transformer'
+        ? 'transformer'
+        : originType === 'logistics'
+        ? 'transporter'
+        : 'producer');
+
+    return {
+      productId,
+      originType,
+      name: product.name?.fr || product.name?.en || product.name || 'Produit',
+      price,
+      image: imageUrl,
+      quantity,
+      producer: {
+        id: supplierId,
+        name: supplierName,
+        type: supplierType,
+      },
+    };
+  }, []);
+
   useEffect(() => {
     const handleExternalAdd = (event) => {
       const product = event.detail;
-      if (product) {
-        // Extraire l'image correctement pour les plats
-        let imageUrl = '';
-        if (product.originType === 'dish' || product.restaurateur) {
-          imageUrl = getDishImageUrl(product) || '';
-        } else {
-          imageUrl = product.image || '';
-        }
-        
+      const cartItem = buildCartItem(product);
+      if (cartItem) {
         dispatch({
           type: CART_ACTIONS.ADD_ITEM,
-          payload: {
-            productId: product._id || product.id,
-            name: product.name,
-            price: product.price,
-            image: imageUrl,
-            quantity: product.quantity || 1,
-            producer: product.producer || {}
-          }
+          payload: cartItem,
         });
       }
     };
@@ -111,7 +346,7 @@ export const CartProvider = ({ children }) => {
     return () => {
       window.removeEventListener('cart:add-item', handleExternalAdd);
     };
-  }, []);
+  }, [buildCartItem]);
 
   // Charger le panier depuis localStorage au montage
   useEffect(() => {
@@ -178,6 +413,11 @@ export const CartProvider = ({ children }) => {
   // Fonctions du panier
   const addToCart = (product) => {
     // Vérifier le stock pour les plats
+    const cartItem = buildCartItem(product);
+    if (!cartItem) return;
+
+    const { productId, originType, quantity: requestedQuantity, producer } = cartItem;
+
     if (product.trackQuantity !== false) {
       const stock = product.stock ?? product.inventory?.quantity ?? null;
       if (stock !== null && stock <= 0) {
@@ -186,8 +426,9 @@ export const CartProvider = ({ children }) => {
       }
       
       // Vérifier si la quantité demandée est disponible
-      const requestedQuantity = product.quantity || 1;
-      const existingItem = state.items.find(item => item.productId === (product._id || product.id));
+      const existingItem = state.items.find(
+        item => item.productId === productId && item.originType === originType
+      );
       const currentQuantity = existingItem ? existingItem.quantity : 0;
       const totalQuantity = currentQuantity + requestedQuantity;
       
@@ -197,61 +438,30 @@ export const CartProvider = ({ children }) => {
       }
     }
     
-    const supplierInfo = product.producer || product.supplier || product.vendor || product.restaurateur || {};
-    
-    // Extraire l'image de manière exhaustive pour gérer tous les formats
-    // Pour les plats (originType === 'dish'), utiliser la fonction utilitaire spécialisée
-    let imageUrl = '';
-    if (product.originType === 'dish' || product.restaurateur) {
-      // Utiliser la fonction utilitaire pour les plats
-      imageUrl = getDishImageUrl(product) || '';
-    } else {
-      // Pour les produits normaux, utiliser la logique standard
-      if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-        const firstImage = product.images[0];
-        if (typeof firstImage === 'object' && firstImage !== null) {
-          imageUrl = firstImage.url || firstImage.src || firstImage.path || firstImage.secure_url || '';
-        } else if (typeof firstImage === 'string') {
-          imageUrl = firstImage;
-        }
-      }
-      
-      if (!imageUrl) {
-        if (product.primaryImage) {
-          if (typeof product.primaryImage === 'object' && product.primaryImage !== null) {
-            imageUrl = product.primaryImage.url || product.primaryImage.src || product.primaryImage.secure_url || '';
-          } else if (typeof product.primaryImage === 'string') {
-            imageUrl = product.primaryImage;
-          }
-        }
-      }
-      
-      if (!imageUrl) {
-        imageUrl = product.image || product.coverImage || product.thumbnail || '';
-      }
+    // Vérifier qu'un fournisseur est bien identifié (sinon laisser la validation plus tard)
+    if (!producer?.id) {
+      console.warn(
+        '[Cart] Fournisseur introuvable pour le produit ajouté',
+        productId,
+        originType
+      );
     }
-    
-    const cartItem = {
-      productId: product._id || product.id,
-      name: product.name?.fr || product.name?.en || product.name || 'Produit',
-      price: product.price?.value ?? product.price ?? 0,
-      image: imageUrl,
-      quantity: product.quantity || 1,
-      producer: {
-        id: supplierInfo._id || supplierInfo.id || product.producerId || product.supplierId,
-        name: supplierInfo.businessName || supplierInfo.companyName || supplierInfo.restaurantName || `${supplierInfo.firstName || ''} ${supplierInfo.lastName || ''}`.trim() || product.producerName || product.supplierName || 'Fournisseur'
-      }
-    };
 
     dispatch({ type: CART_ACTIONS.ADD_ITEM, payload: cartItem });
   };
 
-  const removeFromCart = (productId) => {
-    dispatch({ type: CART_ACTIONS.REMOVE_ITEM, payload: { productId } });
+  const removeFromCart = (productId, originType = 'product') => {
+    dispatch({
+      type: CART_ACTIONS.REMOVE_ITEM,
+      payload: { productId, originType },
+    });
   };
 
-  const updateQuantity = (productId, quantity) => {
-    dispatch({ type: CART_ACTIONS.UPDATE_QUANTITY, payload: { productId, quantity } });
+  const updateQuantity = (productId, quantity, originType = 'product') => {
+    dispatch({
+      type: CART_ACTIONS.UPDATE_QUANTITY,
+      payload: { productId, quantity, originType },
+    });
   };
 
   const clearCart = () => {
@@ -267,13 +477,17 @@ export const CartProvider = ({ children }) => {
     return state.items.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
-  const getItemCount = (productId) => {
-    const item = state.items.find(item => item.productId === productId);
+  const getItemCount = (productId, originType = 'product') => {
+    const item = state.items.find(
+      item => item.productId === productId && item.originType === originType
+    );
     return item ? item.quantity : 0;
   };
 
-  const isInCart = (productId) => {
-    return state.items.some(item => item.productId === productId);
+  const isInCart = (productId, originType = 'product') => {
+    return state.items.some(
+      item => item.productId === productId && item.originType === originType
+    );
   };
 
   const value = {

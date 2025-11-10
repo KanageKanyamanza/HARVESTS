@@ -23,7 +23,7 @@ const createGenericService = (userType) => ({
   getMyOrder: (id) => api.get(`/${userType}s/me/orders/${id}`), // Alias pour getOrder
   createOrder: (data) => api.post(`/${userType}s/me/orders`, data),
   updateOrder: (id, data) => api.patch(`/${userType}s/me/orders/${id}`, data),
-  updateOrderStatus: (id, data) => api.patch(`/${userType}s/me/orders/${id}`, data),
+  updateOrderStatus: (id, data) => api.patch(`/${userType}s/me/orders/${id}/status`, data),
   
   // Profil
   getProfile: () => api.get(`/${userType}s/me`),
@@ -167,6 +167,7 @@ export const transporterService = {
   getOrders: (params = {}) => api.get('/transporters/me/deliveries', { params }),
   getMyOrders: (params = {}) => api.get('/transporters/me/deliveries', { params }),
   getOrder: (id) => api.get(`/transporters/me/deliveries/${id}`),
+  updateOrderStatus: (id, data) => api.patch(`/transporters/me/deliveries/${id}/status`, data),
   // Désactiver getProducts pour les transporteurs
   getProducts: () => Promise.reject(new Error('Les transporteurs n\'ont pas de produits, utilisez la flotte')),
 };
@@ -180,8 +181,14 @@ export const exporterService = {
   getMyOrders: (params = {}) => api.get('/exporters/me/export-orders', { params }),
   getOrder: (id) => api.get(`/exporters/me/export-orders/${id}`),
   getMyOrder: (id) => api.get(`/exporters/me/export-orders/${id}`),
-  // Désactiver getProducts pour les exportateurs (ils n'ont pas de produits)
+  updateOrderStatus: (id, data) => api.patch(`/exporters/me/export-orders/${id}/status`, data),
+  // Les exportateurs n'ont pas de catalogue produit
   getProducts: () => Promise.reject(new Error('Les exportateurs n\'ont pas de produits, utilisez la flotte')),
+  getProduct: () => Promise.reject(new Error('Les exportateurs n\'ont pas de produits, utilisez la flotte')),
+  createProduct: () => Promise.reject(new Error('Les exportateurs n\'ont pas de produits, utilisez la flotte')),
+  updateProduct: () => Promise.reject(new Error('Les exportateurs n\'ont pas de produits, utilisez la flotte')),
+  deleteProduct: () => Promise.reject(new Error('Les exportateurs n\'ont pas de produits, utilisez la flotte')),
+  submitProductForReview: () => Promise.reject(new Error('Les exportateurs n\'ont pas de produits, utilisez la flotte')),
   // Gestion de la flotte
   getFleet: (params = {}) => api.get('/exporters/me/fleet', { params }),
   addFleetVehicle: (data) => api.post('/exporters/me/fleet', data),

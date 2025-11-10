@@ -85,7 +85,8 @@ export const generateSidebarNavigation = (user, icons = {}) => {
     FiHeart: HeartIcon = FiHeart,
     FiTrendingUp: TrendingUpIcon = FiTrendingUp,
     FiShoppingCart: ShoppingCartIcon = FiShoppingCart,
-    FaChartBar: ChartBarIcon = FaChartBar
+    FaChartBar: ChartBarIcon = FaChartBar,
+    FiTruck: TruckIcon = FiTruck
   } = icons;
 
   // Si des navigationItems sont fournis en prop, les utiliser
@@ -167,7 +168,7 @@ export const generateSidebarNavigation = (user, icons = {}) => {
     return [
       { name: 'Tableau de bord', href: getDashboardRoute(user), icon: HomeIcon },
       { name: 'Commandes d\'export', href: getOrdersRoute(user), icon: ShoppingBagIcon },
-      { name: 'Ma flotte', href: getProductsRoute(user), icon: PackageIcon },
+      { name: 'Ma flotte', href: '/exporter/fleet', icon: TruckIcon },
       { name: 'Statistiques', href: '/exporter/statistics', icon: ChartBarIcon },
       { name: 'Profil', href: getProfileRoute(user), icon: UserIcon },
       { name: 'Paramètres', href: getSettingsRoute(user), icon: SettingsIcon }
@@ -210,13 +211,15 @@ export const generateQuickActions = (userType, icons = {}) => {
   } = icons;
 
   const baseActions = [
-    {
-      icon: <PlusIcon className="h-5 w-5" />,
-      title: 'Ajouter un produit',
-      description: 'Créer un nouveau produit',
-      href: getAddProductRoute({ userType }),
-      color: 'bg-blue-500 hover:bg-blue-600'
-    },
+    ...(userType !== 'exporter'
+      ? [{
+          icon: <PlusIcon className="h-5 w-5" />,
+          title: 'Ajouter un produit',
+          description: 'Créer un nouveau produit',
+          href: getAddProductRoute({ userType }),
+          color: 'bg-blue-500 hover:bg-blue-600'
+        }]
+      : []),
     {
       icon: <EditIcon className="h-5 w-5" />,
       title: 'Modifier le profil',
@@ -277,6 +280,13 @@ export const generateQuickActions = (userType, icons = {}) => {
     case 'exporter':
       return [
         ...baseActions,
+        {
+          icon: <TruckIcon className="h-5 w-5" />,
+          title: 'Ajouter un véhicule',
+          description: 'Enregistrer un nouveau moyen de transport',
+          href: '/exporter/fleet/add',
+          color: 'bg-blue-500 hover:bg-blue-600'
+        },
         {
           icon: <FiGlobe className="h-5 w-5" />,
           title: 'Nouvel export',

@@ -24,7 +24,7 @@ const DishesManagement = () => {
   const { showSuccess, showError } = useNotifications();
   const [dishes, setDishes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showDishForm, setShowDishForm] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingDish, setEditingDish] = useState(null);
   const [filter, setFilter] = useState('all'); // all, available, unavailable
   const [searchTerm, setSearchTerm] = useState('');
@@ -92,92 +92,53 @@ const DishesManagement = () => {
     loadDishes();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleDishSubmit = async (dishData) => {
+  const handleDishUpdate = async (dishData) => {
+    if (!editingDish) {
+      showError('Aucun plat sélectionné pour la modification.');
+      return;
+    }
+
     try {
       setLoading(true);
-      let response;
-      
-      if (editingDish) {
-        response = await restaurateurService.updateDish(editingDish._id, dishData);
-        showSuccess('Plat mis à jour. Une nouvelle validation est nécessaire.');
-        
-        // Mettre à jour le plat dans la liste
-        if (response?.data?.data?.dish) {
-          const updatedDish = response.data.data.dish;
-          
-          // Normaliser les données - TOUJOURS au format multilingue
-          if (!updatedDish.name) {
-            updatedDish.name = { fr: '', en: '' };
-          } else if (typeof updatedDish.name === 'string') {
-            updatedDish.name = { fr: updatedDish.name, en: updatedDish.name };
-          } else if (typeof updatedDish.name === 'object' && updatedDish.name !== null) {
-            updatedDish.name = {
-              fr: updatedDish.name.fr || updatedDish.name.en || '',
-              en: updatedDish.name.en || updatedDish.name.fr || ''
-            };
-          } else {
-            updatedDish.name = { fr: '', en: '' };
-          }
-          
-          if (!updatedDish.description) {
-            updatedDish.description = { fr: '', en: '' };
-          } else if (typeof updatedDish.description === 'string') {
-            updatedDish.description = { fr: updatedDish.description, en: updatedDish.description };
-          } else if (typeof updatedDish.description === 'object' && updatedDish.description !== null) {
-            updatedDish.description = {
-              fr: updatedDish.description.fr || updatedDish.description.en || '',
-              en: updatedDish.description.en || updatedDish.description.fr || ''
-            };
-          } else {
-            updatedDish.description = { fr: '', en: '' };
-          }
-          
-          setDishes(prev => prev.map(dish => 
-            dish._id === updatedDish._id ? updatedDish : dish
-          ));
+      const response = await restaurateurService.updateDish(editingDish._id, dishData);
+      showSuccess('Plat mis à jour. Une nouvelle validation est nécessaire.');
+
+      if (response?.data?.data?.dish) {
+        const updatedDish = response.data.data.dish;
+
+        if (!updatedDish.name) {
+          updatedDish.name = { fr: '', en: '' };
+        } else if (typeof updatedDish.name === 'string') {
+          updatedDish.name = { fr: updatedDish.name, en: updatedDish.name };
+        } else if (typeof updatedDish.name === 'object' && updatedDish.name !== null) {
+          updatedDish.name = {
+            fr: updatedDish.name.fr || updatedDish.name.en || '',
+            en: updatedDish.name.en || updatedDish.name.fr || ''
+          };
+        } else {
+          updatedDish.name = { fr: '', en: '' };
         }
-      } else {
-        response = await restaurateurService.createDish(dishData);
-        showSuccess('Plat soumis pour validation.');
-        
-        // Ajouter immédiatement le nouveau plat à la liste
-        if (response?.data?.data?.dish) {
-          const newDish = response.data.data.dish;
-          
-          // Normaliser les données - TOUJOURS au format multilingue
-          if (!newDish.name) {
-            newDish.name = { fr: '', en: '' };
-          } else if (typeof newDish.name === 'string') {
-            newDish.name = { fr: newDish.name, en: newDish.name };
-          } else if (typeof newDish.name === 'object' && newDish.name !== null) {
-            newDish.name = {
-              fr: newDish.name.fr || newDish.name.en || '',
-              en: newDish.name.en || newDish.name.fr || ''
-            };
-          } else {
-            newDish.name = { fr: '', en: '' };
-          }
-          
-          if (!newDish.description) {
-            newDish.description = { fr: '', en: '' };
-          } else if (typeof newDish.description === 'string') {
-            newDish.description = { fr: newDish.description, en: newDish.description };
-          } else if (typeof newDish.description === 'object' && newDish.description !== null) {
-            newDish.description = {
-              fr: newDish.description.fr || newDish.description.en || '',
-              en: newDish.description.en || newDish.description.fr || ''
-            };
-          } else {
-            newDish.description = { fr: '', en: '' };
-          }
-          
-          setDishes(prev => [newDish, ...prev]);
+
+        if (!updatedDish.description) {
+          updatedDish.description = { fr: '', en: '' };
+        } else if (typeof updatedDish.description === 'string') {
+          updatedDish.description = { fr: updatedDish.description, en: updatedDish.description };
+        } else if (typeof updatedDish.description === 'object' && updatedDish.description !== null) {
+          updatedDish.description = {
+            fr: updatedDish.description.fr || updatedDish.description.en || '',
+            en: updatedDish.description.en || updatedDish.description.fr || ''
+          };
+        } else {
+          updatedDish.description = { fr: '', en: '' };
         }
+
+        setDishes(prev => prev.map(dish =>
+          dish._id === updatedDish._id ? updatedDish : dish
+        ));
       }
-      
-      // Recharger aussi pour garantir la cohérence avec le serveur
+
       await loadDishes();
-      setShowDishForm(false);
+      setIsEditModalOpen(false);
       setEditingDish(null);
     } catch (error) {
       console.error('Erreur lors de la sauvegarde du plat:', error);
@@ -203,28 +164,9 @@ const DishesManagement = () => {
     }
   };
 
-  const handleToggleAvailability = async (dishId, isActive) => {
-    if (!dishId) {
-      console.error('ID du plat manquant:', dishId);
-      showError('ID du plat manquant');
-      return;
-    }
-    
-    try {
-      await restaurateurService.updateDish(dishId, { isActive: !isActive });
-      setDishes(prev => prev.map(dish => 
-        dish._id === dishId ? { ...dish, isActive: !isActive } : dish
-      ));
-      showSuccess(`Plat ${!isActive ? 'activé' : 'désactivé'} avec succès`);
-    } catch (error) {
-      console.error('Erreur lors de la modification du statut:', error);
-      showError('Erreur lors de la modification du statut');
-    }
-  };
-
   const handleEditDish = (dish) => {
     setEditingDish(dish);
-    setShowDishForm(true);
+    setIsEditModalOpen(true);
   };
 
   // Normaliser les données une fois avant le filtrage (double protection)
@@ -389,7 +331,7 @@ const DishesManagement = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex flex-col sm:flex-row gap-4">
               <button
-                onClick={() => setShowDishForm(true)}
+                onClick={() => navigate('/restaurateur/dishes/add')}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-harvests-green hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-harvests-green"
               >
                 <FiPlus className="h-4 w-4 mr-2" />
@@ -425,14 +367,14 @@ const DishesManagement = () => {
         </div>
 
         {/* Modale de plat */}
-        {showDishForm && (
+        {isEditModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto">
               <DishForm
                 dish={editingDish}
-                onSubmit={handleDishSubmit}
+                onSubmit={handleDishUpdate}
                 onCancel={() => {
-                  setShowDishForm(false);
+                  setIsEditModalOpen(false);
                   setEditingDish(null);
                 }}
                 loading={loading}
@@ -462,7 +404,7 @@ const DishesManagement = () => {
                     {dish.image ? (
                       <div className="w-full h-32 mb-3 rounded-lg overflow-hidden">
                         <CloudinaryImage
-                          src={dish.image}
+                          src={getDishImageUrl(dish)}
                           alt={dish.name?.fr || dish.name?.en || dish.name || 'Plat'}
                           className="w-full h-full object-cover"
                           onError={(e) => {

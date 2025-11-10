@@ -2,8 +2,9 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiPackage, FiPlus, FiEdit, FiEye } from 'react-icons/fi';
 import CloudinaryImage from '../../common/CloudinaryImage';
+import { getDishImageUrl } from '../../../utils/dishImageUtils';
 
-const ProductsSection = ({ products, userType, loading = false }) => {
+const ProductsSection = ({ products, userType, loading = false, service }) => {
   const navigate = useNavigate();
   
   // Fonction pour obtenir la route de modification selon le type d'utilisateur
@@ -31,7 +32,7 @@ const ProductsSection = ({ products, userType, loading = false }) => {
   // Fonction pour obtenir la route "Ajouter"
   const getAddRoute = () => {
     if (userType === 'restaurateur') {
-      return '/restaurateur/dishes';
+      return '/restaurateur/dishes/add';
     }
     return `/${userType}/products/add`;
   };
@@ -78,22 +79,49 @@ const ProductsSection = ({ products, userType, loading = false }) => {
     );
   }
 
+  const items = Array.isArray(products) ? products : [];
+
   return (
     <div className="space-y-3 w-full">
-      {products.slice(0, 5).map((product) => (
+      {items.slice(0, 5).map((product) => (
         <div key={product._id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
           <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-            {product.images && product.images.length > 0 ? (
-                 <CloudinaryImage
-                   src={product.images[0].url}
-                   alt={typeof product.name === 'object' ? product.name.fr || product.name.en || 'Produit' : product.name}
-                   className="w-full h-full object-cover"
-                 />
-            ) : (
-              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                <FiPackage className="h-6 w-6 text-gray-400" />
-              </div>
-            )}
+            {(() => {
+              if (userType === 'restaurateur') {
+                const imageUrl = getDishImageUrl(product);
+                if (imageUrl) {
+                  return (
+                    <CloudinaryImage
+                      src={imageUrl}
+                      alt={
+                        typeof product.name === 'object'
+                          ? product.name.fr || product.name.en || 'Plat'
+                          : product.name || 'Plat'
+                      }
+                      className="w-full h-full object-cover"
+                    />
+                  );
+                }
+              } else if (product.images && product.images.length > 0) {
+                return (
+                  <CloudinaryImage
+                    src={product.images[0].url || product.images[0]}
+                    alt={
+                      typeof product.name === 'object'
+                        ? product.name.fr || product.name.en || 'Produit'
+                        : product.name
+                    }
+                    className="w-full h-full object-cover"
+                  />
+                );
+              }
+
+              return (
+                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                  <FiPackage className="h-6 w-6 text-gray-400" />
+                </div>
+              );
+            })()}
           </div>
           <div className="flex-1 min-w-0">
             <h4 className="text-sm font-medium text-gray-900 truncate">

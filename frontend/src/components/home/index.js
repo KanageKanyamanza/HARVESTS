@@ -1,6 +1,7 @@
 // Export all home section components
 export { default as HeroSection } from './HeroSection';
 export { default as TrustBadgesSection } from './TrustBadgesSection';
+export { default as LogisticsPartnersSection } from './LogisticsPartnersSection';
 export { default as BannersSection } from './BannersSection';
 export { default as DiscountBannerSection } from './DiscountBannerSection';
 export { default as LoyaltyProgramSection } from './LoyaltyProgramSection';
