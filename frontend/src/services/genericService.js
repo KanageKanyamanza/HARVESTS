@@ -135,6 +135,8 @@ export const transformerService = {
   updateProfile: (data) => api.patch('/transformers/me/profile', data), // Alias pour compatibilité
   // Alias pour les produits (compatibilité avec MyProducts.jsx)
   getMyProducts: (params = {}) => api.get('/transformers/me/products', { params }),
+  // Override pour la mise à jour de statut de commande (endpoint sans suffixe /status)
+  updateOrderStatus: (orderId, data) => api.patch(`/transformers/me/orders/${orderId}`, data),
 };
 export const restaurateurService = {
   ...createGenericService('restaurateur'),
