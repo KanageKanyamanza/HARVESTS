@@ -60,23 +60,23 @@ export const producerService = {
 
   // Routes publiques (sans paramètre lang automatique)
   getAllProducers: (params = {}) => {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://harvests.onrender.com/api/v1';
     return axios.get(`${API_BASE_URL}/producers`, { params });
   },
   getPublicProducer: (id) => {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://harvests.onrender.com/api/v1';
     return axios.get(`${API_BASE_URL}/producers/${id}`);
   },
   getPublicProducerProducts: (id, params = {}) => {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://harvests.onrender.com/api/v1';
     return axios.get(`${API_BASE_URL}/producers/${id}/products`, { params });
   },
   getPublicProducerReviews: (id, params = {}) => {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://harvests.onrender.com/api/v1';
     return axios.get(`${API_BASE_URL}/producers/${id}/reviews`, { params });
   },
   getReviews: (id, params = {}) => {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://harvests.onrender.com/api/v1';
     return axios.get(`${API_BASE_URL}/producers/${id}/reviews`, { params });
   }
 };
