@@ -638,17 +638,46 @@ notificationSchema.statics.notifyOrderCreated = function(order) {
     order.items.forEach((item) => pushSellerId(item?.seller));
   }
 
-  if (sellerIds.size === 0) {
-    return Promise.resolve(null);
+  const notifications = [];
+
+  // Notifier tous les vendeurs concernés
+  if (sellerIds.size > 0) {
+    const sellerNotifications = Array.from(sellerIds).map((sellerId) =>
+      this.createNotification({
+        recipient: sellerId,
+        type: 'order_created',
+        category: 'order',
+        title: 'Nouvelle commande reçue',
+        message: `Vous avez reçu une nouvelle commande (${order.orderNumber}) d'un montant de ${order.total} ${order.currency}`,
+        data: {
+          orderId: order._id,
+          orderNumber: order.orderNumber,
+          amount: order.total,
+          currency: order.currency
+        },
+        actions: [{
+          type: 'view',
+          label: 'Voir la commande',
+          url: `/orders/${order._id}`
+        }],
+        channels: {
+          inApp: { enabled: true },
+          email: { enabled: true },
+          push: { enabled: true }
+        }
+      })
+    );
+    notifications.push(...sellerNotifications);
   }
 
-  const notifications = Array.from(sellerIds).map((sellerId) =>
-    this.createNotification({
-      recipient: sellerId,
-      type: 'order_created',
+  // Notifier l'acheteur de la création de sa commande
+  if (order.buyer) {
+    const buyerNotification = this.createNotification({
+      recipient: order.buyer,
+      type: 'order_created_buyer',
       category: 'order',
-      title: 'Nouvelle commande reçue',
-      message: `Vous avez reçu une nouvelle commande (${order.orderNumber}) d'un montant de ${order.total} ${order.currency}`,
+      title: 'Commande créée avec succès',
+      message: `Votre commande ${order.orderNumber} a été créée avec succès. Montant total : ${order.total} ${order.currency}`,
       data: {
         orderId: order._id,
         orderNumber: order.orderNumber,
@@ -657,7 +686,7 @@ notificationSchema.statics.notifyOrderCreated = function(order) {
       },
       actions: [{
         type: 'view',
-        label: 'Voir la commande',
+        label: 'Voir ma commande',
         url: `/orders/${order._id}`
       }],
       channels: {
@@ -665,8 +694,9 @@ notificationSchema.statics.notifyOrderCreated = function(order) {
         email: { enabled: true },
         push: { enabled: true }
       }
-    })
-  );
+    });
+    notifications.push(buyerNotification);
+  }
 
   return Promise.all(notifications);
 };
