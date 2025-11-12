@@ -216,7 +216,7 @@ const swaggerOptions = {
             payment: {
               type: 'object',
               properties: {
-                method: { type: 'string', enum: ['cash', 'card', 'mobile-money', 'bank-transfer', 'crypto'] },
+                    method: { type: 'string', enum: ['cash', 'paypal'] },
                 provider: { type: 'string', example: 'Wave Sénégal' },
                 status: { type: 'string', enum: ['pending', 'processing', 'completed', 'failed', 'refunded', 'cancelled'] },
                 amount: { type: 'number', example: 18500 },

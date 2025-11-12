@@ -12,6 +12,7 @@ process.on('uncaughtException', (err) => {
 dotenv.config();
 
 const app = require('./app');
+const { migrateLocalizedFields } = require('./scripts/migrateLocalizedFields');
 
 // Configuration de la base de données
 let DB;
@@ -93,6 +94,12 @@ mongoose
       });
     } catch (error) {
       console.log('⚠️ Impossible de vérifier/créer l\'admin automatiquement:', error.message);
+    }
+
+    try {
+      await migrateLocalizedFields();
+    } catch (migrationError) {
+      console.error('⚠️ Erreur lors de la migration des champs localisés:', migrationError);
     }
   })
   .catch((err) => {

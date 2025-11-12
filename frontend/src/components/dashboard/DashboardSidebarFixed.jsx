@@ -34,6 +34,7 @@ import {
   FiFileText
 } from 'react-icons/fi';
 import { FaChartBar } from 'react-icons/fa';
+import Logo from '../../assets/logo.png';
 
 const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse, navigationItems, user: propUser }) => {
   const { user: authUser, userDisplayName } = useAuth();
@@ -138,7 +139,7 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse, 
         <div className="h-16 px-4 border-b  border-gray-200 flex items-center justify-between flex-shrink-0">
           {!collapsed && (
             <Link to="/" className="flex items-center mx-auto space-x-1">
-              <img src="/src/assets/logo.png" alt="Harvests" className="h-10 w-auto" />
+              <img src={Logo} alt="Harvests" className="h-10 w-auto" />
             </Link>
           )}
           {collapsed && (

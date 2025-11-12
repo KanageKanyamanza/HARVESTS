@@ -1,10 +1,12 @@
 const multer = require('multer');
 const Transformer = require('../models/Transformer');
-const Order = require('../models/Order');
 const Product = require('../models/Product');
+const Order = require('../models/Order');
 const Review = require('../models/Review');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const orderController = require('./orderController');
+const { toPlainText } = require('../utils/localization');
 
 // Configuration Multer
 const multerStorage = multer.memoryStorage();
@@ -196,7 +198,7 @@ exports.getTransformerReviews = catchAsync(async (req, res, next) => {
     isActive: true 
   })
   .populate('reviewer', 'firstName lastName avatar')
-  .populate('product', 'name.fr name.en images')
+  .populate('product', 'name images')
   .sort('-createdAt')
   .limit(20);
 
@@ -693,33 +695,7 @@ exports.removePreferredSupplier = catchAsync(async (req, res, next) => {
 });
 
 // Commandes
-exports.getMyOrders = catchAsync(async (req, res, next) => {
-  const page = req.query.page * 1 || 1;
-  const limit = req.query.limit * 1 || 20;
-  const skip = (page - 1) * limit;
-
-  const orders = await Order.find({ 
-    seller: req.user._id 
-  })
-  .populate('buyer', 'firstName lastName email phone')
-  .populate('items.product', 'name images price')
-  .sort('-createdAt')
-  .skip(skip)
-  .limit(limit);
-
-  const total = await Order.countDocuments({ seller: req.user._id });
-
-  res.status(200).json({
-    status: 'success',
-    results: orders.length,
-    total,
-    page,
-    totalPages: Math.ceil(total / limit),
-    data: {
-      orders
-    }
-  });
-});
+exports.getMyOrders = (req, res, next) => orderController.getMyOrders(req, res, next);
 
 exports.acceptOrder = catchAsync(async (req, res, next) => {
   const { orderId } = req.params;
@@ -751,70 +727,19 @@ exports.acceptOrder = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getMyOrder = catchAsync(async (req, res, next) => {
-  const { orderId } = req.params;
-
-  const order = await Order.findOne({
-    _id: orderId,
-    seller: req.user._id
-  })
-  .populate('buyer', 'firstName lastName email phone address')
-  .populate('items.product', 'name images price unit')
-  .populate('payment', 'amount status method');
-
-  if (!order) {
-    return next(new AppError('Commande non trouvée', 404));
+exports.getMyOrder = (req, res, next) => {
+  if (!req.params.id && req.params.orderId) {
+    req.params.id = req.params.orderId;
   }
+  return orderController.getOrder(req, res, next);
+};
 
-  res.status(200).json({
-    status: 'success',
-    data: {
-      order
-    }
-  });
-});
-
-exports.updateOrderStatus = catchAsync(async (req, res, next) => {
-  const { orderId } = req.params;
-  const { status, notes, trackingNumber, estimatedDeliveryDate } = req.body;
-
-  const order = await Order.findOne({
-    _id: orderId,
-    seller: req.user._id
-  });
-
-  if (!order) {
-    return next(new AppError('Commande non trouvée', 404));
+exports.updateOrderStatus = (req, res, next) => {
+  if (!req.params.id && req.params.orderId) {
+    req.params.id = req.params.orderId;
   }
-
-  order.status = status;
-  if (notes) {
-    order.transformerNotes = notes;
-  }
-  if (trackingNumber) {
-    order.trackingNumber = trackingNumber;
-  }
-  if (estimatedDeliveryDate) {
-    order.delivery.estimatedDeliveryDate = new Date(estimatedDeliveryDate);
-  }
-
-  // Mettre à jour les timestamps selon le statut
-  if (status === 'in_progress' && !order.startedAt) {
-    order.startedAt = new Date();
-  } else if (status === 'completed' && !order.completedAt) {
-    order.completedAt = new Date();
-  }
-
-  await order.save();
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Statut de la commande mis à jour avec succès',
-    data: {
-      order
-    }
-  });
-});
+  return orderController.updateOrderStatus(req, res, next);
+};
 
 exports.cancelOrder = catchAsync(async (req, res, next) => {
   const { orderId } = req.params;
@@ -986,11 +911,21 @@ exports.createProduct = catchAsync(async (req, res, next) => {
     return next(new AppError('Tous les champs obligatoires doivent être remplis', 400));
   }
 
-  // Créer le produit avec structure multilingue
+  const normalizedName = toPlainText(name, name);
+  const normalizedDescription = toPlainText(description, description);
+  const normalizedShortDescription = shortDescription !== undefined && shortDescription !== null
+    ? toPlainText(shortDescription, shortDescription)
+    : '';
+
+  if (!normalizedName || !normalizedDescription) {
+    return next(new AppError('Le nom et la description doivent être fournis', 400));
+  }
+
+  // Créer le produit avec structure unilingue
   const productData = {
-    name: typeof name === 'object' ? name : { fr: name, en: name },
-    description: typeof description === 'object' ? description : { fr: description, en: description },
-    shortDescription: typeof shortDescription === 'object' ? shortDescription : { fr: shortDescription, en: shortDescription },
+    name: normalizedName,
+    description: normalizedDescription,
+    shortDescription: normalizedShortDescription || undefined,
     category,
     subcategory: subcategory || category,
     tags: tags || [],
@@ -1457,7 +1392,7 @@ exports.getMyReviews = catchAsync(async (req, res, next) => {
     ...statusFilter
   })
   .populate('reviewer', 'firstName lastName avatar email')
-  .populate('product', 'name.fr name.en images')
+  .populate('product', 'name images')
   .populate('order', 'orderNumber total createdAt')
   .sort('-createdAt')
   .limit(limit * 1)

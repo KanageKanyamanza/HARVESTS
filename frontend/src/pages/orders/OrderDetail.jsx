@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { consumerService, producerService, transformerService, restaurateurService, orderService } from '../../services';
@@ -37,93 +37,93 @@ const OrderDetail = () => {
   // Vérifier si on est dans le contexte admin
   const isAdminContext = location.pathname.startsWith('/admin/orders');
 
-  useEffect(() => {
-    const loadOrderDetails = async () => {
-      if (!orderIdParam || !user) {
-        navigate('/dashboard');
-        return;
-      }
+  const loadOrderDetails = useCallback(async () => {
+    if (!orderIdParam || !user) {
+      navigate('/dashboard');
+      return;
+    }
 
-      try {
-        setLoading(true);
-        setError(null);
-        
-        let response;
-        
-        // Si on est dans le contexte admin, utiliser le service admin
-        if (isAdminContext) {
-          response = await adminService.getOrderById(orderIdParam);
-          // Le service admin retourne response.data qui contient { status: 'success', data: { order: {...} } }
-          if (response.status === 'success' && response.data && response.data.order) {
-            setOrder(response.data.order);
-          } else {
-            setError('Commande non trouvée');
-          }
+    try {
+      setLoading(true);
+      setError(null);
+
+      let response;
+
+      if (isAdminContext) {
+        response = await adminService.getOrderById(orderIdParam);
+        if (response.status === 'success' && response.data && response.data.order) {
+          setOrder(response.data.order);
         } else {
-          // Utiliser le service approprié selon le type d'utilisateur
-          if (user.userType === 'consumer') {
-            response = await consumerService.getMyOrder(orderIdParam);
-          } else if (user.userType === 'producer') {
-            response = await producerService.getOrder(orderIdParam);
-          } else if (user.userType === 'transformer') {
-            response = await transformerService.getMyOrder(orderIdParam);
-          } else if (user.userType === 'restaurateur') {
-            response = await restaurateurService.getOrder(orderIdParam);
-          } else {
-            // Pour les autres types d'utilisateurs, utiliser le service général
-            response = await orderService.getOrder(orderIdParam);
-          }
-          
-          if (response.data.status === 'success') {
-            setOrder(response.data.data.order);
-          } else {
-            setError('Commande non trouvée');
-          }
+          setError('Commande non trouvée');
         }
-      } catch (error) {
-        console.error('Erreur lors du chargement des détails de la commande:', error);
-        setError('Erreur lors du chargement des détails de la commande');
-      } finally {
-        setLoading(false);
-      }
-    };
+      } else {
+        if (user.userType === 'consumer') {
+          response = await consumerService.getMyOrder(orderIdParam);
+        } else if (user.userType === 'producer') {
+          response = await producerService.getOrder(orderIdParam);
+        } else if (user.userType === 'transformer') {
+          response = await transformerService.getMyOrder(orderIdParam);
+        } else if (user.userType === 'restaurateur') {
+          response = await restaurateurService.getOrder(orderIdParam);
+        } else {
+          response = await orderService.getOrder(orderIdParam);
+        }
 
-    loadOrderDetails();
+        if (response.data.status === 'success') {
+          const fetchedOrder = response.data.data.order;
+          if (!fetchedOrder.segment && fetchedOrder.items?.length) {
+            console.warn('[Harvests] Commande sans segment détectée, elle sera régénérée côté backend.');
+          }
+          setOrder(fetchedOrder);
+        } else {
+          setError('Commande non trouvée');
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des détails de la commande:', error);
+      setError('Erreur lors du chargement des détails de la commande');
+    } finally {
+      setLoading(false);
+    }
   }, [orderIdParam, user, navigate, isAdminContext]);
 
-  const updateOrderStatus = async (newStatus) => {
+  useEffect(() => {
+    loadOrderDetails();
+  }, [loadOrderDetails]);
+
+  const updateOrderStatus = async (newStatus, options = {}) => {
     if (!order || updating) return;
-    
+
     try {
       setUpdating(true);
-      
-      // Utiliser le service approprié selon le type d'utilisateur
+
       let response;
+      const payload = {
+        status: newStatus,
+        segmentId: order.segment?.id || order.segment?._id,
+        ...(options.itemId ? { itemId: options.itemId } : {}),
+        ...(options.itemIds ? { itemIds: options.itemIds } : {})
+      };
+
       if (isAdminContext) {
-        // Si on est dans le contexte admin, utiliser le service admin
         response = await adminService.updateOrderStatus(order._id, newStatus);
       } else if (user.userType === 'producer') {
-        response = await producerService.updateOrderStatus(order._id, { status: newStatus });
+        response = await producerService.updateOrderStatus(order._id, payload);
       } else if (user.userType === 'transformer') {
-        response = await transformerService.updateOrderStatus(order._id, { status: newStatus });
+        response = await transformerService.updateOrderStatus(order._id, payload);
       } else if (user.userType === 'restaurateur') {
-        response = await restaurateurService.updateOrderStatus(order._id, { status: newStatus });
+        response = await restaurateurService.updateOrderStatus(order._id, payload);
       } else {
-        // Pour les autres types d'utilisateurs, utiliser le service général
-        response = await orderService.updateOrderStatus(order._id, { status: newStatus });
+        response = await orderService.updateOrderStatus(order._id, payload);
       }
-      
+
       // Gérer la réponse selon le contexte (admin ou utilisateur normal)
       const isSuccess = isAdminContext 
         ? (response.status === 'success' || response.success)
         : response.data.status === 'success';
       
       if (isSuccess) {
-        // Mettre à jour l'état local
-        setOrder(prevOrder => ({
-          ...prevOrder,
-          status: newStatus
-        }));
+        await loadOrderDetails();
       }
     } catch (error) {
       console.error(`Erreur lors de la mise à jour du statut vers ${newStatus}:`, error);
@@ -134,7 +134,11 @@ const OrderDetail = () => {
 
   const confirmOrder = () => updateOrderStatus('confirmed');
   const cancelOrder = () => updateOrderStatus('cancelled');
+  const prepareOrder = () => updateOrderStatus('preparing');
+  const readyOrder = () => updateOrderStatus('ready-for-pickup');
   const shipOrder = () => updateOrderStatus('in-transit');
+  const deliverOrder = () => updateOrderStatus('delivered');
+  const completeOrder = () => updateOrderStatus('completed');
 
   const getStatusConfig = (status) => {
     const configs = {
@@ -195,6 +199,65 @@ const OrderDetail = () => {
     };
     return configs[status] || configs['pending'];
   };
+
+  const getItemStatusConfig = (status = 'pending') => {
+    const configs = {
+      pending: {
+        color: 'bg-yellow-100 text-yellow-700',
+        text: 'En attente'
+      },
+      confirmed: {
+        color: 'bg-green-100 text-green-700',
+        text: 'Confirmé'
+      },
+      preparing: {
+        color: 'bg-purple-100 text-purple-700',
+        text: 'En préparation'
+      },
+      'ready-for-pickup': {
+        color: 'bg-orange-100 text-orange-700',
+        text: 'Prête pour collecte'
+      },
+      'in-transit': {
+        color: 'bg-blue-100 text-blue-700',
+        text: 'En transit'
+      },
+      delivered: {
+        color: 'bg-green-100 text-green-700',
+        text: 'Livré'
+      },
+      completed: {
+        color: 'bg-emerald-100 text-emerald-700',
+        text: 'Terminé'
+      },
+      cancelled: {
+        color: 'bg-gray-100 text-gray-600',
+        text: 'Annulé'
+      },
+      rejected: {
+        color: 'bg-red-100 text-red-600',
+        text: 'Rejeté'
+      },
+      refunded: {
+        color: 'bg-red-100 text-red-600',
+        text: 'Remboursé'
+      },
+      disputed: {
+        color: 'bg-red-100 text-red-600',
+        text: 'En litige'
+      }
+    };
+
+    return configs[status] || configs.pending;
+  };
+
+  const isAdmin = user?.role === 'admin' || user?.userType === 'admin';
+  const buyerId =
+    order?.buyer?._id?.toString?.() ||
+    order?.buyer?.id?.toString?.() ||
+    (typeof order?.buyer?.toString === 'function' ? order.buyer.toString() : null);
+  const userId = user?._id?.toString?.() || user?.id?.toString?.();
+  const isBuyerView = user?.userType === 'consumer' && buyerId && userId && buyerId === userId;
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('fr-FR', {
@@ -257,8 +320,19 @@ const OrderDetail = () => {
     );
   }
 
-  const statusConfig = getStatusConfig(order.status);
+  const isSellerView = ['producer', 'transformer', 'restaurateur'].includes(user?.userType);
+  const displayedStatus = order.segment?.status || order.status;
+  const statusConfig = getStatusConfig(displayedStatus);
   const StatusIcon = statusConfig.icon;
+  const deliveryFee = order.originalTotals?.deliveryFee ?? order.deliveryFee ?? order.delivery?.deliveryFee ?? 0;
+  const deliveryDetail = order.originalTotals?.deliveryFeeDetail || order.deliveryFeeDetail || order.delivery?.feeDetail || null;
+  const deliveryMethodLabels = {
+    pickup: 'Retrait sur place',
+    'standard-delivery': 'Livraison standard',
+    'express-delivery': 'Livraison express',
+    'same-day': 'Livraison jour même',
+    'scheduled': 'Livraison programmée'
+  };
 
   return (
     <div>
@@ -295,40 +369,68 @@ const OrderDetail = () => {
                 <FiRefreshCw className="h-4 w-4 mr-1" />
                 Actualiser
               </button>
-              {(user?.userType === 'producer' || user?.userType === 'transformer') && (
-                <div className="flex space-x-2">
-                  {order.status === 'pending' && (
-                    <>
-                      <button
-                        onClick={confirmOrder}
-                        disabled={updating}
-                        className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <FiCheckCircle className="h-4 w-4 mr-1" />
-                        {updating ? 'Confirmation...' : 'Confirmer'}
-                      </button>
-                      <button
-                        onClick={cancelOrder}
-                        disabled={updating}
-                        className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <FiXCircle className="h-4 w-4 mr-1" />
-                        Annuler
-                      </button>
-                    </>
-                  )}
-                  {order.status === 'confirmed' && (
-                    <button
-                      onClick={shipOrder}
-                      disabled={updating}
-                      className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <FiTruck className="h-4 w-4 mr-1" />
-                      {updating ? 'Expédition...' : 'Expédier'}
-                    </button>
-                  )}
-                </div>
-              )}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0">
+                {isSellerView && displayedStatus === 'pending' && (
+                  <button
+                    onClick={cancelOrder}
+                    disabled={updating}
+                    className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FiXCircle className="h-4 w-4 mr-1" />
+                    Annuler
+                  </button>
+                )}
+                {isSellerView && displayedStatus === 'confirmed' && (
+                  <button
+                    onClick={prepareOrder}
+                    disabled={updating}
+                    className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FiTruck className="h-4 w-4 mr-1" />
+                    {updating ? 'Préparation...' : 'Commencer préparation'}
+                  </button>
+                )}
+                {isSellerView && displayedStatus === 'preparing' && (
+                  <button
+                    onClick={readyOrder}
+                    disabled={updating}
+                    className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FiTruck className="h-4 w-4 mr-1" />
+                    {updating ? 'Préparation...' : 'Prête pour collecte'}
+                  </button>
+                )}
+                {isSellerView && displayedStatus === 'ready-for-pickup' && (
+                  <button
+                    onClick={shipOrder}
+                    disabled={updating}
+                    className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FiTruck className="h-4 w-4 mr-1" />
+                    {updating ? 'Expédition...' : 'Expédier'}
+                  </button>
+                )}
+                {isAdmin && displayedStatus === 'in-transit' && (
+                  <button
+                    onClick={deliverOrder}
+                    disabled={updating}
+                    className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FiCheckCircle className="h-4 w-4 mr-1" />
+                    {updating ? 'Confirmation...' : 'Confirmer la livraison'}
+                  </button>
+                )}
+                {isBuyerView && displayedStatus === 'delivered' && (
+                  <button
+                    onClick={completeOrder}
+                    disabled={updating}
+                    className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FiCheckCircle className="h-4 w-4 mr-1" />
+                    {updating ? 'Validation...' : 'Marquer terminée'}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -358,7 +460,7 @@ const OrderDetail = () => {
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Articles commandés</h3>
               <div className="space-y-4">
-                 {order.items?.map((item, index) => {
+                {(isSellerView ? (order.segment?.items || order.items || []) : (order.items || [])).map((item, index) => {
                    // Gérer différentes structures de données (admin vs utilisateur normal)
                    const productData = item.product || item.productSnapshot || {};
                    const productSnapshot = item.productSnapshot || {};
@@ -428,41 +530,73 @@ const OrderDetail = () => {
                    }
                    
 
+                  const currentSegmentStatus = order.segment?.status || order.status;
+                  const itemStatus = item.status || 'pending';
+                  const itemStatusConfig = getItemStatusConfig(itemStatus);
+                  const itemId = item._id || item.id || `${order._id}-${index}`;
+                  const canConfirmItem = Boolean(
+                    isSellerView &&
+                    currentSegmentStatus === 'pending' &&
+                    itemStatus === 'pending' &&
+                    item._id
+                  );
+
                   return (
-                    <div key={index} className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
-                       <div className="h-16 w-16 bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0">
-                         {imageUrl ? (
-                           <CloudinaryImage
-                             src={imageUrl}
-                             alt={imageAlt || parseProductName(productName)}
-                             className="h-full w-full object-cover"
-                             fallback={
-                               <div className="h-full w-full flex items-center justify-center">
-                                 <FiPackage className="h-8 w-8 text-gray-400" />
-                               </div>
-                             }
-                           />
-                         ) : (
-                           <div className="h-full w-full flex items-center justify-center">
-                             <FiPackage className="h-8 w-8 text-gray-400" />
-                           </div>
-                         )}
-                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-medium text-gray-900">
-                          {parseProductName(productName)}
-                        </h4>
-                        <p className="text-sm text-gray-500 mt-1">
-                          Quantité: {quantity} {productUnit}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          Prix unitaire: {productPrice.toLocaleString('fr-FR')} FCFA / {productUnit}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-gray-900">
-                          {totalPrice.toLocaleString('fr-FR')} FCFA
-                        </p>
+                    <div key={itemId} className="p-4 border border-gray-200 rounded-lg bg-gray-50/40">
+                      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div className="flex items-center space-x-4">
+                          <div className="h-16 w-16 bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0">
+                            {imageUrl ? (
+                              <CloudinaryImage
+                                src={imageUrl}
+                                alt={imageAlt || parseProductName(productName)}
+                                className="h-full w-full object-cover"
+                                fallback={
+                                  <div className="h-full w-full flex items-center justify-center">
+                                    <FiPackage className="h-8 w-8 text-gray-400" />
+                                  </div>
+                                }
+                              />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center">
+                                <FiPackage className="h-8 w-8 text-gray-400" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-medium text-gray-900">
+                              {parseProductName(productName)}
+                            </h4>
+                            <p className="text-sm text-gray-500 mt-1">
+                              Quantité: {quantity} {productUnit}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              Prix unitaire: {productPrice.toLocaleString('fr-FR')} FCFA / {productUnit}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-start md:items-end gap-2">
+                          <p className="text-sm font-medium text-gray-900">
+                            Total: {totalPrice.toLocaleString('fr-FR')} FCFA
+                          </p>
+                          <div className="flex items-center flex-wrap gap-2">
+                            <span
+                              className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${itemStatusConfig.color}`}
+                            >
+                              {itemStatusConfig.text}
+                            </span>
+                            {canConfirmItem && (
+                              <button
+                                onClick={() => updateOrderStatus('confirmed', { itemId: item._id })}
+                                disabled={updating}
+                                className="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md text-xs font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <FiCheckCircle className="h-3.5 w-3.5 mr-1" />
+                                {updating ? 'Confirmation...' : 'Confirmer'}
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   );
@@ -572,23 +706,38 @@ const OrderDetail = () => {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Sous-total</span>
                   <span className="text-gray-900">
-                    {formatCurrency(order.subtotal || (order.total - (order.delivery?.deliveryFee || 0) + (order.couponDiscount || 0)))} FCFA
+                    {formatCurrency(
+                      isSellerView
+                        ? (order.segment?.subtotal ?? order.subtotal ?? 0)
+                        : (order.subtotal ?? order.originalTotals?.subtotal ?? (order.total - deliveryFee + (order.couponDiscount || 0)))
+                    )} FCFA
                   </span>
                 </div>
                 
-                {order.delivery?.deliveryFee > 0 && (
+                {((!isSellerView && deliveryFee > 0) || (isSellerView && (order.segment?.deliveryFee ?? 0) > 0)) && (
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Frais de livraison</span>
                     <span className="text-gray-900">
-                      {formatCurrency(order.delivery.deliveryFee)} FCFA
+                      {formatCurrency(isSellerView ? (order.segment?.deliveryFee ?? 0) : deliveryFee)} FCFA
                     </span>
                   </div>
                 )}
+                {deliveryFee > 0 && !isSellerView && deliveryDetail?.reason && (
+                  <p className="text-xs text-gray-500 text-right">
+                    {deliveryDetail.reason}
+                  </p>
+                )}
                 
-                {order.couponDiscount > 0 && (
+                {(order.couponDiscount > 0 || (isSellerView && order.segment?.discount > 0)) && (
                   <div className="flex justify-between text-sm text-green-600">
                     <span>Réduction</span>
-                    <span>-{formatCurrency(order.couponDiscount)} FCFA</span>
+                    <span>
+                      -{formatCurrency(
+                        isSellerView
+                          ? (order.segment?.discount ?? 0)
+                          : (order.couponDiscount ?? 0)
+                      )} FCFA
+                    </span>
                   </div>
                 )}
                 
@@ -596,7 +745,11 @@ const OrderDetail = () => {
                   <div className="flex justify-between">
                     <span className="text-lg font-medium text-gray-900">Total</span>
                     <span className="text-lg font-medium text-gray-900">
-                      {formatCurrency(order.total)} FCFA
+                      {formatCurrency(
+                        isSellerView
+                          ? (order.segment?.total ?? order.segment?.subtotal ?? order.subtotal ?? 0)
+                          : (order.total ?? 0)
+                      )} FCFA
                     </span>
                   </div>
                 </div>
@@ -611,7 +764,7 @@ const OrderDetail = () => {
                   <FiTruck className="h-5 w-5 text-gray-400" />
                   <div>
                     <p className="text-sm font-medium text-gray-900">
-                      {order.delivery?.method === 'express-delivery' ? 'Livraison Express' : 'Livraison Standard'}
+                      {deliveryMethodLabels[order.delivery?.method] || 'Mode de livraison'}
                     </p>
                     <p className="text-sm text-gray-500">
                       Statut: {order.delivery?.status || 'En attente'}

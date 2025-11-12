@@ -1,11 +1,13 @@
 const Product = require('../models/Product');
+const { toPlainText } = require('./localization');
 
 const DEFAULT_CATEGORY = 'processed-foods';
 
 const buildDishProductPayload = (restaurateur, dish) => {
-  const nameValue = dish.name || 'Plat';
-  const descriptionValue = dish.description || '';
-  const shortDescription = descriptionValue ? descriptionValue.slice(0, 160) : 'Plat proposé par le restaurateur';
+  const nameValue = toPlainText(dish.name, dish.slug || 'Plat');
+  const descriptionValueRaw = toPlainText(dish.description, '');
+  const descriptionValue = descriptionValueRaw || 'Plat proposé par le restaurateur';
+  const shortDescription = (descriptionValueRaw || nameValue || '').slice(0, 160) || 'Plat proposé par le restaurateur';
 
   const images = [];
   if (dish.image) {
@@ -13,9 +15,9 @@ const buildDishProductPayload = (restaurateur, dish) => {
   }
 
   return {
-    name: { fr: nameValue, en: nameValue },
-    description: { fr: descriptionValue, en: descriptionValue },
-    shortDescription: { fr: shortDescription, en: shortDescription },
+    name: nameValue,
+    description: descriptionValue,
+    shortDescription,
     price: dish.price || 0,
     minimumOrderQuantity: 1,
     images,
@@ -57,7 +59,7 @@ exports.syncDishProduct = async (restaurateur, dish, overrides = {}) => {
   if (!payload.images || payload.images.length === 0) {
     payload.images = [{
       url: '/images/placeholders/dish-placeholder.png',
-      alt: payload.name.fr || payload.name.en || 'Plat',
+      alt: toPlainText(payload.name, 'Plat'),
       isPrimary: true,
       order: 0
     }];

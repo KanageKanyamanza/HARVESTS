@@ -70,7 +70,7 @@
  *         shippingCost: 1500
  *         total: 18500
  *         payment:
- *           method: mobile-money
+ *           method: cash
  *           provider: Wave Sénégal
  *           currency: XOF
  *           amount: 18500

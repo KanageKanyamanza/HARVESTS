@@ -92,38 +92,25 @@ const EditProduct = () => {
         console.log('📦 Stock du produit:', productData.inventory?.quantity, productData.stock);
         console.log('🖼️ Images du produit:', productData.images);
         
-        setProduct(productData);
-        
-        // Extraire le nom (peut être un objet multilingue ou une string)
-        let productName = '';
-        if (typeof productData.name === 'object') {
-          productName = productData.name.fr || productData.name.en || productData.name || '';
-        } else {
-          productName = productData.name || '';
-        }
-        
-        // Extraire la description (peut être un objet multilingue ou une string)
-        let productDescription = '';
-        if (typeof productData.description === 'object') {
-          productDescription = productData.description.fr || productData.description.en || productData.description || '';
-        } else {
-          productDescription = productData.description || '';
-        }
-        
-        // Remplir le formulaire avec les données existantes
-        const newFormData = {
-          name: productName,
-          description: productDescription,
-          price: productData.price || '',
-          currency: productData.currency || 'FCFA',
-          category: productData.category || '',
-          stock: productData.inventory?.quantity || productData.inventory?.stock || productData.stock || '',
-          unit: productData.unit || 'pièces',
-          status: productData.status || 'draft'
+        const formattedProduct = {
+          ...productData,
+          name: toPlainText(productData.name, ''),
+          description: toPlainText(productData.description, ''),
+          shortDescription: toPlainText(productData.shortDescription, '')
         };
         
-        console.log('📋 Formulaire rempli avec:', newFormData);
-        setFormData(newFormData);
+        setProduct(formattedProduct);
+        
+        setFormData({
+          name: formattedProduct.name,
+          description: formattedProduct.description,
+          price: formattedProduct.price || '',
+          currency: formattedProduct.currency || 'FCFA',
+          category: formattedProduct.category || '',
+          stock: formattedProduct.inventory?.quantity || formattedProduct.inventory?.stock || formattedProduct.stock || '',
+          unit: formattedProduct.unit || 'pièces',
+          status: formattedProduct.status || 'draft'
+        });
 
         // Charger les images existantes
         if (productData.images && productData.images.length > 0) {
@@ -212,14 +199,9 @@ const EditProduct = () => {
       setSaving(true);
       
       const productData = {
-        name: {
-          fr: formData.name,
-          en: formData.name // Fallback en anglais
-        },
-        description: {
-          fr: formData.description,
-          en: formData.description // Fallback en anglais
-        },
+        name: toPlainText(formData.name, ''),
+        description: toPlainText(formData.description, ''),
+        shortDescription: deriveShortDescription(formData.description, ''),
         price: parseFloat(formData.price),
         currency: formData.currency,
         category: formData.category,

@@ -8,6 +8,7 @@ import CloudinaryImage from '../components/common/CloudinaryImage';
 import ReviewList from '../components/reviews/ReviewList';
 import SimpleReviewForm from '../components/reviews/SimpleReviewForm';
 import StarRating from '../components/reviews/StarRating';
+import { toPlainText } from '../utils/textHelpers';
 import { 
   FiArrowLeft, 
   FiStar, 
@@ -407,7 +408,7 @@ const ProductDetail = () => {
         quantity: quantity
       };
       addToCart(productWithQuantity);
-      console.log('Produit ajouté au panier:', product.name?.fr || product.name, 'Quantité:', quantity);
+      console.log('Produit ajouté au panier:', toPlainText(product.name, 'Produit'), 'Quantité:', quantity);
       
       // Afficher la notification de succès
       showSuccess(
@@ -465,8 +466,8 @@ const ProductDetail = () => {
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: product?.name?.fr || product?.name?.en || product?.name,
-        text: product?.description?.fr || product?.description?.en || product?.description,
+        title: toPlainText(product?.name, 'Produit'),
+        text: toPlainText(product?.description, ''),
         url: window.location.href
       });
     } else {
@@ -543,8 +544,8 @@ const ProductDetail = () => {
     );
   }
 
-  const productName = product.name?.fr || product.name?.en || product.name;
-  const productDescription = product.description?.fr || product.description?.en || product.description;
+  const productName = toPlainText(product.name, 'Produit');
+  const productDescription = toPlainText(product.description, '');
   const statusConfig = getStatusConfig(product.status);
   const StatusIcon = statusConfig.icon;
 

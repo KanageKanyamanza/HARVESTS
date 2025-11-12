@@ -3,6 +3,7 @@ import { useAuth } from '../../../hooks/useAuth';
 import { restaurateurService } from '../../../services';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import { FiTrendingUp, FiDollarSign, FiPackage, FiShoppingBag, FiUsers, FiBarChart, FiCheckCircle, FiClock } from 'react-icons/fi';
+import { toPlainText } from '../../../utils/textHelpers';
 
 const Stats = () => {
   const { user } = useAuth();
@@ -24,13 +25,36 @@ const Stats = () => {
             restaurateurService.getOrders()
           ]);
 
-          setStats(statsResponse.data.data?.stats || statsResponse.data.stats || statsResponse.data);
-          setSalesAnalytics(salesResponse.data.data?.analytics || salesResponse.data.analytics || salesResponse.data);
-          setRevenueAnalytics(revenueResponse.data.data?.analytics || revenueResponse.data.analytics || revenueResponse.data);
+          const rawStats = statsResponse.data.data?.stats || statsResponse.data.stats || statsResponse.data;
+          const rawSales = salesResponse.data.data?.analytics || salesResponse.data.analytics || salesResponse.data;
+          const rawRevenue = revenueResponse.data.data?.analytics || revenueResponse.data.analytics || revenueResponse.data;
+
+          const formattedStats = {
+            ...rawStats,
+            topProducts: Array.isArray(rawStats?.topProducts)
+              ? rawStats.topProducts.map((product) => ({
+                  ...product,
+                  name: toPlainText(product?.name, 'Plat'),
+                  category: toPlainText(product?.category, 'plat')
+                }))
+              : []
+          };
+
+          setStats(formattedStats);
+          setSalesAnalytics(rawSales);
+          setRevenueAnalytics(rawRevenue);
           
           // Filtrer uniquement les commandes où le restaurateur est vendeur (commandes reçues)
           const ordersData = ordersResponse.data.data?.orders || ordersResponse.data.orders || [];
-          const receivedOrders = ordersData.filter(order => order.role === 'seller' || (!order.role && order.seller));
+          const receivedOrders = ordersData.filter(order => {
+            if (!order) return false;
+            if (order.role === 'seller') return true;
+            if (order.segment?.seller) return true;
+            if (Array.isArray(order.segment?.items) && order.segment.items.length > 0) return true;
+            if (Array.isArray(order.segments) && order.segments.some(segment => !!segment?.seller)) return true;
+            if (Array.isArray(order.items) && order.items.some(item => !!item?.seller)) return true;
+            return Boolean(order.seller);
+          });
           setOrders(Array.isArray(receivedOrders) ? receivedOrders : []);
         } catch (error) {
           console.error('Erreur lors du chargement des statistiques:', error);
@@ -244,8 +268,8 @@ const Stats = () => {
                           {index + 1}
                         </div>
                         <div className="ml-3 flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{dish.name}</p>
-                          <p className="text-xs text-gray-500">{dish.category}</p>
+                          <p className="text-sm font-medium text-gray-900 truncate">{toPlainText(dish.name, 'Plat')}</p>
+                          <p className="text-xs text-gray-500">{toPlainText(dish.category, 'plat')}</p>
                         </div>
                       </div>
                       <div className="text-right ml-4">

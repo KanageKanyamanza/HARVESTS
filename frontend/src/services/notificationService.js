@@ -1,4 +1,5 @@
 import api from './api';
+import { toPlainText } from '../utils/textHelpers';
 
 class NotificationService {
   // Détecter si l'utilisateur est un admin
@@ -212,13 +213,15 @@ class NotificationService {
 
   // Créer une notification de produit approuvé
   createProductApprovedNotification(product) {
+    const productName = toPlainText(product?.name, 'Produit');
+
     return this.createLocalNotification(
       'product',
       'Produit approuvé',
-      `Votre produit "${product.name?.fr || product.name}" a été approuvé et est maintenant visible sur la marketplace`,
+      `Votre produit "${productName}" a été approuvé et est maintenant visible sur la marketplace`,
       {
         productId: product._id,
-        productName: product.name
+        productName
       }
     );
   }

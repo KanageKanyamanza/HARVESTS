@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { FiHeart, FiShoppingCart, FiStar, FiMapPin, FiClock } from 'react-icons/fi';
 import { consumerService } from '../../../services/genericService';
 import CloudinaryImage from '../../common/CloudinaryImage';
+import { toPlainText } from '../../../utils/textHelpers';
 
 const FavoritesSection = () => {
   const [favorites, setFavorites] = useState([]);
@@ -97,13 +98,13 @@ const FavoritesSection = () => {
           <div className="flex-shrink-0">
             <CloudinaryImage
               src={favorite.product.images?.[0]?.url}
-              alt={favorite.product.name?.fr || favorite.product.name?.en || favorite.product.name}
+              alt={toPlainText(favorite.product.name, 'Produit')}
               className="h-12 w-12 rounded-lg object-cover"
             />
           </div>
           <div className="flex-1 min-w-0">
             <h4 className="text-sm font-medium text-gray-900 truncate">
-              {favorite.product.name?.fr || favorite.product.name?.en || favorite.product.name}
+              {toPlainText(favorite.product.name, 'Produit')}
             </h4>
             <div className="flex items-center text-sm text-gray-500">
               <span className="font-medium text-green-600">

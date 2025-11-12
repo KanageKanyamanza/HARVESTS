@@ -14,7 +14,7 @@ const FinancialInfo = ({ bankAccount, paymentMethods, onUpdate, loading = false 
     bankName: bankAccount?.bankName || '',
     bankCode: bankAccount?.bankCode || '',
     swiftCode: bankAccount?.swiftCode || '',
-    paymentMethods: paymentMethods || ['cash', 'mobile-money']
+    paymentMethods: paymentMethods || ['cash', 'paypal']
   });
 
   const handleInputChange = (e) => {
@@ -70,17 +70,14 @@ const FinancialInfo = ({ bankAccount, paymentMethods, onUpdate, loading = false 
       bankName: bankAccount?.bankName || '',
       bankCode: bankAccount?.bankCode || '',
       swiftCode: bankAccount?.swiftCode || '',
-      paymentMethods: paymentMethods || ['cash', 'mobile-money']
+      paymentMethods: paymentMethods || ['cash', 'paypal']
     });
     setIsEditing(false);
   };
 
   const paymentMethodOptions = [
-    { value: 'cash', label: 'Espèces' },
-    { value: 'card', label: 'Carte bancaire' },
-    { value: 'mobile-money', label: 'Mobile Money' },
-    { value: 'bank-transfer', label: 'Virement bancaire' },
-    { value: 'crypto', label: 'Cryptomonnaie' }
+    { value: 'cash', label: 'Paiement à la livraison' },
+    { value: 'paypal', label: 'PayPal' }
   ];
 
   if (loading) {

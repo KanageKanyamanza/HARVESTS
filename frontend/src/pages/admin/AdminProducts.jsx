@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { adminService } from '../../services/adminService';
 import CloudinaryImage from '../../components/common/CloudinaryImage';
+import { toPlainText } from '../../utils/textHelpers';
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
@@ -28,15 +29,7 @@ const AdminProducts = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [selectedProducts, setSelectedProducts] = useState([]);
 
-  // Fonction utilitaire pour extraire le texte multilingue
-  const getLocalizedText = (text, fallback = '') => {
-    if (!text) return fallback;
-    if (typeof text === 'string') return text;
-    if (typeof text === 'object') {
-      return text.fr || text.en || fallback;
-    }
-    return fallback;
-  };
+  const getLocalizedText = (text, fallback = '') => toPlainText(text, fallback);
 
   useEffect(() => {
     loadProducts();

@@ -4,6 +4,7 @@ const Producer = require('../models/Producer');
 const Review = require('../models/Review');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const { toPlainText } = require('../utils/localization');
 const notificationController = require('./notificationController');
 
 // Configuration Multer pour les images de produits
@@ -81,12 +82,9 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
     const searchTerm = req.query.search.trim();
     // Recherche flexible avec regex (insensible à la casse et aux accents)
     queryObj.$or = [
-      { 'name.fr': { $regex: searchTerm, $options: 'i' } },
-      { 'name.en': { $regex: searchTerm, $options: 'i' } },
-      { 'description.fr': { $regex: searchTerm, $options: 'i' } },
-      { 'description.en': { $regex: searchTerm, $options: 'i' } },
-      { 'shortDescription.fr': { $regex: searchTerm, $options: 'i' } },
-      { 'shortDescription.en': { $regex: searchTerm, $options: 'i' } },
+      { name: { $regex: searchTerm, $options: 'i' } },
+      { description: { $regex: searchTerm, $options: 'i' } },
+      { shortDescription: { $regex: searchTerm, $options: 'i' } },
       { tags: { $in: [new RegExp(searchTerm, 'i')] } },
       { subcategory: { $regex: searchTerm, $options: 'i' } }
     ];
@@ -381,9 +379,7 @@ exports.createProduct = catchAsync(async (req, res, next) => {
   try {
     const producer = await Producer.findById(req.user.id).select('firstName lastName farmName');
     const producerName = producer.farmName || `${producer.firstName} ${producer.lastName}`;
-    const productName = typeof product.name === 'object' ? 
-      (product.name.fr || product.name.en || 'Sans nom') : 
-      product.name;
+    const productName = toPlainText(product.name, 'Sans nom');
     
     await notificationController.notifyProductPendingApproval(
       product._id, 
@@ -667,16 +663,18 @@ exports.approveProduct = catchAsync(async (req, res, next) => {
       publishedAt: new Date()
     },
     { new: true }
-  ).populate('producer', 'firstName lastName email')
-  .populate('transformer', 'firstName lastName email');
+  )
+  .populate('producer', 'firstName lastName email phone notifications')
+  .populate('transformer', 'firstName lastName email phone notifications')
+  .populate('restaurateur', 'firstName lastName companyName restaurantName email phone notifications');
 
   if (!product) {
     return next(new AppError('Produit non trouvé', 404));
   }
 
-  // Envoyer notification au producteur
+  // Envoyer notification au(x) propriétaire(s)
   const Notification = require('../models/Notification');
-  await Notification.notifyProductApproved(product, product.producer);
+  await Notification.notifyProductApproved(product);
 
   res.status(200).json({
     status: 'success',
@@ -701,30 +699,67 @@ exports.rejectProduct = catchAsync(async (req, res, next) => {
       rejectionReason: reason
     },
     { new: true }
-  ).populate('producer', 'firstName lastName email')
-  .populate('transformer', 'firstName lastName email');
+  )
+  .populate('producer', 'firstName lastName email phone notifications')
+  .populate('transformer', 'firstName lastName email phone notifications')
+  .populate('restaurateur', 'firstName lastName companyName restaurantName email phone notifications');
 
   if (!product) {
     return next(new AppError('Produit non trouvé', 404));
   }
 
-  // Envoyer notification au producteur
+  // Envoyer notification au(x) propriétaire(s)
   const Notification = require('../models/Notification');
-  await Notification.createNotification({
-    recipient: product.producer._id,
-    type: 'product_rejected',
-    category: 'product',
-    title: 'Produit rejeté',
-    message: `Votre produit "${product.name}" a été rejeté. Raison: ${reason}`,
-    data: {
-      productId: product._id,
-      productName: product.name
-    },
-    channels: {
-      inApp: { enabled: true },
-      email: { enabled: true }
+
+  const ownerMap = new Map();
+  const registerOwner = (entity) => {
+    if (!entity) return;
+    if (Array.isArray(entity)) {
+      entity.forEach(registerOwner);
+      return;
     }
-  });
+    const id = entity._id || entity;
+    if (!id) return;
+    const key = id.toString();
+    if (!ownerMap.has(key)) {
+      ownerMap.set(key, entity);
+    }
+  };
+
+  registerOwner(product.producer);
+  registerOwner(product.transformer);
+  registerOwner(product.restaurateur);
+
+  const localizedName = toPlainText(product?.name, 'Produit');
+
+  if (ownerMap.size > 0) {
+    const notificationPromises = Array.from(ownerMap.values()).map((owner) => {
+      const ownerId = owner._id || owner;
+
+      return Notification.createNotification({
+        recipient: ownerId,
+        type: 'product_rejected',
+        category: 'product',
+        title: 'Produit rejeté',
+        message: `Votre produit "${localizedName}" a été rejeté. Raison : ${reason}`,
+        data: {
+          productId: product._id,
+          productName: localizedName
+        },
+        channels: {
+          inApp: { enabled: true },
+          email: { enabled: true }
+        }
+      });
+    });
+
+    await Promise.all(notificationPromises);
+  } else {
+    console.warn('Produit rejeté sans propriétaire identifiable', {
+      productId: product._id?.toString(),
+      reason
+    });
+  }
 
   res.status(200).json({
     status: 'success',

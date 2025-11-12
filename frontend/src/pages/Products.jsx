@@ -267,8 +267,8 @@ const Products = () => {
 		{ value: "createdAt", label: "Plus anciens" },
 		{ value: "price", label: "Prix croissant" },
 		{ value: "-price", label: "Prix décroissant" },
-		{ value: "name.fr", label: "Nom A-Z" },
-		{ value: "-name.fr", label: "Nom Z-A" },
+		{ value: "name", label: "Nom A-Z" },
+		{ value: "-name", label: "Nom Z-A" },
 	];
 
 	if (loading && products.length === 0) {

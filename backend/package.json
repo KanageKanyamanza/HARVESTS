@@ -10,6 +10,7 @@
     "migrate:sync-email": "node scripts/syncEmailVerification.js"
   },
   "dependencies": {
+    "@paypal/checkout-server-sdk": "1.0.3",
     "@emailjs/nodejs": "^5.0.2",
     "@sendgrid/mail": "^8.1.6",
     "axios": "^1.4.0",

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { productService } from '../../services';
+import { toPlainText } from '../../utils/textHelpers';
 
 // Composant pour gérer les images des produits
 const ProductImage = ({ product, className = "" }) => {
@@ -39,7 +40,7 @@ const ProductImage = ({ product, className = "" }) => {
   return (
     <img
       src={imageSrc}
-      alt={product.name?.fr || product.name?.en || 'Produit'}
+      alt={toPlainText(product.name, 'Produit')}
       className={className}
       onError={handleImageError}
       loading="lazy"
@@ -161,7 +162,7 @@ const SearchDropdown = ({ searchQuery, isOpen, onClose, onProductClick }) => {
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <h4 className="text-xs sm:text-sm font-medium text-gray-900 truncate">
-                      {product.name?.fr || product.name?.en || 'Nom non disponible'}
+                      {toPlainText(product.name, 'Nom non disponible')}
                     </h4>
                     <p className="text-xs text-gray-500 truncate">
                       {product.producer?.farmName || 'Producteur'}

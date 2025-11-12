@@ -10,6 +10,9 @@ router.use(authController.requireVerification);
 
 // ROUTES UTILISATEUR
 
+// Obtenir un client token PayPal pour les Hosted Fields
+router.get('/paypal/client-token', paymentController.getPaypalClientToken);
+
 // Initier un paiement
 router.post('/initiate', paymentController.initiatePayment);
 

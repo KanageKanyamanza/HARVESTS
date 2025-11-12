@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { toPlainText } = require('../utils/localization');
 
 // Schéma pour les données spécifiques selon le type de notification
 const notificationDataSchema = new mongoose.Schema({
@@ -610,52 +611,122 @@ notificationSchema.statics.getScheduledNotifications = function() {
 
 // Méthodes pour créer des notifications spécifiques
 notificationSchema.statics.notifyOrderCreated = function(order) {
-  return this.createNotification({
-    recipient: order.seller,
-    type: 'order_created',
-    category: 'order',
-    title: 'Nouvelle commande reçue',
-    message: `Vous avez reçu une nouvelle commande (${order.orderNumber}) d'un montant de ${order.total} ${order.currency}`,
-    data: {
-      orderId: order._id,
-      orderNumber: order.orderNumber,
-      amount: order.total,
-      currency: order.currency
-    },
-    actions: [{
-      type: 'view',
-      label: 'Voir la commande',
-      url: `/orders/${order._id}`
-    }],
-    channels: {
-      inApp: { enabled: true },
-      email: { enabled: true },
-      push: { enabled: true }
+  const sellerIds = new Set();
+
+  const pushSellerId = (value) => {
+    if (!value) return;
+    if (typeof value === 'string') {
+      sellerIds.add(value);
+      return;
     }
+    if (value._id) {
+      sellerIds.add(value._id.toString());
+      return;
+    }
+    if (typeof value.toString === 'function') {
+      sellerIds.add(value.toString());
+    }
+  };
+
+  pushSellerId(order.seller);
+
+  (order.segments || []).forEach((segment) => {
+    pushSellerId(segment?.seller);
   });
+
+  if (sellerIds.size === 0 && Array.isArray(order.items)) {
+    order.items.forEach((item) => pushSellerId(item?.seller));
+  }
+
+  if (sellerIds.size === 0) {
+    return Promise.resolve(null);
+  }
+
+  const notifications = Array.from(sellerIds).map((sellerId) =>
+    this.createNotification({
+      recipient: sellerId,
+      type: 'order_created',
+      category: 'order',
+      title: 'Nouvelle commande reçue',
+      message: `Vous avez reçu une nouvelle commande (${order.orderNumber}) d'un montant de ${order.total} ${order.currency}`,
+      data: {
+        orderId: order._id,
+        orderNumber: order.orderNumber,
+        amount: order.total,
+        currency: order.currency
+      },
+      actions: [{
+        type: 'view',
+        label: 'Voir la commande',
+        url: `/orders/${order._id}`
+      }],
+      channels: {
+        inApp: { enabled: true },
+        email: { enabled: true },
+        push: { enabled: true }
+      }
+    })
+  );
+
+  return Promise.all(notifications);
 };
 
-notificationSchema.statics.notifyProductApproved = function(product, producer) {
-  return this.createNotification({
-    recipient: producer._id,
+notificationSchema.statics.notifyProductApproved = function(product, explicitOwner = null) {
+  const ownersMap = new Map();
+
+  const registerOwner = (candidate) => {
+    if (!candidate) return;
+
+    if (Array.isArray(candidate)) {
+      candidate.forEach(registerOwner);
+      return;
+    }
+
+    const ownerId = candidate._id || candidate;
+    if (!ownerId) return;
+
+    const key = ownerId.toString();
+    if (!ownersMap.has(key)) {
+      ownersMap.set(key, candidate);
+    }
+  };
+
+  registerOwner(explicitOwner);
+  registerOwner(product.producer);
+  registerOwner(product.transformer);
+  registerOwner(product.restaurateur);
+
+  if (ownersMap.size === 0) {
+    console.warn('Notification produit approuvé : aucun propriétaire identifié', {
+      productId: product?._id?.toString()
+    });
+    return Promise.resolve([]);
+  }
+
+  const localizedName = toPlainText(product?.name, 'Produit');
+
+  const notifications = Array.from(ownersMap.keys()).map((ownerId) => this.createNotification({
+    recipient: ownerId,
     type: 'product_approved',
     category: 'product',
     title: 'Produit approuvé',
-    message: `Votre produit "${product.name}" a été approuvé et est maintenant visible sur la marketplace`,
+    message: `Votre produit "${localizedName}" a été approuvé et est maintenant visible sur la marketplace`,
     data: {
       productId: product._id,
-      productName: product.name
+      productName: localizedName
     },
     actions: [{
       type: 'view',
       label: 'Voir le produit',
-      url: `/products/${product.slug}`
+      url: `/products/${product.slug || product._id}`
     }],
     channels: {
       inApp: { enabled: true },
       email: { enabled: true }
     }
-  });
+  }));
+
+  return Promise.all(notifications);
 };
 
 const Notification = mongoose.model('Notification', notificationSchema);

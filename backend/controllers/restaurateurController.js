@@ -3,8 +3,11 @@ const jwt = require('jsonwebtoken');
 const { promisify } = require('util');
 const Restaurateur = require('../models/Restaurateur');
 const Product = require('../models/Product');
-const catchAsync = require('../utils/catchAsync');
+const Order = require('../models/Order');
 const AppError = require('../utils/appError');
+const catchAsync = require('../utils/catchAsync');
+const orderController = require('./orderController');
+const { toPlainText } = require('../utils/localization');
 
 // Configuration Multer
 const multerStorage = multer.memoryStorage();
@@ -328,11 +331,15 @@ exports.getRestaurateurDishes = catchAsync(async (req, res, next) => {
       imageUrl = product.image || null;
     }
     
+    const productName = toPlainText(product.name, '');
+    const productShortDescription = toPlainText(product.shortDescription, '');
+    const productDescription = toPlainText(product.description, '');
+    
     return {
       _id: product._id,
       productId: product._id,
-      name: product.name?.fr || product.name?.en || '',
-      description: product.description?.fr || product.description?.en || product.shortDescription?.fr || '',
+      name: productName,
+      description: productShortDescription || productDescription,
       price: product.price,
       image: imageUrl,
       images: product.images || [],
@@ -437,11 +444,15 @@ exports.getDishDetail = catchAsync(async (req, res, next) => {
     imageUrl = product.image || null;
   }
   
+  const productName = toPlainText(product.name, '');
+  const productShortDescription = toPlainText(product.shortDescription, '');
+  const productDescription = toPlainText(product.description, '');
+
   const dish = {
     _id: product._id,
     productId: product._id,
-    name: product.name?.fr || product.name?.en || '',
-    description: product.description?.fr || product.description?.en || product.shortDescription?.fr || '',
+    name: productName,
+    description: productShortDescription || productDescription,
     price: product.price,
     images: product.images || [],
     image: imageUrl,
@@ -506,20 +517,32 @@ exports.addDish = catchAsync(async (req, res, next) => {
     return next(new AppError('Le nom et le prix sont requis', 400));
   }
 
+  const normalizedName = toPlainText(name, name);
+  const normalizedDescriptionRaw = description !== undefined && description !== null
+    ? toPlainText(description, '')
+    : '';
+  const baseDescription = normalizedDescriptionRaw || 'Plat proposé par le restaurateur';
+  const shortDescriptionText = (normalizedDescriptionRaw || normalizedName || '').slice(0, 160) || 'Plat proposé par le restaurateur';
+
   // Préparer les images
   const images = [];
   if (image) {
-    images.push({ url: image, alt: typeof name === 'string' ? name : (name.fr || name.en || 'Plat'), isPrimary: true, order: 0 });
+    images.push({
+      url: image,
+      alt: normalizedName || 'Plat',
+      isPrimary: true,
+      order: 0
+    });
   }
 
   // Gérer le stock : par défaut 10, ou la valeur fournie (doit être >= 0)
   const initialStock = stock !== undefined && stock !== null ? Math.max(0, parseInt(stock) || 10) : 10;
 
-  // Créer le produit avec structure multilingue (comme producteurs/transformateurs)
+  // Créer le produit avec structure unilingue
   const productData = {
-    name: typeof name === 'object' ? name : { fr: name, en: name },
-    description: typeof description === 'object' ? description : { fr: description || '', en: description || '' },
-    shortDescription: description ? { fr: (typeof description === 'string' ? description : description.fr || '').slice(0, 160), en: (typeof description === 'string' ? description : description.en || '').slice(0, 160) } : { fr: 'Plat proposé par le restaurateur', en: 'Dish offered by the restaurant' },
+    name: normalizedName,
+    description: baseDescription,
+    shortDescription: shortDescriptionText,
     price: parseFloat(price),
     images,
     userType: 'restaurateur',
@@ -591,24 +614,28 @@ exports.updateDish = catchAsync(async (req, res, next) => {
     requiresReview = true; // Les modifications de dishInfo nécessitent une révision
   }
 
-  // Traiter les champs multilingues
-  if (updateData.name) {
-    updateData.name = typeof updateData.name === 'object' ? updateData.name : { fr: updateData.name, en: updateData.name };
+  if (Object.prototype.hasOwnProperty.call(updateData, 'name')) {
+    updateData.name = toPlainText(updateData.name, product.name);
   }
-  if (updateData.description) {
-    updateData.description = typeof updateData.description === 'object' ? updateData.description : { fr: updateData.description, en: updateData.description };
-    if (updateData.description.fr || updateData.description.en) {
-      updateData.shortDescription = {
-        fr: (updateData.description.fr || product.description?.fr || '').slice(0, 160),
-        en: (updateData.description.en || product.description?.en || '').slice(0, 160)
-      };
+
+  if (Object.prototype.hasOwnProperty.call(updateData, 'description')) {
+    const normalizedDescription = toPlainText(updateData.description, product.description);
+    updateData.description = normalizedDescription;
+    const derivedShort = (normalizedDescription || '').slice(0, 160);
+    if (!Object.prototype.hasOwnProperty.call(updateData, 'shortDescription')) {
+      updateData.shortDescription = derivedShort || product.shortDescription;
     }
+  }
+
+  if (Object.prototype.hasOwnProperty.call(updateData, 'shortDescription')) {
+    updateData.shortDescription = toPlainText(updateData.shortDescription, product.shortDescription);
   }
 
   // Traiter l'image
   if (updateData.image) {
     const imageUrl = typeof updateData.image === 'string' ? updateData.image : updateData.image.url;
-    updateData.images = [{ url: imageUrl, alt: updateData.name?.fr || updateData.name?.en || product.name?.fr || 'Plat', isPrimary: true, order: 0 }];
+    const altText = toPlainText(updateData.name, product.name) || 'Plat';
+    updateData.images = [{ url: imageUrl, alt: altText, isPrimary: true, order: 0 }];
     delete updateData.image;
   }
 
@@ -756,121 +783,25 @@ exports.removeKitchenEquipment = temporaryResponse('Suppression équipement');
 exports.getStorageCapacity = temporaryResponse('Capacité stockage');
 exports.updateStorageCapacity = temporaryResponse('Mise à jour stockage');
 
-exports.getMyOrders = catchAsync(async (req, res, next) => {
-  const Order = require('../models/Order');
-  const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 20;
-  const skip = (page - 1) * limit;
+exports.createOrder = (req, res, next) => orderController.createOrder(req, res, next);
 
-  // Un restaurateur peut être à la fois acheteur (quand il achète des produits) 
-  // et vendeur (quand ses plats sont commandés par des consommateurs)
-  const query = {
-    $or: [
-      { buyer: req.user._id },      // Commandes où le restaurateur est acheteur
-      { seller: req.user._id }      // Commandes où le restaurateur est vendeur
-    ]
-  };
+exports.getMyOrders = (req, res, next) => orderController.getMyOrders(req, res, next);
 
-  // Filtres optionnels
-  if (req.query.status) query.status = req.query.status;
-  if (req.query.dateFrom) {
-    query.createdAt = { $gte: new Date(req.query.dateFrom) };
+exports.getMyOrder = (req, res, next) => {
+  if (!req.params.id && req.params.orderId) {
+    req.params.id = req.params.orderId;
   }
-  if (req.query.dateTo) {
-    query.createdAt = { ...query.createdAt, $lte: new Date(req.query.dateTo) };
+  return orderController.getOrder(req, res, next);
+};
+
+exports.updateOrderStatus = (req, res, next) => {
+  if (!req.params.id && req.params.orderId) {
+    req.params.id = req.params.orderId;
   }
-
-  const orders = await Order.find(query)
-    .populate('buyer', 'firstName lastName email userType')
-    .populate('seller', 'restaurantName companyName farmName firstName lastName email userType')
-    .populate('items.product', 'name images originType')
-    .sort('-createdAt')
-    .skip(skip)
-    .limit(limit);
-
-  const total = await Order.countDocuments(query);
-
-  // Enrichir les commandes avec le rôle du restaurateur (acheteur ou vendeur)
-  const enrichedOrders = orders.map(order => {
-    const orderObj = order.toObject();
-    orderObj.role = order.buyer?._id?.toString() === req.user._id.toString() 
-      ? 'buyer' 
-      : 'seller';
-    return orderObj;
-  });
-
-  res.status(200).json({
-    status: 'success',
-    results: enrichedOrders.length,
-    total,
-    page,
-    totalPages: Math.ceil(total / limit),
-    data: {
-      orders: enrichedOrders
-    }
-  });
-});
-exports.createOrder = temporaryResponse('Création commande');
-
-exports.getMyOrder = catchAsync(async (req, res, next) => {
-  const Order = require('../models/Order');
-  
-  // Un restaurateur peut être à la fois acheteur et vendeur
-  const order = await Order.findOne({
-    _id: req.params.orderId,
-    $or: [
-      { buyer: req.user._id },      // Commandes où le restaurateur est acheteur
-      { seller: req.user._id }      // Commandes où le restaurateur est vendeur
-    ]
-  })
-  .populate('buyer', 'firstName lastName email phone userType')
-  .populate('seller', 'restaurantName companyName farmName firstName lastName email phone userType')
-  .populate('items.product', 'name images category originType')
-  .populate('delivery.transporter', 'companyName firstName lastName phone');
-
-  if (!order) {
-    return next(new AppError('Commande non trouvée ou vous n\'êtes pas autorisé à voir cette commande', 404));
-  }
-
-  // Ajouter le rôle du restaurateur dans cette commande
-  const orderObj = order.toObject();
-  orderObj.role = order.buyer?._id?.toString() === req.user._id.toString() 
-    ? 'buyer' 
-    : 'seller';
-
-  res.status(200).json({
-    status: 'success',
-    data: { order: orderObj }
-  });
-});
+  return orderController.updateOrderStatus(req, res, next);
+};
 
 exports.updateOrder = temporaryResponse('Mise à jour commande');
-
-exports.updateOrderStatus = catchAsync(async (req, res, next) => {
-  const Order = require('../models/Order');
-  const { sendStatusNotifications } = require('./orderController');
-  const { status, reason, note } = req.body;
-
-  // Vérifier que la commande appartient au restaurateur (en tant que vendeur)
-  const order = await Order.findOne({
-    _id: req.params.orderId,
-    seller: req.user._id
-  });
-
-  if (!order) {
-    return next(new AppError('Commande non trouvée ou vous n\'êtes pas autorisé à modifier cette commande', 404));
-  }
-
-  await order.updateStatus(status, req.user._id, reason, note);
-
-  // Envoyer notifications selon le nouveau statut
-  await sendStatusNotifications(order, status);
-
-  res.status(200).json({
-    status: 'success',
-    data: { order }
-  });
-});
 
 exports.cancelOrder = temporaryResponse('Annulation commande');
 exports.trackOrder = temporaryResponse('Suivi commande');
@@ -947,7 +878,7 @@ exports.getMyStats = catchAsync(async (req, res, next) => {
         const dish = await Product.findById(dishId).select('name category dishInfo');
         return {
           id: dishId,
-          name: dish?.name?.fr || dish?.name?.en || 'Plat',
+          name: toPlainText(dish?.name, 'Plat'),
           category: dish?.dishInfo?.category || dish?.category || 'plat',
           quantitySold: sales.quantity,
           revenue: sales.revenue
@@ -1025,7 +956,7 @@ exports.getStats = catchAsync(async (req, res, next) => {
       const productId = item.product?._id?.toString() || item.product?.toString();
       if (!dishSales[productId]) {
         dishSales[productId] = {
-          name: item.productSnapshot?.name?.fr || item.productSnapshot?.name?.en || 'Plat',
+          name: toPlainText(item.productSnapshot?.name, 'Plat'),
           category: item.productSnapshot?.dishInfo?.category || 'plat',
           quantitySold: 0,
           revenue: 0

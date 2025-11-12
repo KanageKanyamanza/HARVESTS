@@ -5,6 +5,7 @@ import ModularDashboardLayout from '../../../components/layout/ModularDashboardL
 import ProductImageUpload from '../../../components/common/ProductImageUpload';
 import CloudinaryImage from '../../../components/common/CloudinaryImage';
 import { FiPackage, FiDollarSign, FiSave, FiArrowLeft, FiImage, FiX, FiEdit } from 'react-icons/fi';
+import { toPlainText, deriveShortDescription } from '../../../utils/textHelpers';
 
 const EditProduct = () => {
   const { id } = useParams();
@@ -45,17 +46,24 @@ const EditProduct = () => {
         if (productData) {
           console.log('🔍 Données du produit chargées:', productData);
           console.log('🖼️ Images du produit:', productData.images);
-          setProduct(productData);
+          const formattedProduct = {
+            ...productData,
+            name: toPlainText(productData.name, ''),
+            description: toPlainText(productData.description, ''),
+            shortDescription: toPlainText(productData.shortDescription, '')
+          };
+
+          setProduct(formattedProduct);
           
           // Remplir le formulaire avec les données existantes
           setFormData({
-            name: productData.name?.fr || productData.name?.en || productData.name || '',
-            description: productData.description?.fr || productData.description?.en || productData.description || '',
-            price: productData.price || '',
-            stock: productData.inventory?.quantity || '',
-            category: productData.category || '',
+            name: formattedProduct.name,
+            description: formattedProduct.description,
+            price: formattedProduct.price || '',
+            stock: formattedProduct.inventory?.quantity || '',
+            category: formattedProduct.category || '',
             unit: 'kg',
-            status: productData.status || 'draft'
+            status: formattedProduct.status || 'draft'
           });
 
           // Charger les images existantes
@@ -170,22 +178,17 @@ const EditProduct = () => {
       setSaving(true);
       
       const productData = {
-        name: {
-          fr: formData.name,
-          en: formData.name // Fallback en anglais
-        },
-        description: {
-          fr: formData.description,
-          en: formData.description // Fallback en anglais
-        },
+        name: toPlainText(formData.name, ''),
+        description: toPlainText(formData.description, ''),
+        shortDescription: deriveShortDescription(formData.description, ''),
         price: parseFloat(formData.price),
         category: formData.category,
-        subcategory: formData.category, // Utiliser la catégorie comme sous-catégorie pour l'instant
+        subcategory: formData.category,
         inventory: {
           quantity: parseInt(formData.stock)
         },
         status: formData.status || 'draft',
-        images: productImages // Ajouter les images
+        images: productImages
       };
 
       console.log('💾 Données à envoyer pour la mise à jour:', productData);

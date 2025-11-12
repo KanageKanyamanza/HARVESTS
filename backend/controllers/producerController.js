@@ -1,8 +1,12 @@
-const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/appError');
 const Producer = require('../models/Producer');
+const Product = require('../models/Product');
+const Order = require('../models/Order');
+const AppError = require('../utils/appError');
+const catchAsync = require('../utils/catchAsync');
+const orderController = require('./orderController');
 const { createDynamicStorage } = require('../config/cloudinary');
 const multer = require('multer');
+const { toPlainText } = require('../utils/localization');
 
 // Import de la fonction de notification depuis orderController
 const { sendStatusNotifications } = require('./orderController');
@@ -273,7 +277,7 @@ exports.getProducerReviews = catchAsync(async (req, res, next) => {
     isActive: true 
   })
   .populate('reviewer', 'firstName lastName avatar')
-  .populate('product', 'name.fr name.en images')
+  .populate('product', 'name images')
   .sort('-createdAt')
   .limit(20);
 
@@ -628,11 +632,21 @@ exports.createProduct = catchAsync(async (req, res, next) => {
     return next(new AppError('Tous les champs obligatoires doivent être remplis', 400));
   }
 
-  // Créer le produit avec structure multilingue
+  const normalizedName = toPlainText(name, name);
+  const normalizedDescription = toPlainText(description, description);
+  const normalizedShortDescription = shortDescription !== undefined && shortDescription !== null
+    ? toPlainText(shortDescription, shortDescription)
+    : '';
+
+  if (!normalizedName || !normalizedDescription) {
+    return next(new AppError('Le nom et la description doivent être fournis', 400));
+  }
+
+  // Créer le produit avec structure unilingue
   const productData = {
-    name: typeof name === 'object' ? name : { fr: name, en: name },
-    description: typeof description === 'object' ? description : { fr: description, en: description },
-    shortDescription: typeof shortDescription === 'object' ? shortDescription : { fr: shortDescription, en: shortDescription },
+    name: normalizedName,
+    description: normalizedDescription,
+    shortDescription: normalizedShortDescription || undefined,
     category,
     subcategory: subcategory || category,
     tags: tags || [],
@@ -720,78 +734,21 @@ exports.deleteMyProduct = catchAsync(async (req, res, next) => {
 });
 
 // Gestion des commandes (implémentation complète)
-exports.getMyOrders = catchAsync(async (req, res, next) => {
-  const Order = require('../models/Order');
-  
-  const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 20;
-  const skip = (page - 1) * limit;
+exports.getMyOrders = (req, res, next) => orderController.getMyOrders(req, res, next);
 
-  const queryObj = { seller: req.user._id };
-  if (req.query.status) queryObj.status = req.query.status;
-
-  const orders = await Order.find(queryObj)
-    .populate('buyer', 'firstName lastName email phone')
-    .populate('items.product', 'name images')
-    .sort('-createdAt')
-    .skip(skip)
-    .limit(limit);
-
-  const total = await Order.countDocuments(queryObj);
-
-  res.status(200).json({
-    status: 'success',
-    results: orders.length,
-    total,
-    page,
-    totalPages: Math.ceil(total / limit),
-    data: { orders }
-  });
-});
-
-exports.getMyOrder = catchAsync(async (req, res, next) => {
-  const Order = require('../models/Order');
-  
-  const order = await Order.findOne({
-    _id: req.params.orderId,
-    seller: req.user._id
-  })
-  .populate('buyer', 'firstName lastName email phone')
-  .populate('items.product', 'name images category');
-
-  if (!order) {
-    return next(new AppError('Commande non trouvée', 404));
+exports.getMyOrder = (req, res, next) => {
+  if (!req.params.id && req.params.orderId) {
+    req.params.id = req.params.orderId;
   }
+  return orderController.getOrder(req, res, next);
+};
 
-  res.status(200).json({
-    status: 'success',
-    data: { order }
-  });
-});
-
-exports.updateOrderStatus = catchAsync(async (req, res, next) => {
-  const Order = require('../models/Order');
-  const { status, reason, note } = req.body;
-
-  const order = await Order.findOne({
-    _id: req.params.orderId,
-    seller: req.user._id
-  });
-
-  if (!order) {
-    return next(new AppError('Commande non trouvée', 404));
+exports.updateOrderStatus = (req, res, next) => {
+  if (!req.params.id && req.params.orderId) {
+    req.params.id = req.params.orderId;
   }
-
-  await order.updateStatus(status, req.user._id, reason, note);
-
-  // Envoyer notifications selon le nouveau statut
-  await sendStatusNotifications(order, status);
-
-  res.status(200).json({
-    status: 'success',
-    data: { order }
-  });
-});
+  return orderController.updateOrderStatus(req, res, next);
+};
 
 // Statistiques
 exports.getMyStats = catchAsync(async (req, res, next) => {
@@ -850,7 +807,7 @@ exports.getMyStats = catchAsync(async (req, res, next) => {
         const product = await Product.findById(productId).select('name category');
         return {
           id: productId,
-          name: product?.name?.fr || product?.name?.en || 'Produit',
+          name: toPlainText(product?.name, 'Produit'),
           category: product?.category,
           quantitySold: sales.quantity,
           revenue: sales.revenue

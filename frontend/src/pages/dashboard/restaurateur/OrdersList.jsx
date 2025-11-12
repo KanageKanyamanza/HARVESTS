@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { restaurateurService } from '../../../services';
 import { useNotifications } from '../../../contexts/NotificationContext';
@@ -19,51 +19,74 @@ const OrdersList = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [updatingOrders, setUpdatingOrders] = useState(new Set());
 
-  // Charger les commandes
-  useEffect(() => {
-    const loadOrders = async () => {
-      try {
-        setLoading(true);
-        const response = await restaurateurService.getOrders();
-        const ordersData = response.data.data?.orders || response.data.orders || [];
-        setOrders(Array.isArray(ordersData) ? ordersData : []);
-      } catch (error) {
-        console.error('Erreur lors du chargement des commandes:', error);
-        setError('Erreur lors du chargement des commandes');
-        setOrders([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadOrders();
+  const isOrderReceived = useCallback((order) => {
+    if (!order) return false;
+    if (order.role === 'seller') return true;
+    if (order.segment?.seller) return true;
+    if (Array.isArray(order.segment?.items) && order.segment.items.length > 0) return true;
+    if (Array.isArray(order.segments) && order.segments.some(segment => !!segment?.seller)) return true;
+    if (Array.isArray(order.items) && order.items.some(item => !!item?.seller)) return true;
+    return Boolean(order.seller);
   }, []);
 
-  // Mettre à jour le statut d'une commande
-  const updateOrderStatus = async (orderId, newStatus) => {
+  const getOrderStatus = useCallback(
+    (order) => order?.segment?.status || order?.status || 'pending',
+    []
+  );
+
+  const loadOrders = useCallback(async () => {
     try {
-      // Marquer cette commande comme en cours de mise à jour
+      setLoading(true);
+      const response = await restaurateurService.getOrders();
+      const ordersData = response.data.data?.orders || response.data.orders || [];
+
+      if (Array.isArray(ordersData)) {
+        const missingSegments = ordersData.filter(order => !order.segment && order.items?.length);
+        if (missingSegments.length > 0) {
+          console.warn(`[Harvests] ${missingSegments.length} commande(s) Restaurateur sans segment détectée(s).`);
+        }
+      }
+
+      setOrders(Array.isArray(ordersData) ? ordersData : []);
+      setError(null);
+    } catch (error) {
+      console.error('Erreur lors du chargement des commandes:', error);
+      setError('Erreur lors du chargement des commandes');
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [showError, showSuccess]);
+
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
+
+  // Mettre à jour le statut d'une commande
+  const updateOrderStatus = async (order, newStatus, segmentId, options = {}) => {
+    const orderId = order?._id;
+    if (!orderId) return;
+
+    try {
       setUpdatingOrders(prev => new Set([...prev, orderId]));
-      
-      // Appel API pour mettre à jour le statut
-      const response = await restaurateurService.updateOrderStatus(orderId, { status: newStatus });
-      
+
+      const payload = {
+        status: newStatus,
+        segmentId,
+        ...(options.itemId ? { itemId: options.itemId } : {}),
+        ...(options.itemIds ? { itemIds: options.itemIds } : {})
+      };
+
+      const response = await restaurateurService.updateOrderStatus(orderId, payload);
+
       if (response.data.status === 'success') {
-        // Mise à jour optimiste de l'état local
-        setOrders(prevOrders => 
-          prevOrders.map(order => 
-            order._id === orderId 
-              ? { ...order, status: newStatus }
-              : order
-          )
-        );
         showSuccess(`Commande ${newStatus === 'confirmed' ? 'confirmée' : newStatus === 'cancelled' ? 'annulée' : 'mise à jour'} avec succès`);
+        await loadOrders();
       }
     } catch (error) {
       console.error('Erreur lors de la mise à jour du statut:', error);
       showError('Erreur lors de la mise à jour du statut');
     } finally {
-      // Retirer cette commande de la liste des commandes en cours de mise à jour
       setUpdatingOrders(prev => {
         const newSet = new Set(prev);
         newSet.delete(orderId);
@@ -82,13 +105,10 @@ const OrdersList = () => {
       (order.buyer?.firstName && order.buyer.firstName.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (order.buyer?.lastName && order.buyer.lastName.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+    const matchesStatus = statusFilter === 'all' || getOrderStatus(order) === statusFilter;
     
-    // Pour les restaurateurs, ne montrer que les commandes où ils sont vendeurs (commandes reçues)
-    // Les commandes d'achat peuvent être filtrées si nécessaire
-    const isReceivedOrder = order.role === 'seller' || (!order.role && order.seller); // Si role existe, utiliser role, sinon vérifier que seller existe
-    
-    return matchesStatus && matchesSearch && isReceivedOrder;
+    // Pour les restaurateurs, ne montrer que les commandes reçues (où ils sont vendeurs ou segments associés)
+    return matchesStatus && matchesSearch && isOrderReceived(order);
   });
 
   if (loading) {
@@ -151,6 +171,7 @@ const OrdersList = () => {
                 <option value="ready-for-pickup">Prête pour collecte</option>
                 <option value="in-transit">En transit</option>
                 <option value="delivered">Livrées</option>
+                <option value="completed">Terminées</option>
                 <option value="cancelled">Annulées</option>
               </select>
               <button

@@ -20,6 +20,7 @@ import {
   Shield
 } from 'lucide-react';
 import { adminService } from '../../services/adminService';
+import { toPlainText } from '../../utils/textHelpers';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -141,13 +142,7 @@ const ProductDetails = () => {
     }).format(price);
   };
 
-  const getLocalizedText = (text) => {
-    if (typeof text === 'string') return text;
-    if (typeof text === 'object' && text !== null) {
-      return text.fr || text.en || 'Texte non disponible';
-    }
-    return 'Texte non disponible';
-  };
+  const getLocalizedText = (text) => toPlainText(text, 'Texte non disponible');
 
   if (loading) {
     return (

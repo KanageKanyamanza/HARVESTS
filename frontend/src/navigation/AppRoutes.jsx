@@ -2,7 +2,7 @@
  * Composant principal pour gérer toutes les routes de l'application
  */
 import React, { Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 // Import des routes organisées
@@ -38,6 +38,8 @@ import Contact from '../pages/Contact';
 import LoyaltyProgram from '../pages/LoyaltyProgram';
 import BlogPage from '../pages/BlogPage';
 import BlogDetailPage from '../pages/BlogDetailPage';
+import PayPalSuccess from '../pages/payments/PayPalSuccess';
+import PayPalCancel from '../pages/payments/PayPalCancel';
 
 // Import des pages d'authentification
 import Login from '../pages/auth/Login';
@@ -111,7 +113,11 @@ const SuspenseRoute = ({ element }) => (
  * Composant pour les routes protégées
  */
 const ProtectedRoute = ({ children, requiredRole, requiredUserType }) => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <RouteFallback />;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -132,13 +138,33 @@ const ProtectedRoute = ({ children, requiredRole, requiredUserType }) => {
  * Composant pour les routes publiques (redirection si connecté)
  */
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <RouteFallback />;
+  }
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
 
   return children;
+};
+
+const CheckoutGateway = () => {
+  const { isAuthenticated, user, getDefaultRoute } = useAuth();
+  const location = useLocation();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+
+  if (user?.userType === 'consumer') {
+    return <Navigate to="/consumer/checkout" replace />;
+  }
+
+  const fallbackRoute = typeof getDefaultRoute === 'function' ? getDefaultRoute() : '/';
+  return <Navigate to={fallbackRoute || '/'} replace />;
 };
 
 /**
@@ -164,10 +190,13 @@ const AppRoutes = () => {
       <Route path="/transporters/:id" element={<Layout><SuspenseRoute element={<TransporterProfile />} /></Layout>} />
       <Route path="/exporters/:id" element={<Layout><SuspenseRoute element={<ExporterProfile />} /></Layout>} />
       <Route path="/cart" element={<Layout><SuspenseRoute element={<CartPage />} /></Layout>} />
+      <Route path="/checkout" element={<CheckoutGateway />} />
       <Route path="/contact" element={<Layout><SuspenseRoute element={<Contact />} /></Layout>} />
       <Route path="/loyalty" element={<Layout><SuspenseRoute element={<LoyaltyProgram />} /></Layout>} />
       <Route path="/blog" element={<Layout><SuspenseRoute element={<BlogPage />} /></Layout>} />
       <Route path="/blog/:slug" element={<Layout><SuspenseRoute element={<BlogDetailPage />} /></Layout>} />
+      <Route path="/payments/paypal/success" element={<Layout><SuspenseRoute element={<PayPalSuccess />} /></Layout>} />
+      <Route path="/payments/paypal/cancel" element={<Layout><SuspenseRoute element={<PayPalCancel />} /></Layout>} />
 
       {/* Routes d'authentification */}
       <Route path="/login" element={

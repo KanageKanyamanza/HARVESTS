@@ -10,6 +10,9 @@ export const orderService = {
   
   // Créer une commande
   createOrder: (orderData) => apiRequest.post('/orders', orderData),
+
+  // Estimer une commande (totaux, frais de livraison...)
+  estimateOrder: (estimateData) => apiRequest.post('/orders/estimate', estimateData),
   
   // Mettre à jour une commande
   updateOrder: (id, orderData) => apiRequest.patch(`/orders/${id}`, orderData),

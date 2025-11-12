@@ -217,12 +217,37 @@ class NotificationService {
   
   // 🎯 Notifications spécialisées pour Harvests
   static async notifyNewOrder(order) {
-    const seller = await this.getUser(order.seller);
+    const toSellerIds = new Set();
+
+    const addSeller = (value) => {
+      if (!value) return;
+      if (typeof value === 'string') {
+        toSellerIds.add(value);
+        return;
+      }
+      if (value?._id) {
+        toSellerIds.add(value._id.toString());
+        return;
+      }
+      if (typeof value.toString === 'function') {
+        toSellerIds.add(value.toString());
+      }
+    };
+
+    addSeller(order.seller);
+    (order.segments || []).forEach((segment) => addSeller(segment?.seller));
+    if (toSellerIds.size === 0 && Array.isArray(order.items)) {
+      order.items.forEach((item) => addSeller(item?.seller));
+    }
+
     const buyer = await this.getUser(order.buyer);
-    
-    // Notifier le vendeur
-    if (seller) {
-      await this.sendMultiChannelNotification(seller, {
+
+    // Notifier les vendeurs
+    for (const sellerId of toSellerIds) {
+      const sellerUser = await this.getUser(sellerId);
+      if (!sellerUser) continue;
+
+      await this.sendMultiChannelNotification(sellerUser, {
         title: '🛒 Nouvelle commande !',
         body: `Vous avez reçu une commande de ${order.total} XAF`,
         clickAction: `/producer/orders/${order._id}`,
@@ -299,21 +324,44 @@ class NotificationService {
   
   // 💰 Notifier paiement reçu
   static async notifyPaymentReceived(order, payment) {
-    const seller = await this.getUser(order.seller);
-    
-    if (!seller) return;
-    
-    await this.sendMultiChannelNotification(seller, {
-      title: '💰 Paiement reçu !',
-      body: `Paiement de ${payment.amount} XAF pour la commande ${order.orderNumber}`,
-      clickAction: `/producer/payments/${payment._id}`,
-      actionText: 'Voir paiement',
-      emailTemplate: 'payment-received'
-    }, {
-      orderId: order._id.toString(),
-      paymentId: payment._id?.toString(),
-      amount: payment.amount
-    });
+    const sellerIds = new Set();
+    const addSeller = (value) => {
+      if (!value) return;
+      if (typeof value === 'string') {
+        sellerIds.add(value);
+        return;
+      }
+      if (value?._id) {
+        sellerIds.add(value._id.toString());
+        return;
+      }
+      if (typeof value.toString === 'function') {
+        sellerIds.add(value.toString());
+      }
+    };
+
+    addSeller(order.seller);
+    (order.segments || []).forEach((segment) => addSeller(segment?.seller));
+    if (sellerIds.size === 0 && Array.isArray(order.items)) {
+      order.items.forEach((item) => addSeller(item?.seller));
+    }
+
+    for (const sellerId of sellerIds) {
+      const sellerUser = await this.getUser(sellerId);
+      if (!sellerUser) continue;
+
+      await this.sendMultiChannelNotification(sellerUser, {
+        title: '💰 Paiement reçu !',
+        body: `Paiement de ${payment.amount} XAF pour la commande ${order.orderNumber}`,
+        clickAction: `/producer/payments/${payment._id}`,
+        actionText: 'Voir paiement',
+        emailTemplate: 'payment-received'
+      }, {
+        orderId: order._id.toString(),
+        paymentId: payment._id?.toString(),
+        amount: payment.amount
+      });
+    }
   }
   
   // 🕒 Notifications programmées
@@ -346,8 +394,33 @@ class NotificationService {
       }).populate('seller buyer');
       
       for (const order of pendingOrders) {
-        if (order.seller) {
-          await this.sendMultiChannelNotification(order.seller, {
+        const sellerIds = new Set();
+        const addSeller = (value) => {
+          if (!value) return;
+          if (typeof value === 'string') {
+            sellerIds.add(value);
+            return;
+          }
+          if (value?._id) {
+            sellerIds.add(value._id.toString());
+            return;
+          }
+          if (typeof value.toString === 'function') {
+            sellerIds.add(value.toString());
+          }
+        };
+
+        addSeller(order.seller);
+        (order.segments || []).forEach((segment) => addSeller(segment?.seller));
+        if (sellerIds.size === 0 && Array.isArray(order.items)) {
+          order.items.forEach((item) => addSeller(item?.seller));
+        }
+
+        for (const sellerId of sellerIds) {
+          const sellerUser = await this.getUser(sellerId);
+          if (!sellerUser) continue;
+
+          await this.sendMultiChannelNotification(sellerUser, {
             title: '⏰ Commande en attente',
             body: `N'oubliez pas de traiter la commande ${order.orderNumber}`,
             clickAction: `/producer/orders/${order._id}`,
