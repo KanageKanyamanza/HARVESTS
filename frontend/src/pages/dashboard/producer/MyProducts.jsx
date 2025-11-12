@@ -5,6 +5,7 @@ import { producerService } from '../../../services';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import CloudinaryImage from '../../../components/common/CloudinaryImage';
 import { FiSearch, FiPlus, FiEdit, FiEye, FiTrash2, FiPackage, FiDollarSign, FiCheckCircle, FiXCircle, FiClock, FiSend, FiStar } from 'react-icons/fi';
+import { toPlainText } from '../../../utils/textHelpers';
 
 const MyProducts = () => {
   const { user } = useAuth();
@@ -24,7 +25,15 @@ const MyProducts = () => {
             search: searchTerm || undefined
           });
           const productsData = response.data.data?.products || response.data.products || response.data || [];
-          setProducts(Array.isArray(productsData) ? productsData : []);
+          const formattedProducts = Array.isArray(productsData)
+            ? productsData.map((product) => ({
+                ...product,
+                name: toPlainText(product.name, ''),
+                description: toPlainText(product.description, ''),
+                shortDescription: toPlainText(product.shortDescription, '')
+              }))
+            : [];
+          setProducts(formattedProducts);
         } catch (error) {
           console.error('Erreur lors du chargement des produits:', error);
           setProducts([]);
@@ -76,8 +85,8 @@ const MyProducts = () => {
   };
 
   const filteredProducts = (Array.isArray(products) ? products : []).filter(product => {
-    const productName = product.name?.fr || product.name?.en || product.name || '';
-    const productDescription = product.description?.fr || product.description?.en || product.description || '';
+    const productName = toPlainText(product.name, '');
+    const productDescription = toPlainText(product.description, '');
     
     const matchesSearch = productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          productDescription.toLowerCase().includes(searchTerm.toLowerCase());
@@ -206,7 +215,7 @@ const MyProducts = () => {
                     {product.images && product.images.length > 0 && product.images[0]?.url ? (
                       <CloudinaryImage
                         src={product.images[0].url}
-                        alt={product.name?.fr || product.name?.en || product.name || 'Image du produit'}
+                        alt={toPlainText(product.name, 'Image du produit')}
                         className="w-full h-48 object-cover"
                         width={800}
                         height={600}
@@ -224,7 +233,7 @@ const MyProducts = () => {
                   <div className="p-3">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
-                        {product.name?.fr || product.name?.en || product.name || 'Produit sans nom'}
+                        {toPlainText(product.name, 'Produit sans nom')}
                       </h3>
                       <div className="flex flex-col items-end space-y-1">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusConfig.color}`}>
@@ -240,7 +249,7 @@ const MyProducts = () => {
                       </div>
                     </div>
                     <p className="text-sm text-gray-600 line-clamp-2 mb-4">
-                      {product.description?.fr || product.description?.en || product.description || 'Aucune description'}
+                      {toPlainText(product.description, 'Aucune description')}
                     </p>
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-4">

@@ -11,6 +11,7 @@ router.use(authController.protect);
 router.get('/my', orderController.getMyOrders);
 router.get('/:id/tracking', orderController.trackOrder);
 router.get('/:id', orderController.getOrder);
+router.post('/estimate', orderController.estimateOrderCosts);
 
 // Routes d'écriture (nécessitent une vérification d'email)
 router.use(authController.requireVerification);

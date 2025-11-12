@@ -13,6 +13,7 @@ import {
   FiClock,
   FiSend
 } from 'react-icons/fi';
+import { toPlainText } from '../../utils/textHelpers';
 
 const ProductCard = ({ 
   product, 
@@ -61,21 +62,8 @@ const ProductCard = ({
     );
   }
 
-  // Fonction pour obtenir le nom du produit (multilingue)
-  const getProductName = (product) => {
-    if (typeof product.name === 'object') {
-      return product.name.fr || product.name.en || 'Produit sans nom';
-    }
-    return product.name || 'Produit sans nom';
-  };
-
-  // Fonction pour obtenir la description du produit (multilingue)
-  const getProductDescription = (product) => {
-    if (typeof product.description === 'object') {
-      return product.description.fr || product.description.en || 'Aucune description';
-    }
-    return product.description || 'Aucune description';
-  };
+  const productName = toPlainText(product.name, 'Produit sans nom');
+  const productDescription = toPlainText(product.description, 'Aucune description');
 
   // Configuration des statuts
   const getStatusConfig = (status) => {
@@ -99,7 +87,7 @@ const ProductCard = ({
         {product.images && product.images.length > 0 && product.images[0]?.url ? (
           <CloudinaryImage
             src={product.images[0].url}
-            alt={getProductName(product)}
+            alt={productName}
             className="w-full h-48 object-cover"
             width={800}
             height={600}
@@ -120,7 +108,7 @@ const ProductCard = ({
         {/* En-tête avec nom et statut */}
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
-            {getProductName(product)}
+            {productName}
           </h3>
           <div className="flex flex-col items-end space-y-1">
             {showStatus && (
@@ -140,7 +128,7 @@ const ProductCard = ({
 
         {/* Description */}
         <p className="text-sm text-gray-600 line-clamp-2 mb-4">
-          {getProductDescription(product)}
+          {productDescription}
         </p>
 
         {/* Prix et stock */}

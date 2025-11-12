@@ -20,6 +20,7 @@ import {
   FiClock,
   FiStar
 } from 'react-icons/fi';
+import { toPlainText } from '../../../utils/textHelpers';
 
 const NewOrder = () => {
   const { showSuccess, showError } = useNotifications();
@@ -44,7 +45,7 @@ const NewOrder = () => {
       region: '',
       postalCode: ''
     },
-    paymentMethod: 'mobile-money',
+    paymentMethod: 'cash',
     notes: '',
     deliveryDate: '',
     deliveryTime: ''
@@ -115,29 +116,32 @@ const NewOrder = () => {
   });
 
   // Filtrer les produits
-  const filteredProducts = products.filter(product =>
-    (product.name?.fr || product.name?.en || product.name || '').toString()
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase()) ||
-    (product.description?.fr || product.description?.en || product.description || '').toString()
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = products.filter(product => {
+    const nameText = toPlainText(product.name, '').toLowerCase();
+    const descriptionText = toPlainText(product.description, '').toLowerCase();
+    const term = searchTerm.toLowerCase();
+    return nameText.includes(term) || descriptionText.includes(term);
+  });
 
   // Ajouter au panier
-  const formatProductForCart = (product) => ({
-    _id: product._id || product.id,
-    name: product.name?.fr || product.name?.en || product.name || 'Produit',
-    description: product.description?.fr || product.description?.en || product.description || '',
-    price: product.price?.value ?? product.price ?? 0,
-    images: product.images || [],
-    image: product.images?.[0]?.url || product.image || product.coverImage || '',
-    relatedProductId: product.productId || product._id || product.id,
-    supplier: {
-      id: selectedSupplier?._id,
-      name: selectedSupplier?.companyName || selectedSupplier?.profile?.displayName || `${selectedSupplier?.firstName || ''} ${selectedSupplier?.lastName || ''}`.trim() || 'Fournisseur'
-    }
-  });
+  const formatProductForCart = (product) => {
+    const nameText = toPlainText(product.name, 'Produit');
+    const descriptionText = toPlainText(product.description, '');
+
+    return {
+      _id: product._id || product.id,
+      name: nameText,
+      description: descriptionText,
+      price: product.price?.value ?? product.price ?? 0,
+      images: product.images || [],
+      image: product.images?.[0]?.url || product.image || product.coverImage || '',
+      relatedProductId: product.productId || product._id || product.id,
+      supplier: {
+        id: selectedSupplier?._id,
+        name: selectedSupplier?.companyName || selectedSupplier?.profile?.displayName || `${selectedSupplier?.firstName || ''} ${selectedSupplier?.lastName || ''}`.trim() || 'Fournisseur'
+      }
+    };
+  };
 
   const addToCart = (product) => {
     const formattedProduct = formatProductForCart(product);
@@ -415,7 +419,7 @@ const NewOrder = () => {
                           {product.images && product.images.length > 0 ? (
                             <CloudinaryImage
                               src={product.images[0].url}
-                              alt={product.name?.fr || product.name?.en || product.name}
+                              alt={toPlainText(product.name, 'Produit')}
                               className="w-16 h-16 object-cover rounded-lg"
                               width={200}
                               height={200}
@@ -433,10 +437,10 @@ const NewOrder = () => {
                             </span>
                           )}
                           <h3 className="text-sm font-medium text-gray-900">
-                            {(product.name?.fr || product.name?.en || product.name || '').toString() || 'Produit'}
+                            {toPlainText(product.name, 'Produit') || 'Produit'}
                           </h3>
                           <p className="text-sm text-gray-500">
-                            {(product.description?.fr || product.description?.en || product.description || '').toString().slice(0, 80) || 'Description non disponible'}
+                            {toPlainText(product.description, '').slice(0, 80) || 'Description non disponible'}
                           </p>
                           <p className="text-sm font-medium text-gray-900">
                             {(Number(product.price?.value ?? product.price ?? 0)).toLocaleString()} FCFA
@@ -478,7 +482,7 @@ const NewOrder = () => {
                       <div key={item.product._id} className="flex items-center justify-between">
                         <div className="flex-1">
                           <h4 className="text-sm font-medium text-gray-900">
-                            {(item.product.name?.fr || item.product.name?.en || item.product.name || '').toString() || 'Produit'}
+                            {toPlainText(item.product.name, 'Produit') || 'Produit'}
                           </h4>
                           <p className="text-sm text-gray-500">
                             {(Number(item.product.price?.value ?? item.product.price ?? 0)).toLocaleString()} FCFA
@@ -613,10 +617,8 @@ const NewOrder = () => {
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-harvests-green"
                     >
-                      <option value="mobile-money">Mobile Money</option>
-                      <option value="cash">Espèces</option>
-                      <option value="card">Carte bancaire</option>
-                      <option value="bank-transfer">Virement bancaire</option>
+                      <option value="cash">Paiement à la livraison</option>
+                      <option value="paypal">PayPal</option>
                     </select>
                   </div>
                 </div>
@@ -682,7 +684,7 @@ const NewOrder = () => {
                   Date: {order.deliveryDate} à {order.deliveryTime}
                 </p>
                 <p className="text-sm text-gray-600">
-                  Paiement: {order.paymentMethod}
+                  Paiement: {order.paymentMethod === 'paypal' ? 'PayPal' : 'Paiement à la livraison'}
                 </p>
               </div>
             </div>

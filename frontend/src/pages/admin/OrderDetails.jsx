@@ -528,11 +528,8 @@ const OrderDetails = () => {
                       {(() => {
                         const method = order?.payment?.method || order?.paymentMethod;
                         const methodLabels = {
-                          'cash': 'Espèces',
-                          'card': 'Carte bancaire',
-                          'mobile-money': 'Mobile Money',
-                          'bank-transfer': 'Virement bancaire',
-                          'crypto': 'Cryptomonnaie'
+                          'cash': 'Paiement à la livraison',
+                          'paypal': 'PayPal'
                         };
                         return methodLabels[method] || method || 'Non spécifiée';
                       })()}
@@ -548,7 +545,14 @@ const OrderDetails = () => {
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Fournisseur</span>
                       <span className="text-sm font-medium text-gray-900">
-                        {order?.payment?.provider || order?.paymentProvider}
+                        {(() => {
+                          const provider = order?.payment?.provider || order?.paymentProvider;
+                          const providerLabels = {
+                            'cash-on-delivery': 'Paiement à la livraison',
+                            'paypal': 'PayPal'
+                          };
+                          return providerLabels[provider] || provider;
+                        })()}
                       </span>
                     </div>
                   )}

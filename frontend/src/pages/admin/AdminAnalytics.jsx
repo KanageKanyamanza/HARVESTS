@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 
 import { adminService } from '../../services/adminService';
+import { toPlainText } from '../../utils/textHelpers';
 import UserRegistrationsChart from '../../components/admin/UserRegistrationsChart';
 import RevenueTrendsChart from '../../components/admin/RevenueTrendsChart';
 
@@ -342,7 +343,7 @@ const AdminAnalytics = () => {
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-gray-900 truncate">
-                                {product.name?.fr || product.name?.en || product.name || 'Produit'}
+                                {toPlainText(product.name, 'Produit')}
                               </p>
                               <p className="text-sm text-gray-500 truncate">
                                 {formatPrice(product.price || 0)} • {product.sales || 0} ventes

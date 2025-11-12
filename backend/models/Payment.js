@@ -1,65 +1,27 @@
 const mongoose = require('mongoose');
 
-// Schéma pour les détails de paiement mobile money
-const mobileMoneySchema = new mongoose.Schema({
-  provider: {
-    type: String,
-    enum: ['orange-money', 'mtn-momo', 'express-union', 'wave'],
-    required: true
-  },
-  phoneNumber: {
-    type: String,
-    required: true
-  },
-  transactionId: String,
-  operatorTransactionId: String,
-  fees: {
-    type: Number,
-    default: 0
-  }
+// Schéma pour les paiements PayPal
+const paypalSchema = new mongoose.Schema({
+  orderId: String,
+  captureId: String,
+  payerEmail: String,
+  payerName: String,
+  status: String,
+  rawResponse: mongoose.Schema.Types.Mixed
 }, { _id: false });
 
-// Schéma pour les détails de carte bancaire
-const cardSchema = new mongoose.Schema({
-  last4: String,
-  brand: {
+// Schéma pour le paiement à la livraison (cash on delivery)
+const cashOnDeliverySchema = new mongoose.Schema({
+  instructions: {
     type: String,
-    enum: ['visa', 'mastercard', 'amex', 'discover']
+    default: 'Préparez le montant exact à régler auprès du livreur lors de la livraison.'
   },
-  expiryMonth: Number,
-  expiryYear: Number,
-  country: String,
-  fingerprint: String, // Hash unique de la carte
-  funding: {
-    type: String,
-    enum: ['credit', 'debit', 'prepaid', 'unknown']
-  }
-}, { _id: false });
-
-// Schéma pour les détails de virement bancaire
-const bankTransferSchema = new mongoose.Schema({
-  bankName: String,
-  accountNumber: String,
-  accountName: String,
-  swiftCode: String,
-  routingNumber: String,
-  iban: String,
-  reference: String
-}, { _id: false });
-
-// Schéma pour les détails crypto
-const cryptoSchema = new mongoose.Schema({
-  currency: {
-    type: String,
-    enum: ['BTC', 'ETH', 'USDC', 'USDT']
+  confirmedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   },
-  walletAddress: String,
-  transactionHash: String,
-  blockNumber: Number,
-  confirmations: {
-    type: Number,
-    default: 0
-  }
+  confirmedAt: Date,
+  notes: String
 }, { _id: false });
 
 // Schéma principal des paiements
@@ -95,17 +57,16 @@ const paymentSchema = new mongoose.Schema({
   
   method: {
     type: String,
-    enum: ['mobile-money', 'card', 'bank-transfer', 'cash', 'crypto', 'wallet'],
+    enum: ['cash', 'paypal'],
     required: [true, 'Méthode de paiement requise']
   },
   
   provider: {
     type: String,
-    enum: [
-      'stripe', 'paypal', 'flutterwave', 'paystack', 
-      'orange-money', 'mtn-momo', 'express-union', 'wave',
-      'visa', 'mastercard', 'bitcoin', 'ethereum'
-    ]
+    enum: ['cash-on-delivery', 'paypal'],
+    default: function() {
+      return this.method === 'cash' ? 'cash-on-delivery' : 'paypal';
+    }
   },
   
   // Montants
@@ -170,10 +131,8 @@ const paymentSchema = new mongoose.Schema({
   
   // Détails spécifiques selon la méthode
   paymentDetails: {
-    mobileMoney: mobileMoneySchema,
-    card: cardSchema,
-    bankTransfer: bankTransferSchema,
-    crypto: cryptoSchema
+    paypal: paypalSchema,
+    cash: cashOnDeliverySchema
   },
   
   // Description du paiement
@@ -421,6 +380,25 @@ paymentSchema.post('save', async function() {
 });
 
 // Méthodes du schéma
+paymentSchema.methods.calculateFees = function() {
+  const amount = Number(this.amount || 0);
+  const percent = Number(process.env.PAYPAL_FEE_PERCENT || 0);
+  const fixed = Number(process.env.PAYPAL_FIXED_FEE || 0);
+
+  this.fees = this.fees || {};
+  if (this.method === 'paypal') {
+    const variableFee = percent ? amount * (percent / 100) : 0;
+    this.fees.payment = Math.round(variableFee + fixed);
+  } else {
+    this.fees.payment = 0;
+  }
+
+  this.fees.platform = this.fees.platform || 0;
+  this.fees.processing = this.fees.processing || 0;
+  this.fees.total = (this.fees.platform || 0) + (this.fees.payment || 0) + (this.fees.processing || 0);
+  this.netAmount = amount - this.fees.total;
+};
+
 paymentSchema.methods.markAsSucceeded = function(transactionId = null, paidAt = null) {
   this.status = 'succeeded';
   this.paidAt = paidAt || new Date();

@@ -14,6 +14,7 @@ import {
   FiFilter,
   FiSearch
 } from 'react-icons/fi';
+import { toPlainText } from '../../../utils/textHelpers';
 
 const TransformerReviews = () => {
   const { showSuccess, showError } = useNotifications();
@@ -349,7 +350,7 @@ const TransformerReviews = () => {
 
                       {review.product && (
                         <div className="text-sm text-gray-600 mb-3">
-                          <span className="font-medium">Produit:</span> {review.product.name?.fr || review.product.name?.en}
+                          <span className="font-medium">Produit:</span> {toPlainText(review.product.name, 'Produit')}
                         </div>
                       )}
 

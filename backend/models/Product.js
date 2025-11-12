@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const { toPlainText } = require('../utils/localization');
 
 // Schéma pour les variantes de produits
 const variantSchema = new mongoose.Schema({
@@ -82,19 +83,12 @@ const variantSchema = new mongoose.Schema({
 
 // Schéma principal du produit
 const productSchema = new mongoose.Schema({
-  // Informations de base multilingues
+  // Informations de base
   name: {
-    fr: {
-      type: String,
-      required: [true, 'Nom du produit requis en français'],
-      trim: true,
-      maxlength: [200, 'Le nom ne peut pas dépasser 200 caractères']
-    },
-    en: {
-      type: String,
-      trim: true,
-      maxlength: [200, 'Name cannot exceed 200 characters']
-    }
+    type: String,
+    required: [true, 'Nom du produit requis'],
+    trim: true,
+    maxlength: [200, 'Le nom ne peut pas dépasser 200 caractères']
   },
   
   slug: {
@@ -104,26 +98,14 @@ const productSchema = new mongoose.Schema({
   },
   
   description: {
-    fr: {
-      type: String,
-      required: [true, 'Description requise en français'],
-      maxlength: [2000, 'La description ne peut pas dépasser 2000 caractères']
-    },
-    en: {
-      type: String,
-      maxlength: [2000, 'Description cannot exceed 2000 characters']
-    }
+    type: String,
+    required: [true, 'Description requise'],
+    maxlength: [2000, 'La description ne peut pas dépasser 2000 caractères']
   },
   
   shortDescription: {
-    fr: {
-      type: String,
-      maxlength: [300, 'La description courte ne peut pas dépasser 300 caractères']
-    },
-    en: {
-      type: String,
-      maxlength: [300, 'Short description cannot exceed 300 characters']
-    }
+    type: String,
+    maxlength: [300, 'La description courte ne peut pas dépasser 300 caractères']
   },
   
   // Producteur
@@ -321,6 +303,23 @@ const productSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
+const PLAINTEXT_FIELDS = ['name', 'description', 'shortDescription'];
+
+const normalizePlainText = (value, fallback = '') => {
+  const normalized = toPlainText(value, fallback);
+  return typeof normalized === 'string' ? normalized : fallback;
+};
+
+productSchema.pre('init', function(doc) {
+  if (doc) {
+    PLAINTEXT_FIELDS.forEach((field) => {
+      if (Object.prototype.hasOwnProperty.call(doc, field)) {
+        doc[field] = normalizePlainText(doc[field], doc[field] || '');
+      }
+    });
+  }
+});
+
 // Index pour la recherche et performance
 productSchema.index({ name: 'text', description: 'text', tags: 'text' });
 productSchema.index({ producer: 1, status: 1 });
@@ -387,9 +386,15 @@ productSchema.virtual('primaryImage').get(function() {
 
 // Middleware pre-save
 productSchema.pre('save', async function(next) {
+  PLAINTEXT_FIELDS.forEach((field) => {
+    if (this[field] !== undefined && this[field] !== null) {
+      this[field] = normalizePlainText(this[field], this[field]);
+    }
+  });
+
   // Générer le slug à partir du nom français
   if (this.isModified('name')) {
-    const nameForSlug = typeof this.name === 'string' ? this.name : (this.name.fr || this.name.en || 'product');
+    const nameForSlug = this.name || 'product';
     let baseSlug = slugify(nameForSlug, { 
       lower: true, 
       strict: true,
@@ -442,6 +447,26 @@ productSchema.pre('save', async function(next) {
   next();
 });
 
+const normalizeUpdatePayload = (payload) => {
+  if (!payload || typeof payload !== 'object') return;
+  PLAINTEXT_FIELDS.forEach((field) => {
+    if (Object.prototype.hasOwnProperty.call(payload, field)) {
+      payload[field] = normalizePlainText(payload[field], payload[field]);
+    }
+  });
+};
+
+productSchema.pre(['findOneAndUpdate', 'updateOne', 'updateMany', 'findByIdAndUpdate'], function(next) {
+  const update = this.getUpdate();
+  if (update) {
+    if (update.$set) {
+      normalizeUpdatePayload(update.$set);
+    }
+    normalizeUpdatePayload(update);
+  }
+  next();
+});
+
 // Méthodes du schéma
 
 
@@ -488,14 +513,11 @@ productSchema.methods.incrementViews = function() {
 };
 
 // Méthode pour obtenir le contenu dans la langue demandée
-productSchema.methods.getLocalizedContent = function(language = 'fr') {
-  const lang = ['fr', 'en'].includes(language) ? language : 'fr';
-  
+productSchema.methods.getLocalizedContent = function() {
   return {
-    name: this.name[lang] || this.name.fr || this.name.en,
-    description: this.description[lang] || this.description.fr || this.description.en,
-    shortDescription: this.shortDescription[lang] || this.shortDescription.fr || this.shortDescription.en,
-    // Autres champs restent identiques
+    name: this.name,
+    description: this.description,
+    shortDescription: this.shortDescription,
     _id: this._id,
     slug: this.slug,
     producer: this.producer,

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { parseProductName } from '../../utils/productUtils';
+import { toPlainText } from '../../utils/textHelpers';
 import {
   FiClock,
   FiTruck,
@@ -13,13 +14,72 @@ import {
   FiMapPin
 } from 'react-icons/fi';
 
-const OrderList = ({ 
-  orders = [], 
-  userType = 'consumer', 
+const OrderList = ({
+  orders = [],
+  userType = 'consumer',
   onUpdateStatus,
   loading = false,
   updatingOrders = new Set()
 }) => {
+  const isSellerView = ['producer', 'transformer', 'restaurateur'].includes(userType);
+
+  const extractSellerDetails = (order) => {
+    const sellersMap = new Map();
+
+    const addSeller = (rawSeller) => {
+      if (!rawSeller) return;
+
+      if (typeof rawSeller === 'string') {
+        // Impossible de récupérer le nom sans données supplémentaires
+        return;
+      }
+
+      const sellerObj = typeof rawSeller === 'object' && rawSeller !== null
+        ? rawSeller
+        : null;
+
+      if (!sellerObj) return;
+
+      const id = sellerObj._id || sellerObj.id || (typeof sellerObj.toString === 'function' ? sellerObj.toString() : null);
+      const rawName = sellerObj.farmName
+        || sellerObj.companyName
+        || (sellerObj.firstName && sellerObj.lastName
+          ? `${sellerObj.firstName} ${sellerObj.lastName}`
+          : sellerObj.firstName || sellerObj.lastName || sellerObj.name);
+      const displayName = toPlainText(rawName, '');
+
+      if (!displayName) return;
+
+      const key = id || displayName;
+      if (!sellersMap.has(key)) {
+        sellersMap.set(key, {
+          id: key,
+          name: displayName,
+          email: sellerObj.email || null,
+          phone: sellerObj.phone || null
+        });
+      }
+    };
+
+    if (order?.segment?.seller) {
+      addSeller(order.segment.seller);
+    }
+
+    if (Array.isArray(order?.segments)) {
+      order.segments.forEach((segment) => addSeller(segment?.seller));
+    }
+
+    if (order?.seller) {
+      addSeller(order.seller);
+    }
+
+    if (Array.isArray(order?.items)) {
+      order.items.forEach((item) => addSeller(item?.seller));
+    }
+
+    return Array.from(sellersMap.values());
+  };
+
   const getStatusConfig = (status) => {
     const configs = {
       'pending': { 
@@ -68,7 +128,58 @@ const OrderList = ({
         icon: FiXCircle 
       }
     };
-    return configs[status] || configs['pending'];
+    return configs[status] || configs.pending;
+  };
+
+  const getItemStatusConfig = (status = 'pending') => {
+    const configs = {
+      pending: {
+        color: 'bg-yellow-100 text-yellow-700',
+        text: 'En attente'
+      },
+      confirmed: {
+        color: 'bg-green-100 text-green-700',
+        text: 'Confirmé'
+      },
+      preparing: {
+        color: 'bg-purple-100 text-purple-700',
+        text: 'En préparation'
+      },
+      'ready-for-pickup': {
+        color: 'bg-orange-100 text-orange-700',
+        text: 'Prête pour collecte'
+      },
+      'in-transit': {
+        color: 'bg-blue-100 text-blue-700',
+        text: 'En transit'
+      },
+      delivered: {
+        color: 'bg-green-100 text-green-700',
+        text: 'Livré'
+      },
+      completed: {
+        color: 'bg-emerald-100 text-emerald-700',
+        text: 'Terminé'
+      },
+      cancelled: {
+        color: 'bg-gray-100 text-gray-600',
+        text: 'Annulé'
+      },
+      rejected: {
+        color: 'bg-red-100 text-red-600',
+        text: 'Rejeté'
+      },
+      refunded: {
+        color: 'bg-red-100 text-red-600',
+        text: 'Remboursé'
+      },
+      disputed: {
+        color: 'bg-red-100 text-red-600',
+        text: 'En litige'
+      }
+    };
+
+    return configs[status] || configs.pending;
   };
 
   const formatDate = (dateString) => {
@@ -81,6 +192,8 @@ const OrderList = ({
   };
 
   const getClientInfo = (order) => {
+    const sellers = extractSellerDetails(order);
+
     if (userType === 'producer' || userType === 'transformer') {
       // Côté producteur/transformateur : afficher les infos du client
       const buyer = order.buyer;
@@ -92,15 +205,18 @@ const OrderList = ({
       }
       return { name: 'Client inconnu' };
     } else {
-      // Côté consumer : afficher les infos du vendeur
-      const seller = order.seller;
-      if (seller) {
-        const name = seller.firstName && seller.lastName 
-          ? `${seller.firstName} ${seller.lastName}` 
-          : seller.farmName || seller.companyName || seller.name || 'Vendeur';
-        return { name, email: seller.email, phone: seller.phone };
+      // Côté consumer : afficher les informations des vendeurs
+      if (sellers.length === 1) {
+        return sellers[0];
       }
-      return { name: 'Vendeur inconnu' };
+
+      if (sellers.length > 1) {
+        return {
+          name: sellers.map((seller) => seller.name).join(', ')
+        };
+      }
+
+      return null;
     }
   };
 
@@ -143,9 +259,25 @@ const OrderList = ({
       {orders.map((order) => {
         if (!order || !order._id) return null;
         
-        const statusConfig = getStatusConfig(order.status);
+        const segmentStatus = order.segment?.status || order.status;
+        const statusConfig = getStatusConfig(segmentStatus);
         const StatusIcon = statusConfig.icon;
-        const clientInfo = getClientInfo(order);
+        const clientInfo = getClientInfo(order) || {};
+        const hasClientInfo =
+          Boolean(clientInfo.name) ||
+          Boolean(clientInfo.email) ||
+          Boolean(clientInfo.phone);
+        const orderItems = isSellerView
+          ? (order.segment?.items || order.items || [])
+          : (order.items || []);
+        const displayedSubtotal = isSellerView
+          ? (order.segment?.subtotal ?? order.subtotal ?? 0)
+          : (order.subtotal ?? 0);
+        const displayedTotal = isSellerView
+          ? (order.segment?.total ?? displayedSubtotal ?? 0)
+          : (order.total ?? 0);
+        const segmentId = order.segment?.id || order.segment?._id;
+        const isOrderUpdating = updatingOrders.has(order._id);
 
         return (
           <div key={order._id} className="bg-white rounded-lg shadow p-6">
@@ -173,14 +305,14 @@ const OrderList = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="flex flex-wrap md:flex-row justify-around gap-4">
               <div>
                 <h4 className="text-sm font-medium text-gray-900 mb-2">Articles</h4>
                 <div className="space-y-2">
-                  {order.items?.map((item, index) => {
+                  {orderItems.map((item, index) => {
                     // Récupération sécurisée des données du produit
                     const productSnapshot = item.productSnapshot || {};
-                    const productName = productSnapshot.name || item.name || 'Produit inconnu';
+                    const productName = toPlainText(productSnapshot.name ?? item.name, 'Produit inconnu');
                     const productImages = productSnapshot.images || [];
                     
                     // Essayer différentes approches pour extraire l'URL
@@ -219,31 +351,67 @@ const OrderList = ({
                     const quantity = item.quantity || 1;
                     const totalPrice = item.totalPrice || (productPrice * quantity);
                     
+                    const itemStatus = item.status || 'pending';
+                    const itemStatusConfig = getItemStatusConfig(itemStatus);
+                    const itemId = item._id || item.id || `${order._id}-${index}`;
+                    const canConfirmItem = Boolean(
+                      isSellerView &&
+                      segmentStatus === 'pending' &&
+                      itemStatus === 'pending' &&
+                      onUpdateStatus &&
+                      item._id
+                    );
+
                     return (
-                      <div key={index} className="flex items-center space-x-3">
-                        <div className="h-12 w-12 bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0">
-                          {imageUrl ? (
-                            <img
-                              src={imageUrl}
-                              alt={imageAlt || parseProductName(productName)}
-                              className="h-full w-full object-cover"
-                              onError={(e) => {
-                                e.target.style.display = 'none';
-                                e.target.nextSibling.style.display = 'flex';
-                              }}
-                            />
-                          ) : null}
-                          <div className="h-full w-full flex items-center justify-center" style={{ display: imageUrl ? 'none' : 'flex' }}>
-                            <FiPackage className="h-6 w-6 text-gray-400" />
+                      <div
+                        key={itemId}
+                        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border border-gray-100 rounded-md p-3 bg-gray-50/30"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="h-12 w-12 bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0">
+                            {imageUrl ? (
+                              <img
+                                src={imageUrl}
+                                alt={imageAlt || parseProductName(productName)}
+                                className="h-full w-full object-cover"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  e.target.nextSibling.style.display = 'flex';
+                                }}
+                              />
+                            ) : null}
+                            <div
+                              className="h-full w-full flex items-center justify-center"
+                              style={{ display: imageUrl ? 'none' : 'flex' }}
+                            >
+                              <FiPackage className="h-6 w-6 text-gray-400" />
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-sm text-gray-900 font-medium block truncate">
+                              {parseProductName(productName)}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              Quantité: {quantity} • {totalPrice.toLocaleString('fr-FR')} FCFA
+                            </span>
                           </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <span className="text-sm text-gray-900 font-medium block truncate">
-                            {parseProductName(productName)}
+                        <div className="flex items-center flex-wrap gap-2">
+                          <span
+                            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${itemStatusConfig.color}`}
+                          >
+                            {itemStatusConfig.text}
                           </span>
-                          <span className="text-xs text-gray-500">
-                            Quantité: {quantity} • {totalPrice.toLocaleString('fr-FR')} FCFA
-                          </span>
+                          {canConfirmItem && (
+                            <button
+                              onClick={() => onUpdateStatus(order, 'confirmed', segmentId, { itemId: item._id })}
+                              disabled={isOrderUpdating}
+                              className="inline-flex items-center px-2.5 py-1.5 border border-transparent rounded-md text-xs font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <FiCheckCircle className="h-3.5 w-3.5 mr-1" />
+                              {isOrderUpdating ? 'Confirmation...' : 'Confirmer'}
+                            </button>
+                          )}
                         </div>
                       </div>
                     );
@@ -251,27 +419,32 @@ const OrderList = ({
                 </div>
               </div>
 
-              <div>
-                <h4 className="text-sm font-medium text-gray-900 mb-2">
-                  {userType === 'producer' || userType === 'transformer' ? 'Client' : 'Vendeur'}
-                </h4>
-                <div className="text-sm text-gray-600 space-y-1">
-                  <div className="flex items-center">
-                    <FiUser className="h-4 w-4 mr-2 text-gray-400" />
-                    <span>{clientInfo.name}</span>
+              {(isSellerView || hasClientInfo) && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">
+                    {userType === 'producer' || userType === 'transformer' ? 'Client' : 'Vendeur'}
+                  </h4>
+                  <div className="text-sm text-gray-600 space-y-1">
+                    <div className="flex items-center">
+                      <FiUser className="h-4 w-4 mr-2 text-gray-400" />
+                      <span>
+                        {clientInfo.name ||
+                          (isSellerView ? 'Client inconnu' : 'Vendeur non disponible')}
+                      </span>
+                    </div>
+                    {clientInfo.email && (
+                      <div className="text-xs text-gray-500">
+                        {clientInfo.email}
+                      </div>
+                    )}
+                    {clientInfo.phone && (
+                      <div className="text-xs text-gray-500">
+                        {clientInfo.phone}
+                      </div>
+                    )}
                   </div>
-                  {clientInfo.email && (
-                    <div className="text-xs text-gray-500">
-                      {clientInfo.email}
-                    </div>
-                  )}
-                  {clientInfo.phone && (
-                    <div className="text-xs text-gray-500">
-                      {clientInfo.phone}
-                    </div>
-                  )}
                 </div>
-              </div>
+              )}
 
               <div>
                 <h4 className="text-sm font-medium text-gray-900 mb-2">Livraison</h4>
@@ -320,7 +493,7 @@ const OrderList = ({
                 <div className="text-sm text-gray-600">
                   <span className="font-medium">Total: </span>
                   <span className="text-lg font-semibold text-gray-900">
-                    {order.total?.toLocaleString('fr-FR')} FCFA
+                    {displayedTotal.toLocaleString('fr-FR')} FCFA
                   </span>
                   {order.delivery?.deliveryFee > 0 && (
                     <span className="text-xs text-gray-500 block">
@@ -329,31 +502,21 @@ const OrderList = ({
                   )}
                 </div>
                 
-                {(userType === 'producer' || userType === 'transformer' || userType === 'restaurateur') && onUpdateStatus && (
-                  <div className="flex space-x-2">
-                    {order.status === 'pending' && (
-                      <>
-                        <button 
-                          onClick={() => onUpdateStatus(order._id, 'confirmed')}
-                          disabled={updatingOrders.has(order._id)}
-                          className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <FiCheckCircle className="h-4 w-4 mr-2" />
-                          {updatingOrders.has(order._id) ? 'Confirmation...' : 'Confirmer'}
-                        </button>
-                        <button 
-                          onClick={() => onUpdateStatus(order._id, 'cancelled')}
-                          disabled={updatingOrders.has(order._id)}
-                          className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <FiXCircle className="h-4 w-4 mr-2" />
-                          Annuler
-                        </button>
-                      </>
-                    )}
-                    {order.status === 'confirmed' && (
+                {isSellerView && onUpdateStatus && (
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0">
+                    {segmentStatus === 'pending' && (
                       <button 
-                        onClick={() => onUpdateStatus(order._id, 'preparing')}
+                        onClick={() => onUpdateStatus(order, 'cancelled', segmentId)}
+                        disabled={updatingOrders.has(order._id)}
+                        className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <FiXCircle className="h-4 w-4 mr-2" />
+                        Annuler
+                      </button>
+                    )}
+                    {segmentStatus === 'confirmed' && (
+                      <button 
+                        onClick={() => onUpdateStatus(order, 'preparing', segmentId)}
                         disabled={updatingOrders.has(order._id)}
                         className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
@@ -361,19 +524,29 @@ const OrderList = ({
                         {updatingOrders.has(order._id) ? 'Préparation...' : 'Commencer préparation'}
                       </button>
                     )}
-                    {order.status === 'preparing' && (
+                    {segmentStatus === 'preparing' && (
                       <button 
-                        onClick={() => onUpdateStatus(order._id, 'in-transit')}
+                        onClick={() => onUpdateStatus(order, 'ready-for-pickup', segmentId)}
                         disabled={updatingOrders.has(order._id)}
                         className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <FiTruck className="h-4 w-4 mr-2" />
-                        {updatingOrders.has(order._id) ? 'Expédition...' : 'Expédier'}
+                        {updatingOrders.has(order._id) ? 'Préparation...' : 'Prête pour collecte'}
                       </button>
                     )}
-                    {order.status === 'in-transit' && (
+                    {segmentStatus === 'ready-for-pickup' && (
                       <button 
-                        onClick={() => onUpdateStatus(order._id, 'delivered')}
+                        onClick={() => onUpdateStatus(order, 'in-transit', segmentId)}
+                        disabled={updatingOrders.has(order._id)}
+                        className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <FiTruck className="h-4 w-4 mr-2" />
+                        {updatingOrders.has(order._id) ? 'Expédition...' : 'Mettre en transit'}
+                      </button>
+                    )}
+                    {segmentStatus === 'in-transit' && (
+                      <button 
+                        onClick={() => onUpdateStatus(order, 'delivered', segmentId)}
                         disabled={updatingOrders.has(order._id)}
                         className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
@@ -381,9 +554,9 @@ const OrderList = ({
                         {updatingOrders.has(order._id) ? 'Livraison...' : 'Marquer livrée'}
                       </button>
                     )}
-                    {order.status === 'delivered' && (
+                    {segmentStatus === 'delivered' && (
                       <button 
-                        onClick={() => onUpdateStatus(order._id, 'completed')}
+                        onClick={() => onUpdateStatus(order, 'completed', segmentId)}
                         disabled={updatingOrders.has(order._id)}
                         className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >

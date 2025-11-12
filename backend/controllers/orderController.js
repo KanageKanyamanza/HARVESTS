@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const Payment = require('../models/Payment');
@@ -5,12 +6,178 @@ const Notification = require('../models/Notification');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const notificationController = require('./notificationController');
+const {
+  createSegmentsFromItems,
+  ensureSegmentsForOrder,
+  updateOrderStatusFromSegments
+} = require('../utils/orderSegments');
+const { toPlainText } = require('../utils/localization');
 
 // ROUTES PUBLIQUES (avec authentification)
 
+// Estimer les frais avant création de commande
+exports.estimateOrderCosts = catchAsync(async (req, res, next) => {
+  const { items, deliveryAddress, deliveryMethod, useLoyaltyPoints, loyaltyPointsToUse } = req.body;
+
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    return next(new AppError('Au moins un article est requis', 400));
+  }
+
+  let subtotal = 0;
+  const processedItems = [];
+  const sellerInfoMap = new Map();
+
+  for (const item of items) {
+    const product = await Product.findById(item.productId)
+      .populate('producer', 'city region country coordinates')
+      .populate('transformer', 'city region country coordinates')
+      .populate('restaurateur', 'city region country coordinates');
+
+    if (!product || !product.isActive || product.status !== 'approved') {
+      return next(new AppError(`Produit ${item.productId} non disponible`, 400));
+    }
+
+    let availableQuantity;
+    let unitPrice;
+
+    if (product.hasVariants && item.variantId) {
+      const variant = product.variants.id(item.variantId);
+      if (!variant || !variant.isActive) {
+        return next(new AppError(`Variante non disponible`, 400));
+      }
+      availableQuantity = variant.inventory.quantity;
+      unitPrice = variant.price;
+    } else {
+      availableQuantity = product.inventory.quantity;
+      unitPrice = product.price;
+    }
+
+    if (availableQuantity < item.quantity) {
+      return next(new AppError(`Stock insuffisant pour ${product.name}`, 400));
+    }
+
+    const totalPrice = unitPrice * item.quantity;
+    subtotal += totalPrice;
+
+    const sellerDoc = product.producer || product.transformer || product.restaurateur;
+    const sellerIdRaw = item.supplierId || (sellerDoc ? (sellerDoc._id || sellerDoc.id || sellerDoc).toString() : null);
+
+    if (!sellerIdRaw) {
+      return next(new AppError('Impossible de déterminer le vendeur pour un article', 400));
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(sellerIdRaw)) {
+      return next(new AppError(`Identifiant vendeur invalide pour le produit ${product._id}`, 400));
+    }
+
+    const sellerObjectId = new mongoose.Types.ObjectId(sellerIdRaw);
+    const sellerKey = sellerObjectId.toString();
+
+    if (!sellerInfoMap.has(sellerKey)) {
+      sellerInfoMap.set(sellerKey, {
+        id: sellerObjectId,
+        city: sellerDoc?.city || null,
+        region: sellerDoc?.region || null,
+        country: sellerDoc?.country || null,
+        coordinates: sellerDoc?.coordinates || null
+      });
+    }
+
+    const weightData = product.shipping?.weight;
+    const normalizedWeight = {
+      value: Number(weightData?.value) > 0 ? Number(weightData.value) : 1,
+      unit: weightData?.unit || product.shipping?.weightUnit || 'kg'
+    };
+
+    const productName = toPlainText(product.name, product.slug || product._id?.toString() || 'Produit');
+    const productDescription =
+      toPlainText(product.shortDescription) ||
+      toPlainText(product.description) ||
+      '';
+
+    processedItems.push({
+      product: product._id,
+      variant: item.variantId || undefined,
+      productSnapshot: {
+        name: productName,
+        description: productDescription,
+        images: (product.images || []).map((img) => {
+          if (typeof img === 'string') return img;
+          if (img && typeof img.url === 'string') return img.url;
+          return null;
+        }).filter(Boolean),
+        producer: product.producer,
+        transformer: product.transformer,
+        restaurateur: product.restaurateur
+      },
+      seller: sellerObjectId,
+      quantity: item.quantity,
+      unitPrice,
+      totalPrice,
+      weight: normalizedWeight,
+      specialInstructions: item.specialInstructions,
+      status: 'pending',
+      statusHistory: [{
+        status: 'pending',
+        timestamp: new Date()
+      }]
+    });
+  }
+
+  const sellerLocations = Array.from(sellerInfoMap.values());
+  const deliveryFeeDetail = calculateDeliveryFee(processedItems, deliveryAddress, sellerLocations, deliveryMethod);
+  const deliveryFee = deliveryFeeDetail.amount;
+  const taxes = 0;
+
+  let discount = 0;
+  let loyaltyPointsUsed = 0;
+
+  if (useLoyaltyPoints && req.user.userType === 'consumer') {
+    const Consumer = require('../models/Consumer');
+    const consumer = await Consumer.findById(req.user._id);
+    if (consumer) {
+      const requestedPoints = Math.max(0, Number(loyaltyPointsToUse) || 0);
+      const availablePoints = consumer.loyaltyProgram?.points || 0;
+      loyaltyPointsUsed = Math.min(requestedPoints, availablePoints);
+      discount = loyaltyPointsUsed * 10;
+    }
+  }
+
+  const total = subtotal + deliveryFee + taxes - discount;
+  const paymentMethodRaw = req.body.paymentMethod;
+  const normalizedPaymentMethod = ['paypal', 'cash'].includes((paymentMethodRaw || '').toLowerCase())
+    ? (paymentMethodRaw || '').toLowerCase()
+    : 'cash';
+  const normalizedPaymentProvider = (req.body.paymentProvider ||
+    (normalizedPaymentMethod === 'paypal' ? 'paypal' : 'cash-on-delivery'));
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      subtotal,
+      deliveryFee,
+      deliveryFeeDetail,
+      taxes,
+      discount,
+      total,
+      loyaltyPointsUsed,
+      deliveryMethod: deliveryMethod || 'standard-delivery',
+      paymentMethod: normalizedPaymentMethod,
+      paymentProvider: normalizedPaymentProvider,
+      sellerCount: sellerLocations.length
+    }
+  });
+});
+
 // Créer une nouvelle commande
 exports.createOrder = catchAsync(async (req, res, next) => {
-  const { items, deliveryAddress, billingAddress, paymentMethod, notes } = req.body;
+  const { items, deliveryAddress, billingAddress, paymentMethod, paymentProvider, notes } = req.body;
+  const paymentMethodRaw = paymentMethod;
+  const normalizedPaymentMethod = ['paypal', 'cash'].includes((paymentMethodRaw || '').toLowerCase())
+    ? (paymentMethodRaw || '').toLowerCase()
+    : 'cash';
+  const normalizedPaymentProvider = paymentProvider ||
+    (normalizedPaymentMethod === 'paypal' ? 'paypal' : 'cash-on-delivery');
 
   // Valider les articles
   if (!items || items.length === 0) {
@@ -20,9 +187,13 @@ exports.createOrder = catchAsync(async (req, res, next) => {
   // Vérifier la disponibilité et calculer les totaux
   let subtotal = 0;
   const processedItems = [];
+  const sellerInfoMap = new Map();
 
   for (const item of items) {
-    const product = await Product.findById(item.productId);
+    const product = await Product.findById(item.productId)
+      .populate('producer', 'city region country coordinates')
+      .populate('transformer', 'city region country coordinates')
+      .populate('restaurateur', 'city region country coordinates');
     if (!product || !product.isActive || product.status !== 'approved') {
       return next(new AppError(`Produit ${item.productId} non disponible`, 400));
     }
@@ -47,40 +218,75 @@ exports.createOrder = catchAsync(async (req, res, next) => {
       return next(new AppError(`Stock insuffisant pour ${product.name}`, 400));
     }
 
-    // Vérifier la quantité minimum
-    // La quantité minimum n'est plus requise - les clients peuvent commander n'importe quelle quantité
-
     const totalPrice = unitPrice * item.quantity;
     subtotal += totalPrice;
+
+    const sellerDoc = product.producer || product.transformer || product.restaurateur;
+    const sellerIdRaw = item.supplierId || (sellerDoc ? (sellerDoc._id || sellerDoc.id || sellerDoc).toString() : null);
+
+    if (!sellerIdRaw || !mongoose.Types.ObjectId.isValid(sellerIdRaw)) {
+      return next(new AppError(`Impossible de déterminer un vendeur valide pour le produit ${product._id}`, 400));
+    }
+
+    const sellerObjectId = new mongoose.Types.ObjectId(sellerIdRaw);
+    const sellerKey = sellerObjectId.toString();
+
+    if (!sellerInfoMap.has(sellerKey)) {
+      sellerInfoMap.set(sellerKey, {
+        id: sellerObjectId,
+        city: sellerDoc?.city || null,
+        region: sellerDoc?.region || null,
+        country: sellerDoc?.country || null,
+        coordinates: sellerDoc?.coordinates || null
+      });
+    }
+
+    const weightData = product.shipping?.weight;
+    const normalizedWeight = {
+      value: Number(weightData?.value) > 0 ? Number(weightData.value) : 1,
+      unit: weightData?.unit || product.shipping?.weightUnit || 'kg'
+    };
+
+    const productName = toPlainText(product.name, product.slug || product._id?.toString() || 'Produit');
+    const productDescription =
+      toPlainText(product.shortDescription) ||
+      toPlainText(product.description) ||
+      '';
 
     processedItems.push({
       product: product._id,
       variant: item.variantId || undefined,
       productSnapshot: {
-        name: product.name,
-        description: product.shortDescription || product.description,
-        images: product.images.map(img => img.url),
+        name: productName,
+        description: productDescription,
+        images: (product.images || []).map((img) => {
+          if (typeof img === 'string') return img;
+          if (img && typeof img.url === 'string') return img.url;
+          return null;
+        }).filter(Boolean),
         producer: product.producer,
-        transformer: product.transformer
+        transformer: product.transformer,
+        restaurateur: product.restaurateur
       },
+      seller: sellerObjectId,
       quantity: item.quantity,
       unitPrice,
       totalPrice,
-      weight: product.shipping.weight,
+      weight: normalizedWeight,
       specialInstructions: item.specialInstructions
     });
   }
 
-  // Calculer les frais de livraison (logique simplifiée)
-  const deliveryFee = calculateDeliveryFee(processedItems, deliveryAddress);
-  
-  // Calculer les taxes (exemple: 19.25% TVA au Cameroun)
-  const taxes = Math.round(subtotal * 0.1925);
+  const sellerLocations = Array.from(sellerInfoMap.values());
+  const deliveryMethod = req.body.deliveryMethod || 'standard-delivery';
+  const deliveryFeeDetail = calculateDeliveryFee(processedItems, deliveryAddress, sellerLocations, deliveryMethod);
+  const deliveryFee = deliveryFeeDetail.amount;
 
-  // Appliquer les remises (points de fidélité, coupons, etc.)
+  const taxes = 0;
+  
   let discount = 0;
   let loyaltyPointsUsed = 0;
-
+  
   if (req.body.useLoyaltyPoints && req.user.userType === 'consumer') {
     const Consumer = require('../models/Consumer');
     const consumer = await Consumer.findById(req.user._id);
@@ -90,26 +296,41 @@ exports.createOrder = catchAsync(async (req, res, next) => {
       await consumer.save();
     }
   }
-
+  
   const total = subtotal + deliveryFee + taxes - discount;
+  
+  const uniqueSellerIds = sellerLocations
+    .map(location => location?.id)
+    .filter((sellerId) => !!sellerId);
 
-  // Créer la commande
-  const order = await Order.create({
+  if (uniqueSellerIds.length === 0) {
+    return next(new AppError('Impossible de déterminer un vendeur pour cette commande', 400));
+  }
+
+  const isSingleSellerOrder = uniqueSellerIds.length === 1;
+
+  const orderPayload = {
     buyer: req.user._id,
-    seller: processedItems[0].productSnapshot.producer || processedItems[0].productSnapshot.transformer, // Producteur ou transformateur
     items: processedItems,
+    segments: createSegmentsFromItems(processedItems),
     subtotal,
     deliveryFee,
+    deliveryFeeDetail,
     taxes,
     discount,
     total,
     currency: req.body.currency || 'XAF',
     payment: {
-      method: paymentMethod,
+      method: normalizedPaymentMethod,
+      provider: normalizedPaymentProvider,
+      amount: total,
+      currency: req.body.currency || 'XAF',
       status: 'pending'
     },
     delivery: {
       method: req.body.deliveryMethod || 'standard-delivery',
+      deliveryFee,
+      feeDetail: deliveryFeeDetail,
       deliveryAddress,
       estimatedDeliveryDate: calculateEstimatedDelivery(req.body.deliveryMethod)
     },
@@ -117,7 +338,13 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     buyerNotes: notes,
     loyaltyPointsUsed,
     source: req.body.source || 'web'
-  });
+  };
+
+  if (isSingleSellerOrder) {
+    orderPayload.seller = uniqueSellerIds[0];
+  }
+
+  const order = await Order.create(orderPayload);
 
   // Réserver le stock
   try {
@@ -181,8 +408,15 @@ exports.getMyOrders = catchAsync(async (req, res, next) => {
   // Filtrer selon le type d'utilisateur
   if (['consumer', 'restaurateur'].includes(req.user.userType)) {
     query.buyer = req.user._id;
-  } else if (['producer', 'transformer'].includes(req.user.userType)) {
-    query.seller = req.user._id;
+  } else if (['producer', 'transformer', 'restaurateur'].includes(req.user.userType)) {
+    query.$or = [
+      { seller: req.user._id },
+      { 'segments.seller': req.user._id },
+      { 'items.seller': req.user._id },
+      { 'items.productSnapshot.producer': req.user._id },
+      { 'items.productSnapshot.transformer': req.user._id },
+      { 'items.productSnapshot.restaurateur': req.user._id }
+    ];
   } else if (req.user.userType === 'transporter') {
     query['delivery.transporter'] = req.user._id;
   }
@@ -199,21 +433,38 @@ exports.getMyOrders = catchAsync(async (req, res, next) => {
   const orders = await Order.find(query)
     .populate('buyer', 'firstName lastName email')
     .populate('seller', 'farmName companyName firstName lastName')
+    .populate({
+      path: 'segments.seller',
+      select: 'farmName companyName firstName lastName email phone userType'
+    })
     .populate('items.product', 'name images')
     .sort('-createdAt')
     .skip(skip)
     .limit(limit);
 
+for (const order of orders) {
+  if (ensureSegmentsForOrder(order)) {
+    await order.save();
+  }
+}
+
   const total = await Order.countDocuments(query);
+
+  const isSellerView = ['producer', 'transformer', 'restaurateur'].includes(req.user.userType);
+  const formattedOrders = isSellerView
+    ? orders
+        .map(order => formatOrderForSeller(order, req.user._id))
+        .filter(order => order.items && order.items.length > 0)
+    : orders.map(order => order.toObject({ virtuals: true }));
 
   res.status(200).json({
     status: 'success',
-    results: orders.length,
+    results: formattedOrders.length,
     total,
     page,
     totalPages: Math.ceil(total / limit),
     data: {
-      orders
+      orders: formattedOrders
     }
   });
 });
@@ -223,6 +474,10 @@ exports.getOrder = catchAsync(async (req, res, next) => {
   const order = await Order.findById(req.params.id)
     .populate('buyer', 'firstName lastName email phone')
     .populate('seller', 'farmName companyName firstName lastName email phone')
+    .populate({
+      path: 'segments.seller',
+      select: 'farmName companyName firstName lastName email phone userType'
+    })
     .populate('items.product', 'name images category')
     .populate('delivery.transporter', 'companyName firstName lastName phone');
 
@@ -230,15 +485,29 @@ exports.getOrder = catchAsync(async (req, res, next) => {
     return next(new AppError('Commande non trouvée', 404));
   }
 
+const segmentsCreated = ensureSegmentsForOrder(order);
+if (segmentsCreated) {
+  await order.save();
+}
+
   // Vérifier que l'utilisateur a accès à cette commande
   const buyerId = order.buyer?._id?.toString() || order.buyer?.toString() || (typeof order.buyer === 'object' ? order.buyer.toString() : order.buyer);
   const sellerId = order.seller?._id?.toString() || order.seller?.toString() || (typeof order.seller === 'object' ? order.seller.toString() : order.seller);
   const transporterId = order.delivery?.transporter?._id?.toString() || order.delivery?.transporter?.toString();
   const userId = req.user._id.toString();
 
+  const sellerItemsMatch = order.items?.some(item => {
+    const itemSeller = item.seller?.toString?.() || item.seller?._id?.toString();
+    const producerId = item.productSnapshot?.producer?.toString?.() || item.productSnapshot?.producer?._id?.toString();
+    const transformerId = item.productSnapshot?.transformer?.toString?.() || item.productSnapshot?.transformer?._id?.toString();
+    const restaurateurId = item.productSnapshot?.restaurateur?.toString?.() || item.productSnapshot?.restaurateur?._id?.toString();
+    return [itemSeller, producerId, transformerId, restaurateurId].includes(userId);
+  });
+
   const hasAccess = 
     buyerId === userId ||
     sellerId === userId ||
+    sellerItemsMatch ||
     (transporterId && transporterId === userId) ||
     req.user.role === 'admin';
 
@@ -246,10 +515,13 @@ exports.getOrder = catchAsync(async (req, res, next) => {
     return next(new AppError('Accès non autorisé à cette commande', 403));
   }
 
+  const isSellerView = ['producer', 'transformer', 'restaurateur'].includes(req.user.userType);
+  const orderData = isSellerView ? formatOrderForSeller(order, req.user._id) : order.toObject({ virtuals: true });
+
   res.status(200).json({
     status: 'success',
     data: {
-      order
+      order: orderData
     }
   });
 });
@@ -263,33 +535,392 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
     return next(new AppError('Commande non trouvée', 404));
   }
 
+  const sellerIds = new Set();
+  if (order.seller) sellerIds.add(order.seller.toString());
+  (order.items || []).forEach(item => {
+    if (item.seller) {
+      sellerIds.add(item.seller.toString());
+    }
+  });
+
   // Vérifier les permissions
-  const canUpdate = 
-    (order.seller.toString() === req.user._id.toString()) ||
+  const buyerId = order.buyer?.toString?.() || order.buyer?._id?.toString?.();
+  const canUpdate =
+    sellerIds.has(req.user._id.toString()) ||
     (order.delivery.transporter && order.delivery.transporter.toString() === req.user._id.toString()) ||
-    req.user.role === 'admin';
+    req.user.role === 'admin' ||
+    (buyerId && buyerId === req.user._id.toString());
 
   if (!canUpdate) {
     return next(new AppError('Vous n\'avez pas le droit de modifier cette commande', 403));
   }
 
   // Valider la transition de statut
-  const validTransitions = getValidStatusTransitions(order.status, req.user.userType);
-  if (!validTransitions.includes(status)) {
-    return next(new AppError(`Transition de statut invalide: ${order.status} -> ${status}`, 400));
+const segmentCreated = ensureSegmentsForOrder(order);
+if (segmentCreated) {
+  await order.save();
+}
+
+const resolveSegmentsForUpdate = () => {
+  // Si un segment explicite est fourni
+  if (req.body.segmentId) {
+    const segment = order.segments.id(req.body.segmentId);
+    if (!segment) {
+      throw new AppError('Segment de commande introuvable', 404);
+    }
+    return [segment];
   }
 
-  await order.updateStatus(status, req.user._id, reason, note);
+  const sellerTypes = ['producer', 'transformer', 'restaurateur'];
 
-  // Envoyer notifications selon le nouveau statut
-  await sendStatusNotifications(order, status);
+  if (sellerTypes.includes(req.user.userType)) {
+    const segment = order.segments.find(seg =>
+      seg.seller && seg.seller.toString() === req.user._id.toString()
+    );
+    if (!segment) {
+      throw new AppError('Vous n\'avez pas de segment associé à cette commande', 403);
+    }
+    return [segment];
+  }
 
-  res.status(200).json({
+  // Pour admin, transporteur, acheteur : appliquer à tous les segments pour rester cohérent
+  return order.segments;
+};
+
+let targetSegments;
+try {
+  targetSegments = resolveSegmentsForUpdate();
+} catch (error) {
+  return next(error);
+}
+
+const rawItemIds = Array.isArray(req.body.itemIds)
+  ? req.body.itemIds
+  : req.body.itemId
+    ? [req.body.itemId]
+    : [];
+const itemIdSet = new Set(rawItemIds.map((id) => id.toString()));
+const isItemScoped = itemIdSet.size > 0;
+const baseItemsById = new Map();
+(order.items || []).forEach((orderItem) => {
+  if (orderItem && orderItem._id) {
+    baseItemsById.set(orderItem._id.toString(), orderItem);
+  }
+});
+
+const itemsEquivalent = (segmentItem, baseItem) => {
+  if (!segmentItem || !baseItem) {
+    return false;
+  }
+
+  const productMatches =
+    segmentItem.product &&
+    baseItem.product &&
+    segmentItem.product.toString() === baseItem.product.toString();
+
+  const sellerMatches =
+    (!segmentItem.seller || !baseItem.seller) ||
+    (segmentItem.seller.toString() === baseItem.seller.toString());
+
+  const quantityMatches =
+    Number(segmentItem.quantity) === Number(baseItem.quantity);
+
+  const unitPriceMatches =
+    Number(segmentItem.unitPrice) === Number(baseItem.unitPrice);
+
+  const variantMatches =
+    (!segmentItem.variant && !baseItem.variant) ||
+    (segmentItem.variant && baseItem.variant && segmentItem.variant.toString() === baseItem.variant.toString());
+
+  return productMatches && sellerMatches && quantityMatches && unitPriceMatches && variantMatches;
+};
+
+const findBaseItemForSegmentItem = (segmentItem) => {
+  if (!segmentItem) {
+    return null;
+  }
+
+  if (segmentItem._id && baseItemsById.has(segmentItem._id.toString())) {
+    return baseItemsById.get(segmentItem._id.toString());
+  }
+
+  for (const baseItem of baseItemsById.values()) {
+    if (itemsEquivalent(segmentItem, baseItem)) {
+      return baseItem;
+    }
+  }
+
+  return null;
+};
+
+const updateItemStatus = (item, shouldCount = true, expectedBefore = null, expectedAfter = null) => {
+  if (!item) {
+    return false;
+  }
+
+  const currentItemStatus = item.status || 'pending';
+  if (expectedBefore && currentItemStatus !== expectedBefore) {
+    return false;
+  }
+  const allowedItemTransitions = {
+    pending: ['confirmed', 'cancelled'],
+    confirmed: ['preparing', 'cancelled'],
+    preparing: ['ready-for-pickup', 'cancelled'],
+    'ready-for-pickup': ['in-transit', 'cancelled'],
+    'in-transit': ['delivered', 'cancelled'],
+    delivered: ['completed', 'cancelled'],
+    completed: [],
+    cancelled: [],
+    rejected: [],
+    refunded: [],
+    disputed: []
+  };
+
+  if (currentItemStatus === status) {
+    return false;
+  }
+
+  const allowedTargets = allowedItemTransitions[currentItemStatus] || [];
+  if (!allowedTargets.includes(status)) {
+    throw new AppError(`Transition d'article invalide: ${currentItemStatus} -> ${status}`, 400);
+  }
+
+  item.status = status;
+  if (expectedAfter && item.status !== expectedAfter) {
+    return false;
+  }
+  item.statusHistory = item.statusHistory || [];
+  item.statusHistory.push({
+    status,
+    timestamp: now,
+    updatedBy: req.user._id,
+    reason,
+    note
+  });
+
+  if (shouldCount) {
+    itemUpdatesCount += 1;
+  }
+
+  return true;
+};
+
+const now = new Date();
+const segmentsToUpdate = [];
+const segmentsTouchedByItems = new Set();
+let itemMatchedCount = 0;
+let itemUpdatesCount = 0;
+
+if (isItemScoped) {
+  for (const segment of targetSegments) {
+    const directMatches = segment.items.filter((item) =>
+      item && item._id && itemIdSet.has(item._id.toString())
+    );
+
+    const fallbackMatches = new Map();
+    const usedSegmentItems = new Set();
+    if (directMatches.length === 0) {
+      for (const itemId of itemIdSet) {
+        const baseItem = baseItemsById.get(itemId);
+        if (!baseItem) {
+          continue;
+        }
+        const candidate = segment.items.find((segmentItem) => {
+          if (usedSegmentItems.has(segmentItem)) {
+            return false;
+          }
+          if (segmentItem && segmentItem._id && segmentItem._id.toString() === itemId) {
+            return true;
+          }
+          return itemsEquivalent(segmentItem, baseItem);
+        });
+        if (candidate) {
+          fallbackMatches.set(itemId, candidate);
+          usedSegmentItems.add(candidate);
+        }
+      }
+    }
+
+    const itemsToProcess = directMatches.length > 0 ? directMatches : Array.from(fallbackMatches.values());
+
+    if (itemsToProcess.length === 0) {
+      continue;
+    }
+
+    segmentsTouchedByItems.add(segment._id.toString());
+
+    itemsToProcess.forEach((item) => {
+      itemMatchedCount += 1;
+
+      const currentItemStatus = item.status || 'pending';
+      const allowedItemTransitions = {
+        pending: ['confirmed', 'cancelled'],
+        confirmed: ['preparing', 'cancelled'],
+        preparing: ['ready-for-pickup', 'cancelled'],
+        'ready-for-pickup': ['in-transit', 'cancelled'],
+        'in-transit': ['delivered', 'cancelled'],
+        delivered: ['completed', 'cancelled'],
+        completed: [],
+        cancelled: [],
+        rejected: [],
+        refunded: [],
+        disputed: []
+      };
+      const allowedTargets = allowedItemTransitions[currentItemStatus] || [];
+      if (!allowedTargets.includes(status)) {
+        throw new AppError(`Transition d'article invalide: ${currentItemStatus} -> ${status}`, 400);
+      }
+
+      const updatedSegmentItem = updateItemStatus(item, true);
+      if (updatedSegmentItem) {
+        const baseItem = findBaseItemForSegmentItem(item);
+        if (baseItem && baseItem !== item) {
+      updateItemStatus(baseItem, false, segment.status);
+        }
+      }
+    });
+  }
+
+  if (itemMatchedCount === 0) {
+    return next(new AppError('Aucun article correspondant trouvé pour cette commande', 404));
+  }
+
+if (['confirmed', 'preparing', 'ready-for-pickup', 'in-transit', 'delivered', 'completed', 'cancelled'].includes(status)) {
+    for (const segment of targetSegments) {
+      if (!segmentsTouchedByItems.has(segment._id.toString())) {
+        continue;
+      }
+
+    const segmentAllowed = () => {
+      const segmentAllowedTransitions = {
+        pending: ['confirmed', 'cancelled'],
+        confirmed: ['preparing', 'cancelled'],
+        preparing: ['ready-for-pickup', 'cancelled'],
+        'ready-for-pickup': ['in-transit', 'cancelled'],
+        'in-transit': ['delivered', 'cancelled'],
+        delivered: ['completed', 'cancelled'],
+        completed: [],
+        cancelled: []
+      };
+      const current = segment.status || 'pending';
+      return (segmentAllowedTransitions[current] || []).includes(status);
+    };
+
+    if (!segmentAllowed()) {
+      continue;
+    }
+
+    const allItemsHaveStatus = segment.items.every(
+      (segmentItem) => (segmentItem.status || 'pending') === status
+    );
+
+      if (allItemsHaveStatus && segment.status !== status) {
+        segmentsToUpdate.push(segment);
+      }
+    }
+  }
+} else {
+  for (const segment of targetSegments) {
+    const currentStatus = segment.status || order.status;
+    if (currentStatus === status) {
+      continue;
+    }
+    const validTransitions = getValidStatusTransitions(currentStatus, req.user.userType);
+    if (!validTransitions.includes(status)) {
+      return next(new AppError(`Transition de statut invalide: ${currentStatus} -> ${status}`, 400));
+    }
+    segmentsToUpdate.push(segment);
+  }
+
+  if (segmentsToUpdate.length === 0) {
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        order
+      }
+    });
+  }
+}
+
+if (itemUpdatesCount > 0) {
+  order.markModified('items');
+}
+
+// Aucun changement requis (toutes les cibles étaient déjà dans l'état souhaité)
+if (segmentsToUpdate.length === 0 && itemUpdatesCount === 0) {
+  return res.status(200).json({
     status: 'success',
     data: {
       order
     }
   });
+}
+
+let segmentStatusChanged = false;
+
+for (const segment of segmentsToUpdate) {
+  if (segment.status === status) {
+    continue;
+  }
+
+  const previousSegmentStatus = segment.status || 'pending';
+  segment.status = status;
+  segment.history = segment.history || [];
+  segment.history.push({
+    status,
+    timestamp: now,
+    updatedBy: req.user._id,
+    reason,
+    note
+  });
+  segmentStatusChanged = true;
+
+  const segmentItems = segment.items || [];
+  segmentItems.forEach((segmentItem) => {
+    const updated = updateItemStatus(segmentItem, true, previousSegmentStatus);
+    if (updated) {
+      const baseItem = findBaseItemForSegmentItem(segmentItem);
+      if (baseItem && baseItem !== segmentItem) {
+        updateItemStatus(baseItem, false, previousSegmentStatus);
+      }
+    }
+  });
+}
+
+const previousOrderStatus = order.status;
+let orderStatusChanged = false;
+
+if (segmentStatusChanged) {
+  const newAggregatedStatus = updateOrderStatusFromSegments(order, order.status);
+  if (newAggregatedStatus !== previousOrderStatus) {
+    order.statusHistory = order.statusHistory || [];
+    order.statusHistory.push({
+      status: newAggregatedStatus,
+      timestamp: now,
+      updatedBy: req.user._id,
+      reason,
+      note
+    });
+    orderStatusChanged = true;
+  }
+}
+
+if (itemUpdatesCount > 0 || segmentStatusChanged || orderStatusChanged) {
+  order.modifiedBy = req.user._id;
+  await order.save();
+}
+
+if (segmentStatusChanged) {
+  // Envoyer notifications uniquement lorsqu'un statut de segment change
+  await sendStatusNotifications(order, status);
+}
+
+res.status(200).json({
+  status: 'success',
+  data: {
+    order
+  }
+});
 });
 
 // Annuler une commande
@@ -307,9 +938,15 @@ exports.cancelOrder = catchAsync(async (req, res, next) => {
   }
 
   // Vérifier les permissions
-  const canCancel = 
+  const sellerIds = new Set();
+  if (order.seller) sellerIds.add(order.seller.toString());
+  (order.items || []).forEach(item => {
+    if (item.seller) sellerIds.add(item.seller.toString());
+  });
+
+  const canCancel =
     order.buyer.toString() === req.user._id.toString() ||
-    order.seller.toString() === req.user._id.toString() ||
+    sellerIds.has(req.user._id.toString()) ||
     req.user.role === 'admin';
 
   if (!canCancel) {
@@ -319,8 +956,36 @@ exports.cancelOrder = catchAsync(async (req, res, next) => {
   // Libérer le stock
   await order.releaseStock();
 
-  // Mettre à jour le statut
-  await order.updateStatus('cancelled', req.user._id, reason);
+const segmentsCreated = ensureSegmentsForOrder(order);
+if (segmentsCreated) {
+  await order.save();
+}
+
+const now = new Date();
+
+for (const segment of order.segments || []) {
+  segment.status = 'cancelled';
+  segment.history = segment.history || [];
+  segment.history.push({
+    status: 'cancelled',
+    timestamp: now,
+    updatedBy: req.user._id,
+    reason
+  });
+}
+
+order.statusHistory = order.statusHistory || [];
+order.statusHistory.push({
+  status: 'cancelled',
+  timestamp: now,
+  updatedBy: req.user._id,
+  reason
+});
+
+order.modifiedBy = req.user._id;
+updateOrderStatusFromSegments(order, 'cancelled');
+
+await order.save();
 
   // Traiter le remboursement si paiement effectué
   if (order.payment.status === 'completed') {
@@ -350,9 +1015,16 @@ exports.trackOrder = catchAsync(async (req, res, next) => {
   }
 
   // Vérifier l'accès
-  const hasAccess = 
+  const sellerIds = new Set();
+  if (order.seller) sellerIds.add(order.seller.toString());
+  (order.items || []).forEach(item => {
+    if (item.seller) sellerIds.add(item.seller.toString());
+  });
+
+  // Vérifier l'accès
+  const hasAccess =
     order.buyer.toString() === req.user._id.toString() ||
-    order.seller.toString() === req.user._id.toString() ||
+    sellerIds.has(req.user._id.toString()) ||
     (order.delivery.transporter && order.delivery.transporter._id.toString() === req.user._id.toString());
 
   if (!hasAccess) {
@@ -398,9 +1070,19 @@ exports.getAllOrders = catchAsync(async (req, res, next) => {
   const orders = await Order.find(queryObj)
     .populate('buyer', 'firstName lastName email userType')
     .populate('seller', 'farmName companyName firstName lastName userType')
+    .populate({
+      path: 'segments.seller',
+      select: 'farmName companyName firstName lastName email phone userType'
+    })
     .sort('-createdAt')
     .skip(skip)
     .limit(limit);
+
+for (const order of orders) {
+  if (ensureSegmentsForOrder(order)) {
+    await order.save();
+  }
+}
 
   const total = await Order.countDocuments(queryObj);
 
@@ -551,16 +1233,195 @@ exports.getOrderStats = catchAsync(async (req, res, next) => {
 // FONCTIONS UTILITAIRES
 
 // Calculer les frais de livraison
-function calculateDeliveryFee(items, deliveryAddress) {
-  // Logique simplifiée - à personnaliser selon les besoins
-  const totalWeight = items.reduce((sum, item) => {
-    return sum + (item.weight?.value || 1) * item.quantity;
-  }, 0);
+function calculateDeliveryFee(items, deliveryAddress, sellerLocations = [], deliveryMethod = 'standard-delivery') {
+  const method = deliveryMethod || 'standard-delivery';
 
-  const baseRate = 1000; // 1000 XAF de base
-  const weightRate = 100; // 100 XAF par kg
-  
-  return Math.round(baseRate + (totalWeight * weightRate));
+  const toAmount = (value, fallback) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+  };
+
+  const methodLabels = {
+    pickup: 'retrait sur place',
+    'standard-delivery': 'livraison standard',
+    'express-delivery': 'livraison express',
+    'same-day': 'livraison jour même',
+    'scheduled': 'livraison programmée'
+  };
+
+  const localFees = {
+    pickup: toAmount(process.env.DELIVERY_FEE_PICKUP_LOCAL, 0),
+    'standard-delivery': toAmount(process.env.DELIVERY_FEE_STANDARD_LOCAL, 2000),
+    'express-delivery': toAmount(process.env.DELIVERY_FEE_EXPRESS_LOCAL, 5000),
+    'same-day': toAmount(process.env.DELIVERY_FEE_SAME_DAY_LOCAL, 7000),
+    'scheduled': toAmount(process.env.DELIVERY_FEE_SCHEDULED_LOCAL, 3000)
+  };
+
+  const localFee = localFees[method] ?? localFees['standard-delivery'];
+  const methodKey = method.replace(/-/g, '_').toUpperCase();
+
+  const intercityBaseDefault = toAmount(process.env.DELIVERY_FEE_INTERCITY_BASE, localFee);
+  const intercityMethodBase = toAmount(process.env[`DELIVERY_FEE_INTERCITY_${methodKey}`], intercityBaseDefault);
+  const perKm = toAmount(process.env.DELIVERY_FEE_PER_KM, 0);
+  const internationalBaseDefault = toAmount(process.env.DELIVERY_FEE_INTERNATIONAL_BASE, intercityBaseDefault + 3000);
+  const internationalMethodBase = toAmount(process.env[`DELIVERY_FEE_INTERNATIONAL_${methodKey}`], internationalBaseDefault);
+
+  const result = {
+    amount: localFee,
+    scope: 'local',
+    method,
+    reason: `Livraison locale (${methodLabels[method] || method})`
+  };
+
+  if (!deliveryAddress || !Array.isArray(sellerLocations) || sellerLocations.length === 0) {
+    result.reason = 'Adresse ou vendeurs manquants : application du forfait local.';
+    return result;
+  }
+
+  const allSameCity = sellerLocations.every((seller) => isSameCity(seller, deliveryAddress));
+  if (allSameCity) {
+    result.amount = localFee;
+    result.scope = 'local';
+    result.reason = `Tous les vendeurs et l'adresse de livraison sont dans la même ville (${methodLabels[method] || method}).`;
+    return result;
+  }
+
+  const allSameCountry = sellerLocations.every((seller) => isSameCountry(seller, deliveryAddress));
+  if (allSameCountry) {
+    const maxDistance = computeMaxDistanceKm(sellerLocations, deliveryAddress);
+    const variableFee = maxDistance > 0 && perKm > 0 ? perKm * maxDistance : 0;
+    result.amount = Math.round(intercityMethodBase + variableFee);
+    result.scope = 'domestic';
+    if (maxDistance > 0 && perKm > 0) {
+      result.reason = `Livraison inter-ville (${methodLabels[method] || method}) : distance maximale estimée ${maxDistance.toFixed(1)} km.`;
+    } else {
+      result.reason = `Livraison inter-ville (${methodLabels[method] || method}) : application du forfait national.`;
+    }
+    return result;
+  }
+
+  result.amount = Math.round(internationalMethodBase);
+  result.scope = 'international';
+  result.reason = `Livraison internationale (${methodLabels[method] || method}) : au moins un vendeur se trouve dans un autre pays.`;
+  return result;
+}
+
+function normalizeString(value) {
+  return (value || '').toString().trim().toLowerCase();
+}
+
+function removeDiacritics(value) {
+  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function normalizeCountry(value) {
+  const str = normalizeString(value);
+  if (!str) return null;
+
+  const map = {
+    'cm': 'cm',
+    'cameroun': 'cm',
+    'cameroon': 'cm',
+    'sn': 'sn',
+    'sénégal': 'sn',
+    'senegal': 'sn',
+    'ci': 'ci',
+    "côte d'ivoire": 'ci',
+    'cote d\'ivoire': 'ci',
+    'cote-divoire': 'ci',
+    'bf': 'bf',
+    'burkina faso': 'bf',
+    'ng': 'ng',
+    'nigeria': 'ng',
+    'gh': 'gh',
+    'ghana': 'gh'
+  };
+
+  return map[str] || str;
+}
+
+function normalizeCity(value) {
+  const str = normalizeString(value);
+  if (!str) return null;
+  return removeDiacritics(str);
+}
+
+function isSameCity(seller, deliveryAddress) {
+  const sellerCountry = normalizeCountry(seller?.country);
+  const deliveryCountry = normalizeCountry(deliveryAddress?.country);
+
+  if (!sellerCountry || !deliveryCountry) {
+    return true;
+  }
+
+  if (sellerCountry !== deliveryCountry) {
+    return false;
+  }
+
+  const sellerCity = normalizeCity(seller?.city || seller?.region);
+  const deliveryCity = normalizeCity(deliveryAddress?.city);
+
+  if (!sellerCity || !deliveryCity) {
+    return true;
+  }
+
+  return sellerCity === deliveryCity;
+}
+
+function isSameCountry(seller, deliveryAddress) {
+  const sellerCountry = normalizeCountry(seller?.country);
+  const deliveryCountry = normalizeCountry(deliveryAddress?.country);
+
+  if (!sellerCountry || !deliveryCountry) {
+    return true;
+  }
+
+  return sellerCountry === deliveryCountry;
+}
+
+function computeMaxDistanceKm(sellerLocations, deliveryAddress) {
+  const destinationCoords = deliveryAddress?.coordinates;
+  if (!destinationCoords?.latitude || !destinationCoords?.longitude) {
+    return 0;
+  }
+
+  let maxDistance = 0;
+
+  for (const seller of sellerLocations) {
+    const coords = seller?.coordinates;
+    if (!coords?.latitude || !coords?.longitude) {
+      continue;
+    }
+
+    const distance = haversineDistance(
+      coords.latitude,
+      coords.longitude,
+      destinationCoords.latitude,
+      destinationCoords.longitude
+    );
+
+    if (distance > maxDistance) {
+      maxDistance = distance;
+    }
+  }
+
+  return maxDistance;
+}
+
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  const toRad = (value) => (value * Math.PI) / 180;
+  const R = 6371; // Rayon de la terre en km
+
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
 }
 
 // Calculer la date de livraison estimée
@@ -576,6 +1437,138 @@ function calculateEstimatedDelivery(deliveryMethod) {
 
   const days = deliveryDays[deliveryMethod] || 3;
   return new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+}
+
+function formatOrderForSeller(orderDoc, sellerId) {
+  const orderObj = orderDoc.toObject({ virtuals: true });
+  const sellerIdStr = sellerId?.toString?.();
+
+  const sellerSegment = (orderDoc.segments || []).find((segment) => {
+    const rawSeller = segment.seller;
+    const segmentSellerId =
+      rawSeller?._id?.toString?.() ||
+      (typeof rawSeller?.toString === 'function' ? rawSeller.toString() : null);
+    return segmentSellerId && segmentSellerId === sellerIdStr;
+  });
+
+  const matchesSeller = (item) => {
+    const directSeller =
+      item.seller?._id?.toString?.() ||
+      item.seller?.toString?.();
+    const producerId =
+      item.productSnapshot?.producer?._id?.toString?.() ||
+      item.productSnapshot?.producer?.toString?.();
+    const transformerId =
+      item.productSnapshot?.transformer?._id?.toString?.() ||
+      item.productSnapshot?.transformer?.toString?.();
+    const restaurateurId =
+      item.productSnapshot?.restaurateur?._id?.toString?.() ||
+      item.productSnapshot?.restaurateur?.toString?.();
+
+    return (
+      (directSeller && directSeller === sellerIdStr) ||
+      (producerId && producerId === sellerIdStr) ||
+      (transformerId && transformerId === sellerIdStr) ||
+      (restaurateurId && restaurateurId === sellerIdStr)
+    );
+  };
+
+  const segmentItems = sellerSegment
+    ? ((typeof sellerSegment.toObject === 'function' ? sellerSegment.toObject() : sellerSegment).items || []).map((item) =>
+        typeof item.toObject === 'function' ? item.toObject() : item
+      )
+    : null;
+
+  const sellerItemsSource = segmentItems || (orderObj.items || []).filter(matchesSeller);
+  const sellerItems = sellerItemsSource.map((item) =>
+    typeof item.toObject === 'function' ? item.toObject() : item
+  );
+  const sellerItemStatuses = sellerItems.map((item) => item.status || 'pending');
+
+  const STATUS_ORDER = [
+    'pending',
+    'confirmed',
+    'preparing',
+    'ready-for-pickup',
+    'in-transit',
+    'delivered',
+    'completed',
+    'cancelled',
+    'refunded',
+    'disputed'
+  ];
+  const getStatusPriority = (status) => {
+    const idx = STATUS_ORDER.indexOf(status);
+    return idx === -1 ? STATUS_ORDER.length : idx;
+  };
+  const derivedStatus = sellerItemStatuses.length
+    ? sellerItemStatuses.reduce((acc, status) =>
+        getStatusPriority(status) < getStatusPriority(acc) ? status : acc
+      , sellerItemStatuses[0])
+    : orderObj.status;
+  const sellerSubtotal = sellerItems.reduce((sum, item) => {
+    const unitPrice = Number(item.unitPrice) || 0;
+    const quantity = Number(item.quantity) || 0;
+    return sum + unitPrice * quantity;
+  }, 0);
+
+  orderObj.originalTotals = {
+    subtotal: orderObj.subtotal,
+    deliveryFee: orderObj.deliveryFee,
+    taxes: orderObj.taxes,
+    discount: orderObj.discount,
+    total: orderObj.total,
+    deliveryFeeDetail: orderObj.deliveryFeeDetail || orderObj.delivery?.feeDetail || null
+  };
+
+  orderObj.items = sellerItems;
+  orderObj.subtotal = sellerSubtotal;
+  orderObj.deliveryFee = 0;
+  orderObj.taxes = 0;
+  orderObj.discount = 0;
+  orderObj.total = sellerSubtotal;
+  orderObj.deliveryFeeDetail = null;
+  orderObj.isSellerView = true;
+  if (orderObj.delivery) {
+    orderObj.delivery.deliveryFee = 0;
+    orderObj.delivery.feeDetail = null;
+  }
+  orderObj.role = 'seller';
+
+  if (sellerSegment) {
+    const segmentObj = typeof sellerSegment.toObject === 'function'
+      ? sellerSegment.toObject()
+      : sellerSegment;
+
+    orderObj.status = segmentObj.status;
+    orderObj.segment = {
+      id: segmentObj._id?.toString?.() || segmentObj._id,
+      status: segmentObj.status,
+      subtotal: segmentObj.subtotal,
+      deliveryFee: segmentObj.deliveryFee,
+      discount: segmentObj.discount,
+      taxes: segmentObj.taxes,
+      total: segmentObj.total,
+      history: segmentObj.history || [],
+      items: sellerItems
+    };
+
+    if (segmentObj.seller) {
+      const sellerData = typeof segmentObj.seller?.toObject === 'function'
+        ? segmentObj.seller.toObject()
+        : segmentObj.seller;
+      orderObj.segment.seller = sellerData;
+    }
+  } else {
+    orderObj.status = derivedStatus;
+    orderObj.segment = {
+      id: null,
+      status: derivedStatus,
+      items: sellerItems
+    };
+  }
+
+  return orderObj;
 }
 
 // Obtenir les transitions de statut valides
@@ -594,22 +1587,37 @@ function getValidStatusTransitions(currentStatus, userType) {
       admin: ['preparing', 'cancelled']
     },
     preparing: {
-      producer: ['ready-for-pickup'],
-      transformer: ['ready-for-pickup'],
+      producer: ['ready-for-pickup', 'cancelled'],
+      transformer: ['ready-for-pickup', 'cancelled'],
       admin: ['ready-for-pickup', 'cancelled']
     },
     'ready-for-pickup': {
       transporter: ['in-transit'],
-      producer: ['in-transit'],
-      admin: ['in-transit']
+      producer: ['cancelled'],
+      transformer: ['cancelled'],
+      admin: ['in-transit', 'cancelled']
     },
     'in-transit': {
-      transporter: ['delivered'],
-      admin: ['delivered']
+      transporter: ['cancelled'],
+      producer: ['cancelled'],
+      transformer: ['cancelled'],
+      admin: ['delivered', 'cancelled']
     },
     delivered: {
-      buyer: ['completed'],
+      consumer: ['completed'],
       admin: ['completed']
+    },
+    completed: {
+      admin: []
+    },
+    cancelled: {
+      admin: []
+    },
+    refunded: {
+      admin: []
+    },
+    disputed: {
+      admin: []
     }
   };
 
@@ -732,8 +1740,8 @@ exports.createTestOrder = catchAsync(async (req, res, next) => {
           unitPrice: product.price || 1000,
           totalPrice: (product.price || 1000) * 2,
           productSnapshot: {
-            name: product.name?.fr || product.name || 'Produit de test',
-            description: product.description?.fr || 'Description de test'
+            name: toPlainText(product.name, 'Produit de test'),
+            description: toPlainText(product.description, 'Description de test')
           }
         }],
         total: (product.price || 1000) * 2,

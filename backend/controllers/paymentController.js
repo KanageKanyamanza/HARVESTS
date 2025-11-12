@@ -1,28 +1,67 @@
+const mongoose = require('mongoose');
 const Payment = require('../models/Payment');
 const Order = require('../models/Order');
 const Notification = require('../models/Notification');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
-const crypto = require('crypto');
+const paypalService = require('../services/paypalService');
+
+const appendParamsToUrl = (url, params = {}) => {
+  if (!url) {
+    return url;
+  }
+
+  try {
+    const parsedUrl = new URL(url);
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        parsedUrl.searchParams.set(key, value);
+      }
+    });
+    return parsedUrl.toString();
+  } catch (error) {
+    return url;
+  }
+};
 
 // ROUTES PROTÉGÉES
 
+exports.getPaypalClientToken = catchAsync(async (req, res, next) => {
+  const customerId = req.user?.paypalCustomerId || req.user?.paypalPayerId || null;
+
+  const clientToken = await paypalService.generateClientToken({
+    customerId
+  });
+
+  if (!clientToken) {
+    return next(new AppError('Impossible de générer un token client PayPal', 502));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      clientToken
+    }
+  });
+});
+
 // Initier un paiement
 exports.initiatePayment = catchAsync(async (req, res, next) => {
-  const { orderId, method, provider, returnUrl } = req.body;
+  const { orderId, method, returnUrl, cancelUrl, cashInstructions } = req.body;
 
-  // Vérifier la commande
+  if (!['cash', 'paypal'].includes(method)) {
+    return next(new AppError('Méthode de paiement non supportée', 400));
+  }
+
   const order = await Order.findById(orderId);
   if (!order) {
     return next(new AppError('Commande non trouvée', 404));
   }
 
-  // Vérifier que l'utilisateur est l'acheteur
   if (order.buyer.toString() !== req.user.id) {
     return next(new AppError('Vous ne pouvez payer que vos propres commandes', 403));
   }
 
-  // Vérifier que la commande peut être payée
   if (order.payment.status === 'completed') {
     return next(new AppError('Cette commande a déjà été payée', 400));
   }
@@ -31,43 +70,92 @@ exports.initiatePayment = catchAsync(async (req, res, next) => {
     return next(new AppError('Cette commande ne peut plus être payée', 400));
   }
 
-  // Créer l'enregistrement de paiement
+  const normalizedProvider = method === 'paypal' ? 'paypal' : 'cash-on-delivery';
+
   const payment = await Payment.create({
+    paymentId: new mongoose.Types.ObjectId().toString(),
     order: orderId,
     user: req.user.id,
     amount: order.total,
     currency: order.currency,
     method,
-    provider,
+    provider: normalizedProvider,
     type: 'payment',
+    status: method === 'paypal' ? 'processing' : 'pending',
     metadata: {
       customerIp: req.ip,
       userAgent: req.get('User-Agent')
     }
   });
 
-  // Calculer les frais
-  payment.calculateFees();
-  await payment.save();
-
-  // Traitement selon la méthode de paiement
   let paymentResponse;
+  const enhancedReturnUrl = appendParamsToUrl(returnUrl, {
+    orderId: orderId?.toString?.() || order._id?.toString(),
+    paymentId: payment.paymentId
+  });
+  const enhancedCancelUrl = appendParamsToUrl(cancelUrl, {
+    orderId: orderId?.toString?.() || order._id?.toString(),
+    paymentId: payment.paymentId
+  });
 
-  switch (method) {
-    case 'mobile-money':
-      paymentResponse = await processMobileMoneyPayment(payment, req.body);
-      break;
-    case 'card':
-      paymentResponse = await processCardPayment(payment, req.body, returnUrl);
-      break;
-    case 'bank-transfer':
-      paymentResponse = await processBankTransferPayment(payment, req.body);
-      break;
-    case 'crypto':
-      paymentResponse = await processCryptoPayment(payment, req.body);
-      break;
-    default:
-      return next(new AppError('Méthode de paiement non supportée', 400));
+  if (method === 'cash') {
+    payment.paymentDetails.cash = {
+      ...(payment.paymentDetails.cash || {}),
+      instructions: cashInstructions || 'Préparez le montant exact à régler auprès du livreur lors de la livraison.'
+    };
+
+    payment.calculateFees();
+    await payment.save();
+
+    paymentResponse = {
+      requiresOnlineAction: false,
+      confirmationType: 'delivery',
+      instructions: payment.paymentDetails.cash.instructions
+    };
+  } else {
+    try {
+      const paypalOrder = await paypalService.createOrder({
+        amount: payment.amount,
+        currency: payment.currency,
+        reference: payment.paymentId,
+        returnUrl: enhancedReturnUrl || returnUrl,
+        cancelUrl: enhancedCancelUrl || cancelUrl
+      });
+
+      payment.paymentDetails.paypal = {
+        orderId: paypalOrder.id,
+        status: paypalOrder.status,
+        rawResponse: paypalOrder.raw
+      };
+
+      payment.originalAmount = Number(paypalOrder.originalAmount || payment.amount);
+      payment.originalCurrency = paypalOrder.originalCurrency || payment.currency;
+
+      // Mettre à jour la devise si différente de celle de la commande
+      if (paypalOrder.currency && paypalOrder.currency !== payment.currency) {
+        payment.currency = paypalOrder.currency;
+        payment.amount = Number(paypalOrder.amount);
+      }
+
+      if (paypalOrder.exchangeRate && paypalOrder.exchangeRate !== 1) {
+        payment.metadata = {
+          ...payment.metadata,
+          exchangeRate: paypalOrder.exchangeRate
+        };
+      }
+
+      payment.calculateFees();
+      await payment.save();
+
+      paymentResponse = {
+        requiresOnlineAction: true,
+        approvalUrl: paypalOrder.approvalUrl,
+        paypalOrderId: paypalOrder.id
+      };
+    } catch (error) {
+      await payment.markAsFailed('paypal_error', error.message);
+      return next(new AppError(`Erreur PayPal: ${error.message}`, 400));
+    }
   }
 
   res.status(201).json({
@@ -78,7 +166,8 @@ exports.initiatePayment = catchAsync(async (req, res, next) => {
         status: payment.status,
         amount: payment.amount,
         currency: payment.currency,
-        method: payment.method
+        method: payment.method,
+        provider: payment.provider
       },
       ...paymentResponse
     }
@@ -87,7 +176,7 @@ exports.initiatePayment = catchAsync(async (req, res, next) => {
 
 // Confirmer un paiement
 exports.confirmPayment = catchAsync(async (req, res, next) => {
-  const { transactionId, confirmationCode } = req.body;
+  const { paypalOrderId, confirmationNotes } = req.body;
 
   const payment = await Payment.findOne({
     paymentId: req.params.id,
@@ -98,28 +187,51 @@ exports.confirmPayment = catchAsync(async (req, res, next) => {
     return next(new AppError('Paiement non trouvé', 404));
   }
 
-  if (payment.status !== 'processing') {
-    return next(new AppError('Ce paiement ne peut pas être confirmé', 400));
+  if (payment.status === 'succeeded') {
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        payment: {
+          id: payment.paymentId,
+          status: payment.status,
+          paidAt: payment.paidAt
+        }
+      }
+    });
+  }
+
+  if (payment.method === 'paypal') {
+    if (!paypalOrderId) {
+      return next(new AppError('Identifiant de commande PayPal manquant', 400));
   }
 
   try {
-    // Vérifier avec le fournisseur de paiement
-    const isValid = await verifyPaymentWithProvider(payment, transactionId, confirmationCode);
-    
-    if (isValid) {
-      await payment.markAsSucceeded(transactionId);
-      
-      // Notifier l'utilisateur
+      const capture = await paypalService.captureOrder(paypalOrderId);
+
+      payment.paymentDetails.paypal = {
+        ...(payment.paymentDetails.paypal || {}),
+        orderId: paypalOrderId,
+        captureId: capture.purchase_units?.[0]?.payments?.captures?.[0]?.id || capture.id,
+        status: capture.status,
+        payerEmail: capture.payer?.email_address,
+        payerName: [capture.payer?.name?.given_name, capture.payer?.name?.surname].filter(Boolean).join(' ') || undefined,
+        rawResponse: capture
+      };
+
+      const captureId = payment.paymentDetails.paypal.captureId;
+      await payment.markAsSucceeded(captureId, capture.update_time ? new Date(capture.update_time) : new Date());
+
       await Notification.createNotification({
         recipient: payment.user,
         type: 'payment_received',
         category: 'payment',
-        title: 'Paiement confirmé',
-        message: `Votre paiement de ${payment.amount} ${payment.currency} a été confirmé`,
+        title: 'Paiement PayPal confirmé',
+        message: `Votre paiement PayPal de ${payment.amount} ${payment.currency} a été confirmé.`,
         data: {
           paymentId: payment.paymentId,
           amount: payment.amount,
-          currency: payment.currency
+          currency: payment.currency,
+          provider: payment.provider
         },
         channels: {
           inApp: { enabled: true },
@@ -127,14 +239,40 @@ exports.confirmPayment = catchAsync(async (req, res, next) => {
           push: { enabled: true }
         }
       });
-
-    } else {
-      await payment.markAsFailed('invalid_confirmation', 'Code de confirmation invalide');
+    } catch (error) {
+      await payment.markAsFailed('paypal_capture_error', error.message);
+      return next(new AppError(`Erreur lors de la confirmation PayPal: ${error.message}`, 400));
     }
 
-  } catch (error) {
-    await payment.markAsFailed('verification_error', error.message);
-    return next(new AppError('Erreur lors de la vérification du paiement', 500));
+  } else if (payment.method === 'cash') {
+    payment.paymentDetails.cash = {
+      ...(payment.paymentDetails.cash || {}),
+      confirmedBy: req.user.id,
+      confirmedAt: new Date(),
+      notes: confirmationNotes || undefined
+    };
+
+    await payment.markAsSucceeded(null);
+
+    await Notification.createNotification({
+      recipient: payment.user,
+      type: 'payment_received',
+      category: 'payment',
+      title: 'Paiement à la livraison confirmé',
+      message: `Votre paiement à la livraison pour la commande ${payment.paymentId} est confirmé.`,
+      data: {
+        paymentId: payment.paymentId,
+        amount: payment.amount,
+        currency: payment.currency,
+        provider: payment.provider
+      },
+      channels: {
+        inApp: { enabled: true },
+        email: { enabled: true }
+      }
+    });
+  } else {
+    return next(new AppError('Méthode de paiement non supportée pour la confirmation', 400));
   }
 
   res.status(200).json({
@@ -507,243 +645,77 @@ exports.reconcilePayment = catchAsync(async (req, res, next) => {
 
 // Webhook pour les fournisseurs de paiement
 exports.handlePaymentWebhook = catchAsync(async (req, res, next) => {
-  const signature = req.headers['x-webhook-signature'] || req.headers['stripe-signature'];
-  const payload = req.body;
+  const isValid = await paypalService.verifyWebhook(req.headers, req.body);
 
-  // Vérifier la signature du webhook
-  if (!verifyWebhookSignature(signature, payload, req.headers['x-provider'])) {
+  if (!isValid) {
     return next(new AppError('Signature de webhook invalide', 401));
   }
 
-  const { provider, event, data } = payload;
+  const { event_type: eventType, resource } = req.body;
 
-  switch (provider) {
-    case 'stripe':
-      await handleStripeWebhook(event, data);
+  switch (eventType) {
+    case 'PAYMENT.CAPTURE.COMPLETED':
+      await handlePayPalCaptureCompleted(resource);
       break;
-    case 'flutterwave':
-      await handleFlutterwaveWebhook(event, data);
-      break;
-    case 'orange-money':
-      await handleOrangeMoneyWebhook(event, data);
-      break;
-    case 'mtn-momo':
-      await handleMTNMomoWebhook(event, data);
+    case 'PAYMENT.CAPTURE.DENIED':
+    case 'PAYMENT.CAPTURE.REFUNDED':
+    case 'PAYMENT.CAPTURE.REVERSED':
+      await handlePayPalCaptureFailed(resource, eventType);
       break;
     default:
-      return next(new AppError('Fournisseur de webhook non supporté', 400));
+      // Événement non géré, mais signature valide
+      break;
   }
 
   res.status(200).json({
     status: 'success',
-    message: 'Webhook traité'
+    message: 'Webhook PayPal traité'
   });
 });
 
 // FONCTIONS UTILITAIRES
 
-// Traitement Mobile Money
-async function processMobileMoneyPayment(payment, paymentData) {
-  const { phoneNumber, provider } = paymentData;
+async function handlePayPalCaptureCompleted(resource) {
+  const captureId = resource.id;
+  const orderId = resource.supplementary_data?.related_ids?.order_id;
 
-  // Mise à jour des détails de paiement
-  payment.paymentDetails.mobileMoney = {
-    provider,
-    phoneNumber,
-    fees: calculateMobileMoneyFees(payment.amount, provider)
-  };
+  const payment = await Payment.findOne({
+    $or: [
+      { 'paymentDetails.paypal.captureId': captureId },
+      { 'paymentDetails.paypal.orderId': orderId }
+    ]
+  });
 
-  payment.status = 'processing';
-  await payment.save();
-
-  // Intégration avec l'API du fournisseur
-  try {
-    const result = await initiateMobileMoneyPayment(payment, phoneNumber, provider);
-    
-    return {
-      requiresConfirmation: true,
-      confirmationMethod: 'ussd',
-      instructions: `Composez *126# et suivez les instructions pour confirmer le paiement de ${payment.amount} ${payment.currency}`,
-      transactionId: result.transactionId
-    };
-  } catch (error) {
-    await payment.markAsFailed('provider_error', error.message);
-    throw error;
+  if (!payment || payment.status === 'succeeded') {
+    return;
   }
+
+  payment.paymentDetails.paypal = {
+    ...(payment.paymentDetails.paypal || {}),
+    orderId: orderId || payment.paymentDetails.paypal?.orderId,
+    captureId,
+    status: resource.status,
+    payerEmail: resource.payer?.email_address || payment.paymentDetails.paypal?.payerEmail,
+    payerName: [resource.payer?.name?.given_name, resource.payer?.name?.surname].filter(Boolean).join(' ') || payment.paymentDetails.paypal?.payerName,
+    rawResponse: resource
+  };
+
+  await payment.markAsSucceeded(captureId, resource.update_time ? new Date(resource.update_time) : new Date());
 }
 
-// Traitement par carte
-async function processCardPayment(payment, paymentData, returnUrl) {
-  // Intégration avec Stripe ou autre processeur de cartes
-  payment.status = 'processing';
-  await payment.save();
+async function handlePayPalCaptureFailed(resource, eventType) {
+  const captureId = resource.id;
 
-  // Simulation - en réalité, on utiliserait l'API Stripe
-  return {
-    requiresAction: false,
-    clientSecret: `pi_${payment.paymentId}_secret`,
-    redirectUrl: returnUrl
-  };
-}
+  const payment = await Payment.findOne({
+    'paymentDetails.paypal.captureId': captureId
+  });
 
-// Traitement virement bancaire
-async function processBankTransferPayment(payment, paymentData) {
-  payment.paymentDetails.bankTransfer = paymentData;
-  payment.status = 'processing';
-  await payment.save();
-
-  return {
-    requiresConfirmation: true,
-    bankDetails: {
-      accountName: 'Harvests SARL',
-      accountNumber: '1234567890',
-      bankName: 'Afriland First Bank',
-      reference: payment.paymentId
-    },
-    instructions: 'Effectuez le virement avec la référence fournie et envoyez-nous le reçu.'
-  };
-}
-
-// Traitement crypto
-async function processCryptoPayment(payment, paymentData) {
-  const { currency } = paymentData;
-  
-  // Générer une adresse de wallet temporaire
-  const walletAddress = generateCryptoAddress(currency);
-  
-  payment.paymentDetails.crypto = {
-    currency,
-    walletAddress
-  };
-  payment.status = 'processing';
-  await payment.save();
-
-  return {
-    walletAddress,
-    amount: convertToCrypto(payment.amount, payment.currency, currency),
-    currency,
-    qrCode: `data:image/png;base64,${generateQRCode(walletAddress)}`,
-    expiresAt: new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
-  };
-}
-
-// Vérification avec les fournisseurs
-async function verifyPaymentWithProvider(payment, transactionId, confirmationCode) {
-  switch (payment.provider) {
-    case 'orange-money':
-      return verifyOrangeMoneyPayment(transactionId, confirmationCode);
-    case 'mtn-momo':
-      return verifyMTNMomoPayment(transactionId, confirmationCode);
-    case 'stripe':
-      return verifyStripePayment(transactionId);
-    default:
-      return true; // Simulation
+  if (!payment) {
+    return;
   }
-}
 
-// Vérification des signatures de webhook
-function verifyWebhookSignature(signature, payload, provider) {
-  const secret = process.env[`${provider.toUpperCase()}_WEBHOOK_SECRET`];
-  if (!secret) return false;
-
-  const expectedSignature = crypto
-    .createHmac('sha256', secret)
-    .update(JSON.stringify(payload))
-    .digest('hex');
-
-  return signature === `sha256=${expectedSignature}`;
-}
-
-// Gestionnaires de webhooks
-async function handleStripeWebhook(event, data) {
-  const payment = await Payment.findOne({ externalId: data.id });
-  if (!payment) return;
-
-  switch (event) {
-    case 'payment_intent.succeeded':
-      await payment.markAsSucceeded(data.id);
-      break;
-    case 'payment_intent.payment_failed':
-      await payment.markAsFailed(data.last_payment_error?.code, data.last_payment_error?.message);
-      break;
-  }
-}
-
-async function handleFlutterwaveWebhook(event, data) {
-  // Implémentation Flutterwave
-}
-
-async function handleOrangeMoneyWebhook(event, data) {
-  // Implémentation Orange Money
-}
-
-async function handleMTNMomoWebhook(event, data) {
-  // Implémentation MTN Mobile Money
-}
-
-// Fonctions utilitaires
-function calculateMobileMoneyFees(amount, provider) {
-  const feeRates = {
-    'orange-money': 0.02, // 2%
-    'mtn-momo': 0.025,    // 2.5%
-    'express-union': 0.03, // 3%
-    'wave': 0.01          // 1%
-  };
-
-  return Math.round(amount * (feeRates[provider] || 0.02));
-}
-
-async function initiateMobileMoneyPayment(payment, phoneNumber, provider) {
-  // Simulation - en réalité, on appellerait l'API du fournisseur
-  return {
-    transactionId: `${provider}_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
-    status: 'pending'
-  };
-}
-
-function generateCryptoAddress(currency) {
-  // Simulation - en réalité, on utiliserait un service de wallet
-  const addresses = {
-    'BTC': '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
-    'ETH': '0x742d35Cc6634C0532925a3b8D87C3C94C3f5d9C2',
-    'USDC': '0x742d35Cc6634C0532925a3b8D87C3C94C3f5d9C2',
-    'USDT': '0x742d35Cc6634C0532925a3b8D87C3C94C3f5d9C2'
-  };
-  
-  return addresses[currency] || addresses['BTC'];
-}
-
-function convertToCrypto(amount, fromCurrency, toCurrency) {
-  // Simulation - en réalité, on utiliserait une API de taux de change
-  const rates = {
-    'BTC': 0.000023, // 1 XAF = 0.000023 BTC
-    'ETH': 0.00035,  // 1 XAF = 0.00035 ETH
-    'USDC': 0.0017,  // 1 XAF = 0.0017 USDC
-    'USDT': 0.0017   // 1 XAF = 0.0017 USDT
-  };
-
-  return amount * (rates[toCurrency] || 1);
-}
-
-function generateQRCode(data) {
-  // Simulation - en réalité, on utiliserait une librairie QR code
-  return Buffer.from(data).toString('base64');
-}
-
-// Fonctions de vérification des fournisseurs (simulations)
-async function verifyOrangeMoneyPayment(transactionId, confirmationCode) {
-  // Appel API Orange Money
-  return true; // Simulation
-}
-
-async function verifyMTNMomoPayment(transactionId, confirmationCode) {
-  // Appel API MTN Mobile Money
-  return true; // Simulation
-}
-
-async function verifyStripePayment(transactionId) {
-  // Appel API Stripe
-  return true; // Simulation
+  const failureReason = resource.status_details?.reason || eventType;
+  await payment.markAsFailed(eventType.toLowerCase(), failureReason);
 }
 
 module.exports = exports;

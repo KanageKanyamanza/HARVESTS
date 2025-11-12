@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FiPackage, FiPlus, FiEdit, FiEye } from 'react-icons/fi';
 import CloudinaryImage from '../../common/CloudinaryImage';
 import { getDishImageUrl } from '../../../utils/dishImageUtils';
+import { toPlainText } from '../../../utils/textHelpers';
 
 const ProductsSection = ({ products, userType, loading = false, service }) => {
   const navigate = useNavigate();
@@ -93,11 +94,7 @@ const ProductsSection = ({ products, userType, loading = false, service }) => {
                   return (
                     <CloudinaryImage
                       src={imageUrl}
-                      alt={
-                        typeof product.name === 'object'
-                          ? product.name.fr || product.name.en || 'Plat'
-                          : product.name || 'Plat'
-                      }
+                      alt={toPlainText(product.name, 'Plat')}
                       className="w-full h-full object-cover"
                     />
                   );
@@ -106,11 +103,7 @@ const ProductsSection = ({ products, userType, loading = false, service }) => {
                 return (
                   <CloudinaryImage
                     src={product.images[0].url || product.images[0]}
-                    alt={
-                      typeof product.name === 'object'
-                        ? product.name.fr || product.name.en || 'Produit'
-                        : product.name
-                    }
+                    alt={toPlainText(product.name, 'Produit')}
                     className="w-full h-full object-cover"
                   />
                 );
@@ -125,7 +118,7 @@ const ProductsSection = ({ products, userType, loading = false, service }) => {
           </div>
           <div className="flex-1 min-w-0">
             <h4 className="text-sm font-medium text-gray-900 truncate">
-              {typeof product.name === 'object' ? product.name.fr || product.name.en || 'Sans nom' : product.name}
+              {toPlainText(product.name, 'Sans nom')}
             </h4>
             <p className="text-sm text-gray-500">
               {product.price ? `${product.price} XAF` : 'Prix non défini'}

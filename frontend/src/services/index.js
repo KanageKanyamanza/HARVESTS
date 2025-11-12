@@ -14,6 +14,7 @@ export { productService } from './productService';
 export { orderService } from './orderService';
 export { notificationService } from './notificationService';
 export { reviewService } from './reviewService';
+export { paymentService } from './paymentService';
 export { default as uploadService } from './uploadService';
 export { default as profileService } from './profileService';
 export { default as commonService } from './commonService';

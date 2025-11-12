@@ -224,8 +224,8 @@ const baseUserSchema = new mongoose.Schema({
   // Méthodes de paiement préférées
   paymentMethods: {
     type: [String],
-    enum: ['cash', 'card', 'mobile-money', 'bank-transfer', 'crypto'],
-    default: ['cash', 'mobile-money']
+    enum: ['cash', 'paypal'],
+    default: ['cash', 'paypal']
   },
 
   // Statistiques communes centralisées

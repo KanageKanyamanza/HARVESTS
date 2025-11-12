@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect, useState, useC
 import { useAuth } from '../hooks/useAuth';
 import cartService from '../services/cartService';
 import { getDishImageUrl } from '../utils/dishImageUtils';
+import { toPlainText } from '../utils/textHelpers';
 
 const CartContext = createContext();
 
@@ -317,7 +318,7 @@ export const CartProvider = ({ children }) => {
     return {
       productId,
       originType,
-      name: product.name?.fr || product.name?.en || product.name || 'Produit',
+      name: toPlainText(product.name, 'Produit'),
       price,
       image: imageUrl,
       quantity,

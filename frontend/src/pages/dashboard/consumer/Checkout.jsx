@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import { useCart } from '../../../contexts/CartContext';
-import { consumerService, authService } from '../../../services';
+import { consumerService, authService, orderService } from '../../../services';
 import cartService from '../../../services/cartService';
 import CloudinaryImage from '../../../components/common/CloudinaryImage';
+import { estimateDeliveryFee } from '../../../utils/shippingUtils';
 import {
   FiArrowLeft,
   FiMapPin,
@@ -30,6 +31,9 @@ const Checkout = () => {
   const { items: cartItems, clearCart, removeFromCart } = useCart();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+  const [estimation, setEstimation] = useState(null);
+  const [isEstimating, setIsEstimating] = useState(false);
+  const [estimationError, setEstimationError] = useState(null);
 
   const [currentStep, setCurrentStep] = useState(1);
   const [orderData, setOrderData] = useState({
@@ -57,20 +61,8 @@ const Checkout = () => {
       postalCode: '',
       phone: ''
     },
-    paymentMethod: 'mobile-money',
-    paymentProvider: 'orange-money',
-    cardDetails: {
-      number: '',
-      expiryMonth: '',
-      expiryYear: '',
-      cvv: '',
-      cardholderName: ''
-    },
-    bankDetails: {
-      accountNumber: '',
-      swiftCode: '',
-      instructions: ''
-    },
+    paymentMethod: 'cash',
+    paymentProvider: 'cash-on-delivery',
     deliveryMethod: 'standard-delivery',
     notes: '',
     useLoyaltyPoints: false,
@@ -245,37 +237,18 @@ const Checkout = () => {
     }
   };
 
-  // Réinitialiser le paymentProvider quand on change de méthode de paiement
+  // Mettre à jour automatiquement le provider selon la méthode choisie
   useEffect(() => {
-    if (orderData.paymentMethod === 'cash') {
-      // Pour le paiement à la livraison, pas besoin de provider
+    if (orderData.paymentMethod === 'cash' && orderData.paymentProvider !== 'cash-on-delivery') {
       setOrderData(prev => ({
         ...prev,
-        paymentProvider: ''
+        paymentProvider: 'cash-on-delivery'
       }));
-    } else if (orderData.paymentMethod && !orderData.paymentProvider) {
-      // Définir un provider par défaut pour les autres méthodes
-      let defaultProvider = '';
-      switch (orderData.paymentMethod) {
-        case 'mobile-money':
-          defaultProvider = 'orange-money';
-          break;
-        case 'card':
-          defaultProvider = 'visa';
-          break;
-        case 'bank-transfer':
-          defaultProvider = 'afriland-first-bank';
-          break;
-        default:
-          defaultProvider = '';
-      }
-      
-      if (defaultProvider) {
-        setOrderData(prev => ({
-          ...prev,
-          paymentProvider: defaultProvider
-        }));
-      }
+    } else if (orderData.paymentMethod === 'paypal' && orderData.paymentProvider !== 'paypal') {
+      setOrderData(prev => ({
+        ...prev,
+        paymentProvider: 'paypal'
+      }));
     }
   }, [orderData.paymentMethod, orderData.paymentProvider]);
 
@@ -300,14 +273,82 @@ const Checkout = () => {
   //   }
   // };
 
+  const processCartItems = useCallback(() => {
+    const normalized = cartItems.map(item => {
+      if (item.producer?.id) {
+        return {
+          ...item,
+          originType: item.originType || 'product',
+        };
+      }
+
+      const fallbackId =
+        item.producerId ||
+        item.supplierId ||
+        item.vendorId ||
+        item.restaurateurId ||
+        item.transformerId ||
+        item.ownerId ||
+        null;
+
+      const fallbackName =
+        item.producerName ||
+        item.supplierName ||
+        item.vendorName ||
+        item.restaurateurName ||
+        item.transformerName ||
+        item.ownerName ||
+        'Fournisseur';
+
+      const fallbackType =
+        item.producer?.type ||
+        item.producerType ||
+        item.supplierType ||
+        item.vendorType ||
+        item.categoryOwnerType ||
+        (item.originType === 'dish'
+          ? 'restaurateur'
+          : item.originType === 'transformed-product'
+          ? 'transformer'
+          : item.originType === 'logistics'
+          ? 'transporter'
+          : 'producer');
+
+      return {
+        ...item,
+        originType: item.originType || 'product',
+        producer: {
+          id: fallbackId,
+          name: fallbackName,
+          type: fallbackType,
+        },
+      };
+    });
+
+    const valid = normalized.filter(item => item.producer?.id);
+    const invalid = normalized.filter(item => !item.producer?.id);
+
+    return { normalized, valid, invalid };
+  }, [cartItems]);
+
   const calculateTotals = () => {
     const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const deliveryFee = orderData.deliveryMethod === 'express-delivery' ? 5000 : 2000;
-    const taxes = Math.round(subtotal * 0.1925); // 19.25% TVA
+    const deliveryFeeFallback = estimateDeliveryFee(cartItems, orderData.deliveryMethod, orderData.deliveryAddress);
+    const taxes = 0;
     const discount = orderData.useLoyaltyPoints ? orderData.loyaltyPointsToUse * 10 : 0; // 1 point = 10 FCFA
-    const total = subtotal + deliveryFee + taxes - discount;
+    const totalFallback = subtotal + deliveryFeeFallback - discount;
 
-    return { subtotal, deliveryFee, taxes, discount, total };
+    if (estimation) {
+      return {
+        subtotal: estimation.subtotal ?? subtotal,
+        deliveryFee: estimation.deliveryFee ?? deliveryFeeFallback,
+          taxes: estimation.taxes ?? taxes,
+        discount: estimation.discount ?? discount,
+        total: estimation.total ?? totalFallback
+      };
+    }
+
+      return { subtotal, deliveryFee: deliveryFeeFallback, taxes, discount, total: totalFallback };
   };
 
   const validateStep = (step) => {
@@ -319,11 +360,7 @@ const Checkout = () => {
                deliveryAddress.region && deliveryAddress.country && deliveryAddress.phone;
       }
       case 2:
-        // Pour le paiement à la livraison, pas besoin de paymentProvider
-        if (orderData.paymentMethod === 'cash') {
-          return orderData.paymentMethod;
-        }
-        return orderData.paymentMethod && orderData.paymentProvider;
+        return Boolean(orderData.paymentMethod);
       case 3:
         return true; // Confirmation
       default:
@@ -345,6 +382,78 @@ const Checkout = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  useEffect(() => {
+    const shouldEstimate =
+      user?.userType === 'consumer' &&
+      cartItems.length > 0 &&
+      orderData.deliveryAddress?.street &&
+      orderData.deliveryAddress?.city &&
+      orderData.deliveryAddress?.region &&
+      orderData.deliveryAddress?.country;
+
+    if (!shouldEstimate) {
+      setEstimation(null);
+      return;
+    }
+
+    const { valid } = processCartItems();
+    if (valid.length === 0) {
+      setEstimation(null);
+      return;
+    }
+
+    const payloadItems = valid.map(item => ({
+      productId: item.productId || item.id,
+      quantity: item.quantity,
+      originType: item.originType || 'product',
+      supplierId: item.producer?.id,
+      supplierType: item.producer?.type || item.originType || 'producer',
+      specialInstructions: item.specialInstructions || ''
+    }));
+
+    let isMounted = true;
+    setIsEstimating(true);
+    setEstimationError(null);
+
+    orderService.estimateOrder({
+      items: payloadItems,
+      deliveryAddress: orderData.deliveryAddress,
+      deliveryMethod: orderData.deliveryMethod,
+      useLoyaltyPoints: orderData.useLoyaltyPoints,
+      loyaltyPointsToUse: orderData.loyaltyPointsToUse
+    })
+      .then(response => {
+        if (!isMounted) return;
+        setEstimation(response.data?.data || null);
+      })
+      .catch(error => {
+        if (!isMounted) return;
+        console.error('❌ Erreur estimation commande:', error);
+        setEstimation(null);
+        const message =
+          error.response?.data?.message ||
+          "Impossible de calculer les frais de livraison pour le moment.";
+        setEstimationError(message);
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsEstimating(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    user?.userType,
+    cartItems,
+    orderData.deliveryAddress,
+    orderData.deliveryMethod,
+    orderData.useLoyaltyPoints,
+    orderData.loyaltyPointsToUse,
+    processCartItems
+  ]);
+
   const handleSubmitOrder = async () => {
     if (!validateStep(1) || !validateStep(2)) {
       return;
@@ -352,63 +461,12 @@ const Checkout = () => {
 
     setSubmitting(true);
     try {
-      const normalizedCartItems = cartItems.map(item => {
-        if (item.producer?.id) {
-          return {
-            ...item,
-            originType: item.originType || 'product',
-          };
-        }
+      const { valid: validCartItems, invalid: invalidCartItems } = processCartItems();
 
-        const fallbackId =
-          item.producerId ||
-          item.supplierId ||
-          item.vendorId ||
-          item.restaurateurId ||
-          item.transformerId ||
-          item.ownerId ||
-          null;
-
-        const fallbackName =
-          item.producerName ||
-          item.supplierName ||
-          item.vendorName ||
-          item.restaurateurName ||
-          item.transformerName ||
-          item.ownerName ||
-          'Fournisseur';
-
-        const fallbackType =
-          item.producer?.type ||
-          item.producerType ||
-          item.supplierType ||
-          item.vendorType ||
-          item.categoryOwnerType ||
-          (item.originType === 'dish'
-            ? 'restaurateur'
-            : item.originType === 'transformed-product'
-            ? 'transformer'
-            : item.originType === 'logistics'
-            ? 'transporter'
-            : 'producer');
-
-        return {
-          ...item,
-          originType: item.originType || 'product',
-          producer: {
-            id: fallbackId,
-            name: fallbackName,
-            type: fallbackType,
-          },
-        };
-      });
-
-      const validCartItems = normalizedCartItems.filter(item => item.producer?.id);
-
-      if (validCartItems.length !== normalizedCartItems.length) {
-        normalizedCartItems
-          .filter(item => !item.producer?.id)
-          .forEach(item => removeFromCart(item.productId || item.id, item.originType || 'product'));
+      if (invalidCartItems.length > 0) {
+        invalidCartItems.forEach(item =>
+          removeFromCart(item.productId || item.id, item.originType || 'product')
+        );
 
         window.alert('Certains articles ne sont plus disponibles et ont été retirés de votre panier.');
 
@@ -419,17 +477,10 @@ const Checkout = () => {
       }
 
       const orderPayload = {
-        items: validCartItems.map(item => ({
-          productId: item.productId || item.id,
-          quantity: item.quantity,
-          originType: item.originType || 'product',
-          supplierId: item.producer?.id,
-          supplierType: item.producer?.type || item.originType || 'producer',
-          specialInstructions: item.specialInstructions || ''
-        })),
         deliveryAddress: orderData.deliveryAddress,
-        billingAddress: orderData.billingAddress.sameAsDelivery ? 
-          orderData.deliveryAddress : orderData.billingAddress,
+        billingAddress: orderData.billingAddress.sameAsDelivery
+          ? orderData.deliveryAddress
+          : orderData.billingAddress,
         paymentMethod: orderData.paymentMethod,
         paymentProvider: orderData.paymentProvider,
         deliveryMethod: orderData.deliveryMethod,
@@ -437,78 +488,27 @@ const Checkout = () => {
         useLoyaltyPoints: orderData.useLoyaltyPoints,
         loyaltyPointsToUse: orderData.loyaltyPointsToUse,
         currency: 'XAF',
-        source: 'web'
+        source: 'web',
+        items: validCartItems.map(item => ({
+          productId: item.productId || item.id,
+          quantity: item.quantity,
+          originType: item.originType || 'product',
+          supplierId: item.producer?.id,
+          supplierType: item.producer?.type || item.originType || 'producer',
+          specialInstructions: item.specialInstructions || ''
+        }))
       };
 
-      const groupedBySupplier = validCartItems.reduce((groups, item) => {
-        const key = item.producer?.id || 'unknown';
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(item);
-        return groups;
-      }, {});
+      const response = await consumerService.createOrder(orderPayload);
+      const orderId =
+        response.data?.data?.order?._id ||
+        response.data?.order?._id ||
+        response.data?.data?._id ||
+        null;
 
-      const createdOrders = [];
-      const supplierIds = Object.keys(groupedBySupplier);
-
-      for (const supplierId of supplierIds) {
-        const groupItems = groupedBySupplier[supplierId];
-        const supplierType = groupItems[0]?.producer?.type || 'producer';
-
-        const payload = {
-          items: groupItems.map(item => ({
-            productId: item.productId || item.id,
-            quantity: item.quantity,
-            originType: item.originType || 'product',
-            supplierId: item.producer?.id,
-            supplierType: item.producer?.type || item.originType || 'producer',
-            specialInstructions: item.specialInstructions || ''
-          })),
-          deliveryAddress: orderData.deliveryAddress,
-          billingAddress: orderData.billingAddress.sameAsDelivery
-            ? orderData.deliveryAddress
-            : orderData.billingAddress,
-          paymentMethod: orderData.paymentMethod,
-          paymentProvider: orderData.paymentProvider,
-          deliveryMethod: orderData.deliveryMethod,
-          notes: orderData.notes,
-          useLoyaltyPoints: orderData.useLoyaltyPoints,
-          loyaltyPointsToUse: orderData.loyaltyPointsToUse,
-          currency: 'XAF',
-          source: 'web',
-          supplierId: supplierId === 'unknown' ? undefined : supplierId,
-          supplierType,
-        };
-
-        try {
-          const response = await consumerService.createOrder(payload);
-          const orderId =
-            response.data?.data?.order?._id ||
-            response.data?.order?._id ||
-            response.data?.data?._id ||
-            null;
-
-          createdOrders.push({
-            supplierId,
-            supplierType,
-            orderId,
-            response,
-          });
-
-          groupItems.forEach(item =>
-            removeFromCart(item.productId || item.id, item.originType || 'product')
-          );
-        } catch (error) {
-          console.error(
-            `❌ Erreur lors de la création de la commande pour le fournisseur ${supplierId}:`,
-            error
-          );
-          window.alert(
-            "Une erreur est survenue lors de la création de la commande pour l'un des fournisseurs. Les autres commandes ont peut-être été créées."
-          );
-          throw error;
-        }
-      }
-
+      validCartItems.forEach(item =>
+        removeFromCart(item.productId || item.id, item.originType || 'product')
+      );
       clearCart();
 
       try {
@@ -517,8 +517,8 @@ const Checkout = () => {
         console.error('Erreur lors du vidage du panier serveur:', error);
       }
 
-      if (createdOrders.length === 1 && createdOrders[0]?.orderId) {
-        navigate(`/consumer/orders/${createdOrders[0].orderId}/confirmation`);
+      if (orderId) {
+        navigate(`/consumer/orders/${orderId}/confirmation`);
       } else {
         navigate('/consumer/orders');
       }
@@ -531,6 +531,14 @@ const Checkout = () => {
   };
 
   const totals = calculateTotals();
+  const deliveryDetail = estimation?.deliveryFeeDetail;
+  const deliveryMethodLabels = {
+    'standard-delivery': 'livraison standard',
+    'express-delivery': 'livraison express',
+    'same-day': 'livraison jour même',
+    'scheduled': 'livraison programmée',
+    pickup: 'retrait sur place'
+  };
 
   if (cartItems.length === 0) {
     return (
@@ -754,289 +762,56 @@ const Checkout = () => {
                   
                   <div className="space-y-4">
                     {[
-                      { value: 'mobile-money', label: 'Mobile Money', icon: '📱' },
-                      { value: 'card', label: 'Carte bancaire', icon: '💳' },
-                      { value: 'cash', label: 'Paiement à la livraison', icon: '💵' },
-                      { value: 'bank-transfer', label: 'Virement bancaire', icon: '🏦' }
+                      { value: 'cash', label: 'Paiement à la livraison', icon: '💵', description: 'Réglez en espèces auprès du livreur au moment de la livraison.' },
+                      { value: 'paypal', label: 'Paypal ou Carte bancaire', icon: '🅿️', description: 'Payer en ligne via votre compte PayPal ou Carte bancaire, de façon sécurisée.' }
                     ].map((method) => (
-                      <label key={method.value} className="flex items-center p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-harvests-light">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
+                      <label
+                        key={method.value}
+                        className={`flex items-start p-4 border rounded-lg cursor-pointer transition hover:bg-harvests-light ${
+                          orderData.paymentMethod === method.value ? 'border-harvests-green bg-harvests-light/60' : 'border-gray-200'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="paymentMethod"
                           value={method.value}
                           checked={orderData.paymentMethod === method.value}
                           onChange={(e) => handleInputChange('', 'paymentMethod', e.target.value)}
-                          className="h-4 w-4 text-harvests-green focus:ring-harvests-green"
+                          className="h-4 w-4 text-harvests-green focus:ring-harvests-green mt-1"
                         />
-                        <span className="ml-3 text-2xl">{method.icon}</span>
-                        <span className="ml-3 text-sm font-medium text-gray-900">{method.label}</span>
+                        <div className="ml-3">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-2xl">{method.icon}</span>
+                            <span className="text-sm font-medium text-gray-900">{method.label}</span>
+                          </div>
+                          <p className="text-sm text-gray-600 mt-2">{method.description}</p>
+                        </div>
                       </label>
                     ))}
                   </div>
 
-                  {/* Payment Provider - Mobile Money */}
-                  {orderData.paymentMethod === 'mobile-money' && (
-                    <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Opérateur Mobile Money
-                      </label>
-                      <div className="grid grid-cols-2 gap-4">
-                        {[
-                          { value: 'orange-money', label: 'Orange Money' },
-                          { value: 'mtn-money', label: 'MTN Mobile Money' },
-                          { value: 'express-union', label: 'Express Union' }
-                        ].map((provider) => (
-                          <label key={provider.value} className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-harvests-light">
-                            <input
-                              type="radio"
-                              name="paymentProvider"
-                              value={provider.value}
-                              checked={orderData.paymentProvider === provider.value}
-                              onChange={(e) => handleInputChange('', 'paymentProvider', e.target.value)}
-                              className="h-4 w-4 text-harvests-green focus:ring-harvests-green"
-                            />
-                            <span className="ml-3 text-sm font-medium text-gray-900">{provider.label}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Payment Provider - Carte bancaire */}
-                  {orderData.paymentMethod === 'card' && (
-                    <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Type de carte
-                      </label>
-                      <div className="grid grid-cols-2 gap-4">
-                        {[
-                          { value: 'visa', label: 'Visa' },
-                          { value: 'mastercard', label: 'Mastercard' },
-                          { value: 'american-express', label: 'American Express' },
-                          { value: 'local-card', label: 'Carte locale' }
-                        ].map((provider) => (
-                          <label key={provider.value} className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-harvests-light">
-                            <input
-                              type="radio"
-                              name="paymentProvider"
-                              value={provider.value}
-                              checked={orderData.paymentProvider === provider.value}
-                              onChange={(e) => handleInputChange('', 'paymentProvider', e.target.value)}
-                              className="h-4 w-4 text-harvests-green focus:ring-harvests-green"
-                            />
-                            <span className="ml-3 text-sm font-medium text-gray-900">{provider.label}</span>
-                          </label>
-                        ))}
-                      </div>
-                      
-                      {/* Détails de la carte */}
-                      <div className="mt-6 space-y-4">
-                        <h3 className="text-sm font-medium text-gray-700">Informations de la carte</h3>
-                        
-                        {/* Nom du titulaire */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Nom du titulaire *
-                          </label>
-                          <input
-                            type="text"
-                            value={orderData.cardDetails.cardholderName}
-                            onChange={(e) => handleInputChange('cardDetails', 'cardholderName', e.target.value)}
-                            placeholder="Nom tel qu'il apparaît sur la carte"
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-harvests-green"
-                            required
-                          />
-                        </div>
-                        
-                        {/* Numéro de carte */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Numéro de carte *
-                          </label>
-                          <input
-                            type="text"
-                            value={orderData.cardDetails.number}
-                            onChange={(e) => {
-                              // Formater le numéro de carte avec des espaces tous les 4 chiffres
-                              const formatted = e.target.value.replace(/\s/g, '').replace(/(.{4})/g, '$1 ').trim();
-                              handleInputChange('cardDetails', 'number', formatted);
-                            }}
-                            placeholder="1234 5678 9012 3456"
-                            maxLength="19"
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-harvests-green"
-                            required
-                          />
-                        </div>
-                        
-                        {/* Date d'expiration et CVV */}
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Date d'expiration *
-                            </label>
-                            <div className="flex space-x-2">
-                              <select
-                                value={orderData.cardDetails.expiryMonth}
-                                onChange={(e) => handleInputChange('cardDetails', 'expiryMonth', e.target.value)}
-                                className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-harvests-green"
-                                required
-                              >
-                                <option value="">Mois</option>
-                                {Array.from({ length: 12 }, (_, i) => (
-                                  <option key={i + 1} value={String(i + 1).padStart(2, '0')}>
-                                    {String(i + 1).padStart(2, '0')}
-                                  </option>
-                                ))}
-                              </select>
-                              <select
-                                value={orderData.cardDetails.expiryYear}
-                                onChange={(e) => handleInputChange('cardDetails', 'expiryYear', e.target.value)}
-                                className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-harvests-green"
-                                required
-                              >
-                                <option value="">Année</option>
-                                {Array.from({ length: 10 }, (_, i) => {
-                                  const year = new Date().getFullYear() + i;
-                                  return (
-                                    <option key={year} value={year}>
-                                      {year}
-                                    </option>
-                                  );
-                                })}
-                              </select>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              CVV *
-                            </label>
-                            <input
-                              type="text"
-                              value={orderData.cardDetails.cvv}
-                              onChange={(e) => {
-                                // Limiter à 3-4 chiffres selon le type de carte
-                                const cvv = e.target.value.replace(/\D/g, '').slice(0, 4);
-                                handleInputChange('cardDetails', 'cvv', cvv);
-                              }}
-                              placeholder="123"
-                              maxLength="4"
-                              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-harvests-green"
-                              required
-                            />
-                          </div>
-                        </div>
-                        
-                        {/* Information de sécurité */}
-                        <div className="flex items-start space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                          <FiShield className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                          <div className="text-sm text-blue-700">
-                            <p className="font-medium">Paiement sécurisé</p>
-                            <p>Vos informations de carte sont chiffrées et sécurisées. Nous ne stockons jamais vos données de carte.</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Payment Provider - Virement bancaire */}
-                  {orderData.paymentMethod === 'bank-transfer' && (
-                    <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Banque
-                      </label>
-                      <div className="grid grid-cols-2 gap-4">
-                        {[
-                          { value: 'afriland-first-bank', label: 'Afriland First Bank' },
-                          { value: 'ecobank', label: 'Ecobank' },
-                          { value: 'societe-generale', label: 'Société Générale' },
-                          { value: 'bicec', label: 'BICEC' },
-                          { value: 'standard-chartered', label: 'Standard Chartered' },
-                          { value: 'other', label: 'Autre banque' }
-                        ].map((provider) => (
-                          <label key={provider.value} className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-harvests-light">
-                            <input
-                              type="radio"
-                              name="paymentProvider"
-                              value={provider.value}
-                              checked={orderData.paymentProvider === provider.value}
-                              onChange={(e) => handleInputChange('', 'paymentProvider', e.target.value)}
-                              className="h-4 w-4 text-harvests-green focus:ring-harvests-green"
-                            />
-                            <span className="ml-3 text-sm font-medium text-gray-900">{provider.label}</span>
-                          </label>
-                        ))}
-                      </div>
-                      
-                      {/* Détails du virement bancaire */}
-                      <div className="mt-6 space-y-4">
-                        <h3 className="text-sm font-medium text-gray-700">Informations de virement</h3>
-                        
-                        {/* Numéro de compte */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Numéro de compte *
-                          </label>
-                          <input
-                            type="text"
-                            value={orderData.bankDetails?.accountNumber || ''}
-                            onChange={(e) => handleInputChange('bankDetails', 'accountNumber', e.target.value)}
-                            placeholder="Numéro de compte bancaire"
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-harvests-green"
-                            required
-                          />
-                        </div>
-                        
-                        {/* Code SWIFT/BIC */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Code SWIFT/BIC
-                          </label>
-                          <input
-                            type="text"
-                            value={orderData.bankDetails?.swiftCode || ''}
-                            onChange={(e) => handleInputChange('bankDetails', 'swiftCode', e.target.value.toUpperCase())}
-                            placeholder="Code SWIFT de la banque"
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-harvests-green"
-                          />
-                        </div>
-                        
-                        {/* Instructions spéciales */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Instructions de virement
-                          </label>
-                          <textarea
-                            value={orderData.bankDetails?.instructions || ''}
-                            onChange={(e) => handleInputChange('bankDetails', 'instructions', e.target.value)}
-                            placeholder="Instructions spéciales pour le virement..."
-                            rows={3}
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-harvests-green"
-                          />
-                        </div>
-                        
-                        {/* Information sur le virement */}
-                        <div className="flex items-start space-x-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                          <FiInfo className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                          <div className="text-sm text-yellow-700">
-                            <p className="font-medium">Instructions de virement</p>
-                            <p>Vous recevrez les détails complets du virement par email après confirmation de votre commande.</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Paiement à la livraison - Pas de provider nécessaire */}
                   {orderData.paymentMethod === 'cash' && (
                     <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <div className="flex items-center">
-                        <FiInfo className="h-5 w-5 text-green-600 mr-2" />
-                      <div>
+                      <div className="flex items-start">
+                        <FiInfo className="h-5 w-5 text-green-600 mr-2 mt-0.5" />
+                        <div>
                           <h3 className="text-sm font-medium text-green-800">Paiement à la livraison</h3>
                           <p className="text-sm text-green-700 mt-1">
-                            Vous paierez en espèces lors de la réception de votre commande. 
-                            Aucune information de paiement supplémentaire n'est requise.
+                            Préparez le montant exact pour le livreur. Vous recevrez un reçu une fois la commande remise.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {orderData.paymentMethod === 'paypal' && (
+                    <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-start">
+                        <FiShield className="h-5 w-5 text-blue-600 mr-2 mt-0.5" />
+                        <div>
+                          <h3 className="text-sm font-medium text-blue-800">Paiement sécurisé via PayPal</h3>
+                          <p className="text-sm text-blue-700 mt-1">
+                            Après validation, vous serez redirigé vers PayPal pour autoriser le paiement. Aucune information sensible n’est stockée par Harvests.
                           </p>
                         </div>
                       </div>
@@ -1140,46 +915,15 @@ const Checkout = () => {
                     <div>
                       <h3 className="text-md font-medium text-gray-900 mb-3">Paiement</h3>
                       <div className="text-sm text-gray-600">
-                        <p>Méthode: {orderData.paymentMethod === 'mobile-money' ? 'Mobile Money' : 
-                                  orderData.paymentMethod === 'card' ? 'Carte bancaire' :
-                                  orderData.paymentMethod === 'cash' ? 'Paiement à la livraison' : 'Virement bancaire'}</p>
-                        
-                        {/* Mobile Money */}
-                        {orderData.paymentMethod === 'mobile-money' && orderData.paymentProvider && (
-                          <p>Opérateur: {orderData.paymentProvider === 'orange-money' ? 'Orange Money' :
-                                        orderData.paymentProvider === 'mtn-money' ? 'MTN Mobile Money' : 'Express Union'}</p>
-                        )}
-                        
-                        {/* Carte bancaire */}
-                        {orderData.paymentMethod === 'card' && orderData.paymentProvider && (
+                        <p>Méthode: {orderData.paymentMethod === 'paypal' ? 'PayPal' : 'Paiement à la livraison'}</p>
+
+                        {orderData.paymentMethod === 'paypal' && (
                           <div>
-                            <p>Type de carte: {orderData.paymentProvider === 'visa' ? 'Visa' :
-                                             orderData.paymentProvider === 'mastercard' ? 'Mastercard' :
-                                             orderData.paymentProvider === 'american-express' ? 'American Express' : 'Carte locale'}</p>
-                            {orderData.cardDetails.cardholderName && (
-                              <p>Titulaire: {orderData.cardDetails.cardholderName}</p>
-                            )}
-                            {orderData.cardDetails.number && (
-                              <p>Numéro: **** **** **** {orderData.cardDetails.number.slice(-4)}</p>
-                            )}
+                            <p>Provider: PayPal</p>
+                            <p className="text-blue-600">Vous serez redirigé vers PayPal pour confirmer le paiement.</p>
                           </div>
                         )}
-                        
-                        {/* Virement bancaire */}
-                        {orderData.paymentMethod === 'bank-transfer' && orderData.paymentProvider && (
-                          <div>
-                            <p>Banque: {orderData.paymentProvider === 'afriland-first-bank' ? 'Afriland First Bank' :
-                                       orderData.paymentProvider === 'ecobank' ? 'Ecobank' :
-                                       orderData.paymentProvider === 'societe-generale' ? 'Société Générale' :
-                                       orderData.paymentProvider === 'bicec' ? 'BICEC' :
-                                       orderData.paymentProvider === 'standard-chartered' ? 'Standard Chartered' : 'Autre banque'}</p>
-                            {orderData.bankDetails?.accountNumber && (
-                              <p>Compte: ****{orderData.bankDetails.accountNumber.slice(-4)}</p>
-                            )}
-                          </div>
-                        )}
-                        
-                        {/* Paiement à la livraison */}
+
                         {orderData.paymentMethod === 'cash' && (
                           <p className="text-green-600 font-medium">✓ Paiement en espèces à la livraison</p>
                         )}
@@ -1271,10 +1015,12 @@ const Checkout = () => {
                   <span className="font-medium">{totals.deliveryFee.toLocaleString()} FCFA</span>
                 </div>
                 
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">TVA (19.25%)</span>
-                  <span className="font-medium">{totals.taxes.toLocaleString()} FCFA</span>
-                </div>
+                {totals.taxes > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">TVA</span>
+                    <span className="font-medium">{totals.taxes.toLocaleString()} FCFA</span>
+                  </div>
+                )}
                 
                 {totals.discount > 0 && (
                   <div className="flex justify-between text-sm">
@@ -1291,6 +1037,26 @@ const Checkout = () => {
                     </span>
                   </div>
                 </div>
+                {isEstimating && (
+                  <p className="text-xs text-blue-500 text-right mt-1">
+                    Estimation des frais en cours...
+                  </p>
+                )}
+                {!isEstimating && deliveryDetail && !estimationError && (
+                  <p className="text-xs text-gray-500 text-right mt-1">
+                    {deliveryDetail.reason}
+                  </p>
+                )}
+                {!isEstimating && !deliveryDetail && !estimationError && (
+                  <p className="text-xs text-gray-500 text-right mt-1">
+                    Montant calculé via le forfait {deliveryMethodLabels[orderData.deliveryMethod] || orderData.deliveryMethod}.
+                  </p>
+                )}
+                {estimationError && (
+                  <p className="text-xs text-red-500 text-right mt-1">
+                    {estimationError}
+                  </p>
+                )}
               </div>
 
               {/* Security Info */}

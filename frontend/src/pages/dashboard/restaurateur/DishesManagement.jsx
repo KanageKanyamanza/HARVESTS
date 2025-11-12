@@ -18,6 +18,7 @@ import {
   FiExternalLink,
   FiRefreshCw
 } from 'react-icons/fi';
+import { toPlainText } from '../../../utils/textHelpers';
 
 const DishesManagement = () => {
   const navigate = useNavigate();
@@ -33,41 +34,14 @@ const DishesManagement = () => {
     try {
       setLoading(true);
       const response = await restaurateurService.getDishes();
-      let dishes = response.data?.data?.dishes || [];
-      
-      // Normaliser les données pour garantir la cohérence - TOUJOURS au format multilingue
-      dishes = dishes.map(dish => {
-        // S'assurer que name est TOUJOURS un objet avec fr/en
-        if (!dish.name) {
-          dish.name = { fr: '', en: '' };
-        } else if (typeof dish.name === 'string') {
-          dish.name = { fr: dish.name, en: dish.name };
-        } else if (typeof dish.name === 'object' && dish.name !== null) {
-          // S'assurer que les propriétés fr/en existent
-          dish.name = {
-            fr: dish.name.fr || dish.name.en || '',
-            en: dish.name.en || dish.name.fr || ''
-          };
-        } else {
-          dish.name = { fr: '', en: '' };
-        }
-        
-        // S'assurer que description est TOUJOURS un objet avec fr/en
-        if (!dish.description) {
-          dish.description = { fr: '', en: '' };
-        } else if (typeof dish.description === 'string') {
-          dish.description = { fr: dish.description, en: dish.description };
-        } else if (typeof dish.description === 'object' && dish.description !== null) {
-          dish.description = {
-            fr: dish.description.fr || dish.description.en || '',
-            en: dish.description.en || dish.description.fr || ''
-          };
-        } else {
-          dish.description = { fr: '', en: '' };
-        }
-        
-        // Normaliser l'image du plat
-        return normalizeDishImage(dish);
+      const dishes = (response.data?.data?.dishes || []).map(dish => {
+        const normalizedDish = normalizeDishImage(dish);
+        return {
+          ...normalizedDish,
+          name: toPlainText(normalizedDish.name, ''),
+          description: toPlainText(normalizedDish.description, ''),
+          shortDescription: toPlainText(normalizedDish.shortDescription, '')
+        };
       });
       
       setDishes(dishes);
@@ -104,36 +78,16 @@ const DishesManagement = () => {
       showSuccess('Plat mis à jour. Une nouvelle validation est nécessaire.');
 
       if (response?.data?.data?.dish) {
-        const updatedDish = response.data.data.dish;
-
-        if (!updatedDish.name) {
-          updatedDish.name = { fr: '', en: '' };
-        } else if (typeof updatedDish.name === 'string') {
-          updatedDish.name = { fr: updatedDish.name, en: updatedDish.name };
-        } else if (typeof updatedDish.name === 'object' && updatedDish.name !== null) {
-          updatedDish.name = {
-            fr: updatedDish.name.fr || updatedDish.name.en || '',
-            en: updatedDish.name.en || updatedDish.name.fr || ''
-          };
-        } else {
-          updatedDish.name = { fr: '', en: '' };
-        }
-
-        if (!updatedDish.description) {
-          updatedDish.description = { fr: '', en: '' };
-        } else if (typeof updatedDish.description === 'string') {
-          updatedDish.description = { fr: updatedDish.description, en: updatedDish.description };
-        } else if (typeof updatedDish.description === 'object' && updatedDish.description !== null) {
-          updatedDish.description = {
-            fr: updatedDish.description.fr || updatedDish.description.en || '',
-            en: updatedDish.description.en || updatedDish.description.fr || ''
-          };
-        } else {
-          updatedDish.description = { fr: '', en: '' };
-        }
+        const updatedDish = normalizeDishImage(response.data.data.dish);
+        const formattedDish = {
+          ...updatedDish,
+          name: toPlainText(updatedDish.name, ''),
+          description: toPlainText(updatedDish.description, ''),
+          shortDescription: toPlainText(updatedDish.shortDescription, '')
+        };
 
         setDishes(prev => prev.map(dish =>
-          dish._id === updatedDish._id ? updatedDish : dish
+          dish._id === formattedDish._id ? formattedDish : dish
         ));
       }
 
@@ -169,50 +123,7 @@ const DishesManagement = () => {
     setIsEditModalOpen(true);
   };
 
-  // Normaliser les données une fois avant le filtrage (double protection)
-  const normalizedDishes = useMemo(() => {
-    return dishes.map(dish => {
-      if (!dish) return dish;
-      
-      // S'assurer que name est TOUJOURS un objet
-      if (!dish.name || typeof dish.name !== 'object' || dish.name === null) {
-        if (typeof dish.name === 'string') {
-          dish = { ...dish, name: { fr: dish.name, en: dish.name } };
-        } else {
-          dish = { ...dish, name: { fr: '', en: '' } };
-        }
-      } else {
-        dish = { 
-          ...dish, 
-          name: {
-            fr: dish.name.fr || dish.name.en || '',
-            en: dish.name.en || dish.name.fr || ''
-          }
-        };
-      }
-      
-      // S'assurer que description est TOUJOURS un objet
-      if (!dish.description || typeof dish.description !== 'object' || dish.description === null) {
-        if (typeof dish.description === 'string') {
-          dish = { ...dish, description: { fr: dish.description, en: dish.description } };
-        } else {
-          dish = { ...dish, description: { fr: '', en: '' } };
-        }
-      } else {
-        dish = { 
-          ...dish, 
-          description: {
-            fr: dish.description.fr || dish.description.en || '',
-            en: dish.description.en || dish.description.fr || ''
-          }
-        };
-      }
-      
-      return dish;
-    });
-  }, [dishes]);
-
-  const filteredDishes = normalizedDishes.filter(dish => {
+  const filteredDishes = dishes.filter(dish => {
     try {
       if (!dish) return false; // Protection contre les données invalides
       
@@ -226,27 +137,8 @@ const DishesManagement = () => {
       }
       
       // Extraire et convertir en string de manière sécurisée
-      let dishName = '';
-      if (dish.name) {
-        if (typeof dish.name === 'string') {
-          dishName = dish.name;
-        } else if (typeof dish.name === 'object' && dish.name !== null) {
-          dishName = dish.name.fr || dish.name.en || '';
-        }
-      }
-      
-      let dishDescription = '';
-      if (dish.description) {
-        if (typeof dish.description === 'string') {
-          dishDescription = dish.description;
-        } else if (typeof dish.description === 'object' && dish.description !== null) {
-          dishDescription = dish.description.fr || dish.description.en || '';
-        }
-      }
-      
-      // Conversion finale en string pour sécurité - jamais null/undefined
-      const dishNameStr = String(dishName || '').trim();
-      const dishDescriptionStr = String(dishDescription || '').trim();
+      const dishNameStr = toPlainText(dish.name, '').trim();
+      const dishDescriptionStr = toPlainText(dish.description, '').trim();
       
       // Vérification supplémentaire avant toLowerCase
       const searchTermLower = String(searchTerm || '').toLowerCase().trim();
@@ -405,7 +297,7 @@ const DishesManagement = () => {
                       <div className="w-full h-32 mb-3 rounded-lg overflow-hidden">
                         <CloudinaryImage
                           src={getDishImageUrl(dish)}
-                          alt={dish.name?.fr || dish.name?.en || dish.name || 'Plat'}
+                          alt={toPlainText(dish.name, 'Plat')}
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             e.target.style.display = 'none';
@@ -425,7 +317,7 @@ const DishesManagement = () => {
                     {/* Informations du plat */}
                     <div className="space-y-2">
                       <div className="flex items-start justify-between gap-2">
-                        <h3 className="font-medium text-gray-900 line-clamp-1">{dish.name?.fr || dish.name?.en || dish.name || 'Plat'}</h3>
+                        <h3 className="font-medium text-gray-900 line-clamp-1">{toPlainText(dish.name, 'Plat')}</h3>
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusInfo.classes}`}>
                           {statusInfo.label}
                         </span>
@@ -444,7 +336,7 @@ const DishesManagement = () => {
                         )}
                       </div>
 
-                      <p className="text-sm text-gray-600 line-clamp-2">{dish.description?.fr || dish.description?.en || dish.description || ''}</p>
+                      <p className="text-sm text-gray-600 line-clamp-2">{toPlainText(dish.description, '')}</p>
 
                       <div className="flex items-center justify-between text-sm text-gray-500">
                         <span className="flex items-center">
@@ -535,9 +427,8 @@ const DishesManagement = () => {
 
 // Composant pour le formulaire de plat
 const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
-  // Extraire les données du Product pour le formulaire
-  const dishName = dish?.name?.fr || dish?.name?.en || dish?.name || '';
-  const dishDescription = dish?.description?.fr || dish?.description?.en || dish?.description || '';
+  const dishName = toPlainText(dish?.name, '');
+  const dishDescription = toPlainText(dish?.description, '');
   const dishImage = getDishImageUrl(dish) || '';
   const dishCategory = dish?.dishInfo?.category || dish?.category || 'plat';
   const dishPreparationTime = dish?.dishInfo?.preparationTime || dish?.preparationTime || 30;
@@ -607,7 +498,12 @@ const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    onSubmit({
+      ...formData,
+      name: toPlainText(formData.name, ''),
+      description: toPlainText(formData.description, ''),
+      shortDescription: toPlainText(formData.description, '').slice(0, 160)
+    });
   };
 
   return (

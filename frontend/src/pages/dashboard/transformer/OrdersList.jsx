@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../../hooks/useAuth';
 import { transformerService } from '../../../services';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
@@ -27,57 +27,69 @@ const OrdersList = () => {
   }, [location.search]);
 
 
-  useEffect(() => {
-    const loadOrders = async () => {
-      if (user?.userType === 'transformer') {
-      try {
-        setLoading(true);
-        setEmailVerificationError(null);
-          
-        const response = await transformerService.getMyOrders();
-          const ordersData = response.data.data?.orders || response.data.orders || [];
-          
-          setOrders(ordersData);
-      } catch (error) {
-        console.error('Erreur lors du chargement des commandes:', error);
-        
-        // Vérifier si c'est une erreur de vérification d'email
-        if (error.response?.status === 403 && error.response?.data?.code === 'EMAIL_VERIFICATION_REQUIRED') {
-          setEmailVerificationError(error.response.data);
-        }
-        
-        setOrders([]);
-      } finally {
-        setLoading(false);
+  const getOrderStatus = useCallback(
+    (order) => order?.segment?.status || order?.status || 'pending',
+    []
+  );
+
+  const loadOrders = useCallback(async () => {
+    if (user?.userType !== 'transformer') return;
+
+    try {
+      setLoading(true);
+      setEmailVerificationError(null);
+
+      const response = await transformerService.getMyOrders();
+      const ordersData = response.data.data?.orders || response.data.orders || [];
+
+      if (Array.isArray(ordersData)) {
+        const missingSegments = ordersData.filter(order => !order.segment && order.items?.length);
+        if (missingSegments.length > 0) {
+          console.warn(`[Harvests] ${missingSegments.length} commande(s) Transformer sans segment détectée(s).`);
         }
       }
-    };
 
+      setOrders(Array.isArray(ordersData) ? ordersData : []);
+    } catch (error) {
+      console.error('Erreur lors du chargement des commandes:', error);
+
+      if (error.response?.status === 403 && error.response?.data?.code === 'EMAIL_VERIFICATION_REQUIRED') {
+        setEmailVerificationError(error.response.data);
+      }
+
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.userType]);
+
+  useEffect(() => {
     loadOrders();
-  }, [user]);
+  }, [loadOrders]);
 
-  const updateOrderStatus = async (orderId, newStatus) => {
+  const updateOrderStatus = async (order, newStatus, segmentId, options = {}) => {
+    const orderId = order?._id;
+    if (!orderId) return;
+
     try {
       console.log(`🔄 Mise à jour du statut vers: ${newStatus} pour la commande: ${orderId}`);
-      
-      // Marquer cette commande comme en cours de mise à jour
+
       setUpdatingOrders(prev => new Set([...prev, orderId]));
-      
-      // Appel API pour mettre à jour le statut
-      const response = await transformerService.updateOrderStatus(orderId, { status: newStatus });
-      
+
+      const payload = {
+        status: newStatus,
+        segmentId,
+        ...(options.itemId ? { itemId: options.itemId } : {}),
+        ...(options.itemIds ? { itemIds: options.itemIds } : {})
+      };
+
+      const response = await transformerService.updateOrderStatus(orderId, payload);
+
       console.log('📡 Réponse API:', response);
-      
+
       if (response.data.status === 'success') {
-        // Mise à jour optimiste de l'état local
-        setOrders(prevOrders => 
-          prevOrders.map(order => 
-            order._id === orderId 
-              ? { ...order, status: newStatus }
-              : order
-          )
-        );
         console.log(`✅ Commande ${orderId} ${newStatus} avec succès`);
+        await loadOrders();
       } else {
         console.error('❌ Erreur dans la réponse API:', response.data);
       }
@@ -108,9 +120,10 @@ const OrdersList = () => {
       matchesStatus = true;
     } else if (statusFilter === 'active') {
       // Toutes les commandes non terminées
-      matchesStatus = !['completed', 'cancelled'].includes(order.status);
+      const status = getOrderStatus(order);
+      matchesStatus = !['completed', 'cancelled'].includes(status);
     } else {
-      matchesStatus = order.status === statusFilter;
+      matchesStatus = getOrderStatus(order) === statusFilter;
     }
     
     return matchesSearch && matchesStatus;
@@ -166,6 +179,7 @@ const OrdersList = () => {
                 <option value="pending">En attente</option>
                 <option value="confirmed">Confirmées</option>
                 <option value="preparing">En préparation</option>
+                <option value="ready-for-pickup">Prêtes pour collecte</option>
                 <option value="in-transit">En transit</option>
                 <option value="delivered">Livrées</option>
                 <option value="completed">Terminées</option>

@@ -8,6 +8,7 @@ const Message = require('../models/Message');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const crypto = require('crypto');
+const { toPlainText } = require('../utils/localization');
 
 // Fonction pour créer un token JWT
 const createSendToken = (admin, statusCode, req, res) => {
@@ -1156,7 +1157,7 @@ exports.approveProduct = catchAsync(async (req, res, next) => {
   if (product.producer) {
     const Notification = require('../models/Notification');
     
-    const productName = typeof product.name === 'object' ? product.name.fr || product.name.en : product.name;
+    const productName = toPlainText(product.name, 'Produit');
     const producerName = `${product.producer.firstName} ${product.producer.lastName}`;
     
     await Notification.create({
@@ -1211,7 +1212,7 @@ exports.rejectProduct = catchAsync(async (req, res, next) => {
   if (product.producer) {
     const Notification = require('../models/Notification');
     
-    const productName = typeof product.name === 'object' ? product.name.fr || product.name.en : product.name;
+    const productName = toPlainText(product.name, 'Produit');
     const producerName = `${product.producer.firstName} ${product.producer.lastName}`;
     
     await Notification.create({
@@ -2112,6 +2113,11 @@ exports.getAnalytics = catchAsync(async (req, res, next) => {
     }
   ]);
   
+  const normalizedTopProducts = topProducts.map((product) => ({
+    ...product,
+    name: toPlainText(product.name, 'Produit')
+  }));
+
   const analytics = {
     overview: {
       totalUsers,
@@ -2130,7 +2136,7 @@ exports.getAnalytics = catchAsync(async (req, res, next) => {
       revenueTrends,
       categoryDistribution,
       topProducers,
-      topProducts
+      topProducts: normalizedTopProducts
     }
   };
   
@@ -2193,10 +2199,9 @@ exports.getAllDishes = catchAsync(async (req, res, next) => {
   if (search) {
     const regex = new RegExp(search, 'i');
     query.$or = [
-      { 'name.fr': regex },
-      { 'name.en': regex },
-      { 'description.fr': regex },
-      { 'description.en': regex }
+      { name: regex },
+      { description: regex },
+      { shortDescription: regex }
     ];
   }
 
@@ -2243,8 +2248,8 @@ exports.getAllDishes = catchAsync(async (req, res, next) => {
 
     return {
       _id: product._id,
-      name: product.name?.fr || product.name?.en || '',
-      description: product.description?.fr || product.description?.en || '',
+      name: toPlainText(product.name, ''),
+      description: toPlainText(product.description, ''),
       price: product.price,
       image: imageUrl,
       images: product.images || [],
@@ -2298,8 +2303,8 @@ exports.getDishById = catchAsync(async (req, res, next) => {
   // Formater pour compatibilité avec le frontend
   const dish = {
     _id: product._id,
-    name: product.name?.fr || product.name?.en || '',
-    description: product.description?.fr || product.description?.en || '',
+    name: toPlainText(product.name, ''),
+    description: toPlainText(product.description, ''),
     price: product.price,
     image: product.images?.[0]?.url,
     category: product.dishInfo?.category,
@@ -2339,10 +2344,14 @@ exports.updateDish = catchAsync(async (req, res, next) => {
   }
   
   // Filtrer les champs à mettre à jour
-  const allowedFields = ['name', 'description', 'price', 'images', 'dishInfo', 'isActive'];
+  const allowedFields = ['name', 'description', 'shortDescription', 'price', 'images', 'dishInfo', 'isActive'];
   Object.keys(updates).forEach(key => {
     if (allowedFields.includes(key) && key !== '_id' && key !== 'restaurateur') {
-      product[key] = updates[key];
+      if (['name', 'description', 'shortDescription'].includes(key)) {
+        product[key] = toPlainText(updates[key], product[key]);
+      } else {
+        product[key] = updates[key];
+      }
     }
   });
   

@@ -13,6 +13,7 @@ import {
 } from 'react-icons/fi';
 import { getVendorAverageRating, getVendorReviewCount, formatAverageRating, getProductAverageRating, getProductReviewCount } from '../../utils/vendorRatings';
 import { getDishImageUrl } from '../../utils/dishImageUtils';
+import { toPlainText } from '../../utils/textHelpers';
 
 // Configuration pour les producteurs
 export const producerConfig = {
@@ -81,8 +82,8 @@ export const producerConfig = {
     currency: 'XOF',
     minimumFractionDigits: 0
   }).format(price),
-  getItemName: (product) => product.name?.fr || product.name?.en || 'Produit sans nom',
-  getItemDescription: (product) => product.description?.fr || product.description?.en || 'Aucune description',
+  getItemName: (product) => toPlainText(product.name, 'Produit sans nom'),
+  getItemDescription: (product) => toPlainText(product.description, 'Aucune description'),
   getItemPrice: (product) => product.price,
   getItemImage: (product) => product.images?.[0]?.url,
   getItemExtraInfo: (product) => `${product.inventory?.quantity || 0} en stock`,
@@ -339,8 +340,8 @@ export const restaurateurConfig = {
     currency: 'XOF',
     minimumFractionDigits: 0
   }).format(price),
-  getItemName: (dish) => dish.name?.fr || dish.name?.en || dish.name || 'Plat',
-  getItemDescription: (dish) => dish.description?.fr || dish.description?.en || dish.description || 'Aucune description',
+  getItemName: (dish) => toPlainText(dish.name, 'Plat'),
+  getItemDescription: (dish) => toPlainText(dish.description, 'Aucune description'),
   getItemPrice: (dish) => dish.price?.value ?? dish.price ?? 0,
   getItemImage: (dish) => getDishImageUrl(dish),
   getItemExtraInfo: (dish) => `${dish.preparationTime || dish.dishInfo?.preparationTime || 0} min`,
@@ -563,8 +564,8 @@ export const transformerConfig = {
     currency: 'XOF',
     minimumFractionDigits: 0
   }).format(price),
-  getItemName: (product) => product.name?.fr || product.name?.en || 'Produit sans nom',
-  getItemDescription: (product) => product.description?.fr || product.description?.en || 'Aucune description',
+  getItemName: (product) => toPlainText(product.name, 'Produit sans nom'),
+  getItemDescription: (product) => toPlainText(product.description, 'Aucune description'),
   getItemPrice: (product) => product.price,
   getItemImage: (product) => product.images?.[0]?.url,
   getItemExtraInfo: (product) => `${product.inventory?.quantity || 0} en stock`,

@@ -1,4 +1,8 @@
 const mongoose = require('mongoose');
+const {
+  ensureSegmentsForOrder,
+  updateOrderStatusFromSegments
+} = require('../utils/orderSegments');
 
 // Schéma pour les articles de commande
 const orderItemSchema = new mongoose.Schema({
@@ -10,6 +14,10 @@ const orderItemSchema = new mongoose.Schema({
   variant: {
     type: mongoose.Schema.Types.ObjectId,
     required: false // Seulement si le produit a des variantes
+  },
+  seller: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
   },
   productSnapshot: {
     name: String,
@@ -43,7 +51,99 @@ const orderItemSchema = new mongoose.Schema({
     value: Number,
     unit: String
   },
-  specialInstructions: String
+  specialInstructions: String,
+  status: {
+    type: String,
+    enum: [
+      'pending',
+      'confirmed',
+      'preparing',
+      'ready-for-pickup',
+      'in-transit',
+      'delivered',
+      'completed',
+      'cancelled',
+      'rejected',
+      'refunded',
+      'disputed'
+    ],
+    default: 'pending'
+  },
+  statusHistory: [{
+    status: String,
+    timestamp: {
+      type: Date,
+      default: Date.now
+    },
+    updatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    note: String,
+    reason: String
+  }]
+});
+
+const segmentHistorySchema = new mongoose.Schema({
+  status: String,
+  timestamp: {
+    type: Date,
+    default: Date.now
+  },
+  updatedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  note: String,
+  reason: String
+}, { _id: false });
+
+const orderSegmentSchema = new mongoose.Schema({
+  seller: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  status: {
+    type: String,
+    enum: [
+      'pending',
+      'confirmed',
+      'preparing',
+      'ready-for-pickup',
+      'in-transit',
+      'delivered',
+      'completed',
+      'cancelled',
+      'refunded',
+      'disputed'
+    ],
+    default: 'pending'
+  },
+  subtotal: {
+    type: Number,
+    default: 0
+  },
+  deliveryFee: {
+    type: Number,
+    default: 0
+  },
+  discount: {
+    type: Number,
+    default: 0
+  },
+  taxes: {
+    type: Number,
+    default: 0
+  },
+  total: {
+    type: Number,
+    default: 0
+  },
+  items: [orderItemSchema],
+  history: [segmentHistorySchema]
+}, {
+  timestamps: true
 });
 
 // Schéma pour l'adresse de livraison
@@ -81,10 +181,16 @@ const deliveryAddressSchema = new mongoose.Schema({
 const paymentSchema = new mongoose.Schema({
   method: {
     type: String,
-    enum: ['cash', 'card', 'mobile-money', 'bank-transfer', 'crypto'],
+    enum: ['cash', 'paypal'],
     required: [true, 'Méthode de paiement requise']
   },
-  provider: String, // ex: "Orange Money", "MTN Mobile Money", "Visa"
+  provider: {
+    type: String,
+    enum: ['cash-on-delivery', 'paypal'],
+    default: function() {
+      return this.method === 'cash' ? 'cash-on-delivery' : 'paypal';
+    }
+  },
   status: {
     type: String,
     enum: ['pending', 'processing', 'completed', 'failed', 'refunded', 'cancelled'],
@@ -132,6 +238,12 @@ const deliverySchema = new mongoose.Schema({
   deliveryFee: {
     type: Number,
     default: 0
+  },
+  feeDetail: {
+    scope: String,
+    method: String,
+    reason: String,
+    amount: Number
   },
   deliveryAddress: deliveryAddressSchema,
   pickupAddress: deliveryAddressSchema,
@@ -182,12 +294,14 @@ const orderSchema = new mongoose.Schema({
   
   seller: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: [true, 'Vendeur requis']
+    ref: 'User'
   },
   
   // Articles commandés
   items: [orderItemSchema],
+
+  // Segments par vendeur pour commandes multi-vendeurs
+  segments: [orderSegmentSchema],
   
   // Montants
   subtotal: {
@@ -200,6 +314,12 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     default: 0,
     min: [0, 'Les frais de livraison ne peuvent pas être négatifs']
+  },
+  deliveryFeeDetail: {
+    scope: String,
+    method: String,
+    reason: String,
+    amount: Number
   },
   
   taxes: {
@@ -459,6 +579,37 @@ function getCountryPrefix(countryCode) {
 }
 
 // Middleware pre-save
+orderSchema.pre('validate', async function(next) {
+  try {
+    if (this.payment) {
+      const method = (this.payment.method || '').toLowerCase();
+      const normalizedMethod = method === 'paypal' ? 'paypal' : 'cash';
+      if (!this.payment.method) {
+        this.payment.method = normalizedMethod;
+      }
+      if (!this.payment.provider || this.payment.provider === '') {
+        this.payment.provider = normalizedMethod === 'paypal' ? 'paypal' : 'cash-on-delivery';
+      }
+    }
+
+    if (!this.orderNumber) {
+      const countryCode = this.delivery?.deliveryAddress?.country ||
+        this.billingAddress?.country ||
+        'CM';
+      const countryPrefix = getCountryPrefix(countryCode);
+      const timestamp = Date.now().toString(36);
+      const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const count = await this.constructor.countDocuments();
+      const countStr = count.toString().padStart(4, '0');
+      this.orderNumber = `H${countryPrefix}${countStr}${timestamp.substring(-4)}${random}`;
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 orderSchema.pre('save', async function(next) {
   // Générer le numéro de commande seulement s'il n'est pas déjà défini
   if (this.isNew && !this.orderNumber) {
@@ -502,11 +653,31 @@ orderSchema.pre('save', async function(next) {
 // Méthodes du schéma
 orderSchema.methods.updateStatus = function(newStatus, updatedBy, reason = null, note = null) {
   const oldStatus = this.status;
+  const segmentsCreated = ensureSegmentsForOrder(this);
+  if (segmentsCreated) {
+    // Les segments seront enregistrés lors du save
+  }
+
+  const now = new Date();
+
+  if (Array.isArray(this.segments) && this.segments.length > 0) {
+    this.segments.forEach((segment) => {
+      segment.status = newStatus;
+      segment.history = segment.history || [];
+      segment.history.push({
+        status: newStatus,
+        timestamp: now,
+        updatedBy,
+        reason,
+        note
+      });
+    });
+  }
+
   this.status = newStatus;
   this.modifiedBy = updatedBy;
   
   // Mettre à jour les dates spécifiques
-  const now = new Date();
   switch (newStatus) {
     case 'confirmed':
       this.confirmedAt = now;
@@ -528,6 +699,7 @@ orderSchema.methods.updateStatus = function(newStatus, updatedBy, reason = null,
   }
   
   // Ajouter à l'historique
+  this.statusHistory = this.statusHistory || [];
   this.statusHistory.push({
     status: newStatus,
     timestamp: now,
@@ -535,7 +707,9 @@ orderSchema.methods.updateStatus = function(newStatus, updatedBy, reason = null,
     reason,
     note
   });
-  
+ 
+  updateOrderStatusFromSegments(this, newStatus);
+
   return this.save();
 };
 
@@ -664,10 +838,17 @@ orderSchema.statics.getOrdersByStatus = function(status, userId = null, userType
   const query = { status };
   
   if (userId) {
-    if (userType === 'buyer' || userType === 'consumer') {
+    if (['buyer', 'consumer'].includes(userType)) {
       query.buyer = userId;
-    } else if (userType === 'seller' || ['producer', 'transformer'].includes(userType)) {
-      query.seller = userId;
+    } else if (['seller', 'producer', 'transformer', 'restaurateur'].includes(userType)) {
+      query.$or = [
+        { seller: userId },
+        { 'segments.seller': userId },
+        { 'items.seller': userId },
+        { 'items.productSnapshot.producer': userId },
+        { 'items.productSnapshot.transformer': userId },
+        { 'items.productSnapshot.restaurateur': userId }
+      ];
     } else if (userType === 'transporter') {
       query['delivery.transporter'] = userId;
     }
@@ -676,6 +857,10 @@ orderSchema.statics.getOrdersByStatus = function(status, userId = null, userType
   return this.find(query)
     .populate('buyer', 'firstName lastName email')
     .populate('seller', 'farmName companyName firstName lastName')
+    .populate({
+      path: 'segments.seller',
+      select: 'farmName companyName firstName lastName email phone userType'
+    })
     .populate('items.product', 'name images price')
     .sort({ createdAt: -1 });
 };
