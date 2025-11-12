@@ -1624,67 +1624,59 @@ function getValidStatusTransitions(currentStatus, userType) {
   return transitions[currentStatus]?.[userType] || [];
 }
 
-// Envoyer les notifications selon le statut
+// Envoyer les notifications selon le statut à tous les acteurs concernés
 async function sendStatusNotifications(order, newStatus) {
-  const notifications = {
+  // Notifications pour l'acheteur
+  const buyerNotifications = {
     confirmed: {
-      recipient: order.buyer,
       type: 'order_confirmed',
       category: 'order',
       title: 'Commande confirmée',
       message: `Votre commande ${order.orderNumber} a été confirmée par le vendeur`
     },
     preparing: {
-      recipient: order.buyer,
       type: 'order_preparing',
       category: 'order',
       title: 'Commande en préparation',
       message: `Votre commande ${order.orderNumber} est en cours de préparation`
     },
     'ready-for-pickup': {
-      recipient: order.buyer,
       type: 'order_ready_for_pickup',
       category: 'order',
       title: 'Commande prête',
       message: `Votre commande ${order.orderNumber} est prête pour la collecte`
     },
     'in-transit': {
-      recipient: order.buyer,
       type: 'order_in_transit',
       category: 'order',
       title: 'Commande en transit',
       message: `Votre commande ${order.orderNumber} est en route`
     },
     delivered: {
-      recipient: order.buyer,
       type: 'order_delivered',
       category: 'order',
       title: 'Commande livrée',
       message: `Votre commande ${order.orderNumber} a été livrée`
     },
     completed: {
-      recipient: order.buyer,
       type: 'order_completed',
       category: 'order',
       title: 'Commande terminée',
       message: `Votre commande ${order.orderNumber} est terminée. Merci pour votre achat !`
     },
     cancelled: {
-      recipient: order.buyer,
       type: 'order_cancelled',
       category: 'order',
       title: 'Commande annulée',
       message: `Votre commande ${order.orderNumber} a été annulée`
     },
     refunded: {
-      recipient: order.buyer,
       type: 'order_refunded',
       category: 'order',
       title: 'Commande remboursée',
       message: `Votre commande ${order.orderNumber} a été remboursée`
     },
     disputed: {
-      recipient: order.buyer,
       type: 'order_disputed',
       category: 'order',
       title: 'Commande en litige',
@@ -1692,13 +1684,151 @@ async function sendStatusNotifications(order, newStatus) {
     }
   };
 
-  const notificationData = notifications[newStatus];
-  if (notificationData) {
+  // Notifications pour les vendeurs
+  const sellerNotifications = {
+    confirmed: {
+      type: 'order_confirmed_seller',
+      category: 'order',
+      title: 'Commande confirmée',
+      message: `Vous avez confirmé la commande ${order.orderNumber}`
+    },
+    preparing: {
+      type: 'order_preparing_seller',
+      category: 'order',
+      title: 'Commande en préparation',
+      message: `La commande ${order.orderNumber} est maintenant en préparation`
+    },
+    'ready-for-pickup': {
+      type: 'order_ready_for_pickup_seller',
+      category: 'order',
+      title: 'Commande prête pour collecte',
+      message: `La commande ${order.orderNumber} est prête pour la collecte par le transporteur`
+    },
+    'in-transit': {
+      type: 'order_in_transit_seller',
+      category: 'order',
+      title: 'Commande en transit',
+      message: `La commande ${order.orderNumber} a été prise en charge par le transporteur`
+    },
+    delivered: {
+      type: 'order_delivered_seller',
+      category: 'order',
+      title: 'Commande livrée',
+      message: `La commande ${order.orderNumber} a été livrée au client`
+    },
+    completed: {
+      type: 'order_completed_seller',
+      category: 'order',
+      title: 'Commande terminée',
+      message: `La commande ${order.orderNumber} est terminée. Paiement reçu.`
+    },
+    cancelled: {
+      type: 'order_cancelled_seller',
+      category: 'order',
+      title: 'Commande annulée',
+      message: `La commande ${order.orderNumber} a été annulée`
+    }
+  };
+
+  // Notifications pour le transporteur
+  const transporterNotifications = {
+    'ready-for-pickup': {
+      type: 'order_ready_for_pickup_transporter',
+      category: 'order',
+      title: 'Nouvelle collecte disponible',
+      message: `Une commande ${order.orderNumber} est prête pour collecte`
+    },
+    'in-transit': {
+      type: 'order_in_transit_transporter',
+      category: 'order',
+      title: 'Commande en transit',
+      message: `Vous transportez la commande ${order.orderNumber}`
+    },
+    delivered: {
+      type: 'order_delivered_transporter',
+      category: 'order',
+      title: 'Livraison effectuée',
+      message: `Vous avez livré la commande ${order.orderNumber} avec succès`
+    }
+  };
+
+  // Récupérer tous les vendeurs concernés
+  const sellerIds = new Set();
+  if (order.seller) {
+    sellerIds.add(order.seller.toString());
+  }
+  (order.segments || []).forEach(segment => {
+    if (segment.seller) {
+      sellerIds.add(segment.seller.toString());
+    }
+  });
+  (order.items || []).forEach(item => {
+    if (item.seller) {
+      sellerIds.add(item.seller.toString());
+    }
+  });
+
+  // Notifier l'acheteur
+  const buyerNotification = buyerNotifications[newStatus];
+  if (buyerNotification && order.buyer) {
     await Notification.createNotification({
-      ...notificationData,
+      recipient: order.buyer,
+      ...buyerNotification,
       data: {
         orderId: order._id,
-        orderNumber: order.orderNumber
+        orderNumber: order.orderNumber,
+        status: newStatus
+      },
+      actions: [{
+        type: 'view',
+        label: 'Voir la commande',
+        url: `/orders/${order._id}`
+      }],
+      channels: {
+        inApp: { enabled: true },
+        email: { enabled: true },
+        push: { enabled: true }
+      }
+    });
+  }
+
+  // Notifier tous les vendeurs concernés
+  const sellerNotification = sellerNotifications[newStatus];
+  if (sellerNotification && sellerIds.size > 0) {
+    const sellerNotificationsPromises = Array.from(sellerIds).map(sellerId =>
+      Notification.createNotification({
+        recipient: sellerId,
+        ...sellerNotification,
+        data: {
+          orderId: order._id,
+          orderNumber: order.orderNumber,
+          status: newStatus
+        },
+        actions: [{
+          type: 'view',
+          label: 'Voir la commande',
+          url: `/orders/${order._id}`
+        }],
+        channels: {
+          inApp: { enabled: true },
+          email: { enabled: true },
+          push: { enabled: true }
+        }
+      })
+    );
+    await Promise.all(sellerNotificationsPromises);
+  }
+
+  // Notifier le transporteur si applicable
+  const transporterNotification = transporterNotifications[newStatus];
+  if (transporterNotification && order.delivery?.transporter) {
+    await Notification.createNotification({
+      recipient: order.delivery.transporter,
+      ...transporterNotification,
+      data: {
+        orderId: order._id,
+        orderNumber: order.orderNumber,
+        status: newStatus
       },
       actions: [{
         type: 'view',
