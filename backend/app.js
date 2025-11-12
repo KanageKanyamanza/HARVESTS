@@ -85,10 +85,6 @@ app.use((req, res, next) => {
 // Servir les fichiers statiques du backend
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Servir les fichiers statiques du frontend
-app.use(express.static(path.join(__dirname, '..', 'frontend', 'dist')));
-app.use(express.static(path.join(__dirname, '..', 'frontend', 'public')));
-
 // Nettoyage des données contre les attaques NoSQL injection
 app.use(mongoSanitize);
 
@@ -210,18 +206,19 @@ app.use('/api/v1/blog-visitors', blogVisitorRoutes);
 // app.use('/api/v1/analytics', analyticsRoutes);
 // app.use('/api/v1/admin', adminRoutes);
 
-// Route de fallback pour servir l'application React
+// Route de fallback pour les chemins non API
 app.get('*', (req, res) => {
-  // Si c'est une route API, retourner 404
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({
       status: 'error',
       message: `Route API non trouvée: ${req.originalUrl}`
     });
   }
-  
-  // Sinon, servir l'index.html du frontend
-  res.sendFile(path.join(__dirname, '..', 'frontend', 'dist', 'index.html'));
+
+  return res.status(404).json({
+    status: 'error',
+    message: `Ressource non trouvée: ${req.originalUrl}`
+  });
 });
 
 // Gestionnaire d'erreur global
