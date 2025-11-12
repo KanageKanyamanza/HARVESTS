@@ -92,15 +92,15 @@ const createGenericService = (userType) => ({
 
   // Routes publiques (sans paramètre lang automatique)
   getAllPublic: (params = {}) => {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://harvests.onrender.com/api/v1';
     return axios.get(`${API_BASE_URL}/${userType}s`, { params });
   },
   getPublic: (id) => {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://harvests.onrender.com/api/v1';
     return axios.get(`${API_BASE_URL}/${userType}s/${id}`);
   },
   getPublicProducts: (id, params = {}) => {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://harvests.onrender.com/api/v1';
     // Pour les restaurateurs, utiliser /dishes au lieu de /products
     const endpoint = userType === 'restaurateur' 
       ? `${API_BASE_URL}/${userType}s/${id}/dishes` 
@@ -108,7 +108,7 @@ const createGenericService = (userType) => ({
     return axios.get(endpoint, { params });
   },
   getPublicReviews: (id, params = {}) => {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+    const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://harvests.onrender.com/api/v1';
     return axios.get(`${API_BASE_URL}/${userType}s/${id}/reviews`, { params });
   }
 });

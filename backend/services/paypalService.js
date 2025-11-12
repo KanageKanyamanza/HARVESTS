@@ -191,23 +191,43 @@ async function verifyWebhook(headers, body) {
 }
 
 async function generateClientToken({ customerId } = {}) {
-  const client = getClient();
-  const request = {
-    path: '/v1/identity/generate-token',
-    verb: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json'
-    },
-    body: {}
-  };
+  try {
+    const client = getClient();
+    const environment = getEnvironment();
+    
+    // Créer une requête HTTP brute pour générer le client token
+    // Le SDK PayPal ne fournit pas de classe spécifique pour cet endpoint
+    const request = {
+      path: '/v1/identity/generate-token',
+      verb: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: customerId ? { customer_id: customerId } : {}
+    };
 
-  if (customerId) {
-    request.body.customer_id = customerId;
+    const response = await client.execute(request);
+    
+    // Le client token peut être dans différents champs selon la réponse
+    return response.result?.client_token || 
+           response.result?.clientToken || 
+           response.result?.data?.client_token ||
+           null;
+  } catch (error) {
+    console.error('Erreur lors de la génération du client token PayPal:', error);
+    // Log plus de détails pour le debug
+    if (error.statusCode) {
+      console.error('Status Code:', error.statusCode);
+    }
+    if (error.message) {
+      console.error('Message:', error.message);
+    }
+    if (error.response) {
+      console.error('Response:', JSON.stringify(error.response, null, 2));
+    }
+    throw new Error(`Impossible de générer le token client PayPal: ${error.message || 'Erreur inconnue'}`);
   }
-
-  const response = await client.execute(request);
-  return response.result?.client_token || response.result?.clientToken || null;
 }
 
 module.exports = {

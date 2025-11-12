@@ -39,60 +39,9 @@ const Vendeurs = () => {
 			try {
 				setLoading(true);
 
-				// Charger producteurs, transformateurs et restaurateurs en parallèle
-				console.log("🔗 URL API utilisée:", window.location.origin);
-
-				// Test direct de l'API restaurateurs
-				try {
-					const directTest = await fetch(
-						"http://localhost:8000/api/v1/restaurateurs"
-					);
-					const directData = await directTest.json();
-					console.log("🧪 Test direct API:", directData);
-				} catch (error) {
-					console.error("❌ Erreur test direct:", error);
-				}
-
-				// Test avec fetch et headers comme Axios
-				try {
-					const fetchWithHeaders = await fetch(
-						"http://localhost:8000/api/v1/restaurateurs",
-						{
-							method: "GET",
-							headers: {
-								"Content-Type": "application/json",
-							},
-						}
-					);
-					const fetchData = await fetchWithHeaders.json();
-					console.log("🧪 Test fetch avec headers:", fetchData);
-				} catch (error) {
-					console.error("❌ Erreur test fetch:", error);
-				}
-
-				// Test Axios seul
-				try {
-					const axiosTest = await restaurateurService.getAllPublic();
-					console.log("🧪 Test Axios seul:", axiosTest.data);
-				} catch (error) {
-					console.error("❌ Erreur test Axios:", error);
-				}
-
-				// Test avec nouvelle instance Axios sans intercepteurs
-				try {
-					const axios = (await import("axios")).default;
-					const cleanAxios = axios.create({
-						baseURL: "http://localhost:8000/api/v1",
-						timeout: 60000,
-						headers: {
-							"Content-Type": "application/json",
-						},
-					});
-					const cleanTest = await cleanAxios.get("/restaurateurs");
-					console.log("🧪 Test Axios propre:", cleanTest.data);
-				} catch (error) {
-					console.error("❌ Erreur test Axios propre:", error);
-				}
+			// Charger producteurs, transformateurs et restaurateurs en parallèle
+			const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://harvests.onrender.com/api/v1';
+			console.log("🔗 URL API utilisée:", API_BASE_URL);
 
 				const [producersResponse, transformersResponse, restaurateursResponse] =
 					await Promise.allSettled([
