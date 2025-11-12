@@ -264,6 +264,65 @@ module.exports = class Email {
     await this.send('deliveryNotification', 'Votre commande est en route!');
   }
 
+  async sendNotification({ title, message, data, actions }) {
+    // Créer un HTML simple pour les notifications
+    const actionLinks = actions && actions.length > 0 
+      ? actions.map(action => `<a href="${action.url || '#'}" style="display: inline-block; padding: 10px 20px; background-color: #2E7D32; color: white; text-decoration: none; border-radius: 5px; margin: 10px 5px;">${action.label || 'Voir'}</a>`).join('')
+      : '';
+    
+    const notificationHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: #f5f5f5; padding: 20px; border-radius: 10px;">
+          <h2 style="color: #2E7D32; margin-top: 0;">🌾 ${title}</h2>
+          <p style="font-size: 16px; line-height: 1.6;">${message}</p>
+          ${data && Object.keys(data).length > 0 ? `
+            <div style="background-color: white; padding: 15px; border-radius: 5px; margin: 15px 0;">
+              <h3 style="margin-top: 0; color: #555;">Détails:</h3>
+              <ul style="list-style: none; padding: 0;">
+                ${Object.entries(data).map(([key, value]) => `<li style="padding: 5px 0;"><strong>${key}:</strong> ${value}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+          ${actionLinks ? `<div style="text-align: center; margin: 20px 0;">${actionLinks}</div>` : ''}
+        </div>
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+        <p style="color: #888; font-size: 12px; text-align: center;">
+          Email envoyé le ${new Date().toLocaleString('fr-FR')}<br>
+          L'équipe Harvests 🌾
+        </p>
+      </div>
+    `;
+    
+    const text = `${title}\n\n${message}\n\n${data ? Object.entries(data).map(([key, value]) => `${key}: ${value}`).join('\n') : ''}`;
+    const subject = `Harvests - ${title}`;
+    
+    // Utiliser sendWithSendGrid ou sendMail directement selon l'environnement
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    if (isProduction && process.env.SENDGRID_API_KEY) {
+      try {
+        return await this.sendWithSendGrid(subject, notificationHtml, text);
+      } catch (error) {
+        if (this.isEmailJSConfigured()) {
+          return await this.sendWithEmailJS(subject, notificationHtml);
+        }
+        throw error;
+      }
+    } else {
+      const transporter = this.newTransport();
+      if (!transporter) {
+        throw new Error('Aucun transport email configuré');
+      }
+      return await transporter.sendMail({
+        from: this.from,
+        to: this.to,
+        subject,
+        html: notificationHtml,
+        text
+      });
+    }
+  }
+
   // Méthode de test de connexion
   async testConnection() {
     const isProduction = process.env.NODE_ENV === 'production';
