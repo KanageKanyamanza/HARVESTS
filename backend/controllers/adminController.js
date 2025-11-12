@@ -2117,7 +2117,7 @@ exports.getAnalytics = catchAsync(async (req, res, next) => {
     ...product,
     name: toPlainText(product.name, 'Produit')
   }));
-
+  
   const analytics = {
     overview: {
       totalUsers,
@@ -2350,7 +2350,7 @@ exports.updateDish = catchAsync(async (req, res, next) => {
       if (['name', 'description', 'shortDescription'].includes(key)) {
         product[key] = toPlainText(updates[key], product[key]);
       } else {
-        product[key] = updates[key];
+      product[key] = updates[key];
       }
     }
   });
