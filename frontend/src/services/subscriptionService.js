@@ -3,7 +3,7 @@ import { apiRequest } from './api';
 // Service pour la gestion des souscriptions de plans
 export const subscriptionService = {
   // Obtenir mes souscriptions
-  getMySubscriptions: () => apiRequest.get('/subscriptions/me'),
+  getMySubscriptions: () => apiRequest.get('/subscriptions/me', { skipRedirect: true }),
   
   // Obtenir une souscription par ID
   getSubscription: (id) => apiRequest.get(`/subscriptions/${id}`),

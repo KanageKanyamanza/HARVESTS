@@ -356,10 +356,10 @@ module.exports = class Email {
           const productBadge = renderStatusBadge(product.status || firstStatus);
 
           return `
-            <div style="border-top: ${index === 0 ? 'none' : '1px solid #f0f0f0'}; padding: ${index === 0 ? '0 0 15px 0' : '15px 0'};">
-              <div style="display: flex; gap: 20px; margin-bottom: 12px; align-items: flex-start;">
+            <div style="border-top: ${index === 0 ? 'none' : '1px solid #f0f0f0'}; padding: ${index === 0 ? '0 0 5px 0' : '5px 0'};">
+              <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: flex-start;">
                 ${firstImage ? `
-                  <div style="flex-shrink: 0; margin-right: 10px;">
+                  <div style="flex-shrink: 0; margin: 5px; margin-left: 10px;">
                     <img src="${imageUrl}" alt="${product.name || 'Produit'}" style="width: 76px; height: 76px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb;" />
                   </div>
                 ` : ''}
@@ -439,7 +439,7 @@ module.exports = class Email {
     
     if (otherDetails.length > 0 || (data && (data.orderNumber || data.amount || data.status))) {
       detailsHtml = `
-        <div style="background-color: white; padding: 15px; border-radius: 5px; margin: 15px 0;">
+        <div style="background-color: white; padding: 5px; border-radius: 5px; margin: 5px 0;">
           <h3 style="margin-top: 0; color: #555;">Détails de la commande:</h3>
           <ul style="list-style: none; padding: 0;">
             ${data.orderNumber ? `<li style="padding: 5px 0;"><strong>Numéro de commande:</strong> ${data.orderNumber}</li>` : ''}
@@ -463,7 +463,7 @@ module.exports = class Email {
     const actionLinks = actions && actions.length > 0 
       ? actions.map(action => {
           const absoluteUrl = buildAbsoluteUrl(action.url);
-          return `<a href="${absoluteUrl}" style="display: inline-block; padding: 10px 20px; background-color: #2E7D32; color: white; text-decoration: none; border-radius: 5px; margin: 10px 5px;">${action.label || 'Voir'}</a>`;
+          return `<a href="${absoluteUrl}" style="display: inline-block; padding: 10px 10px; background-color: #2E7D32; color: white; text-decoration: none; border-radius: 5px; margin: 5px 5px;">${action.label || 'Voir'}</a>`;
         }).join('')
       : '';
     
@@ -502,8 +502,8 @@ module.exports = class Email {
         </style>
       </head>
       <body>
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 10px 15px;">
-          <div style="background-color: #f5f5f5; padding: 10px; border-radius: 10px;">
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 5px 5px;">
+          <div style="background-color: #f5f5f5; padding: 5px; border-radius: 5px;">
             <h2 style="color: #2E7D32; margin-top: 0;">🌾 ${title}</h2>
             <p style="font-size: 16px; line-height: 1.6;">${message}</p>
             ${buyerInfoHtml}

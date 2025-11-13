@@ -34,6 +34,11 @@ const SubscriptionSection = () => {
       }
     } catch (err) {
       console.error('Erreur lors du chargement de l\'abonnement:', err);
+      if (err.response?.status === 401) {
+        // L'utilisateur n'a pas accès ou n'est pas encore autorisé : traiter comme absence d'abonnement
+        setSubscription(null);
+        return;
+      }
       // Ne pas afficher d'erreur si c'est juste qu'il n'y a pas d'abonnement
       if (err.response?.status !== 404) {
         setError('Impossible de charger l\'abonnement');

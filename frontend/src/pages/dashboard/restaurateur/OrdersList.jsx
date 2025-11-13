@@ -56,7 +56,7 @@ const OrdersList = () => {
     } finally {
       setLoading(false);
     }
-  }, [showError, showSuccess]);
+  }, []);
 
   useEffect(() => {
     loadOrders();
