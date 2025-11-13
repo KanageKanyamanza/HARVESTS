@@ -63,7 +63,7 @@ const OrderConfirmation = () => {
 
       let response;
 
-      if (user?.userType === 'consumer') {
+      if (['consumer', 'restaurateur'].includes(user?.userType)) {
         try {
           response = await consumerService.getMyOrder(orderId);
           if (response.data.status === 'success') {
@@ -576,7 +576,7 @@ const OrderConfirmation = () => {
                           </div>
                         )}
 
-                        {paypalClientToken ? (
+                        {paypalClientToken && typeof window !== 'undefined' && window.paypal && window.paypal.HostedFields ? (
                           <PayPalHostedFieldsProvider
                             createOrder={createPayPalOrder}
                             styles={{
@@ -594,6 +594,10 @@ const OrderConfirmation = () => {
                               isProcessing={paymentProcessing}
                             />
                           </PayPalHostedFieldsProvider>
+                        ) : paypalClientToken ? (
+                          <div className="text-sm text-gray-600 bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                            Le formulaire de carte sécurisé est en cours de chargement...
+                          </div>
                         ) : null}
                       </div>
                     </PayPalScriptProvider>

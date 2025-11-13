@@ -47,10 +47,149 @@ exports.getPaypalClientToken = catchAsync(async (req, res, next) => {
 
 // Initier un paiement
 exports.initiatePayment = catchAsync(async (req, res, next) => {
-  const { orderId, method, returnUrl, cancelUrl, cashInstructions } = req.body;
+  const { orderId, method, returnUrl, cancelUrl, cashInstructions, type, planId, billingPeriod, amount, currency } = req.body;
 
   if (!['cash', 'paypal'].includes(method)) {
     return next(new AppError('Méthode de paiement non supportée', 400));
+  }
+
+  // Gestion des paiements de souscription
+  if (type === 'subscription') {
+    const Subscription = require('../models/Subscription');
+    const plans = Subscription.getAvailablePlans();
+    const plan = plans[planId];
+
+    if (!plan) {
+      return next(new AppError('Plan invalide', 400));
+    }
+
+    const expectedAmount = billingPeriod === 'monthly' ? plan.monthlyPrice : plan.annualPrice;
+    
+    if (amount !== expectedAmount) {
+      return next(new AppError('Montant incorrect', 400));
+    }
+
+    // Vérifier si l'utilisateur a déjà une souscription active
+    const existingActive = await Subscription.findOne({
+      user: req.user.id,
+      status: 'active'
+    });
+
+    if (existingActive && planId !== 'gratuit') {
+      return next(new AppError('Vous avez déjà une souscription active', 400));
+    }
+
+    // Créer ou trouver la souscription
+    let subscription = await Subscription.findOne({
+      user: req.user.id,
+      planId,
+      status: 'pending'
+    }).sort({ createdAt: -1 });
+
+    if (!subscription) {
+      subscription = await Subscription.create({
+        user: req.user.id,
+        planId,
+        planName: plan.name,
+        billingPeriod,
+        amount: expectedAmount,
+        currency: currency || 'XAF',
+        paymentMethod: method,
+        status: 'pending',
+        paymentStatus: 'pending'
+      });
+    }
+
+    const normalizedProvider = method === 'paypal' ? 'paypal' : 'cash-on-delivery';
+
+    const payment = await Payment.create({
+      paymentId: new mongoose.Types.ObjectId().toString(),
+      user: req.user.id,
+      amount: expectedAmount,
+      currency: currency || 'XAF',
+      method,
+      provider: normalizedProvider,
+      type: 'subscription',
+      status: method === 'paypal' ? 'processing' : 'pending',
+      metadata: {
+        subscriptionId: subscription._id.toString(),
+        planId,
+        billingPeriod,
+        customerIp: req.ip,
+        userAgent: req.get('User-Agent')
+      }
+    });
+
+    // Lier le paiement à la souscription
+    subscription.payment = payment._id;
+    await subscription.save();
+
+    let paymentResponse;
+    const enhancedReturnUrl = appendParamsToUrl(returnUrl, {
+      subscriptionId: subscription._id.toString(),
+      paymentId: payment.paymentId,
+      planId
+    });
+    const enhancedCancelUrl = appendParamsToUrl(cancelUrl, {
+      subscriptionId: subscription._id.toString(),
+      paymentId: payment.paymentId,
+      planId
+    });
+
+    if (method === 'cash') {
+      payment.paymentDetails.cash = {
+        ...(payment.paymentDetails.cash || {}),
+        instructions: 'Vous serez contacté pour finaliser le paiement de votre souscription.'
+      };
+      payment.calculateFees();
+      await payment.save();
+
+      paymentResponse = {
+        requiresOnlineAction: false,
+        confirmationType: 'delivery',
+        instructions: payment.paymentDetails.cash.instructions,
+        subscriptionId: subscription._id.toString()
+      };
+    } else {
+      try {
+        const paypalOrder = await paypalService.createOrder({
+          amount: payment.amount,
+          currency: payment.currency,
+          reference: payment.paymentId,
+          returnUrl: enhancedReturnUrl || returnUrl,
+          cancelUrl: enhancedCancelUrl || cancelUrl
+        });
+
+        payment.paymentDetails.paypal = {
+          orderId: paypalOrder.id,
+          status: paypalOrder.status,
+          approvalUrl: paypalOrder.approvalUrl
+        };
+        await payment.save();
+
+        paymentResponse = {
+          requiresOnlineAction: true,
+          approvalUrl: paypalOrder.approvalUrl,
+          paypalOrderId: paypalOrder.id,
+          paymentId: payment.paymentId,
+          subscriptionId: subscription._id.toString()
+        };
+      } catch (error) {
+        await Payment.findByIdAndDelete(payment._id);
+        await Subscription.findByIdAndDelete(subscription._id);
+        return next(new AppError(`Erreur PayPal: ${error.message}`, 500));
+      }
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      data: paymentResponse
+    });
+  }
+
+  // Gestion des paiements de commande (code existant)
+  if (!orderId) {
+    return next(new AppError('ID de commande ou type de paiement requis', 400));
   }
 
   const order = await Order.findById(orderId);
@@ -221,24 +360,57 @@ exports.confirmPayment = catchAsync(async (req, res, next) => {
       const captureId = payment.paymentDetails.paypal.captureId;
       await payment.markAsSucceeded(captureId, capture.update_time ? new Date(capture.update_time) : new Date());
 
-      await Notification.createNotification({
-        recipient: payment.user,
-        type: 'payment_received',
-        category: 'payment',
-        title: 'Paiement PayPal confirmé',
-        message: `Votre paiement PayPal de ${payment.amount} ${payment.currency} a été confirmé.`,
-        data: {
-          paymentId: payment.paymentId,
-          amount: payment.amount,
-          currency: payment.currency,
-          provider: payment.provider
-        },
-        channels: {
-          inApp: { enabled: true },
-          email: { enabled: true },
-          push: { enabled: true }
+      // Si c'est un paiement de souscription, activer la souscription
+      if (payment.type === 'subscription' && payment.metadata?.subscriptionId) {
+        const Subscription = require('../models/Subscription');
+        const subscription = await Subscription.findById(payment.metadata.subscriptionId);
+        
+        if (subscription) {
+          subscription.status = 'active';
+          subscription.paymentStatus = 'completed';
+          subscription.startDate = new Date();
+          subscription.endDate = subscription.calculateEndDate();
+          subscription.nextBillingDate = subscription.calculateNextBillingDate();
+          await subscription.save();
+
+          await Notification.createNotification({
+            recipient: payment.user,
+            type: 'subscription_activated',
+            category: 'subscription',
+            title: 'Souscription activée',
+            message: `Votre souscription ${subscription.planName} a été activée avec succès!`,
+            data: {
+              subscriptionId: subscription._id.toString(),
+              planId: subscription.planId,
+              planName: subscription.planName
+            },
+            channels: {
+              inApp: { enabled: true },
+              email: { enabled: true },
+              push: { enabled: true }
+            }
+          });
         }
-      });
+      } else {
+        await Notification.createNotification({
+          recipient: payment.user,
+          type: 'payment_received',
+          category: 'payment',
+          title: 'Paiement PayPal confirmé',
+          message: `Votre paiement PayPal de ${payment.amount} ${payment.currency} a été confirmé.`,
+          data: {
+            paymentId: payment.paymentId,
+            amount: payment.amount,
+            currency: payment.currency,
+            provider: payment.provider
+          },
+          channels: {
+            inApp: { enabled: true },
+            email: { enabled: true },
+            push: { enabled: true }
+          }
+        });
+      }
     } catch (error) {
       await payment.markAsFailed('paypal_capture_error', error.message);
       return next(new AppError(`Erreur lors de la confirmation PayPal: ${error.message}`, 400));
@@ -254,23 +426,56 @@ exports.confirmPayment = catchAsync(async (req, res, next) => {
 
     await payment.markAsSucceeded(null);
 
-    await Notification.createNotification({
-      recipient: payment.user,
-      type: 'payment_received',
-      category: 'payment',
-      title: 'Paiement à la livraison confirmé',
-      message: `Votre paiement à la livraison pour la commande ${payment.paymentId} est confirmé.`,
-      data: {
-        paymentId: payment.paymentId,
-        amount: payment.amount,
-        currency: payment.currency,
-        provider: payment.provider
-      },
-      channels: {
-        inApp: { enabled: true },
-        email: { enabled: true }
+    // Si c'est un paiement de souscription, activer la souscription
+    if (payment.type === 'subscription' && payment.metadata?.subscriptionId) {
+      const Subscription = require('../models/Subscription');
+      const subscription = await Subscription.findById(payment.metadata.subscriptionId);
+      
+      if (subscription) {
+        subscription.status = 'active';
+        subscription.paymentStatus = 'completed';
+        subscription.startDate = new Date();
+        subscription.endDate = subscription.calculateEndDate();
+        subscription.nextBillingDate = subscription.calculateNextBillingDate();
+        await subscription.save();
+
+        await Notification.createNotification({
+          recipient: payment.user,
+          type: 'subscription_activated',
+          category: 'subscription',
+          title: 'Souscription activée',
+          message: `Votre souscription ${subscription.planName} a été activée avec succès!`,
+          data: {
+            subscriptionId: subscription._id.toString(),
+            planId: subscription.planId,
+            planName: subscription.planName
+          },
+          channels: {
+            inApp: { enabled: true },
+            email: { enabled: true },
+            push: { enabled: true }
+          }
+        });
       }
-    });
+    } else {
+      await Notification.createNotification({
+        recipient: payment.user,
+        type: 'payment_received',
+        category: 'payment',
+        title: 'Paiement à la livraison confirmé',
+        message: `Votre paiement à la livraison pour la commande ${payment.paymentId} est confirmé.`,
+        data: {
+          paymentId: payment.paymentId,
+          amount: payment.amount,
+          currency: payment.currency,
+          provider: payment.provider
+        },
+        channels: {
+          inApp: { enabled: true },
+          email: { enabled: true }
+        }
+      });
+    }
   } else {
     return next(new AppError('Méthode de paiement non supportée pour la confirmation', 400));
   }

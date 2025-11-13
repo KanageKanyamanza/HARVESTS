@@ -58,12 +58,12 @@ export const useUserType = () => {
       restaurateur: {
         label: 'Restaurateur',
         labelEn: 'Restaurant Owner',
-        description: 'Propriétaire de restaurant',
+        description: 'Propriétaire de restaurant (peut vendre des plats ET acheter des produits)',
         color: 'orange',
         icon: '🍽️',
         dashboardRoute: '/restaurateur/dashboard',
-        permissions: ['manage_menu', 'view_orders', 'manage_inventory'],
-        features: ['menu_management', 'inventory', 'table_management', 'order_management']
+        permissions: ['manage_menu', 'view_orders', 'manage_inventory', 'create_orders', 'view_products', 'create_reviews'],
+        features: ['menu_management', 'inventory', 'table_management', 'order_management', 'shopping_cart', 'order_history', 'favorites', 'reviews']
       },
       exporter: {
         label: 'Exportateur',
@@ -139,6 +139,24 @@ export const useUserType = () => {
         '/addresses',
         '/payment-methods',
         '/reviews'
+      ];
+    }
+
+    // Routes spécifiques aux restaurateurs (qui peuvent aussi être consommateurs)
+    if (userType === 'restaurateur') {
+      return [
+        ...baseRoutes,
+        '/restaurateur/dashboard',
+        '/restaurateur/dishes',
+        '/restaurateur/orders',
+        '/restaurateur/analytics',
+        '/cart', // Les restaurateurs peuvent aussi acheter
+        '/checkout', // Les restaurateurs peuvent aussi passer des commandes
+        '/order-history', // Les restaurateurs peuvent voir leurs commandes d'achat
+        '/favorites', // Les restaurateurs peuvent avoir des favoris
+        '/addresses', // Les restaurateurs peuvent gérer leurs adresses
+        '/payment-methods', // Les restaurateurs peuvent gérer leurs méthodes de paiement
+        '/reviews' // Les restaurateurs peuvent laisser des avis
       ];
     }
 

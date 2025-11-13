@@ -18,6 +18,7 @@ const AdminBlogEdit = React.lazy(() => import('../../../pages/admin/AdminBlogEdi
 const AdminBlogStats = React.lazy(() => import('../../../pages/admin/AdminBlogStats'));
 const AdminBlogAnalytics = React.lazy(() => import('../../../pages/admin/AdminBlogAnalytics'));
 const AdminManagement = React.lazy(() => import('../../../pages/admin/AdminManagement'));
+const AdminSubscriptions = React.lazy(() => import('../../../pages/admin/AdminSubscriptions'));
 const OrderDetail = React.lazy(() => import('../../../pages/orders/OrderDetail'));
 
 export const adminRoutes = [
@@ -95,6 +96,11 @@ export const adminRoutes = [
     path: '/admin/management',
     element: <AdminManagement />,
     title: 'Gestion des admins'
+  },
+  {
+    path: '/admin/subscriptions',
+    element: <AdminSubscriptions />,
+    title: 'Gestion des souscriptions'
   },
 ];
 

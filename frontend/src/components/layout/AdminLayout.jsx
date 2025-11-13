@@ -115,6 +115,12 @@ const AdminLayout = ({ children }) => {
       href: '/admin/blog',
       icon: FileText,
       current: location.pathname.startsWith('/admin/blog')
+    },
+    {
+      name: 'Abonnements',
+      href: '/admin/subscriptions',
+      icon: CreditCard,
+      current: location.pathname.startsWith('/admin/subscriptions')
     }
   ];
 

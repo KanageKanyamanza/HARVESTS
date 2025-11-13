@@ -3,9 +3,10 @@ import GenericDashboard from '../../../components/dashboard/GenericDashboard';
 import ProductsSection from '../../../components/dashboard/sections/ProductsSection';
 import OrdersSection from '../../../components/dashboard/sections/OrdersSection';
 import QuickActionsSection from '../../../components/dashboard/sections/QuickActionsSection';
+import SubscriptionSection from '../../../components/dashboard/sections/SubscriptionSection';
 import { producerService } from '../../../services/genericService';
 import commonService from '../../../services/commonService';
-import { FiPackage } from 'react-icons/fi';
+import { FiPackage, FiStar } from 'react-icons/fi';
 
 const ProducerDashboard = () => {
   const [producerStats, setProducerStats] = useState(null);
@@ -53,6 +54,12 @@ const ProducerDashboard = () => {
 
   // Configuration des sections du dashboard
   const sections = [
+    {
+      title: 'Mon Abonnement',
+      icon: <FiStar className="h-5 w-5" />,
+      content: <SubscriptionSection />,
+      fullWidth: false
+    },
     {
       title: 'Mes Produits',
       icon: <FiPackage className="h-5 w-5" />,

@@ -3,9 +3,10 @@ import GenericDashboard from '../../../components/dashboard/GenericDashboard';
 import ProductsSection from '../../../components/dashboard/sections/ProductsSection';
 import OrdersSection from '../../../components/dashboard/sections/OrdersSection';
 import QuickActionsSection from '../../../components/dashboard/sections/QuickActionsSection';
+import SubscriptionSection from '../../../components/dashboard/sections/SubscriptionSection';
 import { transformerService } from '../../../services/genericService';
 import commonService from '../../../services/commonService';
-import { FiSettings } from 'react-icons/fi';
+import { FiSettings, FiStar } from 'react-icons/fi';
 
 const TransformerDashboard = () => {
   // Configuration des statistiques pour les transformateurs
@@ -18,6 +19,12 @@ const TransformerDashboard = () => {
 
   // Configuration des sections du dashboard
   const sections = [
+    {
+      title: 'Mon Abonnement',
+      icon: <FiStar className="h-5 w-5" />,
+      content: <SubscriptionSection />,
+      fullWidth: false
+    },
     {
       title: 'Produits Transformés',
       icon: <FiSettings className="h-5 w-5" />,

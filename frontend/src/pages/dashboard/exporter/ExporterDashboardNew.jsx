@@ -3,9 +3,10 @@ import GenericDashboard from '../../../components/dashboard/GenericDashboard';
 import OrdersSection from '../../../components/dashboard/sections/OrdersSection';
 import QuickActionsSection from '../../../components/dashboard/sections/QuickActionsSection';
 import FleetSummarySection from '../../../components/dashboard/sections/FleetSummarySection';
+import SubscriptionSection from '../../../components/dashboard/sections/SubscriptionSection';
 import { exporterService } from '../../../services/genericService';
 import commonService from '../../../services/commonService';
-import { FiGlobe, FiTruck } from 'react-icons/fi';
+import { FiGlobe, FiTruck, FiStar } from 'react-icons/fi';
 
 const ExporterDashboard = () => {
   const [exporterStats, setExporterStats] = useState(null);
@@ -58,6 +59,12 @@ const ExporterDashboard = () => {
 
   // Configuration des sections du dashboard
   const sections = [
+    {
+      title: 'Mon Abonnement',
+      icon: <FiStar className="h-5 w-5" />,
+      content: <SubscriptionSection />,
+      fullWidth: false
+    },
     {
       title: 'Commandes d\'Export',
       icon: <FiGlobe className="h-5 w-5" />,

@@ -34,6 +34,9 @@ const restaurateurService = {
     return api.get('/restaurateurs', { params });
   },
   getRestaurateur: (id) => api.get(`/restaurateurs/${id}`),
+  // Méthodes pour VendorProfile (compatibilité)
+  getPublic: (id) => api.get(`/restaurateurs/${id}`),
+  getPublicProducts: (id, params = {}) => api.get(`/restaurateurs/${id}/dishes`, { params }),
   getRestaurateurDishes: (id) => api.get(`/restaurateurs/${id}/dishes`),
   getDishDetail: (dishId) => api.get(`/restaurateurs/dishes/${dishId}`),
   getReviews: (id) => api.get(`/restaurateurs/${id}/reviews`),

@@ -35,11 +35,13 @@ import ExporterProfile from '../pages/ExporterProfile';
 import TransporteursExportateurs from '../pages/TransporteursExportateurs';
 import CartPage from '../pages/Cart';
 import Contact from '../pages/Contact';
+import Pricing from '../pages/Pricing';
 import LoyaltyProgram from '../pages/LoyaltyProgram';
 import BlogPage from '../pages/BlogPage';
 import BlogDetailPage from '../pages/BlogDetailPage';
 import PayPalSuccess from '../pages/payments/PayPalSuccess';
 import PayPalCancel from '../pages/payments/PayPalCancel';
+import SubscriptionPayment from '../pages/payments/SubscriptionPayment';
 
 // Import des pages d'authentification
 import Login from '../pages/auth/Login';
@@ -159,7 +161,7 @@ const CheckoutGateway = () => {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
-  if (user?.userType === 'consumer') {
+  if (['consumer', 'restaurateur'].includes(user?.userType)) {
     return <Navigate to="/consumer/checkout" replace />;
   }
 
@@ -192,11 +194,13 @@ const AppRoutes = () => {
       <Route path="/cart" element={<Layout><SuspenseRoute element={<CartPage />} /></Layout>} />
       <Route path="/checkout" element={<CheckoutGateway />} />
       <Route path="/contact" element={<Layout><SuspenseRoute element={<Contact />} /></Layout>} />
+      <Route path="/pricing" element={<Layout><SuspenseRoute element={<Pricing />} /></Layout>} />
       <Route path="/loyalty" element={<Layout><SuspenseRoute element={<LoyaltyProgram />} /></Layout>} />
       <Route path="/blog" element={<Layout><SuspenseRoute element={<BlogPage />} /></Layout>} />
       <Route path="/blog/:slug" element={<Layout><SuspenseRoute element={<BlogDetailPage />} /></Layout>} />
       <Route path="/payments/paypal/success" element={<Layout><SuspenseRoute element={<PayPalSuccess />} /></Layout>} />
       <Route path="/payments/paypal/cancel" element={<Layout><SuspenseRoute element={<PayPalCancel />} /></Layout>} />
+      <Route path="/payment/subscription/:planId" element={<Layout><SuspenseRoute element={<SubscriptionPayment />} /></Layout>} />
 
       {/* Routes d'authentification */}
       <Route path="/login" element={
