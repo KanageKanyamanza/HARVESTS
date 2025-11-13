@@ -2,6 +2,16 @@ const Notification = require('../models/Notification');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 
+// Fonction utilitaire pour construire une URL complète du frontend
+function buildFrontendUrl(path) {
+  const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
+  // Supprimer le slash final de l'URL du frontend si présent
+  const baseUrl = frontendUrl.replace(/\/$/, '');
+  // S'assurer que le chemin commence par un slash
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${baseUrl}${normalizedPath}`;
+}
+
 // ROUTES PROTÉGÉES UTILISATEUR
 
 // Obtenir mes notifications
@@ -25,7 +35,16 @@ exports.getMyNotifications = catchAsync(async (req, res, next) => {
   }
 
   const notifications = await Notification.find(queryObj)
-    .populate('sender', 'firstName lastName avatar userType')
+    .populate({
+      path: 'recipient',
+      select: 'firstName lastName email userType role',
+      options: { strictPopulate: false }
+    })
+    .populate({
+      path: 'sender',
+      select: 'firstName lastName avatar userType',
+      options: { strictPopulate: false }
+    })
     .sort('-createdAt')
     .skip(skip)
     .limit(limit);
@@ -48,13 +67,15 @@ exports.getMyNotifications = catchAsync(async (req, res, next) => {
 
 // Obtenir le nombre de notifications non lues
 exports.getUnreadCount = catchAsync(async (req, res, next) => {
-  const unreadCount = await Notification.getUnreadCount(req.user.id);
+  // Gérer à la fois les utilisateurs normaux et les admins
+  const recipientId = req.admin ? req.admin._id : req.user.id;
+  const unreadCount = await Notification.getUnreadCount(recipientId);
 
   // Compter par catégorie
   const unreadByCategory = await Notification.aggregate([
     {
       $match: {
-        recipient: req.user.id,
+        recipient: recipientId,
         readAt: { $exists: false },
         status: { $in: ['pending', 'sent', 'delivered'] }
       }
@@ -302,9 +323,18 @@ exports.getAllNotifications = catchAsync(async (req, res, next) => {
   if (req.query.category) queryObj.category = req.query.category;
   if (req.query.status) queryObj.status = req.query.status;
 
+  // Populate le recipient selon son modèle (User ou Admin)
   const notifications = await Notification.find(queryObj)
-    .populate('recipient', 'firstName lastName email userType')
-    .populate('sender', 'firstName lastName userType')
+    .populate({
+      path: 'recipient',
+      select: 'firstName lastName email userType role',
+      options: { strictPopulate: false }
+    })
+    .populate({
+      path: 'sender',
+      select: 'firstName lastName userType',
+      options: { strictPopulate: false }
+    })
     .sort('-createdAt')
     .skip(skip)
     .limit(limit);
@@ -641,7 +671,7 @@ exports.notifyPromotion = catchAsync(async (req, res, next) => {
       actions: [{
         type: 'view',
         label: 'Voir l\'offre',
-        url: `/promotions/${discountCode}`
+        url: buildFrontendUrl(`/promotions/${discountCode}`)
       }],
       channels: {
         inApp: { enabled: true },
@@ -789,6 +819,7 @@ exports.notifyProductPendingApproval = catchAsync(async (productId, productName,
   for (const admin of admins) {
     const notification = await Notification.createNotification({
       recipient: admin._id,
+      recipientModel: 'Admin', // Spécifier que c'est un Admin
       type: 'product_pending_approval',
       category: 'product',
       priority: 'high',
@@ -804,7 +835,12 @@ exports.notifyProductPendingApproval = catchAsync(async (productId, productName,
         type: 'view',
         label: 'Voir le produit',
         url: `/admin/products/${productId}`
-      }]
+      }],
+      channels: {
+        inApp: { enabled: true },
+        email: { enabled: true },
+        push: { enabled: true }
+      }
     });
     
     notifications.push(notification);
@@ -824,6 +860,7 @@ exports.notifyUserReported = catchAsync(async (userId, userName, reportReason, r
   for (const admin of admins) {
     const notification = await Notification.createNotification({
       recipient: admin._id,
+      recipientModel: 'Admin', // Spécifier que c'est un Admin
       type: 'user_reported',
       category: 'account',
       priority: 'high',
@@ -840,7 +877,12 @@ exports.notifyUserReported = catchAsync(async (userId, userName, reportReason, r
         type: 'view',
         label: 'Examiner l\'utilisateur',
         url: `/admin/users/${userId}`
-      }]
+      }],
+      channels: {
+        inApp: { enabled: true },
+        email: { enabled: true },
+        push: { enabled: true }
+      }
     });
     
     notifications.push(notification);
@@ -860,6 +902,7 @@ exports.notifyHighValueOrder = catchAsync(async (orderId, orderAmount, customerN
   for (const admin of admins) {
     const notification = await Notification.createNotification({
       recipient: admin._id,
+      recipientModel: 'Admin', // Spécifier que c'est un Admin
       type: 'high_value_order',
       category: 'order',
       priority: 'medium',
@@ -874,8 +917,13 @@ exports.notifyHighValueOrder = catchAsync(async (orderId, orderAmount, customerN
       actions: [{
         type: 'view',
         label: 'Voir la commande',
-        url: `/admin/orders/${orderId}`
-      }]
+        url: buildFrontendUrl(`/admin/orders/${orderId}`)
+      }],
+      channels: {
+        inApp: { enabled: true },
+        email: { enabled: true },
+        push: { enabled: true }
+      }
     });
     
     notifications.push(notification);
@@ -895,6 +943,7 @@ exports.notifyPaymentIssue = catchAsync(async (paymentId, issue, amount, custome
   for (const admin of admins) {
     const notification = await Notification.createNotification({
       recipient: admin._id,
+      recipientModel: 'Admin', // Spécifier que c'est un Admin
       type: 'payment_issue',
       category: 'payment',
       priority: 'high',
@@ -911,7 +960,12 @@ exports.notifyPaymentIssue = catchAsync(async (paymentId, issue, amount, custome
         type: 'view',
         label: 'Examiner le paiement',
         url: `/admin/payments/${paymentId}`
-      }]
+      }],
+      channels: {
+        inApp: { enabled: true },
+        email: { enabled: true },
+        push: { enabled: true }
+      }
     });
     
     notifications.push(notification);
@@ -931,6 +985,7 @@ exports.notifyDisputeCreated = catchAsync(async (disputeId, disputeType, custome
   for (const admin of admins) {
     const notification = await Notification.createNotification({
       recipient: admin._id,
+      recipientModel: 'Admin', // Spécifier que c'est un Admin
       type: 'dispute_created',
       category: 'order',
       priority: 'high',
@@ -947,7 +1002,12 @@ exports.notifyDisputeCreated = catchAsync(async (disputeId, disputeType, custome
         type: 'view',
         label: 'Examiner le litige',
         url: `/admin/disputes/${disputeId}`
-      }]
+      }],
+      channels: {
+        inApp: { enabled: true },
+        email: { enabled: true },
+        push: { enabled: true }
+      }
     });
     
     notifications.push(notification);
@@ -967,6 +1027,7 @@ exports.notifySecurityAlert = catchAsync(async (alertType, description, severity
   for (const admin of admins) {
     const notification = await Notification.createNotification({
       recipient: admin._id,
+      recipientModel: 'Admin', // Spécifier que c'est un Admin
       type: 'security_alert',
       category: 'system',
       priority: severity,
@@ -982,7 +1043,12 @@ exports.notifySecurityAlert = catchAsync(async (alertType, description, severity
         type: 'view',
         label: 'Examiner l\'alerte',
         url: `/admin/security/alerts`
-      }]
+      }],
+      channels: {
+        inApp: { enabled: true },
+        email: { enabled: true },
+        push: { enabled: true }
+      }
     });
     
     notifications.push(notification);

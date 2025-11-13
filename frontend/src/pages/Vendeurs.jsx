@@ -146,9 +146,9 @@ const Vendeurs = () => {
 				);
 				const vendeursAvecNotes = await Promise.all(
 					allVendeurs.map(async (vendeur) => {
-						if (!vendeur?._id || !["producer", "transformer"].includes(vendeur.type)) {
-							return vendeur;
-						}
+					if (!vendeur?._id || !["producer", "transformer", "restaurateur"].includes(vendeur.type)) {
+						return vendeur;
+					}
 
 						try {
 							const statsResponse = await reviewService.getProducerRatingStats(vendeur._id);

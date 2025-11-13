@@ -45,17 +45,45 @@ const notificationDataSchema = new mongoose.Schema({
   },
   userName: String,
   
+  // Pour les commandes : informations du client (buyer)
+  buyer: {
+    firstName: String,
+    lastName: String,
+    fullName: String,
+    email: String,
+    phone: String
+  },
+  
+  // Pour les commandes : détails des produits
+  products: [{
+    name: String,
+    description: String,
+    images: [String],
+    quantity: Number,
+    unitPrice: Number,
+    totalPrice: Number
+  }],
+  
+  // Statut de commande
+  status: String,
+  
   // Données génériques
   customData: mongoose.Schema.Types.Mixed
-}, { _id: false });
+}, { _id: false, strict: false });
 
 // Schéma principal des notifications
 const notificationSchema = new mongoose.Schema({
-  // Destinataire
+  // Destinataire (peut être un User ou un Admin)
   recipient: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    refPath: 'recipientModel',
     required: [true, 'Destinataire requis']
+  },
+  // Modèle du destinataire (User ou Admin)
+  recipientModel: {
+    type: String,
+    enum: ['User', 'Admin'],
+    default: 'User'
   },
   
   // Expéditeur (optionnel, pour les notifications système)
@@ -71,14 +99,24 @@ const notificationSchema = new mongoose.Schema({
     enum: [
       // Commandes
       'order_created',
+      'order_created_buyer',
       'order_confirmed',
+      'order_confirmed_seller',
       'order_preparing',
+      'order_preparing_seller',
       'order_ready_for_pickup',
+      'order_ready_for_pickup_seller',
+      'order_ready_for_pickup_transporter',
       'order_shipped',
       'order_in_transit',
+      'order_in_transit_seller',
+      'order_in_transit_transporter',
       'order_delivered',
+      'order_delivered_seller',
       'order_completed',
+      'order_completed_seller',
       'order_cancelled',
+      'order_cancelled_seller',
       'order_refunded',
       'order_disputed',
       'order_payment_received',
@@ -409,18 +447,61 @@ notificationSchema.methods.sendViaEmail = async function() {
   try {
     const Email = require('../utils/email');
     const User = mongoose.model('User');
+    const Admin = mongoose.model('Admin');
     
-    const recipient = await User.findById(this.recipient);
-    if (!recipient) {
-      throw new Error('Destinataire non trouvé');
+    // Récupérer la notification fraîche depuis la base de données pour s'assurer d'avoir toutes les données
+    // Utiliser .lean() pour obtenir un objet JavaScript simple directement
+    const freshNotification = await this.constructor.findById(this._id).lean();
+    
+    if (!freshNotification) {
+      throw new Error('Notification non trouvée dans la base de données');
     }
     
-    // Envoyer l'email (implémentation à compléter)
+    // Chercher d'abord dans User, puis dans Admin
+    let recipient = await User.findById(freshNotification.recipient);
+    if (!recipient) {
+      recipient = await Admin.findById(freshNotification.recipient);
+    }
+    
+    if (!recipient) {
+      throw new Error('Destinataire non trouvé (ni User ni Admin)');
+    }
+    
+    // S'assurer que data est un objet JavaScript simple avec toutes les propriétés
+    // Utiliser JSON.parse/stringify pour forcer la sérialisation complète des objets complexes
+    let dataToSend = null;
+    if (freshNotification.data) {
+      try {
+        // Forcer la sérialisation complète en passant par JSON
+        dataToSend = JSON.parse(JSON.stringify(freshNotification.data));
+      } catch (e) {
+        console.warn('⚠️ [Notification] Erreur lors de la sérialisation de data:', e.message);
+        // Fallback: utiliser directement l'objet
+        dataToSend = freshNotification.data;
+      }
+    }
+    
+    // S'assurer que actions est un tableau JavaScript simple
+    const actionsToSend = freshNotification.actions ? (Array.isArray(freshNotification.actions) 
+      ? freshNotification.actions.map(action => typeof action === 'object' && action !== null 
+          ? JSON.parse(JSON.stringify(action)) 
+          : action) 
+      : freshNotification.actions) : null;
+    
+    // Debug: vérifier les données avant envoi
+    console.log('📧 [Notification.sendViaEmail] Données préparées:', {
+      hasData: !!dataToSend,
+      hasProducts: !!(dataToSend && dataToSend.products),
+      productsCount: dataToSend && dataToSend.products ? dataToSend.products.length : 0,
+      hasBuyer: !!(dataToSend && dataToSend.buyer),
+      dataKeys: dataToSend ? Object.keys(dataToSend) : []
+    });
+    
     await new Email(recipient).sendNotification({
-      title: this.title,
-      message: this.message,
-      data: this.data,
-      actions: this.actions
+      title: freshNotification.title,
+      message: freshNotification.message,
+      data: dataToSend,
+      actions: actionsToSend
     });
     
     this.channels.email.sent = true;
@@ -436,6 +517,7 @@ notificationSchema.methods.sendViaEmail = async function() {
   } catch (error) {
     this.channels.email.failureReason = error.message;
     await this.save();
+    console.error('Erreur envoi email notification:', error.message);
     return false;
   }
 };
@@ -546,8 +628,59 @@ notificationSchema.methods.sendToAllChannels = async function() {
 
 // Méthodes statiques
 notificationSchema.statics.createNotification = async function(data) {
+  // S'assurer que data est un objet JavaScript simple (sérialiser les objets complexes)
+  if (data && data.data) {
+    // Convertir data.data en objet JavaScript simple si nécessaire
+    if (typeof data.data === 'object' && data.data !== null) {
+      try {
+        // Forcer la sérialisation complète en passant par JSON
+        data.data = JSON.parse(JSON.stringify(data.data));
+      } catch (e) {
+        console.warn('⚠️ [Notification] Erreur lors de la sérialisation de data:', e.message);
+      }
+    }
+  }
+  
+  // Debug: vérifier les données avant sauvegarde
+  if (data && data.data) {
+    console.log('📝 [Notification] Création notification avec:', {
+      type: data.type,
+      hasData: !!data.data,
+      hasProducts: !!(data.data.products),
+      productsCount: data.data.products ? data.data.products.length : 0,
+      hasBuyer: !!(data.data.buyer),
+      dataKeys: Object.keys(data.data)
+    });
+  }
+  
   const notification = new this(data);
+  
+  // Forcer la sérialisation du champ data avant sauvegarde
+  // Mongoose peut avoir des problèmes avec Mixed, donc on s'assure que c'est bien sérialisé
+  if (notification.data && typeof notification.data === 'object') {
+    try {
+      // Marquer le champ comme modifié pour forcer la sauvegarde
+      notification.markModified('data');
+      // S'assurer que data est bien un objet JavaScript simple
+      notification.data = JSON.parse(JSON.stringify(notification.data));
+    } catch (e) {
+      console.warn('⚠️ [Notification] Erreur lors de la préparation de data pour sauvegarde:', e.message);
+    }
+  }
+  
   await notification.save();
+  
+  // Vérifier après sauvegarde que les données sont toujours présentes
+  const savedNotification = await this.findById(notification._id).lean();
+  if (savedNotification && savedNotification.data) {
+    console.log('💾 [Notification] Données après sauvegarde:', {
+      hasData: !!savedNotification.data,
+      hasProducts: !!(savedNotification.data.products),
+      productsCount: savedNotification.data.products ? savedNotification.data.products.length : 0,
+      hasBuyer: !!(savedNotification.data.buyer),
+      dataKeys: Object.keys(savedNotification.data)
+    });
+  }
   
   // Envoyer immédiatement si pas planifié
   if (!notification.scheduledFor || notification.scheduledFor <= new Date()) {
@@ -609,69 +742,215 @@ notificationSchema.statics.getScheduledNotifications = function() {
   });
 };
 
+// Fonction utilitaire pour construire une URL complète du frontend
+function buildFrontendUrl(path) {
+  const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
+  // Supprimer le slash final de l'URL du frontend si présent
+  const baseUrl = frontendUrl.replace(/\/$/, '');
+  // S'assurer que le chemin commence par un slash
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${baseUrl}${normalizedPath}`;
+}
+
 // Méthodes pour créer des notifications spécifiques
-notificationSchema.statics.notifyOrderCreated = function(order) {
+notificationSchema.statics.notifyOrderCreated = async function(order) {
+  const User = mongoose.model('User');
   const sellerIds = new Set();
 
+  const getIdString = (value) => {
+    if (!value) return null;
+    if (typeof value === 'string') return value;
+    if (value._id) return value._id.toString();
+    if (typeof value === 'object' && typeof value.toString === 'function') {
+      return value.toString();
+    }
+    return null;
+  };
+
   const pushSellerId = (value) => {
-    if (!value) return;
-    if (typeof value === 'string') {
-      sellerIds.add(value);
-      return;
-    }
-    if (value._id) {
-      sellerIds.add(value._id.toString());
-      return;
-    }
-    if (typeof value.toString === 'function') {
-      sellerIds.add(value.toString());
+    const id = getIdString(value);
+    if (id) {
+      sellerIds.add(id);
     }
   };
 
   pushSellerId(order.seller);
 
+  const segmentInfoMap = new Map();
+
   (order.segments || []).forEach((segment) => {
-    pushSellerId(segment?.seller);
+    const sellerKey = getIdString(segment?.seller);
+    if (sellerKey) {
+      pushSellerId(sellerKey);
+      segmentInfoMap.set(sellerKey, {
+        status: segment.status || null,
+        segmentId: segment._id?.toString?.() || null
+      });
+    }
   });
 
   if (sellerIds.size === 0 && Array.isArray(order.items)) {
     order.items.forEach((item) => pushSellerId(item?.seller));
   }
 
+  // Récupérer les informations du client (buyer)
+  let buyerInfo = null;
+  if (order.buyer) {
+    const buyerId = order.buyer._id || order.buyer;
+    const buyer = await User.findById(buyerId).select('firstName lastName email phone');
+    if (buyer) {
+      buyerInfo = {
+        firstName: buyer.firstName || '',
+        lastName: buyer.lastName || '',
+        fullName: `${buyer.firstName || ''} ${buyer.lastName || ''}`.trim() || 'Client',
+        email: buyer.email || '',
+        phone: buyer.phone || ''
+      };
+    }
+  }
+
+  // Préparer les détails des produits avec segments et vendeurs
+  const sellerInfoCache = new Map();
+
+  const getSellerInfo = async (sellerId) => {
+    if (!sellerId) return null;
+    if (sellerInfoCache.has(sellerId)) {
+      return sellerInfoCache.get(sellerId);
+    }
+
+    const seller = await User.findById(sellerId).select('firstName lastName companyName farmName restaurantName businessName name userType');
+    if (!seller) {
+      sellerInfoCache.set(sellerId, null);
+      return null;
+    }
+
+    const displayName = seller.farmName || seller.companyName || seller.restaurantName || seller.businessName || seller.name || `${seller.firstName || ''} ${seller.lastName || ''}`.trim() || 'Vendeur';
+    const info = {
+      id: sellerId,
+      name: displayName,
+      userType: seller.userType || null
+    };
+    sellerInfoCache.set(sellerId, info);
+    return info;
+  };
+
+  const productsDetails = [];
+  if (Array.isArray(order.items)) {
+    for (const item of order.items) {
+      const images = item.productSnapshot?.images || [];
+      const productName = item.productSnapshot?.name || 'Produit';
+      const productDescription = item.productSnapshot?.description || '';
+
+      const sellerId = getIdString(item.seller) || getIdString(item.productSnapshot?.producer) || getIdString(item.productSnapshot?.transformer) || getIdString(item.productSnapshot?.restaurateur);
+      const sellerInfo = sellerId ? await getSellerInfo(sellerId) : null;
+      const segmentInfo = sellerId ? segmentInfoMap.get(sellerId) : null;
+      if (segmentInfo && sellerInfo?.name) {
+        segmentInfoMap.set(sellerId, {
+          ...segmentInfo,
+          sellerName: sellerInfo.name
+        });
+      }
+
+      const productStatus = item.status || segmentInfo?.status || order.status || 'pending';
+
+      productsDetails.push({
+        name: productName,
+        description: productDescription,
+        images: Array.isArray(images) ? images : [],
+        quantity: item.quantity || 1,
+        unitPrice: item.unitPrice || 0,
+        totalPrice: item.totalPrice || 0,
+        status: productStatus,
+        seller: sellerId ? {
+          id: sellerId,
+          name: sellerInfo?.name || null,
+          type: sellerInfo?.userType || null
+        } : null,
+        segment: segmentInfo ? {
+          id: segmentInfo.segmentId || null,
+          status: segmentInfo.status || null,
+          sellerId,
+          sellerName: segmentInfo.sellerName || sellerInfo?.name || null
+        } : null
+      });
+    }
+  }
+
   const notifications = [];
+
+  // Fonction pour construire l'URL de commande selon le type d'utilisateur
+  const buildOrderUrl = async (userId) => {
+    const user = await User.findById(userId).select('userType');
+    if (!user) {
+      // Par défaut, utiliser /consumer/orders/ si l'utilisateur n'est pas trouvé
+      return buildFrontendUrl(`/consumer/orders/${order._id}`);
+    }
+    
+    const userType = user.userType;
+    // Mapper les types d'utilisateurs aux routes appropriées
+    const routeMap = {
+      'consumer': '/consumer/orders',
+      'restaurateur': '/restaurateur/orders',
+      'producer': '/producer/orders',
+      'transformer': '/transformer/orders',
+      'exporter': '/exporter/orders',
+      'transporter': '/transporter/orders'
+    };
+    
+    const baseRoute = routeMap[userType] || '/consumer/orders';
+    return buildFrontendUrl(`${baseRoute}/${order._id}`);
+  };
 
   // Notifier tous les vendeurs concernés
   if (sellerIds.size > 0) {
-    const sellerNotifications = Array.from(sellerIds).map((sellerId) =>
-      this.createNotification({
+    const sellerNotificationsPromises = Array.from(sellerIds).map(async (sellerId) => {
+      const orderUrl = await buildOrderUrl(sellerId);
+      const sellerInfo = await getSellerInfo(sellerId);
+      const segmentInfo = segmentInfoMap.get(sellerId) || null;
+      const sellerProducts = productsDetails.filter((product) => product.seller?.id === sellerId);
+      const productsForSeller = sellerProducts.length > 0 ? sellerProducts : productsDetails;
+      const sellerAmount = productsForSeller.reduce((sum, product) => sum + (Number(product.totalPrice) || 0), 0);
+      return this.createNotification({
         recipient: sellerId,
         type: 'order_created',
         category: 'order',
         title: 'Nouvelle commande reçue',
-        message: `Vous avez reçu une nouvelle commande (${order.orderNumber}) d'un montant de ${order.total} ${order.currency}`,
+        message: `Vous avez reçu une nouvelle commande (${order.orderNumber}) d'un montant de ${sellerAmount || order.total} ${order.currency}${buyerInfo ? ` de ${buyerInfo.fullName}` : ''}`,
         data: {
           orderId: order._id,
           orderNumber: order.orderNumber,
-          amount: order.total,
-          currency: order.currency
+          amount: sellerAmount || order.total,
+          currency: order.currency,
+          buyer: buyerInfo,
+          status: segmentInfo?.status || order.status,
+          segment: segmentInfo ? {
+            id: segmentInfo.segmentId || null,
+            status: segmentInfo.status || null,
+            sellerId,
+            sellerName: segmentInfo.sellerName || sellerProducts[0]?.seller?.name || sellerInfo?.name || null
+          } : null,
+          products: productsForSeller
         },
         actions: [{
           type: 'view',
           label: 'Voir la commande',
-          url: `/orders/${order._id}`
+          url: orderUrl
         }],
         channels: {
           inApp: { enabled: true },
           email: { enabled: true },
           push: { enabled: true }
         }
-      })
-    );
+      });
+    });
+    const sellerNotifications = await Promise.all(sellerNotificationsPromises);
     notifications.push(...sellerNotifications);
   }
 
   // Notifier l'acheteur de la création de sa commande
   if (order.buyer) {
+    const buyerId = order.buyer._id || order.buyer;
+    const orderUrl = await buildOrderUrl(buyerId);
     const buyerNotification = this.createNotification({
       recipient: order.buyer,
       type: 'order_created_buyer',
@@ -682,12 +961,14 @@ notificationSchema.statics.notifyOrderCreated = function(order) {
         orderId: order._id,
         orderNumber: order.orderNumber,
         amount: order.total,
-        currency: order.currency
+        currency: order.currency,
+        status: order.status || 'pending',
+        products: productsDetails
       },
       actions: [{
         type: 'view',
         label: 'Voir ma commande',
-        url: `/orders/${order._id}`
+        url: orderUrl
       }],
       channels: {
         inApp: { enabled: true },
@@ -748,7 +1029,7 @@ notificationSchema.statics.notifyProductApproved = function(product, explicitOwn
     actions: [{
       type: 'view',
       label: 'Voir le produit',
-      url: `/products/${product.slug || product._id}`
+      url: buildFrontendUrl(`/products/${product.slug || product._id}`)
     }],
     channels: {
       inApp: { enabled: true },

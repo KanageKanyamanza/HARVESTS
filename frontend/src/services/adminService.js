@@ -49,6 +49,22 @@ export const getUserById = async (id) => {
   return response.data;
 };
 
+// Service pour la gestion des souscriptions
+export const getSubscriptions = async (params = {}) => {
+  const response = await api.get('/subscriptions/admin', { params });
+  return response.data;
+};
+
+export const getSubscriptionStats = async () => {
+  const response = await api.get('/subscriptions/stats/overview');
+  return response.data;
+};
+
+export const updateSubscriptionStatus = async (id, data) => {
+  const response = await api.patch(`/subscriptions/admin/${id}/status`, data);
+  return response.data;
+};
+
 export const updateUser = async (id, userData) => {
   const response = await api.patch(`/admin/users/${id}`, userData);
   return response.data;
@@ -348,6 +364,9 @@ export const adminService = {
   // Users
   getUsers,
   getUserById,
+  getSubscriptions,
+  getSubscriptionStats,
+  updateSubscriptionStatus,
   updateUser,
   deleteUser,
   banUser,

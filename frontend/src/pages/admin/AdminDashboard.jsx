@@ -23,7 +23,8 @@ import {
   Activity,
   Globe,
   Truck,
-  Hammer
+  Hammer,
+  CreditCard
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -44,7 +45,10 @@ const AdminDashboard = () => {
     pendingProducts: 0,
     pendingReviews: 0,
     unreadMessages: 0,
-    activeAdmins: 0
+    activeAdmins: 0,
+    totalSubscriptions: 0,
+    activeSubscriptions: 0,
+    subscriptionRevenue: 0
   });
   const [recentOrders, setRecentOrders] = useState([]);
   const [pendingProducts, setPendingProducts] = useState([]);
@@ -65,19 +69,22 @@ const AdminDashboard = () => {
         productsResponse,
         salesResponse,
         producersResponse,
-        productStatsResponse
+        productStatsResponse,
+        subscriptionStatsResponse
       ] = await Promise.all([
         adminService.getDashboardStats(),
         adminService.getRecentOrders({ limit: 5 }),
         adminService.getPendingProducts({ limit: 5 }),
         adminService.getSalesChart({ months: 12 }),
         adminService.getTopProducers({ limit: 5 }),
-        adminService.getProductStats()
+        adminService.getProductStats(),
+        adminService.getSubscriptionStats().catch(() => ({ data: { data: { stats: {} } } }))
       ]);
       
       // Traiter les statistiques générales
       if (statsResponse.data && statsResponse.data.stats) {
         const statsData = statsResponse.data.stats;
+        const subscriptionStats = subscriptionStatsResponse?.data?.data?.stats || {};
         setStats({
           totalUsers: statsData.totalUsers || 0,
           totalProducts: statsData.totalProducts || 0,
@@ -95,7 +102,10 @@ const AdminDashboard = () => {
           pendingProducts: statsData.pendingProducts || 0,
           pendingReviews: statsData.pendingReviews || 0,
           unreadMessages: statsData.unreadMessages || 0,
-          activeAdmins: statsData.activeAdmins || 0
+          activeAdmins: statsData.activeAdmins || 0,
+          totalSubscriptions: subscriptionStats.total || 0,
+          activeSubscriptions: subscriptionStats.active || 0,
+          subscriptionRevenue: subscriptionStats.revenue?.total || 0
         });
       }
       
@@ -144,7 +154,10 @@ const AdminDashboard = () => {
         pendingProducts: 0,
         pendingReviews: 0,
         unreadMessages: 0,
-        activeAdmins: 0
+        activeAdmins: 0,
+        totalSubscriptions: 0,
+        activeSubscriptions: 0,
+        subscriptionRevenue: 0
       });
     } finally {
       setLoading(false);
@@ -187,6 +200,14 @@ const AdminDashboard = () => {
       color: 'bg-yellow-500',
       change: `${stats.totalOrders} commandes`,
       link: '/admin/analytics'
+    },
+    {
+      title: 'Abonnements',
+      value: stats.totalSubscriptions.toLocaleString(),
+      icon: CreditCard,
+      color: 'bg-emerald-500',
+      change: `${stats.activeSubscriptions} actifs`,
+      link: '/admin/subscriptions'
     }
   ];
 
@@ -309,7 +330,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Cartes de statistiques principales */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           {statCards.map((card, index) => (
             <Link
               key={index}
@@ -459,6 +480,17 @@ const AdminDashboard = () => {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-900">Analytics</p>
                   <p className="text-xs text-gray-500">Rapports et statistiques</p>
+                </div>
+              </Link>
+
+              <Link
+                to="/admin/subscriptions"
+                className="flex items-center p-4 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors duration-200"
+              >
+                <CreditCard className="w-8 h-8 text-emerald-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-900">Abonnements</p>
+                  <p className="text-xs text-gray-500">Gérer les abonnements</p>
                 </div>
               </Link>
             </div>

@@ -78,7 +78,9 @@ const Cart = () => {
                     
                     <div className="flex-1">
                       <h3 className="font-medium text-gray-900">{item.name}</h3>
-                      <p className="text-sm text-gray-600">Par {item.producer.name}</p>
+                      <p className="text-sm text-gray-600">
+                        Par {item.producer?.name || item.producerName || item.supplierName || 'Fournisseur'}
+                      </p>
                       <p className="text-lg font-semibold text-harvests-green">
                         {item.price.toLocaleString()} FCFA
                       </p>

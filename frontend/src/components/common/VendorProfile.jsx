@@ -106,6 +106,20 @@ const VendorProfile = ({
                     return item;
                   }
 
+                  // Pour les restaurateurs, s'assurer que le champ restaurateur est rempli
+                  // Note: vendor peut ne pas être encore chargé, donc on utilise vendorData si disponible
+                  const currentVendor = vendor || (vendorResponse?.data?.data?.[vendorType] || vendorResponse?.data?.[vendorType]);
+                  if (vendorType === 'restaurateur' && currentVendor && !item.restaurateur) {
+                    item.restaurateur = {
+                      _id: currentVendor._id,
+                      id: currentVendor._id,
+                      restaurantName: currentVendor.restaurantName || currentVendor.name,
+                      name: currentVendor.restaurantName || currentVendor.name
+                    };
+                    item.restaurateurId = currentVendor._id;
+                    item.restaurantName = currentVendor.restaurantName || currentVendor.name;
+                  }
+
                   try {
                     const statsResponse = await reviewService.getProductRatingStats(item._id);
                     const statsData = statsResponse?.data;
@@ -141,13 +155,32 @@ const VendorProfile = ({
 
         // Charger les avis
         try {
-          const reviewsResponse = await service.getReviews(id);
-          
-          if (reviewsResponse.data.status === 'success') {
-            setReviews(reviewsResponse.data.data.reviews || []);
+          // Essayer d'appeler getReviews directement (gérer l'erreur si elle n'existe pas)
+          if (service && service.getReviews) {
+            try {
+              const reviewsResponse = await service.getReviews(id);
+              
+              if (reviewsResponse?.data?.status === 'success') {
+                setReviews(reviewsResponse.data.data?.reviews || reviewsResponse.data.data || []);
+              }
+            } catch (reviewError) {
+              // Si l'erreur est 404 ou que la route n'existe pas, c'est normal
+              if (reviewError.response?.status === 404) {
+                console.log(`Route reviews non disponible pour ${vendorType}`);
+                setReviews([]);
+              } else {
+                console.error(`Erreur lors du chargement des avis:`, reviewError);
+                setReviews([]);
+              }
+            }
+          } else {
+            console.log(`Méthode getReviews non disponible pour ${vendorType}, avis non chargés`);
+            setReviews([]);
           }
         } catch (error) {
           console.error(`Erreur lors du chargement des avis:`, error);
+          // Ne pas bloquer l'affichage si les avis ne peuvent pas être chargés
+          setReviews([]);
         }
       } catch (error) {
         console.error('Erreur lors du chargement:', error);

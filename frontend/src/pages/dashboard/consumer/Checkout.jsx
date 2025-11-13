@@ -384,7 +384,7 @@ const Checkout = () => {
 
   useEffect(() => {
     const shouldEstimate =
-      user?.userType === 'consumer' &&
+      ['consumer', 'restaurateur'].includes(user?.userType) &&
       cartItems.length > 0 &&
       orderData.deliveryAddress?.street &&
       orderData.deliveryAddress?.city &&

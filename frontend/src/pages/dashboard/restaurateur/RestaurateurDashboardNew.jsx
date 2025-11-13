@@ -3,9 +3,10 @@ import GenericDashboard from '../../../components/dashboard/GenericDashboard';
 import ProductsSection from '../../../components/dashboard/sections/ProductsSection';
 import OrdersSection from '../../../components/dashboard/sections/OrdersSection';
 import QuickActionsSection from '../../../components/dashboard/sections/QuickActionsSection';
+import SubscriptionSection from '../../../components/dashboard/sections/SubscriptionSection';
 import { restaurateurService } from '../../../services/genericService';
 import commonService from '../../../services/commonService';
-import { FiCoffee } from 'react-icons/fi';
+import { FiCoffee, FiStar } from 'react-icons/fi';
 
 const RestaurateurDashboard = () => {
   // Configuration des statistiques pour les restaurateurs
@@ -19,6 +20,12 @@ const RestaurateurDashboard = () => {
 
   // Configuration des sections du dashboard
   const sections = [
+    {
+      title: 'Mon Abonnement',
+      icon: <FiStar className="h-5 w-5" />,
+      content: <SubscriptionSection />,
+      fullWidth: false
+    },
     {
       title: 'Mes Plats',
       icon: <FiCoffee className="h-5 w-5" />,

@@ -30,6 +30,10 @@ const orderItemSchema = new mongoose.Schema({
     transformer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
+    },
+    restaurateur: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
     }
   },
   quantity: {

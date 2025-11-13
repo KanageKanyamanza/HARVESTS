@@ -91,18 +91,8 @@ const cartReducer = (state, action) => {
             item.ownerId ||
             item.sellerId ||
             null;
-          const supplierName =
-            supplier.name ||
-            supplier.businessName ||
-            supplier.companyName ||
-            supplier.restaurantName ||
-            item.producerName ||
-            item.supplierName ||
-            item.vendorName ||
-            item.restaurateurName ||
-            item.transformerName ||
-            item.ownerName ||
-            'Fournisseur';
+          
+          // Définir supplierType AVANT de l'utiliser
           const supplierType =
             supplier.type ||
             supplier.userType ||
@@ -117,6 +107,33 @@ const cartReducer = (state, action) => {
               : originType === 'logistics'
               ? 'transporter'
               : 'producer');
+          
+          // Pour les restaurateurs, prioriser restaurantName
+          let supplierName = '';
+          if (originType === 'dish' || originType === 'restaurateur' || supplierType === 'restaurateur') {
+            supplierName =
+              supplier.restaurantName ||
+              supplier.name ||
+              item.restaurateurName ||
+              item.producerName ||
+              item.supplierName ||
+              supplier.businessName ||
+              supplier.companyName ||
+              'Restaurant';
+          } else {
+            supplierName =
+              supplier.name ||
+              supplier.businessName ||
+              supplier.companyName ||
+              supplier.restaurantName ||
+              item.producerName ||
+              item.supplierName ||
+              item.vendorName ||
+              item.restaurateurName ||
+              item.transformerName ||
+              item.ownerName ||
+              'Fournisseur';
+          }
 
           return {
             ...item,
@@ -217,11 +234,22 @@ export const CartProvider = ({ children }) => {
         product.source,
       ].find(Boolean) || {};
 
+    // Pour les produits de restaurateurs, chercher aussi dans les champs spécifiques
+    let restaurateurId = null;
+    if (originType === 'dish' || originType === 'restaurateur' || product.restaurateur) {
+      restaurateurId = 
+        product.restaurateur?._id ||
+        product.restaurateur?.id ||
+        product.restaurateurId ||
+        (typeof product.restaurateur === 'string' ? product.restaurateur : null);
+    }
+
     const supplierId =
       supplierInfo.companyId ||
       supplierInfo.organizationId ||
       supplierInfo._id ||
       supplierInfo.id ||
+      restaurateurId ||
       product.companyId ||
       product.organizationId ||
       product.producerId ||
@@ -244,8 +272,12 @@ export const CartProvider = ({ children }) => {
         product.restaurateur?.restaurantName ||
         product.restaurantName ||
         product.restaurateurName ||
+        supplierInfo.name ||
+        supplierInfo.displayName ||
         supplierInfo.brandName ||
-        supplierInfo.companyName;
+        supplierInfo.companyName ||
+        product.restaurateur?.name ||
+        product.restaurateur?.displayName;
     } else if (originType === 'transformed-product' || originType === 'transformer') {
       supplierName =
         supplierInfo.companyName ||
@@ -439,13 +471,43 @@ export const CartProvider = ({ children }) => {
       }
     }
     
-    // Vérifier qu'un fournisseur est bien identifié (sinon laisser la validation plus tard)
+    // Vérifier qu'un fournisseur est bien identifié
+    // Pour les produits de restaurateurs, le fournisseur peut être dans restaurateurId
     if (!producer?.id) {
-      console.warn(
-        '[Cart] Fournisseur introuvable pour le produit ajouté',
-        productId,
-        originType
-      );
+      // Essayer de trouver le fournisseur dans le produit lui-même
+      const fallbackSupplierId = 
+        product.restaurateur?._id || 
+        product.restaurateur?.id || 
+        product.restaurateurId ||
+        product.producer?._id ||
+        product.producer?.id ||
+        product.producerId ||
+        product.transformer?._id ||
+        product.transformer?.id ||
+        product.transformerId;
+      
+      if (fallbackSupplierId) {
+        // Mettre à jour le cartItem avec le fournisseur trouvé
+        cartItem.producer = {
+          id: fallbackSupplierId,
+          name: producer?.name || 
+                product.restaurateur?.restaurantName || 
+                product.restaurantName ||
+                product.restaurateur?.name ||
+                product.restaurateur?.displayName ||
+                product.producer?.farmName || 
+                'Fournisseur',
+          type: producer?.type || (product.restaurateur ? 'restaurateur' : product.transformer ? 'transformer' : 'producer')
+        };
+      } else {
+        // Seulement avertir si vraiment aucun fournisseur n'est trouvé
+        console.warn(
+          '[Cart] Fournisseur introuvable pour le produit ajouté',
+          productId,
+          originType,
+          'Le produit sera ajouté mais pourrait nécessiter une vérification manuelle'
+        );
+      }
     }
 
     dispatch({ type: CART_ACTIONS.ADD_ITEM, payload: cartItem });

@@ -13,6 +13,40 @@ const {
 } = require('../utils/orderSegments');
 const { toPlainText } = require('../utils/localization');
 
+// Fonction utilitaire pour construire une URL complète du frontend
+function buildFrontendUrl(path) {
+  const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
+  // Supprimer le slash final de l'URL du frontend si présent
+  const baseUrl = frontendUrl.replace(/\/$/, '');
+  // S'assurer que le chemin commence par un slash
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${baseUrl}${normalizedPath}`;
+}
+
+// Fonction pour construire l'URL de commande selon le type d'utilisateur
+async function buildOrderUrl(userId, orderId) {
+  const User = mongoose.model('User');
+  const user = await User.findById(userId).select('userType');
+  if (!user) {
+    // Par défaut, utiliser /consumer/orders/ si l'utilisateur n'est pas trouvé
+    return buildFrontendUrl(`/consumer/orders/${orderId}`);
+  }
+  
+  const userType = user.userType;
+  // Mapper les types d'utilisateurs aux routes appropriées
+  const routeMap = {
+    'consumer': '/consumer/orders',
+    'restaurateur': '/restaurateur/orders',
+    'producer': '/producer/orders',
+    'transformer': '/transformer/orders',
+    'exporter': '/exporter/orders',
+    'transporter': '/transporter/orders'
+  };
+  
+  const baseRoute = routeMap[userType] || '/consumer/orders';
+  return buildFrontendUrl(`${baseRoute}/${orderId}`);
+}
+
 // ROUTES PUBLIQUES (avec authentification)
 
 // Estimer les frais avant création de commande
@@ -406,9 +440,23 @@ exports.getMyOrders = catchAsync(async (req, res, next) => {
   let query = {};
   
   // Filtrer selon le type d'utilisateur
-  if (['consumer', 'restaurateur'].includes(req.user.userType)) {
+  // Les restaurateurs peuvent être à la fois acheteurs ET vendeurs
+  if (req.user.userType === 'restaurateur') {
+    // Restaurateur : voir les commandes où il est acheteur OU vendeur
+    query.$or = [
+      { buyer: req.user._id },
+      { seller: req.user._id },
+      { 'segments.seller': req.user._id },
+      { 'items.seller': req.user._id },
+      { 'items.productSnapshot.producer': req.user._id },
+      { 'items.productSnapshot.transformer': req.user._id },
+      { 'items.productSnapshot.restaurateur': req.user._id }
+    ];
+  } else if (req.user.userType === 'consumer') {
+    // Consumer : seulement les commandes où il est acheteur
     query.buyer = req.user._id;
-  } else if (['producer', 'transformer', 'restaurateur'].includes(req.user.userType)) {
+  } else if (['producer', 'transformer'].includes(req.user.userType)) {
+    // Producteurs et transformateurs : seulement les commandes où ils sont vendeurs
     query.$or = [
       { seller: req.user._id },
       { 'segments.seller': req.user._id },
@@ -553,6 +601,21 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
 
   if (!canUpdate) {
     return next(new AppError('Vous n\'avez pas le droit de modifier cette commande', 403));
+  }
+
+  // Vérifier si le statut demandé est différent du statut actuel de la commande
+  // (pour éviter les transitions inutiles, mais permettre les mises à jour d'items individuels)
+  // Note: Cette vérification ne bloque pas si on met à jour des items spécifiques
+  const currentOrderStatus = order.status || 'pending';
+  if (currentOrderStatus === status && !req.body.itemIds && !req.body.itemId) {
+    // Si aucun item spécifique n'est ciblé et que le statut est déjà le même, retourner succès sans modification
+    return res.status(200).json({
+      status: 'success',
+      message: 'Le statut de la commande est déjà à ce niveau',
+      data: {
+        order
+      }
+    });
   }
 
   // Valider la transition de statut
@@ -753,6 +816,13 @@ if (isItemScoped) {
       itemMatchedCount += 1;
 
       const currentItemStatus = item.status || 'pending';
+      
+      // Vérifier si le statut est déjà le même (éviter les transitions inutiles)
+      if (currentItemStatus === status) {
+        // Ne pas lever d'erreur, simplement ignorer cette transition
+        return;
+      }
+      
       const allowedItemTransitions = {
         pending: ['confirmed', 'cancelled'],
         confirmed: ['preparing', 'cancelled'],
@@ -791,6 +861,12 @@ if (['confirmed', 'preparing', 'ready-for-pickup', 'in-transit', 'delivered', 'c
         continue;
       }
 
+    // Vérifier si le segment a déjà le statut demandé
+    const currentSegmentStatus = segment.status || 'pending';
+    if (currentSegmentStatus === status) {
+      continue;
+    }
+    
     const segmentAllowed = () => {
       const segmentAllowedTransitions = {
         pending: ['confirmed', 'cancelled'],
@@ -802,8 +878,7 @@ if (['confirmed', 'preparing', 'ready-for-pickup', 'in-transit', 'delivered', 'c
         completed: [],
         cancelled: []
       };
-      const current = segment.status || 'pending';
-      return (segmentAllowedTransitions[current] || []).includes(status);
+      return (segmentAllowedTransitions[currentSegmentStatus] || []).includes(status);
     };
 
     if (!segmentAllowed()) {
@@ -1577,34 +1652,39 @@ function getValidStatusTransitions(currentStatus, userType) {
     pending: {
       producer: ['confirmed', 'cancelled'],
       transformer: ['confirmed', 'cancelled'],
+      restaurateur: ['confirmed', 'cancelled'],
       consumer: ['cancelled'],
-      restaurateur: ['cancelled'],
       admin: ['confirmed', 'cancelled']
     },
     confirmed: {
       producer: ['preparing', 'cancelled'],
       transformer: ['preparing', 'cancelled'],
+      restaurateur: ['preparing', 'cancelled'],
       admin: ['preparing', 'cancelled']
     },
     preparing: {
       producer: ['ready-for-pickup', 'cancelled'],
       transformer: ['ready-for-pickup', 'cancelled'],
+      restaurateur: ['ready-for-pickup', 'cancelled'],
       admin: ['ready-for-pickup', 'cancelled']
     },
     'ready-for-pickup': {
       transporter: ['in-transit'],
       producer: ['cancelled'],
       transformer: ['cancelled'],
+      restaurateur: ['cancelled'],
       admin: ['in-transit', 'cancelled']
     },
     'in-transit': {
       transporter: ['cancelled'],
       producer: ['cancelled'],
       transformer: ['cancelled'],
+      restaurateur: ['cancelled'],
       admin: ['delivered', 'cancelled']
     },
     delivered: {
       consumer: ['completed'],
+      restaurateur: ['completed'],
       admin: ['completed']
     },
     completed: {
@@ -1626,6 +1706,7 @@ function getValidStatusTransitions(currentStatus, userType) {
 
 // Envoyer les notifications selon le statut à tous les acteurs concernés
 async function sendStatusNotifications(order, newStatus) {
+  const User = mongoose.model('User');
   // Notifications pour l'acheteur
   const buyerNotifications = {
     confirmed: {
@@ -1752,37 +1833,127 @@ async function sendStatusNotifications(order, newStatus) {
     }
   };
 
-  // Récupérer tous les vendeurs concernés
+  const getIdString = (value) => {
+    if (!value) return null;
+    if (typeof value === 'string') return value;
+    if (value._id) return value._id.toString();
+    if (typeof value === 'object' && typeof value.toString === 'function') {
+      return value.toString();
+    }
+    return null;
+  };
+
   const sellerIds = new Set();
-  if (order.seller) {
-    sellerIds.add(order.seller.toString());
-  }
+  const pushSellerId = (value) => {
+    const id = getIdString(value);
+    if (id) {
+      sellerIds.add(id);
+    }
+  };
+
+  pushSellerId(order.seller);
+
+  const segmentInfoMap = new Map();
   (order.segments || []).forEach(segment => {
-    if (segment.seller) {
-      sellerIds.add(segment.seller.toString());
+    const sellerKey = getIdString(segment?.seller);
+    if (sellerKey) {
+      pushSellerId(sellerKey);
+      segmentInfoMap.set(sellerKey, {
+        status: segment.status || null,
+        segmentId: segment._id?.toString?.() || null
+      });
     }
   });
+
   (order.items || []).forEach(item => {
-    if (item.seller) {
-      sellerIds.add(item.seller.toString());
-    }
+    pushSellerId(item?.seller);
   });
+
+  const sellerInfoCache = new Map();
+  const getSellerInfo = async (sellerId) => {
+    if (!sellerId) return null;
+    if (sellerInfoCache.has(sellerId)) {
+      return sellerInfoCache.get(sellerId);
+    }
+
+    const seller = await User.findById(sellerId).select('firstName lastName companyName farmName restaurantName businessName name userType');
+    if (!seller) {
+      sellerInfoCache.set(sellerId, null);
+      return null;
+    }
+
+    const displayName = seller.farmName || seller.companyName || seller.restaurantName || seller.businessName || seller.name || `${seller.firstName || ''} ${seller.lastName || ''}`.trim() || 'Vendeur';
+    const info = {
+      id: sellerId,
+      name: displayName,
+      userType: seller.userType || null
+    };
+    sellerInfoCache.set(sellerId, info);
+    return info;
+  };
+
+  const items = Array.isArray(order.items) ? order.items : [];
+  const productsDetails = [];
+
+  for (const item of items) {
+    const images = item.productSnapshot?.images || [];
+    const productName = item.productSnapshot?.name || 'Produit';
+    const productDescription = item.productSnapshot?.description || '';
+
+    const sellerId = getIdString(item.seller) || getIdString(item.productSnapshot?.producer) || getIdString(item.productSnapshot?.transformer) || getIdString(item.productSnapshot?.restaurateur);
+    const sellerInfo = sellerId ? await getSellerInfo(sellerId) : null;
+    const segmentInfo = sellerId ? segmentInfoMap.get(sellerId) : null;
+    if (segmentInfo && sellerInfo?.name) {
+      segmentInfoMap.set(sellerId, {
+        ...segmentInfo,
+        sellerName: sellerInfo.name
+      });
+    }
+
+    const productStatus = item.status || segmentInfo?.status || order.status || newStatus || 'pending';
+
+    productsDetails.push({
+      name: productName,
+      description: productDescription,
+      images: Array.isArray(images) ? images : [],
+      quantity: item.quantity || 1,
+      unitPrice: item.unitPrice || 0,
+      totalPrice: item.totalPrice || 0,
+      status: productStatus,
+      seller: sellerId ? {
+        id: sellerId,
+        name: sellerInfo?.name || null,
+        type: sellerInfo?.userType || null
+      } : null,
+      segment: segmentInfo ? {
+        id: segmentInfo.segmentId || null,
+        status: segmentInfo.status || null,
+        sellerId,
+        sellerName: segmentInfo.sellerName || sellerInfo?.name || null
+      } : null
+    });
+  }
 
   // Notifier l'acheteur
   const buyerNotification = buyerNotifications[newStatus];
   if (buyerNotification && order.buyer) {
+    const buyerId = order.buyer._id || order.buyer;
+    const buyerOrderUrl = await buildOrderUrl(buyerId, order._id);
     await Notification.createNotification({
       recipient: order.buyer,
       ...buyerNotification,
       data: {
         orderId: order._id,
         orderNumber: order.orderNumber,
-        status: newStatus
+        amount: order.total,
+        currency: order.currency,
+        status: newStatus,
+        products: productsDetails
       },
       actions: [{
         type: 'view',
         label: 'Voir la commande',
-        url: `/orders/${order._id}`
+        url: buyerOrderUrl
       }],
       channels: {
         inApp: { enabled: true },
@@ -1792,36 +1963,70 @@ async function sendStatusNotifications(order, newStatus) {
     });
   }
 
+  // Récupérer les informations du client (buyer) pour les notifications vendeur
+  let buyerInfo = null;
+  if (order.buyer) {
+    const User = mongoose.model('User');
+    const buyerId = order.buyer._id || order.buyer;
+    const buyer = await User.findById(buyerId).select('firstName lastName email phone');
+    if (buyer) {
+      buyerInfo = {
+        firstName: buyer.firstName || '',
+        lastName: buyer.lastName || '',
+        fullName: `${buyer.firstName || ''} ${buyer.lastName || ''}`.trim() || 'Client',
+        email: buyer.email || '',
+        phone: buyer.phone || ''
+      };
+    }
+  }
+
   // Notifier tous les vendeurs concernés
   const sellerNotification = sellerNotifications[newStatus];
   if (sellerNotification && sellerIds.size > 0) {
-    const sellerNotificationsPromises = Array.from(sellerIds).map(sellerId =>
-      Notification.createNotification({
+    const sellerNotificationsPromises = Array.from(sellerIds).map(async (sellerId) => {
+      const sellerOrderUrl = await buildOrderUrl(sellerId, order._id);
+      const segmentInfo = segmentInfoMap.get(sellerId) || null;
+      const sellerProducts = productsDetails.filter((product) => product.seller?.id === sellerId);
+      const productsForSeller = sellerProducts.length > 0 ? sellerProducts : productsDetails;
+      const sellerAmount = productsForSeller.reduce((sum, product) => sum + (Number(product.totalPrice) || 0), 0);
+      return Notification.createNotification({
         recipient: sellerId,
         ...sellerNotification,
         data: {
           orderId: order._id,
           orderNumber: order.orderNumber,
-          status: newStatus
+          amount: sellerAmount || order.total,
+          currency: order.currency,
+          status: segmentInfo?.status || newStatus,
+          buyer: buyerInfo,
+          segment: segmentInfo ? {
+            id: segmentInfo.segmentId || null,
+            status: segmentInfo.status || null,
+            sellerId,
+            sellerName: segmentInfo.sellerName || sellerProducts[0]?.seller?.name || null
+          } : null,
+          products: productsForSeller
         },
         actions: [{
           type: 'view',
           label: 'Voir la commande',
-          url: `/orders/${order._id}`
+          url: sellerOrderUrl
         }],
         channels: {
           inApp: { enabled: true },
           email: { enabled: true },
           push: { enabled: true }
         }
-      })
-    );
+      });
+    });
     await Promise.all(sellerNotificationsPromises);
   }
 
   // Notifier le transporteur si applicable
   const transporterNotification = transporterNotifications[newStatus];
   if (transporterNotification && order.delivery?.transporter) {
+    const transporterId = order.delivery.transporter._id || order.delivery.transporter;
+    const transporterOrderUrl = await buildOrderUrl(transporterId, order._id);
     await Notification.createNotification({
       recipient: order.delivery.transporter,
       ...transporterNotification,
@@ -1833,7 +2038,7 @@ async function sendStatusNotifications(order, newStatus) {
       actions: [{
         type: 'view',
         label: 'Voir la commande',
-        url: `/orders/${order._id}`
+        url: transporterOrderUrl
       }],
       channels: {
         inApp: { enabled: true },

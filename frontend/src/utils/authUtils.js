@@ -58,8 +58,8 @@ export const canAccessRoute = (route, userType, isAuthenticated, role = null) =>
     return true;
   }
 
-  // Routes communes aux consommateurs
-  if (userType === 'consumer' && 
+  // Routes communes aux consommateurs ET aux restaurateurs (qui peuvent aussi être consommateurs)
+  if (['consumer', 'restaurateur'].includes(userType) && 
       ['/cart', '/checkout', '/order-history', '/favorites', '/addresses', '/payment-methods', '/reviews'].some(r => route.startsWith(r))) {
     return true;
   }
