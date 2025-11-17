@@ -45,6 +45,184 @@ exports.getPaypalClientToken = catchAsync(async (req, res, next) => {
   });
 });
 
+// Créer un ordre PayPal pour les Hosted Fields (sans redirection)
+exports.createOrderForHostedFields = catchAsync(async (req, res, next) => {
+  const { type, planId, billingPeriod, amount, currency, orderId } = req.body;
+
+  // Vérifier le type de paiement
+  if (type !== 'subscription' && type !== 'order') {
+    return next(new AppError('Type de paiement non supporté pour les Hosted Fields. Utilisez "subscription" ou "order"', 400));
+  }
+
+  // Gestion des abonnements (type: 'subscription')
+  if (type === 'subscription') {
+    // Validation du plan
+    const Subscription = require('../models/Subscription');
+    const plans = Subscription.getAvailablePlans();
+    const plan = plans[planId];
+
+    if (!plan) {
+      return next(new AppError('Plan invalide', 400));
+    }
+
+    const expectedAmount = billingPeriod === 'monthly' ? plan.monthlyPrice : plan.annualPrice;
+    
+    if (amount !== expectedAmount) {
+      return next(new AppError('Montant incorrect', 400));
+    }
+
+    // Créer ou trouver la souscription
+    let subscription = await Subscription.findOne({
+      user: req.user.id,
+      planId,
+      status: 'pending'
+    }).sort({ createdAt: -1 });
+
+    if (!subscription) {
+      subscription = await Subscription.create({
+        user: req.user.id,
+        planId,
+        planName: plan.name,
+        billingPeriod,
+        amount: expectedAmount,
+        currency: currency || 'XAF',
+        paymentMethod: 'paypal',
+        status: 'pending',
+        paymentStatus: 'pending'
+      });
+    }
+
+    // Créer le paiement
+    const payment = await Payment.create({
+      paymentId: new mongoose.Types.ObjectId().toString(),
+      user: req.user.id,
+      amount: expectedAmount,
+      currency: currency || 'XAF',
+      method: 'paypal',
+      provider: 'paypal',
+      type: 'subscription',
+      status: 'processing',
+      metadata: {
+        subscriptionId: subscription._id.toString(),
+        planId,
+        billingPeriod,
+        customerIp: req.ip,
+        userAgent: req.get('User-Agent'),
+        hostedFields: true // Marquer comme paiement via Hosted Fields
+      }
+    });
+
+    // Lier le paiement à la souscription
+    subscription.payment = payment._id;
+    await subscription.save();
+
+    try {
+      // Créer l'ordre PayPal SANS return_url ni cancel_url
+      const paypalOrder = await paypalService.createOrderForHostedFields({
+        amount: payment.amount,
+        currency: payment.currency,
+        reference: payment.paymentId
+      });
+
+      payment.paymentDetails.paypal = {
+        orderId: paypalOrder.id,
+        status: paypalOrder.status
+      };
+      await payment.save();
+
+      return res.status(200).json({
+        status: 'success',
+        data: {
+          paypalOrderId: paypalOrder.id,
+          paymentId: payment.paymentId,
+          subscriptionId: subscription._id.toString()
+        }
+      });
+    } catch (error) {
+      await Payment.findByIdAndDelete(payment._id);
+      await Subscription.findByIdAndDelete(subscription._id);
+      return next(new AppError(`Erreur PayPal: ${error.message}`, 500));
+    }
+  }
+
+  // Gestion des paiements de commande (type: 'order')
+  if (type === 'order') {
+    if (!orderId) {
+      return next(new AppError('ID de commande requis pour les paiements de type "order"', 400));
+    }
+
+    const Order = require('../models/Order');
+    const order = await Order.findById(orderId);
+    
+    if (!order) {
+      return next(new AppError('Commande non trouvée', 404));
+    }
+
+    if (order.buyer.toString() !== req.user.id) {
+      return next(new AppError('Vous ne pouvez payer que vos propres commandes', 403));
+    }
+
+    if (order.payment.status === 'completed') {
+      return next(new AppError('Cette commande a déjà été payée', 400));
+    }
+
+    // Vérifier si un paiement existe déjà pour cette commande
+    let payment = await Payment.findOne({
+      'metadata.orderId': orderId,
+      user: req.user.id,
+      type: 'order',
+      status: { $in: ['pending', 'processing'] }
+    });
+
+    if (!payment) {
+      // Créer un nouveau paiement
+      payment = await Payment.create({
+        paymentId: new mongoose.Types.ObjectId().toString(),
+        user: req.user.id,
+        amount: order.total,
+        currency: order.currency || 'XAF',
+        method: 'paypal',
+        provider: 'paypal',
+        type: 'order',
+        status: 'processing',
+        metadata: {
+          orderId: orderId,
+          customerIp: req.ip,
+          userAgent: req.get('User-Agent'),
+          hostedFields: true // Marquer comme paiement via Hosted Fields
+        }
+      });
+    }
+
+    try {
+      // Créer l'ordre PayPal SANS return_url ni cancel_url
+      const paypalOrder = await paypalService.createOrderForHostedFields({
+        amount: payment.amount,
+        currency: payment.currency,
+        reference: payment.paymentId
+      });
+
+      payment.paymentDetails.paypal = {
+        orderId: paypalOrder.id,
+        status: paypalOrder.status
+      };
+      await payment.save();
+
+      return res.status(200).json({
+        status: 'success',
+        data: {
+          paypalOrderId: paypalOrder.id,
+          paymentId: payment.paymentId,
+          orderId: orderId
+        }
+      });
+    } catch (error) {
+      await Payment.findByIdAndDelete(payment._id);
+      return next(new AppError(`Erreur PayPal: ${error.message}`, 500));
+    }
+  }
+});
+
 // Initier un paiement
 exports.initiatePayment = catchAsync(async (req, res, next) => {
   const { orderId, method, returnUrl, cancelUrl, cashInstructions, type, planId, billingPeriod, amount, currency } = req.body;
@@ -219,9 +397,10 @@ exports.initiatePayment = catchAsync(async (req, res, next) => {
     currency: order.currency,
     method,
     provider: normalizedProvider,
-    type: 'payment',
+    type: 'order', // Type 'order' pour les paiements de commandes (paiements uniques)
     status: method === 'paypal' ? 'processing' : 'pending',
     metadata: {
+      orderId: orderId?.toString?.() || order._id?.toString(),
       customerIp: req.ip,
       userAgent: req.get('User-Agent')
     }

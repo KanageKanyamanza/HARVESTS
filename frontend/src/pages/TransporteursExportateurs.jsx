@@ -12,11 +12,13 @@ import {
 	FiGlobe,
 	FiPackage,
 } from "react-icons/fi";
+import { getCountryName } from "../utils/countryMapper";
 
 const TransporteursExportateurs = () => {
 	const [logistics, setLogistics] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [filter, setFilter] = useState("all"); // 'all', 'exporters', 'transporters'
+	const [locationInfo, setLocationInfo] = useState(null);
 
 	useEffect(() => {
 		const loadLogistics = async () => {
@@ -26,8 +28,17 @@ const TransporteursExportateurs = () => {
 				const [exportersResponse, transportersResponse] =
 					await Promise.allSettled([
 						exporterService.getAllPublic({ limit: 50 }),
-						transporterService.getAllPublic({ limit: 50 }),
+						transporterService.getAllPublic({ limit: 50, useLocation: 'true' }),
 					]);
+				
+				// Stocker les informations de localisation des transporteurs
+				if (
+					transportersResponse.status === "fulfilled" &&
+					transportersResponse.value.data.status === "success" &&
+					transportersResponse.value.data.data.location
+				) {
+					setLocationInfo(transportersResponse.value.data.data.location);
+				}
 
 				const allLogistics = [];
 
@@ -82,17 +93,6 @@ const TransporteursExportateurs = () => {
 		loadLogistics();
 	}, []);
 
-	const getCountryName = (code) => {
-		const countries = {
-			CM: "Cameroun",
-			SN: "Sénégal",
-			CI: "Côte d'Ivoire",
-			GH: "Ghana",
-			NG: "Nigeria",
-			KE: "Kenya",
-		};
-		return countries[code] || code;
-	};
 
 	const getTypeBadge = (type) => {
 		switch (type) {
@@ -157,6 +157,18 @@ const TransporteursExportateurs = () => {
 					<p className="text-xl text-gray-600">
 						Découvrez nos partenaires logistiques pour vos besoins de transport et d'export
 					</p>
+					
+					{/* Message discret si pas de transporteurs dans la zone */}
+					{locationInfo?.detected && locationInfo?.noTransportersInZone && (
+						<div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-700">
+							<svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+							</svg>
+							<span>
+								Aucun service de transport disponible dans votre zone. Affichage de tous les services.
+							</span>
+						</div>
+					)}
 				</div>
 
 				{/* Filtres */}

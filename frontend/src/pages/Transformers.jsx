@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { transformerService } from '../services';
 import { FiMapPin, FiStar, FiTool, FiArrowRight, FiClock, FiAward } from 'react-icons/fi';
+import { getCountryName } from '../utils/countryMapper';
 
 const Transformers = () => {
   const [transformers, setTransformers] = useState([]);
@@ -24,17 +25,6 @@ const Transformers = () => {
     loadTransformers();
   }, []);
 
-  const getCountryName = (code) => {
-    const countries = {
-      'CM': 'Cameroun',
-      'SN': 'Sénégal',
-      'CI': 'Côte d\'Ivoire',
-      'GH': 'Ghana',
-      'NG': 'Nigeria',
-      'KE': 'Kenya'
-    };
-    return countries[code] || code;
-  };
 
   const getTransformationTypeLabel = (type) => {
     const types = {

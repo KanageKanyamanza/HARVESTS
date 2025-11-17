@@ -165,7 +165,7 @@ const Footer = () => {
             
             <div className="flex flex-wrap items-center justify-center content-center gap-2">
               <p className="text-gray-500 text-sm flex items-center">
-                Fait avec <Heart className="h-4 w-4 mx-1 text-red-500 fill-current" /> au Sénégal
+                Un produit de <span className='text-yellow-200 font-bold ml-1'> UBB </span>
               </p>
               <SocialLinks 
                 variant="minimal" 

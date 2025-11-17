@@ -85,7 +85,8 @@ const Header = () => {
     { name: 'Catégories', href: '/categories', current: location.pathname === '/categories' },
     { name: 'Nos Vendeurs', href: '/vendeurs', current: location.pathname === '/vendeurs' },
     { name: 'Blog', href: '/blog', current: location.pathname === '/blog' },
-    { name: 'Contact', href: '/contact', current: location.pathname === '/contact' },
+    { name: 'Tarifs', href: '/pricing', current: location.pathname === '/pricing' },
+    // { name: 'Contact', href: '/contact', current: location.pathname === '/contact' },
   ];
 
   // Navigation utilisateur connecté - adaptée selon le type d'utilisateur
@@ -399,36 +400,8 @@ const Header = () => {
                 </Link>
               ))}
 
-              {/* Actions utilisateur mobile */}
-              {isAuthenticated ? (
-                <>
-                  <hr className="my-2" />
-                  {userNavigation.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.name}
-                        to={item.href}
-                        className="flex items-center px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-harvests-light"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <Icon className="h-5 w-5 mr-3" />
-                        {item.name}
-                      </Link>
-                    );
-                  })}
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="flex items-center px-3 py-2 text-base font-medium text-red-600 hover:text-red-900 hover:bg-red-50 w-full text-left"
-                  >
-                    <LogOut className="h-5 w-5 mr-3" />
-                    Déconnexion
-                  </button>
-                </>
-              ) : (
+              {/* Bouton de connexion mobile (uniquement si non connecté) */}
+              {!isAuthenticated && (
                 <>
                   <hr className="my-2" />
                   <Link

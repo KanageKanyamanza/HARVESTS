@@ -222,11 +222,15 @@ const NewOrder = () => {
       return;
     }
     setStep(step + 1);
+    // Scroll vers le haut de la page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Passer à l'étape précédente
   const prevStep = () => {
     setStep(step - 1);
+    // Scroll vers le haut de la page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Créer la commande

@@ -187,11 +187,14 @@ class MobileMoneyService {
   }
   
   // 📞 Formater numéro de téléphone selon le pays
-  static formatPhoneNumber(phoneNumber, country = 'SN') {
+  static formatPhoneNumber(phoneNumber, country = 'Sénégal') {
+    const { getCountryCode } = require('../utils/countryMapper');
+    // Convertir le nom de pays en code si nécessaire
+    const countryCode = getCountryCode(country);
     // Retirer tous les caractères non numériques
     const cleaned = phoneNumber.replace(/\D/g, '');
     
-    switch (country) {
+    switch (countryCode) {
       case 'SN': // Sénégal
         if (cleaned.startsWith('221')) {
           return cleaned;
@@ -201,7 +204,7 @@ class MobileMoneyService {
           return '221' + cleaned.slice(-9); // Garder les 9 derniers chiffres
         }
       
-      case 'CM': // Cameroun (garder pour compatibilité)
+      case 'CM': // Cameroun
         if (cleaned.startsWith('237')) {
           return cleaned;
         } else if (cleaned.startsWith('6') || cleaned.startsWith('2')) {

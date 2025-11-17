@@ -2,6 +2,7 @@ const multer = require('multer');
 const Transporter = require('../models/Transporter');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const { getUserLocation, buildLocationQuery } = require('../utils/locationService');
 
 // Configuration Multer
 const multerStorage = multer.memoryStorage();
@@ -22,11 +23,50 @@ exports.uploadDocument = upload.single('document');
 
 // ROUTES PUBLIQUES
 exports.getAllTransporters = catchAsync(async (req, res, next) => {
-  const queryObj = { ...req.query, isActive: true, isApproved: true, isEmailVerified: true };
-  const excludedFields = ['page', 'sort', 'limit', 'fields'];
-  excludedFields.forEach((el) => delete queryObj[el]);
+  const baseQueryObj = { ...req.query, isActive: true, isApproved: true, isEmailVerified: true };
+  const excludedFields = ['page', 'sort', 'limit', 'fields', 'useLocation'];
+  excludedFields.forEach((el) => delete baseQueryObj[el]);
 
-  let queryStr = JSON.stringify(queryObj);
+  // Détection automatique de la localisation si activée
+  let userLocation = null;
+  let noTransportersInZone = false;
+  if (req.query.useLocation !== 'false') {
+    try {
+      userLocation = await getUserLocation(req);
+      // Si on a une localisation valide, vérifier s'il y a des transporteurs dans la zone
+      if (userLocation && (userLocation.city || userLocation.region || userLocation.country)) {
+        const locationQuery = buildLocationQuery(userLocation, {
+          prioritizeRegion: true,
+          prioritizeCity: true
+        }, 'transporter');
+        
+        // Vérifier d'abord s'il y a des transporteurs dans la zone
+        const locationQueryObj = { ...baseQueryObj };
+        if (locationQuery.$or && locationQuery.$or.length > 0) {
+          locationQueryObj.$and = locationQueryObj.$and || [];
+          locationQueryObj.$and.push({ $or: locationQuery.$or });
+        }
+        
+        const countInZone = await Transporter.countDocuments(locationQueryObj);
+        
+        // Si des transporteurs existent dans la zone, utiliser le filtre
+        if (countInZone > 0) {
+          if (locationQuery.$or && locationQuery.$or.length > 0) {
+            baseQueryObj.$and = baseQueryObj.$and || [];
+            baseQueryObj.$and.push({ $or: locationQuery.$or });
+          }
+        } else {
+          // Sinon, marquer qu'on affiche tous les transporteurs
+          noTransportersInZone = true;
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors de la détection de localisation:', error);
+      // Continuer sans filtre de localisation en cas d'erreur
+    }
+  }
+
+  let queryStr = JSON.stringify(baseQueryObj);
   queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
 
   let query = Transporter.find(JSON.parse(queryStr));
@@ -52,7 +92,19 @@ exports.getAllTransporters = catchAsync(async (req, res, next) => {
     total,
     page,
     totalPages: Math.ceil(total / limit),
-    data: { transporters },
+    data: { 
+      transporters,
+      location: userLocation ? {
+        detected: true,
+        country: userLocation.country,
+        region: userLocation.region,
+        city: userLocation.city,
+        source: userLocation.source,
+        noTransportersInZone: noTransportersInZone
+      } : {
+        detected: false
+      }
+    },
   });
 });
 
@@ -186,15 +238,40 @@ exports.getMyProfile = catchAsync(async (req, res, next) => {
 });
 
 exports.updateMyProfile = catchAsync(async (req, res, next) => {
-  const allowedFields = ['companyName', 'transportType', 'serviceTypes'];
+  const allowedFields = [
+    // Informations personnelles
+    'firstName', 'lastName', 'phone', 'email',
+    // Informations entreprise
+    'companyName', 'transportType', 'serviceTypes',
+    // Adresse
+    'address', 'city', 'region', 'country', 'postalCode',
+    // Biographie
+    'bio', 'biography',
+    // Images
+    'avatar', 'shopBanner', 'shopLogo'
+  ];
+  
   const filteredBody = {};
   Object.keys(req.body).forEach(key => {
-    if (allowedFields.includes(key)) filteredBody[key] = req.body[key];
+    if (allowedFields.includes(key)) {
+      filteredBody[key] = req.body[key];
+    }
+  });
+
+  // Filtrer les valeurs undefined/null/vides pour éviter de les écraser
+  Object.keys(filteredBody).forEach(key => {
+    if (filteredBody[key] === undefined || filteredBody[key] === null || filteredBody[key] === '') {
+      delete filteredBody[key];
+    }
   });
 
   const transporter = await Transporter.findByIdAndUpdate(req.user.id, filteredBody, {
     new: true, runValidators: true,
   });
+
+  if (!transporter) {
+    return next(new AppError('Transporteur non trouvé', 404));
+  }
 
   res.status(200).json({ status: 'success', data: { transporter } });
 });
@@ -211,7 +288,33 @@ exports.getMyFleet = catchAsync(async (req, res, next) => {
 
 exports.addVehicle = catchAsync(async (req, res, next) => {
   const transporter = await Transporter.findById(req.user.id);
-  transporter.fleet.push(req.body);
+  
+  // Préparer les données du véhicule
+  const vehicleData = {
+    vehicleType: req.body.vehicleType,
+    registrationNumber: req.body.registrationNumber,
+    capacity: req.body.capacity,
+    specialFeatures: req.body.specialFeatures || [],
+    condition: req.body.condition || 'good',
+    isAvailable: req.body.isAvailable !== undefined ? req.body.isAvailable : true,
+    lastMaintenanceDate: req.body.lastMaintenanceDate ? new Date(req.body.lastMaintenanceDate) : undefined,
+    nextMaintenanceDate: req.body.nextMaintenanceDate ? new Date(req.body.nextMaintenanceDate) : undefined,
+    // Image du véhicule (si fournie)
+    image: req.body.image ? {
+      url: req.body.image.url,
+      publicId: req.body.image.publicId,
+      alt: req.body.image.alt || 'Véhicule'
+    } : undefined
+  };
+
+  // Filtrer les valeurs undefined pour éviter de les écraser
+  Object.keys(vehicleData).forEach(key => {
+    if (vehicleData[key] === undefined) {
+      delete vehicleData[key];
+    }
+  });
+
+  transporter.fleet.push(vehicleData);
   await transporter.save();
 
   res.status(201).json({
@@ -226,8 +329,31 @@ exports.updateVehicle = catchAsync(async (req, res, next) => {
 
   if (!vehicle) return next(new AppError('Véhicule non trouvé', 404));
 
+  // Mettre à jour les champs autorisés
+  const allowedFields = [
+    'vehicleType', 'registrationNumber', 'capacity', 'specialFeatures',
+    'condition', 'isAvailable', 'lastMaintenanceDate', 'nextMaintenanceDate', 'image'
+  ];
+
   Object.keys(req.body).forEach(key => {
-    vehicle[key] = req.body[key];
+    if (allowedFields.includes(key)) {
+      if (key === 'lastMaintenanceDate' || key === 'nextMaintenanceDate') {
+        vehicle[key] = req.body[key] ? new Date(req.body[key]) : undefined;
+      } else if (key === 'image') {
+        // Gérer l'image : mettre à jour si fournie, supprimer si null
+        if (req.body.image === null) {
+          vehicle.image = undefined;
+        } else if (req.body.image && req.body.image.url) {
+          vehicle.image = {
+            url: req.body.image.url,
+            publicId: req.body.image.publicId || null,
+            alt: req.body.image.alt || 'Véhicule'
+          };
+        }
+      } else {
+        vehicle[key] = req.body[key];
+      }
+    }
   });
 
   await transporter.save();

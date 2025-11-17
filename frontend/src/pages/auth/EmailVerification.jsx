@@ -20,14 +20,33 @@ const EmailVerification = () => {
   useEffect(() => {
     // Vérifier si la vérification a été faite via redirection du backend
     const verified = searchParams.get('verified');
+    const error = searchParams.get('error');
+    const status = searchParams.get('status');
+
+    // Si le backend a déjà vérifié l'email et redirigé
     if (verified === 'true') {
       setVerificationStatus('success');
-      setMessage('Votre email a été vérifié avec succès !');
+      setMessage('Votre email a été vérifié avec succès ! Vous pouvez maintenant vous connecter.');
       return;
     }
 
-    // Si on a un token, déclencher automatiquement la vérification
-    if (token && !hasAttemptedVerification) {
+    // Si le backend indique que l'email est déjà vérifié
+    if (status === 'already-verified') {
+      setVerificationStatus('already-verified');
+      setMessage('Votre email est déjà vérifié ! Vous pouvez vous connecter.');
+      return;
+    }
+
+    // Si le backend indique une erreur
+    if (error === 'invalid_token') {
+      setVerificationStatus('error');
+      setMessage('Token de vérification invalide ou expiré. Veuillez demander un nouveau lien de vérification.');
+      return;
+    }
+
+    // Si on a un token et qu'aucune vérification n'a été tentée, déclencher automatiquement la vérification
+    // (pour les cas où l'utilisateur accède directement à la page sans passer par le backend)
+    if (token && !hasAttemptedVerification && !verified && !error && !status) {
       setHasAttemptedVerification(true);
       verifyEmailToken(token);
     }

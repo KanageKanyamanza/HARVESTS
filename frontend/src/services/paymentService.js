@@ -4,6 +4,7 @@ export const paymentService = {
   initiatePayment: (data) => api.post('/payments/initiate', data),
   confirmPayment: (paymentId, data) => api.post(`/payments/${paymentId}/confirm`, data),
   getClientToken: () => api.get('/payments/paypal/client-token'),
+  createOrderForHostedFields: (data) => api.post('/payments/paypal/hosted-fields/order', data),
 };
 
 export default paymentService;

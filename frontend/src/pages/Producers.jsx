@@ -2,17 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { producerService } from '../services';
 import { FiMapPin, FiStar, FiPackage, FiArrowRight } from 'react-icons/fi';
+import { getCountryName } from '../utils/countryMapper';
 
 const Producers = () => {
   const [producers, setProducers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [locationInfo, setLocationInfo] = useState(null);
 
   useEffect(() => {
     const loadProducers = async () => {
       try {
-        const response = await producerService.getAllPublic({ limit: 20 });
+        // Activer la détection automatique de localisation
+        const response = await producerService.getAllPublic({ limit: 20, useLocation: 'true' });
         if (response.data.status === 'success') {
           setProducers(response.data.data.producers || []);
+          if (response.data.data.location) {
+            setLocationInfo(response.data.data.location);
+          }
         }
       } catch (error) {
         console.error('Erreur lors du chargement des producteurs:', error);
@@ -24,17 +30,6 @@ const Producers = () => {
     loadProducers();
   }, []);
 
-  const getCountryName = (code) => {
-    const countries = {
-      'CM': 'Cameroun',
-      'SN': 'Sénégal',
-      'CI': 'Côte d\'Ivoire',
-      'GH': 'Ghana',
-      'NG': 'Nigeria',
-      'KE': 'Kenya'
-    };
-    return countries[code] || code;
-  };
 
   if (loading) {
     return (
@@ -53,6 +48,18 @@ const Producers = () => {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Nos Producteurs</h1>
           <p className="text-xl text-gray-600">Découvrez les producteurs locaux qui cultivent des produits frais et de qualité</p>
+          
+          {/* Message discret si pas de producteurs dans la zone */}
+          {locationInfo?.detected && locationInfo?.noProducersInZone && (
+            <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-700">
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>
+                Aucun producteur disponible dans votre zone. Affichage de tous les producteurs.
+              </span>
+            </div>
+          )}
         </div>
 
         {producers.length > 0 ? (

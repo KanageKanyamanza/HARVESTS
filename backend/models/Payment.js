@@ -31,8 +31,8 @@ const paymentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Order',
     required: function() {
-      // Requis seulement pour les paiements de commande
-      return this.type === 'payment';
+      // Requis seulement pour les paiements de commande (type 'payment' ou 'order')
+      return this.type === 'payment' || this.type === 'order';
     }
   },
   
@@ -54,7 +54,7 @@ const paymentSchema = new mongoose.Schema({
   // Type et méthode de paiement
   type: {
     type: String,
-    enum: ['payment', 'refund', 'payout', 'fee', 'subscription'],
+    enum: ['payment', 'order', 'refund', 'payout', 'fee', 'subscription'],
     required: true
   },
   
@@ -361,8 +361,8 @@ paymentSchema.pre('save', function(next) {
 
 // Middleware post-save pour mettre à jour la commande (seulement pour les paiements de commande)
 paymentSchema.post('save', async function() {
-  // Ne mettre à jour la commande que si c'est un paiement de commande
-  if (this.type !== 'payment' || !this.order) {
+  // Ne mettre à jour la commande que si c'est un paiement de commande (type 'payment' ou 'order')
+  if ((this.type !== 'payment' && this.type !== 'order') || !this.order) {
     return;
   }
 

@@ -143,6 +143,48 @@ async function createOrder({ amount, currency, reference, returnUrl, cancelUrl }
   };
 }
 
+// Créer un ordre PayPal pour les Hosted Fields (sans return_url/cancel_url)
+async function createOrderForHostedFields({ amount, currency, reference }) {
+  const paypalCurrency = resolveCurrency(currency);
+  const client = getClient();
+
+  const { convertedAmount, exchangeRate } = normalizeAmount(amount, currency, paypalCurrency);
+
+  const request = new paypal.orders.OrdersCreateRequest();
+  request.prefer('return=representation');
+  request.requestBody({
+    intent: 'CAPTURE',
+    purchase_units: [
+      {
+        reference_id: reference,
+        amount: {
+          currency_code: paypalCurrency,
+          value: convertedAmount
+        }
+      }
+    ],
+    application_context: {
+      shipping_preference: 'NO_SHIPPING',
+      landing_page: 'BILLING'
+      // IMPORTANT: Pas de return_url ni cancel_url pour éviter la redirection
+      // Les Hosted Fields gèrent le paiement directement dans la modale
+    }
+  });
+
+  const response = await client.execute(request);
+
+  return {
+    id: response.result.id,
+    status: response.result.status,
+    amount: response.result.purchase_units?.[0]?.amount?.value,
+    currency: response.result.purchase_units?.[0]?.amount?.currency_code,
+    raw: response.result,
+    exchangeRate,
+    originalAmount: formatAmount(amount),
+    originalCurrency: (currency || paypalCurrency).toUpperCase()
+  };
+}
+
 async function captureOrder(orderId) {
   const client = getClient();
   const request = new paypal.orders.OrdersCaptureRequest(orderId);
@@ -232,6 +274,7 @@ async function generateClientToken({ customerId } = {}) {
 
 module.exports = {
   createOrder,
+  createOrderForHostedFields,
   captureOrder,
   verifyWebhook,
   resolveCurrency,

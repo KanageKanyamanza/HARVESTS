@@ -22,6 +22,9 @@ export const productService = {
   // Obtenir les produits recommandés
   getRecommendedProducts: (userId, params = {}) => apiRequest.get(`/products/recommended/${userId}`, { params }),
   
+  // Obtenir les produits basés sur la localisation
+  getProductsByLocation: (params = {}) => apiRequest.get('/products/location-based', { params }),
+  
   // Obtenir les produits populaires
   getPopularProducts: (params = {}) => apiRequest.get('/products/popular', { params }),
   

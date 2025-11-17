@@ -529,57 +529,10 @@ orderSchema.virtual('estimatedDelivery').get(function() {
   return new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
 });
 
-// Fonction pour obtenir le préfixe du pays
-function getCountryPrefix(countryCode) {
-  const countryMap = {
-    'CM': 'CM', 'Cameroon': 'CM', 'cameroun': 'CM',
-    'SN': 'SN', 'Senegal': 'SN', 'sénégal': 'SN', 'Sénégal': 'SN',
-    'CI': 'CI', 'Côte d\'Ivoire': 'CI', 'côte d\'ivoire': 'CI',
-    'GH': 'GH', 'Ghana': 'GH', 'ghana': 'GH',
-    'NG': 'NG', 'Nigeria': 'NG', 'nigeria': 'NG',
-    'KE': 'KE', 'Kenya': 'KE', 'kenya': 'KE',
-    'BF': 'BF', 'Burkina Faso': 'BF', 'burkina faso': 'BF',
-    'ML': 'ML', 'Mali': 'ML', 'mali': 'ML',
-    'NE': 'NE', 'Niger': 'NE', 'niger': 'NE',
-    'TD': 'TD', 'Tchad': 'TD', 'tchad': 'TD',
-    'CF': 'CF', 'République centrafricaine': 'CF', 'république centrafricaine': 'CF',
-    'GA': 'GA', 'Gabon': 'GA', 'gabon': 'GA',
-    'CG': 'CG', 'Congo': 'CG', 'congo': 'CG',
-    'CD': 'CD', 'République démocratique du Congo': 'CD', 'république démocratique du congo': 'CD',
-    'AO': 'AO', 'Angola': 'AO', 'angola': 'AO',
-    'ZM': 'ZM', 'Zambie': 'ZM', 'zambie': 'ZM',
-    'ZW': 'ZW', 'Zimbabwe': 'ZW', 'zimbabwe': 'ZW',
-    'ZA': 'ZA', 'Afrique du Sud': 'ZA', 'afrique du sud': 'ZA',
-    'EG': 'EG', 'Égypte': 'EG', 'égypte': 'EG',
-    'MA': 'MA', 'Maroc': 'MA', 'maroc': 'MA',
-    'TN': 'TN', 'Tunisie': 'TN', 'tunisie': 'TN',
-    'DZ': 'DZ', 'Algérie': 'DZ', 'algérie': 'DZ',
-    'LY': 'LY', 'Libye': 'LY', 'libye': 'LY',
-    'SD': 'SD', 'Soudan': 'SD', 'soudan': 'SD',
-    'ET': 'ET', 'Éthiopie': 'ET', 'éthiopie': 'ET',
-    'UG': 'UG', 'Ouganda': 'UG', 'ouganda': 'UG',
-    'TZ': 'TZ', 'Tanzanie': 'TZ', 'tanzanie': 'TZ',
-    'RW': 'RW', 'Rwanda': 'RW', 'rwanda': 'RW',
-    'BI': 'BI', 'Burundi': 'BI', 'burundi': 'BI',
-    'MW': 'MW', 'Malawi': 'MW', 'malawi': 'MW',
-    'MZ': 'MZ', 'Mozambique': 'MZ', 'mozambique': 'MZ',
-    'MG': 'MG', 'Madagascar': 'MG', 'madagascar': 'MG',
-    'MU': 'MU', 'Maurice': 'MU', 'maurice': 'MU',
-    'SC': 'SC', 'Seychelles': 'SC', 'seychelles': 'SC',
-    'KM': 'KM', 'Comores': 'KM', 'comores': 'KM',
-    'DJ': 'DJ', 'Djibouti': 'DJ', 'djibouti': 'DJ',
-    'SO': 'SO', 'Somalie': 'SO', 'somalie': 'SO',
-    'ER': 'ER', 'Érythrée': 'ER', 'érythrée': 'ER',
-    'SS': 'SS', 'Soudan du Sud': 'SS', 'soudan du sud': 'SS'
-  };
-  
-  // Si c'est déjà un code à 2 lettres, le retourner
-  if (countryCode && countryCode.length === 2 && /^[A-Z]{2}$/.test(countryCode)) {
-    return countryCode;
-  }
-  
-  // Chercher dans la map
-  return countryMap[countryCode] || 'CM'; // Fallback vers Cameroun
+// Fonction pour obtenir le préfixe du pays (code à 2 lettres)
+function getCountryPrefix(countryName) {
+  const { getCountryCode } = require('../utils/countryMapper');
+  return getCountryCode(countryName);
 }
 
 // Middleware pre-save
