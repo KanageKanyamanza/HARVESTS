@@ -812,7 +812,13 @@ export const exporterConfig = {
     return capacity.length > 0 ? `Capacité: ${capacity.join(', ')}` : 'Véhicule d\'export';
   },
   getItemPrice: (vehicle) => null,
-  getItemImage: (vehicle) => vehicle.image?.url || vehicle.image || null,
+  getItemImage: (vehicle) => {
+    // Gérer différents formats d'image
+    if (vehicle.image?.url) return vehicle.image.url;
+    if (vehicle.image?.secure_url) return vehicle.image.secure_url;
+    if (typeof vehicle.image === 'string') return vehicle.image;
+    return null;
+  },
   getItemExtraInfo: (vehicle) => {
     const status = vehicle.isAvailable ? 'Disponible' : 'Indisponible';
     const condition = {
@@ -855,13 +861,22 @@ export const exporterConfig = {
                   key={vehicle._id || vehicle.registrationNumber || idx} 
                   className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
                 >
-                  {helpers.getItemImage(vehicle) && (
+                  {helpers.getItemImage(vehicle) ? (
                     <div className="h-48 bg-gray-200 overflow-hidden">
                       <img 
                         src={helpers.getItemImage(vehicle)} 
                         alt={helpers.getItemName(vehicle)}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback si l'image ne charge pas
+                          e.target.style.display = 'none';
+                          e.target.parentElement.innerHTML = '<div class="w-full h-full bg-gray-100 flex items-center justify-center"><svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg></div>';
+                        }}
                       />
+                    </div>
+                  ) : (
+                    <div className="h-48 bg-gray-200 flex items-center justify-center">
+                      <FiTruck className="h-16 w-16 text-gray-400" />
                     </div>
                   )}
                   <div className="p-6">
@@ -1105,7 +1120,13 @@ export const transporterConfig = {
     return capacity.length > 0 ? `Capacité: ${capacity.join(', ')}` : 'Véhicule de transport';
   },
   getItemPrice: (vehicle) => null,
-  getItemImage: (vehicle) => null,
+  getItemImage: (vehicle) => {
+    // Gérer différents formats d'image
+    if (vehicle.image?.url) return vehicle.image.url;
+    if (vehicle.image?.secure_url) return vehicle.image.secure_url;
+    if (typeof vehicle.image === 'string') return vehicle.image;
+    return null;
+  },
   getItemExtraInfo: (vehicle) => {
     const status = vehicle.isAvailable ? 'Disponible' : 'Indisponible';
     const condition = {
@@ -1149,6 +1170,24 @@ export const transporterConfig = {
                   key={vehicle._id || vehicle.registrationNumber || idx} 
                   className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
                 >
+                  {helpers.getItemImage(vehicle) ? (
+                    <div className="h-48 bg-gray-200 overflow-hidden">
+                      <img 
+                        src={helpers.getItemImage(vehicle)} 
+                        alt={helpers.getItemName(vehicle)}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback si l'image ne charge pas
+                          e.target.style.display = 'none';
+                          e.target.parentElement.innerHTML = '<div class="w-full h-full bg-gray-100 flex items-center justify-center"><svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg></div>';
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-48 bg-gray-200 flex items-center justify-center">
+                      <FiTruck className="h-16 w-16 text-gray-400" />
+                    </div>
+                  )}
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div>

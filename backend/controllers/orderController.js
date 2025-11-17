@@ -1390,29 +1390,12 @@ function removeDiacritics(value) {
 }
 
 function normalizeCountry(value) {
-  const str = normalizeString(value);
-  if (!str) return null;
-
-  const map = {
-    'cm': 'cm',
-    'cameroun': 'cm',
-    'cameroon': 'cm',
-    'sn': 'sn',
-    'sénégal': 'sn',
-    'senegal': 'sn',
-    'ci': 'ci',
-    "côte d'ivoire": 'ci',
-    'cote d\'ivoire': 'ci',
-    'cote-divoire': 'ci',
-    'bf': 'bf',
-    'burkina faso': 'bf',
-    'ng': 'ng',
-    'nigeria': 'ng',
-    'gh': 'gh',
-    'ghana': 'gh'
-  };
-
-  return map[str] || str;
+  const { normalizeCountry: normalizeCountryUtil } = require('../utils/countryMapper');
+  // Normaliser en nom complet, puis comparer les noms normalisés
+  const countryName = normalizeCountryUtil(value);
+  if (!countryName) return null;
+  // Retourner le nom normalisé en minuscules pour la comparaison
+  return countryName.toLowerCase().trim();
 }
 
 function normalizeCity(value) {

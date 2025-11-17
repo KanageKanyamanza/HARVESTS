@@ -13,6 +13,9 @@ router.use(authController.requireVerification);
 // Obtenir un client token PayPal pour les Hosted Fields
 router.get('/paypal/client-token', paymentController.getPaypalClientToken);
 
+// Créer un ordre PayPal pour les Hosted Fields (sans redirection)
+router.post('/paypal/hosted-fields/order', paymentController.createOrderForHostedFields);
+
 // Initier un paiement
 router.post('/initiate', paymentController.initiatePayment);
 

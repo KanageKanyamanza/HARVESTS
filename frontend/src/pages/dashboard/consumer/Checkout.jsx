@@ -6,6 +6,7 @@ import { consumerService, authService, orderService } from '../../../services';
 import cartService from '../../../services/cartService';
 import CloudinaryImage from '../../../components/common/CloudinaryImage';
 import { estimateDeliveryFee } from '../../../utils/shippingUtils';
+import { getCountryName } from '../../../utils/countryMapper';
 import {
   FiArrowLeft,
   FiMapPin,
@@ -69,68 +70,6 @@ const Checkout = () => {
     loyaltyPointsToUse: 0
   });
 
-  // Fonction pour convertir le code pays en nom de pays
-  const getCountryName = (countryCode) => {
-    const countries = {
-      'CM': 'Cameroun',
-      'SN': 'Sénégal', 
-      'CI': 'Côte d\'Ivoire',
-      'GH': 'Ghana',
-      'NG': 'Nigeria',
-      'KE': 'Kenya',
-      'BF': 'Burkina Faso',
-      'ML': 'Mali',
-      'NE': 'Niger',
-      'TD': 'Tchad',
-      'CF': 'République centrafricaine',
-      'GA': 'Gabon',
-      'CG': 'Congo',
-      'CD': 'République démocratique du Congo',
-      'AO': 'Angola',
-      'ZM': 'Zambie',
-      'ZW': 'Zimbabwe',
-      'ZA': 'Afrique du Sud',
-      'EG': 'Égypte',
-      'MA': 'Maroc',
-      'TN': 'Tunisie',
-      'DZ': 'Algérie',
-      'LY': 'Libye',
-      'SD': 'Soudan',
-      'ET': 'Éthiopie',
-      'UG': 'Ouganda',
-      'TZ': 'Tanzanie',
-      'RW': 'Rwanda',
-      'BI': 'Burundi',
-      'MW': 'Malawi',
-      'MZ': 'Mozambique',
-      'MG': 'Madagascar',
-      'MU': 'Maurice',
-      'SC': 'Seychelles',
-      'KM': 'Comores',
-      'DJ': 'Djibouti',
-      'SO': 'Somalie',
-      'ER': 'Érythrée',
-      'SS': 'Soudan du Sud',
-      'CA': 'Cameroun', // Fallback
-      'Cameroon': 'Cameroun', // Fallback
-      'cameroun': 'Cameroun' // Fallback
-    };
-    
-    if (!countryCode) return 'Cameroun'; // Fallback par défaut
-    
-    // Si c'est déjà un nom de pays, le retourner tel quel
-    if (Object.values(countries).includes(countryCode)) {
-      return countryCode;
-    }
-    
-    // Si c'est un code pays, le convertir
-    if (countries[countryCode]) {
-      return countries[countryCode];
-    }
-    
-    // Sinon, retourner tel quel (cas où c'est déjà un nom de pays non listé)
-    return countryCode;
-  };
 
   // Charger les données complètes du profil utilisateur et pré-remplir les adresses
   useEffect(() => {
@@ -371,15 +310,28 @@ const Checkout = () => {
   const nextStep = () => {
     if (validateStep(currentStep)) {
       setCurrentStep(prev => Math.min(prev + 1, 3));
-      // Scroll vers le haut de la page
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Scroll vers le haut de la page avec un petit délai pour s'assurer que le DOM est mis à jour
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Alternative: scroll vers le conteneur principal
+        const container = document.querySelector('.max-w-7xl');
+        if (container) {
+          container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
     }
   };
 
   const prevStep = () => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
-    // Scroll vers le haut de la page
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll vers le haut de la page avec un petit délai
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const container = document.querySelector('.max-w-7xl');
+      if (container) {
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   };
 
   useEffect(() => {

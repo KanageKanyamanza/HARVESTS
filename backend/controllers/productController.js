@@ -6,6 +6,7 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const { toPlainText } = require('../utils/localization');
 const notificationController = require('./notificationController');
+const { getUserLocation, buildLocationQuery } = require('../utils/locationService');
 
 // Configuration Multer pour les images de produits
 const multerStorage = multer.memoryStorage();
@@ -63,10 +64,55 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
     isPublic: { $ne: false }
   };
 
-  // Filtres
+  // Détection automatique de la localisation si activée
+  let userLocation = null;
+  let noProductsInZone = false;
+  if (req.query.useLocation !== 'false') {
+    try {
+      userLocation = await getUserLocation(req);
+      // Si on a une localisation valide, ajouter le filtre
+      if (userLocation && (userLocation.city || userLocation.region || userLocation.country)) {
+        const locationQuery = buildLocationQuery(userLocation, {
+          prioritizeRegion: true,
+          prioritizeCity: true
+        });
+        
+        // Vérifier d'abord s'il y a des produits dans la zone
+        const locationQueryObj = { ...queryObj };
+        if (locationQuery.$or && locationQuery.$or.length > 0) {
+          locationQueryObj.$and = locationQueryObj.$and || [];
+          locationQueryObj.$and.push({ $or: locationQuery.$or });
+        }
+        
+        const countInZone = await Product.countDocuments(locationQueryObj);
+        
+        // Si des produits existent dans la zone, utiliser le filtre
+        if (countInZone > 0) {
+          if (locationQuery.$or && locationQuery.$or.length > 0) {
+            queryObj.$and = queryObj.$and || [];
+            queryObj.$and.push({ $or: locationQuery.$or });
+          }
+        } else {
+          // Sinon, marquer qu'on affiche tous les produits
+          noProductsInZone = true;
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors de la détection de localisation:', error);
+      // Continuer sans filtre de localisation en cas d'erreur
+    }
+  }
+
+  // Filtres explicites (prioritaires sur la détection automatique)
   if (req.query.category) queryObj.category = req.query.category;
   if (req.query.subcategory) queryObj.subcategory = req.query.subcategory;
-  if (req.query.region) queryObj['producer.address.region'] = req.query.region;
+  if (req.query.region) {
+    // Si un filtre région explicite est fourni, remplacer le filtre automatique
+    queryObj['producer.address.region'] = req.query.region;
+    if (queryObj.$and) {
+      queryObj.$and = queryObj.$and.filter(cond => !cond.$or);
+    }
+  }
   if (req.query.farmingMethod) queryObj['agricultureInfo.farmingMethod'] = req.query.farmingMethod;
   if (req.query.certified) queryObj['certifications.0'] = { $exists: true };
 
@@ -133,6 +179,151 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
       products,
       filters: {
         categories: categoryStats
+      },
+      location: userLocation ? {
+        detected: true,
+        country: userLocation.country,
+        region: userLocation.region,
+        city: userLocation.city,
+        source: userLocation.source,
+        noProductsInZone: noProductsInZone
+      } : {
+        detected: false
+      }
+    }
+  });
+});
+
+// Obtenir les produits basés sur la localisation de l'utilisateur
+exports.getProductsByLocation = catchAsync(async (req, res, next) => {
+  // Détecter la localisation de l'utilisateur
+  const userLocation = await getUserLocation(req);
+  
+  // Requête de base pour tous les produits
+  const baseQueryObj = { 
+    status: 'approved', 
+    isActive: true,
+    isPublic: { $ne: false }
+  };
+
+  // Filtres additionnels
+  if (req.query.category) baseQueryObj.category = req.query.category;
+  if (req.query.subcategory) baseQueryObj.subcategory = req.query.subcategory;
+  if (req.query.farmingMethod) baseQueryObj['agricultureInfo.farmingMethod'] = req.query.farmingMethod;
+
+  // Si pas de localisation détectée, retourner tous les produits
+  if (!userLocation || (!userLocation.city && !userLocation.region && !userLocation.country)) {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 20;
+    const skip = (page - 1) * limit;
+
+    const products = await Product.find(baseQueryObj)
+      .populate('producer', 'farmName firstName lastName address city region country salesStats createdAt')
+      .populate('transformer', 'companyName firstName lastName address city region country salesStats createdAt')
+      .select('-__v')
+      .sort('-createdAt')
+      .skip(skip)
+      .limit(limit);
+
+    const total = await Product.countDocuments(baseQueryObj);
+
+    return res.status(200).json({
+      status: 'success',
+      results: products.length,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      data: {
+        products,
+        location: {
+          detected: false
+        }
+      }
+    });
+  }
+
+  // Construire la requête avec filtre de localisation
+  const locationQueryObj = { ...baseQueryObj };
+
+  // Ajouter le filtre de localisation
+  const locationQuery = buildLocationQuery(userLocation, {
+    prioritizeRegion: true,
+    prioritizeCity: true,
+    radius: req.query.radius ? parseFloat(req.query.radius) : null
+  });
+
+  if (locationQuery.$or && locationQuery.$or.length > 0) {
+    locationQueryObj.$and = locationQueryObj.$and || [];
+    locationQueryObj.$and.push({ $or: locationQuery.$or });
+  } else if (locationQuery['producer.address.coordinates']) {
+    locationQueryObj['producer.address.coordinates'] = locationQuery['producer.address.coordinates'];
+  }
+
+  // Pagination
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 20;
+  const skip = (page - 1) * limit;
+
+  // Construction de la requête avec filtre de localisation
+  let query = Product.find(locationQueryObj)
+    .populate('producer', 'farmName firstName lastName address city region country salesStats createdAt')
+    .populate('transformer', 'companyName firstName lastName address city region country salesStats createdAt')
+    .select('-__v')
+    .sort('-createdAt')
+    .skip(skip)
+    .limit(limit);
+
+  // Exécuter la requête
+  const products = await query;
+  const totalInLocation = await Product.countDocuments(locationQueryObj);
+
+  // Si aucun produit trouvé dans la zone, retourner tous les produits avec un indicateur
+  if (totalInLocation === 0) {
+    const allProducts = await Product.find(baseQueryObj)
+      .populate('producer', 'farmName firstName lastName address city region country salesStats createdAt')
+      .populate('transformer', 'companyName firstName lastName address city region country salesStats createdAt')
+      .select('-__v')
+      .sort('-createdAt')
+      .skip(skip)
+      .limit(limit);
+
+    const totalAll = await Product.countDocuments(baseQueryObj);
+
+    return res.status(200).json({
+      status: 'success',
+      results: allProducts.length,
+      total: totalAll,
+      page,
+      totalPages: Math.ceil(totalAll / limit),
+      data: {
+        products: allProducts,
+        location: {
+          detected: true,
+          country: userLocation.country,
+          region: userLocation.region,
+          city: userLocation.city,
+          source: userLocation.source,
+          noProductsInZone: true // Indicateur qu'il n'y a pas de produits dans la zone
+        }
+      }
+    });
+  }
+
+  res.status(200).json({
+    status: 'success',
+    results: products.length,
+    total: totalInLocation,
+    page,
+    totalPages: Math.ceil(totalInLocation / limit),
+    data: {
+      products,
+      location: {
+        detected: true,
+        country: userLocation.country,
+        region: userLocation.region,
+        city: userLocation.city,
+        source: userLocation.source,
+        noProductsInZone: false
       }
     }
   });

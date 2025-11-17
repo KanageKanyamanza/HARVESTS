@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { paymentService, subscriptionService } from '../../services';
+import { getCountryCode } from '../../utils/countryMapper';
 import {
   PayPalScriptProvider,
   PayPalButtons,
@@ -34,12 +35,14 @@ const SubscriptionPayment = () => {
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState(null);
   const [showPayPalModal, setShowPayPalModal] = useState(false);
+  const [showCardForm, setShowCardForm] = useState(false);
   const paymentIdRef = useRef(null);
   const paypalClientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
   const paypalCurrency = 'USD';
   const [paypalClientToken, setPaypalClientToken] = useState(null);
   const [paypalTokenLoading, setPaypalTokenLoading] = useState(false);
   const [paypalTokenError, setPaypalTokenError] = useState(null);
+  const [hostedFieldsOrderId, setHostedFieldsOrderId] = useState(null);
 
   const plans = {
     gratuit: {
@@ -173,6 +176,7 @@ const SubscriptionPayment = () => {
     }
   }, [selectedPlan.id, billingPeriod, getPrice]);
 
+  // Créer une commande PayPal pour les boutons PayPal (avec redirection)
   const createPayPalOrder = useCallback(async () => {
     try {
       setPaymentProcessing(true);
@@ -212,6 +216,48 @@ const SubscriptionPayment = () => {
     }
   }, [selectedPlan.id, billingPeriod, getPrice]);
 
+  // Créer une commande PayPal pour les Hosted Fields
+  // Retourner directement l'orderId créé côté serveur (sans utiliser actions.order.create())
+  // eslint-disable-next-line no-unused-vars
+  const createPayPalOrderForHostedFields = useCallback(async (data, actions) => {
+    // Si l'orderId a déjà été créé au clic sur "Carte bancaire", le retourner directement
+    // Cela évite d'utiliser actions.order.create() qui peut déclencher une redirection
+    if (hostedFieldsOrderId) {
+      return hostedFieldsOrderId;
+    }
+    
+    // Fallback: créer l'ordre si nécessaire (ne devrait pas arriver normalement)
+    try {
+      const amount = getPrice();
+      const response = await paymentService.createOrderForHostedFields({
+        type: 'subscription',
+        planId: selectedPlan.id,
+        billingPeriod,
+        amount,
+        currency: 'XAF'
+      });
+
+      const payload = response.data?.data;
+      const paymentId = payload?.paymentId || null;
+      const orderId = payload?.paypalOrderId || null;
+
+      if (!orderId) {
+        throw new Error('Identifiant PayPal introuvable.');
+      }
+
+      if (paymentId) {
+        paymentIdRef.current = paymentId;
+        sessionStorage.setItem(`harvests_subscription_payment_${selectedPlan.id}`, paymentId);
+      }
+      
+      setHostedFieldsOrderId(orderId);
+      return orderId;
+    } catch (err) {
+      console.error('Erreur lors de la création de la commande PayPal:', err);
+      throw err;
+    }
+  }, [selectedPlan.id, billingPeriod, getPrice, hostedFieldsOrderId]);
+
   const handlePayPalApprove = useCallback(async (data) => {
     try {
       const paymentId = paymentIdRef.current || sessionStorage.getItem(`harvests_subscription_payment_${selectedPlan.id}`);
@@ -235,6 +281,37 @@ const SubscriptionPayment = () => {
     }
   }, [selectedPlan.id, navigate]);
 
+  const handleCardPaymentApprove = useCallback(async (orderId) => {
+    try {
+      const paymentId = paymentIdRef.current || sessionStorage.getItem(`harvests_subscription_payment_${selectedPlan.id}`);
+
+      if (!paymentId) {
+        throw new Error('Identifiant du paiement introuvable.');
+      }
+
+      await paymentService.confirmPayment(paymentId, { paypalOrderId: orderId });
+      sessionStorage.setItem(`harvests_subscription_confirmed_${selectedPlan.id}`, 'true');
+      sessionStorage.setItem(`harvests_subscription_paypal_order_${selectedPlan.id}`, orderId);
+      setPaymentError(null);
+      setShowCardForm(false);
+      setShowPayPalModal(false);
+      setPaymentProcessing(false);
+      
+      // Rediriger vers le dashboard avec un message de succès
+      navigate('/dashboard', { 
+        state: { 
+          message: `Paiement réussi ! Votre abonnement ${selectedPlan.name} a été activé.` 
+        } 
+      });
+    } catch (err) {
+      console.error('Erreur lors de la confirmation du paiement par carte:', err);
+      const message = err.response?.data?.message || err.message || 'Erreur lors de la confirmation du paiement.';
+      setPaymentError(message);
+      setPaymentProcessing(false);
+      throw err;
+    }
+  }, [selectedPlan.id, navigate]);
+
   const handleHostedFieldsSubmit = useCallback(async (cardFieldsInstance) => {
     try {
       setPaymentProcessing(true);
@@ -245,11 +322,22 @@ const SubscriptionPayment = () => {
         throw new Error('Veuillez compléter toutes les informations de carte.');
       }
 
-      const { orderId } = await cardFieldsInstance.submit({
-        contingencies: ['3D_SECURE']
-      });
+      // Pour les abonnements, PayPal peut forcer une redirection même avec Hosted Fields
+      // On essaie sans contingencies d'abord, puis avec si nécessaire
+      let orderId;
+      try {
+        const result = await cardFieldsInstance.submit({
+          contingencies: ['3D_SECURE']
+        });
+        orderId = result.orderId;
+      } catch (threeDSecureError) {
+        // Si 3D Secure échoue, essayer sans contingencies
+        console.warn('3D Secure error, trying without contingencies:', threeDSecureError);
+        const result = await cardFieldsInstance.submit({});
+        orderId = result.orderId;
+      }
 
-      await handlePayPalApprove({ orderID: orderId });
+      await handleCardPaymentApprove(orderId);
       return { success: true };
     } catch (err) {
       const message = err?.response?.data?.message || err?.message || 'Paiement refusé. Veuillez vérifier votre carte.';
@@ -257,7 +345,7 @@ const SubscriptionPayment = () => {
       setPaymentProcessing(false);
       return { error: message };
     }
-  }, [handlePayPalApprove]);
+  }, [handleCardPaymentApprove]);
 
   const handlePayPalCancel = useCallback(() => {
     setPaymentError('Paiement annulé. Vous pouvez réessayer.');
@@ -272,7 +360,7 @@ const SubscriptionPayment = () => {
 
   // Charger le token PayPal client
   useEffect(() => {
-    if (!showPayPalModal || !paypalClientId || paymentMethod !== 'paypal') {
+    if ((!showPayPalModal && !showCardForm) || !paypalClientId || paymentMethod !== 'paypal') {
       return;
     }
 
@@ -306,7 +394,7 @@ const SubscriptionPayment = () => {
     return () => {
       isMounted = false;
     };
-  }, [showPayPalModal, paypalClientId, paymentMethod]);
+  }, [showPayPalModal, showCardForm, paypalClientId, paymentMethod]);
 
   const paypalOptions = useMemo(() => {
     if (!paypalClientId) {
@@ -316,13 +404,14 @@ const SubscriptionPayment = () => {
     const options = {
       'client-id': paypalClientId,
       currency: paypalCurrency,
+      intent: 'capture',
       components: paypalClientToken ? 'buttons,hosted-fields' : 'buttons'
+      // Configuration minimale - pas de enable-funding/disable-funding pour les Hosted Fields
     };
 
     if (paypalClientToken) {
       options['data-client-token'] = paypalClientToken;
       options.dataClientToken = paypalClientToken;
-      options.intent = 'capture';
     }
 
     return options;
@@ -564,9 +653,9 @@ const SubscriptionPayment = () => {
         </div>
 
         {/* PayPal Modal */}
-        {showPayPalModal && (
+        {showPayPalModal && !showCardForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-2xl shadow-lg p-6 max-w-lg w-full">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-900">
                   PayPal ou Carte bancaire
@@ -576,6 +665,7 @@ const SubscriptionPayment = () => {
                     setShowPayPalModal(false);
                     setPaymentError(null);
                     setPaymentProcessing(false);
+                    setShowCardForm(false);
                   }}
                   className="text-gray-400 hover:text-gray-600"
                 >
@@ -583,17 +673,23 @@ const SubscriptionPayment = () => {
                 </button>
               </div>
 
-              <div className="border-2 border-green-500 rounded-xl bg-green-50 p-4">
+              <div className="border-2 border-green-500 rounded-xl bg-green-50 p-4 mb-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-base font-semibold text-green-900">
-                      Sélectionnez votre mode de paiement
+                      Credit card or PayPal
                     </h3>
                     <p className="text-sm text-green-800 mt-1">
-                      Payez en toute sécurité avec Carte bancaire ou PayPal
+                      Pay securely with Credit card or PayPal
                     </p>
                   </div>
+                  <div className="flex items-center gap-2">
                   <FiCreditCard className="h-6 w-6 text-green-800" />
+                    <div className="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center">
+                      <FiCheck className="h-4 w-4 text-white" />
+                    </div>
+                  </div>
+                </div>
                 </div>
 
                 {!paypalClientId ? (
@@ -616,7 +712,64 @@ const SubscriptionPayment = () => {
                         key={paypalClientToken ? `paypal-with-hosted-fields-${paypalClientToken}` : 'paypal-buttons-only'}
                         options={paypalOptions}
                       >
-                        <div className="mt-4 space-y-5">
+                      <div className="space-y-4">
+                        {/* Bouton Carte bancaire */}
+                        <button
+                          onClick={async () => {
+                            try {
+                              setPaymentProcessing(true);
+                              setPaymentError(null);
+                              
+                              // Créer l'ordre PayPal AVANT d'afficher le formulaire (via backend)
+                              const amount = getPrice();
+                              const response = await paymentService.createOrderForHostedFields({
+                                type: 'subscription',
+                                planId: selectedPlan.id,
+                                billingPeriod,
+                                amount,
+                                currency: 'XAF'
+                              });
+
+                              const payload = response.data?.data;
+                              const paymentId = payload?.paymentId || null;
+                              const orderId = payload?.paypalOrderId || null;
+
+                              if (!orderId) {
+                                throw new Error('Identifiant PayPal introuvable.');
+                              }
+
+                              // Sauvegarder le paymentId et l'orderId
+                              if (paymentId) {
+                                paymentIdRef.current = paymentId;
+                                sessionStorage.setItem(`harvests_subscription_payment_${selectedPlan.id}`, paymentId);
+                              }
+                              setHostedFieldsOrderId(orderId);
+                              
+                              // Afficher le formulaire
+                              setShowCardForm(true);
+                              setPaymentProcessing(false);
+                            } catch (err) {
+                              const message = err.response?.data?.message || err.message || 'Impossible de créer la commande PayPal.';
+                              setPaymentError(message);
+                              setPaymentProcessing(false);
+                            }
+                          }}
+                          className="w-full bg-gray-800 hover:bg-gray-900 text-white font-semibold rounded-lg py-3 px-4 flex items-center justify-center gap-2 transition disabled:opacity-50"
+                          disabled={paymentProcessing || !paypalClientToken}
+                        >
+                          <FiCreditCard className="h-5 w-5" />
+                          {paymentProcessing ? 'Préparation...' : 'Carte bancaire'}
+                        </button>
+
+                        <div className="relative">
+                          <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-gray-300"></div>
+                          </div>
+                          <div className="relative flex justify-center text-sm">
+                            <span className="px-2 bg-white text-gray-500">ou</span>
+                          </div>
+                        </div>
+
                           <PayPalButtons
                             style={{ layout: 'vertical', shape: 'rect', color: 'gold' }}
                             createOrder={createPayPalOrder}
@@ -645,26 +798,6 @@ const SubscriptionPayment = () => {
                               </button>
                             </div>
                           )}
-
-                          {paypalClientToken && (
-                            <PayPalHostedFieldsProvider
-                              createOrder={createPayPalOrder}
-                              styles={{
-                                '.valid': { color: '#16a34a' },
-                                '.invalid': { color: '#dc2626' },
-                                input: {
-                                  fontSize: '16px',
-                                  color: '#111827'
-                                }
-                              }}
-                            >
-                              <CardHostedFieldsForm
-                                onSubmit={handleHostedFieldsSubmit}
-                                disabled={!showPayPalModal}
-                                isProcessing={paymentProcessing}
-                              />
-                            </PayPalHostedFieldsProvider>
-                          )}
                         </div>
                       </PayPalScriptProvider>
                     ) : (
@@ -683,7 +816,6 @@ const SubscriptionPayment = () => {
                     )}
                   </>
                 )}
-              </div>
 
               <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-gray-600">
                 <FiLock className="h-4 w-4" />
@@ -704,12 +836,333 @@ const SubscriptionPayment = () => {
             </div>
           </div>
         )}
+
+        {/* Formulaire Carte Bancaire Simplifié */}
+        {showCardForm && paypalClientToken && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full border-2 border-green-200">
+              {/* En-tête vert */}
+              <div className="bg-green-50 border-b-2 border-green-500 px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <FiCreditCard className="h-5 w-5 text-green-800" />
+                  <div>
+                    <h3 className="text-sm font-bold text-green-900">Credit card or PayPal</h3>
+                    <p className="text-xs text-green-800">Pay securely with Credit card or PayPal</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-5 w-5 rounded-full bg-green-600 flex items-center justify-center">
+                    <FiCheck className="h-3 w-3 text-white" />
+                  </div>
+                <button
+                  onClick={() => {
+                    setShowCardForm(false);
+                    setPaymentError(null);
+                    setHostedFieldsOrderId(null); // Réinitialiser l'orderId
+                  }}
+                  className="text-gray-400 hover:text-gray-600 ml-2"
+                >
+                  <FiX className="h-5 w-5" />
+                </button>
+                </div>
+              </div>
+
+              <div className="p-4">
+                {/* Note importante pour les abonnements */}
+                <div className="mb-4 bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-800">
+                  <p className="font-semibold mb-1">Note importante :</p>
+                  <p>Pour les abonnements, PayPal peut ouvrir une fenêtre sécurisée pour l'authentification 3D Secure de votre banque. C'est normal et sécurisé.</p>
+                </div>
+
+                {paypalOptions && (
+                  <PayPalScriptProvider
+                    key={`paypal-with-hosted-fields-${paypalClientToken}`}
+                    options={paypalOptions}
+                  >
+                    {hostedFieldsOrderId ? (
+                      <PayPalHostedFieldsProvider
+                        createOrder={() => Promise.resolve(hostedFieldsOrderId)}
+                        styles={{
+                          '.valid': { color: '#16a34a' },
+                          '.invalid': { color: '#dc2626' },
+                          input: {
+                            fontSize: '16px',
+                            color: '#111827'
+                          }
+                        }}
+                      >
+                        <SimplifiedCardForm
+                          user={user}
+                          onSubmit={handleHostedFieldsSubmit}
+                          isProcessing={paymentProcessing}
+                          price={price}
+                        />
+                      </PayPalHostedFieldsProvider>
+                    ) : (
+                      <div className="text-sm text-gray-600 bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                        Préparation du formulaire de paiement...
+                      </div>
+                    )}
+                  </PayPalScriptProvider>
+                )}
+
+                {paymentError && (
+                  <div className="mt-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg p-3">
+                    {paymentError}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-// Composant CardHostedFieldsForm
+// Composant Formulaire Carte Simplifié avec pré-remplissage
+const SimplifiedCardForm = ({ user, onSubmit, isProcessing, price }) => {
+  const { cardFields } = usePayPalHostedFields();
+  const [localError, setLocalError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  
+  // Pré-remplir les informations utilisateur
+  const getInitialBillingData = () => {
+    if (!user) {
+      return {
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        country: 'SN',
+        postalCode: ''
+      };
+    }
+
+    // Récupérer le pays (peut être un code ou un nom)
+    let country = user?.country || 'SN';
+    if (typeof country === 'string' && country.length > 2) {
+      // Si c'est un nom de pays, le convertir en code
+      const countryMap = {
+        'Sénégal': 'SN',
+        'Senegal': 'SN',
+        'Mali': 'ML',
+        'Burkina Faso': 'BF',
+        'Côte d\'Ivoire': 'CI',
+        'Guinée': 'GN',
+        'Mauritanie': 'MR',
+        'Gambie': 'GM',
+        'Guinée-Bissau': 'GW'
+      };
+      country = countryMap[country] || 'SN';
+    }
+
+    return {
+      firstName: user?.firstName || user?.firstname || '',
+      lastName: user?.lastName || user?.lastname || '',
+      email: user?.email || '',
+      phone: user?.phone || user?.phoneNumber || user?.mobile || '',
+      country: country,
+      postalCode: user?.postalCode || user?.postal_code || user?.address?.postalCode || user?.address?.postal_code || ''
+    };
+  };
+
+  const [billingData, setBillingData] = useState(getInitialBillingData());
+
+  // Mettre à jour les données quand l'utilisateur change
+  useEffect(() => {
+    const newData = getInitialBillingData();
+    setBillingData(newData);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!cardFields) {
+      setLocalError('Le formulaire de carte est en cours de préparation. Réessayez dans un instant.');
+      return;
+    }
+
+    const state = cardFields.getState();
+    if (!state?.isFormValid) {
+      setLocalError('Veuillez compléter toutes les informations de carte.');
+      return;
+    }
+
+    setSubmitting(true);
+    const result = await onSubmit(cardFields);
+    if (result?.error) {
+      setLocalError(result.error);
+    } else {
+      setLocalError(null);
+    }
+    setSubmitting(false);
+  };
+
+  const isDisabled = isProcessing || submitting || !cardFields;
+
+  // Obtenir le code pays pour les drapeaux (nécessaire pour PayPal)
+  const countryCode = billingData.country ? getCountryCode(billingData.country) : 'SN';
+
+  // Obtenir le drapeau du pays
+  const getCountryFlag = (code) => {
+    const flags = {
+      'SN': '🇸🇳',
+      'ML': '🇲🇱',
+      'BF': '🇧🇫',
+      'CI': '🇨🇮',
+      'GN': '🇬🇳',
+      'MR': '🇲🇷',
+      'GM': '🇬🇲',
+      'GW': '🇬🇼'
+    };
+    return flags[code] || '🌍';
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Informations de carte */}
+      <div className="space-y-3">
+        <div>
+          <PayPalHostedField
+            id="card-number"
+            className="paypal-hosted-field block w-full rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            hostedFieldType="number"
+            options={{
+              selector: '#card-number',
+              placeholder: 'Numéro de carte'
+            }}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <PayPalHostedField
+              id="card-expiration"
+              className="paypal-hosted-field block w-full rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              hostedFieldType="expirationDate"
+              options={{
+                selector: '#card-expiration',
+                placeholder: 'Expire'
+              }}
+            />
+          </div>
+          <div>
+            <PayPalHostedField
+              id="card-cvv"
+              className="paypal-hosted-field block w-full rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              hostedFieldType="cvv"
+              options={{
+                selector: '#card-cvv',
+                placeholder: 'Crypto. visuel'
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Adresse de facturation */}
+      <div className="mt-4">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-semibold text-gray-900">Adresse de facturation</h4>
+          <div className="flex items-center gap-1.5">
+            <span className="text-lg">{getCountryFlag(countryCode)}</span>
+            <select
+              value={countryCode}
+              onChange={(e) => setBillingData({ ...billingData, country: e.target.value })}
+              className="text-sm text-gray-700 bg-transparent border-none focus:outline-none cursor-pointer"
+            >
+              <option value="SN">SN</option>
+              <option value="ML">ML</option>
+              <option value="BF">BF</option>
+              <option value="CI">CI</option>
+              <option value="GN">GN</option>
+              <option value="MR">MR</option>
+              <option value="GM">GM</option>
+              <option value="GW">GW</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <input
+            type="text"
+            id="billing-firstname"
+            value={billingData.firstName}
+            onChange={(e) => setBillingData({ ...billingData, firstName: e.target.value })}
+            className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            placeholder="Prénom"
+          />
+          <input
+            type="text"
+            id="billing-lastname"
+            value={billingData.lastName}
+            onChange={(e) => setBillingData({ ...billingData, lastName: e.target.value })}
+            className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            placeholder="Nom"
+          />
+        </div>
+
+        <div className="mb-3">
+          <input
+            type="text"
+            id="billing-postal"
+            value={billingData.postalCode}
+            onChange={(e) => setBillingData({ ...billingData, postalCode: e.target.value })}
+            className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            placeholder="Code postal"
+          />
+        </div>
+
+        <div className="mb-3">
+          <input
+            type="tel"
+            id="billing-phone"
+            value={billingData.phone}
+            onChange={(e) => setBillingData({ ...billingData, phone: e.target.value })}
+            className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            placeholder="Mobile"
+          />
+        </div>
+
+        <div>
+          <input
+            type="email"
+            id="billing-email"
+            value={billingData.email}
+            onChange={(e) => setBillingData({ ...billingData, email: e.target.value })}
+            className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            placeholder="Email"
+          />
+        </div>
+      </div>
+
+      {/* Texte légal */}
+      <div className="text-xs text-gray-600 mt-3">
+        Vous reconnaissez avoir pris connaissance des conditions dans lesquelles PayPal fournit le service au vendeur et vous acceptez la{' '}
+        <a href="#" className="text-blue-600 hover:underline">Politique de confidentialité</a>.
+        Aucun compte PayPal n'est requis.
+      </div>
+
+      {localError && (
+        <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-md p-3">
+          {localError}
+        </div>
+      )}
+
+      <button
+        type="submit"
+        disabled={isDisabled}
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg py-3 px-4 transition disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        {isProcessing || submitting ? 'Traitement…' : `Payer $${((price || 0) / 600).toFixed(2)}`}
+      </button>
+    </form>
+  );
+};
+
+// Composant CardHostedFieldsForm (conservé pour compatibilité)
 const CardHostedFieldsForm = ({ onSubmit, disabled, isProcessing }) => {
   const { cardFields } = usePayPalHostedFields();
   const [localError, setLocalError] = useState(null);

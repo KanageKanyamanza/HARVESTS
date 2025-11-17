@@ -23,6 +23,7 @@ const Products = () => {
 	const [error, setError] = useState(null);
 	const [showFilters, setShowFilters] = useState(false);
 	const [isSearching, setIsSearching] = useState(false);
+	const [locationInfo, setLocationInfo] = useState(null);
 
 	// Filtres et recherche - Prioriser le paramètre de route s'il existe
 	const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
@@ -83,6 +84,12 @@ const Products = () => {
 				params.sort = sortBy;
 			} else if (sortBy === "newest") {
 				params.sort = "-createdAt";
+			}
+
+			// Activer la détection automatique de localisation par défaut
+			// Peut être désactivée avec ?useLocation=false dans l'URL
+			if (params.useLocation === undefined) {
+				params.useLocation = 'true';
 			}
 
 			const response = isFeatured
@@ -301,6 +308,18 @@ const Products = () => {
 							: "Découvrez nos produits frais et de qualité"}
 						{totalProducts > 0 && ` (${totalProducts} produits)`}
 					</p>
+					
+					{/* Message discret si pas de produits dans la zone */}
+					{locationInfo?.detected && locationInfo?.noProductsInZone && (
+						<div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-700">
+							<svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+							</svg>
+							<span>
+								Aucun produit disponible dans votre zone. Affichage de tous les produits.
+							</span>
+						</div>
+					)}
 				</div>
 
 				{/* Barre de recherche et filtres */}

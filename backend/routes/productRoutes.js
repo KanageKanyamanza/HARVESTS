@@ -10,6 +10,9 @@ const router = express.Router();
 // Obtenir tous les produits avec filtres et recherche
 router.get('/', productController.getAllProducts);
 
+// Obtenir les produits basés sur la localisation de l'utilisateur
+router.get('/location-based', productController.getProductsByLocation);
+
 // Recherche avancée de produits
 router.get('/search', productController.searchProducts);
 

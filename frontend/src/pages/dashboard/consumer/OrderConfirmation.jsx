@@ -24,7 +24,8 @@ import {
   FiPackage,
   FiUser,
   FiPhone,
-  FiLock
+  FiLock,
+  FiCheck
 } from 'react-icons/fi';
 
 const OrderConfirmation = () => {
@@ -42,6 +43,7 @@ const OrderConfirmation = () => {
   const [paypalClientToken, setPaypalClientToken] = useState(null);
   const [paypalTokenLoading, setPaypalTokenLoading] = useState(false);
   const [paypalTokenError, setPaypalTokenError] = useState(null);
+  const [hostedFieldsOrderId, setHostedFieldsOrderId] = useState(null);
   const orderKey = order?._id || order?.id || null;
 
   const fetchOrder = useCallback(async () => {
@@ -289,6 +291,56 @@ const OrderConfirmation = () => {
       setPaymentProcessing(false);
     }
   }, [fetchOrder, orderKey, navigate]);
+
+  // Créer une commande PayPal pour les Hosted Fields (paiement unique pour les produits)
+  const createOrderForHostedFields = useCallback(async (data, actions) => {
+    // Si l'orderId a déjà été créé, le retourner directement
+    if (hostedFieldsOrderId) {
+      return hostedFieldsOrderId;
+    }
+    
+    // Fallback: créer l'ordre si nécessaire
+    if (!orderKey) {
+      throw new Error('Commande introuvable.');
+    }
+
+    try {
+      setPaymentProcessing(true);
+      setPaymentError(null);
+
+      const response = await paymentService.createOrderForHostedFields({
+        type: 'order',
+        orderId: orderKey,
+        amount: order?.total || 0,
+        currency: order?.currency || 'XAF'
+      });
+
+      const payload = response.data?.data;
+      const paymentId = payload?.paymentId || null;
+      const orderId = payload?.paypalOrderId || null;
+
+      if (!orderId) {
+        throw new Error('Identifiant PayPal introuvable.');
+      }
+
+      if (paymentId) {
+        paymentIdRef.current = paymentId;
+        sessionStorage.setItem(`harvests_paypal_payment_${orderKey}`, paymentId);
+      }
+      
+      setHostedFieldsOrderId(orderId);
+      setPaymentProcessing(false);
+      return orderId;
+    } catch (err) {
+      const message =
+        err.response?.data?.message ||
+        err.message ||
+        'Impossible de créer la commande PayPal.';
+      setPaymentError(message);
+      setPaymentProcessing(false);
+      throw err;
+    }
+  }, [orderKey, order, hostedFieldsOrderId]);
 
   const handleHostedFieldsSubmit = useCallback(async (cardFieldsInstance) => {
     try {
@@ -578,7 +630,7 @@ const OrderConfirmation = () => {
 
                         {paypalClientToken && typeof window !== 'undefined' && window.paypal && window.paypal.HostedFields ? (
                           <PayPalHostedFieldsProvider
-                            createOrder={createPayPalOrder}
+                            createOrder={hostedFieldsOrderId ? () => Promise.resolve(hostedFieldsOrderId) : createOrderForHostedFields}
                             styles={{
                               '.valid': { color: '#16a34a' },
                               '.invalid': { color: '#dc2626' },
@@ -592,6 +644,7 @@ const OrderConfirmation = () => {
                               onSubmit={handleHostedFieldsSubmit}
                               disabled={!isPaypalPending}
                               isProcessing={paymentProcessing}
+                              user={user}
                             />
                           </PayPalHostedFieldsProvider>
                         ) : paypalClientToken ? (
@@ -963,7 +1016,7 @@ const OrderConfirmation = () => {
 
 export default OrderConfirmation;
 
-const CardHostedFieldsForm = ({ onSubmit, disabled, isProcessing }) => {
+const CardHostedFieldsForm = ({ onSubmit, disabled, isProcessing, user }) => {
   const { cardFields } = usePayPalHostedFields();
   const [localError, setLocalError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -994,71 +1047,124 @@ const CardHostedFieldsForm = ({ onSubmit, disabled, isProcessing }) => {
 
   const isDisabled = disabled || isProcessing || submitting || !cardFields;
 
+  // Récupérer les informations de l'utilisateur
+  const userName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : '';
+  const userEmail = user?.email || '';
+  const userPhone = user?.phone || '';
+  const userCountry = user?.country || '';
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-      <h4 className="text-sm font-semibold text-gray-900">Paiement par carte bancaire</h4>
-
-      <div className="space-y-3">
-        <div className="space-y-1">
-          <label htmlFor="card-number" className="block text-sm font-medium text-gray-700">
-            Numéro de carte
-          </label>
-          <PayPalHostedField
-            id="card-number"
-            className="paypal-hosted-field block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-harvests-green focus:border-harvests-green transition"
-            hostedFieldType="number"
-            options={{
-              selector: '#card-number',
-              placeholder: '0000 0000 0000 0000'
-            }}
-          />
+    <div className="bg-white border border-green-200 rounded-lg overflow-hidden">
+      {/* En-tête */}
+      <div className="bg-green-50 border-b border-green-200 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <FiCreditCard className="h-5 w-5 text-green-600" />
+          <div>
+            <h4 className="text-sm font-bold text-green-800">Credit card or PayPal</h4>
+            <p className="text-xs text-gray-600">Pay securely with Credit card or PayPal</p>
+          </div>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <label htmlFor="card-expiration" className="block text-sm font-medium text-gray-700">
-              Date d’expiration
-            </label>
-            <PayPalHostedField
-              id="card-expiration"
-              className="paypal-hosted-field block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-harvests-green focus:border-harvests-green transition"
-              hostedFieldType="expirationDate"
-              options={{
-                selector: '#card-expiration',
-                placeholder: 'MM / AA'
-              }}
-            />
-          </div>
-          <div className="space-y-1">
-            <label htmlFor="card-cvv" className="block text-sm font-medium text-gray-700">
-              Cryptogramme visuel
-            </label>
-            <PayPalHostedField
-              id="card-cvv"
-              className="paypal-hosted-field block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-harvests-green focus:border-harvests-green transition"
-              hostedFieldType="cvv"
-              options={{
-                selector: '#card-cvv',
-                placeholder: '123'
-              }}
-            />
-          </div>
+        <div className="h-6 w-6 rounded-full bg-green-600 flex items-center justify-center">
+          <FiCheck className="h-4 w-4 text-white" />
         </div>
       </div>
 
-      {localError && (
-        <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-md p-3">
-          {localError}
+      {/* Informations utilisateur pré-remplies */}
+      {user && (
+        <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
+          <div className="space-y-2 text-sm">
+            {userName && (
+              <div className="flex items-center gap-2">
+                <FiUser className="h-4 w-4 text-gray-500" />
+                <span className="text-gray-700 font-medium">{userName}</span>
+              </div>
+            )}
+            {userEmail && (
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">📧</span>
+                <span className="text-gray-700">{userEmail}</span>
+              </div>
+            )}
+            {userPhone && (
+              <div className="flex items-center gap-2">
+                <FiPhone className="h-4 w-4 text-gray-500" />
+                <span className="text-gray-700">{userPhone}</span>
+              </div>
+            )}
+            {userCountry && (
+              <div className="flex items-center gap-2">
+                <FiMapPin className="h-4 w-4 text-gray-500" />
+                <span className="text-gray-700">{userCountry}</span>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
-      <button
-        type="submit"
-        disabled={isDisabled}
-        className="w-full inline-flex items-center justify-center rounded-md bg-harvests-green px-4 py-2 text-sm font-semibold text-white hover:bg-green-600 transition disabled:opacity-60 disabled:cursor-not-allowed"
-      >
-        {isProcessing || submitting ? 'Traitement…' : 'Payer avec cette carte'}
-      </button>
-    </form>
+      {/* Formulaire de carte */}
+      <form onSubmit={handleSubmit} className="px-4 py-4 space-y-4">
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <label htmlFor="card-number" className="block text-sm font-medium text-gray-700">
+              Numéro de carte
+            </label>
+            <PayPalHostedField
+              id="card-number"
+              className="paypal-hosted-field block w-full rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+              hostedFieldType="number"
+              options={{
+                selector: '#card-number',
+                placeholder: '0000 0000 0000 0000'
+              }}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label htmlFor="card-expiration" className="block text-sm font-medium text-gray-700">
+                Expire
+              </label>
+              <PayPalHostedField
+                id="card-expiration"
+                className="paypal-hosted-field block w-full rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+                hostedFieldType="expirationDate"
+                options={{
+                  selector: '#card-expiration',
+                  placeholder: 'MM / AA'
+                }}
+              />
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="card-cvv" className="block text-sm font-medium text-gray-700">
+                Crypto. visuel
+              </label>
+              <PayPalHostedField
+                id="card-cvv"
+                className="paypal-hosted-field block w-full rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+                hostedFieldType="cvv"
+                options={{
+                  selector: '#card-cvv',
+                  placeholder: '123'
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {localError && (
+          <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-md p-3">
+            {localError}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={isDisabled}
+          className="w-full inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 px-4 py-3 text-sm font-semibold text-white transition disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {isProcessing || submitting ? 'Traitement…' : 'Payer'}
+        </button>
+      </form>
+    </div>
   );
 };

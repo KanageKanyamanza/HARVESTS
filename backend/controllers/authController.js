@@ -115,8 +115,9 @@ exports.signup = catchAsync(async (req, res, next) => {
   };
 
   // Ajouter l'email à la queue d'envoi en arrière-plan
-  const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
-  const verifyURL = `${frontendUrl}/verify-email/${verifyToken}`;
+  // Le lien pointe vers le backend qui redirigera vers la page de vérification du frontend
+  const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'https://harvests-api.onrender.com';
+  const verifyURL = `${backendUrl}/api/v1/auth/verify-email/${verifyToken}`;
   
   emailQueue.addToQueue({
     user: newUser,
@@ -238,8 +239,9 @@ exports.retryEmailVerification = catchAsync(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   // Ajouter à la queue d'envoi
-  const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
-  const verifyURL = `${frontendUrl}/verify-email/${verifyToken}`;
+  // Le lien pointe vers le backend qui redirigera vers la page de vérification du frontend
+  const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'https://harvests-api.onrender.com';
+  const verifyURL = `${backendUrl}/api/v1/auth/verify-email/${verifyToken}`;
   
   emailQueue.addToQueue({
     user,
@@ -325,17 +327,19 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
     emailVerificationExpires: { $gt: Date.now() },
   });
 
+  // Frontend URL pour redirection
+  const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
+
   // 2) Si le token n'a pas expiré et qu'il y a un utilisateur, définir l'email comme vérifié
   if (!user) {
-    return next(new AppError('Token invalide ou expiré', 400));
+    // Rediriger vers la page de vérification avec un message d'erreur
+    return res.redirect(`${frontendUrl}/verify-email/${req.params.token}?error=invalid_token`);
   }
 
   // Vérifier si l'email est déjà vérifié
   if (user.isEmailVerified) {
-    return res.status(200).json({
-      status: 'success',
-      message: 'Email déjà vérifié !'
-    });
+    // Rediriger vers la page de vérification avec un statut "déjà vérifié"
+    return res.redirect(`${frontendUrl}/verify-email/${req.params.token}?status=already-verified`);
   }
 
   user.isEmailVerified = true;
@@ -352,11 +356,9 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
   
   await user.save({ validateBeforeSave: false });
 
-  // Retourner une réponse JSON de succès
-  res.status(200).json({
-    status: 'success',
-    message: 'Email vérifié avec succès !'
-  });
+  // Rediriger vers la page de vérification du frontend avec un paramètre de succès
+  // L'utilisateur pourra ensuite se connecter depuis cette page
+  res.redirect(`${frontendUrl}/verify-email/${req.params.token}?verified=true`);
 });
 
 // Renvoyer email de vérification
@@ -376,9 +378,9 @@ exports.resendVerificationEmail = catchAsync(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   try {
-    // URL du frontend pour la vérification directe
-    const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
-    const verifyURL = `${frontendUrl}/verify-email/${verifyToken}`;
+    // Le lien pointe vers le backend qui redirigera vers la page de vérification du frontend
+    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'https://harvests-api.onrender.com';
+    const verifyURL = `${backendUrl}/api/v1/auth/verify-email/${verifyToken}`;
 
     await new Email(user, verifyURL, req.language).sendWelcome();
 
@@ -652,9 +654,9 @@ exports.resendVerificationEmail = catchAsync(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   try {
-    // Envoyer l'email de vérification avec Gmail (URL frontend directe)
-    const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
-    const verifyURL = `${frontendUrl}/verify-email/${verifyToken}`;
+    // Le lien pointe vers le backend qui redirigera vers la page de vérification du frontend
+    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'https://harvests-api.onrender.com';
+    const verifyURL = `${backendUrl}/api/v1/auth/verify-email/${verifyToken}`;
     
     await new Email(user, verifyURL, req.language).sendWelcome();
 

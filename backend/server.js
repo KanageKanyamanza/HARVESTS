@@ -13,6 +13,7 @@ dotenv.config();
 
 const app = require('./app');
 const { migrateLocalizedFields } = require('./scripts/migrateLocalizedFields');
+const migrateCountryCodes = require('./scripts/migrateCountryCodes');
 
 // Configuration de la base de données
 let DB;
@@ -100,6 +101,13 @@ mongoose
       await migrateLocalizedFields();
     } catch (migrationError) {
       console.error('⚠️ Erreur lors de la migration des champs localisés:', migrationError);
+    }
+
+    // Migrer les codes pays vers les noms complets
+    try {
+      await migrateCountryCodes();
+    } catch (migrationError) {
+      console.error('⚠️ Erreur lors de la migration des codes pays:', migrationError);
     }
   })
   .catch((err) => {

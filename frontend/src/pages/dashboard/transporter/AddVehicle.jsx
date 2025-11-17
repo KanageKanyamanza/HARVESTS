@@ -129,14 +129,21 @@ const AddVehicle = () => {
       formData.append('images', file);
       
       const response = await uploadService.uploadProductImages(formData);
-      const imageUrl = response.data?.data?.images?.[0]?.url || response.data?.images?.[0]?.url;
+      const uploadedImage = response.data?.data?.images?.[0] || response.data?.images?.[0];
+      const imageUrl = uploadedImage?.url || uploadedImage?.secure_url;
+      const publicId = uploadedImage?.public_id || uploadedImage?.publicId;
       
       if (imageUrl) {
-        setVehicleImage({
+        const imageData = {
           url: imageUrl,
-          publicId: response.data?.data?.images?.[0]?.publicId || response.data?.images?.[0]?.publicId,
-          alt: file.name
-        });
+          publicId: publicId || null,
+          alt: file.name || 'Véhicule'
+        };
+        console.log('Image uploadée:', imageData);
+        setVehicleImage(imageData);
+        showSuccess('Image uploadée avec succès');
+      } else {
+        throw new Error('URL d\'image non trouvée dans la réponse');
       }
     } catch (error) {
       console.error('Erreur lors de l\'upload de l\'image:', error);
@@ -194,10 +201,19 @@ const AddVehicle = () => {
         condition: formData.condition,
         isAvailable: formData.isAvailable,
         lastMaintenanceDate: formData.lastMaintenanceDate || undefined,
-        nextMaintenanceDate: formData.nextMaintenanceDate || undefined,
-        image: vehicleImage || undefined
+        nextMaintenanceDate: formData.nextMaintenanceDate || undefined
       };
 
+      // Ajouter l'image seulement si elle existe
+      if (vehicleImage && vehicleImage.url) {
+        vehicleData.image = {
+          url: vehicleImage.url,
+          publicId: vehicleImage.publicId || null,
+          alt: vehicleImage.alt || 'Véhicule'
+        };
+      }
+
+      console.log('Données du véhicule à envoyer:', vehicleData);
       await transporterService.addFleetVehicle(vehicleData);
       showSuccess('Véhicule ajouté avec succès à votre flotte !');
       navigate('/transporter/fleet');

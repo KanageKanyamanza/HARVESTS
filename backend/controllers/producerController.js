@@ -50,16 +50,55 @@ exports.processProductImages = catchAsync(async (req, res, next) => {
 
 // Obtenir tous les producteurs
 exports.getAllProducers = catchAsync(async (req, res, next) => {
-  const queryObj = { ...req.query };
-  const excludedFields = ['page', 'sort', 'limit', 'fields', 'lang'];
-  excludedFields.forEach((el) => delete queryObj[el]);
+  const baseQueryObj = { ...req.query };
+  const excludedFields = ['page', 'sort', 'limit', 'fields', 'lang', 'useLocation'];
+  excludedFields.forEach((el) => delete baseQueryObj[el]);
 
   // Ajouter les filtres de base
-  queryObj.isActive = true;
-  queryObj.isApproved = true;
-  queryObj.isEmailVerified = true;
+  baseQueryObj.isActive = true;
+  baseQueryObj.isApproved = true;
+  baseQueryObj.isEmailVerified = true;
 
-  let queryStr = JSON.stringify(queryObj);
+  // Détection automatique de la localisation si activée
+  let userLocation = null;
+  let noProducersInZone = false;
+  if (req.query.useLocation !== 'false') {
+    try {
+      userLocation = await getUserLocation(req);
+      // Si on a une localisation valide, vérifier s'il y a des producteurs dans la zone
+      if (userLocation && (userLocation.city || userLocation.region || userLocation.country)) {
+        const locationQuery = buildLocationQuery(userLocation, {
+          prioritizeRegion: true,
+          prioritizeCity: true
+        }, 'producer');
+        
+        // Vérifier d'abord s'il y a des producteurs dans la zone
+        const locationQueryObj = { ...baseQueryObj };
+        if (locationQuery.$or && locationQuery.$or.length > 0) {
+          locationQueryObj.$and = locationQueryObj.$and || [];
+          locationQueryObj.$and.push({ $or: locationQuery.$or });
+        }
+        
+        const countInZone = await Producer.countDocuments(locationQueryObj);
+        
+        // Si des producteurs existent dans la zone, utiliser le filtre
+        if (countInZone > 0) {
+          if (locationQuery.$or && locationQuery.$or.length > 0) {
+            baseQueryObj.$and = baseQueryObj.$and || [];
+            baseQueryObj.$and.push({ $or: locationQuery.$or });
+          }
+        } else {
+          // Sinon, marquer qu'on affiche tous les producteurs
+          noProducersInZone = true;
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors de la détection de localisation:', error);
+      // Continuer sans filtre de localisation en cas d'erreur
+    }
+  }
+
+  let queryStr = JSON.stringify(baseQueryObj);
   queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
 
   let query = Producer.find(JSON.parse(queryStr));
@@ -90,6 +129,16 @@ exports.getAllProducers = catchAsync(async (req, res, next) => {
     totalPages: Math.ceil(total / limit),
     data: {
       producers,
+      location: userLocation ? {
+        detected: true,
+        country: userLocation.country,
+        region: userLocation.region,
+        city: userLocation.city,
+        source: userLocation.source,
+        noProducersInZone: noProducersInZone
+      } : {
+        detected: false
+      }
     },
   });
 });

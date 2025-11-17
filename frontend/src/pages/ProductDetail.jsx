@@ -9,6 +9,7 @@ import ReviewList from '../components/reviews/ReviewList';
 import SimpleReviewForm from '../components/reviews/SimpleReviewForm';
 import StarRating from '../components/reviews/StarRating';
 import { toPlainText } from '../utils/textHelpers';
+import { getCountryName } from '../utils/countryMapper';
 import { 
   FiArrowLeft, 
   FiStar, 
@@ -33,18 +34,6 @@ import {
   FiX
 } from 'react-icons/fi';
 
-// Fonction utilitaire pour convertir le code pays en nom complet
-const getCountryName = (code) => {
-  const countries = {
-    'CM': 'Cameroun',
-    'SN': 'Sénégal',
-    'CI': 'Côte d\'Ivoire',
-    'GH': 'Ghana',
-    'NG': 'Nigeria',
-    'KE': 'Kenya'
-  };
-  return countries[code] || code;
-};
 
 // Fonction utilitaire pour formater l'unité avec pluriel approprié
 const formatUnit = (quantity, unit) => {

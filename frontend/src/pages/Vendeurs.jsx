@@ -19,11 +19,13 @@ import {
 	getVendorReviewCount,
 	formatAverageRating,
 } from "../utils/vendorRatings";
+import { getCountryName } from "../utils/countryMapper";
 
 const Vendeurs = () => {
 	const [vendeurs, setVendeurs] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [filter, setFilter] = useState("all"); // 'all', 'producers', 'transformers', 'restaurateurs'
+	const [locationInfo, setLocationInfo] = useState(null);
 
 	const buildVendorRating = (vendor) => {
 		const average = getVendorAverageRating(vendor);
@@ -45,7 +47,7 @@ const Vendeurs = () => {
 
 				const [producersResponse, transformersResponse, restaurateursResponse] =
 					await Promise.allSettled([
-						producerService.getAllPublic({ limit: 50 }),
+						producerService.getAllPublic({ limit: 50, useLocation: 'true' }),
 						transformerService.getAllPublic({ limit: 50 }),
 						restaurateurService.getAllPublic({ limit: 50 }),
 					]);
@@ -58,6 +60,11 @@ const Vendeurs = () => {
 					producersResponse.value.data.status === "success"
 				) {
 					const producers = producersResponse.value.data.data.producers || [];
+					
+					// Stocker les informations de localisation
+					if (producersResponse.value.data.data.location) {
+						setLocationInfo(producersResponse.value.data.data.location);
+					}
 					
 					// Debug: Afficher la structure des données d'un producteur
 					if (producers.length > 0) {
@@ -188,17 +195,6 @@ const Vendeurs = () => {
 		loadVendeurs();
 	}, []);
 
-	const getCountryName = (code) => {
-		const countries = {
-			CM: "Cameroun",
-			SN: "Sénégal",
-			CI: "Côte d'Ivoire",
-			GH: "Ghana",
-			NG: "Nigeria",
-			KE: "Kenya",
-		};
-		return countries[code] || code;
-	};
 
 	const getTypeBadge = (type) => {
 		switch (type) {
@@ -273,6 +269,18 @@ const Vendeurs = () => {
 						Découvrez les producteurs et transformateurs locaux qui proposent
 						des produits frais et de qualité
 					</p>
+					
+					{/* Message discret si pas de vendeurs dans la zone */}
+					{locationInfo?.detected && locationInfo?.noProducersInZone && (
+						<div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-700">
+							<svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+							</svg>
+							<span>
+								Aucun vendeur disponible dans votre zone. Affichage de tous les vendeurs.
+							</span>
+						</div>
+					)}
 				</div>
 
 				{/* Filtres */}

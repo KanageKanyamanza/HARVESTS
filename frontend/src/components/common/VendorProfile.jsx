@@ -15,6 +15,7 @@ import {
   FiMail
 } from 'react-icons/fi';
 import { reviewService } from '../../services';
+import { getCountryName } from '../../utils/countryMapper';
 
 const VendorProfile = ({ 
   vendorType, 
@@ -243,17 +244,6 @@ const VendorProfile = ({
     };
   }, [vendor?._id, vendorType]);
 
-  const getCountryName = (code) => {
-    const countries = {
-      'CM': 'Cameroun',
-      'SN': 'Sénégal',
-      'CI': 'Côte d\'Ivoire',
-      'GH': 'Ghana',
-      'NG': 'Nigeria',
-      'KE': 'Kenya'
-    };
-    return countries[code] || code;
-  };
 
   if (loading) {
     return (
