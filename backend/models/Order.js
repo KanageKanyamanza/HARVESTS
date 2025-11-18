@@ -670,7 +670,7 @@ orderSchema.methods.updateStatus = function(newStatus, updatedBy, reason = null,
   return this.save();
 };
 
-orderSchema.methods.addDeliveryUpdate = function(status, location = null, note = null, updatedBy = null) {
+orderSchema.methods.addDeliveryUpdate = async function(status, location = null, note = null, updatedBy = null) {
   if (!this.delivery.timeline) {
     this.delivery.timeline = [];
   }
@@ -692,11 +692,15 @@ orderSchema.methods.addDeliveryUpdate = function(status, location = null, note =
     'delivered': 'delivered'
   };
   
+  // Si updateStatus est appelé, il sauvegarde déjà le document
+  // Sinon, on doit sauvegarder manuellement
   if (statusMapping[status]) {
-    this.updateStatus(statusMapping[status], updatedBy);
+    // updateStatus appelle déjà save(), donc on retourne directement sa promesse
+    return await this.updateStatus(statusMapping[status], updatedBy);
   }
   
-  return this.save();
+  // Si pas de changement de statut de commande, sauvegarder seulement les changements de livraison
+  return await this.save();
 };
 
 orderSchema.methods.processPayment = async function(paymentData) {

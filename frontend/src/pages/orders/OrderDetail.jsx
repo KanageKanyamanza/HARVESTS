@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { consumerService, producerService, transformerService, restaurateurService, orderService } from '../../services';
+import { consumerService, producerService, transformerService, restaurateurService, orderService, transporterService, exporterService } from '../../services';
 import { adminService } from '../../services/adminService';
 import { parseProductName } from '../../utils/productUtils';
 import CloudinaryImage from '../../components/common/CloudinaryImage';
@@ -65,6 +65,10 @@ const OrderDetail = () => {
           response = await transformerService.getMyOrder(orderIdParam);
         } else if (user.userType === 'restaurateur') {
           response = await restaurateurService.getOrder(orderIdParam);
+        } else if (user.userType === 'transporter') {
+          response = await transporterService.getOrder(orderIdParam);
+        } else if (user.userType === 'exporter') {
+          response = await exporterService.getOrder(orderIdParam);
         } else {
           response = await orderService.getOrder(orderIdParam);
         }
@@ -113,6 +117,38 @@ const OrderDetail = () => {
         response = await transformerService.updateOrderStatus(order._id, payload);
       } else if (user.userType === 'restaurateur') {
         response = await restaurateurService.updateOrderStatus(order._id, payload);
+      } else if (user.userType === 'transporter') {
+        // Pour les transporteurs, mapper les statuts
+        let deliveryStatus = newStatus;
+        if (newStatus === 'ready-for-pickup') {
+          deliveryStatus = 'picked-up';
+        } else if (newStatus === 'in-transit' || newStatus === 'out-for-delivery') {
+          deliveryStatus = 'in-transit';
+        } else if (newStatus === 'delivered') {
+          deliveryStatus = 'delivered';
+        }
+        
+        response = await transporterService.updateOrderStatus(order._id, {
+          status: deliveryStatus,
+          location: order.delivery?.deliveryAddress?.city || null,
+          note: `Statut mis à jour par ${user?.firstName || 'Transporteur'}`
+        });
+      } else if (user.userType === 'exporter') {
+        // Pour les exportateurs, mapper les statuts
+        let deliveryStatus = newStatus;
+        if (newStatus === 'ready-for-pickup') {
+          deliveryStatus = 'picked-up';
+        } else if (newStatus === 'in-transit' || newStatus === 'out-for-delivery') {
+          deliveryStatus = 'in-transit';
+        } else if (newStatus === 'delivered') {
+          deliveryStatus = 'delivered';
+        }
+        
+        response = await exporterService.updateOrderStatus(order._id, {
+          status: deliveryStatus,
+          location: order.delivery?.deliveryAddress?.city || null,
+          note: `Statut mis à jour par ${user?.firstName || 'Exportateur'}`
+        });
       } else {
         response = await orderService.updateOrderStatus(order._id, payload);
       }
@@ -321,6 +357,7 @@ const OrderDetail = () => {
   }
 
   const isSellerView = ['producer', 'transformer', 'restaurateur'].includes(user?.userType);
+  const isTransporterView = user?.userType === 'transporter' || user?.userType === 'exporter';
   const displayedStatus = order.segment?.status || order.status;
   const statusConfig = getStatusConfig(displayedStatus);
   const StatusIcon = statusConfig.icon;
@@ -400,17 +437,52 @@ const OrderDetail = () => {
                     {updating ? 'Préparation...' : 'Prête pour collecte'}
                   </button>
                 )}
+                {/* Vendeurs peuvent annuler jusqu'à ce que la commande soit en transit */}
                 {isSellerView && displayedStatus === 'ready-for-pickup' && (
                   <button
-                    onClick={shipOrder}
+                    onClick={cancelOrder}
+                    disabled={updating}
+                    className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FiXCircle className="h-4 w-4 mr-1" />
+                    Annuler
+                  </button>
+                )}
+                {/* Actions pour les transporteurs/exportateurs - Limitées selon les règles métier */}
+                {/* Livreurs peuvent collecter seulement quand la commande est prête pour collecte */}
+                {isTransporterView && displayedStatus === 'ready-for-pickup' && (
+                  <button
+                    onClick={() => updateOrderStatus('ready-for-pickup')}
+                    disabled={updating}
+                    className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FiTruck className="h-4 w-4 mr-1" />
+                    {updating ? 'Collecte...' : 'Marquer collectée'}
+                  </button>
+                )}
+                {/* Livreurs peuvent mettre en transit seulement après avoir collecté et pas encore en transit */}
+                {isTransporterView && (order.delivery?.status === 'picked-up') && displayedStatus !== 'in-transit' && displayedStatus !== 'delivered' && (
+                  <button
+                    onClick={() => updateOrderStatus('in-transit')}
                     disabled={updating}
                     className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <FiTruck className="h-4 w-4 mr-1" />
-                    {updating ? 'Expédition...' : 'Expédier'}
+                    {updating ? 'En cours...' : 'Marquer en transit'}
                   </button>
                 )}
-                {isAdmin && displayedStatus === 'in-transit' && (
+                {/* Livreurs peuvent livrer seulement quand en transit */}
+                {isTransporterView && displayedStatus === 'in-transit' && (
+                  <button
+                    onClick={deliverOrder}
+                    disabled={updating}
+                    className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <FiCheckCircle className="h-4 w-4 mr-1" />
+                    {updating ? 'Livraison...' : 'Marquer livrée'}
+                  </button>
+                )}
+                {isAdmin && displayedStatus === 'in-transit' && !isTransporterView && (
                   <button
                     onClick={deliverOrder}
                     disabled={updating}
@@ -603,6 +675,82 @@ const OrderDetail = () => {
                 })}
               </div>
             </div>
+
+            {/* Informations du livreur assigné */}
+            {order.delivery?.transporter && (
+              <div className="bg-white rounded-lg shadow p-6 mt-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                  <FiTruck className="h-5 w-5 mr-2 text-blue-600" />
+                  Livreur assigné
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-start space-x-3">
+                    <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <FiTruck className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">
+                        {order.delivery.transporter?.companyName || 
+                         `${order.delivery.transporter?.firstName || ''} ${order.delivery.transporter?.lastName || ''}`.trim() || 
+                         'Livreur'}
+                      </p>
+                      {order.delivery.transporter?.userType && (
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 ${
+                          order.delivery.transporter.userType === 'exporter' 
+                            ? 'bg-purple-100 text-purple-800' 
+                            : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {order.delivery.transporter.userType === 'exporter' ? 'Exportateur' : 'Transporteur'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {order.delivery.transporter?.email && (
+                    <div className="flex items-center space-x-3 ml-14">
+                      <FiMail className="h-4 w-4 text-gray-400" />
+                      <p className="text-sm text-gray-700">{order.delivery.transporter.email}</p>
+                    </div>
+                  )}
+                  
+                  {order.delivery.transporter?.phone && (
+                    <div className="flex items-center space-x-3 ml-14">
+                      <FiPhone className="h-4 w-4 text-gray-400" />
+                      <p className="text-sm text-gray-700">{order.delivery.transporter.phone}</p>
+                    </div>
+                  )}
+
+                  {/* Timeline de livraison si disponible */}
+                  {order.delivery?.timeline && order.delivery.timeline.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <p className="text-sm font-medium text-gray-700 mb-3">Historique de livraison:</p>
+                      <div className="space-y-2">
+                        {order.delivery.timeline.map((event, idx) => (
+                          <div key={idx} className="flex items-start text-sm">
+                            <div className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-500 mt-1.5 mr-3"></div>
+                            <div className="flex-1">
+                              <p className="text-gray-700 font-medium">
+                                {event.status === 'picked-up' ? 'Collectée' : 
+                                 event.status === 'in-transit' ? 'En transit' : 
+                                 event.status === 'delivered' ? 'Livrée' : 
+                                 event.status}
+                              </p>
+                              <p className="text-gray-500 text-xs">
+                                {formatDate(event.timestamp)}
+                                {event.location && ` • ${event.location}`}
+                              </p>
+                              {event.note && (
+                                <p className="text-gray-400 italic text-xs mt-1">{event.note}</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Informations de livraison et résumé */}

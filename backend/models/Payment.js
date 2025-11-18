@@ -368,24 +368,108 @@ paymentSchema.post('save', async function() {
 
   try {
     const Order = mongoose.model('Order');
-    const order = await Order.findById(this.order);
+    const order = await Order.findById(this.order).populate('delivery.transporter');
     
     if (order) {
+      const wasCompleted = order.payment.status === 'completed' || order.payment.status === 'succeeded';
+      const isNowCompleted = this.status === 'completed' || this.status === 'succeeded';
+      
       // Mettre à jour le statut de paiement de la commande
       order.payment.status = this.status;
       order.payment.paidAt = this.paidAt;
       order.payment.transactionId = this.paymentId;
       
-      if (this.status === 'succeeded' && order.status === 'pending') {
+      if (isNowCompleted && order.status === 'pending') {
         await order.updateStatus('confirmed', null, 'Paiement confirmé');
       }
       
       await order.save();
+      
+      // Si le paiement vient d'être complété et qu'il y a un livreur assigné, créer un paiement pour les frais de livraison
+      if (isNowCompleted && !wasCompleted && order.delivery?.transporter) {
+        await createDeliveryFeePayment(order);
+      }
     }
   } catch (error) {
     console.error('Erreur lors de la mise à jour de la commande:', error);
   }
 });
+
+// Fonction pour créer un paiement de frais de livraison pour le transporteur
+async function createDeliveryFeePayment(order) {
+  try {
+    const transporterId = order.delivery.transporter._id || order.delivery.transporter;
+    const deliveryFee = order.deliveryFee || order.delivery?.deliveryFee || 0;
+    
+    if (!transporterId || deliveryFee <= 0) {
+      return;
+    }
+    
+    // Vérifier si un paiement de frais de livraison existe déjà pour cette commande
+    const existingPayment = await mongoose.model('Payment').findOne({
+      order: order._id,
+      user: transporterId,
+      type: 'payout',
+      'metadata.deliveryFee': true
+    });
+    
+    if (existingPayment) {
+      return; // Paiement déjà créé
+    }
+    
+    // Créer un paiement de type 'payout' pour le transporteur
+    const transporterPayment = await mongoose.model('Payment').create({
+      paymentId: new mongoose.Types.ObjectId().toString(),
+      order: order._id,
+      user: transporterId,
+      amount: deliveryFee,
+      currency: order.currency || 'XAF',
+      method: 'cash', // Les frais de livraison sont en cash
+      provider: 'cash-on-delivery',
+      type: 'payout', // Type 'payout' pour les paiements aux transporteurs
+      status: 'completed', // Les frais de livraison sont automatiquement payés
+      metadata: {
+        orderId: order._id.toString(),
+        orderNumber: order.orderNumber,
+        deliveryFee: true,
+        transporterType: 'transporter' // ou 'exporter'
+      },
+      paidAt: new Date()
+    });
+    
+    // Notifier le transporteur
+    const Notification = require('./Notification');
+    const User = mongoose.model('User');
+    const transporter = await User.findById(transporterId).select('firstName lastName companyName userType');
+    const transporterName = transporter?.companyName || 
+      (transporter?.firstName && transporter?.lastName ? `${transporter.firstName} ${transporter.lastName}` : 'Livreur');
+    
+    await Notification.createNotification({
+      recipient: transporterId,
+      type: 'payout_processed',
+      category: 'payment',
+      title: 'Frais de livraison reçus',
+      message: `Vous avez reçu ${deliveryFee} ${order.currency || 'XAF'} de frais de livraison pour la commande ${order.orderNumber}`,
+      data: {
+        orderId: order._id,
+        orderNumber: order.orderNumber,
+        amount: deliveryFee,
+        currency: order.currency || 'XAF',
+        paymentId: transporterPayment.paymentId,
+        paymentType: 'delivery_fee'
+      },
+      channels: {
+        inApp: { enabled: true },
+        email: { enabled: true },
+        push: { enabled: true }
+      }
+    });
+    
+    console.log(`✅ Paiement de frais de livraison créé pour le transporteur ${transporterId}: ${deliveryFee} ${order.currency || 'XAF'}`);
+  } catch (error) {
+    console.error('Erreur lors de la création du paiement de frais de livraison:', error);
+  }
+}
 
 // Méthodes du schéma
 paymentSchema.methods.calculateFees = function() {

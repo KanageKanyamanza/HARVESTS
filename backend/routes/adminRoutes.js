@@ -116,6 +116,12 @@ router.patch('/orders/:id/payment-status', adminController.updateOrderPaymentSta
 // Annuler une commande
 router.post('/orders/:id/cancel', adminController.cancelOrder);
 
+// Obtenir les transporteurs disponibles pour une commande
+router.get('/orders/:id/available-transporters', adminController.getAvailableTransporters);
+
+// Assigner un transporteur à une commande
+router.post('/orders/:id/assign-transporter', adminController.assignTransporterToOrder);
+
 // ========================================
 // GESTION DES AVIS
 // ========================================

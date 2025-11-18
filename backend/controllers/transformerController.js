@@ -1059,6 +1059,8 @@ exports.getBusinessStats = catchAsync(async (req, res, next) => {
     return next(new AppError('Transformateur non trouvé', 404));
   }
 
+  console.log('[getBusinessStats] Transformateur ID:', transformerId);
+
   // Compter les commandes
   const totalOrders = await Order.countDocuments({ 
     seller: transformerId,
@@ -1124,9 +1126,39 @@ exports.getBusinessStats = catchAsync(async (req, res, next) => {
     }
   ]);
 
-  // Calculer la note moyenne (si des avis existent)
-  const averageRating = transformer.businessStats?.averageRating || 0;
-  const totalReviews = transformer.businessStats?.totalReviews || 0;
+  // Compter les vues du profil
+  const profileViews = transformer.profileViews || 0;
+
+  // Calculer la note moyenne et le nombre d'avis depuis les reviews
+  const Review = require('../models/Review');
+  
+  // Récupérer les IDs des commandes du transformateur
+  const transformerOrderIds = await Order.distinct('_id', { seller: transformerId });
+  
+  const reviewStats = await Review.aggregate([
+    {
+      $match: {
+        $or: [
+          { transformer: transformerId },
+          { order: { $in: transformerOrderIds } }
+        ]
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        averageRating: { $avg: '$rating' },
+        totalReviews: { $sum: 1 }
+      }
+    }
+  ]);
+
+  const averageRating = reviewStats.length > 0 && reviewStats[0].averageRating 
+    ? Math.round(reviewStats[0].averageRating * 10) / 10 
+    : transformer.businessStats?.averageRating || 0;
+  const totalReviews = reviewStats.length > 0 && reviewStats[0].totalReviews 
+    ? reviewStats[0].totalReviews 
+    : transformer.businessStats?.totalReviews || 0;
 
   // Calculer le taux de conversion (commandes terminées / total commandes)
   const conversionRate = totalOrders > 0 ? (completedOrders / totalOrders) * 100 : 0;
@@ -1184,6 +1216,12 @@ exports.getBusinessStats = catchAsync(async (req, res, next) => {
     conversionRate: Math.round(conversionRate * 10) / 10,
     averageProcessingTime,
     
+    // Vues du profil
+    profileViews,
+    
+    // Produits vendus (commandes complétées avec produits)
+    totalProductsSold: completedOrders, // Simplification: utiliser les commandes complétées
+    
     // Informations de l'entreprise
     companyName: transformer.companyName,
     transformationType: transformer.transformationType,
@@ -1198,6 +1236,17 @@ exports.getBusinessStats = catchAsync(async (req, res, next) => {
     region: transformer.address?.region || 'Non spécifié',
     city: transformer.address?.city || 'Non spécifié'
   };
+
+  console.log('[getBusinessStats] Stats calculées:', {
+    totalOrders,
+    completedOrders,
+    totalProducts,
+    activeProducts,
+    totalRevenue: stats.totalRevenue,
+    averageRating: stats.averageRating,
+    totalReviews: stats.totalReviews,
+    profileViews: stats.profileViews
+  });
 
   res.status(200).json({
     status: 'success',

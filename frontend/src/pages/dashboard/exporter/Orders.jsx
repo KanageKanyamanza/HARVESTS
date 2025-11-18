@@ -11,30 +11,69 @@ const Orders = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [updatingOrders, setUpdatingOrders] = useState(new Set());
+
+  const loadOrders = async () => {
+    if (user?.userType === 'exporter') {
+      try {
+        setLoading(true);
+        const response = await exporterService.getOrders();
+        // Structure de réponse: data.data.exportOrders ou data.exportOrders ou data.orders
+        const ordersData = response.data.data?.exportOrders || response.data.data?.orders || response.data.exportOrders || response.data.orders || [];
+        setOrders(Array.isArray(ordersData) ? ordersData : []);
+      } catch (error) {
+        console.error('Erreur lors du chargement des commandes:', error);
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
 
   useEffect(() => {
-    const loadOrders = async () => {
-      if (user?.userType === 'exporter') {
-        try {
-          setLoading(true);
-          const response = await exporterService.getOrders();
-          // Structure de réponse: data.data.exportOrders ou data.exportOrders ou data.orders
-          const ordersData = response.data.data?.exportOrders || response.data.data?.orders || response.data.exportOrders || response.data.orders || [];
-          setOrders(ordersData);
-        } catch (error) {
-          console.error('Erreur lors du chargement des commandes:', error);
-          setOrders([]);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
     loadOrders();
   }, [user]);
 
+  const handleUpdateStatus = async (order, newStatus, segmentId = null, options = {}) => {
+    if (updatingOrders.has(order._id)) return;
+
+    try {
+      setUpdatingOrders(prev => new Set(prev).add(order._id));
+
+      // Mapper les statuts pour les exportateurs (similaire aux transporteurs)
+      let deliveryStatus = newStatus;
+      if (newStatus === 'ready-for-pickup') {
+        deliveryStatus = 'picked-up'; // Quand l'exportateur collecte
+      } else if (newStatus === 'in-transit' || newStatus === 'out-for-delivery') {
+        deliveryStatus = 'in-transit';
+      } else if (newStatus === 'delivered') {
+        deliveryStatus = 'delivered';
+      }
+
+      const response = await exporterService.updateOrderStatus(order._id, {
+        status: deliveryStatus,
+        location: order.delivery?.deliveryAddress?.city || null,
+        note: `Statut mis à jour par ${user?.firstName || 'Exportateur'}`
+      });
+
+      if (response.data?.status === 'success') {
+        // Recharger les commandes
+        await loadOrders();
+      }
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du statut:', error);
+      alert(error.response?.data?.message || 'Erreur lors de la mise à jour du statut');
+    } finally {
+      setUpdatingOrders(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(order._id);
+        return newSet;
+      });
+    }
+  };
+
   const filteredOrders = orders.filter(order => {
-    if (!order) return damage;
+    if (!order) return false;
     
     const matchesSearch = searchTerm === '' || 
       order.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -94,11 +133,29 @@ const Orders = () => {
           </div>
         </div>
 
-        <OrderList 
-          orders={filteredOrders}
-          userType="exporter"
-          loading={loading}
-        />
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-harvests-green"></div>
+            <p className="mt-4 text-gray-600">Chargement des commandes...</p>
+          </div>
+        ) : filteredOrders.length === 0 ? (
+          <div className="bg-white rounded-lg shadow p-12 text-center">
+            <p className="text-gray-600">
+              {searchTerm || statusFilter !== 'all' 
+                ? 'Aucune commande trouvée avec ces critères.'
+                : 'Aucune commande d\'export pour le moment.'
+              }
+            </p>
+          </div>
+        ) : (
+          <OrderList 
+            orders={filteredOrders}
+            userType="exporter"
+            onUpdateStatus={handleUpdateStatus}
+            updatingOrders={updatingOrders}
+            loading={loading}
+          />
+        )}
       </div>
     </ModularDashboardLayout>
   );

@@ -16,7 +16,12 @@ const Statistics = () => {
         try {
           setLoading(true);
           const response = await exporterService.getStats();
-          setStats(response.data.data || response.data);
+          console.log('[Statistics] Stats response:', response);
+          // La réponse est { status: 'success', data: { stats: {...} } }
+          // Donc response.data = { status: 'success', data: { stats: {...} } }
+          // Et response.data.data = { stats: {...} }
+          // Donc response.data.data.stats = { totalExports, totalValue, ... }
+          setStats(response.data?.data?.stats || response.data?.stats || response.data);
         } catch (error) {
           console.error('Erreur lors du chargement des statistiques:', error);
         } finally {
@@ -85,7 +90,7 @@ const Statistics = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Pays d'export</p>
                   <p className="text-2xl font-bold text-gray-900 mt-2">
-                    {stats.exportCountries?.length || 0}
+                    {typeof stats.exportCountries === 'number' ? stats.exportCountries : (stats.exportCountries?.length || 0)}
                   </p>
                 </div>
                 <FiGlobe className="h-8 w-8 text-purple-500" />

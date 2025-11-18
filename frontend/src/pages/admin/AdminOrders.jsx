@@ -8,7 +8,9 @@ import {
   CheckCircle,
   X,
   Eye,
-  AlertTriangle
+  AlertTriangle,
+  Truck,
+  Loader
 } from 'lucide-react';
 
 import { adminService } from '../../services/adminService';
@@ -21,6 +23,13 @@ const AdminOrders = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  
+  // États pour l'assignation de livreur
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [availableTransporters, setAvailableTransporters] = useState([]);
+  const [loadingTransporters, setLoadingTransporters] = useState(false);
+  const [assigning, setAssigning] = useState(false);
 
   // Fonction loadOrders mémorisée pour éviter les re-rendus
   const loadOrders = useCallback(async () => {
@@ -109,6 +118,50 @@ const AdminOrders = () => {
     } catch (error) {
       console.error('Erreur lors de l\'annulation:', error);
     }
+  };
+
+  const handleOpenAssignModal = async (order) => {
+    setSelectedOrder(order);
+    setShowAssignModal(true);
+    setLoadingTransporters(true);
+    
+    try {
+      const response = await adminService.getAvailableTransporters(order._id);
+      if (response.status === 'success' && response.data) {
+        setAvailableTransporters(response.data.transporters || []);
+      } else {
+        setAvailableTransporters([]);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des transporteurs:', error);
+      setAvailableTransporters([]);
+    } finally {
+      setLoadingTransporters(false);
+    }
+  };
+
+  const handleAssignTransporter = async (transporterId) => {
+    if (!selectedOrder) return;
+    
+    setAssigning(true);
+    try {
+      await adminService.assignTransporterToOrder(selectedOrder._id, transporterId);
+      setShowAssignModal(false);
+      setSelectedOrder(null);
+      setAvailableTransporters([]);
+      loadOrders(); // Recharger la liste des commandes
+    } catch (error) {
+      console.error('Erreur lors de l\'assignation:', error);
+      alert(error.response?.data?.message || 'Erreur lors de l\'assignation du transporteur');
+    } finally {
+      setAssigning(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowAssignModal(false);
+    setSelectedOrder(null);
+    setAvailableTransporters([]);
   };
 
   const formatDate = (date) => {
@@ -296,6 +349,24 @@ const AdminOrders = () => {
                             </p>
                           </div>
                         )}
+                        {order.transporter && (
+                          <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
+                            <div className="flex items-center space-x-2">
+                              <p className="text-xs text-blue-700">
+                                <strong>Livreur assigné:</strong> {order.transporter.companyName || `${order.transporter.firstName} ${order.transporter.lastName}`}
+                              </p>
+                              {order.transporter.userType && (
+                                <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${
+                                  order.transporter.userType === 'exporter' 
+                                    ? 'bg-indigo-100 text-indigo-800' 
+                                    : 'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                  {order.transporter.userType === 'exporter' ? '🚢 Exportateur' : '🚛 Transporteur'}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
                         <p className="text-xs text-gray-500 mt-2">
                           {formatDate(order.createdAt)}
                         </p>
@@ -340,6 +411,15 @@ const AdminOrders = () => {
                         <X className="h-5 w-5" />
                       </button>
                     )}
+                    {!order.transporter && (order.status === 'confirmed' || order.status === 'processing') && (
+                      <button
+                        onClick={() => handleOpenAssignModal(order)}
+                        className="text-indigo-600 hover:text-indigo-900"
+                        title="Assigner un livreur"
+                      >
+                        <Truck className="h-5 w-5" />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -347,6 +427,101 @@ const AdminOrders = () => {
             </div>
           )}
         </div>
+
+        {/* Modal d'assignation de livreur */}
+        {showAssignModal && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" onClick={handleCloseModal}>
+            <div className="relative top-2 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-gray-900">
+                  Assigner un livreur - Commande {selectedOrder?.orderNumber}
+                </h3>
+                <button
+                  onClick={handleCloseModal}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              {selectedOrder?.delivery?.deliveryAddress && (
+                <div className="mb-4 p-3 bg-gray-50 rounded">
+                  <p className="text-sm text-gray-700">
+                    <strong>Zone de livraison:</strong> {selectedOrder.delivery.deliveryAddress.city || ''} {selectedOrder.delivery.deliveryAddress.region || ''}
+                  </p>
+                </div>
+              )}
+
+              {loadingTransporters ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader className="h-8 w-8 animate-spin text-green-600" />
+                </div>
+              ) : availableTransporters.length === 0 ? (
+                <div className="text-center py-8">
+                  <Truck className="mx-auto h-12 w-12 text-gray-400" />
+                  <p className="mt-2 text-sm text-gray-500">
+                    Aucun livreur disponible pour cette zone de livraison
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {availableTransporters.map((transporter) => (
+                    <div
+                      key={transporter._id}
+                      className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <h4 className="text-sm font-medium text-gray-900">
+                              {transporter.companyName || `${transporter.firstName} ${transporter.lastName}`}
+                            </h4>
+                            {transporter.userType && (
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                transporter.userType === 'exporter' 
+                                  ? 'bg-indigo-100 text-indigo-800' 
+                                  : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {transporter.userType === 'exporter' ? '🚢 Exportateur' : '🚛 Transporteur'}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-600 mt-1">
+                            {transporter.email} {transporter.phone && `• ${transporter.phone}`}
+                          </p>
+                          {(!transporter.serviceAreas || transporter.serviceAreas.length === 0) && transporter.userType === 'transporter' && (
+                            <p className="text-xs text-amber-600 mt-1 italic">
+                              ⚠️ Aucune zone de service définie
+                            </p>
+                          )}
+                          {transporter.performance && (
+                            <div className="mt-2 flex items-center space-x-4 text-xs text-gray-500">
+                              <span>Taux de ponctualité: {transporter.performance.onTimeDeliveryRate || 0}%</span>
+                              <span>Note: {transporter.performance.averageRating || 0}/5</span>
+                              <span>Livraisons: {transporter.performance.totalDeliveries || 0}</span>
+                            </div>
+                          )}
+                          {transporter.serviceAreas && transporter.serviceAreas.length > 0 && (
+                            <div className="mt-2 text-xs text-gray-500">
+                              <span className="font-medium">Zones:</span> {transporter.serviceAreas.map(area => area.region).filter((v, i, a) => a.indexOf(v) === i).join(', ')}
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => handleAssignTransporter(transporter._id)}
+                          disabled={assigning}
+                          className="ml-4 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {assigning ? 'Assignation...' : 'Assigner'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
 
         {/* Pagination */}

@@ -169,7 +169,7 @@ export const transporterService = {
   getOrders: (params = {}) => api.get('/transporters/me/deliveries', { params }),
   getMyOrders: (params = {}) => api.get('/transporters/me/deliveries', { params }),
   getOrder: (id) => api.get(`/transporters/me/deliveries/${id}`),
-  updateOrderStatus: (id, data) => api.patch(`/transporters/me/deliveries/${id}/status`, data),
+  updateOrderStatus: (id, data) => api.patch(`/transporters/me/deliveries/${id}`, data),
   // Désactiver getProducts pour les transporteurs
   getProducts: () => Promise.reject(new Error('Les transporteurs n\'ont pas de produits, utilisez la flotte')),
 };

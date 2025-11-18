@@ -113,6 +113,17 @@ const DashboardSidebarFixed = ({ onLogout, collapsed = false, onToggleCollapse, 
         { name: 'Paramètres', href: getSettingsRoute(user), icon: FiSettings }
       ];
     }
+    if (user?.userType === 'transporter') {
+      return [
+        { name: 'Tableau de bord', href: getDashboardRoute(user), icon: FiHome },
+        { name: 'Commandes', href: getOrdersRoute(user), icon: FiShoppingBag },
+        { name: 'Ma flotte', href: getProductsRoute(user), icon: FiTruck },
+        { name: 'Statistiques', href: '/transporter/statistics', icon: FaChartBar },
+        { name: 'Profil', href: getProfileRoute(user), icon: FiUser },
+        { name: 'Paramètres', href: getSettingsRoute(user), icon: FiSettings }
+      ];
+    }
+
     if (user?.userType === 'exporter') {
       return [
         { name: 'Tableau de bord', href: getDashboardRoute(user), icon: FiHome },

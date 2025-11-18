@@ -167,7 +167,8 @@ const ProfilePage = () => {
       city: user.city || '',
       region: user.region || '',
       country: user.country || '',
-      bio: user.bio || ''
+      bio: user.bio || '',
+      serviceAreas: user.serviceAreas || []
     });
   };
 
@@ -218,8 +219,12 @@ const ProfilePage = () => {
         // Pour les exportateurs, utiliser exporterService qui gère companyName
         response = await exporterService.updateProfile(formData);
       } else if (user?.userType === 'transporter') {
-        // Pour les transporteurs, utiliser transporterService qui gère companyName
-        response = await transporterService.updateProfile(formData);
+        // Pour les transporteurs, utiliser transporterService qui gère companyName et serviceAreas
+        const dataToSend = {
+          ...formData,
+          serviceAreas: formData.serviceAreas || []
+        };
+        response = await transporterService.updateProfile(dataToSend);
       } else {
         // Pour les autres types, utiliser le service commun
         response = await commonService.updateCommonProfile(formData);
@@ -861,6 +866,123 @@ const ProfilePage = () => {
                   </p>
                 )}
               </div>
+
+              {/* Zones de service (pour transporteurs) */}
+              {user?.userType === 'transporter' && (
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <FiMapPin className="inline mr-1" />
+                    Zones de service
+                  </label>
+                  {editing ? (
+                    <div className="space-y-4">
+                      {(formData.serviceAreas || []).map((area, index) => (
+                        <div key={index} className="border border-gray-300 rounded-md p-4 bg-gray-50">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">
+                                Région *
+                              </label>
+                              <input
+                                type="text"
+                                value={area.region || ''}
+                                onChange={(e) => {
+                                  const newAreas = [...(formData.serviceAreas || [])];
+                                  newAreas[index] = { ...newAreas[index], region: e.target.value };
+                                  setFormData({ ...formData, serviceAreas: newAreas });
+                                }}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder="Ex: Dakar"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">
+                                Villes (séparées par des virgules)
+                              </label>
+                              <input
+                                type="text"
+                                value={Array.isArray(area.cities) ? area.cities.join(', ') : (area.cities || '')}
+                                onChange={(e) => {
+                                  const cities = e.target.value.split(',').map(c => c.trim()).filter(c => c);
+                                  const newAreas = [...(formData.serviceAreas || [])];
+                                  newAreas[index] = { ...newAreas[index], cities: cities };
+                                  setFormData({ ...formData, serviceAreas: newAreas });
+                                }}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder="Ex: Dakar, Thiès, Mbour"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">
+                                Rayon (km) *
+                              </label>
+                              <input
+                                type="number"
+                                value={area.deliveryRadius || ''}
+                                onChange={(e) => {
+                                  const newAreas = [...(formData.serviceAreas || [])];
+                                  newAreas[index] = { ...newAreas[index], deliveryRadius: parseFloat(e.target.value) || 0 };
+                                  setFormData({ ...formData, serviceAreas: newAreas });
+                                }}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                placeholder="Ex: 50"
+                                min="0"
+                                required
+                              />
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newAreas = (formData.serviceAreas || []).filter((_, i) => i !== index);
+                              setFormData({ ...formData, serviceAreas: newAreas });
+                            }}
+                            className="text-sm text-red-600 hover:text-red-800"
+                          >
+                            Supprimer cette zone
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData({
+                            ...formData,
+                            serviceAreas: [...(formData.serviceAreas || []), { region: '', cities: [], deliveryRadius: 0 }]
+                          });
+                        }}
+                        className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                      >
+                        <FiMapPin className="mr-1" />
+                        Ajouter une zone de service
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex justify-around gap-3 flex-wrap">
+                      {user.serviceAreas && user.serviceAreas.length > 0 ? (
+                        user.serviceAreas.map((area, index) => (
+                          <div key={index} className="border border-gray-200 rounded-md p-3 bg-gray-50">
+                            <p className="font-medium text-gray-900">{area.region}</p>
+                            {area.cities && area.cities.length > 0 && (
+                              <p className="text-sm text-gray-600 mt-1">
+                                Villes: {Array.isArray(area.cities) ? area.cities.join(', ') : area.cities}
+                              </p>
+                            )}
+                            {area.deliveryRadius && (
+                              <p className="text-sm text-gray-500 mt-1">
+                                Rayon: {area.deliveryRadius} km
+                              </p>
+                            )}
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-gray-500 italic">Aucune zone de service définie</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

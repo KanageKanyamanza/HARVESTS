@@ -41,9 +41,13 @@ const TransformerStats = () => {
       
       // Charger seulement les statistiques de base disponibles
       const businessResponse = await genericTransformerService.getStats();
-
+      console.log('[TransformerStats] Stats response:', businessResponse);
+      
+      // Pour les transformateurs, les stats sont directement dans data, pas dans data.data
+      const businessStats = businessResponse.data?.data || businessResponse.data?.stats || businessResponse.data || {};
+      
       setStats({
-        businessStats: businessResponse.data?.data || {},
+        businessStats: businessStats,
         productionAnalytics: {}, // Données simulées pour l'instant
         efficiencyMetrics: {}, // Données simulées pour l'instant
         revenueAnalytics: {} // Données simulées pour l'instant

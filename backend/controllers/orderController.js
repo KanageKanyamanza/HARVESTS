@@ -552,11 +552,15 @@ if (segmentsCreated) {
     return [itemSeller, producerId, transformerId, restaurateurId].includes(userId);
   });
 
+  // Vérifier aussi si l'utilisateur est un transporteur ou exportateur assigné à cette commande
+  const isTransporterOrExporterAssigned = transporterId && transporterId === userId && 
+    (req.user.userType === 'transporter' || req.user.userType === 'exporter');
+
   const hasAccess = 
     buyerId === userId ||
     sellerId === userId ||
     sellerItemsMatch ||
-    (transporterId && transporterId === userId) ||
+    isTransporterOrExporterAssigned ||
     req.user.role === 'admin';
 
   if (!hasAccess) {
@@ -607,6 +611,8 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
   // (pour éviter les transitions inutiles, mais permettre les mises à jour d'items individuels)
   // Note: Cette vérification ne bloque pas si on met à jour des items spécifiques
   const currentOrderStatus = order.status || 'pending';
+  const userType = req.user.userType || req.user.role;
+  
   if (currentOrderStatus === status && !req.body.itemIds && !req.body.itemId) {
     // Si aucun item spécifique n'est ciblé et que le statut est déjà le même, retourner succès sans modification
     return res.status(200).json({
@@ -616,6 +622,29 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
         order
       }
     });
+  }
+
+  // Valider les permissions par type d'utilisateur et transition de statut
+  
+  // Admin peut tout faire
+  if (userType !== 'admin' && req.user.role !== 'admin') {
+    const validTransitions = getValidStatusTransitions(currentOrderStatus, userType);
+    
+    // Pour les livreurs, mapper les statuts spéciaux
+    let statusToCheck = status;
+    if ((userType === 'transporter' || userType === 'exporter') && status === 'picked-up') {
+      statusToCheck = 'in-transit'; // picked-up est équivalent à in-transit pour la validation
+    }
+    
+    if (!validTransitions.includes(statusToCheck)) {
+      // Vérifier aussi si c'est une mise à jour d'item (plus permissive)
+      if (!req.body.itemIds && !req.body.itemId) {
+        return next(new AppError(
+          `Vous n'avez pas le droit de passer la commande de "${currentOrderStatus}" à "${status}". Transitions autorisées: ${validTransitions.join(', ')}`,
+          403
+        ));
+      }
+    }
   }
 
   // Valider la transition de statut
@@ -1629,51 +1658,62 @@ function formatOrderForSeller(orderDoc, sellerId) {
   return orderObj;
 }
 
-// Obtenir les transitions de statut valides
+// Obtenir les transitions de statut valides selon l'acteur
 function getValidStatusTransitions(currentStatus, userType) {
   const transitions = {
     pending: {
+      // Vendeurs peuvent accepter ou annuler
       producer: ['confirmed', 'cancelled'],
       transformer: ['confirmed', 'cancelled'],
       restaurateur: ['confirmed', 'cancelled'],
+      // Client peut annuler sa propre commande
       consumer: ['cancelled'],
-      admin: ['confirmed', 'cancelled']
+      // Admin peut tout faire
+      admin: ['confirmed', 'preparing', 'ready-for-pickup', 'cancelled']
     },
     confirmed: {
+      // Vendeurs peuvent commencer la préparation
       producer: ['preparing', 'cancelled'],
       transformer: ['preparing', 'cancelled'],
       restaurateur: ['preparing', 'cancelled'],
-      admin: ['preparing', 'cancelled']
+      admin: ['preparing', 'ready-for-pickup', 'cancelled']
     },
     preparing: {
+      // Vendeurs peuvent marquer prête pour collecte
       producer: ['ready-for-pickup', 'cancelled'],
       transformer: ['ready-for-pickup', 'cancelled'],
       restaurateur: ['ready-for-pickup', 'cancelled'],
       admin: ['ready-for-pickup', 'cancelled']
     },
     'ready-for-pickup': {
-      transporter: ['in-transit'],
+      // Livreurs peuvent collecter
+      transporter: ['picked-up', 'in-transit'], // picked-up sera mappé vers in-transit
+      exporter: ['picked-up', 'in-transit'],
+      // Vendeurs peuvent annuler (dernier moment avant collecte)
       producer: ['cancelled'],
       transformer: ['cancelled'],
       restaurateur: ['cancelled'],
-      admin: ['in-transit', 'cancelled']
+      admin: ['picked-up', 'in-transit', 'delivered', 'cancelled']
     },
     'in-transit': {
-      transporter: ['cancelled'],
-      producer: ['cancelled'],
-      transformer: ['cancelled'],
-      restaurateur: ['cancelled'],
+      // Livreurs peuvent livrer
+      transporter: ['delivered'],
+      exporter: ['delivered'],
+      // Admin peut livrer ou annuler
       admin: ['delivered', 'cancelled']
     },
     delivered: {
+      // Client peut confirmer la réception et terminer la commande
       consumer: ['completed'],
-      restaurateur: ['completed'],
+      // Admin peut terminer
       admin: ['completed']
     },
     completed: {
+      // Aucune transition possible depuis completed (sauf admin pour annuler/rembourser)
       admin: []
     },
     cancelled: {
+      // Aucune transition possible depuis cancelled
       admin: []
     },
     refunded: {
@@ -1683,6 +1723,11 @@ function getValidStatusTransitions(currentStatus, userType) {
       admin: []
     }
   };
+
+  // Gérer les statuts spéciaux pour les livreurs (picked-up, out-for-delivery)
+  if (currentStatus === 'picked-up' || currentStatus === 'out-for-delivery') {
+    return transitions['in-transit']?.[userType] || [];
+  }
 
   return transitions[currentStatus]?.[userType] || [];
 }
@@ -1794,8 +1839,20 @@ async function sendStatusNotifications(order, newStatus) {
     }
   };
 
-  // Notifications pour le transporteur
+  // Notifications pour le transporteur/livreur (tous les statuts pertinents)
   const transporterNotifications = {
+    confirmed: {
+      type: 'order_confirmed_transporter',
+      category: 'order',
+      title: 'Commande confirmée',
+      message: `La commande ${order.orderNumber} a été confirmée. Préparez-vous pour la collecte.`
+    },
+    preparing: {
+      type: 'order_preparing_transporter',
+      category: 'order',
+      title: 'Commande en préparation',
+      message: `La commande ${order.orderNumber} est en cours de préparation par le vendeur.`
+    },
     'ready-for-pickup': {
       type: 'order_ready_for_pickup_transporter',
       category: 'order',
@@ -1813,6 +1870,24 @@ async function sendStatusNotifications(order, newStatus) {
       category: 'order',
       title: 'Livraison effectuée',
       message: `Vous avez livré la commande ${order.orderNumber} avec succès`
+    },
+    completed: {
+      type: 'order_completed_transporter',
+      category: 'order',
+      title: 'Commande terminée',
+      message: `La commande ${order.orderNumber} est terminée. Les frais de livraison vous seront versés.`
+    },
+    cancelled: {
+      type: 'order_cancelled_transporter',
+      category: 'order',
+      title: 'Commande annulée',
+      message: `La commande ${order.orderNumber} a été annulée`
+    },
+    disputed: {
+      type: 'order_disputed_transporter',
+      category: 'order',
+      title: 'Commande en litige',
+      message: `Un litige a été ouvert pour la commande ${order.orderNumber}`
     }
   };
 
@@ -2005,18 +2080,29 @@ async function sendStatusNotifications(order, newStatus) {
     await Promise.all(sellerNotificationsPromises);
   }
 
-  // Notifier le transporteur si applicable
+  // Notifier le transporteur/livreur si applicable (pour tous les statuts pertinents)
   const transporterNotification = transporterNotifications[newStatus];
   if (transporterNotification && order.delivery?.transporter) {
     const transporterId = order.delivery.transporter._id || order.delivery.transporter;
     const transporterOrderUrl = await buildOrderUrl(transporterId, order._id);
+    
+    // Récupérer les informations du livreur pour les données de notification
+    const User = mongoose.model('User');
+    const transporter = await User.findById(transporterId).select('firstName lastName companyName email phone userType');
+    const transporterName = transporter?.companyName || 
+      (transporter?.firstName && transporter?.lastName ? `${transporter.firstName} ${transporter.lastName}` : 'Livreur');
+    
     await Notification.createNotification({
       recipient: order.delivery.transporter,
       ...transporterNotification,
       data: {
         orderId: order._id,
         orderNumber: order.orderNumber,
-        status: newStatus
+        status: newStatus,
+        amount: order.deliveryFee || order.delivery?.deliveryFee || 0,
+        currency: order.currency,
+        deliveryFee: order.deliveryFee || order.delivery?.deliveryFee || 0,
+        buyer: buyerInfo
       },
       actions: [{
         type: 'view',

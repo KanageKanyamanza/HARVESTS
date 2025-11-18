@@ -979,6 +979,45 @@ notificationSchema.statics.notifyOrderCreated = async function(order) {
     notifications.push(buyerNotification);
   }
 
+  // Notifier le livreur (transporter/exporter) si assigné lors de la création
+  if (order.delivery?.transporter) {
+    const transporterId = order.delivery.transporter._id || order.delivery.transporter;
+    const transporterOrderUrl = await buildOrderUrl(transporterId);
+    
+    const User = mongoose.model('User');
+    const transporter = await User.findById(transporterId).select('firstName lastName companyName userType');
+    const transporterName = transporter?.companyName || 
+      (transporter?.firstName && transporter?.lastName ? `${transporter.firstName} ${transporter.lastName}` : 'Livreur');
+    
+    const transporterNotification = this.createNotification({
+      recipient: transporterId,
+      type: 'order_created_transporter',
+      category: 'order',
+      title: 'Nouvelle commande assignée',
+      message: `Une nouvelle commande ${order.orderNumber} vous a été assignée. Frais de livraison : ${order.deliveryFee || order.delivery?.deliveryFee || 0} ${order.currency}`,
+      data: {
+        orderId: order._id,
+        orderNumber: order.orderNumber,
+        amount: order.deliveryFee || order.delivery?.deliveryFee || 0,
+        currency: order.currency,
+        deliveryFee: order.deliveryFee || order.delivery?.deliveryFee || 0,
+        status: order.status || 'pending',
+        buyer: buyerInfo
+      },
+      actions: [{
+        type: 'view',
+        label: 'Voir la commande',
+        url: transporterOrderUrl
+      }],
+      channels: {
+        inApp: { enabled: true },
+        email: { enabled: true },
+        push: { enabled: true }
+      }
+    });
+    notifications.push(transporterNotification);
+  }
+
   return Promise.all(notifications);
 };
 
