@@ -178,7 +178,7 @@ export const generateSidebarNavigation = (user, icons = {}) => {
   if (user?.userType === 'transporter') {
     return [
       { name: 'Tableau de bord', href: getDashboardRoute(user), icon: HomeIcon },
-      { name: 'Livraisons locales', href: getOrdersRoute(user), icon: ShoppingBagIcon },
+      { name: 'Commandes', href: getOrdersRoute(user), icon: ShoppingBagIcon },
       { name: 'Ma flotte', href: getProductsRoute(user), icon: PackageIcon },
       { name: 'Statistiques', href: '/transporter/statistics', icon: ChartBarIcon },
       { name: 'Profil', href: getProfileRoute(user), icon: UserIcon },

@@ -16,7 +16,13 @@ const Statistics = () => {
         try {
           setLoading(true);
           const response = await transporterService.getStats();
-          setStats(response.data.data || response.data);
+          console.log('[Statistics] Stats response:', response);
+          // La réponse est { status: 'success', data: { stats: {...} } }
+          // Donc response.data = { status: 'success', data: { stats: {...} } }
+          // Et response.data.data = { stats: {...} }
+          // Donc response.data.data.stats = { performanceStats: {...}, ... }
+          const statsData = response.data?.data?.stats || response.data?.stats || response.data;
+          setStats(statsData);
         } catch (error) {
           console.error('Erreur lors du chargement des statistiques:', error);
         } finally {
@@ -58,7 +64,7 @@ const Statistics = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Livraisons totales</p>
                   <p className="text-2xl font-bold text-gray-900 mt-2">
-                    {stats.totalDeliveries || stats.totalOrders || 0}
+                    {stats?.performanceStats?.totalDeliveries || stats?.totalDeliveries || stats?.totalOrders || 0}
                   </p>
                 </div>
                 <FiTruck className="h-8 w-8 text-blue-500" />
@@ -70,10 +76,10 @@ const Statistics = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Revenu total</p>
                   <p className="text-2xl font-bold text-gray-900 mt-2">
-                    {stats.totalRevenue || stats.totalValue ? new Intl.NumberFormat('fr-FR', {
+                    {stats?.performanceStats?.totalRevenue || stats?.totalRevenue || stats?.totalValue ? new Intl.NumberFormat('fr-FR', {
                       style: 'currency',
                       currency: 'XOF'
-                    }).format(stats.totalRevenue || stats.totalValue) : '0 XOF'}
+                    }).format(stats?.performanceStats?.totalRevenue || stats?.totalRevenue || stats?.totalValue) : '0 XOF'}
                   </p>
                 </div>
                 <FiDollarSign className="h-8 w-8 text-green-500" />
@@ -85,7 +91,7 @@ const Statistics = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Zones de service</p>
                   <p className="text-2xl font-bold text-gray-900 mt-2">
-                    {stats.serviceAreas || stats.deliveryZones || 0}
+                    {typeof stats?.serviceAreas === 'number' ? stats.serviceAreas : (stats?.serviceAreas?.length || stats?.deliveryZones || 0)}
                   </p>
                 </div>
                 <FiMapPin className="h-8 w-8 text-purple-500" />
@@ -109,7 +115,7 @@ const Statistics = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Livraisons actives</p>
                   <p className="text-2xl font-bold text-gray-900 mt-2">
-                    {stats.activeDeliveries || stats.pendingOrders || 0}
+                    {stats?.activeDeliveries || stats?.performanceStats?.pendingDeliveries || stats?.pendingOrders || 0}
                   </p>
                 </div>
                 <FiTrendingUp className="h-8 w-8 text-orange-500" />
@@ -121,7 +127,7 @@ const Statistics = () => {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Taux de réussite</p>
                   <p className="text-2xl font-bold text-gray-900 mt-2">
-                    {stats.successfulDeliveryRate ? `${stats.successfulDeliveryRate}%` : '0%'}
+                    {stats?.performanceStats?.onTimeDeliveryRate || stats?.successfulDeliveryRate ? `${stats?.performanceStats?.onTimeDeliveryRate || stats?.successfulDeliveryRate}%` : '0%'}
                   </p>
                 </div>
                 <FaChartBar className="h-8 w-8 text-green-500" />

@@ -243,6 +243,8 @@ exports.updateMyProfile = catchAsync(async (req, res, next) => {
     'firstName', 'lastName', 'phone', 'email',
     // Informations entreprise
     'companyName', 'transportType', 'serviceTypes',
+    // Zones de service
+    'serviceAreas',
     // Adresse
     'address', 'city', 'region', 'country', 'postalCode',
     // Biographie
@@ -424,10 +426,173 @@ exports.addPartner = temporaryResponse('Ajout partenaire');
 exports.updatePartner = temporaryResponse('Mise à jour partenaire');
 exports.removePartner = temporaryResponse('Suppression partenaire');
 
-exports.getMyDeliveries = temporaryResponse('Livraisons - Modèle Delivery requis');
+// Obtenir toutes les livraisons assignées au transporteur
+exports.getMyDeliveries = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+  const skip = (page - 1) * limit;
+  const status = req.query.status;
+
+  // Construire la requête
+  const query = {
+    'delivery.transporter': req.user.id
+  };
+
+  // Filtrer par statut si fourni
+  if (status && status !== 'all') {
+    if (status === 'ready-for-pickup' || status === 'in-transit' || status === 'delivered' || status === 'completed') {
+      query.status = status;
+    }
+  }
+
+  const orders = await Order.find(query)
+    .populate('buyer', 'firstName lastName email phone')
+    .populate('seller', 'firstName lastName companyName farmName email phone')
+    .populate('delivery.transporter', 'firstName lastName companyName email phone')
+    .sort('-createdAt')
+    .skip(skip)
+    .limit(limit);
+
+  const total = await Order.countDocuments(query);
+
+  res.status(200).json({
+    status: 'success',
+    results: orders.length,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+    data: {
+      deliveries: orders,
+      orders: orders // Compatibilité avec le frontend
+    }
+  });
+});
+
+// Obtenir les détails d'une livraison spécifique
+exports.getMyDelivery = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  const order = await Order.findOne({
+    _id: req.params.deliveryId,
+    'delivery.transporter': req.user.id
+  })
+    .populate('buyer', 'firstName lastName email phone address city region country')
+    .populate('seller', 'firstName lastName companyName farmName email phone address city region')
+    .populate('delivery.transporter', 'firstName lastName companyName email phone')
+    .populate('items.product', 'name images price category');
+
+  if (!order) {
+    return next(new AppError('Livraison non trouvée ou non assignée à ce transporteur', 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      order,
+      delivery: order
+    }
+  });
+});
+
+// Mettre à jour le statut de livraison (collectée, livrée)
+exports.updateDeliveryStatus = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  const { status, location, note } = req.body;
+
+  // Vérifier que le statut est valide
+  const validStatuses = ['picked-up', 'in-transit', 'out-for-delivery', 'delivered'];
+  if (!validStatuses.includes(status)) {
+    return next(new AppError(`Statut invalide. Statuts autorisés: ${validStatuses.join(', ')}`, 400));
+  }
+
+  const order = await Order.findOne({
+    _id: req.params.deliveryId,
+    'delivery.transporter': req.user.id
+  });
+
+  if (!order) {
+    return next(new AppError('Livraison non trouvée ou non assignée à ce transporteur', 404));
+  }
+
+  // Valider la transition de statut selon les règles métier
+  const currentStatus = order.delivery?.status || order.status || 'pending';
+  const userType = req.user.userType || 'transporter';
+  
+  // Fonction pour obtenir les transitions valides (dupliquée depuis orderController pour cohérence)
+  const getValidTransitions = (currentStat, userTyp) => {
+    const transitions = {
+      'ready-for-pickup': {
+        transporter: ['picked-up', 'in-transit'],
+        exporter: ['picked-up', 'in-transit']
+      },
+      'picked-up': {
+        transporter: ['in-transit', 'delivered'],
+        exporter: ['in-transit', 'delivered']
+      },
+      'in-transit': {
+        transporter: ['delivered'],
+        exporter: ['delivered']
+      },
+      'out-for-delivery': {
+        transporter: ['delivered'],
+        exporter: ['delivered']
+      }
+    };
+    return transitions[currentStat]?.[userTyp] || [];
+  };
+
+  // Mapper le statut actuel de la commande vers le statut de livraison
+  let deliveryStatusToCheck = currentStatus;
+  if (currentStatus === 'ready-for-pickup' || currentStatus === 'preparing') {
+    deliveryStatusToCheck = 'ready-for-pickup';
+  } else if (currentStatus === 'in-transit') {
+    deliveryStatusToCheck = 'in-transit';
+  }
+
+  const validTransitions = getValidTransitions(deliveryStatusToCheck, userType);
+  
+  // Pour picked-up, accepter aussi in-transit (comme transition valide)
+  if (status === 'picked-up' && (currentStatus === 'ready-for-pickup' || currentStatus === 'preparing')) {
+    // C'est valide
+  } else if (status === 'in-transit' && (currentStatus === 'ready-for-pickup' || currentStatus === 'preparing' || currentStatus === 'picked-up')) {
+    // C'est valide
+  } else if (status === 'delivered' && (currentStatus === 'in-transit' || currentStatus === 'picked-up' || currentStatus === 'out-for-delivery')) {
+    // C'est valide
+  } else if (!validTransitions.includes(status) && status !== 'picked-up') {
+    return next(new AppError(
+      `Transition de statut invalide pour un livreur: de "${currentStatus}" à "${status}". Transitions autorisées: ${validTransitions.join(', ')}`,
+      403
+    ));
+  }
+
+  // Utiliser la méthode addDeliveryUpdate du modèle Order
+  await order.addDeliveryUpdate(status, location, note, req.user.id);
+
+  // Envoyer les notifications appropriées
+  const sendStatusNotifications = require('./orderController').sendStatusNotifications || (async () => {});
+  try {
+    await sendStatusNotifications(order, status === 'picked-up' ? 'in-transit' : status === 'delivered' ? 'delivered' : order.status);
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi des notifications:', error);
+  }
+
+  // Récupérer la commande mise à jour
+  const updatedOrder = await Order.findById(order._id)
+    .populate('buyer', 'firstName lastName email phone')
+    .populate('seller', 'firstName lastName companyName farmName email phone')
+    .populate('delivery.transporter', 'firstName lastName companyName email phone');
+
+  res.status(200).json({
+    status: 'success',
+    message: `Statut de livraison mis à jour: ${status === 'picked-up' ? 'Collectée' : status === 'delivered' ? 'Livrée' : status}`,
+    data: {
+      order: updatedOrder,
+      delivery: updatedOrder
+    }
+  });
+});
+
 exports.acceptDelivery = temporaryResponse('Acceptation livraison');
-exports.getMyDelivery = temporaryResponse('Détail livraison');
-exports.updateDeliveryStatus = temporaryResponse('Statut livraison');
 exports.updateDeliveryLocation = temporaryResponse('Localisation livraison');
 exports.submitProofOfDelivery = temporaryResponse('Preuve de livraison');
 exports.reportIncident = temporaryResponse('Signalement incident');
@@ -443,6 +608,169 @@ exports.removePreferredCustomer = temporaryResponse('Suppression client');
 
 exports.getTrackingCapabilities = temporaryResponse('Capacités suivi');
 exports.updateTrackingCapabilities = temporaryResponse('Mise à jour suivi');
+
+// Obtenir les statistiques du dashboard
+exports.getStats = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  const Review = require('../models/Review');
+  
+  const transporter = await Transporter.findById(req.user.id);
+  if (!transporter) {
+    return next(new AppError('Transporteur non trouvé', 404));
+  }
+
+  console.log('[getStats] Transporteur ID:', transporter._id.toString());
+  console.log('[getStats] Transporteur userType:', transporter.userType);
+
+  // Récupérer toutes les commandes assignées au transporteur
+  const allOrders = await Order.find({
+    'delivery.transporter': transporter._id
+  })
+    .populate('delivery.transporter', 'userType');
+
+  console.log('[getStats] Commandes trouvées:', allOrders.length);
+
+  // Filtrer pour ne garder que les commandes assignées à un transporteur (pas un exportateur)
+  const transporterOrders = allOrders.filter(order => {
+    const assignedTransporter = order.delivery?.transporter;
+    // Si le transporteur est peuplé, vérifier son userType
+    if (assignedTransporter && typeof assignedTransporter === 'object' && assignedTransporter.userType) {
+      return assignedTransporter.userType === 'transporter';
+    }
+    // Si pas de userType, accepter si isExport n'est pas true
+    return order.isExport !== true;
+  });
+
+  console.log('[getStats] Commandes filtrées (transporteurs seulement):', transporterOrders.length);
+
+  // Calculer les statistiques depuis les commandes filtrées
+  const orderStats = transporterOrders.reduce((acc, order) => {
+    acc.totalDeliveries += 1;
+    
+    if (['delivered', 'completed'].includes(order.status)) {
+      acc.completedDeliveries += 1;
+      acc.totalRevenue += order.deliveryFee || order.delivery?.deliveryFee || 0;
+    }
+    
+    if (order.status === 'in-transit') {
+      acc.inTransitDeliveries += 1;
+    }
+    
+    if (['ready-for-pickup', 'preparing'].includes(order.status)) {
+      acc.pendingDeliveries += 1;
+    }
+    
+    return acc;
+  }, {
+    totalDeliveries: 0,
+    completedDeliveries: 0,
+    inTransitDeliveries: 0,
+    pendingDeliveries: 0,
+    totalRevenue: 0
+  });
+
+  // Calculer le taux de ponctualité
+  const onTimeStats = transporterOrders
+    .filter(order => ['delivered', 'completed'].includes(order.status))
+    .reduce((acc, order) => {
+      acc.totalDelivered += 1;
+      if (order.delivery?.estimatedDeliveryDate && order.deliveredAt) {
+        const estimatedDate = new Date(order.delivery.estimatedDeliveryDate);
+        const deliveredDate = new Date(order.deliveredAt);
+        if (deliveredDate <= estimatedDate) {
+          acc.onTimeDeliveries += 1;
+        }
+      }
+      return acc;
+    }, {
+      onTimeDeliveries: 0,
+      totalDelivered: 0
+    });
+
+  // Statistiques des avis (chercher via les commandes assignées au transporteur)
+  // Utiliser les IDs des commandes filtrées
+  const transporterOrderIds = transporterOrders.map(order => order._id);
+  
+  const reviewStats = await Review.aggregate([
+    {
+      $match: {
+        $or: [
+          { order: { $in: transporterOrderIds } },
+          { transporter: transporter._id }
+        ]
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        averageRating: { $avg: '$rating' },
+        totalReviews: { $sum: 1 }
+      }
+    }
+  ]);
+
+  // Compter les vues du profil (si disponible)
+  const profileViews = transporter.profileViews || 0;
+
+  // orderStats et onTimeStats sont déjà des objets, pas des tableaux
+  const deliveryData = orderStats || {
+    totalDeliveries: 0,
+    completedDeliveries: 0,
+    inTransitDeliveries: 0,
+    pendingDeliveries: 0,
+    totalRevenue: 0
+  };
+
+  const onTimeData = onTimeStats || {
+    onTimeDeliveries: 0,
+    totalDelivered: 0
+  };
+
+  const reviewData = reviewStats.length > 0 ? reviewStats[0] : {
+    averageRating: 0,
+    totalReviews: 0
+  };
+
+  // Calculer le taux de ponctualité
+  const onTimeDeliveryRate = onTimeData.totalDelivered > 0
+    ? Math.round((onTimeData.onTimeDeliveries / onTimeData.totalDelivered) * 100)
+    : transporter.performanceStats?.onTimeDeliveryRate || 0;
+
+  // Préparer la réponse
+  const stats = {
+    // Statistiques de base
+    profileViews: profileViews,
+    
+    // Statistiques des avis
+    ratings: {
+      average: reviewData.averageRating ? Math.round(reviewData.averageRating * 10) / 10 : 0,
+      count: reviewData.totalReviews || 0
+    },
+    averageRating: reviewData.averageRating ? Math.round(reviewData.averageRating * 10) / 10 : 0,
+    totalReviews: reviewData.totalReviews || 0,
+
+    // Statistiques de performance
+    performanceStats: {
+      totalDeliveries: deliveryData.totalDeliveries || transporter.performanceStats?.totalDeliveries || 0,
+      completedDeliveries: deliveryData.completedDeliveries || 0,
+      inTransitDeliveries: deliveryData.inTransitDeliveries || 0,
+      pendingDeliveries: deliveryData.pendingDeliveries || 0,
+      onTimeDeliveryRate: onTimeDeliveryRate,
+      totalRevenue: deliveryData.totalRevenue || 0
+    },
+
+    // Statistiques additionnelles
+    totalOrders: deliveryData.totalDeliveries || 0,
+    activeDeliveries: deliveryData.inTransitDeliveries + deliveryData.pendingDeliveries || 0
+  };
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      stats
+    }
+  });
+});
 
 exports.getPerformanceStats = temporaryResponse('Statistiques performance');
 exports.getDeliveryAnalytics = temporaryResponse('Analytics livraisons');

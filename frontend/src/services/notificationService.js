@@ -13,8 +13,16 @@ class NotificationService {
     try {
       // Utiliser la route appropriée selon le type d'utilisateur
       const endpoint = this.isAdmin() ? '/notifications/admin/all' : '/notifications/my';
+      console.log('[NotificationService] Récupération des notifications depuis:', endpoint);
       const response = await api.get(endpoint, {
         params: { page, limit }
+      });
+      
+      console.log('[NotificationService] Réponse reçue:', {
+        status: response.status,
+        notificationsCount: response.data.data?.notifications?.length || 0,
+        unreadCount: response.data.unreadCount || 0,
+        total: response.data.total || 0
       });
       
       // Mapper les notifications du backend au format frontend
@@ -38,6 +46,12 @@ class NotificationService {
         notifications.filter(n => !n.read).length : 
         (response.data.unreadCount || 0);
       
+      console.log('[NotificationService] Notifications mappées:', {
+        count: notifications.length,
+        unreadCount,
+        total: response.data.total || 0
+      });
+      
       return {
         notifications,
         unreadCount,
@@ -46,17 +60,17 @@ class NotificationService {
     } catch (error) {
       // Si l'endpoint n'existe pas encore (404/403), retourner des données vides
       if (error.response?.status === 403 || error.response?.status === 404) {
-        console.log('Endpoint notifications non disponible - utilisation du mode local');
+        console.warn('[NotificationService] Endpoint notifications non disponible - utilisation du mode local');
         return { notifications: [], unreadCount: 0 };
       }
       
       // Si erreur d'authentification (401), retourner des données vides sans log d'erreur
       if (error.response?.status === 401) {
-        console.log('Non authentifié - notifications non disponibles');
+        console.warn('[NotificationService] Non authentifié - notifications non disponibles');
         return { notifications: [], unreadCount: 0 };
       }
       
-      console.error('Erreur lors de la récupération des notifications:', error);
+      console.error('[NotificationService] Erreur lors de la récupération des notifications:', error);
       throw error;
     }
   }

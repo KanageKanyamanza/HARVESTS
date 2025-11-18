@@ -303,13 +303,220 @@ exports.addTeamMember = temporaryResponse('Ajout membre');
 exports.updateTeamMember = temporaryResponse('Mise à jour membre');
 exports.removeTeamMember = temporaryResponse('Suppression membre');
 
-exports.getMyExportOrders = temporaryResponse('Commandes export - Modèle Order requis');
+// Obtenir toutes les commandes assignées à l'exportateur
+exports.getMyExportOrders = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+  const skip = (page - 1) * limit;
+  const status = req.query.status;
+
+  // Construire la requête - les exportateurs récupèrent les commandes assignées via delivery.transporter
+  // Pour un exportateur, on cherche les commandes qui lui sont assignées
+  // On vérifie aussi que c'est bien un exportateur (via le userType dans delivery.transporter peuplé)
+  const query = {
+    'delivery.transporter': req.user.id
+    // Note: On ne filtre pas par isExport car certaines commandes peuvent ne pas avoir ce champ défini
+    // mais être assignées à un exportateur
+  };
+
+  // Filtrer par statut si fourni
+  if (status && status !== 'all') {
+    if (status === 'ready-for-pickup' || status === 'in-transit' || status === 'delivered' || status === 'completed') {
+      query.status = status;
+    }
+  }
+
+  console.log('[getMyExportOrders] Query:', JSON.stringify(query, null, 2));
+  console.log('[getMyExportOrders] User ID:', req.user.id);
+  console.log('[getMyExportOrders] User type:', req.user.userType);
+
+  const orders = await Order.find(query)
+    .populate('buyer', 'firstName lastName email phone')
+    .populate('seller', 'firstName lastName companyName farmName email phone')
+    .populate('delivery.transporter', 'firstName lastName companyName email phone userType')
+    .sort('-createdAt')
+    .skip(skip)
+    .limit(limit);
+
+  // Filtrer pour ne garder que les commandes assignées à un exportateur (double vérification)
+  // Si delivery.transporter est peuplé et est un exportateur, ou si isExport est true
+  const filteredOrders = orders.filter(order => {
+    const transporter = order.delivery?.transporter;
+    // Si le transporteur est peuplé, vérifier son userType
+    if (transporter && typeof transporter === 'object' && transporter.userType) {
+      return transporter.userType === 'exporter';
+    }
+    // Sinon, vérifier isExport
+    return order.isExport === true;
+  });
+
+  console.log('[getMyExportOrders] Orders found:', orders.length);
+  console.log('[getMyExportOrders] Filtered orders (exporters only):', filteredOrders.length);
+
+  const total = await Order.countDocuments(query);
+  
+  // Compter aussi après filtrage
+  const totalFiltered = filteredOrders.length;
+
+  res.status(200).json({
+    status: 'success',
+    results: filteredOrders.length,
+    total: totalFiltered,
+    page,
+    totalPages: Math.ceil(totalFiltered / limit),
+    data: {
+      exportOrders: filteredOrders,
+      orders: filteredOrders
+    }
+  });
+});
+
 exports.createExportOrder = temporaryResponse('Création commande');
-exports.getMyExportOrder = temporaryResponse('Détail commande');
+// Obtenir une commande spécifique assignée à l'exportateur
+exports.getMyExportOrder = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  const order = await Order.findOne({
+    _id: req.params.orderId,
+    'delivery.transporter': req.user.id
+    // Note: On ne filtre pas par isExport car certaines commandes peuvent ne pas avoir ce champ défini
+    // mais être assignées à un exportateur. On vérifiera après si c'est bien un exportateur.
+  })
+    .populate('buyer', 'firstName lastName email phone address city region country')
+    .populate('seller', 'firstName lastName companyName farmName email phone address city region')
+    .populate('delivery.transporter', 'firstName lastName companyName email phone userType')
+    .populate('items.product', 'name images price category');
+
+  if (!order) {
+    return next(new AppError('Commande d\'export non trouvée ou non assignée à cet exportateur', 404));
+  }
+
+  // Vérifier que c'est bien un exportateur qui est assigné (double vérification)
+  const transporter = order.delivery?.transporter;
+  const isExporterAssigned = transporter && typeof transporter === 'object' && transporter.userType === 'exporter';
+  const isExportOrder = order.isExport === true;
+
+  if (!isExporterAssigned && !isExportOrder) {
+    return next(new AppError('Cette commande n\'est pas assignée à un exportateur', 403));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      order,
+      exportOrder: order
+    }
+  });
+});
 exports.updateExportOrder = temporaryResponse('Mise à jour commande');
 exports.cancelExportOrder = temporaryResponse('Annulation commande');
 exports.trackExportOrder = temporaryResponse('Suivi commande');
-exports.updateExportOrderStatus = temporaryResponse('Statut commande');
+
+// Mettre à jour le statut de commande d'export (collectée, livrée) - similaire aux transporteurs
+exports.updateExportOrderStatus = catchAsync(async (req, res, next) => {
+  const Order = require('../models/Order');
+  const { status, location, note } = req.body;
+
+  // Vérifier que le statut est valide
+  const validStatuses = ['picked-up', 'in-transit', 'out-for-delivery', 'delivered'];
+  if (!validStatuses.includes(status)) {
+    return next(new AppError(`Statut invalide. Statuts autorisés: ${validStatuses.join(', ')}`, 400));
+  }
+
+  const order = await Order.findOne({
+    _id: req.params.orderId,
+    'delivery.transporter': req.user.id
+    // Note: On ne filtre pas par isExport car certaines commandes peuvent ne pas avoir ce champ défini
+    // mais être assignées à un exportateur. On vérifiera après si c'est bien un exportateur.
+  })
+    .populate('delivery.transporter', 'userType');
+
+  if (!order) {
+    return next(new AppError('Commande d\'export non trouvée ou non assignée à cet exportateur', 404));
+  }
+
+  // Vérifier que c'est bien un exportateur qui est assigné (double vérification)
+  const transporter = order.delivery?.transporter;
+  const isExporterAssigned = transporter && typeof transporter === 'object' && transporter.userType === 'exporter';
+  const isExportOrder = order.isExport === true;
+
+  if (!isExporterAssigned && !isExportOrder) {
+    return next(new AppError('Cette commande n\'est pas assignée à un exportateur', 403));
+  }
+
+  // Valider la transition de statut selon les règles métier
+  const currentStatus = order.delivery?.status || order.status || 'pending';
+  const userType = req.user.userType || 'exporter';
+  
+  // Fonction pour obtenir les transitions valides (identique à transporter)
+  const getValidTransitions = (currentStat, userTyp) => {
+    const transitions = {
+      'ready-for-pickup': {
+        exporter: ['picked-up', 'in-transit']
+      },
+      'picked-up': {
+        exporter: ['in-transit', 'delivered']
+      },
+      'in-transit': {
+        exporter: ['delivered']
+      },
+      'out-for-delivery': {
+        exporter: ['delivered']
+      }
+    };
+    return transitions[currentStat]?.[userTyp] || [];
+  };
+
+  // Mapper le statut actuel de la commande vers le statut de livraison
+  let deliveryStatusToCheck = currentStatus;
+  if (currentStatus === 'ready-for-pickup' || currentStatus === 'preparing') {
+    deliveryStatusToCheck = 'ready-for-pickup';
+  } else if (currentStatus === 'in-transit') {
+    deliveryStatusToCheck = 'in-transit';
+  }
+
+  const validTransitions = getValidTransitions(deliveryStatusToCheck, userType);
+  
+  // Valider les transitions
+  if (status === 'picked-up' && (currentStatus === 'ready-for-pickup' || currentStatus === 'preparing')) {
+    // C'est valide
+  } else if (status === 'in-transit' && (currentStatus === 'ready-for-pickup' || currentStatus === 'preparing' || currentStatus === 'picked-up')) {
+    // C'est valide
+  } else if (status === 'delivered' && (currentStatus === 'in-transit' || currentStatus === 'picked-up' || currentStatus === 'out-for-delivery')) {
+    // C'est valide
+  } else if (!validTransitions.includes(status) && status !== 'picked-up') {
+    return next(new AppError(
+      `Transition de statut invalide pour un exportateur: de "${currentStatus}" à "${status}". Transitions autorisées: ${validTransitions.join(', ')}`,
+      403
+    ));
+  }
+
+  // Utiliser la méthode addDeliveryUpdate du modèle Order
+  await order.addDeliveryUpdate(status, location, note, req.user.id);
+
+  // Envoyer les notifications appropriées
+  const sendStatusNotifications = require('./orderController').sendStatusNotifications || (async () => {});
+  try {
+    await sendStatusNotifications(order, status === 'picked-up' ? 'in-transit' : status === 'delivered' ? 'delivered' : order.status);
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi des notifications:', error);
+  }
+
+  // Récupérer la commande mise à jour
+  const updatedOrder = await Order.findById(order._id)
+    .populate('buyer', 'firstName lastName email phone')
+    .populate('seller', 'firstName lastName companyName farmName email phone')
+    .populate('delivery.transporter', 'firstName lastName companyName email phone');
+
+  res.status(200).json({
+    status: 'success',
+    message: `Statut de commande d'export mis à jour: ${status === 'picked-up' ? 'Collectée' : status === 'delivered' ? 'Livrée' : status}`,
+    data: {
+      order: updatedOrder,
+      exportOrder: updatedOrder
+    }
+  });
+});
 
 exports.getExportDocuments = temporaryResponse('Documents export');
 exports.addExportDocument = temporaryResponse('Ajout document');
@@ -328,24 +535,85 @@ exports.getExportStats = catchAsync(async (req, res, next) => {
     return next(new AppError('Exportateur non trouvé', 404));
   }
 
-  // Mettre à jour les stats via la méthode du modèle
-  await exporter.updateExportStats();
-  await exporter.save();
+  // Récupérer toutes les commandes assignées à l'exportateur (sans filtre isExport)
+  const allOrders = await Order.find({
+    'delivery.transporter': exporter._id
+  })
+    .populate('delivery.transporter', 'userType');
 
-  // Récupérer les commandes
-  const orders = await Order.find({ seller: req.user._id, isExport: true });
-  const completedOrders = orders.filter(o => o.status === 'completed' || o.status === 'delivered');
+  // Filtrer pour ne garder que les commandes assignées à un exportateur
+  const exportOrders = allOrders.filter(order => {
+    const transporter = order.delivery?.transporter;
+    // Si le transporteur est peuplé, vérifier son userType
+    if (transporter && typeof transporter === 'object' && transporter.userType) {
+      return transporter.userType === 'exporter';
+    }
+    // Sinon, vérifier isExport
+    return order.isExport === true;
+  });
+
+  // Calculer les statistiques depuis les commandes filtrées
+  const orderStats = exportOrders.reduce((acc, order) => {
+    acc.totalExports += 1;
+    
+    if (['delivered', 'completed'].includes(order.status)) {
+      acc.completedExports += 1;
+      acc.totalValue += order.deliveryFee || order.delivery?.deliveryFee || 0;
+    }
+    
+    if (order.status === 'in-transit') {
+      acc.inTransitExports += 1;
+    }
+    
+    if (['ready-for-pickup', 'preparing'].includes(order.status)) {
+      acc.pendingExports += 1;
+    }
+    
+    return acc;
+  }, {
+    totalExports: 0,
+    completedExports: 0,
+    inTransitExports: 0,
+    pendingExports: 0,
+    totalValue: 0
+  });
+
+  // Calculer le taux de livraison réussie
+  const successfulStats = exportOrders.reduce((acc, order) => {
+    acc.totalOrders += 1;
+    if (['delivered', 'completed'].includes(order.status)) {
+      acc.successfulDeliveries += 1;
+    }
+    return acc;
+  }, {
+    totalOrders: 0,
+    successfulDeliveries: 0
+  });
+
+  // Statistiques des avis (chercher via les commandes assignées à l'exportateur)
+  // Utiliser les IDs des commandes filtrées
+  const exportOrderIds = exportOrders.map(order => order._id);
   
-  // Commandes en attente
-  const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'processing');
-  
-  // Calculer les revenus du mois en cours
-  const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthlyOrders = completedOrders.filter(o => 
-    new Date(o.createdAt) >= startOfMonth
-  );
-  const monthlyRevenue = monthlyOrders.reduce((sum, order) => sum + (order.total || order.totalAmount || 0), 0);
+  const reviewStats = await Review.aggregate([
+    {
+      $match: {
+        $or: [
+          { order: { $in: exportOrderIds } },
+          { exporter: exporter._id }
+        ]
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        averageRating: { $avg: '$rating' },
+        totalReviews: { $sum: 1 }
+      }
+    }
+  ]);
+
+  // Compter les vues du profil (si disponible)
+  const profileViews = exporter.profileViews || 0;
 
   // Compter les marchés cibles
   const exportCountries = exporter.targetMarkets?.length || 0;
@@ -359,31 +627,71 @@ exports.getExportStats = catchAsync(async (req, res, next) => {
     return license.isVerified && new Date(license.validUntil) > new Date();
   }).length || 0;
 
+  // orderStats et successfulStats sont déjà des objets, pas des tableaux
+  const deliveryData = orderStats || {
+    totalExports: 0,
+    completedExports: 0,
+    inTransitExports: 0,
+    pendingExports: 0,
+    totalValue: 0
+  };
+
+  const successfulData = successfulStats || {
+    totalOrders: 0,
+    successfulDeliveries: 0
+  };
+
+  const reviewData = reviewStats.length > 0 ? reviewStats[0] : {
+    averageRating: 0,
+    totalReviews: 0
+  };
+
+  // Calculer le taux de livraison réussie
+  const successfulDeliveryRate = successfulData.totalOrders > 0
+    ? Math.round((successfulData.successfulDeliveries / successfulData.totalOrders) * 100)
+    : exporter.exportStats?.successfulDeliveryRate || 0;
+
+  // Préparer la réponse
+  const stats = {
+    // Statistiques de base
+    profileViews: profileViews,
+    
+    // Statistiques des avis
+    ratings: {
+      average: reviewData.averageRating ? Math.round(reviewData.averageRating * 10) / 10 : 0,
+      count: reviewData.totalReviews || 0
+    },
+    averageRating: reviewData.averageRating ? Math.round(reviewData.averageRating * 10) / 10 : 0,
+    totalReviews: reviewData.totalReviews || 0,
+
+    // Statistiques d'export depuis les commandes assignées
+    totalExports: deliveryData.totalExports || exporter.exportStats?.totalExports || 0,
+    totalValue: deliveryData.totalValue || exporter.exportStats?.totalValue || 0,
+    exportValue: deliveryData.totalValue || exporter.exportStats?.totalValue || 0,
+    successfulDeliveryRate: successfulDeliveryRate,
+
+    // Statistiques détaillées
+    completedExports: deliveryData.completedExports || 0,
+    inTransitExports: deliveryData.inTransitExports || 0,
+    pendingExports: deliveryData.pendingExports || 0,
+    
+    // Statistiques additionnelles
+    exportCountries: exportCountries,
+    exportProductsCount: exportProductsCount,
+    activeLicenses: activeLicenses,
+    
+    // Produits d'export (depuis exportProducts du modèle, pas le modèle Product)
+    totalProducts: exportProductsCount,
+    activeProducts: exportProductsCount,
+    
+    // Pour compatibilité
+    totalOrders: deliveryData.totalExports || 0
+  };
+
   res.status(200).json({
     status: 'success',
     data: {
-      stats: {
-        // Stats d'export depuis le modèle
-        totalExports: exporter.exportStats?.totalExports || 0,
-        totalValue: exporter.exportStats?.totalValue || 0,
-        averageRating: exporter.exportStats?.averageRating || 0,
-        totalReviews: exporter.exportStats?.totalReviews || 0,
-        successfulDeliveryRate: exporter.exportStats?.successfulDeliveryRate || 0,
-        
-        // Stats calculées
-        totalOrders: orders.length,
-        completedOrders: completedOrders.length,
-        pendingOrders: pendingOrders.length,
-        monthlyRevenue,
-        totalRevenue: exporter.exportStats?.totalValue || 0,
-        exportCountries,
-        exportProductsCount,
-        activeLicenses,
-        
-        // Produits d'export (depuis exportProducts du modèle, pas le modèle Product)
-        totalProducts: exportProductsCount,
-        activeProducts: exportProductsCount
-      }
+      stats
     }
   });
 });

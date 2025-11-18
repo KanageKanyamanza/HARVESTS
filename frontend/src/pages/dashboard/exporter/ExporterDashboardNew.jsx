@@ -20,7 +20,9 @@ const ExporterDashboard = () => {
     try {
       setLoading(true);
       const response = await exporterService.getStats();
-      setExporterStats(response.data);
+      console.log('[ExporterDashboard] Stats response:', response);
+      // La réponse est { status: 'success', data: { stats: {...} } }
+      setExporterStats(response.data?.data || response.data);
     } catch (error) {
       console.error('Erreur lors du chargement des statistiques:', error);
     } finally {
@@ -35,25 +37,28 @@ const ExporterDashboard = () => {
       return baseStats;
     }
     
+    // exporterStats peut être { stats: {...} } ou { status: 'success', data: { stats: {...} } }
+    const stats = exporterStats?.stats || exporterStats?.data?.stats || {};
+    
     return {
       ...baseStats,
       // Statistiques spécifiques aux exportateurs depuis le backend
-      totalExports: exporterStats?.data?.stats?.totalExports || 0,
-      totalValue: exporterStats?.data?.stats?.totalValue || 0,
-      exportValue: exporterStats?.data?.stats?.totalValue || 0,
-      monthlyRevenue: exporterStats?.data?.stats?.monthlyRevenue || 0,
-      totalRevenue: exporterStats?.data?.stats?.totalRevenue || 0,
-      totalOrders: exporterStats?.data?.stats?.totalOrders || 0,
-      completedOrders: exporterStats?.data?.stats?.completedOrders || 0,
-      pendingOrders: exporterStats?.data?.stats?.pendingOrders || 0,
-      exportCountries: exporterStats?.data?.stats?.exportCountries || 0,
-      exportProductsCount: exporterStats?.data?.stats?.exportProductsCount || 0,
-      activeLicenses: exporterStats?.data?.stats?.activeLicenses || 0,
-      successfulDeliveryRate: exporterStats?.data?.stats?.successfulDeliveryRate || 0,
-      averageRating: exporterStats?.data?.stats?.averageRating || 0,
-      totalReviews: exporterStats?.data?.stats?.totalReviews || 0,
-      totalProducts: exporterStats?.data?.stats?.totalProducts || 0,
-      activeProducts: exporterStats?.data?.stats?.activeProducts || 0
+      totalExports: stats.totalExports || 0,
+      totalValue: stats.totalValue || 0,
+      exportValue: stats.totalValue || 0,
+      monthlyRevenue: stats.monthlyRevenue || 0,
+      totalRevenue: stats.totalRevenue || 0,
+      totalOrders: stats.totalOrders || 0,
+      completedOrders: stats.completedExports || stats.completedOrders || 0,
+      pendingOrders: stats.pendingExports || stats.pendingOrders || 0,
+      exportCountries: stats.exportCountries || 0,
+      exportProductsCount: stats.exportProductsCount || 0,
+      activeLicenses: stats.activeLicenses || 0,
+      successfulDeliveryRate: stats.successfulDeliveryRate || 0,
+      averageRating: stats.averageRating || 0,
+      totalReviews: stats.totalReviews || 0,
+      totalProducts: stats.totalProducts || 0,
+      activeProducts: stats.activeProducts || 0
     };
   };
 
@@ -72,7 +77,7 @@ const ExporterDashboard = () => {
         text: 'Voir toutes',
         to: '/exporter/orders'
       },
-      content: <OrdersSection userType="exporter" />
+      content: <OrdersSection userType="exporter" service={exporterService} />
     },
     {
       title: 'Gestion de la flotte',

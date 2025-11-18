@@ -56,13 +56,18 @@ export const NotificationProvider = ({ children }) => {
         
         // Utilisateur connecté : récupérer depuis le backend
         try {
+          console.log('[NotificationContext] Chargement des notifications pour utilisateur connecté');
           const backendNotifications = await notificationService.getNotifications(1, 50);
+          console.log('[NotificationContext] Notifications chargées:', {
+            count: backendNotifications.notifications?.length || 0,
+            unreadCount: backendNotifications.unreadCount || 0
+          });
           setNotifications(backendNotifications.notifications || []);
           setUnreadCount(backendNotifications.unreadCount || 0);
         } catch (error) {
           // Ne pas logger les erreurs 401 (non authentifié) pour éviter le spam
           if (error.response?.status !== 401) {
-            console.error('Erreur lors du chargement des notifications du backend:', error);
+            console.error('[NotificationContext] Erreur lors du chargement des notifications du backend:', error);
           }
           // Fallback sur localStorage en cas d'erreur
           loadFromLocalStorage();

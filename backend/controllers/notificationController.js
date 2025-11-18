@@ -20,6 +20,12 @@ exports.getMyNotifications = catchAsync(async (req, res, next) => {
   const limit = parseInt(req.query.limit, 10) || 20;
   const skip = (page - 1) * limit;
 
+  console.log('[getMyNotifications] Requête de notifications pour:', {
+    userId: req.user.id?.toString(),
+    userType: req.user.userType,
+    email: req.user.email
+  });
+
   const queryObj = { recipient: req.user.id };
 
   // Filtres

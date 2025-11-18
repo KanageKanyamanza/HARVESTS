@@ -11,6 +11,7 @@ const Orders = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [updatingOrders, setUpdatingOrders] = useState(new Set());
 
   useEffect(() => {
     const loadOrders = async () => {
@@ -31,6 +32,46 @@ const Orders = () => {
 
     loadOrders();
   }, [user]);
+
+  const handleUpdateStatus = async (order, newStatus, segmentId = null, options = {}) => {
+    if (updatingOrders.has(order._id)) return;
+
+    try {
+      setUpdatingOrders(prev => new Set(prev).add(order._id));
+
+      // Mapper les statuts pour les transporteurs
+      let deliveryStatus = newStatus;
+      if (newStatus === 'ready-for-pickup') {
+        deliveryStatus = 'picked-up'; // Quand le transporteur collecte
+      } else if (newStatus === 'in-transit' || newStatus === 'out-for-delivery') {
+        deliveryStatus = 'in-transit';
+      } else if (newStatus === 'delivered') {
+        deliveryStatus = 'delivered';
+      }
+
+      const response = await transporterService.updateOrderStatus(order._id, {
+        status: deliveryStatus,
+        location: order.delivery?.deliveryAddress?.city || null,
+        note: `Statut mis à jour par ${user?.firstName || 'Transporteur'}`
+      });
+
+      if (response.data?.status === 'success') {
+        // Recharger les commandes
+        const refreshResponse = await transporterService.getOrders();
+        const ordersData = refreshResponse.data.data?.deliveries || refreshResponse.data.data?.orders || [];
+        setOrders(Array.isArray(ordersData) ? ordersData : []);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du statut:', error);
+      alert(error.response?.data?.message || 'Erreur lors de la mise à jour du statut');
+    } finally {
+      setUpdatingOrders(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(order._id);
+        return newSet;
+      });
+    }
+  };
 
   const filteredOrders = orders.filter(order => {
     if (!order) return false;
@@ -76,10 +117,12 @@ const Orders = () => {
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-harvests-green"
               >
                 <option value="all">Tous les statuts</option>
-                <option value="pending">En attente</option>
-                <option value="accepted">Acceptée</option>
+                <option value="confirmed">Confirmée</option>
+                <option value="preparing">En préparation</option>
+                <option value="ready-for-pickup">Prête pour collecte</option>
                 <option value="in-transit">En transit</option>
                 <option value="delivered">Livrée</option>
+                <option value="completed">Terminée</option>
                 <option value="cancelled">Annulée</option>
               </select>
             </div>
@@ -107,7 +150,12 @@ const Orders = () => {
             </p>
           </div>
         ) : (
-          <OrderList orders={filteredOrders} userType="transporter" />
+          <OrderList 
+            orders={filteredOrders} 
+            userType="transporter" 
+            onUpdateStatus={handleUpdateStatus}
+            updatingOrders={updatingOrders}
+          />
         )}
       </div>
     </ModularDashboardLayout>

@@ -228,6 +228,43 @@ const CommonStats = ({ stats, userType, loading = false }) => {
           }
         ];
 
+      case 'transformer':
+        return [
+          {
+            name: 'Note moyenne',
+            value: stats?.averageRating || 0,
+            icon: FiStar,
+            color: 'text-yellow-500',
+            bgColor: 'bg-yellow-50',
+            format: (value) => `${value.toFixed(1)}/5`,
+            subtitle: `${stats?.totalReviews || 0} avis`
+          },
+          {
+            name: 'Vues du profil',
+            value: stats?.profileViews || 0,
+            icon: FiEye,
+            color: 'text-blue-500',
+            bgColor: 'bg-blue-50',
+            format: (value) => value.toLocaleString()
+          },
+          {
+            name: 'Produits vendus',
+            value: stats?.totalProductsSold || stats?.activeProducts || stats?.totalProducts || 0,
+            icon: FiShoppingBag,
+            color: 'text-green-500',
+            bgColor: 'bg-green-50',
+            format: (value) => value.toLocaleString()
+          },
+          {
+            name: 'Chiffre d\'affaires',
+            value: stats?.totalRevenue || 0,
+            icon: FiDollarSign,
+            color: 'text-purple-500',
+            bgColor: 'bg-purple-50',
+            format: (value) => `${value.toLocaleString()} FCFA`
+          }
+        ];
+
       default:
         return baseStats;
     }

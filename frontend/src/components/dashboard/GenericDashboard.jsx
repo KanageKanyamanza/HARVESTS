@@ -221,7 +221,8 @@ const GenericDashboard = ({
       }
 
       // Extraire les données correctement selon la structure de l'API
-      setStats(statsResponse.data.data?.stats || statsResponse.data.stats || {});
+      // Pour les transformateurs, les stats sont directement dans data, pas dans data.stats
+      setStats(statsResponse.data.data?.stats || statsResponse.data.stats || statsResponse.data.data || statsResponse.data || {});
       
       // Pour les restaurateurs, les plats peuvent être dans data.data.dishes ou data.dishes
       let productsData = [];

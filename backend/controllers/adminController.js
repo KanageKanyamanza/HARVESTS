@@ -5,6 +5,8 @@ const Restaurateur = require('../models/Restaurateur');
 const Order = require('../models/Order');
 const Review = require('../models/Review');
 const Message = require('../models/Message');
+const Transporter = require('../models/Transporter');
+const Exporter = require('../models/Exporter');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const crypto = require('crypto');
@@ -1309,6 +1311,7 @@ exports.getAllOrders = catchAsync(async (req, res, next) => {
   const orders = await Order.find(filter)
     .populate('buyer', 'firstName lastName email phone userType')
     .populate('seller', 'firstName lastName email phone farmName companyName userType')
+    .populate('delivery.transporter', 'firstName lastName email phone companyName userType')
     .populate('items.product', 'name images price')
     .sort({ createdAt: -1 })
     .skip(skip)
@@ -1350,6 +1353,18 @@ exports.getAllOrders = catchAsync(async (req, res, next) => {
       lastName: order.seller?.lastName || 'N/A',
       farmName: order.seller?.farmName || order.seller?.companyName || 'N/A'
     },
+    transporter: order.delivery?.transporter ? {
+      _id: order.delivery.transporter._id,
+      firstName: order.delivery.transporter.firstName || 'N/A',
+      lastName: order.delivery.transporter.lastName || 'N/A',
+      email: order.delivery.transporter.email || 'N/A',
+      phone: order.delivery.transporter.phone || 'N/A',
+      companyName: order.delivery.transporter.companyName || null,
+      userType: order.delivery.transporter.userType || 'transporter'
+    } : null,
+    delivery: order.delivery ? {
+      deliveryAddress: order.delivery.deliveryAddress
+    } : null,
     disputeReason: order.cancellationReason || null,
     createdAt: order.createdAt
   }));
@@ -1526,17 +1541,82 @@ exports.updateOrderPaymentStatus = catchAsync(async (req, res, next) => {
     return next(new AppError('Commande non trouvée', 404));
   }
 
+  // Vérifier l'état avant de mettre à jour
+  const wasCompleted = order.payment.status === 'completed' || order.payment.status === 'succeeded';
+  const isNowCompleted = paymentStatus === 'completed';
+  
   // Mettre à jour le statut de paiement
   order.payment.status = paymentStatus;
   if (transactionId) order.payment.transactionId = transactionId;
   if (paidAt) order.payment.paidAt = new Date(paidAt);
   else if (paymentStatus === 'completed') order.payment.paidAt = new Date();
-
+  
   await order.save();
 
   // Si le paiement est confirmé et la commande est en attente, la confirmer
-  if (paymentStatus === 'completed' && order.status === 'pending') {
+  if (isNowCompleted && order.status === 'pending') {
     await order.updateStatus('confirmed', req.admin._id, 'Paiement confirmé');
+  }
+
+  // Créer un paiement pour les frais de livraison si le paiement vient d'être complété et qu'il y a un livreur
+  if (isNowCompleted && !wasCompleted && order.delivery?.transporter) {
+    const transporterId = order.delivery.transporter._id || order.delivery.transporter;
+    const deliveryFee = order.deliveryFee || order.delivery?.deliveryFee || 0;
+    
+    if (transporterId && deliveryFee > 0) {
+      const Payment = require('../models/Payment');
+      
+      // Vérifier si un paiement existe déjà
+      const existingPayment = await Payment.findOne({
+        order: order._id,
+        user: transporterId,
+        type: 'payout',
+        'metadata.deliveryFee': true
+      });
+      
+      if (!existingPayment) {
+        const mongoose = require('mongoose');
+        const transporterPayment = await Payment.create({
+          paymentId: new mongoose.Types.ObjectId().toString(),
+          order: order._id,
+          user: transporterId,
+          amount: deliveryFee,
+          currency: order.currency || 'XAF',
+          method: 'cash',
+          provider: 'cash-on-delivery',
+          type: 'payout',
+          status: 'completed',
+          metadata: {
+            orderId: order._id.toString(),
+            orderNumber: order.orderNumber,
+            deliveryFee: true
+          },
+          paidAt: new Date()
+        });
+        
+        // Notifier le transporteur
+        const Notification = require('../models/Notification');
+        await Notification.createNotification({
+          recipient: transporterId,
+          type: 'payout_processed',
+          category: 'payment',
+          title: 'Frais de livraison reçus',
+          message: `Vous avez reçu ${deliveryFee} ${order.currency || 'XAF'} de frais de livraison pour la commande ${order.orderNumber}`,
+          data: {
+            orderId: order._id,
+            orderNumber: order.orderNumber,
+            amount: deliveryFee,
+            currency: order.currency || 'XAF',
+            paymentId: transporterPayment.paymentId
+          },
+          channels: {
+            inApp: { enabled: true },
+            email: { enabled: true },
+            push: { enabled: true }
+          }
+        });
+      }
+    }
   }
 
   res.status(200).json({
@@ -2448,5 +2528,590 @@ exports.rejectDish = catchAsync(async (req, res, next) => {
     status: 'success',
     message: 'Plat rejeté avec succès',
     data: { dish: product }
+  });
+});
+
+// ========================================
+// GESTION DE L'ASSIGNATION DES LIVREURS
+// ========================================
+
+// Obtenir les transporteurs disponibles pour une zone de livraison
+exports.getAvailableTransporters = catchAsync(async (req, res, next) => {
+  const orderId = req.params.id; // La route utilise :id
+  const { region, city } = req.query;
+
+  // Récupérer la commande pour obtenir la zone de livraison et le type de commande
+  let order = null;
+  if (orderId) {
+    order = await Order.findById(orderId)
+      .select('delivery.deliveryAddress delivery.pickupAddress delivery.deliveryFeeDetail billingAddress buyer isExport exportInfo seller')
+      .populate('buyer', 'address country region city')
+      .populate('seller', 'country');
+    
+    if (!order) {
+      return next(new AppError('Commande non trouvée', 404));
+    }
+  }
+
+  // Déterminer la région et la ville à partir de la commande ou des paramètres
+  // Essayer plusieurs sources dans l'ordre de priorité
+  let deliveryRegion = region;
+  let deliveryCity = city;
+
+  if (order) {
+    // Priorité 1: Adresse de livraison
+    if (order.delivery?.deliveryAddress?.region) {
+      deliveryRegion = order.delivery.deliveryAddress.region;
+      deliveryCity = order.delivery.deliveryAddress.city || deliveryCity;
+    }
+    // Priorité 2: Adresse de collecte
+    else if (order.delivery?.pickupAddress?.region) {
+      deliveryRegion = order.delivery.pickupAddress.region;
+      deliveryCity = order.delivery.pickupAddress.city || deliveryCity;
+    }
+    // Priorité 3: Adresse de facturation
+    else if (order.billingAddress?.region) {
+      deliveryRegion = order.billingAddress.region;
+      deliveryCity = order.billingAddress.city || deliveryCity;
+    }
+    // Priorité 4: Adresse de l'acheteur
+    else if (order.buyer) {
+      if (order.buyer.region || order.buyer.address?.region) {
+        deliveryRegion = order.buyer.region || order.buyer.address?.region;
+        deliveryCity = order.buyer.city || order.buyer.address?.city || deliveryCity;
+      }
+    }
+  }
+
+  console.log('🔍 Recherche de transporteurs pour:', { 
+    deliveryRegion, 
+    deliveryCity, 
+    orderId,
+    hasDeliveryAddress: !!order?.delivery?.deliveryAddress,
+    hasPickupAddress: !!order?.delivery?.pickupAddress,
+    hasBillingAddress: !!order?.billingAddress,
+    hasBuyerAddress: !!order?.buyer
+  });
+
+  // Si aucune région n'est trouvée, retourner tous les transporteurs disponibles
+  if (!deliveryRegion) {
+    console.log('⚠️ Aucune région trouvée, retour de tous les transporteurs actifs');
+    // Retourner tous les transporteurs actifs sans filtre de région
+    const allTransporters = await Transporter.find({
+      userType: 'transporter',
+      isActive: true,
+      isApproved: true,
+      isEmailVerified: true
+    })
+      .select('firstName lastName email phone companyName serviceAreas performanceStats userType')
+      .sort('-performanceStats.onTimeDeliveryRate -performanceStats.averageRating')
+      .limit(50);
+
+    // Si aucune région n'est trouvée, on ne peut pas déterminer le type de commande
+    // Par défaut, on retourne les transporteurs (commandes locales)
+    const formattedTransporters = allTransporters.map(transporter => ({
+      _id: transporter._id,
+      userId: transporter._id,
+      userType: 'transporter',
+      companyName: transporter.companyName || 'Transporteur',
+      firstName: transporter.firstName || '',
+      lastName: transporter.lastName || '',
+      email: transporter.email || '',
+      phone: transporter.phone || '',
+      serviceAreas: transporter.serviceAreas || [],
+      performance: {
+        onTimeDeliveryRate: transporter.performanceStats?.onTimeDeliveryRate || 0,
+        averageRating: transporter.performanceStats?.averageRating || 0,
+        totalDeliveries: transporter.performanceStats?.totalDeliveries || 0
+      }
+    }));
+
+    return res.status(200).json({
+      status: 'success',
+      results: formattedTransporters.length,
+      message: 'Aucune région de livraison trouvée dans la commande. Tous les transporteurs actifs sont retournés.',
+      data: {
+        transporters: formattedTransporters,
+        deliveryZone: {
+          region: null,
+          city: null,
+          warning: 'Région de livraison non spécifiée dans la commande'
+        }
+      }
+    });
+  }
+
+  // Construire la requête pour trouver les transporteurs disponibles
+  // Transporter est un discriminator de User, donc on peut utiliser les champs de User
+  // Utiliser $elemMatch pour chercher dans le tableau serviceAreas
+  const query = {
+    userType: 'transporter',
+    isActive: true,
+    isApproved: true,
+    isEmailVerified: true,
+    $or: [
+      { 'serviceAreas.region': deliveryRegion },
+      { 'serviceAreas.cities': deliveryCity || deliveryRegion }
+    ]
+  };
+
+  // Si on a une ville, on peut être plus précis
+  if (deliveryCity) {
+    query.$or.push({ 'serviceAreas.cities': { $in: [deliveryCity] } });
+  }
+
+  console.log('📋 Requête MongoDB:', JSON.stringify(query, null, 2));
+
+  // Récupérer les transporteurs et exportateurs (Transporter et Exporter sont des discriminators de User)
+  // D'abord, récupérer tous les transporteurs actifs
+  let transporters = await Transporter.find({
+    userType: 'transporter',
+    isActive: true,
+    isApproved: true,
+    isEmailVerified: true
+  })
+    .select('firstName lastName email phone companyName serviceAreas performanceStats userType isActive isApproved isEmailVerified')
+    .sort('-performanceStats.onTimeDeliveryRate -performanceStats.averageRating')
+    .limit(100);
+
+  // Récupérer aussi les exportateurs actifs (ils peuvent aussi être livreurs)
+  let exporters = await Exporter.find({
+    userType: 'exporter',
+    isActive: true,
+    isApproved: true,
+    isEmailVerified: true
+  })
+    .select('firstName lastName email phone companyName userType isActive isApproved isEmailVerified')
+    .limit(50);
+
+  // Logs de débogage
+  console.log('🔍 Détails des transporteurs trouvés:');
+  transporters.forEach((t, idx) => {
+    console.log(`  ${idx + 1}. ${t.companyName || t.firstName} - serviceAreas:`, JSON.stringify(t.serviceAreas, null, 2));
+  });
+
+  // Déterminer si la commande est internationale
+  const isInternationalOrder = order ? (
+    order.isExport === true ||
+    (order.exportInfo && order.exportInfo.destinationCountry) ||
+    (order.delivery?.deliveryFeeDetail?.scope === 'international') ||
+    (order.delivery?.deliveryAddress?.country && order.seller?.country && 
+     order.delivery.deliveryAddress.country !== order.seller.country)
+  ) : false;
+
+  console.log(`✅ ${transporters.length} transporteurs actifs trouvés`);
+  console.log(`✅ ${exporters.length} exportateurs actifs trouvés`);
+  console.log(`🌍 Commande ${isInternationalOrder ? 'INTERNATIONALE' : 'LOCALE'}`);
+
+  // Filtrer les livreurs selon le type de commande
+  // Pour les commandes locales : seulement les transporteurs
+  // Pour les commandes internationales : seulement les exportateurs
+  let allDeliverers = [];
+  
+  if (isInternationalOrder) {
+    // Commande internationale : seulement les exportateurs
+    allDeliverers = exporters.map(e => ({ ...e.toObject(), userType: 'exporter', serviceAreas: [] }));
+    console.log(`🚢 Affichage des exportateurs pour commande internationale`);
+  } else {
+    // Commande locale : seulement les transporteurs
+    allDeliverers = transporters.map(t => ({ ...t.toObject(), userType: 'transporter' }));
+    console.log(`🚛 Affichage des transporteurs pour commande locale`);
+  }
+
+  // Filtrer et formater les résultats
+  const availableTransporters = allDeliverers
+    .filter(deliverer => {
+      // Pour les exportateurs (commandes internationales), on les accepte tous (pas de filtre par zone)
+      if (deliverer.userType === 'exporter') {
+        return true;
+      }
+
+      // Pour les transporteurs (commandes locales), vérifier qu'ils ont une zone de service qui correspond
+      // Si le transporteur n'a pas de serviceAreas, on l'accepte quand même (l'admin peut choisir)
+      if (!deliverer.serviceAreas || deliverer.serviceAreas.length === 0) {
+        console.log(`⚠️ Transporteur ${deliverer._id} (${deliverer.companyName || deliverer.firstName}) n'a pas de serviceAreas - Accepté quand même pour choix admin`);
+        return true; // Accepter les transporteurs sans serviceAreas pour laisser le choix à l'admin
+      }
+
+      // Si on n'a pas de région, on accepte tous les transporteurs
+      if (!deliveryRegion) {
+        return true;
+      }
+
+      // Normaliser les chaînes pour la comparaison (enlever accents, espaces, etc.)
+      const normalizeString = (str) => {
+        if (!str) return '';
+        return str.toString()
+          .toLowerCase()
+          .trim()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '') // Enlever les accents
+          .replace(/\s+/g, ' '); // Normaliser les espaces
+      };
+
+      const normalizedDeliveryRegion = normalizeString(deliveryRegion);
+      const normalizedDeliveryCity = deliveryCity ? normalizeString(deliveryCity) : null;
+
+      const hasMatchingArea = deliverer.serviceAreas.some(area => {
+        if (!area || !area.region) return false;
+        
+        const normalizedAreaRegion = normalizeString(area.region);
+        const regionMatch = normalizedAreaRegion === normalizedDeliveryRegion;
+        
+        // Si on a une ville, vérifier qu'elle est dans la liste des villes
+        let cityMatch = true;
+        if (normalizedDeliveryCity) {
+          if (area.cities && Array.isArray(area.cities) && area.cities.length > 0) {
+            cityMatch = area.cities.some(city => {
+              const normalizedCity = normalizeString(city);
+              return normalizedCity === normalizedDeliveryCity;
+            });
+          } else {
+            // Si pas de villes spécifiées, on accepte si la région correspond
+            cityMatch = regionMatch;
+          }
+        }
+        
+        const matches = regionMatch && cityMatch;
+        
+        if (matches) {
+          console.log(`✅ Transporteur ${deliverer._id} correspond:`, {
+            areaRegion: area.region,
+            areaCities: area.cities,
+            requiredRegion: deliveryRegion,
+            requiredCity: deliveryCity
+          });
+        }
+        
+        return matches;
+      });
+      
+      if (!hasMatchingArea) {
+        console.log(`⚠️ Transporteur ${deliverer._id} ne correspond pas à la zone:`, {
+          transporterAreas: deliverer.serviceAreas,
+          requiredRegion: deliveryRegion,
+          requiredCity: deliveryCity,
+          normalizedRequiredRegion: normalizedDeliveryRegion,
+          normalizedRequiredCity: normalizedDeliveryCity
+        });
+      }
+      
+      return hasMatchingArea;
+    })
+    .map(deliverer => ({
+      _id: deliverer._id,
+      userId: deliverer._id,
+      userType: deliverer.userType || 'transporter',
+      companyName: deliverer.companyName || (deliverer.userType === 'exporter' ? 'Exportateur' : 'Transporteur'),
+      firstName: deliverer.firstName || '',
+      lastName: deliverer.lastName || '',
+      email: deliverer.email || '',
+      phone: deliverer.phone || '',
+      serviceAreas: deliverer.serviceAreas ? deliverer.serviceAreas.filter(area => 
+        area.region === deliveryRegion
+      ) : [],
+      performance: deliverer.userType === 'transporter' ? {
+        onTimeDeliveryRate: deliverer.performanceStats?.onTimeDeliveryRate || 0,
+        averageRating: deliverer.performanceStats?.averageRating || 0,
+        totalDeliveries: deliverer.performanceStats?.totalDeliveries || 0
+      } : null
+    }));
+
+  const delivererType = isInternationalOrder ? 'exportateurs' : 'transporteurs';
+  console.log(`📦 ${availableTransporters.length} ${delivererType} disponibles après filtrage pour ${deliveryRegion}${deliveryCity ? ` - ${deliveryCity}` : ''}`);
+
+  res.status(200).json({
+    status: 'success',
+    results: availableTransporters.length,
+    data: {
+      transporters: availableTransporters,
+      deliveryZone: {
+        region: deliveryRegion,
+        city: deliveryCity || null
+      },
+      orderType: isInternationalOrder ? 'international' : 'local',
+      message: isInternationalOrder 
+        ? 'Exportateurs disponibles pour commande internationale'
+        : 'Transporteurs disponibles pour commande locale'
+    }
+  });
+});
+
+// Assigner un transporteur à une commande
+exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
+  const orderId = req.params.id; // La route utilise :id
+  const { transporterId } = req.body;
+
+  console.log('🚚 Assignation de transporteur:', { orderId, transporterId });
+
+  if (!transporterId) {
+    return next(new AppError('ID du transporteur requis', 400));
+  }
+
+  // Récupérer la commande
+  const order = await Order.findById(orderId)
+    .populate('buyer', 'firstName lastName email phone userType')
+    .populate('seller', 'firstName lastName email phone farmName companyName userType')
+    .populate({
+      path: 'segments.seller',
+      select: 'firstName lastName email phone farmName companyName userType'
+    });
+
+  if (!order) {
+    return next(new AppError('Commande non trouvée', 404));
+  }
+
+  // Vérifier que la commande n'a pas déjà un transporteur assigné
+  if (order.delivery?.transporter) {
+    return next(new AppError('Un transporteur est déjà assigné à cette commande', 400));
+  }
+
+  // Récupérer le transporteur ou exportateur (Transporter et Exporter sont des discriminators de User)
+  // D'abord, essayer de trouver un transporteur
+  let deliverer = await Transporter.findById(transporterId)
+    .select('firstName lastName email phone companyName serviceAreas performanceStats isActive isApproved isEmailVerified userType');
+  
+  // Si ce n'est pas un transporteur, chercher un exportateur
+  if (!deliverer) {
+    deliverer = await Exporter.findById(transporterId)
+      .select('firstName lastName email phone companyName isActive isApproved isEmailVerified userType');
+    if (deliverer) {
+      deliverer.userType = 'exporter';
+    }
+  } else {
+    deliverer.userType = 'transporter';
+  }
+  
+  const transporter = deliverer;
+
+  if (!transporter) {
+    return next(new AppError('Transporteur/Exportateur non trouvé', 404));
+  }
+
+  // Vérifier que le transporteur/exportateur est actif et approuvé
+  if (!transporter.isActive || !transporter.isApproved || !transporter.isEmailVerified) {
+    return next(new AppError('Le transporteur/exportateur sélectionné n\'est pas disponible', 400));
+  }
+
+  // Vérifier que le transporteur couvre la zone de livraison (seulement pour les transporteurs)
+  const deliveryRegion = order.delivery?.deliveryAddress?.region;
+  const deliveryCity = order.delivery?.deliveryAddress?.city;
+
+  if (deliveryRegion && transporter.userType === 'transporter' && transporter.serviceAreas) {
+    const hasMatchingArea = transporter.serviceAreas.some(area => {
+      const regionMatch = area.region === deliveryRegion;
+      const cityMatch = !deliveryCity || (area.cities && area.cities.includes(deliveryCity));
+      return regionMatch && cityMatch;
+    });
+
+    if (!hasMatchingArea) {
+      return next(new AppError('Le transporteur sélectionné ne couvre pas la zone de livraison', 400));
+    }
+  }
+
+  // Assigner le transporteur à la commande
+  order.delivery.transporter = transporter._id; // Transporter est déjà un User
+  order.delivery.status = 'confirmed';
+  
+  // Ajouter une entrée dans le timeline
+  if (!order.delivery.timeline) {
+    order.delivery.timeline = [];
+  }
+  order.delivery.timeline.push({
+    status: 'confirmed',
+    timestamp: new Date(),
+    location: deliveryCity || deliveryRegion || 'Zone de livraison',
+    note: `Transporteur assigné: ${transporter.companyName || transporter.firstName + ' ' + transporter.lastName}`,
+    updatedBy: req.admin._id
+  });
+
+  await order.save();
+
+  // Fonction pour construire l'URL de commande
+  const buildFrontendUrl = (path) => {
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    return `${baseUrl}${path}`;
+  };
+
+  const buildOrderUrl = async (userId) => {
+    const user = await User.findById(userId).select('userType');
+    if (!user) {
+      return buildFrontendUrl(`/consumer/orders/${order._id}`);
+    }
+    
+    const routeMap = {
+      'consumer': '/consumer/orders',
+      'restaurateur': '/restaurateur/orders',
+      'producer': '/producer/orders',
+      'transformer': '/transformer/orders',
+      'exporter': '/exporter/orders',
+      'transporter': '/transporter/orders'
+    };
+    
+    const baseRoute = routeMap[user.userType] || '/consumer/orders';
+    return buildFrontendUrl(`${baseRoute}/${order._id}`);
+  };
+
+  const Notification = require('../models/Notification');
+
+  // Notifier le client (acheteur)
+  if (order.buyer) {
+    const buyerOrderUrl = await buildOrderUrl(order.buyer._id);
+    const transporterName = transporter.companyName || 
+      `${transporter.firstName} ${transporter.lastName}`;
+    
+    await Notification.createNotification({
+      recipient: order.buyer._id,
+      type: 'delivery_assigned',
+      category: 'order',
+      title: 'Livreur assigné à votre commande',
+      message: `Un livreur a été assigné à votre commande ${order.orderNumber}. Votre livreur est ${transporterName}.`,
+      data: {
+        orderId: order._id,
+        orderNumber: order.orderNumber,
+        transporter: {
+          id: transporter._id,
+          name: transporterName,
+          email: transporter.email,
+          phone: transporter.phone
+        },
+        status: order.status
+      },
+      actions: [{
+        type: 'view',
+        label: 'Voir la commande',
+        url: buyerOrderUrl
+      }],
+      channels: {
+        inApp: { enabled: true },
+        email: { enabled: true },
+        push: { enabled: true }
+      }
+    });
+  }
+
+  // Notifier tous les vendeurs concernés
+  const sellerIds = new Set();
+  
+  // Ajouter le vendeur principal
+  if (order.seller) {
+    sellerIds.add(order.seller._id.toString());
+  }
+  
+  // Ajouter les vendeurs des segments
+  if (order.segments && order.segments.length > 0) {
+    order.segments.forEach(segment => {
+      if (segment.seller) {
+        sellerIds.add(segment.seller._id.toString());
+      }
+    });
+  }
+
+  // Notifier chaque vendeur
+  if (sellerIds.size > 0) {
+    const transporterName = transporter.companyName || 
+      `${transporter.firstName} ${transporter.lastName}`;
+    
+    const sellerNotificationsPromises = Array.from(sellerIds).map(async (sellerId) => {
+      const sellerOrderUrl = await buildOrderUrl(sellerId);
+      
+      return Notification.createNotification({
+        recipient: sellerId,
+        type: 'delivery_assigned',
+        category: 'order',
+        title: 'Livreur assigné à la commande',
+        message: `Un livreur a été assigné à la commande ${order.orderNumber}. Le livreur est ${transporterName}.`,
+        data: {
+          orderId: order._id,
+          orderNumber: order.orderNumber,
+          transporter: {
+            id: transporter._id,
+            name: transporterName,
+            email: transporter.email,
+            phone: transporter.phone
+          },
+          status: order.status
+        },
+        actions: [{
+          type: 'view',
+          label: 'Voir la commande',
+          url: sellerOrderUrl
+        }],
+        channels: {
+          inApp: { enabled: true },
+          email: { enabled: true },
+          push: { enabled: true }
+        }
+      });
+    });
+    
+    await Promise.all(sellerNotificationsPromises);
+  }
+
+  // Notifier le transporteur/exportateur de l'assignation
+  const transporterOrderUrl = await buildOrderUrl(transporter._id);
+  const transporterName = transporter.companyName || 
+    `${transporter.firstName} ${transporter.lastName}`;
+  const delivererType = transporter.userType === 'exporter' ? 'exportateur' : 'transporteur';
+  
+  await Notification.createNotification({
+    recipient: transporter._id,
+    type: 'delivery_assigned',
+    category: 'order',
+    title: `Nouvelle commande assignée - ${delivererType === 'exportateur' ? 'Export' : 'Livraison locale'}`,
+    message: `Une nouvelle commande ${order.orderNumber} vous a été assignée comme ${delivererType}. Frais de livraison : ${order.deliveryFee || order.delivery?.deliveryFee || 0} ${order.currency || 'XAF'}`,
+    data: {
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      status: order.status,
+      deliveryFee: order.deliveryFee || order.delivery?.deliveryFee || 0,
+      currency: order.currency || 'XAF',
+      buyer: order.buyer ? {
+        firstName: order.buyer.firstName || '',
+        lastName: order.buyer.lastName || '',
+        email: order.buyer.email || '',
+        phone: order.buyer.phone || ''
+      } : null,
+      seller: order.seller ? {
+        firstName: order.seller.firstName || '',
+        lastName: order.seller.lastName || '',
+        email: order.seller.email || '',
+        phone: order.seller.phone || '',
+        companyName: order.seller.companyName || order.seller.farmName || ''
+      } : null,
+      deliveryAddress: order.delivery?.deliveryAddress || null
+    },
+    actions: [{
+      type: 'view',
+      label: 'Voir la commande',
+      url: transporterOrderUrl
+    }],
+    channels: {
+      inApp: { enabled: true },
+      email: { enabled: true },
+      push: { enabled: true }
+    }
+  });
+
+  // Récupérer la commande mise à jour avec les populations
+  const updatedOrder = await Order.findById(orderId)
+    .populate('buyer', 'firstName lastName email phone userType')
+    .populate('seller', 'firstName lastName email phone farmName companyName userType')
+    .populate('delivery.transporter', 'firstName lastName email phone companyName userType')
+    .populate('items.product', 'name images price');
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Transporteur assigné avec succès',
+    data: {
+      order: updatedOrder,
+      transporter: {
+        _id: transporter._id,
+        name: transporter.companyName || `${transporter.firstName} ${transporter.lastName}`,
+        email: transporter.email,
+        phone: transporter.phone,
+        userType: transporter.userType || 'transporter'
+      }
+    }
   });
 });

@@ -143,6 +143,7 @@ router.route('/me/tracking-capabilities')
   .patch(transporterController.updateTrackingCapabilities);
 
 // Statistiques et analytics de performance
+router.get('/me/stats', transporterController.getStats); // Statistiques du dashboard
 router.get('/me/performance-stats', transporterController.getPerformanceStats);
 router.get('/me/delivery-analytics', transporterController.getDeliveryAnalytics);
 router.get('/me/revenue-analytics', transporterController.getRevenueAnalytics);

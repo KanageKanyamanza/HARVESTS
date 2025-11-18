@@ -10,15 +10,34 @@ const OrdersSection = ({ orders, userType, loading = false, service }) => {
     try {
       setLocalLoading(true);
       const response = await service.getOrders({ limit: 5 });
-      const ordersData = response.data.data?.orders || response.data.orders || [];
+      console.log(`[OrdersSection] Response for ${userType}:`, response.data);
+      
+      // Gérer différentes structures de réponse selon le type d'utilisateur
+      let ordersData = [];
+      if (userType === 'transporter') {
+        ordersData = response.data.data?.deliveries || 
+                     response.data.data?.orders || 
+                     response.data.deliveries || 
+                     response.data.orders || [];
+      } else if (userType === 'exporter') {
+        // Pour les exportateurs, vérifier toutes les structures possibles
+        ordersData = response.data.data?.exportOrders || 
+                     response.data.data?.orders || 
+                     response.data.exportOrders || 
+                     response.data.orders || [];
+        console.log(`[OrdersSection] Exporter orders found:`, ordersData.length, ordersData);
+      } else {
+        ordersData = response.data.data?.orders || response.data.orders || [];
+      }
       setLocalOrders(Array.isArray(ordersData) ? ordersData : []);
     } catch (error) {
-      console.error('Erreur lors du chargement des commandes:', error);
+      console.error(`[OrdersSection] Erreur lors du chargement des commandes pour ${userType}:`, error);
+      console.error('[OrdersSection] Error details:', error.response?.data);
       setLocalOrders([]);
     } finally {
       setLocalLoading(false);
     }
-  }, [service]);
+  }, [service, userType]);
 
   // Si un service est fourni et pas d'orders, charger les commandes
   useEffect(() => {

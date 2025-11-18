@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { parseProductName } from '../../utils/productUtils';
 import { toPlainText } from '../../utils/textHelpers';
@@ -11,7 +11,9 @@ import {
   FiPackage,
   FiCalendar,
   FiUser,
-  FiMapPin
+  FiMapPin,
+  FiChevronDown,
+  FiChevronUp
 } from 'react-icons/fi';
 
 const OrderList = ({
@@ -21,6 +23,56 @@ const OrderList = ({
   loading = false,
   updatingOrders = new Set()
 }) => {
+  // Référence pour suivre les IDs de commandes déjà initialisées
+  const initializedOrderIds = useRef(new Set());
+
+  // Par défaut, toutes les commandes sont réduites
+  const [collapsedOrders, setCollapsedOrders] = useState(() => {
+    const initialCollapsed = new Set();
+    orders.forEach(order => {
+      if (order && order._id) {
+        initialCollapsed.add(order._id);
+        initializedOrderIds.current.add(order._id);
+      }
+    });
+    return initialCollapsed;
+  });
+
+  // Synchroniser l'état collapsed avec les nouvelles commandes qui arrivent
+  // Ne réinitialise que les nouvelles commandes, préserve l'état des commandes existantes
+  useEffect(() => {
+    setCollapsedOrders(prev => {
+      const newSet = new Set(prev);
+      // Ajouter uniquement les nouvelles commandes (pas encore initialisées) à l'état collapsed par défaut
+      orders.forEach(order => {
+        if (order && order._id && !initializedOrderIds.current.has(order._id)) {
+          newSet.add(order._id);
+          initializedOrderIds.current.add(order._id);
+        }
+      });
+      // Supprimer les commandes qui n'existent plus
+      const orderIds = new Set(orders.map(order => order?._id).filter(Boolean));
+      newSet.forEach(orderId => {
+        if (!orderIds.has(orderId)) {
+          newSet.delete(orderId);
+          initializedOrderIds.current.delete(orderId);
+        }
+      });
+      return newSet;
+    });
+  }, [orders]);
+
+  const toggleCollapse = (orderId) => {
+    setCollapsedOrders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(orderId)) {
+        newSet.delete(orderId);
+      } else {
+        newSet.add(orderId);
+      }
+      return newSet;
+    });
+  };
   const isSellerView = ['producer', 'transformer', 'restaurateur'].includes(userType);
 
   const extractSellerDetails = (order) => {
@@ -279,33 +331,153 @@ const OrderList = ({
         const segmentId = order.segment?.id || order.segment?._id;
         const isOrderUpdating = updatingOrders.has(order._id);
 
+        const isCollapsed = collapsedOrders.has(order._id);
+
         return (
-          <div key={order._id} className="bg-white rounded-lg shadow p-6">
-            <div className="flex flex-wrap gap-2 items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Commande #{order.orderNumber || order._id.slice(-8).toUpperCase()}
-                </h3>
-                <p className="text-sm text-gray-600">
-                  {userType === 'producer' || userType === 'transformer' ? 'Client' : 'Vendeur'} • {formatDate(order.createdAt)}
-                </p>
-              </div>
-              <div className="flex items-center space-x-3">
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusConfig.color}`}>
-                  <StatusIcon className="h-4 w-4 mr-1" />
-                  {statusConfig.text}
-                </span>
-                <Link
-                  to={`/${userType}/orders/${order._id}`}
-                  className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-harvests-light"
-                >
-                  <FiEye className="h-4 w-4 mr-1" />
-                  Voir
-                </Link>
+          <div key={order._id} className="bg-white rounded-lg shadow">
+            {/* En-tête de la commande - toujours visible */}
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex flex-wrap gap-2 items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3">
+                    <button
+                      onClick={() => toggleCollapse(order._id)}
+                      className="p-1 rounded-md hover:bg-gray-100 transition-colors"
+                      title={isCollapsed ? 'Développer' : 'Réduire'}
+                    >
+                      {isCollapsed ? (
+                        <FiChevronDown className="h-5 w-5 text-gray-400" />
+                      ) : (
+                        <FiChevronUp className="h-5 w-5 text-gray-400" />
+                      )}
+                    </button>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        Commande #{order.orderNumber || order._id.slice(-8).toUpperCase()}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {userType === 'producer' || userType === 'transformer' ? 'Client' : 'Vendeur'} • {formatDate(order.createdAt)}
+                      </p>
+                    </div>
+                  </div>
+                  {/* Résumé minimal quand collapsed */}
+                  {isCollapsed && (
+                    <div className="mt-3 ml-8 flex items-center space-x-4 text-sm text-gray-600">
+                      <span>{orderItems.length} article{orderItems.length > 1 ? 's' : ''}</span>
+                      <span className="font-medium text-gray-900">
+                        {displayedTotal.toLocaleString('fr-FR')} FCFA
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center space-x-3 flex-wrap gap-2">
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusConfig.color}`}>
+                    <StatusIcon className="h-4 w-4 mr-1" />
+                    {statusConfig.text}
+                  </span>
+                  
+                  {/* Boutons de mise à jour de statut - visibles même quand collapsed */}
+                  {(isSellerView || userType === 'transporter' || userType === 'exporter') && onUpdateStatus && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      {/* Actions pour les transporteurs/exportateurs */}
+                      {(userType === 'transporter' || userType === 'exporter') && (
+                        <>
+                          {segmentStatus === 'ready-for-pickup' && (
+                            <button 
+                              onClick={() => onUpdateStatus(order, 'ready-for-pickup', segmentId)}
+                              disabled={updatingOrders.has(order._id)}
+                              className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <FiTruck className="h-4 w-4 mr-1" />
+                              {updatingOrders.has(order._id) ? 'Collecte...' : 'Collecter'}
+                            </button>
+                          )}
+                          {(order.delivery?.status === 'picked-up') && segmentStatus !== 'in-transit' && segmentStatus !== 'delivered' && (
+                            <button 
+                              onClick={() => onUpdateStatus(order, 'in-transit', segmentId)}
+                              disabled={updatingOrders.has(order._id)}
+                              className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <FiTruck className="h-4 w-4 mr-1" />
+                              {updatingOrders.has(order._id) ? 'En cours...' : 'En transit'}
+                            </button>
+                          )}
+                          {segmentStatus === 'in-transit' && (
+                            <button 
+                              onClick={() => onUpdateStatus(order, 'delivered', segmentId)}
+                              disabled={updatingOrders.has(order._id)}
+                              className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <FiCheckCircle className="h-4 w-4 mr-1" />
+                              {updatingOrders.has(order._id) ? 'Livraison...' : 'Livrer'}
+                            </button>
+                          )}
+                        </>
+                      )}
+                      
+                      {/* Actions pour les vendeurs */}
+                      {isSellerView && (
+                        <>
+                          {segmentStatus === 'pending' && (
+                            <button 
+                              onClick={() => onUpdateStatus(order, 'cancelled', segmentId)}
+                              disabled={updatingOrders.has(order._id)}
+                              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <FiXCircle className="h-4 w-4 mr-1" />
+                              Annuler
+                            </button>
+                          )}
+                          {segmentStatus === 'confirmed' && (
+                            <button 
+                              onClick={() => onUpdateStatus(order, 'preparing', segmentId)}
+                              disabled={updatingOrders.has(order._id)}
+                              className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <FiTruck className="h-4 w-4 mr-1" />
+                              {updatingOrders.has(order._id) ? 'Préparation...' : 'Préparer'}
+                            </button>
+                          )}
+                          {segmentStatus === 'preparing' && (
+                            <button 
+                              onClick={() => onUpdateStatus(order, 'ready-for-pickup', segmentId)}
+                              disabled={updatingOrders.has(order._id)}
+                              className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <FiTruck className="h-4 w-4 mr-1" />
+                              {updatingOrders.has(order._id) ? 'Préparation...' : 'Prête'}
+                            </button>
+                          )}
+                          {segmentStatus === 'ready-for-pickup' && (
+                            <button 
+                              onClick={() => onUpdateStatus(order, 'cancelled', segmentId)}
+                              disabled={updatingOrders.has(order._id)}
+                              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <FiXCircle className="h-4 w-4 mr-1" />
+                              Annuler
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  )}
+                  
+                  <Link
+                    to={`/${userType}/orders/${order._id}`}
+                    className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-harvests-light"
+                  >
+                    <FiEye className="h-4 w-4 mr-1" />
+                    Voir
+                  </Link>
+                </div>
               </div>
             </div>
 
-            <div className="flex flex-wrap md:flex-row justify-around gap-4">
+            {/* Contenu détaillé - masqué si collapsed */}
+            {!isCollapsed && (
+              <div className="p-6">
+                <div className="flex flex-wrap md:flex-row justify-around gap-4">
               <div>
                 <h4 className="text-sm font-medium text-gray-900 mb-2">Articles</h4>
                 <div className="space-y-2">
@@ -484,90 +656,151 @@ const OrderList = ({
                       Livraison prévue: {formatDate(order.delivery.estimatedDeliveryDate)}
                     </p>
                   )}
+                  {order.deliveryFee > 0 && (userType === 'transporter' || userType === 'exporter') && (
+                    <p className="text-xs font-medium text-green-600 flex items-center mt-2">
+                      💰 Frais de livraison: {order.deliveryFee.toLocaleString('fr-FR')} FCFA
+                    </p>
+                  )}
+                  {/* Timeline de livraison */}
+                  {order.delivery?.timeline && order.delivery.timeline.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <p className="text-xs font-medium text-gray-700 mb-2">Historique de livraison:</p>
+                      <div className="space-y-2">
+                        {order.delivery.timeline.map((event, idx) => (
+                          <div key={idx} className="flex items-start text-xs">
+                            <div className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-500 mt-1.5 mr-2"></div>
+                            <div className="flex-1">
+                              <p className="text-gray-700 font-medium">
+                                {event.status === 'picked-up' ? 'Collectée' : 
+                                 event.status === 'in-transit' ? 'En transit' : 
+                                 event.status === 'delivered' ? 'Livrée' : 
+                                 event.status}
+                              </p>
+                              <p className="text-gray-500">
+                                {formatDate(event.timestamp)}
+                                {event.location && ` • ${event.location}`}
+                              </p>
+                              {event.note && (
+                                <p className="text-gray-400 italic mt-1">{event.note}</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div className="border-t border-gray-200 pt-4 mt-4">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-600">
-                  <span className="font-medium">Total: </span>
-                  <span className="text-lg font-semibold text-gray-900">
-                    {displayedTotal.toLocaleString('fr-FR')} FCFA
-                  </span>
-                  {order.delivery?.deliveryFee > 0 && (
-                    <span className="text-xs text-gray-500 block">
-                      Frais de livraison: {order.delivery.deliveryFee.toLocaleString('fr-FR')} FCFA
-                    </span>
-                  )}
-                </div>
-                
-                {isSellerView && onUpdateStatus && (
+                <div className="border-t border-gray-200 pt-4 mt-4">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-600">
+                      <span className="font-medium">Total: </span>
+                      <span className="text-lg font-semibold text-gray-900">
+                        {displayedTotal.toLocaleString('fr-FR')} FCFA
+                      </span>
+                      {order.delivery?.deliveryFee > 0 && (
+                        <span className="text-xs text-gray-500 block">
+                          Frais de livraison: {order.delivery.deliveryFee.toLocaleString('fr-FR')} FCFA
+                        </span>
+                      )}
+                    </div>
+                    
+                    {(isSellerView || userType === 'transporter' || userType === 'exporter') && onUpdateStatus && (
                   <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0">
-                    {segmentStatus === 'pending' && (
-                      <button 
-                        onClick={() => onUpdateStatus(order, 'cancelled', segmentId)}
-                        disabled={updatingOrders.has(order._id)}
-                        className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <FiXCircle className="h-4 w-4 mr-2" />
-                        Annuler
-                      </button>
+                    {/* Actions pour les transporteurs/exportateurs - Limitées selon les règles métier */}
+                    {(userType === 'transporter' || userType === 'exporter') && (
+                      <>
+                        {/* Livreurs peuvent collecter seulement quand la commande est prête pour collecte */}
+                        {segmentStatus === 'ready-for-pickup' && (
+                          <button 
+                            onClick={() => onUpdateStatus(order, 'ready-for-pickup', segmentId)}
+                            disabled={updatingOrders.has(order._id)}
+                            className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <FiTruck className="h-4 w-4 mr-2" />
+                            {updatingOrders.has(order._id) ? 'Collecte...' : 'Marquer collectée'}
+                          </button>
+                        )}
+                        {/* Livreurs peuvent mettre en transit seulement après avoir collecté et pas encore en transit */}
+                        {(order.delivery?.status === 'picked-up') && segmentStatus !== 'in-transit' && segmentStatus !== 'delivered' && (
+                          <button 
+                            onClick={() => onUpdateStatus(order, 'in-transit', segmentId)}
+                            disabled={updatingOrders.has(order._id)}
+                            className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <FiTruck className="h-4 w-4 mr-2" />
+                            {updatingOrders.has(order._id) ? 'En cours...' : 'Marquer en transit'}
+                          </button>
+                        )}
+                        {/* Livreurs peuvent livrer seulement quand en transit */}
+                        {segmentStatus === 'in-transit' && (
+                          <button 
+                            onClick={() => onUpdateStatus(order, 'delivered', segmentId)}
+                            disabled={updatingOrders.has(order._id)}
+                            className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <FiCheckCircle className="h-4 w-4 mr-2" />
+                            {updatingOrders.has(order._id) ? 'Livraison...' : 'Marquer livrée'}
+                          </button>
+                        )}
+                      </>
                     )}
-                    {segmentStatus === 'confirmed' && (
-                      <button 
-                        onClick={() => onUpdateStatus(order, 'preparing', segmentId)}
-                        disabled={updatingOrders.has(order._id)}
-                        className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <FiTruck className="h-4 w-4 mr-2" />
-                        {updatingOrders.has(order._id) ? 'Préparation...' : 'Commencer préparation'}
-                      </button>
-                    )}
-                    {segmentStatus === 'preparing' && (
-                      <button 
-                        onClick={() => onUpdateStatus(order, 'ready-for-pickup', segmentId)}
-                        disabled={updatingOrders.has(order._id)}
-                        className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <FiTruck className="h-4 w-4 mr-2" />
-                        {updatingOrders.has(order._id) ? 'Préparation...' : 'Prête pour collecte'}
-                      </button>
-                    )}
-                    {segmentStatus === 'ready-for-pickup' && (
-                      <button 
-                        onClick={() => onUpdateStatus(order, 'in-transit', segmentId)}
-                        disabled={updatingOrders.has(order._id)}
-                        className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <FiTruck className="h-4 w-4 mr-2" />
-                        {updatingOrders.has(order._id) ? 'Expédition...' : 'Mettre en transit'}
-                      </button>
-                    )}
-                    {segmentStatus === 'in-transit' && (
-                      <button 
-                        onClick={() => onUpdateStatus(order, 'delivered', segmentId)}
-                        disabled={updatingOrders.has(order._id)}
-                        className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <FiCheckCircle className="h-4 w-4 mr-2" />
-                        {updatingOrders.has(order._id) ? 'Livraison...' : 'Marquer livrée'}
-                      </button>
-                    )}
-                    {segmentStatus === 'delivered' && (
-                      <button 
-                        onClick={() => onUpdateStatus(order, 'completed', segmentId)}
-                        disabled={updatingOrders.has(order._id)}
-                        className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <FiCheckCircle className="h-4 w-4 mr-2" />
-                        {updatingOrders.has(order._id) ? 'Finalisation...' : 'Marquer terminée'}
-                      </button>
+                    
+                    {/* Actions pour les vendeurs */}
+                    {isSellerView && (
+                      <>
+                        {segmentStatus === 'pending' && (
+                          <button 
+                            onClick={() => onUpdateStatus(order, 'cancelled', segmentId)}
+                            disabled={updatingOrders.has(order._id)}
+                            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <FiXCircle className="h-4 w-4 mr-2" />
+                            Annuler
+                          </button>
+                        )}
+                        {segmentStatus === 'confirmed' && (
+                          <button 
+                            onClick={() => onUpdateStatus(order, 'preparing', segmentId)}
+                            disabled={updatingOrders.has(order._id)}
+                            className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <FiTruck className="h-4 w-4 mr-2" />
+                            {updatingOrders.has(order._id) ? 'Préparation...' : 'Commencer préparation'}
+                          </button>
+                        )}
+                        {segmentStatus === 'preparing' && (
+                          <button 
+                            onClick={() => onUpdateStatus(order, 'ready-for-pickup', segmentId)}
+                            disabled={updatingOrders.has(order._id)}
+                            className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <FiTruck className="h-4 w-4 mr-2" />
+                            {updatingOrders.has(order._id) ? 'Préparation...' : 'Prête pour collecte'}
+                          </button>
+                        )}
+                        {/* Vendeurs peuvent annuler jusqu'à ce que la commande soit en transit */}
+                        {segmentStatus === 'ready-for-pickup' && (
+                          <button 
+                            onClick={() => onUpdateStatus(order, 'cancelled', segmentId)}
+                            disabled={updatingOrders.has(order._id)}
+                            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <FiXCircle className="h-4 w-4 mr-2" />
+                            Annuler
+                          </button>
+                        )}
+                        {/* Vendeurs ne peuvent plus rien faire une fois que la commande est en transit */}
+                      </>
                     )}
                   </div>
                 )}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         );
       })}
