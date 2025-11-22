@@ -2898,13 +2898,45 @@ exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
   const deliveryCity = order.delivery?.deliveryAddress?.city;
 
   if (deliveryRegion && transporter.userType === 'transporter' && transporter.serviceAreas) {
+    // Normaliser les valeurs pour comparaison (insensible à la casse, trim)
+    const normalizeString = (str) => str ? str.trim().toLowerCase() : '';
+    const normalizedDeliveryRegion = normalizeString(deliveryRegion);
+    const normalizedDeliveryCity = normalizeString(deliveryCity);
+
     const hasMatchingArea = transporter.serviceAreas.some(area => {
-      const regionMatch = area.region === deliveryRegion;
-      const cityMatch = !deliveryCity || (area.cities && area.cities.includes(deliveryCity));
-      return regionMatch && cityMatch;
+      if (!area || !area.region) return false;
+      
+      const normalizedAreaRegion = normalizeString(area.region);
+      const regionMatch = normalizedAreaRegion === normalizedDeliveryRegion;
+      
+      // Si la région correspond
+      if (regionMatch) {
+        // Si aucune ville spécifiée dans la commande, accepter si la région correspond
+        if (!normalizedDeliveryCity) {
+          return true;
+        }
+        
+        // Si des villes sont définies dans la zone de service, vérifier que la ville est incluse
+        if (area.cities && Array.isArray(area.cities) && area.cities.length > 0) {
+          const normalizedCities = area.cities.map(city => normalizeString(city));
+          return normalizedCities.includes(normalizedDeliveryCity);
+        }
+        
+        // Si aucune ville spécifiée dans la zone de service mais que la région correspond, accepter
+        // (le transporteur couvre toute la région)
+        return true;
+      }
+      
+      return false;
     });
 
     if (!hasMatchingArea) {
+      console.error('❌ Validation zone de livraison échouée:', {
+        deliveryRegion,
+        deliveryCity,
+        transporterId: transporter._id,
+        serviceAreas: transporter.serviceAreas
+      });
       return next(new AppError('Le transporteur sélectionné ne couvre pas la zone de livraison', 400));
     }
   }
