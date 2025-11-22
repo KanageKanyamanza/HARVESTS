@@ -490,20 +490,41 @@ exports.getMyOrders = catchAsync(async (req, res, next) => {
     .skip(skip)
     .limit(limit);
 
-for (const order of orders) {
-  if (ensureSegmentsForOrder(order)) {
-    await order.save();
+  // Créer les segments si nécessaire avec gestion d'erreur
+  for (const order of orders) {
+    try {
+      if (ensureSegmentsForOrder(order)) {
+        await order.save();
+      }
+    } catch (error) {
+      // Logger l'erreur mais continuer le traitement
+      console.error(`Erreur lors de la création des segments pour la commande ${order._id}:`, error.message);
+    }
   }
-}
 
   const total = await Order.countDocuments(query);
 
   const isSellerView = ['producer', 'transformer', 'restaurateur'].includes(req.user.userType);
   const formattedOrders = isSellerView
     ? orders
-        .map(order => formatOrderForSeller(order, req.user._id))
-        .filter(order => order.items && order.items.length > 0)
-    : orders.map(order => order.toObject({ virtuals: true }));
+        .map(order => {
+          try {
+            return formatOrderForSeller(order, req.user._id);
+          } catch (error) {
+            console.error(`Erreur lors du formatage de la commande ${order._id}:`, error.message);
+            // Retourner un objet minimal en cas d'erreur
+            return null;
+          }
+        })
+        .filter(order => order && order.items && order.items.length > 0)
+    : orders.map(order => {
+        try {
+          return order.toObject({ virtuals: true });
+        } catch (error) {
+          console.error(`Erreur lors de la conversion de la commande ${order._id}:`, error.message);
+          return null;
+        }
+      }).filter(order => order !== null);
 
   res.status(200).json({
     status: 'success',
@@ -1527,6 +1548,15 @@ function calculateEstimatedDelivery(deliveryMethod) {
 }
 
 function formatOrderForSeller(orderDoc, sellerId) {
+  if (!orderDoc) {
+    throw new Error('orderDoc est requis');
+  }
+  
+  // Vérifier si orderDoc est un document Mongoose valide
+  if (typeof orderDoc.toObject !== 'function') {
+    throw new Error('orderDoc doit être un document Mongoose valide');
+  }
+  
   const orderObj = orderDoc.toObject({ virtuals: true });
   const sellerIdStr = sellerId?.toString?.();
 
