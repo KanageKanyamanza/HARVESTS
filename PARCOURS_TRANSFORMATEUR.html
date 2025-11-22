@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parcours Transformateur - Plateforme HARVESTS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #fff;
+            padding: 20px;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+                margin: 0;
+            }
+
+            * {
+                orphans: 3;
+                widows: 3;
+            }
+
+            .no-break {
+                page-break-inside: avoid;
+            }
+
+            h1, h2 {
+                page-break-after: avoid;
+                page-break-before: auto;
+            }
+
+            h2 {
+                orphans: 2;
+                widows: 2;
+            }
+
+            .phase {
+                page-break-inside: avoid;
+                margin-bottom: 15px;
+            }
+
+            .container {
+                margin: 0;
+                padding: 15px;
+            }
+
+            header {
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+            }
+
+            .user-section {
+                padding: 12px;
+                margin-top: 15px;
+            }
+
+            .step {
+                margin: 10px 0;
+                padding: 8px;
+            }
+
+            ul, ol {
+                margin-left: 25px;
+                margin-bottom: 10px;
+            }
+
+            li {
+                margin-bottom: 5px;
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #2d5016;
+        }
+
+        h1 {
+            color: #2d5016;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.2em;
+            font-style: italic;
+        }
+
+        h2 {
+            color: #2d5016;
+            font-size: 2em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #4a7c2a;
+        }
+
+        h3 {
+            color: #4a7c2a;
+            font-size: 1.5em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #c7254e;
+            font-size: 0.9em;
+        }
+
+        .user-section {
+            margin-top: 30px;
+            padding: 15px;
+            background: #fafafa;
+            border-left: 4px solid #4a7c2a;
+        }
+
+        .phase {
+            margin: 20px 0;
+            padding: 12px;
+            background: #fff;
+            border-left: 3px solid #5a9c3a;
+        }
+
+        .phase h3 {
+            margin-top: 0;
+            color: #4a7c2a;
+        }
+
+        .step {
+            margin: 15px 0;
+            padding: 10px;
+            background: #f9f9f9;
+        }
+
+        .step strong {
+            color: #2d5016;
+        }
+
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .emoji {
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><span class="emoji">🏭</span> Parcours Transformateur</h1>
+            <p class="subtitle">Plateforme HARVESTS</p>
+            <p style="margin-top: 10px; color: #666;">Document présentant le parcours complet du transformateur sur la plateforme, de la création de compte à toutes les interactions possibles.</p>
+        </header>
+
+        <section class="user-section">
+            <h2><span class="emoji">🏭</span> TRANSFORMATEUR (Transformer)</h2>
+
+            <div class="phase">
+                <h3>Phase 1 : Création de Compte</h3>
+                <div class="step">
+                    <p><strong>1. Inscription</strong> (<code>/register</code>)</p>
+                    <ul>
+                        <li>Sélection du type d'utilisateur : Transformateur</li>
+                        <li>Renseigner : Prénom, Nom, Email, Téléphone, Mot de passe, Pays</li>
+                        <li>Validation du formulaire</li>
+                        <li>Envoi d'email de vérification</li>
+                    </ul>
+                </div>
+                <div class="step">
+                    <p><strong>2. Vérification Email</strong> (<code>/email-verification</code> ou <code>/verify-email/:token</code>)</p>
+                    <ul>
+                        <li>Réception de l'email de vérification</li>
+                        <li>Clic sur le lien de vérification</li>
+                        <li>Confirmation de l'adresse email</li>
+                    </ul>
+                </div>
+                <div class="step">
+                    <p><strong>3. Première Connexion</strong> (<code>/login</code>)</p>
+                    <ul>
+                        <li>Connexion avec email et mot de passe</li>
+                        <li>Redirection vers le dashboard transformateur</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="phase">
+                <h3>Phase 2 : Configuration du Profil</h3>
+                <div class="step">
+                    <p><strong>4. Complétion du Profil</strong> (<code>/transformer/profile</code>)</p>
+                    <ul>
+                        <li>Modification des informations personnelles (prénom, nom, téléphone)</li>
+                        <li>Ajout du nom de l'entreprise (<code>companyName</code>)</li>
+                        <li>Ajout de l'adresse complète (rue, ville, région, pays)</li>
+                        <li>Ajout d'une biographie</li>
+                        <li>Upload d'une photo de profil (avatar)</li>
+                        <li>Upload d'une bannière de boutique (<code>shopBanner</code>)</li>
+                        <li>Upload d'un logo de boutique (<code>shopLogo</code>)</li>
+                        <li>Vérification du statut de vérification (email, téléphone)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="phase">
+                <h3>Phase 3 : Gestion des Produits Transformés</h3>
+                <div class="step">
+                    <p><strong>5. Ajout de Produits</strong> (<code>/transformer/products/add</code>)</p>
+                    <ul>
+                        <li>Création d'un nouveau produit transformé</li>
+                        <li>Ajout des informations : nom, description, catégorie, prix, quantité</li>
+                        <li>Upload d'images du produit</li>
+                        <li>Définition de la disponibilité</li>
+                        <li>Informations sur le processus de transformation</li>
+                        <li>Sauvegarde du produit</li>
+                    </ul>
+                </div>
+                <div class="step">
+                    <p><strong>6. Gestion des Produits</strong> (<code>/transformer/products</code>)</p>
+                    <ul>
+                        <li>Consultation de la liste de tous les produits transformés</li>
+                        <li>Modification d'un produit (<code>/transformer/products/:id/edit</code>)</li>
+                        <li>Mise à jour des stocks</li>
+                        <li>Modification des prix</li>
+                        <li>Activation/désactivation de produits</li>
+                        <li>Suppression de produits</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="phase">
+                <h3>Phase 4 : Gestion de la Production</h3>
+                <div class="step">
+                    <p><strong>7. Gestion de la Production</strong> (<code>/transformer/production</code>)</p>
+                    <ul>
+                        <li>Suivi des lots de transformation</li>
+                        <li>Gestion de la capacité de production</li>
+                        <li>Planification de la production</li>
+                        <li>Contrôle qualité</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="phase">
+                <h3>Phase 5 : Gestion des Commandes</h3>
+                <div class="step">
+                    <p><strong>8. Consultation des Commandes</strong> (<code>/transformer/orders</code>)</p>
+                    <ul>
+                        <li>Vue de toutes les commandes reçues</li>
+                        <li>Filtrage par statut</li>
+                        <li>Consultation des détails d'une commande (<code>/transformer/orders/:id</code>)</li>
+                        <li>Confirmation de commande</li>
+                        <li>Mise à jour du statut de livraison</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="phase">
+                <h3>Phase 6 : Statistiques et Analyse</h3>
+                <div class="step">
+                    <p><strong>9. Statistiques</strong> (<code>/transformer/stats</code>)</p>
+                    <ul>
+                        <li>Consultation des ventes totales</li>
+                        <li>Analyse des produits les plus transformés</li>
+                        <li>Revenus générés</li>
+                        <li>Nombre de commandes</li>
+                        <li>Évolution de la production</li>
+                    </ul>
+                </div>
+                <div class="step">
+                    <p><strong>10. Avis Reçus</strong> (<code>/transformer/reviews</code>)</p>
+                    <ul>
+                        <li>Consultation des avis laissés par les clients</li>
+                        <li>Note moyenne reçue</li>
+                        <li>Réponse aux avis</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="phase">
+                <h3>Phase 7 : Certifications</h3>
+                <div class="step">
+                    <p><strong>11. Certifications</strong> (<code>/transformer/certifications</code>)</p>
+                    <ul>
+                        <li>Ajout de certifications de transformation</li>
+                        <li>Gestion des documents de certification</li>
+                        <li>Vérification du statut des certifications</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="phase">
+                <h3>Phase 8 : Paramètres et Configuration</h3>
+                <div class="step">
+                    <p><strong>12. Paramètres du Compte</strong> (<code>/transformer/settings</code>)</p>
+                    <ul>
+                        <li>Modification du mot de passe</li>
+                        <li>Gestion des préférences</li>
+                        <li>Gestion des notifications</li>
+                    </ul>
+                </div>
+                <div class="step">
+                    <p><strong>13. Dashboard Transformateur</strong> (<code>/transformer/dashboard</code>)</p>
+                    <ul>
+                        <li>Vue d'ensemble des statistiques</li>
+                        <li>Produits transformés récents</li>
+                        <li>Commandes récentes</li>
+                        <li>Actions rapides</li>
+                        <li>Statut de l'abonnement</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p><strong>Document généré le :</strong> <span id="date"></span></p>
+            <p><strong>Version :</strong> 1.0</p>
+            <p style="margin-top: 10px; font-size: 0.8em; color: #999;">Plateforme HARVESTS - Parcours Transformateur</p>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById('date').textContent = new Date().toLocaleDateString('fr-FR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    </script>
+</body>
+</html>
+

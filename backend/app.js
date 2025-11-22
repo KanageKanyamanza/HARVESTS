@@ -208,6 +208,24 @@ app.use('/api/v1/blog-visitors', blogVisitorRoutes);
 // app.use('/api/v1/analytics', analyticsRoutes);
 // app.use('/api/v1/admin', adminRoutes);
 
+// Route racine
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'Bienvenue sur l\'API HARVESTS',
+    description: 'Plateforme de commerce agricole',
+    version: process.env.API_VERSION || '1.0.0',
+    environment: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/api/v1/health',
+      documentation: '/api-docs',
+      auth: '/api/v1/auth',
+      api: '/api/v1'
+    }
+  });
+});
+
 // Route de fallback pour les chemins non API
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) {
