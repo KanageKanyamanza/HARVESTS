@@ -2966,7 +2966,7 @@ exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
   // Si la commande est prête pour la collecte, ne pas changer le statut de livraison
   // Sinon, mettre à jour le statut de livraison
   if (!order.delivery.status || order.delivery.status === 'pending') {
-    order.delivery.status = 'confirmed';
+  order.delivery.status = 'confirmed';
   }
   
   // Ajouter une entrée dans le timeline

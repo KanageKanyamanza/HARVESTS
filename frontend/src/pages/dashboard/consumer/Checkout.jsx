@@ -720,28 +720,28 @@ const Checkout = () => {
                     ].map((method) => {
                       const IconComponent = method.value === 'cash' ? FiDollarSign : FiCreditCard;
                       return (
-                        <label
-                          key={method.value}
-                          className={`flex items-start p-4 border rounded-lg cursor-pointer transition hover:bg-harvests-light ${
-                            orderData.paymentMethod === method.value ? 'border-harvests-green bg-harvests-light/60' : 'border-gray-200'
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name="paymentMethod"
-                            value={method.value}
-                            checked={orderData.paymentMethod === method.value}
-                            onChange={(e) => handleInputChange('', 'paymentMethod', e.target.value)}
-                            className="h-4 w-4 text-harvests-green focus:ring-harvests-green mt-1"
-                          />
-                          <div className="ml-3">
-                            <div className="flex items-center space-x-2">
+                      <label
+                        key={method.value}
+                        className={`flex items-start p-4 border rounded-lg cursor-pointer transition hover:bg-harvests-light ${
+                          orderData.paymentMethod === method.value ? 'border-harvests-green bg-harvests-light/60' : 'border-gray-200'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value={method.value}
+                          checked={orderData.paymentMethod === method.value}
+                          onChange={(e) => handleInputChange('', 'paymentMethod', e.target.value)}
+                          className="h-4 w-4 text-harvests-green focus:ring-harvests-green mt-1"
+                        />
+                        <div className="ml-3">
+                          <div className="flex items-center space-x-2">
                               <IconComponent className="h-6 w-6 text-gray-700" />
-                              <span className="text-sm font-medium text-gray-900">{method.label}</span>
-                            </div>
-                            <p className="text-sm text-gray-600 mt-2">{method.description}</p>
+                            <span className="text-sm font-medium text-gray-900">{method.label}</span>
                           </div>
-                        </label>
+                          <p className="text-sm text-gray-600 mt-2">{method.description}</p>
+                        </div>
+                      </label>
                       );
                     })}
                   </div>
