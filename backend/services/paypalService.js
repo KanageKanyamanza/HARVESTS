@@ -123,7 +123,9 @@ async function createOrder({ amount, currency, reference, returnUrl, cancelUrl }
     ],
     application_context: {
       return_url: returnUrl || process.env.PAYPAL_RETURN_URL || '',
-      cancel_url: cancelUrl || process.env.PAYPAL_CANCEL_URL || ''
+      cancel_url: cancelUrl || process.env.PAYPAL_CANCEL_URL || '',
+      landing_page: 'BILLING', // Active le Guest Checkout (paiement par carte sans compte PayPal)
+      user_action: 'PAY_NOW' // Affiche directement le bouton "Payer maintenant" au lieu de "Continuer"
     }
   });
 

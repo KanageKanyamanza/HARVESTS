@@ -1,12 +1,16 @@
-import React, { useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { FiXCircle } from 'react-icons/fi';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { FiXCircle, FiHome } from 'react-icons/fi';
 
 const PayPalCancel = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
   const reason = params.get('reason');
   const orderId = params.get('orderId');
+  const redirectTimerRef = useRef(null);
+  const hasClickedRef = useRef(false);
+  const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
     if (orderId) {
@@ -14,6 +18,47 @@ const PayPalCancel = () => {
       sessionStorage.removeItem(`harvests_paypal_confirmed_${orderId}`);
     }
   }, [orderId]);
+
+  // Redirection automatique vers l'accueil après 5 secondes avec rechargement forcé
+  useEffect(() => {
+    // Fonction pour rediriger vers l'accueil avec rechargement forcé
+    const redirectToHome = () => {
+      if (!hasClickedRef.current) {
+        window.location.href = '/';
+      }
+    };
+
+    // Démarrer le timer de 5 secondes
+    redirectTimerRef.current = setTimeout(redirectToHome, 5000);
+
+    // Compte à rebours
+    const countdownInterval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(countdownInterval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    // Nettoyer les timers si le composant est démonté
+    return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+      clearInterval(countdownInterval);
+    };
+  }, []);
+
+  const handleHomeClick = () => {
+    hasClickedRef.current = true;
+    if (redirectTimerRef.current) {
+      clearTimeout(redirectTimerRef.current);
+    }
+    // Rediriger vers l'accueil avec rechargement forcé
+    window.location.href = '/';
+  };
 
   return (
     <div className="min-h-screen bg-[#fdf7f7] py-16">
@@ -45,19 +90,38 @@ const PayPalCancel = () => {
           </div>
 
           <div className="flex flex-col md:flex-row md:justify-center gap-3">
-            <Link
-              to="/consumer/checkout"
-              className="inline-flex items-center justify-center rounded-lg bg-harvests-green px-6 py-3 font-semibold text-white hover:bg-green-600 transition-colors"
+            <button
+              onClick={handleHomeClick}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-harvests-green px-6 py-3 font-semibold text-white hover:bg-green-600 transition-colors"
+            >
+              <FiHome className="h-5 w-5" />
+              Retour à l'accueil
+            </button>
+            <button
+              onClick={() => { 
+                hasClickedRef.current = true; 
+                if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+                window.location.href = '/consumer/checkout';
+              }}
+              className="inline-flex items-center justify-center rounded-lg border border-harvests-green px-6 py-3 font-semibold text-harvests-green hover:bg-green-50 transition-colors"
             >
               Retourner au checkout
-            </Link>
-            <Link
-              to="/products"
+            </button>
+            <button
+              onClick={() => { 
+                hasClickedRef.current = true; 
+                if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+                window.location.href = '/products';
+              }}
               className="inline-flex items-center justify-center rounded-lg border border-harvests-green px-6 py-3 font-semibold text-harvests-green hover:bg-green-50 transition-colors"
             >
               Revenir à la boutique
-            </Link>
+            </button>
           </div>
+
+          <p className="mt-4 text-sm text-gray-500">
+            Redirection automatique vers l'accueil dans {countdown} seconde{countdown > 1 ? 's' : ''}...
+          </p>
         </div>
       </div>
     </div>
