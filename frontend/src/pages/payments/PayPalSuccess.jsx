@@ -1,15 +1,17 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
-import { FiCheckCircle } from 'react-icons/fi';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { FiCheckCircle, FiHome } from 'react-icons/fi';
 import { paymentService } from '../../services';
 
 const PayPalSuccess = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
   const orderId = params.get('orderId') || params.get('paymentId');
   const paypalToken = params.get('token') || params.get('paypalOrderId');
   const paymentIdParam = params.get('paymentId');
   const reloadTimerRef = useRef(null);
+  const redirectTimerRef = useRef(null);
   const hasClickedRef = useRef(false);
 
   const [confirmationState, setConfirmationState] = useState({
@@ -116,27 +118,27 @@ const PayPalSuccess = () => {
     confirmPayment();
   }, [orderId, paypalToken, paymentIdParam, params]);
 
-  // Rechargement automatique après 5 secondes ou immédiatement après un clic
+  // Redirection automatique vers l'accueil après 5 secondes avec rechargement forcé
   useEffect(() => {
     // Ne démarrer le timer que si le paiement est confirmé avec succès
     if (!confirmationState.success) {
       return;
     }
 
-    // Fonction pour recharger la page
-    const reloadPage = () => {
+    // Fonction pour rediriger vers l'accueil avec rechargement forcé
+    const redirectToHome = () => {
       if (!hasClickedRef.current) {
-        window.location.reload();
+        window.location.href = '/';
       }
     };
 
     // Démarrer le timer de 5 secondes
-    reloadTimerRef.current = setTimeout(reloadPage, 5000);
+    redirectTimerRef.current = setTimeout(redirectToHome, 5000);
 
     // Nettoyer le timer si le composant est démonté
     return () => {
-      if (reloadTimerRef.current) {
-        clearTimeout(reloadTimerRef.current);
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
       }
     };
   }, [confirmationState.success]);
@@ -146,11 +148,20 @@ const PayPalSuccess = () => {
     e.preventDefault();
     hasClickedRef.current = true;
     // Annuler le timer si un bouton est cliqué
-    if (reloadTimerRef.current) {
-      clearTimeout(reloadTimerRef.current);
+    if (redirectTimerRef.current) {
+      clearTimeout(redirectTimerRef.current);
     }
-    // Recharger la page immédiatement, puis naviguer
+    // Rediriger avec rechargement forcé
     window.location.href = targetPath;
+  };
+
+  const handleHomeClick = () => {
+    hasClickedRef.current = true;
+    if (redirectTimerRef.current) {
+      clearTimeout(redirectTimerRef.current);
+    }
+    // Rediriger vers l'accueil avec rechargement forcé
+    window.location.href = '/';
   };
 
   return (
@@ -204,21 +215,38 @@ const PayPalSuccess = () => {
             )}
           </div>
 
-          {params.get('type') !== 'subscription' && (
+          {confirmationState.success && (
             <div className="flex flex-col md:flex-row md:justify-center gap-3">
               <button
-                onClick={(e) => handleButtonClick(e, '/consumer/orders')}
-                className="inline-flex items-center justify-center rounded-lg bg-harvests-green px-6 py-3 font-semibold text-white hover:bg-green-600 transition-colors"
+                onClick={handleHomeClick}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-harvests-green px-6 py-3 font-semibold text-white hover:bg-green-600 transition-colors"
               >
-                Voir mes commandes
+                <FiHome className="h-5 w-5" />
+                Retour à l'accueil
               </button>
-              <button
-                onClick={(e) => handleButtonClick(e, '/products')}
-                className="inline-flex items-center justify-center rounded-lg border border-harvests-green px-6 py-3 font-semibold text-harvests-green hover:bg-green-50 transition-colors"
-              >
-                Continuer mes achats
-              </button>
+              {params.get('type') !== 'subscription' && (
+                <>
+                  <button
+                    onClick={(e) => handleButtonClick(e, '/consumer/orders')}
+                    className="inline-flex items-center justify-center rounded-lg border border-harvests-green px-6 py-3 font-semibold text-harvests-green hover:bg-green-50 transition-colors"
+                  >
+                    Voir mes commandes
+                  </button>
+                  <button
+                    onClick={(e) => handleButtonClick(e, '/products')}
+                    className="inline-flex items-center justify-center rounded-lg border border-harvests-green px-6 py-3 font-semibold text-harvests-green hover:bg-green-50 transition-colors"
+                  >
+                    Continuer mes achats
+                  </button>
+                </>
+              )}
             </div>
+          )}
+          
+          {confirmationState.success && (
+            <p className="mt-4 text-sm text-gray-500">
+              Redirection automatique vers l'accueil dans 5 secondes...
+            </p>
           )}
         </div>
       </div>

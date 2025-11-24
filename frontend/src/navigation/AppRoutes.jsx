@@ -42,6 +42,7 @@ import BlogDetailPage from '../pages/BlogDetailPage';
 import PayPalSuccess from '../pages/payments/PayPalSuccess';
 import PayPalCancel from '../pages/payments/PayPalCancel';
 import SubscriptionPayment from '../pages/payments/SubscriptionPayment';
+import SubscriptionCheckout from '../pages/payments/SubscriptionCheckout';
 
 // Import des pages d'authentification
 import Login from '../pages/auth/Login';
@@ -201,6 +202,7 @@ const AppRoutes = () => {
       <Route path="/payments/paypal/success" element={<Layout><SuspenseRoute element={<PayPalSuccess />} /></Layout>} />
       <Route path="/payments/paypal/cancel" element={<Layout><SuspenseRoute element={<PayPalCancel />} /></Layout>} />
       <Route path="/payment/subscription/:planId" element={<Layout><SuspenseRoute element={<SubscriptionPayment />} /></Layout>} />
+      <Route path="/payment/subscription/:planId/checkout" element={<Layout><SuspenseRoute element={<SubscriptionCheckout />} /></Layout>} />
 
       {/* Routes d'authentification */}
       <Route path="/login" element={

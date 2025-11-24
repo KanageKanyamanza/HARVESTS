@@ -5,10 +5,7 @@ import { consumerService, orderService, paymentService } from '../../../services
 import { parseProductName } from '../../../utils/productUtils';
 import {
   PayPalScriptProvider,
-  PayPalButtons,
-  PayPalHostedFieldsProvider,
-  PayPalHostedField,
-  usePayPalHostedFields
+  PayPalButtons
 } from '@paypal/react-paypal-js';
 import {
   FiCheckCircle,
@@ -25,7 +22,8 @@ import {
   FiUser,
   FiPhone,
   FiLock,
-  FiCheck
+  FiCheck,
+  FiMail
 } from 'react-icons/fi';
 
 const OrderConfirmation = () => {
@@ -40,10 +38,6 @@ const OrderConfirmation = () => {
   const paymentIdRef = useRef(null);
   const paypalClientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
   const paypalCurrency = 'USD';
-  const [paypalClientToken, setPaypalClientToken] = useState(null);
-  const [paypalTokenLoading, setPaypalTokenLoading] = useState(false);
-  const [paypalTokenError, setPaypalTokenError] = useState(null);
-  const [hostedFieldsOrderId, setHostedFieldsOrderId] = useState(null);
   const orderKey = order?._id || order?.id || null;
 
   const fetchOrder = useCallback(async () => {
@@ -292,82 +286,6 @@ const OrderConfirmation = () => {
     }
   }, [fetchOrder, orderKey, navigate]);
 
-  // Créer une commande PayPal pour les Hosted Fields (paiement unique pour les produits)
-  const createOrderForHostedFields = useCallback(async (data, actions) => {
-    // Si l'orderId a déjà été créé, le retourner directement
-    if (hostedFieldsOrderId) {
-      return hostedFieldsOrderId;
-    }
-    
-    // Fallback: créer l'ordre si nécessaire
-    if (!orderKey) {
-      throw new Error('Commande introuvable.');
-    }
-
-    try {
-      setPaymentProcessing(true);
-      setPaymentError(null);
-
-      const response = await paymentService.createOrderForHostedFields({
-        type: 'order',
-        orderId: orderKey,
-        amount: order?.total || 0,
-        currency: order?.currency || 'XAF'
-      });
-
-      const payload = response.data?.data;
-      const paymentId = payload?.paymentId || null;
-      const orderId = payload?.paypalOrderId || null;
-
-      if (!orderId) {
-        throw new Error('Identifiant PayPal introuvable.');
-      }
-
-      if (paymentId) {
-        paymentIdRef.current = paymentId;
-        sessionStorage.setItem(`harvests_paypal_payment_${orderKey}`, paymentId);
-      }
-      
-      setHostedFieldsOrderId(orderId);
-      setPaymentProcessing(false);
-      return orderId;
-    } catch (err) {
-      const message =
-        err.response?.data?.message ||
-        err.message ||
-        'Impossible de créer la commande PayPal.';
-      setPaymentError(message);
-      setPaymentProcessing(false);
-      throw err;
-    }
-  }, [orderKey, order, hostedFieldsOrderId]);
-
-  const handleHostedFieldsSubmit = useCallback(async (cardFieldsInstance) => {
-    try {
-      setPaymentProcessing(true);
-      setPaymentError(null);
-
-      const state = cardFieldsInstance.getState();
-      if (!state?.isFormValid) {
-        throw new Error('Veuillez compléter toutes les informations de carte.');
-      }
-
-      const { orderId } = await cardFieldsInstance.submit({
-        contingencies: ['3D_SECURE']
-      });
-
-      await handlePayPalApprove({ orderID: orderId });
-      return { success: true };
-    } catch (err) {
-      const message =
-        err?.response?.data?.message ||
-        err?.message ||
-        'Paiement refusé. Veuillez vérifier votre carte.';
-      setPaymentError(message);
-      setPaymentProcessing(false);
-      return { error: message };
-    }
-  }, [handlePayPalApprove]);
 
   const handlePayPalCancel = useCallback(() => {
     setPaymentError('Paiement annulé. Vous pouvez réessayer.');
@@ -389,49 +307,6 @@ const OrderConfirmation = () => {
   const orderCurrency = (order?.currency || order?.payment?.currency || '').toUpperCase();
   const showCurrencyNotice = Boolean(orderCurrency) && orderCurrency !== paypalCurrency;
 
-  useEffect(() => {
-    if (!isPaypalPayment || !paypalClientId) {
-      return;
-    }
-
-    let isMounted = true;
-
-    const loadClientToken = async () => {
-      try {
-        setPaypalTokenLoading(true);
-        setPaypalTokenError(null);
-
-        const response = await paymentService.getClientToken();
-        const token =
-          response.data?.data?.clientToken ||
-          response.data?.clientToken ||
-          null;
-
-        if (isMounted) {
-          setPaypalClientToken(token);
-        }
-      } catch (error) {
-        if (isMounted) {
-          const message =
-            error.response?.data?.message ||
-            error.message ||
-            'Impossible de récupérer le token PayPal.';
-          setPaypalTokenError(message);
-        }
-      } finally {
-        if (isMounted) {
-          setPaypalTokenLoading(false);
-        }
-      }
-    };
-
-    loadClientToken();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [isPaypalPayment, paypalClientId]);
-
   const paypalOptions = useMemo(() => {
     if (!paypalClientId) {
       return null;
@@ -440,17 +315,15 @@ const OrderConfirmation = () => {
     const options = {
       'client-id': paypalClientId,
       currency: paypalCurrency,
-      components: paypalClientToken ? 'buttons,hosted-fields' : 'buttons'
+      components: 'buttons',
+      // Activer le Guest Checkout (paiement par carte sans compte PayPal)
+      'enable-funding': 'card',
+      'disable-funding': 'credit,paylater,venmo',
+      intent: 'capture'
     };
 
-    if (paypalClientToken) {
-      options['data-client-token'] = paypalClientToken;
-      options.dataClientToken = paypalClientToken;
-      options.intent = 'capture';
-    }
-
     return options;
-  }, [paypalClientId, paypalCurrency, paypalClientToken]);
+  }, [paypalClientId, paypalCurrency]);
 
   if (loading) {
     return (
@@ -561,11 +434,41 @@ const OrderConfirmation = () => {
         </div>
 
         {isPaypalPending && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-green-200">
+          <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-green-200 relative z-10">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               PayPal ou Carte bancaire
             </h2>
-            <div className="border-2 border-green-500 rounded-xl bg-green-50 p-4">
+            
+            {/* Informations utilisateur */}
+            {user && (
+              <div className="mb-6 bg-white border-2 border-gray-300 rounded-lg p-4 shadow-sm relative z-10">
+                <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                  <FiUser className="h-4 w-4 mr-2" />
+                  Informations de facturation
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  <div className="flex items-center text-gray-900">
+                    <FiUser className="h-4 w-4 mr-2 text-gray-600" />
+                    <span className="font-medium">{user.firstName || ''} {user.lastName || ''}</span>
+                  </div>
+                  {user.email && (
+                    <div className="flex items-center text-gray-900">
+                      <FiMail className="h-4 w-4 mr-2 text-gray-600" />
+                      <span>{user.email}</span>
+                    </div>
+                  )}
+                  {user.phone && (
+                    <div className="flex items-center text-gray-900">
+                      <FiPhone className="h-4 w-4 mr-2 text-gray-600" />
+                      <span>{user.phone}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {/* En-tête de paiement */}
+            <div className="border-2 border-green-500 rounded-xl bg-green-100 p-4 mb-4 relative z-10">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-base font-semibold text-green-900">
@@ -577,9 +480,12 @@ const OrderConfirmation = () => {
                 </div>
                 <FiCreditCard className="h-6 w-6 text-green-800" />
               </div>
+            </div>
 
+            {/* Zone de paiement PayPal */}
+            <div className="relative z-10">
               {!paypalClientId ? (
-                <div className="mt-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg p-3">
+                <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg p-3">
                   Configuration PayPal manquante. Veuillez définir <code>VITE_PAYPAL_CLIENT_ID</code>.
                   <div className="mt-3">
                     <button
@@ -595,67 +501,27 @@ const OrderConfirmation = () => {
                 <>
                   {paypalOptions ? (
                     <PayPalScriptProvider
-                      key={paypalClientToken ? `paypal-with-hosted-fields-${paypalClientToken}` : 'paypal-buttons-only'}
+                      key="paypal-buttons-checkout"
                       options={paypalOptions}
                     >
-                      <div className="mt-4 space-y-5">
+                      <div className="relative z-10 bg-white rounded-lg p-4">
                         <PayPalButtons
-                          style={{ layout: 'vertical', shape: 'rect', color: 'gold' }}
+                          style={{ 
+                            layout: 'vertical', 
+                            shape: 'rect', 
+                            color: 'gold', 
+                            label: 'pay' 
+                          }}
                           createOrder={createPayPalOrder}
                           onApprove={handlePayPalApprove}
                           onCancel={handlePayPalCancel}
                           onError={handlePayPalError}
-                          disabled={paymentProcessing}
-                          forceReRender={[orderKey, paypalClientToken]}
+                          // disabled={paymentProcessing}
                         />
-
-                        {paypalTokenLoading && !paypalClientToken && (
-                          <div className="text-sm text-gray-600 bg-white border border-gray-200 rounded-md p-3">
-                            Chargement du formulaire carte sécurisé…
-                          </div>
-                        )}
-
-                        {paypalTokenError && !paypalClientToken && (
-                          <div className="bg-orange-50 border border-orange-200 text-orange-700 text-sm rounded-lg p-3 space-y-3">
-                            <p>{paypalTokenError}</p>
-                            <button
-                              onClick={() => handleFallbackPayment()}
-                              disabled={paymentProcessing}
-                              className="w-full bg-[#003087] hover:bg-[#001f5c] text-white font-semibold rounded-lg py-2.5 transition disabled:opacity-50"
-                            >
-                              Continuer vers PayPal
-                            </button>
-                          </div>
-                        )}
-
-                        {paypalClientToken && typeof window !== 'undefined' && window.paypal && window.paypal.HostedFields ? (
-                          <PayPalHostedFieldsProvider
-                            createOrder={hostedFieldsOrderId ? () => Promise.resolve(hostedFieldsOrderId) : createOrderForHostedFields}
-                            styles={{
-                              '.valid': { color: '#16a34a' },
-                              '.invalid': { color: '#dc2626' },
-                              input: {
-                                fontSize: '16px',
-                                color: '#111827'
-                              }
-                            }}
-                          >
-                            <CardHostedFieldsForm
-                              onSubmit={handleHostedFieldsSubmit}
-                              disabled={!isPaypalPending}
-                              isProcessing={paymentProcessing}
-                              user={user}
-                            />
-                          </PayPalHostedFieldsProvider>
-                        ) : paypalClientToken ? (
-                          <div className="text-sm text-gray-600 bg-yellow-50 border border-yellow-200 rounded-md p-3">
-                            Le formulaire de carte sécurisé est en cours de chargement...
-                          </div>
-                        ) : null}
                       </div>
                     </PayPalScriptProvider>
                   ) : (
-                    <div className="mt-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg p-3">
+                    <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg p-3">
                       Impossible d'initialiser PayPal pour le moment. Utilisez le bouton ci-dessous.
                       <div className="mt-3">
                         <button
@@ -677,19 +543,19 @@ const OrderConfirmation = () => {
               )}
             </div>
 
-            <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-gray-600">
+            <div className="mt-4 flex items-center justify-center space-x-2 text-sm text-gray-600 relative z-10">
               <FiLock className="h-4 w-4" />
               <span>Paiement sécurisé protégé par cryptage SSL</span>
             </div>
 
             {paymentProcessing && (
-              <div className="mt-4 bg-blue-50 border border-blue-200 text-blue-700 text-sm rounded-lg p-3">
+              <div className="mt-4 bg-blue-50 border border-blue-200 text-blue-700 text-sm rounded-lg p-3 relative z-10">
                 Préparation de la fenêtre de paiement…
               </div>
             )}
 
             {paymentError && (
-              <div className="mt-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg p-3">
+              <div className="mt-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg p-3 relative z-10">
                 {paymentError}
               </div>
             )}
@@ -1016,155 +882,4 @@ const OrderConfirmation = () => {
 
 export default OrderConfirmation;
 
-const CardHostedFieldsForm = ({ onSubmit, disabled, isProcessing, user }) => {
-  const { cardFields } = usePayPalHostedFields();
-  const [localError, setLocalError] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    if (!cardFields) {
-      setLocalError('Le formulaire de carte est en cours de préparation. Réessayez dans un instant.');
-      return;
-    }
-
-    const state = cardFields.getState();
-    if (!state?.isFormValid) {
-      setLocalError('Veuillez compléter toutes les informations de carte.');
-      return;
-    }
-
-    setSubmitting(true);
-    const result = await onSubmit(cardFields);
-    if (result?.error) {
-      setLocalError(result.error);
-    } else {
-      setLocalError(null);
-    }
-    setSubmitting(false);
-  };
-
-  const isDisabled = disabled || isProcessing || submitting || !cardFields;
-
-  // Récupérer les informations de l'utilisateur
-  const userName = user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : '';
-  const userEmail = user?.email || '';
-  const userPhone = user?.phone || '';
-  const userCountry = user?.country || '';
-
-  return (
-    <div className="bg-white border border-green-200 rounded-lg overflow-hidden">
-      {/* En-tête */}
-      <div className="bg-green-50 border-b border-green-200 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <FiCreditCard className="h-5 w-5 text-green-600" />
-          <div>
-            <h4 className="text-sm font-bold text-green-800">Credit card or PayPal</h4>
-            <p className="text-xs text-gray-600">Pay securely with Credit card or PayPal</p>
-          </div>
-        </div>
-        <div className="h-6 w-6 rounded-full bg-green-600 flex items-center justify-center">
-          <FiCheck className="h-4 w-4 text-white" />
-        </div>
-      </div>
-
-      {/* Informations utilisateur pré-remplies */}
-      {user && (
-        <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-          <div className="space-y-2 text-sm">
-            {userName && (
-              <div className="flex items-center gap-2">
-                <FiUser className="h-4 w-4 text-gray-500" />
-                <span className="text-gray-700 font-medium">{userName}</span>
-              </div>
-            )}
-            {userEmail && (
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500">📧</span>
-                <span className="text-gray-700">{userEmail}</span>
-              </div>
-            )}
-            {userPhone && (
-              <div className="flex items-center gap-2">
-                <FiPhone className="h-4 w-4 text-gray-500" />
-                <span className="text-gray-700">{userPhone}</span>
-              </div>
-            )}
-            {userCountry && (
-              <div className="flex items-center gap-2">
-                <FiMapPin className="h-4 w-4 text-gray-500" />
-                <span className="text-gray-700">{userCountry}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Formulaire de carte */}
-      <form onSubmit={handleSubmit} className="px-4 py-4 space-y-4">
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <label htmlFor="card-number" className="block text-sm font-medium text-gray-700">
-              Numéro de carte
-            </label>
-            <PayPalHostedField
-              id="card-number"
-              className="paypal-hosted-field block w-full rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-              hostedFieldType="number"
-              options={{
-                selector: '#card-number',
-                placeholder: '0000 0000 0000 0000'
-              }}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label htmlFor="card-expiration" className="block text-sm font-medium text-gray-700">
-                Expire
-              </label>
-              <PayPalHostedField
-                id="card-expiration"
-                className="paypal-hosted-field block w-full rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-                hostedFieldType="expirationDate"
-                options={{
-                  selector: '#card-expiration',
-                  placeholder: 'MM / AA'
-                }}
-              />
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="card-cvv" className="block text-sm font-medium text-gray-700">
-                Crypto. visuel
-              </label>
-              <PayPalHostedField
-                id="card-cvv"
-                className="paypal-hosted-field block w-full rounded-md border border-gray-300 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-                hostedFieldType="cvv"
-                options={{
-                  selector: '#card-cvv',
-                  placeholder: '123'
-                }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {localError && (
-          <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-md p-3">
-            {localError}
-          </div>
-        )}
-
-        <button
-          type="submit"
-          disabled={isDisabled}
-          className="w-full inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 px-4 py-3 text-sm font-semibold text-white transition disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {isProcessing || submitting ? 'Traitement…' : 'Payer'}
-        </button>
-      </form>
-    </div>
-  );
-};
+// Composant CardHostedFieldsForm supprimé - utilisation uniquement des boutons PayPal

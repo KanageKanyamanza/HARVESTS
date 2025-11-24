@@ -14,7 +14,8 @@ import {
   DollarSign,
   CreditCard,
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  Banknote
 } from 'lucide-react';
 import { adminService } from '../../services/adminService';
 
@@ -546,7 +547,17 @@ const AdminSubscriptions = () => {
                     <div>
                       <label className="text-sm font-medium text-gray-700">Méthode de paiement</label>
                       <p className="mt-1 text-sm text-gray-900">
-                        {selectedSubscription.paymentMethod === 'cash' ? '💵 Paiement à la livraison' : '🅿️ PayPal'}
+                        {selectedSubscription.paymentMethod === 'cash' ? (
+                          <>
+                            <Banknote className="inline h-4 w-4 mr-1" />
+                            Paiement à la livraison
+                          </>
+                        ) : (
+                          <>
+                            <CreditCard className="inline h-4 w-4 mr-1" />
+                            PayPal
+                          </>
+                        )}
                       </p>
                     </div>
                     <div>

@@ -2861,10 +2861,15 @@ exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
     return next(new AppError('Commande non trouvée', 404));
   }
 
-  // Vérifier que la commande n'a pas déjà un transporteur assigné
-  if (order.delivery?.transporter) {
-    return next(new AppError('Un transporteur est déjà assigné à cette commande', 400));
+  // Vérifier que la commande n'est pas déjà livrée ou terminée
+  const finalStatuses = ['delivered', 'completed', 'cancelled', 'refunded', 'disputed'];
+  if (finalStatuses.includes(order.status)) {
+    return next(new AppError(`Impossible d'assigner un transporteur à une commande avec le statut: ${order.status}`, 400));
   }
+
+  // Permettre l'assignation même si un transporteur est déjà assigné (remplacement possible)
+  // et même si la commande est prête pour la collecte (ready-for-pickup)
+  const previousTransporterId = order.delivery?.transporter;
 
   // Récupérer le transporteur ou exportateur (Transporter et Exporter sont des discriminators de User)
   // D'abord, essayer de trouver un transporteur
@@ -2887,6 +2892,9 @@ exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
   if (!transporter) {
     return next(new AppError('Transporteur/Exportateur non trouvé', 404));
   }
+
+  // Vérifier si c'est une réassignation (changement de transporteur)
+  const isReassignment = previousTransporterId && previousTransporterId.toString() !== transporter._id.toString();
 
   // Vérifier que le transporteur/exportateur est actif et approuvé
   if (!transporter.isActive || !transporter.isApproved || !transporter.isEmailVerified) {
@@ -2942,18 +2950,39 @@ exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
   }
 
   // Assigner le transporteur à la commande
+  const transporterName = transporter.companyName || `${transporter.firstName} ${transporter.lastName}`;
+  
+  // Si c'est une réassignation, noter l'ancien transporteur
+  if (isReassignment && previousTransporterId) {
+    const previousTransporter = await User.findById(previousTransporterId).select('firstName lastName companyName');
+    if (previousTransporter) {
+      const previousName = previousTransporter.companyName || `${previousTransporter.firstName} ${previousTransporter.lastName}`;
+      console.log(`🔄 Réassignation: ${previousName} -> ${transporterName}`);
+    }
+  }
+  
   order.delivery.transporter = transporter._id; // Transporter est déjà un User
-  order.delivery.status = 'confirmed';
+  
+  // Si la commande est prête pour la collecte, ne pas changer le statut de livraison
+  // Sinon, mettre à jour le statut de livraison
+  if (!order.delivery.status || order.delivery.status === 'pending') {
+    order.delivery.status = 'confirmed';
+  }
   
   // Ajouter une entrée dans le timeline
   if (!order.delivery.timeline) {
     order.delivery.timeline = [];
   }
+  
+  const timelineNote = isReassignment 
+    ? `Transporteur réassigné: ${transporterName} (remplace le transporteur précédent)`
+    : `Transporteur assigné: ${transporterName}`;
+  
   order.delivery.timeline.push({
-    status: 'confirmed',
+    status: order.delivery.status,
     timestamp: new Date(),
     location: deliveryCity || deliveryRegion || 'Zone de livraison',
-    note: `Transporteur assigné: ${transporter.companyName || transporter.firstName + ' ' + transporter.lastName}`,
+    note: timelineNote,
     updatedBy: req.admin._id
   });
 
@@ -2989,8 +3018,6 @@ exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
   // Notifier le client (acheteur)
   if (order.buyer) {
     const buyerOrderUrl = await buildOrderUrl(order.buyer._id);
-    const transporterName = transporter.companyName || 
-      `${transporter.firstName} ${transporter.lastName}`;
     
     await Notification.createNotification({
       recipient: order.buyer._id,
@@ -3041,9 +3068,6 @@ exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
 
   // Notifier chaque vendeur
   if (sellerIds.size > 0) {
-    const transporterName = transporter.companyName || 
-      `${transporter.firstName} ${transporter.lastName}`;
-    
     const sellerNotificationsPromises = Array.from(sellerIds).map(async (sellerId) => {
       const sellerOrderUrl = await buildOrderUrl(sellerId);
       
@@ -3082,8 +3106,6 @@ exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
 
   // Notifier le transporteur/exportateur de l'assignation
   const transporterOrderUrl = await buildOrderUrl(transporter._id);
-  const transporterName = transporter.companyName || 
-    `${transporter.firstName} ${transporter.lastName}`;
   const delivererType = transporter.userType === 'exporter' ? 'exportateur' : 'transporteur';
   
   await Notification.createNotification({
