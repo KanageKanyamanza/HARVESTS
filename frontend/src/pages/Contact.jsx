@@ -53,7 +53,7 @@ const Contact = () => {
     {
       icon: <FiMail className="w-6 h-6" />,
       title: "Email",
-      details: ["info@growthubb.space"],
+      details: ["contact@harvests.site"],
       description: "Nous répondons généralement dans les 24h"
     },
     {

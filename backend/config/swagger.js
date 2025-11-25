@@ -34,7 +34,7 @@ const swaggerOptions = {
       `,
       contact: {
         name: 'Équipe Harvests',
-        email: 'info@growthubb.space',
+        email: 'contact@harvests.site',
         url: 'https://harvests.sn'
       },
       license: {

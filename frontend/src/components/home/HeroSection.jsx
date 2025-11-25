@@ -11,14 +11,14 @@ const HeroSection = () => {
 		() => [
 			{
 				id: 0,
-				image: heroBg1,
-				subtitle: "Avec HARVESTS, les restaurateurs peuvent acheter des produits agricoles frais et de qualité directement du producteur.",
-			},
-			{
-				id: 1,
 				image: heroBg2,
 				subtitle:
 					"HARVESTS, une place de marché digitale pour les produits agricoles africains",
+			},
+			{
+				id: 1,
+				image: heroBg1,
+				subtitle: "Avec HARVESTS, les restaurateurs peuvent acheter des produits agricoles frais et de qualité directement du producteur.",
 			},
 			{
 				id: 2,
@@ -39,26 +39,26 @@ const HeroSection = () => {
 	const [currentSlide, setCurrentSlide] = useState(0);
 	const position = useMemo(() => {
 		switch (currentSlide) {
-			case 1:
+			case 0:
 				return {
 					wrapper:
-						"absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center items-center md:left-auto md:right-6 md:top-1/2 md:translate-x-0 md:-translate-y-1/2 md:text-right md:items-end",
+						"absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center items-center px-4 md:px-0 md:left-auto md:right-6 md:top-1/2 md:translate-x-0 md:-translate-y-1/2 md:text-right md:items-end",
 					button: "justify-center md:justify-end",
 					title: "text-center md:text-right",
 				};
 			case 3:
 				return {
 					wrapper:
-						"absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center items-center md:left-0 md:bottom-0 md:top-auto md:px-4 md:pb-6 md:translate-x-0 md:translate-y-0 md:text-left md:items-start",
+						"absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center items-center px-4 md:left-0 md:bottom-0 md:top-auto md:px-4 md:pb-6 md:translate-x-0 md:translate-y-0 md:text-left md:items-start",
 					button: "justify-center md:justify-start",
-					title: "text-center px-2 md:text-left",
+					title: "text-center md:text-left",
 				};
-			case 0:
+			case 1:
 			case 2:
 			default:
 				return {
 					wrapper:
-						"absolute left-1/2 bottom-24 sm:bottom-32 md:bottom-12 -translate-x-1/2 text-center items-center",
+						"absolute left-1/2 bottom-24 sm:bottom-32 md:bottom-12 -translate-x-1/2 text-center items-center px-4 md:px-0",
 					button: "justify-center",
 					title: "text-center",
 				};

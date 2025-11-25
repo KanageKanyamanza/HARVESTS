@@ -74,7 +74,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4 flex-shrink-0" />
-                <span>info@growthubb.space</span>
+                <span>contact@harvests.site</span>
               </div>
             </div>
           </div>
