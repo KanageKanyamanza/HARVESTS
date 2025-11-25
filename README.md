@@ -281,7 +281,7 @@ MIT License - voir [LICENSE](LICENSE)
 
 ## 📞 Support
 
-- 📧 **Email:** contact@harvests.africa
+- 📧 **Email:** contact@harvests.site
 - 🐛 **Issues:** [GitHub Issues](https://github.com/ZooM982/HARVESTS/issues)
 - 💬 **Discussions:** [GitHub Discussions](https://github.com/ZooM982/HARVESTS/discussions)
 
