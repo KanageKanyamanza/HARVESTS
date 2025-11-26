@@ -59,6 +59,144 @@ export const chatService = {
       console.error('Erreur chatService.getOrderStatus:', error);
       return null;
     }
+  },
+
+  // Rechercher des vendeurs
+  searchSellers: async (query) => {
+    try {
+      const response = await api.get('/chat/search-sellers', {
+        params: { query, limit: 5 }
+      });
+      return response.data?.data?.sellers || [];
+    } catch (error) {
+      console.error('Erreur chatService.searchSellers:', error);
+      return [];
+    }
+  },
+
+  // Rechercher des transporteurs
+  searchTransporters: async (query) => {
+    try {
+      const response = await api.get('/chat/search-transporters', {
+        params: { query, limit: 5 }
+      });
+      return response.data?.data?.transporters || [];
+    } catch (error) {
+      console.error('Erreur chatService.searchTransporters:', error);
+      return [];
+    }
+  },
+
+  // Obtenir les catégories
+  getCategories: async () => {
+    try {
+      const response = await api.get('/chat/categories');
+      return response.data?.data?.categories || [];
+    } catch (error) {
+      console.error('Erreur chatService.getCategories:', error);
+      return [];
+    }
+  },
+
+  // Obtenir les produits en promotion
+  getPromotions: async () => {
+    try {
+      const response = await api.get('/products', {
+        params: { hasDiscount: true, limit: 5, sort: '-discount' }
+      });
+      return response.data?.data?.products || [];
+    } catch (error) {
+      console.error('Erreur chatService.getPromotions:', error);
+      return [];
+    }
+  },
+
+  // Obtenir les nouveaux produits
+  getNewProducts: async () => {
+    try {
+      const response = await api.get('/products', {
+        params: { limit: 5, sort: '-createdAt' }
+      });
+      return response.data?.data?.products || [];
+    } catch (error) {
+      console.error('Erreur chatService.getNewProducts:', error);
+      return [];
+    }
+  },
+
+  // Obtenir les suggestions personnalisées (basées sur l'historique)
+  getSuggestions: async () => {
+    try {
+      const response = await api.get('/products/suggestions');
+      return response.data?.data?.products || [];
+    } catch (error) {
+      // Fallback: produits populaires
+      try {
+        const fallback = await api.get('/products', {
+          params: { limit: 5, sort: '-salesCount' }
+        });
+        return fallback.data?.data?.products || [];
+      } catch {
+        return [];
+      }
+    }
+  },
+
+  // Obtenir les notifications
+  getNotifications: async () => {
+    try {
+      const response = await api.get('/notifications', {
+        params: { limit: 5, unread: true }
+      });
+      return response.data?.data?.notifications || [];
+    } catch (error) {
+      console.error('Erreur chatService.getNotifications:', error);
+      return [];
+    }
+  },
+
+  // Obtenir le contenu du panier
+  getCart: async () => {
+    try {
+      const response = await api.get('/cart');
+      return response.data?.data?.cart || response.data?.cart || null;
+    } catch (error) {
+      console.error('Erreur chatService.getCart:', error);
+      return null;
+    }
+  },
+
+  // Vider le panier
+  clearCart: async () => {
+    try {
+      await api.delete('/cart');
+      return true;
+    } catch (error) {
+      console.error('Erreur chatService.clearCart:', error);
+      return false;
+    }
+  },
+
+  // Obtenir les favoris
+  getFavorites: async () => {
+    try {
+      const response = await api.get('/users/favorites');
+      return response.data?.data?.favorites || [];
+    } catch (error) {
+      console.error('Erreur chatService.getFavorites:', error);
+      return [];
+    }
+  },
+
+  // Envoyer un feedback sur une réponse
+  sendFeedback: async (messageId, isPositive) => {
+    try {
+      await api.post('/chat/feedback', { messageId, isPositive });
+      return true;
+    } catch (error) {
+      console.error('Erreur chatService.sendFeedback:', error);
+      return false;
+    }
   }
 };
 

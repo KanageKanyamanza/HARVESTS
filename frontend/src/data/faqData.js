@@ -230,6 +230,46 @@ export const faqData = {
       action: 'TRACK_ORDER'
     },
     {
+      id: 'my_orders',
+      keywords: ['mes commandes', 'historique commandes', 'commandes passées'],
+      action: 'MY_ORDERS'
+    },
+    {
+      id: 'my_cart',
+      keywords: ['mon panier', 'panier', 'dans mon panier', 'contenu panier'],
+      action: 'MY_CART'
+    },
+    {
+      id: 'clear_cart',
+      keywords: ['vider panier', 'vider mon panier', 'supprimer panier'],
+      action: 'CLEAR_CART'
+    },
+    {
+      id: 'my_favorites',
+      keywords: ['mes favoris', 'favoris', 'produits favoris', 'liste favoris'],
+      action: 'MY_FAVORITES'
+    },
+    {
+      id: 'notifications',
+      keywords: ['notifications', 'mes notifications', 'alertes', 'messages'],
+      action: 'NOTIFICATIONS'
+    },
+    {
+      id: 'promotions',
+      keywords: ['promotion', 'promotions', 'promo', 'promos', 'réduction', 'soldes', 'offre'],
+      action: 'PROMOTIONS'
+    },
+    {
+      id: 'new_products',
+      keywords: ['nouveauté', 'nouveautés', 'nouveau', 'nouveaux', 'quoi de neuf', 'dernier', 'récent'],
+      action: 'NEW_PRODUCTS'
+    },
+    {
+      id: 'suggestions',
+      keywords: ['suggestion', 'suggestions', 'recommandation', 'recommander', 'conseiller', 'pour moi'],
+      action: 'SUGGESTIONS'
+    },
+    {
       id: 'search_product',
       keywords: ['cherche', 'recherche', 'trouver', 'acheter', 'je veux', 'avez-vous', 'avez vous', 'y a-t-il', 'existe', 'vendez', 'vends', 'proposez', 'disponible'],
       action: 'SEARCH_PRODUCT'

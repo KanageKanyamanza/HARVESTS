@@ -1,5 +1,6 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
+const User = require('../models/User');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 
@@ -76,6 +77,98 @@ exports.getMyRecentOrders = catchAsync(async (req, res, next) => {
     status: 'success',
     results: orders.length,
     data: { orders }
+  });
+});
+
+// Rechercher des vendeurs (producteurs, transformateurs, restaurateurs)
+exports.searchSellers = catchAsync(async (req, res, next) => {
+  const { query, limit = 5 } = req.query;
+
+  if (!query || query.length < 2) {
+    return next(new AppError('Le terme de recherche doit contenir au moins 2 caractères', 400));
+  }
+
+  const searchRegex = { $regex: query, $options: 'i' };
+  
+  const sellers = await User.find({
+    $and: [
+      { userType: { $in: ['producer', 'transformer', 'restaurateur'] } },
+      { isActive: true },
+      { isVerified: true },
+      {
+        $or: [
+          { firstName: searchRegex },
+          { lastName: searchRegex },
+          { farmName: searchRegex },
+          { companyName: searchRegex },
+          { restaurantName: searchRegex },
+          { 'address.city': searchRegex },
+          { 'address.region': searchRegex }
+        ]
+      }
+    ]
+  })
+    .select('firstName lastName farmName companyName restaurantName userType address profileImage')
+    .limit(parseInt(limit))
+    .lean();
+
+  res.status(200).json({
+    status: 'success',
+    results: sellers.length,
+    data: { sellers }
+  });
+});
+
+// Rechercher des transporteurs
+exports.searchTransporters = catchAsync(async (req, res, next) => {
+  const { query, limit = 5 } = req.query;
+
+  if (!query || query.length < 2) {
+    return next(new AppError('Le terme de recherche doit contenir au moins 2 caractères', 400));
+  }
+
+  const searchRegex = { $regex: query, $options: 'i' };
+  
+  const transporters = await User.find({
+    $and: [
+      { userType: { $in: ['transporter', 'exporter'] } },
+      { isActive: true },
+      { isVerified: true },
+      {
+        $or: [
+          { firstName: searchRegex },
+          { lastName: searchRegex },
+          { companyName: searchRegex },
+          { 'address.city': searchRegex },
+          { 'address.region': searchRegex },
+          { 'serviceAreas.region': searchRegex },
+          { 'serviceAreas.city': searchRegex }
+        ]
+      }
+    ]
+  })
+    .select('firstName lastName companyName userType address serviceAreas profileImage')
+    .limit(parseInt(limit))
+    .lean();
+
+  res.status(200).json({
+    status: 'success',
+    results: transporters.length,
+    data: { transporters }
+  });
+});
+
+// Obtenir les catégories disponibles
+exports.getCategories = catchAsync(async (req, res, next) => {
+  const categories = await Product.distinct('category', {
+    status: 'approved',
+    isActive: true
+  });
+
+  res.status(200).json({
+    status: 'success',
+    results: categories.length,
+    data: { categories }
   });
 });
 

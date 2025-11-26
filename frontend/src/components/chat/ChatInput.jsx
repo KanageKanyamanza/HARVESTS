@@ -28,7 +28,9 @@ const ChatInput = ({ onSend, disabled, placeholder = "Tapez votre message..." })
         onKeyPress={handleKeyPress}
         placeholder={placeholder}
         disabled={disabled}
-        className="flex-1 px-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+        autoComplete="off"
+        className="flex-1 px-4 py-2 border border-gray-300 rounded-full text-base focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+        style={{ fontSize: '16px' }}
       />
       <button
         type="submit"
