@@ -10,7 +10,8 @@ import {
   FiPhone,
   FiMail,
   FiPackage,
-  FiAlertTriangle
+  FiAlertTriangle,
+  FiCheck
 } from 'react-icons/fi';
 import { restaurateurService } from '../services';
 import { getDishImageUrl, normalizeDishImage } from '../utils/dishImageUtils';
@@ -23,6 +24,7 @@ const DishDetail = () => {
   const [restaurateur, setRestaurateur] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isAdded, setIsAdded] = useState(false);
 
   useEffect(() => {
     const loadDishData = async () => {
@@ -103,6 +105,8 @@ const DishDetail = () => {
           lastName: restaurateur.lastName
         }
       });
+      setIsAdded(true);
+      setTimeout(() => setIsAdded(false), 2000);
     }
   };
 
@@ -244,14 +248,24 @@ const DishDetail = () => {
                 <button
                   onClick={handleAddToCart}
                   disabled={dish.trackQuantity && dish.stock === 0}
-                  className={`flex-1 py-3 px-6 rounded-lg transition-colors flex items-center justify-center ${
+                  className={`flex-1 py-3 px-6 rounded-lg flex items-center justify-center transition-all duration-300 transform ${
                     dish.trackQuantity && dish.stock === 0
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-orange-600 text-white hover:bg-orange-700'
+                      : isAdded
+                        ? 'bg-green-600 text-white scale-105 shadow-lg'
+                        : 'bg-orange-600 text-white hover:bg-orange-700 hover:scale-[1.02] active:scale-95'
                   }`}
                 >
-                  <FiShoppingCart className="mr-2" />
-                  {dish.trackQuantity && dish.stock === 0 ? 'Rupture de stock' : 'Ajouter au panier'}
+                  {isAdded ? (
+                    <FiCheck className="mr-2" />
+                  ) : (
+                    <FiShoppingCart className="mr-2" />
+                  )}
+                  {dish.trackQuantity && dish.stock === 0 
+                    ? 'Rupture de stock' 
+                    : isAdded 
+                      ? 'Ajouté !' 
+                      : 'Ajouter au panier'}
                 </button>
                 <button
                   onClick={handleGoToRestaurant}

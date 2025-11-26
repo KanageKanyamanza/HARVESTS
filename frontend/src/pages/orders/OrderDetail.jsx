@@ -168,11 +168,9 @@ const OrderDetail = () => {
     }
   };
 
-  const confirmOrder = () => updateOrderStatus('confirmed');
   const cancelOrder = () => updateOrderStatus('cancelled');
   const prepareOrder = () => updateOrderStatus('preparing');
   const readyOrder = () => updateOrderStatus('ready-for-pickup');
-  const shipOrder = () => updateOrderStatus('in-transit');
   const deliverOrder = () => updateOrderStatus('delivered');
   const completeOrder = () => updateOrderStatus('completed');
 
@@ -394,7 +392,7 @@ const OrderDetail = () => {
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex flex-wrap gap-3 items-center">
               <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${statusConfig.color}`}>
                 <StatusIcon className="h-5 w-5 mr-2" />
                 {statusConfig.text}
@@ -595,7 +593,7 @@ const OrderDetail = () => {
                          imageAlt = firstImg.alt || parseProductName(productName);
                        } else if (firstImg.public_id) {
                          // Cloudinary public_id, construire l'URL
-                         imageUrl = `https://res.cloudinary.com/${process.env.REACT_APP_CLOUDINARY_CLOUD_NAME || 'harvests'}/image/upload/${firstImg.public_id}`;
+                         imageUrl = `https://res.cloudinary.com/harvests/image/upload/${firstImg.public_id}`;
                          imageAlt = firstImg.alt || parseProductName(productName);
                        }
                      }

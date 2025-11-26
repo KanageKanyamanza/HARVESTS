@@ -5,14 +5,16 @@ import CloudinaryImage from '../common/CloudinaryImage';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { productService } from '../../services';
 
-// Définir les 4 catégories principales à afficher
-const MAIN_CATEGORIES = ['fruits', 'vegetables', 'cereals', 'dairy'];
+// Catégories par défaut si l'API échoue
+const DEFAULT_CATEGORIES = ['fruits', 'vegetables', 'cereals', 'meat', 'dairy', 'fish', 'poultry', 'processed-foods'];
 
 const CategoriesSection = () => {
-  const [categories, setCategories] = useState([]);
+  const [allCategories, setAllCategories] = useState(DEFAULT_CATEGORIES);
+  const [displayedCategories, setDisplayedCategories] = useState(DEFAULT_CATEGORIES.slice(0, 4));
   const [categoryProducts, setCategoryProducts] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [categoryIndex, setCategoryIndex] = useState(0);
 
   const getCategoryLabel = (category) => {
     const labels = {
@@ -80,16 +82,26 @@ const CategoriesSection = () => {
       setLoading(true);
       setError(null);
 
-      // Charger un produit pour chaque catégorie principale
-      const productsPromises = MAIN_CATEGORIES.map(category =>
-        loadCategoryProduct(category)
-      );
-      
-      await Promise.all(productsPromises);
-      setCategories(MAIN_CATEGORIES);
+      // Charger les catégories depuis l'API
+      const response = await productService.getCategories();
+      if (response.data.status === 'success' && response.data.data?.length > 0) {
+        const cats = response.data.data;
+        setAllCategories(cats);
+        
+        // Afficher les 4 premières catégories
+        const initialCats = cats.slice(0, 4);
+        setDisplayedCategories(initialCats);
+        
+        // Charger un produit pour chaque catégorie affichée
+        await Promise.all(initialCats.map(category => loadCategoryProduct(category)));
+      } else {
+        // Utiliser les catégories par défaut
+        await Promise.all(displayedCategories.map(category => loadCategoryProduct(category)));
+      }
     } catch (err) {
       console.error('Erreur lors du chargement des catégories:', err);
-      setError('Impossible de charger les catégories');
+      // Utiliser les catégories par défaut en cas d'erreur
+      await Promise.all(displayedCategories.map(category => loadCategoryProduct(category)));
     } finally {
       setLoading(false);
     }
@@ -99,14 +111,33 @@ const CategoriesSection = () => {
     loadCategories();
   }, [loadCategories]);
 
-  // Debug: Logs pour comprendre le problème d'affichage
-  console.log('🔍 CategoriesSection - loading:', loading, 'categories:', categories, 'categoryProducts:', categoryProducts);
+  // Rotation des catégories toutes les 3 minutes
+  useEffect(() => {
+    if (allCategories.length <= 4) return;
 
-  // Ne pas afficher la section s'il y a une erreur de chargement
-  if (!loading && categories.length === 0) {
-    console.log('❌ CategoriesSection cachée - categories.length === 0');
-    return null;
-  }
+    const interval = setInterval(() => {
+      setCategoryIndex(prev => {
+        const newIndex = (prev + 4) % allCategories.length;
+        const newCats = [];
+        for (let i = 0; i < 4 && i < allCategories.length; i++) {
+          newCats.push(allCategories[(newIndex + i) % allCategories.length]);
+        }
+        setDisplayedCategories(newCats);
+        
+        // Charger les produits pour les nouvelles catégories
+        newCats.forEach(cat => {
+          if (!categoryProducts[cat]) {
+            loadCategoryProduct(cat);
+          }
+        });
+        
+        return newIndex;
+      });
+    }, 180000); // 3 minutes
+
+    return () => clearInterval(interval);
+  }, [allCategories, categoryProducts]);
+
 
   return (
     <section className="py-20 bg-harvests-light">
@@ -150,7 +181,7 @@ const CategoriesSection = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {categories.map((category) => {
+            {displayedCategories.map((category) => {
               const product = categoryProducts[category];
               const primaryImage = product?.images?.find(img => img.isPrimary) || product?.images?.[0];
               

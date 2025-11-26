@@ -112,7 +112,7 @@ const EditVehicle = () => {
               // Construire l'URL depuis publicId
               const publicId = vehicle.image.public_id || vehicle.image.publicId;
               setVehicleImage({
-                url: `https://res.cloudinary.com/${process.env.REACT_APP_CLOUDINARY_CLOUD_NAME || 'dlbwu1dld'}/image/upload/${publicId}`,
+                url: `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dlbwu1dld'}/image/upload/${publicId}`,
                 publicId: publicId,
                 alt: vehicle.image.alt || 'Véhicule'
               });
@@ -323,7 +323,7 @@ const EditVehicle = () => {
           // Construire l'URL depuis publicId
           const publicId = updatedVehicle.image.public_id || updatedVehicle.image.publicId;
           setVehicleImage({
-            url: `https://res.cloudinary.com/${process.env.REACT_APP_CLOUDINARY_CLOUD_NAME || 'dlbwu1dld'}/image/upload/${publicId}`,
+            url: `https://res.cloudinary.com/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dlbwu1dld'}/image/upload/${publicId}`,
             publicId: publicId,
             alt: updatedVehicle.image.alt || 'Véhicule'
           });
@@ -379,7 +379,7 @@ const EditVehicle = () => {
   return (
     <ModularDashboardLayout>
       <div className="p-6 max-w-4xl mx-auto">
-        <div className="mb-6 flex justify-between items-start">
+        <div className="mb-6 flex flex-wrap gap-3 justify-between items-start">
           <div>
             <button
               onClick={() => navigate(-1)}
@@ -517,7 +517,7 @@ const EditVehicle = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Poids
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <input
                     type="number"
                     name="capacity.weight.value"
@@ -543,7 +543,7 @@ const EditVehicle = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Volume
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <input
                     type="number"
                     name="capacity.volume.value"

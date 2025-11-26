@@ -1313,6 +1313,7 @@ exports.getAllOrders = catchAsync(async (req, res, next) => {
     .populate('seller', 'firstName lastName email phone farmName companyName userType')
     .populate('delivery.transporter', 'firstName lastName email phone companyName userType')
     .populate('items.product', 'name images price')
+    .populate('segments.seller', 'firstName lastName email phone farmName companyName restaurantName userType')
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(parseInt(limit));
@@ -1353,6 +1354,19 @@ exports.getAllOrders = catchAsync(async (req, res, next) => {
       lastName: order.seller?.lastName || 'N/A',
       farmName: order.seller?.farmName || order.seller?.companyName || 'N/A'
     },
+    segments: order.segments?.map(seg => ({
+      _id: seg._id,
+      status: seg.status,
+      seller: seg.seller ? {
+        _id: seg.seller._id,
+        firstName: seg.seller.firstName,
+        lastName: seg.seller.lastName,
+        farmName: seg.seller.farmName,
+        companyName: seg.seller.companyName,
+        restaurantName: seg.seller.restaurantName,
+        userType: seg.seller.userType
+      } : null
+    })) || [],
     transporter: order.delivery?.transporter ? {
       _id: order.delivery.transporter._id,
       firstName: order.delivery.transporter.firstName || 'N/A',
@@ -1394,13 +1408,67 @@ exports.getOrderById = catchAsync(async (req, res, next) => {
     .populate({
       path: 'items.product',
       select: 'name images description price',
-      // S'assurer que les images sont bien incluses
+    })
+    .populate({
+      path: 'segments.seller',
+      select: 'firstName lastName email phone farmName companyName restaurantName userType'
     })
     .populate('delivery.transporter', 'firstName lastName email phone companyName');
 
   if (!order) {
     return next(new AppError('Commande non trouvée', 404));
   }
+
+  // Fonction pour transformer un item
+  const transformItem = (item) => {
+    let images = [];
+    if (item.productSnapshot?.images && Array.isArray(item.productSnapshot.images) && item.productSnapshot.images.length > 0) {
+      images = item.productSnapshot.images;
+    } else if (item.product?.images && Array.isArray(item.product.images) && item.product.images.length > 0) {
+      images = item.product.images;
+    }
+    const productName = item.productSnapshot?.name || item.product?.name || 'Produit supprimé';
+    
+    return {
+      _id: item._id,
+      product: {
+        name: productName,
+        images: images,
+        description: item.productSnapshot?.description || item.product?.description || ''
+      },
+      productSnapshot: item.productSnapshot,
+      quantity: item.quantity,
+      price: item.unitPrice,
+      totalPrice: item.totalPrice,
+      status: item.status || 'pending'
+    };
+  };
+
+  // Transformer les segments avec leurs items et statuts
+  const transformedSegments = (order.segments || []).map(segment => {
+    const seller = segment.seller;
+    const sellerName = seller?.farmName || seller?.companyName || seller?.restaurantName || 
+      (seller?.firstName && seller?.lastName ? `${seller.firstName} ${seller.lastName}` : 'Vendeur');
+    
+    return {
+      _id: segment._id,
+      seller: {
+        _id: seller?._id,
+        name: sellerName,
+        firstName: seller?.firstName,
+        lastName: seller?.lastName,
+        email: seller?.email,
+        phone: seller?.phone,
+        userType: seller?.userType
+      },
+      status: segment.status || 'pending',
+      subtotal: segment.subtotal,
+      deliveryFee: segment.deliveryFee,
+      total: segment.total,
+      items: (segment.items || []).map(transformItem),
+      history: segment.history || []
+    };
+  });
 
   // Transformer les données pour correspondre au format attendu par le frontend
   const transformedOrder = {
@@ -1413,34 +1481,12 @@ exports.getOrderById = catchAsync(async (req, res, next) => {
     deliveryFee: order.deliveryFee,
     taxes: order.taxes,
     discount: order.discount,
-    items: order.items.map(item => {
-      // Récupérer les images depuis productSnapshot ou product peuplé
-      let images = [];
-      
-      // Priorité 1: productSnapshot.images (données sauvegardées au moment de la commande)
-      if (item.productSnapshot?.images && Array.isArray(item.productSnapshot.images) && item.productSnapshot.images.length > 0) {
-        images = item.productSnapshot.images;
-      } 
-      // Priorité 2: product.images (produit peuplé depuis la base de données)
-      else if (item.product?.images && Array.isArray(item.product.images) && item.product.images.length > 0) {
-        images = item.product.images;
-      }
-      
-      // Récupérer le nom du produit
-      const productName = item.productSnapshot?.name || item.product?.name || 'Produit supprimé';
-      
-      return {
-        product: {
-          name: productName,
-          images: images,
-          description: item.productSnapshot?.description || item.product?.description || ''
-        },
-        productSnapshot: item.productSnapshot, // Garder aussi productSnapshot pour compatibilité
-        quantity: item.quantity,
-        price: item.unitPrice,
-        totalPrice: item.totalPrice
-      };
-    }),
+    // Items de base (pour compatibilité)
+    items: order.items.map(transformItem),
+    // Segments par vendeur avec leurs statuts individuels
+    segments: transformedSegments,
+    // Indicateur si commande multi-vendeurs
+    isMultiVendor: transformedSegments.length > 1,
     customer: {
       firstName: order.buyer?.firstName || 'N/A',
       lastName: order.buyer?.lastName || 'N/A',

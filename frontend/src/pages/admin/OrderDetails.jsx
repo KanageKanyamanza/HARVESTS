@@ -23,6 +23,7 @@ import CloudinaryImage from '../../components/common/CloudinaryImage';
 
 const OrderDetails = () => {
   const { orderId } = useParams();
+  const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -133,10 +134,25 @@ const OrderDetails = () => {
         text: 'Confirmée', 
         icon: CheckCircle 
       },
+      'preparing': { 
+        color: 'text-purple-600 bg-purple-100', 
+        text: 'En préparation', 
+        icon: Package 
+      },
       'processing': { 
         color: 'text-purple-600 bg-purple-100', 
         text: 'En cours', 
         icon: Package 
+      },
+      'ready-for-pickup': { 
+        color: 'text-indigo-600 bg-indigo-100', 
+        text: 'Prête à collecter', 
+        icon: Package 
+      },
+      'in-transit': { 
+        color: 'text-indigo-600 bg-indigo-100', 
+        text: 'En transit', 
+        icon: Truck 
       },
       'shipped': { 
         color: 'text-indigo-600 bg-indigo-100', 
@@ -146,6 +162,11 @@ const OrderDetails = () => {
       'delivered': { 
         color: 'text-green-600 bg-green-100', 
         text: 'Livrée', 
+        icon: CheckCircle 
+      },
+      'completed': { 
+        color: 'text-green-600 bg-green-100', 
+        text: 'Terminée', 
         icon: CheckCircle 
       },
       'cancelled': { 
@@ -271,186 +292,273 @@ const OrderDetails = () => {
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
           {/* Informations principales */}
           <div className="xl:col-span-3 space-y-6">
-            {/* Produits commandés */}
+            {/* Articles commandés - Par vendeur si multi-vendeurs */}
             <div className="bg-white rounded-lg shadow">
               <div className="px-6 py-4 border-b border-gray-200">
                 <h2 className="text-lg font-medium text-gray-900 flex items-center">
                   <ShoppingCart className="h-5 w-5 mr-2" />
-                  Produits commandés
+                  Articles commandés
+                  {order?.isMultiVendor && (
+                    <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                      Multi-vendeurs
+                    </span>
+                  )}
                 </h2>
               </div>
               <div className="p-6">
-                <div className="grid grid-cols-1 gap-6">
-                  {order?.items?.map((item, index) => (
-                    <div key={index} className="flex items-start space-x-4 p-4 border border-gray-200 rounded-lg">
-                      {/* Image du produit */}
-                      <div className="flex-shrink-0">
-                        <div className="h-20 w-20 rounded-lg overflow-hidden bg-gray-100">
-                          {(() => {
-                            // Utiliser la même logique que OrderList
-                            const productSnapshot = item.productSnapshot || {};
-                            const productImages = productSnapshot.images || item.product?.images || [];
-                            let imageUrl = null;
-                            let imageAlt = null;
-                            
-                            if (productImages.length > 0) {
-                              const firstImg = productImages[0];
+                {/* Affichage par segments (vendeurs) si disponible */}
+                {order?.segments && order.segments.length > 0 ? (
+                  <div className="space-y-6">
+                    {order.segments.map((segment, segmentIndex) => {
+                      const segmentStatusConfig = getStatusConfig(segment.status);
+                      const SegmentStatusIcon = segmentStatusConfig.icon;
+                      
+                      return (
+                        <div key={segment._id || segmentIndex} className="border border-gray-200 rounded-lg overflow-hidden">
+                          {/* En-tête du segment avec vendeur et statut */}
+                          <div className="bg-gray-50 px-4 py-3 flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <Package className="h-5 w-5 text-gray-500" />
+                              <div>
+                                <p className="font-medium text-gray-900">
+                                  {segment.seller?.name || `${segment.seller?.firstName || ''} ${segment.seller?.lastName || ''}`.trim() || 'Vendeur'}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {segment.seller?.userType === 'producer' && 'Producteur'}
+                                  {segment.seller?.userType === 'transformer' && 'Transformateur'}
+                                  {segment.seller?.userType === 'restaurateur' && 'Restaurateur'}
+                                </p>
+                              </div>
+                            </div>
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${segmentStatusConfig.color}`}>
+                              <SegmentStatusIcon className="h-4 w-4 mr-1" />
+                              {segmentStatusConfig.text}
+                            </span>
+                          </div>
+                          
+                          {/* Items du segment */}
+                          <div className="divide-y divide-gray-100">
+                            {segment.items?.map((item, itemIndex) => {
+                              const itemStatusConfig = getStatusConfig(item.status);
+                              const productImages = item.productSnapshot?.images || item.product?.images || [];
+                              let imageUrl = null;
                               
-                              // Si c'est déjà un objet avec une propriété url
-                              if (firstImg && typeof firstImg === 'object' && firstImg.url) {
-                                imageUrl = firstImg.url;
-                                imageAlt = firstImg.alt;
-                              }
-                              // Si c'est une chaîne qui ressemble à une URL
-                              else if (typeof firstImg === 'string' && firstImg.startsWith('http')) {
-                                imageUrl = firstImg;
-                              }
-                              // Si c'est une chaîne avec une représentation d'objet, extraire l'URL avec regex
-                              else if (typeof firstImg === 'string') {
-                                // Chercher l'URL dans la chaîne avec une regex
-                                const urlMatch = firstImg.match(/url:\s*['"]([^'"]+)['"]/);
-                                if (urlMatch && urlMatch[1]) {
-                                  imageUrl = urlMatch[1];
-                                }
-                                
-                                // Chercher l'alt dans la chaîne avec une regex
-                                const altMatch = firstImg.match(/alt:\s*['"]([^'"]*)['"]/);
-                                if (altMatch && altMatch[1]) {
-                                  imageAlt = altMatch[1];
+                              if (productImages.length > 0) {
+                                const firstImg = productImages[0];
+                                if (firstImg && typeof firstImg === 'object' && firstImg.url) {
+                                  imageUrl = firstImg.url;
+                                } else if (typeof firstImg === 'string' && firstImg.startsWith('http')) {
+                                  imageUrl = firstImg;
                                 }
                               }
-                            }
-                            
-                            return imageUrl ? (
+                              
+                              return (
+                                <div key={item._id || itemIndex} className="flex items-center p-4 space-x-4">
+                                  {/* Image */}
+                                  <div className="flex-shrink-0 h-16 w-16 rounded-lg overflow-hidden bg-gray-100">
+                                    {imageUrl ? (
+                                      <CloudinaryImage
+                                        src={imageUrl}
+                                        alt={parseProductName(item.productSnapshot?.name || item.product?.name)}
+                                        className="h-full w-full object-cover"
+                                      />
+                                    ) : (
+                                      <div className="h-full w-full flex items-center justify-center">
+                                        <Package className="h-6 w-6 text-gray-400" />
+                                      </div>
+                                    )}
+                                  </div>
+                                  
+                                  {/* Détails */}
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-gray-900">
+                                      {parseProductName(item.productSnapshot?.name || item.product?.name)}
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                      Quantité: {item.quantity} • Prix unitaire: {formatPrice(item.price)}
+                                    </p>
+                                  </div>
+                                  
+                                  {/* Statut et prix */}
+                                  <div className="flex-shrink-0 text-right">
+                                    <p className="font-semibold text-gray-900">
+                                      {formatPrice(item.price * item.quantity)}
+                                    </p>
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${itemStatusConfig.color}`}>
+                                      {itemStatusConfig.text}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          
+                          {/* Sous-total du segment */}
+                          <div className="bg-gray-50 px-4 py-2 flex justify-between text-sm">
+                            <span className="text-gray-600">Sous-total vendeur</span>
+                            <span className="font-medium text-gray-900">{formatPrice(segment.subtotal || segment.total || 0)}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  /* Affichage classique si pas de segments */
+                  <div className="grid grid-cols-1 gap-6">
+                    {order?.items?.map((item, index) => {
+                      const itemStatusConfig = getStatusConfig(item.status);
+                      const productSnapshot = item.productSnapshot || {};
+                      const productImages = productSnapshot.images || item.product?.images || [];
+                      let imageUrl = null;
+                      
+                      if (productImages.length > 0) {
+                        const firstImg = productImages[0];
+                        if (firstImg && typeof firstImg === 'object' && firstImg.url) {
+                          imageUrl = firstImg.url;
+                        } else if (typeof firstImg === 'string' && firstImg.startsWith('http')) {
+                          imageUrl = firstImg;
+                        }
+                      }
+                      
+                      return (
+                        <div key={index} className="flex items-start space-x-4 p-4 border border-gray-200 rounded-lg">
+                          <div className="flex-shrink-0 h-20 w-20 rounded-lg overflow-hidden bg-gray-100">
+                            {imageUrl ? (
                               <CloudinaryImage
                                 src={imageUrl}
-                                alt={imageAlt || parseProductName(productSnapshot.name || item.product?.name)}
+                                alt={parseProductName(productSnapshot.name || item.product?.name)}
                                 className="h-full w-full object-cover"
                               />
                             ) : (
                               <div className="h-full w-full flex items-center justify-center">
                                 <Package className="h-8 w-8 text-gray-400" />
                               </div>
-                            );
-                          })()}
-                        </div>
-                      </div>
-                      
-                      {/* Détails du produit */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-medium text-gray-900">
-                          {parseProductName((item.productSnapshot || {}).name || item.product?.name)}
-                        </h3>
-                        <p className="text-sm text-gray-500 mt-1">
-                          Catégorie: {(item.productSnapshot || {}).category || item.product?.category || 'Non spécifiée'}
-                        </p>
-                        <div className="mt-2 flex items-center space-x-4">
-                          <span className="text-sm text-gray-600">
-                            Quantité: <span className="font-medium">{item.quantity}</span>
-                          </span>
-                          <span className="text-sm text-gray-600">
-                            Prix unitaire: <span className="font-medium">{formatPrice(item.price)}</span>
-                          </span>
-                        </div>
-                        {item.specialInstructions && (
-                          <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
-                            <p className="text-sm text-yellow-800">
-                              <strong>Instructions spéciales:</strong> {item.specialInstructions}
+                            )}
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-lg font-medium text-gray-900">
+                              {parseProductName(productSnapshot.name || item.product?.name)}
+                            </h3>
+                            <div className="mt-2 flex items-center space-x-4">
+                              <span className="text-sm text-gray-600">
+                                Quantité: <span className="font-medium">{item.quantity}</span>
+                              </span>
+                              <span className="text-sm text-gray-600">
+                                Prix unitaire: <span className="font-medium">{formatPrice(item.price)}</span>
+                              </span>
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${itemStatusConfig.color}`}>
+                                {itemStatusConfig.text}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex-shrink-0 text-right">
+                            <p className="text-lg font-semibold text-gray-900">
+                              {formatPrice(item.price * item.quantity)}
                             </p>
                           </div>
-                        )}
-                      </div>
-                      
-                      {/* Prix total de l'article */}
-                      <div className="flex-shrink-0 text-right">
-                        <p className="text-lg font-semibold text-gray-900">
-                          {formatPrice(item.price * item.quantity)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {/* Total de la commande */}
-                  <div className="border-t border-gray-200 pt-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-lg font-medium text-gray-900">Total de la commande</span>
-                      <span className="text-2xl font-bold text-gray-900">
-                        {formatPrice(order?.totalAmount || order?.total || 0)}
-                      </span>
-                    </div>
-                    {order?.delivery?.deliveryFee > 0 && (
-                      <div className="flex justify-between items-center mt-2 text-sm text-gray-600">
-                        <span>Frais de livraison</span>
-                        <span>{formatPrice(order.delivery.deliveryFee)}</span>
-                      </div>
-                    )}
+                        </div>
+                      );
+                    })}
                   </div>
+                )}
+                
+                {/* Total de la commande */}
+                <div className="border-t border-gray-200 pt-4 mt-6">
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-medium text-gray-900">Total de la commande</span>
+                    <span className="text-2xl font-bold text-gray-900">
+                      {formatPrice(order?.totalAmount || order?.total || 0)}
+                    </span>
+                  </div>
+                  {order?.delivery?.deliveryFee > 0 && (
+                    <div className="flex justify-between items-center mt-2 text-sm text-gray-600">
+                      <span>Frais de livraison</span>
+                      <span>{formatPrice(order.delivery.deliveryFee)}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Informations de livraison et producteur */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {/* Informations de livraison */}
-              {order?.delivery?.deliveryAddress && (
-                <div className="bg-white rounded-lg shadow">
-                  <div className="px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-lg font-medium text-gray-900 flex items-center">
-                      <MapPin className="h-5 w-5 mr-2" />
-                      Adresse de livraison
-                    </h2>
-                  </div>
-                  <div className="p-6">
-                    <div className="space-y-2">
-                      <p className="text-sm text-gray-900">
-                        <strong>{order.delivery.deliveryAddress.firstName} {order.delivery.deliveryAddress.lastName}</strong>
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {order.delivery.deliveryAddress.street}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {order.delivery.deliveryAddress.city}, {order.delivery.deliveryAddress.region}
-                      </p>
-                      {order.delivery.deliveryAddress.phone && (
-                        <p className="text-sm text-gray-600 flex items-center">
-                          <Phone className="h-4 w-4 mr-2" />
-                          {order.delivery.deliveryAddress.phone}
-                        </p>
-                      )}
-                      {order.delivery.deliveryInstructions && (
-                        <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
-                          <p className="text-sm text-blue-800">
-                            <strong>Instructions de livraison:</strong> {order.delivery.deliveryInstructions}
-                          </p>
+            {/* Vendeurs de la commande */}
+            <div className="bg-white rounded-lg shadow">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h2 className="text-lg font-medium text-gray-900 flex items-center">
+                  <User className="h-5 w-5 mr-2" />
+                  Vendeurs ({order?.segments?.length || 1})
+                </h2>
+              </div>
+              <div className="p-6">
+                {order?.segments && order.segments.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {order.segments.map((segment, index) => {
+                      const segmentStatusConfig = getStatusConfig(segment.status);
+                      const userTypeLabels = {
+                        'producer': 'Producteur',
+                        'transformer': 'Transformateur',
+                        'restaurateur': 'Restaurateur'
+                      };
+                      
+                      return (
+                        <div key={segment._id || index} className="border border-gray-200 rounded-lg p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <p className="font-medium text-gray-900">
+                                {segment.seller?.name || `${segment.seller?.firstName || ''} ${segment.seller?.lastName || ''}`.trim() || 'Vendeur'}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {userTypeLabels[segment.seller?.userType] || 'Vendeur'}
+                              </p>
+                            </div>
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${segmentStatusConfig.color}`}>
+                              {segmentStatusConfig.text}
+                            </span>
+                          </div>
+                          <div className="space-y-1 text-sm text-gray-600">
+                            {segment.seller?.email && (
+                              <p className="flex items-center">
+                                <Mail className="h-3 w-3 mr-2" />
+                                {segment.seller.email}
+                              </p>
+                            )}
+                            {segment.seller?.phone && (
+                              <p className="flex items-center">
+                                <Phone className="h-3 w-3 mr-2" />
+                                {segment.seller.phone}
+                              </p>
+                            )}
+                          </div>
+                          <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between text-sm">
+                            <span className="text-gray-500">{segment.items?.length || 0} article(s)</span>
+                            <span className="font-medium text-gray-900">{formatPrice(segment.subtotal || segment.total || 0)}</span>
+                          </div>
                         </div>
-                      )}
-                    </div>
+                      );
+                    })}
                   </div>
-                </div>
-              )}
-
-              {/* Informations producteur */}
-              <div className="bg-white rounded-lg shadow">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h2 className="text-lg font-medium text-gray-900 flex items-center">
-                    <Package className="h-5 w-5 mr-2" />
-                    Producteur
-                  </h2>
-                </div>
-                <div className="p-6">
+                ) : (
+                  /* Affichage du producteur unique si pas de segments */
                   <div className="space-y-3">
                     <div>
                       <p className="text-sm font-medium text-gray-900">
-                        {order?.producer?.firstName} {order?.producer?.lastName}
+                        {order?.producer?.firstName && order?.producer?.firstName !== 'N/A' 
+                          ? `${order.producer.firstName} ${order.producer.lastName}`
+                          : 'Aucun vendeur assigné'}
                       </p>
-                      <p className="text-sm text-gray-600">
-                        {order?.producer?.farmName || 'Ferme non renseignée'}
-                      </p>
-                      <p className="text-sm text-gray-600 flex items-center">
-                        <Mail className="h-4 w-4 mr-2" />
-                        {order?.producer?.email}
-                      </p>
-                      {order?.producer?.phone && (
+                      {order?.producer?.farmName && order.producer.farmName !== 'N/A' && (
+                        <p className="text-sm text-gray-600">
+                          {order.producer.farmName}
+                        </p>
+                      )}
+                      {order?.producer?.email && order.producer.email !== 'N/A' && (
+                        <p className="text-sm text-gray-600 flex items-center">
+                          <Mail className="h-4 w-4 mr-2" />
+                          {order.producer.email}
+                        </p>
+                      )}
+                      {order?.producer?.phone && order.producer.phone !== 'N/A' && (
                         <p className="text-sm text-gray-600 flex items-center">
                           <Phone className="h-4 w-4 mr-2" />
                           {order.producer.phone}
@@ -458,9 +566,47 @@ const OrderDetails = () => {
                       )}
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
+
+            {/* Informations de livraison */}
+            {order?.delivery?.deliveryAddress && (
+              <div className="bg-white rounded-lg shadow">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h2 className="text-lg font-medium text-gray-900 flex items-center">
+                    <MapPin className="h-5 w-5 mr-2" />
+                    Adresse de livraison
+                  </h2>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-900">
+                      <strong>{order.delivery.deliveryAddress.firstName} {order.delivery.deliveryAddress.lastName}</strong>
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {order.delivery.deliveryAddress.street}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {order.delivery.deliveryAddress.city}, {order.delivery.deliveryAddress.region}
+                    </p>
+                    {order.delivery.deliveryAddress.phone && (
+                      <p className="text-sm text-gray-600 flex items-center">
+                        <Phone className="h-4 w-4 mr-2" />
+                        {order.delivery.deliveryAddress.phone}
+                      </p>
+                    )}
+                    {order.delivery.deliveryInstructions && (
+                      <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
+                        <p className="text-sm text-blue-800">
+                          <strong>Instructions de livraison:</strong> {order.delivery.deliveryInstructions}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Raison du litige */}
             {order?.disputeReason && (

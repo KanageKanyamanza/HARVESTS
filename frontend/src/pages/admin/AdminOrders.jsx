@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   ShoppingCart,
   User,
@@ -10,19 +10,23 @@ import {
   Eye,
   AlertTriangle,
   Truck,
-  Loader
+  Loader,
+  CreditCard
 } from 'lucide-react';
 
 import { adminService } from '../../services/adminService';
 import { parseProductName } from '../../utils/productUtils';
 
 const AdminOrders = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [confirmingPayment, setConfirmingPayment] = useState(null);
   
   // États pour l'assignation de livreur
   const [showAssignModal, setShowAssignModal] = useState(false);
@@ -51,23 +55,21 @@ const AdminOrders = () => {
       
       // Vérifier si la réponse contient des commandes
       if (response.status === 'success' && response.data && response.data.orders) {
-        console.log('✅ Commandes trouvées dans response.data.orders:', response.data.orders.length);
         setOrders(response.data.orders || []);
         setTotalPages(response.data.pagination?.totalPages || 1);
+        setTotalOrders(response.data.pagination?.totalOrders || response.data.orders.length);
       } else if (response.data && response.data.orders) {
-        // Structure alternative
-        console.log('✅ Commandes trouvées dans response.data.orders (structure alternative):', response.data.orders.length);
         setOrders(response.data.orders || []);
         setTotalPages(response.data.pagination?.totalPages || 1);
+        setTotalOrders(response.data.pagination?.totalOrders || response.data.orders.length);
       } else if (response.orders) {
-        // Structure directe
-        console.log('✅ Commandes trouvées dans response.orders:', response.orders.length);
         setOrders(response.orders || []);
         setTotalPages(response.pagination?.totalPages || 1);
+        setTotalOrders(response.pagination?.totalOrders || response.orders.length);
       } else {
-        console.log('❌ Aucune commande trouvée dans la réponse. Structure:', Object.keys(response));
         setOrders([]);
         setTotalPages(1);
+        setTotalOrders(0);
       }
     } catch (error) {
       console.error('Erreur lors du chargement des commandes:', error);
@@ -118,6 +120,28 @@ const AdminOrders = () => {
     } catch (error) {
       console.error('Erreur lors de l\'annulation:', error);
     }
+  };
+
+  const handleConfirmPayment = async (orderId) => {
+    if (!window.confirm('Confirmer ce paiement ?')) return;
+    try {
+      setConfirmingPayment(orderId);
+      await adminService.updatePaymentStatus(orderId, { 
+        paymentStatus: 'completed',
+        paidAt: new Date().toISOString()
+      });
+      loadOrders();
+    } catch (error) {
+      console.error('Erreur lors de la confirmation du paiement:', error);
+      alert('Erreur lors de la confirmation du paiement');
+    } finally {
+      setConfirmingPayment(null);
+    }
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    setSearchParams({ page: page.toString() });
   };
 
   const handleOpenAssignModal = async (order) => {
@@ -308,9 +332,9 @@ const AdminOrders = () => {
               <div key={order._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center space-x-3">
+                    <div className="flex flex-wrap items-center space-x-3">
                       <div className="flex-1">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex flex-wrap items-center space-x-2">
                           <h3 className="text-sm font-medium text-gray-900">
                             {order.orderNumber}
                           </h3>
@@ -322,10 +346,22 @@ const AdminOrders = () => {
                           </span>
                         </div>
                         <p className="text-sm text-gray-600 mt-1">
-                          <strong>Client:</strong> {order.customer.firstName} {order.customer.lastName} ({order.customer.email})
+                          <strong>Client:</strong> {order.customer?.firstName} {order.customer?.lastName} ({order.customer?.email})
                         </p>
                         <p className="text-sm text-gray-600">
-                          <strong>Producteur:</strong> {order.producer.firstName} {order.producer.lastName} - {order.producer.farmName}
+                          <strong>Vendeur{order.segments?.length > 1 ? 's' : ''}:</strong>{' '}
+                          {order.segments?.length > 0 ? (
+                            order.segments.map((seg, idx) => (
+                              <span key={seg._id || idx}>
+                                {seg.seller?.name || seg.seller?.farmName || seg.seller?.companyName || seg.seller?.restaurantName || `${seg.seller?.firstName || ''} ${seg.seller?.lastName || ''}`.trim() || 'Vendeur'}
+                                {idx < order.segments.length - 1 && ', '}
+                              </span>
+                            ))
+                          ) : (
+                            order.producer?.firstName && order.producer?.lastName 
+                              ? `${order.producer.firstName} ${order.producer.lastName}${order.producer.farmName ? ` - ${order.producer.farmName}` : ''}`
+                              : 'N/A'
+                          )}
                         </p>
                         <div className="mt-2">
                           <p className="text-sm text-gray-600">
@@ -373,7 +409,7 @@ const AdminOrders = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex flex-wrap items-center space-x-2">
                     <Link
                       to={`/admin/orders/${order._id}`}
                       className="text-blue-600 hover:text-blue-900"
@@ -418,6 +454,20 @@ const AdminOrders = () => {
                         title="Assigner un livreur"
                       >
                         <Truck className="h-5 w-5" />
+                      </button>
+                    )}
+                    {order.paymentStatus === 'pending' && (
+                      <button
+                        onClick={() => handleConfirmPayment(order._id)}
+                        disabled={confirmingPayment === order._id}
+                        className="text-yellow-600 hover:text-yellow-800 disabled:opacity-50"
+                        title="Confirmer le paiement"
+                      >
+                        {confirmingPayment === order._id ? (
+                          <Loader className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <CreditCard className="h-5 w-5" />
+                        )}
                       </button>
                     )}
                   </div>
@@ -525,50 +575,99 @@ const AdminOrders = () => {
 
 
         {/* Pagination */}
-        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          <div className="flex-1 flex justify-between sm:hidden">
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light disabled:opacity-50"
-            >
-              Précédent
-            </button>
-            <button
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
-              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light disabled:opacity-50"
-            >
-              Suivant
-            </button>
-          </div>
-          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-700">
-                Affichage de <span className="font-medium">1</span> à <span className="font-medium">{orders.length}</span> sur{' '}
-                <span className="font-medium">{orders.length}</span> résultats
-              </p>
+        {totalPages > 1 && (
+          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 rounded-b-lg">
+            <div className="flex-1 flex justify-between sm:hidden">
+              <button
+                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light disabled:opacity-50"
+              >
+                Précédent
+              </button>
+              <span className="px-4 py-2 text-sm text-gray-700">
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light disabled:opacity-50"
+              >
+                Suivant
+              </button>
             </div>
-            <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                <button
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-harvests-light disabled:opacity-50"
-                >
-                  Précédent
-                </button>
-                <button
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage === totalPages}
-                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-harvests-light disabled:opacity-50"
-                >
-                  Suivant
-                </button>
-              </nav>
+            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-gray-700">
+                  Page <span className="font-medium">{currentPage}</span> sur{' '}
+                  <span className="font-medium">{totalPages}</span> ({totalOrders} commandes)
+                </p>
+              </div>
+              <div>
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                  <button
+                    onClick={() => handlePageChange(1)}
+                    disabled={currentPage === 1}
+                    className="relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-harvests-light disabled:opacity-50"
+                  >
+                    «
+                  </button>
+                  <button
+                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="relative inline-flex items-center px-3 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-harvests-light disabled:opacity-50"
+                  >
+                    ‹
+                  </button>
+                  {/* Pages numérotées */}
+                  {(() => {
+                    const pages = [];
+                    let startPage = Math.max(1, currentPage - 2);
+                    let endPage = Math.min(totalPages, currentPage + 2);
+                    
+                    if (currentPage <= 3) {
+                      endPage = Math.min(5, totalPages);
+                    }
+                    if (currentPage >= totalPages - 2) {
+                      startPage = Math.max(1, totalPages - 4);
+                    }
+                    
+                    for (let i = startPage; i <= endPage; i++) {
+                      pages.push(
+                        <button
+                          key={i}
+                          onClick={() => handlePageChange(i)}
+                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                            currentPage === i
+                              ? 'z-10 bg-green-50 border-green-500 text-green-600'
+                              : 'bg-white border-gray-300 text-gray-500 hover:bg-harvests-light'
+                          }`}
+                        >
+                          {i}
+                        </button>
+                      );
+                    }
+                    return pages;
+                  })()}
+                  <button
+                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                    className="relative inline-flex items-center px-3 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-harvests-light disabled:opacity-50"
+                  >
+                    ›
+                  </button>
+                  <button
+                    onClick={() => handlePageChange(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-harvests-light disabled:opacity-50"
+                  >
+                    »
+                  </button>
+                </nav>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

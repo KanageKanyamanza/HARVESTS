@@ -5,7 +5,7 @@ import CloudinaryImage from '../../common/CloudinaryImage';
 import { getDishImageUrl } from '../../../utils/dishImageUtils';
 import { toPlainText } from '../../../utils/textHelpers';
 
-const ProductsSection = ({ products, userType, loading = false, service }) => {
+const ProductsSection = ({ products, userType, loading = false }) => {
   const navigate = useNavigate();
   
   // Fonction pour obtenir la route de modification selon le type d'utilisateur
@@ -39,7 +39,7 @@ const ProductsSection = ({ products, userType, loading = false, service }) => {
   };
   
   // Fonction pour gérer le clic sur modifier (spécial pour restaurateurs)
-  const handleEditClick = (e, productId) => {
+  const handleEditClick = (e) => {
     if (userType === 'restaurateur') {
       e.preventDefault();
       // Rediriger vers la page de gestion des plats

@@ -190,6 +190,7 @@ const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const blogRoutes = require('./routes/blogRoutes');
 const blogVisitorRoutes = require('./routes/blogVisitorRoutes');
+const chatRoutes = require('./routes/chatRoutes');
 
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/orders', orderRoutes);
@@ -201,6 +202,7 @@ app.use('/api/v1/subscriptions', subscriptionRoutes);
 app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/blogs', blogRoutes);
 app.use('/api/v1/blog-visitors', blogVisitorRoutes);
+app.use('/api/v1/chat', chatRoutes);
 
 
 // Routes à implémenter plus tard

@@ -703,10 +703,20 @@ const ProductDetail = () => {
                 <div className="flex space-x-4">
                   <button
                     onClick={handleAddToCart}
-                    className="flex-1 bg-harvests-green text-white px-6 py-3 rounded-md hover:bg-green-600 flex items-center justify-center font-medium"
+                    className={`flex-1 px-6 py-3 rounded-md flex items-center justify-center font-medium transition-all duration-300 transform ${
+                      showAddedToCart 
+                        ? 'bg-green-600 scale-105 shadow-lg' 
+                        : 'bg-harvests-green text-white hover:bg-green-600 hover:scale-[1.02] active:scale-95'
+                    }`}
                   >
-                    <FiShoppingCart className="h-5 w-5 sm:mr-2" />
-                    <span className="hidden sm:inline">Ajouter au panier</span>
+                    {showAddedToCart ? (
+                      <FiCheckCircle className="h-5 w-5 sm:mr-2 text-white" />
+                    ) : (
+                      <FiShoppingCart className="h-5 w-5 sm:mr-2" />
+                    )}
+                    <span className="hidden sm:inline text-white">
+                      {showAddedToCart ? 'Ajouté !' : 'Ajouter au panier'}
+                    </span>
                   </button>
                   
                   {/* Message de confirmation */}

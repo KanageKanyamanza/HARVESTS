@@ -148,7 +148,7 @@ const MyProducts = () => {
         )}
 
         {/* En-tête */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap gap-3 items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Mes Produits</h1>
             <p className="text-gray-600 mt-1">Gérez les produits de votre boutique</p>
