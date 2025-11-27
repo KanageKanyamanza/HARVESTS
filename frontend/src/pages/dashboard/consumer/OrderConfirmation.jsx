@@ -67,7 +67,7 @@ const OrderConfirmation = () => {
       if (payload?.approvalUrl) { window.location.href = payload.approvalUrl; return; }
       setPaymentError("Lien PayPal introuvable.");
     } catch (err) {
-      setPaymentError(err.response?.data?.message || err.message || 'Erreur lors de l'initiation du paiement.');
+      setPaymentError(err.response?.data?.message || err.message || "Erreur lors de l'initiation du paiement.");
     } finally {
       setPaymentProcessing(false);
     }
