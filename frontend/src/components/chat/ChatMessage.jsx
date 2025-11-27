@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { User, Bot, ThumbsUp, ThumbsDown } from 'lucide-react';
 
-const ChatMessage = ({ message, isBot, timestamp, messageId, onFeedback, feedbackGiven }) => {
+const ChatMessage = ({ message, isBot, timestamp, messageId, onFeedback, feedbackGiven, userAvatar, userName }) => {
   const [showFeedback, setShowFeedback] = useState(false);
+
+  // Obtenir l'initiale du nom
+  const getInitial = () => {
+    if (userName) return userName.charAt(0).toUpperCase();
+    return null;
+  };
 
   return (
     <div 
@@ -11,11 +17,21 @@ const ChatMessage = ({ message, isBot, timestamp, messageId, onFeedback, feedbac
       onMouseLeave={() => setShowFeedback(false)}
     >
       {/* Avatar */}
-      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-        isBot ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
-      }`}>
-        {isBot ? <Bot className="w-5 h-5" /> : <User className="w-5 h-5" />}
-      </div>
+      {isBot ? (
+        <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-green-100 text-green-600">
+          <Bot className="w-5 h-5" />
+        </div>
+      ) : userAvatar ? (
+        <img 
+          src={userAvatar} 
+          alt={userName || 'User'} 
+          className="flex-shrink-0 w-8 h-8 rounded-full object-cover"
+        />
+      ) : (
+        <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-blue-100 text-blue-600 font-medium text-sm">
+          {getInitial() || <User className="w-5 h-5" />}
+        </div>
+      )}
       
       {/* Message */}
       <div className={`flex flex-col ${isBot ? 'items-start' : 'items-end'} max-w-[80%]`}>

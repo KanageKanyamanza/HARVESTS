@@ -14,6 +14,7 @@ import {
   X,
   Shield,
   MessageSquare,
+  MessageCircle,
   CreditCard,
   Truck,
   AlertTriangle,
@@ -121,6 +122,12 @@ const AdminLayout = ({ children }) => {
       href: '/admin/subscriptions',
       icon: CreditCard,
       current: location.pathname.startsWith('/admin/subscriptions')
+    },
+    {
+      name: 'Chatbot',
+      href: '/admin/chatbot',
+      icon: MessageCircle,
+      current: location.pathname.startsWith('/admin/chatbot')
     }
   ];
 

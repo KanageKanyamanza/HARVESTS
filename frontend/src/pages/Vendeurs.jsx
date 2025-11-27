@@ -20,6 +20,7 @@ import {
 	formatAverageRating,
 } from "../utils/vendorRatings";
 import { getCountryName } from "../utils/countryMapper";
+import LoadingSpinner from "../components/common/LoadingSpinner";
 
 const Vendeurs = () => {
 	const [vendeurs, setVendeurs] = useState([]);
@@ -250,10 +251,7 @@ const Vendeurs = () => {
 	if (loading) {
 		return (
 			<div className="min-h-screen bg-harvests-light flex items-center justify-center">
-				<div className="text-center">
-					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-					<p className="text-gray-600">Chargement des vendeurs...</p>
-				</div>
+				<LoadingSpinner size="lg" text="Chargement des vendeurs..." />
 			</div>
 		);
 	}

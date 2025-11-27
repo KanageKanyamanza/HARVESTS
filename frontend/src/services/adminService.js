@@ -447,7 +447,29 @@ export const adminService = {
   getBlogStats,
   getBlogVisits,
   getAllBlogVisits,
-  translateText
+  translateText,
+  
+  // Chatbot
+  getChatStats: async (params = {}) => {
+    const response = await api.get('/chat/admin/stats', { params });
+    return response.data;
+  },
+  getUnansweredQuestions: async (params = {}) => {
+    const response = await api.get('/chat/admin/unanswered', { params });
+    return response.data;
+  },
+  answerQuestion: async (id, data) => {
+    const response = await api.patch(`/chat/admin/unanswered/${id}/answer`, data);
+    return response.data;
+  },
+  ignoreQuestion: async (id) => {
+    const response = await api.patch(`/chat/admin/unanswered/${id}/ignore`);
+    return response.data;
+  },
+  getUserChatHistory: async (userId, params = {}) => {
+    const response = await api.get(`/chat/admin/user/${userId}/history`, { params });
+    return response.data;
+  }
 };
 
 // Export par défaut aussi

@@ -220,6 +220,11 @@ export const faqData = {
   // Intentions spéciales (déclenchent des actions)
   intents: [
     {
+      id: 'bot_capabilities',
+      keywords: ['que peux tu faire', 'comment peux tu m\'aider', 'tu fais quoi', 'que sais tu faire', 'tes capacités', 'tu peux faire quoi', 'aide moi', 'comment m\'aider', 'peux tu m\'aider', 'tu peux m\'aider'],
+      action: 'BOT_CAPABILITIES'
+    },
+    {
       id: 'greeting',
       keywords: ['bonjour', 'bonsoir', 'salut', 'hello', 'hi', 'coucou', 'hey'],
       action: 'GREETING'

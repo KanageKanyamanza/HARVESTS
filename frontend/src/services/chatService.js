@@ -189,13 +189,52 @@ export const chatService = {
   },
 
   // Envoyer un feedback sur une réponse
-  sendFeedback: async (messageId, isPositive) => {
+  sendFeedback: async (interactionId, feedback) => {
     try {
-      await api.post('/chat/feedback', { messageId, isPositive });
+      await api.post('/chat/log-feedback', { interactionId, feedback });
       return true;
     } catch (error) {
       console.error('Erreur chatService.sendFeedback:', error);
       return false;
+    }
+  },
+
+  // Enregistrer une interaction avec le bot
+  logInteraction: async ({
+    question,
+    response,
+    responseType,
+    matchedFaqId,
+    matchedIntent,
+    confidence,
+    sessionId
+  }) => {
+    try {
+      const res = await api.post('/chat/log-interaction', {
+        question,
+        response,
+        responseType,
+        matchedFaqId,
+        matchedIntent,
+        confidence,
+        sessionId
+      });
+      return res.data?.data?.interactionId || null;
+    } catch (error) {
+      // Ne pas bloquer le chat si le logging échoue
+      console.error('Erreur chatService.logInteraction:', error);
+      return null;
+    }
+  },
+
+  // Obtenir les réponses personnalisées (ajoutées par admin)
+  getCustomAnswers: async () => {
+    try {
+      const response = await api.get('/chat/custom-answers');
+      return response.data?.data?.answers || [];
+    } catch (error) {
+      console.error('Erreur chatService.getCustomAnswers:', error);
+      return [];
     }
   }
 };

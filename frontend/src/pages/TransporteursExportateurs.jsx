@@ -13,6 +13,7 @@ import {
 	FiPackage,
 } from "react-icons/fi";
 import { getCountryName } from "../utils/countryMapper";
+import LoadingSpinner from "../components/common/LoadingSpinner";
 
 const TransporteursExportateurs = () => {
 	const [logistics, setLogistics] = useState([]);
@@ -139,10 +140,7 @@ const TransporteursExportateurs = () => {
 	if (loading) {
 		return (
 			<div className="min-h-screen bg-harvests-light flex items-center justify-center">
-				<div className="text-center">
-					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-					<p className="text-gray-600">Chargement des transporteurs et exportateurs...</p>
-				</div>
+				<LoadingSpinner size="lg" text="Chargement des transporteurs et exportateurs..." />
 			</div>
 		);
 	}
