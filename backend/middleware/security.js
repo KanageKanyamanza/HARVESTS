@@ -112,20 +112,28 @@ const helmetConfig = helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
-      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
-      imgSrc: ["'self'", 'data:', 'https:'],
+      // Utiliser nonce ou hash serait idéal, mais pour compatibilité avec les libs CSS
+      // on utilise unsafe-inline uniquement pour les styles (moins risqué que pour scripts)
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdn.jsdelivr.net'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
+      imgSrc: ["'self'", 'data:', 'blob:', 'https:', 'https://res.cloudinary.com'],
       scriptSrc: ["'self'"],
+      connectSrc: ["'self'", 'https://api.cloudinary.com', 'https://res.cloudinary.com'],
+      frameSrc: ["'none'"],
       objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
       upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
     },
   },
-  crossOriginEmbedderPolicy: false, // Désactivé pour les uploads
+  crossOriginEmbedderPolicy: false, // Désactivé pour les uploads Cloudinary
+  crossOriginResourcePolicy: { policy: 'cross-origin' }, // Pour Cloudinary
   hsts: {
     maxAge: 31536000, // 1 an
     includeSubDomains: true,
     preload: true
-  }
+  },
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 });
 
 // Middleware de validation des types de fichiers
@@ -189,15 +197,22 @@ const suspiciousActivityLogger = (req, res, next) => {
   
   for (const pattern of suspiciousPatterns) {
     if (pattern.test(requestString)) {
-      console.warn(`🚨 Activité suspecte détectée:`, {
+      // En production, ne pas logger les données sensibles (body/query)
+      const logData = {
         ip: req.ip,
         userAgent: req.get('User-Agent'),
         url: req.url,
         method: req.method,
-        body: req.body,
-        query: req.query,
         timestamp: new Date().toISOString()
-      });
+      };
+      
+      // Ajouter les détails seulement en développement
+      if (process.env.NODE_ENV === 'development') {
+        logData.body = req.body;
+        logData.query = req.query;
+      }
+      
+      console.warn(`🚨 Activité suspecte détectée:`, logData);
       break;
     }
   }

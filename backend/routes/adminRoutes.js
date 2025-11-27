@@ -218,4 +218,11 @@ router.get('/settings', adminController.getSystemSettings);
 // Mettre à jour les paramètres système
 router.patch('/settings', adminController.updateSystemSettings);
 
+// ========================================
+// AUDIT LOGS
+// ========================================
+
+// Obtenir les logs d'audit
+router.get('/audit-logs', adminController.getAuditLogs);
+
 module.exports = router;

@@ -1,6 +1,6 @@
 const express = require('express');
 const authController = require('../controllers/authController');
-const { authLimiter, emailLimiter } = require('../middleware/security');
+const { authLimiter, emailLimiter, signupLimiter } = require('../middleware/security');
 
 /**
  * @swagger
@@ -79,7 +79,7 @@ const router = express.Router();
  *       400:
  *         $ref: '#/components/responses/ValidationError'
  */
-router.post('/signup', authController.signup);
+router.post('/signup', signupLimiter, authController.signup);
 
 /**
  * @swagger
@@ -143,14 +143,14 @@ router.post('/resend-verification', emailLimiter, authController.resendVerificat
 router.post('/forgot-password', emailLimiter, authController.forgotPassword);
 router.patch('/reset-password/:token', authController.resetPassword);
 
-// Debug - Statut de la queue d'emails
-router.get('/email-queue-status', authController.getEmailQueueStatus);
+// Debug - Statut de la queue d'emails (désactivé en production)
+if (process.env.NODE_ENV === 'development') {
+  router.get('/email-queue-status', authController.getEmailQueueStatus);
+  router.post('/test-email-config', emailLimiter, authController.testEmailConfiguration);
+}
 
 // Redemander l'envoi d'email de vérification
 router.post('/retry-email-verification', emailLimiter, authController.retryEmailVerification);
-
-// Tester la configuration email
-router.post('/test-email-config', emailLimiter, authController.testEmailConfiguration);
 
 // Routes protégées (nécessitent une authentification)
 router.use(authController.protect); // Toutes les routes après ce middleware sont protégées

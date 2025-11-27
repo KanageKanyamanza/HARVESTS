@@ -6,6 +6,7 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const Email = require('../utils/email');
 const emailQueue = require('../services/emailQueueService');
+const { logAudit, AUDIT_ACTIONS } = require('../utils/auditLogger');
 
 // Note: Pour l'inscription simplifiée, nous utilisons seulement le modèle User de base
 // Les profils spécialisés seront créés lors de la complétion du profil
@@ -158,6 +159,15 @@ exports.login = catchAsync(async (req, res, next) => {
     if (user) {
       await user.incLoginAttempts();
     }
+    // Audit log échec connexion
+    logAudit({
+      action: AUDIT_ACTIONS.LOGIN_FAILED,
+      userEmail: email,
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
+      status: 'failure',
+      details: { reason: 'Invalid credentials' }
+    });
     return next(new AppError('Email ou mot de passe incorrect', 401));
   }
 
@@ -186,6 +196,16 @@ exports.login = catchAsync(async (req, res, next) => {
   
   user.lastLogin = new Date();
   await user.save({ validateBeforeSave: false });
+
+  // Audit log connexion réussie
+  logAudit({
+    action: AUDIT_ACTIONS.LOGIN_SUCCESS,
+    userId: user._id,
+    userEmail: user.email,
+    ip: req.ip,
+    userAgent: req.get('User-Agent'),
+    details: { userType: user.userType }
+  });
 
   // 8) Tout est OK, envoyer le token au client
   createSendToken(user, 200, req, res);
@@ -456,6 +476,15 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
   await user.save();
+
+  // Audit log reset password
+  logAudit({
+    action: AUDIT_ACTIONS.PASSWORD_RESET,
+    userId: user._id,
+    userEmail: user.email,
+    ip: req.ip,
+    userAgent: req.get('User-Agent')
+  });
 
   // 3) Mettre à jour la propriété changedPasswordAt pour l'utilisateur (fait dans le middleware pre-save)
 

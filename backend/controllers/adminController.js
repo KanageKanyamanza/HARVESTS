@@ -11,6 +11,7 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const crypto = require('crypto');
 const { toPlainText } = require('../utils/localization');
+const { logAudit, AUDIT_ACTIONS } = require('../utils/auditLogger');
 
 // Fonction pour créer un token JWT
 const createSendToken = (admin, statusCode, req, res) => {
@@ -957,11 +958,26 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteUser = catchAsync(async (req, res, next) => {
-  const user = await User.findByIdAndDelete(req.params.id);
+  const user = await User.findById(req.params.id);
   
   if (!user) {
     return next(new AppError('Utilisateur non trouvé', 404));
   }
+
+  const deletedUserEmail = user.email;
+  await User.findByIdAndDelete(req.params.id);
+
+  // Audit log
+  logAudit({
+    action: AUDIT_ACTIONS.USER_DELETED,
+    userId: req.user._id,
+    userEmail: req.user.email,
+    targetId: req.params.id,
+    targetType: 'User',
+    ip: req.ip,
+    userAgent: req.get('User-Agent'),
+    details: { deletedUserEmail }
+  });
 
   res.status(200).json({
     status: 'success',
@@ -979,6 +995,18 @@ exports.banUser = catchAsync(async (req, res, next) => {
   if (!user) {
     return next(new AppError('Utilisateur non trouvé', 404));
   }
+
+  // Audit log
+  logAudit({
+    action: AUDIT_ACTIONS.USER_BANNED,
+    userId: req.user._id,
+    userEmail: req.user.email,
+    targetId: user._id,
+    targetType: 'User',
+    ip: req.ip,
+    userAgent: req.get('User-Agent'),
+    details: { bannedUserEmail: user.email, reason: req.body.reason }
+  });
 
   res.status(200).json({
     status: 'success',
@@ -3211,6 +3239,61 @@ exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
         email: transporter.email,
         phone: transporter.phone,
         userType: transporter.userType || 'transporter'
+      }
+    }
+  });
+});
+
+// ========================================
+// AUDIT LOGS
+// ========================================
+
+const AuditLog = require('../models/AuditLog');
+
+exports.getAuditLogs = catchAsync(async (req, res, next) => {
+  const { 
+    page = 1, 
+    limit = 50, 
+    action, 
+    userId, 
+    startDate, 
+    endDate,
+    status 
+  } = req.query;
+
+  const filter = {};
+  
+  if (action) filter.action = action;
+  if (userId) filter.userId = userId;
+  if (status) filter.status = status;
+  
+  if (startDate || endDate) {
+    filter.timestamp = {};
+    if (startDate) filter.timestamp.$gte = new Date(startDate);
+    if (endDate) filter.timestamp.$lte = new Date(endDate);
+  }
+
+  const skip = (parseInt(page) - 1) * parseInt(limit);
+
+  const [logs, total] = await Promise.all([
+    AuditLog.find(filter)
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .populate('userId', 'firstName lastName email')
+      .lean(),
+    AuditLog.countDocuments(filter)
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    results: logs.length,
+    data: {
+      logs,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalLogs: total
       }
     }
   });

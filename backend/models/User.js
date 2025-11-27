@@ -17,6 +17,13 @@ const baseUserSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Mot de passe requis'],
     minlength: [8, 'Le mot de passe doit contenir au moins 8 caractères'],
+    validate: {
+      validator: function(v) {
+        // Au moins une majuscule, une minuscule et un chiffre
+        return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(v);
+      },
+      message: 'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre'
+    },
     select: false
   },
   userType: {
