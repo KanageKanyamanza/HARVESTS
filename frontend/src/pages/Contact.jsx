@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FiMail, FiPhone, FiMapPin, FiClock, FiSend, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import SocialLinks from '../components/common/SocialLinks';
+import { contactService } from '../services/contactService';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -27,11 +28,7 @@ const Contact = () => {
     setSubmitStatus(null);
 
     try {
-      // Simulation d'envoi - à remplacer par un vrai appel API
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Ici vous pouvez ajouter l'appel à votre API
-      // await contactService.sendMessage(formData);
+      await contactService.sendMessage(formData);
       
       setSubmitStatus('success');
       setFormData({
@@ -109,7 +106,7 @@ const Contact = () => {
                 <div className="space-y-6">
                   {contactInfo.map((info, index) => (
                     <div key={index} className="flex items-start space-x-4">
-                      <div className="flex-shrink-0 w-12 h-12 bg-harvests-green bg-opacity-10 rounded-lg flex items-center justify-center text-harvests-green">
+                      <div className="flex-shrink-0 w-12 h-12 bg-harvests-green bg-opacity-10 rounded-lg flex items-center justify-center text-white">
                         {info.icon}
                       </div>
                       <div className="flex-1">
@@ -315,7 +312,7 @@ const Contact = () => {
               <SocialLinks 
                 variant="light" 
                 size="lg" 
-                showLabels={true}
+                showLabels={false}
                 className="text-white"
               />
             </div>

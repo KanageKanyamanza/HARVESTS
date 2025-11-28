@@ -1,6 +1,6 @@
 const express = require('express');
 const reviewController = require('../controllers/reviewController');
-const authController = require('../controllers/authController');
+const authMiddleware = require('../controllers/auth/authMiddleware');
 
 const router = express.Router();
 
@@ -26,12 +26,12 @@ router.get('/search', reviewController.searchReviews);
 
 // ROUTES PROTÉGÉES
 
-router.use(authController.protect);
-router.use(authController.requireVerification);
+router.use(authMiddleware.protect);
+router.use(authMiddleware.requireVerification);
 
 // Créer un avis (acheteurs seulement)
 router.post('/', 
-  authController.restrictTo('consumer', 'restaurateur'),
+  authMiddleware.restrictTo('consumer', 'restaurateur'),
   reviewController.createReview
 );
 
@@ -57,19 +57,19 @@ router.post('/:id/report', reviewController.reportReview);
 
 // Répondre à un avis (producteurs seulement)
 router.post('/:id/respond', 
-  authController.restrictTo('producer', 'transformer'),
+  authMiddleware.restrictTo('producer', 'transformer'),
   reviewController.respondToReview
 );
 
 // Obtenir les avis reçus (producteurs)
 router.get('/received', 
-  authController.restrictTo('producer', 'transformer'),
+  authMiddleware.restrictTo('producer', 'transformer'),
   reviewController.getReceivedReviews
 );
 
 // Obtenir les avis récents
 router.get('/received/recent', 
-  authController.restrictTo('producer', 'transformer'),
+  authMiddleware.restrictTo('producer', 'transformer'),
   reviewController.getRecentReviews
 );
 
@@ -78,7 +78,7 @@ router.get('/:id', reviewController.getReview);
 
 // ROUTES ADMIN
 
-router.use(authController.restrictTo('admin'));
+router.use(authMiddleware.restrictTo('admin'));
 
 // Obtenir tous les avis
 router.get('/admin/all', reviewController.getAllReviews);

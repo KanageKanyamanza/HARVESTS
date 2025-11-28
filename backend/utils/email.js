@@ -145,10 +145,13 @@ module.exports = class Email {
     const isProduction = process.env.NODE_ENV === 'production';
     
     // 1) Générer le HTML basé sur un template pug
+    const frontendUrl = process.env.FRONTEND_URL || 'https://www.harvests.site';
+    const logoUrl = `${frontendUrl}/logo.png`;
     const html = pug.renderFile(`${__dirname}/../views/email/${template}.pug`, {
       firstName: this.firstName,
       url: this.url,
       subject,
+      logoUrl,
     });
 
     const text = htmlToText.convert(html);
@@ -323,7 +326,7 @@ module.exports = class Email {
         return url;
       }
       // Sinon, construire l'URL complète avec FRONTEND_URL
-      const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
+      const frontendUrl = process.env.FRONTEND_URL || 'https://www.harvests.site';
       const baseUrl = frontendUrl.replace(/\/$/, '');
       const normalizedPath = url.startsWith('/') ? url : `/${url}`;
       return `${baseUrl}${normalizedPath}`;
@@ -352,7 +355,7 @@ module.exports = class Email {
 
         const itemsHtml = group.items.map((product, index) => {
           const firstImage = product.images && product.images.length > 0 ? product.images[0] : null;
-          const imageUrl = firstImage && (firstImage.startsWith('http') ? firstImage : `${process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app'}${firstImage.startsWith('/') ? firstImage : '/' + firstImage}`);
+          const imageUrl = firstImage && (firstImage.startsWith('http') ? firstImage : `${process.env.FRONTEND_URL || 'https://www.harvests.site'}${firstImage.startsWith('/') ? firstImage : '/' + firstImage}`);
           const productBadge = renderStatusBadge(product.status || firstStatus);
 
           return `

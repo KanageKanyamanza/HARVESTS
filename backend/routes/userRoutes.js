@@ -1,12 +1,12 @@
 const express = require('express');
 const userController = require('../controllers/userController');
-const authController = require('../controllers/authController');
+const authMiddleware = require('../controllers/auth/authMiddleware');
 const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
 
 const router = express.Router();
 
 // Toutes les routes sont protégées
-router.use(authController.protect);
+router.use(authMiddleware.protect);
 
 // Routes communes à tous les utilisateurs
 router.get('/me', userController.getMe, userController.getUser);
@@ -66,7 +66,7 @@ router.patch('/me/delivery-addresses/:addressId', userController.updateDeliveryA
 router.delete('/me/delivery-addresses/:addressId', userController.deleteDeliveryAddress);
 
 // Routes administratives (admin seulement)
-router.use(authController.restrictTo('admin'));
+router.use(authMiddleware.restrictTo('admin'));
 
 router.route('/')
   .get(userController.getAllUsers)

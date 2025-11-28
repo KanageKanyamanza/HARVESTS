@@ -1,6 +1,6 @@
 const express = require('express');
 const transformerController = require('../controllers/transformerController');
-const authController = require('../controllers/authController');
+const authMiddleware = require('../controllers/auth/authMiddleware');
 const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
 
 const router = express.Router();
@@ -16,9 +16,9 @@ router.get('/:id/services', transformerController.getTransformerServices);
 router.get('/:id/reviews', (req, res, next) => {
   if (req.params.id === 'me') {
     // Appliquer l'authentification pour la route /me/reviews
-    return authController.protect(req, res, () => {
-      authController.restrictTo('transformer')(req, res, () => {
-        authController.requireVerification(req, res, () => {
+    return authMiddleware.protect(req, res, () => {
+      authMiddleware.restrictTo('transformer')(req, res, () => {
+        authMiddleware.requireVerification(req, res, () => {
           transformerController.getMyReviews(req, res, next);
         });
       });
@@ -32,9 +32,9 @@ router.get('/:id/reviews', (req, res, next) => {
 router.get('/:id/products', (req, res, next) => {
   if (req.params.id === 'me') {
     // Appliquer l'authentification pour la route /me/products
-    return authController.protect(req, res, () => {
-      authController.restrictTo('transformer')(req, res, () => {
-        authController.requireVerification(req, res, () => {
+    return authMiddleware.protect(req, res, () => {
+      authMiddleware.restrictTo('transformer')(req, res, () => {
+        authMiddleware.requireVerification(req, res, () => {
           transformerController.getMyProducts(req, res, next);
         });
       });
@@ -47,10 +47,10 @@ router.get('/:id/products', (req, res, next) => {
 router.get('/:id', transformerController.getTransformer);
 
 // Toutes les routes suivantes nécessitent une authentification
-router.use(authController.protect);
-router.use(authController.restrictTo('transformer'));
-router.use(authController.requireVerification);
-router.use(authController.checkApprovalStatus); // Vérifier le statut d'approbation
+router.use(authMiddleware.protect);
+router.use(authMiddleware.restrictTo('transformer'));
+router.use(authMiddleware.requireVerification);
+router.use(authMiddleware.checkApprovalStatus); // Vérifier le statut d'approbation
 
 // Routes accessibles même sans approbation (dashboard, profil)
 router.get('/me/profile', transformerController.getMyProfile);
@@ -81,7 +81,7 @@ router.patch('/me/products/:productId/submit', transformerController.submitProdu
 
 
 // Routes nécessitant une approbation (opérations sensibles)
-router.use(authController.requireApproval); // Appliquer l'approbation aux routes suivantes
+router.use(authMiddleware.requireApproval); // Appliquer l'approbation aux routes suivantes
 
 // Gestion des informations de l'entreprise
 router.route('/me/company-info')

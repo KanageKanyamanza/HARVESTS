@@ -1,6 +1,6 @@
 const express = require('express');
 const blogVisitorController = require('../controllers/blogVisitorController');
-const authController = require('../controllers/authController');
+const authMiddleware = require('../controllers/auth/authMiddleware');
 
 const router = express.Router();
 
@@ -15,8 +15,8 @@ router.post('/submit', blogVisitorController.submitVisitorForm);
 // ROUTES ADMIN
 
 // Toutes les routes admin nécessitent l'authentification
-router.use(authController.protect);
-router.use(authController.restrictTo('admin'));
+router.use(authMiddleware.protect);
+router.use(authMiddleware.restrictTo('admin'));
 
 // Liste des visiteurs (admin)
 router.get('/admin', blogVisitorController.getVisitors);

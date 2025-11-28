@@ -1,6 +1,6 @@
 const express = require('express');
 const subscriptionController = require('../controllers/subscriptionController');
-const authController = require('../controllers/authController');
+const authMiddleware = require('../controllers/auth/authMiddleware');
 const adminAuthController = require('../controllers/adminAuthController');
 
 const router = express.Router();
@@ -11,17 +11,17 @@ router.get('/stats/overview', adminAuthController.protect, subscriptionControlle
 router.get('/admin', adminAuthController.protect, subscriptionController.getAllSubscriptions);
 router.patch('/admin/:id/status', adminAuthController.protect, subscriptionController.updateSubscriptionStatus);
 
-// Routes utilisateur (protégées par authController)
-router.get('/me', authController.protect, subscriptionController.getMySubscriptions);
-router.post('/', authController.protect, subscriptionController.createSubscription);
-router.post('/activate-free', authController.protect, subscriptionController.activateFreePlan);
+// Routes utilisateur (protégées par authMiddleware)
+router.get('/me', authMiddleware.protect, subscriptionController.getMySubscriptions);
+router.post('/', authMiddleware.protect, subscriptionController.createSubscription);
+router.post('/activate-free', authMiddleware.protect, subscriptionController.activateFreePlan);
 
 // Routes utilisateur avec :id (doivent être après les routes admin)
-router.get('/:id', authController.protect, subscriptionController.getSubscription);
-router.patch('/:id', authController.protect, subscriptionController.updateSubscription);
-router.patch('/:id/cancel', authController.protect, subscriptionController.cancelSubscription);
-router.post('/:id/renew', authController.protect, subscriptionController.renewSubscription);
-router.get('/:id/payments', authController.protect, subscriptionController.getSubscriptionPayments);
+router.get('/:id', authMiddleware.protect, subscriptionController.getSubscription);
+router.patch('/:id', authMiddleware.protect, subscriptionController.updateSubscription);
+router.patch('/:id/cancel', authMiddleware.protect, subscriptionController.cancelSubscription);
+router.post('/:id/renew', authMiddleware.protect, subscriptionController.renewSubscription);
+router.get('/:id/payments', authMiddleware.protect, subscriptionController.getSubscriptionPayments);
 
 module.exports = router;
 

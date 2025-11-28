@@ -1,6 +1,6 @@
 const express = require('express');
 const restaurateurController = require('../controllers/restaurateurController');
-const authController = require('../controllers/authController');
+const authMiddleware = require('../controllers/auth/authMiddleware');
 const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
 
 const router = express.Router();
@@ -13,8 +13,8 @@ router.get('/by-cuisine/:cuisine', restaurateurController.getRestaurateursByCuis
 
 // Toutes les routes 
 // Protégées uniquement pour le préfixe /me afin de ne pas bloquer les routes publiques /:id*
-router.use('/me', authController.protect);
-router.use('/me', authController.restrictTo('restaurateur'));
+router.use('/me', authMiddleware.protect);
+router.use('/me', authMiddleware.restrictTo('restaurateur'));
 
 // Routes protégées spécifiques (doivent être AVANT les routes génériques)
 router.get('/me/profile', restaurateurController.getMyProfile);
@@ -60,7 +60,7 @@ router.get('/suppliers/:supplierId', restaurateurController.getSupplierDetails);
 
 // Routes d'écriture (nécessitent une vérification d'email)
 // Appliquer requireVerification uniquement aux routes /me/* qui en ont besoin
-router.use('/me', authController.requireVerification);
+router.use('/me', authMiddleware.requireVerification);
 
 // Gestion du profil restaurateur
 router.patch('/me/profile', restaurateurController.updateMyProfile);

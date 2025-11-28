@@ -19,6 +19,7 @@ export { subscriptionService } from './subscriptionService';
 export { default as uploadService } from './uploadService';
 export { default as profileService } from './profileService';
 export { default as commonService } from './commonService';
+export { contactService } from './contactService';
 
 // Export de l'instance API de base
 export { default as api } from './api';

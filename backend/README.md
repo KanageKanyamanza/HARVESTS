@@ -133,9 +133,9 @@ POST /api/v1/auth/signup
   "userType": "producer",
   "address": {
     "street": "123 Rue des Agriculteurs",
-    "city": "Yaoundé",
-    "region": "Centre",
-    "country": "Cameroon"
+    "city": "Dakar",
+    "region": "Dakar",
+    "country": "Senegal"
   },
   "specificData": {
     "farmName": "Ferme Bio Kouam",

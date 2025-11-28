@@ -1,5 +1,8 @@
 const express = require('express');
-const authController = require('../controllers/authController');
+const authController = require('../controllers/auth/authController');
+const emailVerificationController = require('../controllers/auth/emailVerificationController');
+const passwordController = require('../controllers/auth/passwordController');
+const authMiddleware = require('../controllers/auth/authMiddleware');
 const { authLimiter, emailLimiter, signupLimiter } = require('../middleware/security');
 
 /**
@@ -138,23 +141,23 @@ router.post('/login', authLimiter, authController.login);
 router.post('/logout', authController.logout);
 
 // Vérification et réinitialisation
-router.get('/verify-email/:token', authController.verifyEmail);
-router.post('/resend-verification', emailLimiter, authController.resendVerificationEmail);
-router.post('/forgot-password', emailLimiter, authController.forgotPassword);
-router.patch('/reset-password/:token', authController.resetPassword);
+router.get('/verify-email/:token', emailVerificationController.verifyEmail);
+router.post('/resend-verification', emailLimiter, emailVerificationController.resendVerificationEmail);
+router.post('/forgot-password', emailLimiter, passwordController.forgotPassword);
+router.patch('/reset-password/:token', passwordController.resetPassword);
 
 // Debug - Statut de la queue d'emails (désactivé en production)
 if (process.env.NODE_ENV === 'development') {
-  router.get('/email-queue-status', authController.getEmailQueueStatus);
-  router.post('/test-email-config', emailLimiter, authController.testEmailConfiguration);
+  router.get('/email-queue-status', emailVerificationController.getEmailQueueStatus);
+  router.post('/test-email-config', emailLimiter, emailVerificationController.testEmailConfiguration);
 }
 
 // Redemander l'envoi d'email de vérification
-router.post('/retry-email-verification', emailLimiter, authController.retryEmailVerification);
+router.post('/retry-email-verification', emailLimiter, emailVerificationController.retryEmailVerification);
 
 // Routes protégées (nécessitent une authentification)
-router.use(authController.protect); // Toutes les routes après ce middleware sont protégées
+router.use(authMiddleware.protect); // Toutes les routes après ce middleware sont protégées
 
-router.patch('/update-password', authController.updatePassword);
+router.patch('/update-password', passwordController.updatePassword);
 
 module.exports = router;

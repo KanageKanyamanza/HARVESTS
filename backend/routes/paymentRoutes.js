@@ -1,12 +1,12 @@
 const express = require('express');
 const paymentController = require('../controllers/paymentController');
-const authController = require('../controllers/authController');
+const authMiddleware = require('../controllers/auth/authMiddleware');
 
 const router = express.Router();
 
 // Toutes les routes nécessitent une authentification
-router.use(authController.protect);
-router.use(authController.requireVerification);
+router.use(authMiddleware.protect);
+router.use(authMiddleware.requireVerification);
 
 // ROUTES UTILISATEUR
 
@@ -35,13 +35,13 @@ router.post('/:id/refund', paymentController.requestRefund);
 
 // Obtenir mes revenus (vendeurs)
 router.get('/my/revenue', 
-  authController.restrictTo('producer', 'transformer', 'exporter'),
+  authMiddleware.restrictTo('producer', 'transformer', 'exporter'),
   paymentController.getMyRevenue
 );
 
 // ROUTES ADMIN
 
-router.use(authController.restrictTo('admin'));
+router.use(authMiddleware.restrictTo('admin'));
 
 // Obtenir tous les paiements
 router.get('/admin/all', paymentController.getAllPayments);

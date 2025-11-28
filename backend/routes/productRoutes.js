@@ -1,6 +1,6 @@
 const express = require('express');
 const productController = require('../controllers/productController');
-const authController = require('../controllers/authController');
+const authMiddleware = require('../controllers/auth/authMiddleware');
 const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
 
 const router = express.Router();
@@ -34,11 +34,11 @@ router.get('/:id', productController.getProduct);
 // ROUTES PROTÉGÉES PRODUCTEUR
 
 // Middleware d'authentification
-router.use(authController.protect);
+router.use(authMiddleware.protect);
 
 // Routes pour les producteurs
-router.use('/my', authController.restrictTo('producer'));
-router.use('/my', authController.requireVerification);
+router.use('/my', authMiddleware.restrictTo('producer'));
+router.use('/my', authMiddleware.requireVerification);
 
 // Mes produits
 router.route('/my')
@@ -74,7 +74,7 @@ router.get('/my/stats/overview', productController.getMyProductStats);
 
 // ROUTES ADMIN
 
-router.use(authController.restrictTo('admin'));
+router.use(authMiddleware.restrictTo('admin'));
 
 // Modération des produits
 router.get('/pending', productController.getPendingProducts);

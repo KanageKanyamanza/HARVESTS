@@ -1,6 +1,6 @@
 const express = require('express');
 const producerController = require('../controllers/producerController');
-const authController = require('../controllers/authController');
+const authMiddleware = require('../controllers/auth/authMiddleware');
 const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
 
 const router = express.Router();
@@ -26,10 +26,10 @@ router.get('/:id([0-9a-fA-F]{24})/reviews', producerController.getProducerReview
 // ========================================
 
 // Toutes les routes suivantes nécessitent une authentification
-router.use(authController.protect);
+router.use(authMiddleware.protect);
 
 // Routes pour les producteurs seulement
-router.use(authController.restrictTo('producer'));
+router.use(authMiddleware.restrictTo('producer'));
 
 // Routes de lecture qui ne nécessitent pas de vérification d'email
 router.get('/me/stats', producerController.getMyStats);
@@ -37,7 +37,7 @@ router.get('/me/products', producerController.getMyProducts);
 router.get('/me/orders', producerController.getMyOrders);
 
 // Toutes les autres routes nécessitent une vérification d'email
-router.use(authController.requireVerification);
+router.use(authMiddleware.requireVerification);
 
 // Routes protégées pour les producteurs connectés (/me/*)
 

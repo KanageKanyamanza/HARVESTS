@@ -269,7 +269,7 @@ const Footer = () => {
         </div> */}
 
         {/* Section copyright */}
-        <div className="py-6 border-t border-gray-900 justify-center content-center text-center">
+        <div className="py-6 border-t border-gray-800 dark:border-gray-700 justify-center content-center text-center">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4">
               <p className="text-gray-500 text-sm">

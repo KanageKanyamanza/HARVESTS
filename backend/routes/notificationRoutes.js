@@ -1,6 +1,6 @@
 const express = require('express');
 const notificationController = require('../controllers/notificationController');
-const authController = require('../controllers/authController');
+const authMiddleware = require('../controllers/auth/authMiddleware');
 const adminAuthController = require('../controllers/adminAuthController');
 
 const router = express.Router();
@@ -8,8 +8,8 @@ const router = express.Router();
 // ROUTES UTILISATEUR (authentification normale)
 // Appliquer l'authentification utilisateur seulement aux routes utilisateur
 const userRoutes = express.Router();
-userRoutes.use(authController.protect);
-userRoutes.use(authController.requireVerification);
+userRoutes.use(authMiddleware.protect);
+userRoutes.use(authMiddleware.requireVerification);
 
 // Obtenir mes notifications
 userRoutes.get('/my', notificationController.getMyNotifications);
@@ -43,18 +43,18 @@ userRoutes.route('/my/preferences')
 // ROUTES SYSTÈME (pour les producteurs/vendeurs)
 // Appliquer l'authentification utilisateur aux routes système
 const systemRoutes = express.Router();
-systemRoutes.use(authController.protect);
-systemRoutes.use(authController.requireVerification);
+systemRoutes.use(authMiddleware.protect);
+systemRoutes.use(authMiddleware.requireVerification);
 
 // Notifier stock faible
 systemRoutes.post('/system/low-stock', 
-  authController.restrictTo('producer', 'transformer'),
+  authMiddleware.restrictTo('producer', 'transformer'),
   notificationController.notifyLowStock
 );
 
 // Notifier produit de nouveau disponible
 systemRoutes.post('/system/back-in-stock',
-  authController.restrictTo('producer', 'transformer'),
+  authMiddleware.restrictTo('producer', 'transformer'),
   notificationController.notifyBackInStock
 );
 

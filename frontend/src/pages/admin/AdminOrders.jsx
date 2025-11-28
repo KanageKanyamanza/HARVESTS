@@ -90,34 +90,34 @@ const AdminOrders = () => {
   if (loading) return <div className="flex items-center justify-center h-64"><LoadingSpinner size="lg" /></div>;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Gestion des commandes</h1>
+      <div className="space-y-6">
+        {/* Header */}
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Gestion des commandes</h1>
         <p className="mt-1 text-sm text-gray-500">Gérez les commandes et résolvez les litiges</p>
-      </div>
+        </div>
 
       {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
             <label className="block text-sm font-medium text-gray-700">Rechercher</label>
             <input type="text" placeholder="Rechercher..." value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm" />
-          </div>
-          <div>
+            </div>
+            <div>
             <label className="block text-sm font-medium text-gray-700">Statut</label>
             <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm">
-              <option value="">Tous les statuts</option>
-              <option value="pending">En attente</option>
+                <option value="">Tous les statuts</option>
+                <option value="pending">En attente</option>
               <option value="confirmed">Confirmée</option>
-              <option value="processing">En cours</option>
+                <option value="processing">En cours</option>
               <option value="shipped">Expédiée</option>
               <option value="delivered">Livrée</option>
               <option value="cancelled">Annulée</option>
-            </select>
+              </select>
+            </div>
           </div>
         </div>
-      </div>
 
       {/* Stats */}
       <div className="text-sm text-gray-600">{totalOrders} commande(s) trouvée(s)</div>
@@ -125,7 +125,7 @@ const AdminOrders = () => {
       {/* Table */}
       <AdminOrdersTable orders={orders} onConfirmPayment={handleConfirmPayment} onOpenAssignModal={handleOpenAssignModal} confirmingPayment={confirmingPayment} />
 
-      {/* Pagination */}
+        {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center space-x-2">
           <button onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); setSearchParams({ page: Math.max(1, currentPage - 1).toString() }); }} disabled={currentPage === 1} className="px-4 py-2 border rounded-md disabled:opacity-50">Précédent</button>
