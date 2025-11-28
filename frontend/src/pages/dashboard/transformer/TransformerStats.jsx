@@ -3,6 +3,7 @@ import { transformerService } from '../../../services';
 import { transformerService as genericTransformerService } from '../../../services/genericService';
 import { useNotifications } from '../../../contexts/NotificationContext';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
+import LoadingSpinner from '../../../components/common/LoadingSpinner';
 import {
   FiTrendingUp,
   FiTrendingDown,
@@ -185,10 +186,7 @@ const TransformerStats = () => {
     return (
       <ModularDashboardLayout userType="transformer">
         <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <FiRefreshCw className="h-8 w-8 animate-spin text-purple-600 mx-auto mb-4" />
-            <p className="text-gray-600">Chargement des statistiques...</p>
-          </div>
+          <LoadingSpinner size="lg" text="Chargement des statistiques..." />
         </div>
       </ModularDashboardLayout>
     );

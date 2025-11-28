@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { FiUpload, FiX, FiImage, FiCheck } from 'react-icons/fi';
 import { uploadService } from '../../services';
 import CloudinaryImage from './CloudinaryImage';
+import LoadingSpinner from './LoadingSpinner';
 
 const ProductImageUpload = ({
   onImageUpload,
@@ -155,10 +156,7 @@ const ProductImageUpload = ({
           />
 
           {uploading ? (
-            <div className="flex flex-col items-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mb-2"></div>
-              <p className="text-sm text-gray-600">Upload en cours...</p>
-            </div>
+            <LoadingSpinner size="md" text="Upload en cours..." />
           ) : (
             <div className="flex flex-col items-center">
               <FiImage className="h-12 w-12 text-gray-400 mb-4" />

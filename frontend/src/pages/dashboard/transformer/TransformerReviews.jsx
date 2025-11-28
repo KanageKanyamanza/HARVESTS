@@ -3,6 +3,7 @@ import { transformerService } from '../../../services';
 import { useNotifications } from '../../../contexts/NotificationContext';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import EmailVerificationRequired from '../../../components/common/EmailVerificationRequired';
+import LoadingSpinner from '../../../components/common/LoadingSpinner';
 import {
   FiStar,
   FiUser,
@@ -149,10 +150,7 @@ const TransformerReviews = () => {
     return (
       <ModularDashboardLayout userType="transformer">
         <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <FiRefreshCw className="h-8 w-8 animate-spin text-purple-600 mx-auto mb-4" />
-            <p className="text-gray-600">Chargement des avis...</p>
-          </div>
+          <LoadingSpinner size="lg" text="Chargement des avis..." />
         </div>
       </ModularDashboardLayout>
     );

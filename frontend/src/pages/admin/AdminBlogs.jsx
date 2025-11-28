@@ -17,6 +17,7 @@ import {
 import { adminService } from '../../services/adminService';
 import { useNotifications } from '../../contexts/NotificationContext';
 import CloudinaryImage from '../../components/common/CloudinaryImage';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const AdminBlogs = () => {
   const { showSuccess, showError } = useNotifications();
@@ -160,7 +161,7 @@ const AdminBlogs = () => {
   if (loading && blogs.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+        <LoadingSpinner size="lg" text="Chargement des blogs..." />
       </div>
     );
   }

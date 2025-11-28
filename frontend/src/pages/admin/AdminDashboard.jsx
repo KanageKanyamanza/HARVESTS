@@ -6,6 +6,7 @@ import RecentOrders from '../../components/admin/RecentOrders';
 import PendingProducts from '../../components/admin/PendingProducts';
 import TopProducers from '../../components/admin/TopProducers';
 import ProductStats from '../../components/admin/ProductStats';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 import {
   Users,
   Package,
@@ -308,10 +309,7 @@ const AdminDashboard = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-harvests-light flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Chargement...</p>
-        </div>
+        <LoadingSpinner size="lg" text="Chargement..." />
       </div>
     );
   }

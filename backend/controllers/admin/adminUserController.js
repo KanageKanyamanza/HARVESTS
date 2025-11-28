@@ -1,4 +1,5 @@
 const User = require('../../models/User');
+const Product = require('../../models/Product');
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
 const { logAudit, AUDIT_ACTIONS } = require('../../utils/auditLogger');
@@ -166,6 +167,20 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
   }
 
   const deletedUserEmail = user.email;
+
+  // Supprimer tous les produits associés à cet utilisateur (cascade delete)
+  // Les produits peuvent être associés via producer, transformer ou restaurateur
+  const deletedProducts = await Product.deleteMany({
+    $or: [
+      { producer: user._id },
+      { transformer: user._id },
+      { restaurateur: user._id }
+    ]
+  });
+
+  console.log(`🗑️ Suppression de ${deletedProducts.deletedCount} produit(s) associé(s) à l'utilisateur ${deletedUserEmail}`);
+
+  // Supprimer l'utilisateur
   await User.findByIdAndDelete(req.params.id);
 
   // Audit log
@@ -174,12 +189,15 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
     action: AUDIT_ACTIONS.USER_DELETED,
     targetType: 'User',
     targetId: req.params.id,
-    details: { deletedUserEmail }
+    details: { 
+      deletedUserEmail,
+      deletedProductsCount: deletedProducts.deletedCount
+    }
   });
 
   res.status(200).json({
     status: 'success',
-    message: 'Utilisateur supprimé avec succès'
+    message: `Utilisateur et ${deletedProducts.deletedCount} produit(s) supprimé(s) avec succès`
   });
 });
 

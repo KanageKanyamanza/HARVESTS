@@ -5,6 +5,7 @@ import { useNotifications } from '../../../../contexts/NotificationContext';
 import ModularDashboardLayout from '../../../../components/layout/ModularDashboardLayout';
 import ProductCard from '../../../../components/common/ProductCard';
 import EmailVerificationRequired from '../../../../components/common/EmailVerificationRequired';
+import LoadingSpinner from '../../../../components/common/LoadingSpinner';
 import {
   FiPackage,
   FiPlus,
@@ -106,7 +107,7 @@ const MyProducts = () => {
     return (
       <ModularDashboardLayout userType="transformer">
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+          <LoadingSpinner size="lg" text="Chargement des produits..." />
         </div>
       </ModularDashboardLayout>
     );

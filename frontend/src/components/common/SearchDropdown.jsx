@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { productService } from '../../services';
 import { toPlainText } from '../../utils/textHelpers';
+import LoadingSpinner from './LoadingSpinner';
 
 // Composant pour gérer les images des produits
 const ProductImage = ({ product, className = "" }) => {
@@ -123,8 +124,7 @@ const SearchDropdown = ({ searchQuery, isOpen, onClose, onProductClick }) => {
     >
       {loading && (
         <div className="p-4 text-center">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto"></div>
-          <p className="text-sm text-gray-600 mt-2">Recherche en cours...</p>
+          <LoadingSpinner size="md" text="Recherche en cours..." />
         </div>
       )}
 

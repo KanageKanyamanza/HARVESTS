@@ -5,6 +5,7 @@ import ModularDashboardLayout from '../../../components/layout/ModularDashboardL
 import { FiTruck, FiArrowLeft, FiSave, FiX, FiUpload } from 'react-icons/fi';
 import { useNotifications } from '../../../contexts/NotificationContext';
 import CloudinaryImage from '../../../components/common/CloudinaryImage';
+import LoadingSpinner from '../../../components/common/LoadingSpinner';
 
 const AddVehicle = () => {
   const navigate = useNavigate();
@@ -296,10 +297,7 @@ const AddVehicle = () => {
                   className="hidden"
                 />
                 {uploadingImage ? (
-                  <>
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-harvests-green mx-auto"></div>
-                    <p className="mt-2 text-sm text-gray-600">Upload en cours...</p>
-                  </>
+                  <LoadingSpinner size="md" text="Upload en cours..." />
                 ) : (
                   <>
                     <FiUpload className="mx-auto h-8 w-8 text-gray-400" />

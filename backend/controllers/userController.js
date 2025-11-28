@@ -7,6 +7,7 @@ const Consumer = require('../models/Consumer');
 const Restaurateur = require('../models/Restaurateur');
 const Exporter = require('../models/Exporter');
 const Transporter = require('../models/Transporter');
+const Product = require('../models/Product');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const Email = require('../utils/email');
@@ -486,15 +487,31 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 
 // Supprimer un utilisateur (admin seulement)
 exports.deleteUser = catchAsync(async (req, res, next) => {
-  const user = await User.findByIdAndDelete(req.params.id);
+  const user = await User.findById(req.params.id);
 
   if (!user) {
     return next(new AppError('Aucun utilisateur trouvé avec cet ID', 404));
   }
 
+  // Supprimer tous les produits associés à cet utilisateur (cascade delete)
+  // Les produits peuvent être associés via producer, transformer ou restaurateur
+  const deletedProducts = await Product.deleteMany({
+    $or: [
+      { producer: user._id },
+      { transformer: user._id },
+      { restaurateur: user._id }
+    ]
+  });
+
+  console.log(`🗑️ Suppression de ${deletedProducts.deletedCount} produit(s) associé(s) à l'utilisateur ${user.email}`);
+
+  // Supprimer l'utilisateur
+  await User.findByIdAndDelete(req.params.id);
+
   res.status(204).json({
     status: 'success',
     data: null,
+    message: `Utilisateur et ${deletedProducts.deletedCount} produit(s) supprimé(s) avec succès`
   });
 });
 

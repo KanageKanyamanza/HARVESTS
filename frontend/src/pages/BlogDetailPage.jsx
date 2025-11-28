@@ -22,6 +22,7 @@ import BlogVisitorModal from '../components/blog/BlogVisitorModal';
 import useBlogVisitorModal from '../hooks/useBlogVisitorModal';
 import { useNotifications } from '../contexts/NotificationContext';
 import CloudinaryImage from '../components/common/CloudinaryImage';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const BlogDetailPage = () => {
   const { slug } = useParams();
@@ -250,7 +251,7 @@ const BlogDetailPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <LoadingSpinner size="lg" text="Chargement du blog..." />
       </div>
     );
   }
