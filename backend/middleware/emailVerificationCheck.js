@@ -21,11 +21,13 @@ exports.checkEmailVerification = (options = {}) => {
 
     // Si l'email est vérifié, tout est autorisé
     if (req.user.isEmailVerified) {
+      // emailVerified est un alias pour isEmailVerified pour compatibilité
       req.user.emailVerified = true;
       return next();
     }
 
     // Email non vérifié
+    // emailVerified est un alias pour isEmailVerified pour compatibilité
     req.user.emailVerified = false;
     req.user.requiresEmailVerification = true;
 

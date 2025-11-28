@@ -224,6 +224,18 @@ const suspiciousActivityLogger = (req, res, next) => {
 const validateObjectId = (req, res, next) => {
   const mongoose = require('mongoose');
   
+  // Exclure les routes qui utilisent des tokens (pas des ObjectIds)
+  const tokenRoutes = [
+    '/verify-email',
+    '/reset-password',
+    '/forgot-password'
+  ];
+  
+  const isTokenRoute = tokenRoutes.some(route => req.path.includes(route));
+  if (isTokenRoute) {
+    return next();
+  }
+  
   // Vérifier tous les paramètres qui finissent par 'Id' ou 'id'
   for (const [key, value] of Object.entries(req.params)) {
     if ((key.endsWith('Id') || key.endsWith('id')) && !mongoose.Types.ObjectId.isValid(value)) {
@@ -250,8 +262,17 @@ const compressionConfig = compression({
 
 // Middleware XSS personnalisé utilisant le package xss
 const xssMiddleware = (req, res, next) => {
+  // Exclure les routes qui utilisent des tokens (pas besoin de nettoyer les tokens hexadécimaux)
+  const tokenRoutes = [
+    '/verify-email',
+    '/reset-password',
+    '/forgot-password'
+  ];
+  
+  const isTokenRoute = tokenRoutes.some(route => req.path.includes(route));
+  
   // Fonction récursive pour nettoyer les objets
-  const cleanObject = (obj, visited = new WeakSet()) => {
+  const cleanObject = (obj, visited = new WeakSet(), skipTokenParams = false) => {
     if (obj === null || obj === undefined) {
       return obj;
     }
@@ -266,14 +287,19 @@ const xssMiddleware = (req, res, next) => {
       
       // Traiter les tableaux
       if (Array.isArray(obj)) {
-        return obj.map(item => cleanObject(item, visited));
+        return obj.map(item => cleanObject(item, visited, skipTokenParams));
       }
       
       // Traiter les objets
       const cleaned = {};
       for (const key in obj) {
         if (obj.hasOwnProperty(key)) {
-          cleaned[key] = cleanObject(obj[key], visited);
+          // Ne pas nettoyer les paramètres 'token' dans les routes de tokens
+          if (skipTokenParams && key === 'token') {
+            cleaned[key] = obj[key];
+          } else {
+            cleaned[key] = cleanObject(obj[key], visited, skipTokenParams);
+          }
         }
       }
       return cleaned;
@@ -289,17 +315,17 @@ const xssMiddleware = (req, res, next) => {
   
   // Nettoyer les données de req.body
   if (req.body && typeof req.body === 'object') {
-    req.body = cleanObject(req.body);
+    req.body = cleanObject(req.body, new WeakSet(), isTokenRoute);
   }
   
   // Nettoyer les données de req.query
   if (req.query && typeof req.query === 'object') {
-    req.query = cleanObject(req.query);
+    req.query = cleanObject(req.query, new WeakSet(), isTokenRoute);
   }
   
-  // Nettoyer les données de req.params
+  // Nettoyer les données de req.params (mais préserver les tokens)
   if (req.params && typeof req.params === 'object') {
-    req.params = cleanObject(req.params);
+    req.params = cleanObject(req.params, new WeakSet(), isTokenRoute);
   }
   
   next();

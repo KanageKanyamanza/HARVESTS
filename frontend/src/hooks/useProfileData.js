@@ -87,8 +87,8 @@ export const useVerificationStatus = (user) => {
   useEffect(() => {
     if (user) {
       setVerificationStatus({
-        email: { verified: user.isEmailVerified || user.emailVerified },
-        phone: { verified: user.isPhoneVerified || user.phoneVerified },
+        email: { verified: user.isEmailVerified },
+        phone: { verified: user.isPhoneVerified },
         overall: { level: user.verificationLevel || 'Non vérifié' }
       });
     }

@@ -7,6 +7,17 @@ const emailQueue = require('../../services/emailQueueService');
 
 // Vérification email
 exports.verifyEmail = catchAsync(async (req, res, next) => {
+  // Log pour déboguer
+  console.log('🔍 Vérification email - Token reçu:', req.params.token);
+  console.log('🔍 Vérification email - Longueur du token:', req.params.token?.length);
+  console.log('🔍 Vérification email - URL complète:', req.originalUrl);
+  
+  // Vérifier si le token est présent
+  if (!req.params.token) {
+    const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
+    return res.redirect(`${frontendUrl}/verify-email?error=missing_token`);
+  }
+  
   // 1) Récupérer l'utilisateur basé sur le token
   const hashedToken = crypto
     .createHash('sha256')
@@ -34,7 +45,6 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
   }
 
   user.isEmailVerified = true;
-  user.emailVerified = true; // Synchroniser les deux champs
   user.emailVerificationToken = undefined;
   user.emailVerificationExpires = undefined;
   
