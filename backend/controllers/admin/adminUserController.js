@@ -133,13 +133,9 @@ exports.updateUser = catchAsync(async (req, res, next) => {
   // Préparer les données de mise à jour
   const updateData = { firstName, lastName, email, phone, address, isActive };
   
-  // Synchroniser les champs de vérification email
+  // Mettre à jour le champ de vérification email
   if (isEmailVerified !== undefined) {
     updateData.isEmailVerified = isEmailVerified;
-    updateData.emailVerified = isEmailVerified;
-  } else if (emailVerified !== undefined) {
-    updateData.emailVerified = emailVerified;
-    updateData.isEmailVerified = emailVerified;
   }
   
   const user = await User.findByIdAndUpdate(

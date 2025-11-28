@@ -120,14 +120,10 @@ const baseUserSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  emailVerified: {
-    type: Boolean,
-    default: false
-  },
   emailVerificationToken: String,
   emailVerificationExpires: Date,
   
-  // Champs de vérification pour compatibilité avec l'API
+  // Champs de vérification
   isEmailVerified: {
     type: Boolean,
     default: false
@@ -332,44 +328,8 @@ baseUserSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
   return false;
 };
 
-// Middleware pour synchroniser les champs de vérification email
-baseUserSchema.pre('save', function(next) {
-  // Synchroniser isEmailVerified avec emailVerified
-  if (this.isModified('emailVerified')) {
-    this.isEmailVerified = this.emailVerified;
-  }
-  if (this.isModified('isEmailVerified')) {
-    this.emailVerified = this.isEmailVerified;
-  }
-  next();
-});
-
-// Middleware pour synchroniser lors des mises à jour
-baseUserSchema.pre(['updateOne', 'findOneAndUpdate', 'updateMany'], function(next) {
-  const update = this.getUpdate();
-  
-  if (update && typeof update === 'object') {
-    // Synchroniser emailVerified avec isEmailVerified
-    if (update.emailVerified !== undefined) {
-      update.isEmailVerified = update.emailVerified;
-    }
-    if (update.isEmailVerified !== undefined) {
-      update.emailVerified = update.isEmailVerified;
-    }
-    
-    // Gérer les opérations $set
-    if (update.$set) {
-      if (update.$set.emailVerified !== undefined) {
-        update.$set.isEmailVerified = update.$set.emailVerified;
-      }
-      if (update.$set.isEmailVerified !== undefined) {
-        update.$set.emailVerified = update.$set.isEmailVerified;
-      }
-    }
-  }
-  
-  next();
-});
+// Note: Le champ emailVerified a été supprimé, on utilise uniquement isEmailVerified
+// pour être cohérent avec les autres champs de vérification (isPhoneVerified, etc.)
 
 // Transformation JSON pour masquer les champs sensibles
 baseUserSchema.methods.toJSON = function() {

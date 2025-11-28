@@ -56,6 +56,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   res.locals.user = currentUser;
   
   // Ajouter les informations de vérification d'email
+  // Note: emailVerified est un alias pour isEmailVerified pour compatibilité
   req.user.emailVerified = currentUser.isEmailVerified;
   req.user.requiresEmailVerification = !currentUser.isEmailVerified;
   

@@ -262,7 +262,7 @@ class WebhookService {
       firstName: user.firstName,
       lastName: user.lastName,
       isActive: user.isActive,
-      emailVerified: user.emailVerified,
+      emailVerified: user.isEmailVerified, // Utiliser isEmailVerified comme source de vérité
       createdAt: user.createdAt,
       updatedAt: user.updatedAt
     };
