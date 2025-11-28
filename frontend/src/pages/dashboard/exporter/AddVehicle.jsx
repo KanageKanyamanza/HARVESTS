@@ -1,14 +1,12 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../hooks/useAuth';
 import { exporterService, uploadService } from '../../../services';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
-import { FiTruck, FiArrowLeft, FiSave, FiImage, FiX, FiUpload } from 'react-icons/fi';
+import { FiTruck, FiArrowLeft, FiSave, FiX, FiUpload } from 'react-icons/fi';
 import { useNotifications } from '../../../contexts/NotificationContext';
 import CloudinaryImage from '../../../components/common/CloudinaryImage';
 
 const AddVehicle = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const { showSuccess, showError } = useNotifications();
   const [loading, setLoading] = useState(false);
@@ -370,7 +368,7 @@ const AddVehicle = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Poids
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <input
                     type="number"
                     name="capacity.weight.value"
@@ -396,7 +394,7 @@ const AddVehicle = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Volume
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <input
                     type="number"
                     name="capacity.volume.value"
@@ -530,7 +528,7 @@ const AddVehicle = () => {
               ) : (
                 <>
                   <FiSave className="h-4 w-4 mr-2" />
-                  Enregistrer le véhicule
+                  Enregistrer
                 </>
               )}
             </button>

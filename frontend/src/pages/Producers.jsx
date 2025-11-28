@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { producerService } from '../services';
 import { FiMapPin, FiStar, FiPackage, FiArrowRight } from 'react-icons/fi';
 import { getCountryName } from '../utils/countryMapper';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const Producers = () => {
   const [producers, setProducers] = useState([]);
@@ -34,10 +35,7 @@ const Producers = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-harvests-light flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement des producteurs...</p>
-        </div>
+        <LoadingSpinner size="lg" text="Chargement des producteurs..." />
       </div>
     );
   }

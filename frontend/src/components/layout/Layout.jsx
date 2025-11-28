@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
+import BackToTop from '../common/BackToTop';
+import ChatBot from '../chat/ChatBot';
 
 const Layout = ({ children, className = '' }) => {
   const location = useLocation();
@@ -32,6 +34,8 @@ const Layout = ({ children, className = '' }) => {
       </main>
       
       <Footer />
+      <BackToTop />
+      <ChatBot />
     </div>
   );
 };

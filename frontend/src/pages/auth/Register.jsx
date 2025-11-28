@@ -113,6 +113,8 @@ const Register = () => {
       newErrors.password = 'Le mot de passe est requis';
     } else if (formData.password.length < 8) {
       newErrors.password = 'Le mot de passe doit contenir au moins 8 caractères';
+    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(formData.password)) {
+      newErrors.password = 'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre';
     }
     
     if (formData.password !== formData.confirmPassword) {
@@ -458,6 +460,9 @@ const Register = () => {
                 {errors.password && (
                   <p className="mt-1 text-sm text-red-600">{errors.password}</p>
                 )}
+                <p className="mt-1 text-xs text-gray-500">
+                  Min. 8 caractères, 1 majuscule, 1 minuscule, 1 chiffre
+                </p>
               </div>
 
               {/* Confirmer mot de passe */}

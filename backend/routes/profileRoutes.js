@@ -1,5 +1,5 @@
 const express = require('express');
-const authController = require('../controllers/authController');
+const authMiddleware = require('../controllers/auth/authMiddleware');
 const profileService = require('../services/profileService');
 const profileImageService = require('../services/profileImageService');
 const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
@@ -7,7 +7,7 @@ const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../mi
 const router = express.Router();
 
 // Toutes les routes nécessitent une authentification
-router.use(authController.protect);
+router.use(authMiddleware.protect);
 
 // Routes de profil communes
 router.route('/me')

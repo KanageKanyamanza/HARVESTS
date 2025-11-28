@@ -1,6 +1,6 @@
 const express = require('express');
 const transporterController = require('../controllers/transporterController');
-const authController = require('../controllers/authController');
+const authMiddleware = require('../controllers/auth/authMiddleware');
 const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
 
 const router = express.Router();
@@ -17,10 +17,10 @@ router.get('/:id/availability', transporterController.checkAvailability);
 router.post('/calculate-rate', transporterController.calculateShippingRate);
 
 // Toutes les routes suivantes nécessitent une authentification
-router.use(authController.protect);
-router.use(authController.restrictTo('transporter'));
-router.use(authController.requireVerification);
-router.use(authController.requireApproval); // Les transporteurs doivent être approuvés
+router.use(authMiddleware.protect);
+router.use(authMiddleware.restrictTo('transporter'));
+router.use(authMiddleware.requireVerification);
+router.use(authMiddleware.requireApproval); // Les transporteurs doivent être approuvés
 
 // Gestion du profil transporteur
 router.get('/me/profile', transporterController.getMyProfile);

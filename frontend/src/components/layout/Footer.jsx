@@ -1,31 +1,147 @@
-import React from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Mail, MapPin, Phone } from 'lucide-react';
+import { Mail, MapPin, Phone } from 'lucide-react';
 import SocialLinks from '../common/SocialLinks';
+import { useAuth } from '../../hooks/useAuth';
+import { productService } from '../../services';
 import logo from '../../assets/logo.png';
+
+// Labels des catégories
+const CATEGORY_LABELS = {
+  'cereals': 'Céréales',
+  'vegetables': 'Légumes',
+  'fruits': 'Fruits',
+  'legumes': 'Légumineuses',
+  'tubers': 'Tubercules',
+  'spices': 'Épices',
+  'herbs': 'Herbes',
+  'nuts': 'Noix',
+  'seeds': 'Graines',
+  'dairy': 'Produits Laitiers',
+  'meat': 'Viande',
+  'poultry': 'Volaille',
+  'fish': 'Poisson',
+  'processed-foods': 'Produits Transformés',
+  'beverages': 'Boissons',
+  'other': 'Autre'
+};
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const { user, isAuthenticated } = useAuth();
+  const [categories, setCategories] = useState([]);
+  const [categoryIndex, setCategoryIndex] = useState(0);
+
+  const contactInfo = {
+    phones: ['+221 771970713', '+221 774536704'],
+    email: 'contact@harvests.site',
+    address: 'Dakar, Sénégal',
+  };
+
+  // Liens dynamiques selon le type d'utilisateur
+  const myAccountLinks = useMemo(() => {
+    if (!isAuthenticated) {
+      return [
+        { name: 'Connexion', href: '/login' },
+        { name: 'Inscription', href: '/register' },
+        { name: 'Panier', href: '/cart' },
+      ];
+    }
+
+    const userType = user?.userType || 'consumer';
+    const basePath = `/${userType}/dashboard`;
+
+    const commonLinks = [
+      { name: 'Mon Compte', href: basePath },
+      { name: 'Profil', href: `${basePath}/profile` },
+    ];
+
+    switch (userType) {
+      case 'producer':
+      case 'transformer':
+        return [
+          ...commonLinks,
+          { name: 'Mes Produits', href: `${basePath}/products` },
+          { name: 'Mes Commandes', href: `${basePath}/orders` },
+        ];
+      case 'restaurateur':
+        return [
+          ...commonLinks,
+          { name: 'Mes Plats', href: `${basePath}/dishes` },
+          { name: 'Mes Commandes', href: `${basePath}/orders` },
+        ];
+      case 'transporter':
+        return [
+          ...commonLinks,
+          { name: 'Mes Livraisons', href: `${basePath}/deliveries` },
+        ];
+      case 'consumer':
+      default:
+        return [
+          ...commonLinks,
+          { name: 'Mes Commandes', href: `${basePath}/orders` },
+          { name: 'Panier', href: '/cart' },
+          { name: 'Favoris', href: '/favorites' },
+        ];
+    }
+  }, [isAuthenticated, user?.userType]);
+
+  // Charger les catégories depuis l'API
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await productService.getCategories();
+        if (response.data.status === 'success') {
+          setCategories(response.data.data || []);
+        }
+      } catch (error) {
+        console.error('Erreur chargement catégories:', error);
+      }
+    };
+    loadCategories();
+  }, []);
+
+  // Rotation des catégories toutes les 3 minutes
+  useEffect(() => {
+    if (categories.length <= 4) return;
+    
+    const interval = setInterval(() => {
+      setCategoryIndex(prev => (prev + 4) % categories.length);
+    }, 180000); // 3 minutes
+
+    return () => clearInterval(interval);
+  }, [categories.length]);
+
+  // Catégories à afficher (4 à la fois avec rotation)
+  const displayedCategories = useMemo(() => {
+    if (categories.length === 0) {
+      // Fallback si pas de catégories chargées
+      return [
+        { name: 'Fruits', slug: 'fruits' },
+        { name: 'Légumes', slug: 'vegetables' },
+        { name: 'Céréales', slug: 'cereals' },
+        { name: 'Viande', slug: 'meat' },
+      ];
+    }
+    const result = [];
+    for (let i = 0; i < 4 && i < categories.length; i++) {
+      const idx = (categoryIndex + i) % categories.length;
+      const cat = categories[idx];
+      result.push({
+        name: CATEGORY_LABELS[cat] || cat,
+        slug: cat
+      });
+    }
+    return result;
+  }, [categories, categoryIndex]);
 
   const footerLinks = {
-    myAccount: [
-      { name: 'Mon Compte', href: '/consumer/dashboard' },
-      { name: 'Historique', href: '/order-history' },
-      { name: 'Panier', href: '/cart' },
-      { name: 'Liste de souhaits', href: '/favorites' },
-    ],
     help: [
       { name: 'Contact', href: '/contact' },
       { name: 'FAQs', href: '/help' },
       { name: 'Conditions d\'utilisation', href: '/terms' },
       { name: 'Politique de confidentialité', href: '/privacy' },
     ],
-    categories: [
-      { name: 'Fruits & Légumes', href: '/categories/fruits' },
-      { name: 'Viande & Poisson', href: '/categories/meat' },
-      { name: 'Pain & Boulangerie', href: '/categories/processed-foods' },
-      { name: 'Beauté & Santé', href: '/categories/herbs' },
-    ]
   };
 
 
@@ -62,20 +178,18 @@ const Footer = () => {
             <div className="space-y-2 text-sm text-gray-400">
               <div className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4 flex-shrink-0" />
-                <span>Dakar, Sénégal</span>
+                <span>{contactInfo.address}</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <Phone className="h-4 w-4 flex-shrink-0" />
-                <span>+221 771970713</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Phone className="h-4 w-4 flex-shrink-0" />
-                <span>+221 774536704</span>
-              </div>
-              <div className="flex items-center space-x-2">
+              {contactInfo.phones.map((phone, index) => (
+                <a key={index} href={`tel:${phone.replace(/\s/g, '')}`} className="flex items-center space-x-2 hover:text-primary-500 transition-colors">
+                  <Phone className="h-4 w-4 flex-shrink-0" />
+                  <span>{phone}</span>
+                </a>
+              ))}
+              <a href={`mailto:${contactInfo.email}`} className="flex items-center space-x-2 hover:text-primary-500 transition-colors">
                 <Mail className="h-4 w-4 flex-shrink-0" />
-                <span>contact@harvests.site</span>
-              </div>
+                <span>{contactInfo.email}</span>
+              </a>
             </div>
           </div>
 
@@ -83,7 +197,7 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold text-base mb-4">Mon Compte</h3>
             <ul className="space-y-2">
-              {footerLinks.myAccount.map((link) => (
+              {myAccountLinks.map((link) => (
                 <li key={link.name}>
                   <Link
                     to={link.href}
@@ -117,13 +231,13 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold text-base mb-4">Catégories</h3>
             <ul className="space-y-2">
-              {footerLinks.categories.map((link) => (
-                <li key={link.name}>
+              {displayedCategories.map((cat) => (
+                <li key={cat.slug}>
                   <Link
-                    to={link.href}
+                    to={`/categories/${cat.slug}`}
                     className="text-gray-400 hover:text-primary-500 transition-colors text-sm"
                   >
-                    {link.name}
+                    {cat.name}
                   </Link>
                 </li>
               ))}
@@ -155,7 +269,7 @@ const Footer = () => {
         </div> */}
 
         {/* Section copyright */}
-        <div className="py-6 border-t border-gray-900 justify-center content-center text-center">
+        <div className="py-6 border-t border-gray-800 dark:border-gray-700 justify-center content-center text-center">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4">
               <p className="text-gray-500 text-sm">

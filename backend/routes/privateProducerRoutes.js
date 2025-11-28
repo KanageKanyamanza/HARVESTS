@@ -1,6 +1,6 @@
 const express = require('express');
 const producerController = require('../controllers/producerController');
-const authController = require('../controllers/authController');
+const authMiddleware = require('../controllers/auth/authMiddleware');
 const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
 
 const router = express.Router();
@@ -11,11 +11,11 @@ const router = express.Router();
 // ========================================
 
 // Toutes les routes nécessitent une authentification
-router.use(authController.protect);
+router.use(authMiddleware.protect);
 
 // Routes pour les producteurs seulement
-router.use(authController.restrictTo('producer'));
-router.use(authController.requireVerification);
+router.use(authMiddleware.restrictTo('producer'));
+router.use(authMiddleware.requireVerification);
 
 // Gestion du profil producteur
 router.get('/me/profile', producerController.getMyProfile);

@@ -2,8 +2,6 @@ import React, { Suspense } from "react";
 import {
 	BrowserRouter as Router,
 } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { useTranslation } from "react-i18next";
 
 // Configuration i18n
@@ -36,26 +34,6 @@ const RouteFallback = () => (
 	</div>
 );
 
-// Tous les composants sont maintenant gérés par AppRoutes
-
-// Configuration React Query
-const queryClient = new QueryClient({
-	defaultOptions: {
-		queries: {
-			retry: 3,
-			retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-			staleTime: 5 * 60 * 1000, // 5 minutes
-			cacheTime: 10 * 60 * 1000, // 10 minutes
-			refetchOnWindowFocus: false,
-		},
-		mutations: {
-			retry: 1,
-		},
-	},
-});
-
-// Les composants de routes sont maintenant gérés par AppRoutes
-
 function App() {
 	const { i18n } = useTranslation();
 
@@ -66,32 +44,27 @@ function App() {
 
 	return (
 		<ErrorBoundary>
-			<QueryClientProvider client={queryClient}>
-				<AuthProvider>
-					<NotificationProvider>
-						<CartProvider>
-							<ModalProvider>
-								<Router>
-									<ScrollToTop />
-									<div className="App bg-[#f3f9e5]">
-										<UserTypeRedirect>
-											<Suspense fallback={<RouteFallback />}>
-												<AppRoutes />
-											</Suspense>
+			<AuthProvider>
+				<NotificationProvider>
+					<CartProvider>
+						<ModalProvider>
+							<Router>
+								<ScrollToTop />
+								<div className="App bg-[#f3f9e5]">
+									<UserTypeRedirect>
+										<Suspense fallback={<RouteFallback />}>
+											<AppRoutes />
+										</Suspense>
 
-											{/* Container des notifications */}
-											<NotificationContainer />
-										</UserTypeRedirect>
-									</div>
-								</Router>
-							</ModalProvider>
-						</CartProvider>
-					</NotificationProvider>
-				</AuthProvider>
-
-				{/* React Query DevTools en développement */}
-				{import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-			</QueryClientProvider>
+										{/* Container des notifications */}
+										<NotificationContainer />
+									</UserTypeRedirect>
+								</div>
+							</Router>
+						</ModalProvider>
+					</CartProvider>
+				</NotificationProvider>
+			</AuthProvider>
 		</ErrorBoundary>
 	);
 }

@@ -19,6 +19,7 @@ const AdminBlogStats = React.lazy(() => import('../../../pages/admin/AdminBlogSt
 const AdminBlogAnalytics = React.lazy(() => import('../../../pages/admin/AdminBlogAnalytics'));
 const AdminManagement = React.lazy(() => import('../../../pages/admin/AdminManagement'));
 const AdminSubscriptions = React.lazy(() => import('../../../pages/admin/AdminSubscriptions'));
+const ChatbotManagement = React.lazy(() => import('../../../pages/admin/ChatbotManagement'));
 const OrderDetail = React.lazy(() => import('../../../pages/orders/OrderDetail'));
 
 export const adminRoutes = [
@@ -101,6 +102,11 @@ export const adminRoutes = [
     path: '/admin/subscriptions',
     element: <AdminSubscriptions />,
     title: 'Gestion des souscriptions'
+  },
+  {
+    path: '/admin/chatbot',
+    element: <ChatbotManagement />,
+    title: 'Gestion du Chatbot'
   },
 ];
 

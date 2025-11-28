@@ -28,7 +28,7 @@ const swaggerOptions = {
 - **Mobile Money** : Wave + Orange Money intégrés
 
 ## 🔗 Liens utiles
-- **Frontend** : https://harvests-khaki.vercel.app
+- **Frontend** : https://www.harvests.site
 - **Admin** : http://localhost:3001
 - **Repository** : https://github.com/votre-repo/harvests
       `,

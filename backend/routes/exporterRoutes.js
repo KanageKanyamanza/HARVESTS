@@ -1,6 +1,6 @@
 const express = require('express');
 const exporterController = require('../controllers/exporterController');
-const authController = require('../controllers/authController');
+const authMiddleware = require('../controllers/auth/authMiddleware');
 const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
 
 const router = express.Router();
@@ -13,10 +13,10 @@ router.get('/by-product/:product', exporterController.getExportersByProduct);
 router.get('/:id', exporterController.getExporter);
 
 // Toutes les routes suivantes nécessitent une authentification
-router.use(authController.protect);
-router.use(authController.restrictTo('exporter'));
-router.use(authController.requireVerification);
-router.use(authController.requireApproval); // Les exportateurs doivent être approuvés
+router.use(authMiddleware.protect);
+router.use(authMiddleware.restrictTo('exporter'));
+router.use(authMiddleware.requireVerification);
+router.use(authMiddleware.requireApproval); // Les exportateurs doivent être approuvés
 
 // Gestion du profil exportateur
 router.get('/me/profile', exporterController.getMyProfile);

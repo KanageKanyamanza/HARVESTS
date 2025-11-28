@@ -118,7 +118,7 @@
     street: String,
     city: String,
     region: String,
-    country: String (défaut: 'Cameroun'),
+    country: String (défaut: 'Sénégal'),
     coordinates: { lat: Number, lng: Number }
   },
   

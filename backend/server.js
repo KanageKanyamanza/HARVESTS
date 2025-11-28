@@ -12,8 +12,6 @@ process.on('uncaughtException', (err) => {
 dotenv.config();
 
 const app = require('./app');
-const { migrateLocalizedFields } = require('./scripts/migrateLocalizedFields');
-const migrateCountryCodes = require('./scripts/migrateCountryCodes');
 
 // Configuration de la base de données
 let DB;
@@ -97,18 +95,6 @@ mongoose
       console.log('⚠️ Impossible de vérifier/créer l\'admin automatiquement:', error.message);
     }
 
-    try {
-      await migrateLocalizedFields();
-    } catch (migrationError) {
-      console.error('⚠️ Erreur lors de la migration des champs localisés:', migrationError);
-    }
-
-    // Migrer les codes pays vers les noms complets
-    try {
-      await migrateCountryCodes();
-    } catch (migrationError) {
-      console.error('⚠️ Erreur lors de la migration des codes pays:', migrationError);
-    }
   })
   .catch((err) => {
     console.error('❌ Erreur de connexion à la base de données:', err);

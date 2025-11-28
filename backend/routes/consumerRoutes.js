@@ -1,13 +1,13 @@
 const express = require('express');
 const consumerController = require('../controllers/consumerController');
-const authController = require('../controllers/authController');
+const authMiddleware = require('../controllers/auth/authMiddleware');
 
 const router = express.Router();
 
 // Toutes les routes nécessitent une authentification
-router.use(authController.protect);
+router.use(authMiddleware.protect);
 // Permettre aux consommateurs ET aux restaurateurs (qui peuvent aussi être consommateurs)
-router.use(authController.restrictTo('consumer', 'restaurateur'));
+router.use(authMiddleware.restrictTo('consumer', 'restaurateur'));
 
 // Routes qui nécessitent une vérification d'email
 const requireVerificationRoutes = [
@@ -27,7 +27,7 @@ router.use((req, res, next) => {
   );
   
   if (requiresVerification) {
-    return authController.requireVerification(req, res, next);
+    return authMiddleware.requireVerification(req, res, next);
   }
   
   next();

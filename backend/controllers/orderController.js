@@ -15,7 +15,7 @@ const { toPlainText } = require('../utils/localization');
 
 // Fonction utilitaire pour construire une URL complète du frontend
 function buildFrontendUrl(path) {
-  const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
+  const frontendUrl = process.env.FRONTEND_URL || 'https://www.harvests.site';
   // Supprimer le slash final de l'URL du frontend si présent
   const baseUrl = frontendUrl.replace(/\/$/, '');
   // S'assurer que le chemin commence par un slash
@@ -634,7 +634,21 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
   const currentOrderStatus = order.status || 'pending';
   const userType = req.user.userType || req.user.role;
   
-  if (currentOrderStatus === status && !req.body.itemIds && !req.body.itemId) {
+  // Pour les vendeurs, on doit vérifier le statut de LEUR segment, pas le statut global
+  const sellerTypes = ['producer', 'transformer', 'restaurateur'];
+  let currentStatusToCheck = currentOrderStatus;
+  
+  if (sellerTypes.includes(userType)) {
+    // Trouver le segment du vendeur pour obtenir son statut actuel
+    const sellerSegment = order.segments?.find(seg =>
+      seg.seller && seg.seller.toString() === req.user._id.toString()
+    );
+    if (sellerSegment) {
+      currentStatusToCheck = sellerSegment.status || 'pending';
+    }
+  }
+  
+  if (currentStatusToCheck === status && !req.body.itemIds && !req.body.itemId) {
     // Si aucun item spécifique n'est ciblé et que le statut est déjà le même, retourner succès sans modification
     return res.status(200).json({
       status: 'success',
@@ -649,7 +663,8 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
   
   // Admin peut tout faire
   if (userType !== 'admin' && req.user.role !== 'admin') {
-    const validTransitions = getValidStatusTransitions(currentOrderStatus, userType);
+    // Utiliser le statut du segment pour les vendeurs, pas le statut global de la commande
+    const validTransitions = getValidStatusTransitions(currentStatusToCheck, userType);
     
     // Pour les livreurs, mapper les statuts spéciaux
     let statusToCheck = status;
@@ -661,7 +676,7 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
       // Vérifier aussi si c'est une mise à jour d'item (plus permissive)
       if (!req.body.itemIds && !req.body.itemId) {
         return next(new AppError(
-          `Vous n'avez pas le droit de passer la commande de "${currentOrderStatus}" à "${status}". Transitions autorisées: ${validTransitions.join(', ')}`,
+          `Vous n'avez pas le droit de passer la commande de "${currentStatusToCheck}" à "${status}". Transitions autorisées: ${validTransitions.join(', ')}`,
           403
         ));
       }

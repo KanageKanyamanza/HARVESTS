@@ -1,13 +1,13 @@
 const express = require('express');
 const messageController = require('../controllers/messageController');
-const authController = require('../controllers/authController');
+const authMiddleware = require('../controllers/auth/authMiddleware');
 const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
 
 const router = express.Router();
 
 // Toutes les routes nécessitent une authentification
-router.use(authController.protect);
-router.use(authController.requireVerification);
+router.use(authMiddleware.protect);
+router.use(authMiddleware.requireVerification);
 
 // ROUTES DES CONVERSATIONS
 
@@ -78,7 +78,7 @@ router.post('/conversations/:id/share-product', messageController.shareProduct);
 
 // Envoyer un devis dans une conversation
 router.post('/conversations/:id/quote', 
-  authController.restrictTo('producer', 'transformer', 'exporter'),
+  authMiddleware.restrictTo('producer', 'transformer', 'exporter'),
   messageController.sendQuote
 );
 
@@ -94,7 +94,7 @@ router.get('/my/stats', messageController.getMessagingStats);
 
 // ROUTES ADMIN
 
-router.use(authController.restrictTo('admin'));
+router.use(authMiddleware.restrictTo('admin'));
 
 // Obtenir toutes les conversations
 router.get('/admin/conversations', messageController.getAllConversations);

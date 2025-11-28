@@ -1,11 +1,11 @@
 const express = require('express');
 const orderController = require('../controllers/orderController');
-const authController = require('../controllers/authController');
+const authMiddleware = require('../controllers/auth/authMiddleware');
 
 const router = express.Router();
 
 // Toutes les routes nécessitent une authentification
-router.use(authController.protect);
+router.use(authMiddleware.protect);
 
 // Routes de lecture (autorisées sans vérification d'email)
 router.get('/my', orderController.getMyOrders);
@@ -14,7 +14,7 @@ router.get('/:id', orderController.getOrder);
 router.post('/estimate', orderController.estimateOrderCosts);
 
 // Routes d'écriture (nécessitent une vérification d'email)
-router.use(authController.requireVerification);
+router.use(authMiddleware.requireVerification);
 
 // ROUTES COMMUNES
 
@@ -36,7 +36,7 @@ router.patch('/:id/cancel', orderController.cancelOrder);
 
 // ROUTES ADMIN
 
-router.use(authController.restrictTo('admin'));
+router.use(authMiddleware.restrictTo('admin'));
 
 // Obtenir toutes les commandes
 router.get('/', orderController.getAllOrders);

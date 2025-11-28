@@ -35,6 +35,9 @@ import ExporterProfile from '../pages/ExporterProfile';
 import TransporteursExportateurs from '../pages/TransporteursExportateurs';
 import CartPage from '../pages/Cart';
 import Contact from '../pages/Contact';
+import FAQ from '../pages/FAQ';
+import Terms from '../pages/Terms';
+import Privacy from '../pages/Privacy';
 import Pricing from '../pages/Pricing';
 import LoyaltyProgram from '../pages/LoyaltyProgram';
 import BlogPage from '../pages/BlogPage';
@@ -195,6 +198,9 @@ const AppRoutes = () => {
       <Route path="/cart" element={<Layout><SuspenseRoute element={<CartPage />} /></Layout>} />
       <Route path="/checkout" element={<CheckoutGateway />} />
       <Route path="/contact" element={<Layout><SuspenseRoute element={<Contact />} /></Layout>} />
+      <Route path="/help" element={<SuspenseRoute element={<FAQ />} />} />
+      <Route path="/terms" element={<SuspenseRoute element={<Terms />} />} />
+      <Route path="/privacy" element={<SuspenseRoute element={<Privacy />} />} />
       <Route path="/pricing" element={<Layout><SuspenseRoute element={<Pricing />} /></Layout>} />
       <Route path="/loyalty" element={<Layout><SuspenseRoute element={<LoyaltyProgram />} /></Layout>} />
       <Route path="/blog" element={<Layout><SuspenseRoute element={<BlogPage />} /></Layout>} />

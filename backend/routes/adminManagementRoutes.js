@@ -1,5 +1,5 @@
 const express = require('express');
-const adminController = require('../controllers/adminController');
+const adminManagementController = require('../controllers/admin/adminManagementController');
 const adminAuthController = require('../controllers/adminAuthController');
 const { protect, restrictTo } = require('../controllers/adminAuthController');
 
@@ -13,26 +13,26 @@ router.post('/auth/logout', adminAuthController.logout);
 router.use(adminAuthController.protect);
 
 // Routes pour le profil de l'admin connecté
-router.get('/me', adminController.getMe);
-router.put('/me', adminController.updateMe);
+router.get('/me', adminManagementController.getMe);
+router.put('/me', adminManagementController.updateMe);
 
 // Routes pour la gestion des administrateurs
 router.route('/admins')
-  .get(restrictTo('super-admin', 'admin'), adminController.getAllAdmins)
-  .post(restrictTo('super-admin', 'admin'), adminController.createAdmin);
+  .get(restrictTo('super-admin', 'admin'), adminManagementController.getAllAdmins)
+  .post(restrictTo('super-admin', 'admin'), adminManagementController.createAdmin);
 
 router.route('/admins/stats')
-  .get(restrictTo('super-admin', 'admin'), adminController.getAdminStats);
+  .get(restrictTo('super-admin', 'admin'), adminManagementController.getAdminStats);
 
 router.route('/admins/:id')
-  .get(restrictTo('super-admin', 'admin'), adminController.getAdmin)
-  .put(restrictTo('super-admin', 'admin'), adminController.updateAdmin)
-  .delete(restrictTo('super-admin'), adminController.deleteAdmin);
+  .get(restrictTo('super-admin', 'admin'), adminManagementController.getAdmin)
+  .put(restrictTo('super-admin', 'admin'), adminManagementController.updateAdmin)
+  .delete(restrictTo('super-admin'), adminManagementController.deleteAdmin);
 
 router.route('/admins/:id/password')
-  .put(restrictTo('super-admin', 'admin'), adminController.changePassword);
+  .put(restrictTo('super-admin', 'admin'), adminManagementController.changePassword);
 
 router.route('/admins/:id/toggle-status')
-  .put(restrictTo('super-admin', 'admin'), adminController.toggleAdminStatus);
+  .put(restrictTo('super-admin', 'admin'), adminManagementController.toggleAdminStatus);
 
 module.exports = router;
