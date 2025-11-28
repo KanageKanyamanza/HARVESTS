@@ -5,6 +5,7 @@ import SimpleTextEditor from './SimpleTextEditor';
 import AutoTranslation from './AutoTranslation';
 import ImageUploader from './ImageUploader';
 import CloudinaryImage from '../common/CloudinaryImage';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 export const BlogFormHeader = ({ isEdit, navigate, loadFromStorage, resetForm }) => (
   <div className="flex items-center justify-between mb-6">
@@ -196,7 +197,7 @@ export const FeaturedImageField = ({ formData, setFormData, uploadingImage, hand
     ) : (
       <div onClick={() => !uploadingImage && fileInputRef.current?.click()} className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${uploadingImage ? 'border-blue-400 bg-blue-50 cursor-wait' : 'border-gray-300 hover:border-green-500 cursor-pointer'}`}>
         {uploadingImage ? (
-          <><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-2"></div><p className="text-blue-600 font-medium">Upload en cours...</p></>
+          <LoadingSpinner size="lg" text="Upload en cours..." />
         ) : (
           <><ImageIcon className="mx-auto h-12 w-12 text-gray-400 mb-2" /><p className="text-gray-600">Cliquez pour uploader</p></>
         )}

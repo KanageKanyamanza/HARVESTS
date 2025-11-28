@@ -3,6 +3,7 @@ import { Upload, X, Image as ImageIcon, Move, Trash2 } from 'lucide-react';
 import uploadService from '../../services/uploadService';
 import CloudinaryImage from '../common/CloudinaryImage';
 import { useNotifications } from '../../contexts/NotificationContext';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 const ImageUploader = ({
   images = [],
@@ -117,10 +118,7 @@ const ImageUploader = ({
         }`}
       >
         {uploading ? (
-          <>
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
-            <p className="text-blue-600 font-medium">Upload en cours...</p>
-          </>
+          <LoadingSpinner size="md" text="Upload en cours..." />
         ) : (
           <>
             <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />

@@ -19,6 +19,7 @@ import {
   Truck,
   Shield
 } from 'lucide-react';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { adminService } from '../../services/adminService';
 import { toPlainText } from '../../utils/textHelpers';
 
@@ -147,7 +148,7 @@ const ProductDetails = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        <LoadingSpinner size="lg" text="Chargement du produit..." />
       </div>
     );
   }

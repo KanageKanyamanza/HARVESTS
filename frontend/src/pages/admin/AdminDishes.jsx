@@ -17,6 +17,7 @@ import {
 import { getDishes, approveDish, rejectDish } from '../../services/adminService';
 import CloudinaryImage from '../../components/common/CloudinaryImage';
 import { normalizeDishImage } from '../../utils/dishImageUtils';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const AdminDishes = () => {
   const [dishes, setDishes] = useState([]);
@@ -172,7 +173,7 @@ const AdminDishes = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        <LoadingSpinner size="lg" text="Chargement des plats..." />
       </div>
     );
   }

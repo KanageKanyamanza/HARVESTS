@@ -18,6 +18,7 @@ import {
   Banknote
 } from 'lucide-react';
 import { adminService } from '../../services/adminService';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const AdminSubscriptions = () => {
   const [subscriptions, setSubscriptions] = useState([]);
@@ -174,10 +175,7 @@ const AdminSubscriptions = () => {
   if (loading && !subscriptions.length) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement des souscriptions...</p>
-        </div>
+        <LoadingSpinner size="lg" text="Chargement des souscriptions..." />
       </div>
     );
   }

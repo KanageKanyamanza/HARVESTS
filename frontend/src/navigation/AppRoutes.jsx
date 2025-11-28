@@ -4,6 +4,7 @@
 import React, { Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
 // Import des routes organisées
 import { 
@@ -78,10 +79,7 @@ import { FaChartBar } from 'react-icons/fa';
 // Composant de fallback pour les routes
 const RouteFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-harvests-light">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
-      <p className="text-gray-600">Chargement...</p>
-    </div>
+    <LoadingSpinner size="lg" text="Chargement..." />
   </div>
 );
 

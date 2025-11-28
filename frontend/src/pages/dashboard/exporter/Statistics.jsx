@@ -4,6 +4,7 @@ import { exporterService } from '../../../services';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import { FaChartBar } from 'react-icons/fa';
 import { FiTrendingUp, FiPackage, FiGlobe, FiDollarSign } from 'react-icons/fi';
+import LoadingSpinner from '../../../components/common/LoadingSpinner';
 
 const Statistics = () => {
   const { user } = useAuth();
@@ -38,8 +39,7 @@ const Statistics = () => {
       <ModularDashboardLayout>
         <div className="p-6 max-w-7xl mx-auto">
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-harvests-green"></div>
-            <p className="mt-4 text-gray-600">Chargement des statistiques...</p>
+            <LoadingSpinner size="lg" text="Chargement des statistiques..." />
           </div>
         </div>
       </ModularDashboardLayout>

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 
 import { adminService } from '../../services/adminService';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const AdminReviews = () => {
   const [reviews, setReviews] = useState([]);
@@ -162,7 +163,7 @@ const AdminReviews = () => {
     return (
       <div>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+          <LoadingSpinner size="lg" text="Chargement des avis..." />
         </div>
       </div>
     );

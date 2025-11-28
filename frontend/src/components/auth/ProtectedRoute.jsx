@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useUserType } from '../../hooks/useUserType';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 /**
  * Composant de protection de route avec gestion des permissions
@@ -34,10 +35,7 @@ const ProtectedRoute = ({
     // Afficher un loader pendant la restauration de session
     return (
       <div className="min-h-screen flex items-center justify-center bg-harvests-light">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement...</p>
-        </div>
+        <LoadingSpinner size="lg" text="Chargement..." />
       </div>
     );
   }

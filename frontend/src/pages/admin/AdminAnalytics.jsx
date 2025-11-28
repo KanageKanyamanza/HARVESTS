@@ -15,6 +15,7 @@ import { adminService } from '../../services/adminService';
 import { toPlainText } from '../../utils/textHelpers';
 import UserRegistrationsChart from '../../components/admin/UserRegistrationsChart';
 import RevenueTrendsChart from '../../components/admin/RevenueTrendsChart';
+import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const AdminAnalytics = () => {
   const [analytics, setAnalytics] = useState({
@@ -92,7 +93,7 @@ const AdminAnalytics = () => {
     return (
       <div>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+          <LoadingSpinner size="lg" text="Chargement des statistiques..." />
         </div>
       </div>
     );

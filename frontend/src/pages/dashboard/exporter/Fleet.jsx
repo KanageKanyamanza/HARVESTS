@@ -6,6 +6,7 @@ import ModularDashboardLayout from '../../../components/layout/ModularDashboardL
 import { FiTruck, FiPlus, FiSearch, FiPackage, FiGlobe, FiBox, FiEdit, FiTrash2 } from 'react-icons/fi';
 import { useNotifications } from '../../../contexts/NotificationContext';
 import CloudinaryImage from '../../../components/common/CloudinaryImage';
+import LoadingSpinner from '../../../components/common/LoadingSpinner';
 
 const Fleet = () => {
   const { user } = useAuth();
@@ -131,8 +132,7 @@ const Fleet = () => {
 
         {loading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-harvests-green"></div>
-            <p className="mt-4 text-gray-600">Chargement de la flotte...</p>
+            <LoadingSpinner size="lg" text="Chargement de la flotte..." />
           </div>
         ) : filteredFleet.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-12 text-center">

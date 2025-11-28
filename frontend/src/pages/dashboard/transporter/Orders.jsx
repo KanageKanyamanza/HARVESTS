@@ -3,6 +3,7 @@ import { useAuth } from '../../../hooks/useAuth';
 import { transporterService } from '../../../services';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import OrderList from '../../../components/orders/OrderList';
+import LoadingSpinner from '../../../components/common/LoadingSpinner';
 import { FiSearch, FiRefreshCw } from 'react-icons/fi';
 
 const Orders = () => {
@@ -137,8 +138,7 @@ const Orders = () => {
 
         {loading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-harvests-green"></div>
-            <p className="mt-4 text-gray-600">Chargement des livraisons...</p>
+            <LoadingSpinner size="lg" text="Chargement des livraisons..." />
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-12 text-center">
