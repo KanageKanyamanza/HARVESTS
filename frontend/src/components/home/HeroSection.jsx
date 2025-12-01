@@ -102,6 +102,13 @@ const HeroSection = () => {
 						>
 							Contactez-nous
 						</Link>
+						{/* Bouton Se connecter visible uniquement sur mobile et tablette */}
+						<Link
+							to="/login"
+							className="btn-lg bg-white/20 backdrop-blur-sm border border-white/40 font-semibold inline-flex items-center text-white hover:bg-white/30 hover:border-white/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-in-out md:hidden"
+						>
+							Se connecter
+						</Link>
 					</div>
 				</div>
 

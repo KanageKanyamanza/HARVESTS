@@ -37,7 +37,7 @@ async function createProduct(producerId, productData) {
     description: normalizedDescription,
     shortDescription: normalizedShortDescription || undefined,
     category,
-    subcategory: subcategory || category,
+    subcategory: subcategory || category || undefined,
     tags: tags || [],
     price: parseFloat(price),
     compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : undefined,
@@ -46,7 +46,8 @@ async function createProduct(producerId, productData) {
     },
     minimumOrderQuantity: minimumOrderQuantity !== undefined ? minimumOrderQuantity : 0,
     maximumOrderQuantity: maximumOrderQuantity || undefined,
-    unit: unit || 'kg',
+    // Note: unit et currency ne sont pas stockés dans le modèle Product
+    // Ils peuvent être utilisés pour des calculs ou affichage mais ne sont pas persistés
     status: status || 'draft',
     images: images ? images.map((img, index) => ({
       ...img,
