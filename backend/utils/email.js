@@ -143,6 +143,17 @@ module.exports = class Email {
   // Envoyer l'email avec fallback EmailJS (si configuré)
   async send(template, subject) {
     const isProduction = process.env.NODE_ENV === 'production';
+    const isTest = process.env.NODE_ENV === 'test';
+    
+    // En mode test, ignorer l'envoi d'emails
+    if (isTest) {
+      console.log(`⏭️  Mode TEST: Email ignoré pour ${this.to} (${subject})`);
+      return {
+        messageId: 'test-mode-skipped',
+        response: 'Email ignoré en mode test',
+        testMode: true
+      };
+    }
     
     // 1) Générer le HTML basé sur un template pug
     const frontendUrl = process.env.FRONTEND_URL || 'https://www.harvests.site';
@@ -156,10 +167,12 @@ module.exports = class Email {
 
     const text = htmlToText.convert(html);
 
-    // 2) PRODUCTION: Utiliser SendGrid API (pas SMTP)
-    if (isProduction && process.env.SENDGRID_API_KEY) {
+    // 2) PRODUCTION ou DÉVELOPPEMENT avec SendGrid: Utiliser SendGrid API (pas SMTP)
+    // Utiliser SendGrid si la clé API est définie (production ou développement)
+    if (process.env.SENDGRID_API_KEY) {
       try {
-        console.log(`📧 Tentative d'envoi email à ${this.to} via SendGrid API (PRODUCTION)`);
+        const envLabel = isProduction ? 'PRODUCTION' : 'TEST';
+        console.log(`📧 Tentative d'envoi email à ${this.to} via SendGrid API (${envLabel})`);
         const result = await this.sendWithSendGrid(subject, html, text);
         return result;
       } catch (error) {
@@ -405,7 +418,7 @@ module.exports = class Email {
 
       productsHtml = `
         <div style="margin: 15px 0;">
-          <h3 style="margin: 0 0 12px 0; color: #374151; border-bottom: 2px solid #2E7D32; padding-bottom: 8px;">Produits commandés</h3>
+          <h3 style="margin: 0 0 12px 0; color: #374151; border-bottom: 2px solid #16a34a; padding-bottom: 8px;">Produits commandés</h3>
           ${sellerSections}
         </div>
       `;
@@ -416,7 +429,7 @@ module.exports = class Email {
     if (data && data.buyer) {
       buyerInfoHtml = `
         <div style="background-color: white; padding: 15px; border-radius: 5px; margin: 15px 0;">
-          <h3 style="margin-top: 0; color: #555; border-bottom: 2px solid #2E7D32; padding-bottom: 10px;">Informations client:</h3>
+          <h3 style="margin-top: 0; color: #555; border-bottom: 2px solid #16a34a; padding-bottom: 10px;">Informations client:</h3>
           <ul style="list-style: none; padding: 0; margin: 0;">
             <li style="padding: 5px 0;"><strong>Nom:</strong> ${data.buyer.fullName || `${data.buyer.firstName || ''} ${data.buyer.lastName || ''}`.trim() || 'Non renseigné'}</li>
             ${data.buyer.email ? `<li style="padding: 5px 0;"><strong>Email:</strong> ${data.buyer.email}</li>` : ''}
@@ -466,7 +479,7 @@ module.exports = class Email {
     const actionLinks = actions && actions.length > 0 
       ? actions.map(action => {
           const absoluteUrl = buildAbsoluteUrl(action.url);
-          return `<a href="${absoluteUrl}" style="display: inline-block; padding: 10px 10px; background-color: #2E7D32; color: white; text-decoration: none; border-radius: 5px; margin: 5px 5px;">${action.label || 'Voir'}</a>`;
+          return `<a href="${absoluteUrl}" style="display: inline-block; padding: 10px 10px; background-color: #16a34a; color: white; text-decoration: none; border-radius: 5px; margin: 5px 5px;">${action.label || 'Voir'}</a>`;
         }).join('')
       : '';
     
@@ -507,7 +520,7 @@ module.exports = class Email {
       <body>
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 5px 5px;">
           <div style="background-color: #f5f5f5; padding: 5px; border-radius: 5px;">
-            <h2 style="color: #2E7D32; margin-top: 0;">🌾 ${title}</h2>
+            <h2 style="color: #16a34a; margin-top: 0;">🌾 ${title}</h2>
             <p style="font-size: 16px; line-height: 1.6;">${message}</p>
             ${buyerInfoHtml}
             ${productsHtml}
@@ -635,7 +648,7 @@ module.exports = class Email {
     const isProduction = process.env.NODE_ENV === 'production';
     const testHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #2E7D32;">🌾 Test Harvests</h1>
+        <h1 style="color: #16a34a;">🌾 Test Harvests</h1>
         <p>Bonjour ${this.firstName},</p>
         <p>✅ <strong>${isProduction ? 'SendGrid API' : 'Nodemailer'} fonctionne parfaitement !</strong></p>
         <p>✅ Votre configuration email est opérationnelle</p>
