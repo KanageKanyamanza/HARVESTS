@@ -229,7 +229,14 @@ const AppRoutes = () => {
           <AuthLayout><SuspenseRoute element={<EmailVerification />} /></AuthLayout>
         </PublicRoute>
       } />
+      {/* Route avec token en paramètre de route */}
       <Route path="/verify-email/:token" element={
+        <PublicRoute>
+          <AuthLayout><SuspenseRoute element={<EmailVerification />} /></AuthLayout>
+        </PublicRoute>
+      } />
+      {/* Route avec token en query parameter (pour les redirections du backend) */}
+      <Route path="/verify-email" element={
         <PublicRoute>
           <AuthLayout><SuspenseRoute element={<EmailVerification />} /></AuthLayout>
         </PublicRoute>
