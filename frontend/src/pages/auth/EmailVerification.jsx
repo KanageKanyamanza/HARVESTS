@@ -7,8 +7,11 @@ import logo from '../../assets/logo.png';
 import authbg from '../../assets/images/authbg.png';
 
 const EmailVerification = () => {
-  const { token } = useParams();
+  const { token: tokenFromParams } = useParams();
   const [searchParams] = useSearchParams();
+  
+  // Récupérer le token depuis les paramètres de route OU depuis les query parameters
+  const token = tokenFromParams || searchParams.get('token');
   
   const [verificationStatus, setVerificationStatus] = useState('loading'); // 'loading', 'success', 'error', 'already-verified'
   const [isResending, setIsResending] = useState(false);
