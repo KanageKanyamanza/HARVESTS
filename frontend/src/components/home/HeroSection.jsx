@@ -1,12 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
 import heroBg1 from "../../assets/images/herobgcar1.jpg";
 import heroBg2 from "../../assets/images/herobgcar2.jpg";
 import heroBg3 from "../../assets/images/herobgcar3.jpg";
 import heroBg4 from "../../assets/images/herobgcar4.jpg";
 
 const HeroSection = () => {
+	const { isAuthenticated, getDefaultRoute } = useAuth();
 	const slides = useMemo(
 		() => [
 			{
@@ -102,12 +104,12 @@ const HeroSection = () => {
 						>
 							Contactez-nous
 						</Link>
-						{/* Bouton Se connecter visible uniquement sur mobile et tablette */}
+						{/* Bouton Se connecter/Dashboard visible uniquement sur mobile et tablette */}
 						<Link
-							to="/login"
+							to={isAuthenticated ? (getDefaultRoute ? getDefaultRoute() : '/dashboard') : '/login'}
 							className="btn-lg bg-white/20 backdrop-blur-sm border border-white/40 font-semibold inline-flex items-center text-white hover:bg-white/30 hover:border-white/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-in-out md:hidden"
 						>
-							Se connecter
+							{isAuthenticated ? 'Dashboard' : 'Se connecter'}
 						</Link>
 					</div>
 				</div>
