@@ -7,6 +7,19 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const orderController = require('./orderController');
 const { toPlainText } = require('../utils/localization');
+// Services organisés par type
+const transformerSearchService = require('../services/transformer/transformerSearchService');
+const transformerProfileService = require('../services/transformer/transformerProfileService');
+const transformerProcessingService = require('../services/transformer/transformerProcessingService');
+const transformerCertificationService = require('../services/transformer/transformerCertificationService');
+const transformerStorageService = require('../services/transformer/transformerStorageService');
+const transformerServiceService = require('../services/transformer/transformerServiceService');
+const transformerPricingService = require('../services/transformer/transformerPricingService');
+const transformerSupplierService = require('../services/transformer/transformerSupplierService');
+const transformerProductService = require('../services/transformer/transformerProductService');
+const transformerOrderService = require('../services/transformer/transformerOrderService');
+const transformerReviewService = require('../services/transformer/transformerReviewService');
+const transformerStatsService = require('../services/transformer/transformerStatsService');
 
 // Configuration Multer
 const multerStorage = multer.memoryStorage();
@@ -30,216 +43,107 @@ exports.uploadMaintenanceDocument = upload.single('document');
 
 // ROUTES PUBLIQUES
 exports.getAllTransformers = catchAsync(async (req, res, next) => {
-  // Temporairement, afficher tous les transformateurs pour debug
-  const queryObj = { ...req.query };
-  // const queryObj = { ...req.query, isActive: true, isApproved: true, isEmailVerified: true };
-  const excludedFields = ['page', 'sort', 'limit', 'fields', 'lang'];
-  excludedFields.forEach((el) => delete queryObj[el]);
-
-  let queryStr = JSON.stringify(queryObj);
-  queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-
-  let query = Transformer.find(JSON.parse(queryStr));
-
-  if (req.query.sort) {
-    const sortBy = req.query.sort.split(',').join(' ');
-    query = query.sort(sortBy);
-  } else {
-    // Tri simple par date de création (plus récent en premier)
-    query = query.sort('-createdAt');
+  try {
+    const result = await transformerSearchService.getAllTransformers(req.query);
+    res.status(200).json({
+      status: 'success',
+      results: result.transformers.length,
+      total: result.total,
+      page: result.page,
+      totalPages: result.totalPages,
+      data: { transformers: result.transformers }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  const page = req.query.page * 1 || 1;
-  const limit = req.query.limit * 1 || 20;
-  const skip = (page - 1) * limit;
-  query = query.skip(skip).limit(limit);
-
-  const transformers = await query;
-  const total = await Transformer.countDocuments(JSON.parse(queryStr));
-
-  res.status(200).json({
-    status: 'success',
-    results: transformers.length,
-    total,
-    page,
-    totalPages: Math.ceil(total / limit),
-    data: { transformers },
-  });
 });
 
 exports.searchTransformers = catchAsync(async (req, res, next) => {
-  const { q, region, transformationType, minRating } = req.query;
-  let searchQuery = { isActive: true, isApproved: true, isEmailVerified: true };
-
-  if (q) {
-    searchQuery.$or = [
-      { companyName: { $regex: q, $options: 'i' } },
-      { 'processingCapabilities.inputProduct': { $regex: q, $options: 'i' } },
-      { 'processingCapabilities.outputProducts': { $regex: q, $options: 'i' } }
-    ];
+  try {
+    const transformers = await transformerSearchService.searchTransformers(req.query);
+    res.status(200).json({
+      status: 'success',
+      results: transformers.length,
+      data: { transformers }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  if (region) searchQuery['address.region'] = region;
-  if (transformationType) searchQuery.transformationType = transformationType;
-  if (minRating) searchQuery['businessStats.averageRating'] = { $gte: parseFloat(minRating) };
-
-  const transformers = await Transformer.find(searchQuery)
-    .sort('-businessStats.averageRating -businessStats.totalOrders')
-    .limit(50);
-
-  res.status(200).json({
-    status: 'success',
-    results: transformers.length,
-    data: { transformers },
-  });
 });
 
 exports.getTransformersByRegion = catchAsync(async (req, res, next) => {
-  const transformers = await Transformer.find({
-    'address.region': req.params.region,
-    isActive: true, isApproved: true, isEmailVerified: true,
-  }).sort('-businessStats.averageRating');
-
-  res.status(200).json({
-    status: 'success',
-    results: transformers.length,
-    data: { transformers },
-  });
+  try {
+    const transformers = await transformerSearchService.getTransformersByRegion(req.params.region);
+    res.status(200).json({
+      status: 'success',
+      results: transformers.length,
+      data: { transformers }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.getTransformersByType = catchAsync(async (req, res, next) => {
-  const transformers = await Transformer.find({
-    transformationType: req.params.type,
-    isActive: true, isApproved: true, isEmailVerified: true,
-  }).sort('-businessStats.averageRating');
-
-  res.status(200).json({
-    status: 'success',
-    results: transformers.length,
-    data: { transformers },
-  });
+  try {
+    const transformers = await transformerSearchService.getTransformersByType(req.params.type);
+    res.status(200).json({
+      status: 'success',
+      results: transformers.length,
+      data: { transformers }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.getTransformer = catchAsync(async (req, res, next) => {
-  const transformer = await Transformer.findOne({
-    _id: req.params.id,
-    isActive: true, isEmailVerified: true,
-  });
-
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
+  try {
+    const transformer = await transformerSearchService.getTransformer(req.params.id);
+    res.status(200).json({
+      status: 'success',
+      data: { transformer }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  res.status(200).json({
-    status: 'success',
-    data: { transformer },
-  });
 });
 
 exports.getPublicTransformer = catchAsync(async (req, res, next) => {
-  const transformer = await Transformer.findOne({
-    _id: req.params.id,
-    isActive: true, 
-    isEmailVerified: true,
-    'shopInfo.isShopActive': true
-  })
-  .select('+shopInfo')
-  .populate('certifications')
-
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé ou boutique inactive', 404));
+  try {
+    const transformer = await transformerSearchService.getPublicTransformer(req.params.id);
+    res.status(200).json({
+      status: 'success',
+      data: { transformer }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      transformer
-    }
-  });
 });
 
 exports.getTransformerServices = catchAsync(async (req, res, next) => {
-  const transformer = await Transformer.findById(req.params.id).select('services processingCapabilities');
-  
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
+  try {
+    const result = await transformerSearchService.getTransformerServices(req.params.id);
+    res.status(200).json({
+      status: 'success',
+      data: result
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      services: transformer.services,
-      capabilities: transformer.processingCapabilities,
-    },
-  });
 });
 
 exports.getTransformerReviews = catchAsync(async (req, res, next) => {
-  const transformerId = req.params.id;
-  
-  // Vérifier que le transformateur existe
-  const transformer = await Transformer.findById(transformerId);
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
+  try {
+    const reviews = await transformerSearchService.getTransformerReviews(req.params.id);
+    res.status(200).json({
+      status: 'success',
+      results: reviews.length,
+      data: { reviews }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  // Récupérer tous les produits du transformateur
-  const products = await Product.find({ 
-    transformer: transformerId,
-    isActive: true,
-    status: 'approved'
-  }).select('_id');
-
-  const productIds = products.map(p => p._id);
-
-  // Récupérer les avis pour les produits de ce transformateur
-  const reviews = await Review.find({ 
-    product: { $in: productIds },
-    isActive: true 
-  })
-  .populate('reviewer', 'firstName lastName avatar')
-  .populate('product', 'name images')
-  .sort('-createdAt')
-  .limit(20);
-
-  // Calculer les statistiques des avis
-  const stats = await Review.aggregate([
-    { $match: { product: { $in: productIds }, isActive: true } },
-    {
-      $group: {
-        _id: null,
-        totalReviews: { $sum: 1 },
-        averageRating: { $avg: '$rating' },
-        ratingDistribution: {
-          $push: '$rating'
-        }
-      }
-    }
-  ]);
-
-  const reviewStats = stats[0] || {
-    totalReviews: 0,
-    averageRating: 0,
-    ratingDistribution: []
-  };
-
-  res.status(200).json({
-    status: 'success',
-    data: { 
-      reviews,
-      stats: {
-        totalReviews: reviewStats.totalReviews,
-        averageRating: Math.round(reviewStats.averageRating * 10) / 10,
-        ratingDistribution: {
-          5: reviewStats.ratingDistribution.filter(r => r === 5).length,
-          4: reviewStats.ratingDistribution.filter(r => r === 4).length,
-          3: reviewStats.ratingDistribution.filter(r => r === 3).length,
-          2: reviewStats.ratingDistribution.filter(r => r === 2).length,
-          1: reviewStats.ratingDistribution.filter(r => r === 1).length,
-        }
-      }
-    },
-  });
 });
 
 // ROUTES PROTÉGÉES TRANSFORMATEUR
@@ -249,155 +153,77 @@ exports.getMyProfile = catchAsync(async (req, res, next) => {
 });
 
 exports.updateMyProfile = catchAsync(async (req, res, next) => {
-  const allowedFields = [
-    // Informations personnelles
-    'firstName', 'lastName', 'email', 'phone',
-    // Informations entreprise
-    'companyName', 'transformationType',
-    // Adresse
-    'address'
-  ];
-  
-  const filteredBody = {};
-  Object.keys(req.body).forEach(key => {
-    if (allowedFields.includes(key)) {
-      filteredBody[key] = req.body[key];
-    }
-  });
-
-  console.log('Champs reçus:', Object.keys(req.body));
-  console.log('Champs filtrés:', Object.keys(filteredBody));
-  console.log('Données filtrées complètes:', JSON.stringify(filteredBody, null, 2));
-  console.log('ID utilisateur:', req.user._id);
-
-  const transformer = await Transformer.findByIdAndUpdate(req.user._id, filteredBody, {
-    new: true, runValidators: true,
-  });
-
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
+  try {
+    const transformer = await transformerProfileService.updateTransformerProfile(req.user._id, req.body);
+    res.status(200).json({ status: 'success', data: { transformer } });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  console.log('Transformateur après mise à jour:', JSON.stringify(transformer, null, 2));
-
-  res.status(200).json({ status: 'success', data: { transformer } });
 });
 
 exports.getCompanyInfo = catchAsync(async (req, res, next) => {
   const transformer = await Transformer.findById(req.user._id)
     .select('companyName companyRegistrationNumber transformationType');
-  
   res.status(200).json({
     status: 'success',
-    data: { companyInfo: transformer },
+    data: { companyInfo: transformer }
   });
 });
 
 exports.updateCompanyInfo = catchAsync(async (req, res, next) => {
-  const allowedFields = ['companyName', 'transformationType'];
-  const filteredBody = {};
-  Object.keys(req.body).forEach(key => {
-    if (allowedFields.includes(key)) filteredBody[key] = req.body[key];
-  });
-
-  const transformer = await Transformer.findByIdAndUpdate(req.user._id, filteredBody, {
-    new: true, runValidators: true,
-  });
-
-  res.status(200).json({ status: 'success', data: { transformer } });
-});
-
-// Gestion des capacités de transformation
-exports.getProcessingCapabilities = catchAsync(async (req, res, next) => {
-  const transformer = await Transformer.findById(req.user._id).select('processingCapabilities');
-  
-  res.status(200).json({
-    status: 'success',
-    results: transformer.processingCapabilities.length,
-    data: { capabilities: transformer.processingCapabilities },
-  });
-});
-
-exports.addProcessingCapability = catchAsync(async (req, res, next) => {
-  const transformer = await Transformer.findById(req.user._id);
-  transformer.processingCapabilities.push(req.body);
-  await transformer.save();
-
-  res.status(201).json({
-    status: 'success',
-    data: {
-      capability: transformer.processingCapabilities[transformer.processingCapabilities.length - 1],
-    },
-  });
-});
-
-exports.updateProcessingCapability = catchAsync(async (req, res, next) => {
-  const transformer = await Transformer.findById(req.user._id);
-  const capability = transformer.processingCapabilities.id(req.params.capabilityId);
-
-  if (!capability) {
-    return next(new AppError('Capacité non trouvée', 404));
+  try {
+    const transformer = await transformerProfileService.updateCompanyInfo(req.user._id, req.body);
+    res.status(200).json({ status: 'success', data: { transformer } });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  Object.keys(req.body).forEach(key => {
-    capability[key] = req.body[key];
-  });
-
-  await transformer.save();
-  res.status(200).json({ status: 'success', data: { capability } });
 });
 
-exports.removeProcessingCapability = catchAsync(async (req, res, next) => {
-  const transformer = await Transformer.findById(req.user._id);
-  transformer.processingCapabilities.pull(req.params.capabilityId);
-  await transformer.save();
 
-  res.status(204).json({ status: 'success', data: null });
-});
-
-// Gestion des certifications (similaire aux autres controllers)
+// Gestion des certifications 
 exports.getMyCertifications = catchAsync(async (req, res, next) => {
-  const transformer = await Transformer.findById(req.user._id).select('certifications');
-  res.status(200).json({
-    status: 'success',
-    results: transformer.certifications.length,
-    data: { certifications: transformer.certifications },
-  });
+  try {
+    const certifications = await transformerCertificationService.getCertifications(req.user._id);
+    res.status(200).json({
+      status: 'success',
+      results: certifications.length,
+      data: { certifications }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.addCertification = catchAsync(async (req, res, next) => {
-  const transformer = await Transformer.findById(req.user._id);
-  const certificationData = { ...req.body };
-  if (req.file) certificationData.document = req.file.filename;
-
-  transformer.certifications.push(certificationData);
-  await transformer.save();
-
-  res.status(201).json({
-    status: 'success',
-    data: { certification: transformer.certifications[transformer.certifications.length - 1] },
-  });
+  try {
+    const certificationData = { ...req.body };
+    if (req.file) certificationData.document = req.file.filename;
+    const certification = await transformerCertificationService.addCertification(req.user._id, certificationData);
+    res.status(201).json({
+      status: 'success',
+      data: { certification }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.updateCertification = catchAsync(async (req, res, next) => {
-  const transformer = await Transformer.findById(req.user._id);
-  const certification = transformer.certifications.id(req.params.certId);
-
-  if (!certification) return next(new AppError('Certification non trouvée', 404));
-
-  Object.keys(req.body).forEach(key => {
-    certification[key] = req.body[key];
-  });
-
-  await transformer.save();
-  res.status(200).json({ status: 'success', data: { certification } });
+  try {
+    const certification = await transformerCertificationService.updateCertification(req.user._id, req.params.certId, req.body);
+    res.status(200).json({ status: 'success', data: { certification } });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.removeCertification = catchAsync(async (req, res, next) => {
-  const transformer = await Transformer.findById(req.user._id);
-  transformer.certifications.pull(req.params.certId);
-  await transformer.save();
-  res.status(204).json({ status: 'success', data: null });
+  try {
+    await transformerCertificationService.removeCertification(req.user._id, req.params.certId);
+    res.status(204).json({ status: 'success', data: null });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 // Fonctions temporaires pour les fonctionnalités nécessitant d'autres modèles
@@ -405,326 +231,84 @@ const temporaryResponse = (message) => catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     message: `Fonctionnalité en cours de développement - ${message}`,
-    data: {},
+    data: {}
   });
 });
 
+// Helper pour les réponses JSON standardisées
+const sendResponse = (res, statusCode, data, message = null) => {
+  const response = { status: 'success', data };
+  if (message) response.message = message;
+  res.status(statusCode).json(response);
+};
 
-// Stockage
-exports.getStorageCapabilities = catchAsync(async (req, res, next) => {
-  const transformer = await Transformer.findById(req.user._id).select('storageCapabilities');
-  
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
-  }
 
-  res.status(200).json({
-    status: 'success',
-    data: {
-      storageCapabilities: transformer.storageCapabilities || {
-        totalCapacity: 0,
-        availableCapacity: 0,
-        storageTypes: [],
-        temperatureControlled: false,
-        humidityControlled: false
-      }
-    }
-  });
-});
-
-exports.updateStorageCapabilities = catchAsync(async (req, res, next) => {
-  const { totalCapacity, availableCapacity, storageTypes, temperatureControlled, humidityControlled } = req.body;
-  
-  const transformer = await Transformer.findById(req.user._id);
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
-  }
-
-  transformer.storageCapabilities = {
-    totalCapacity: totalCapacity || transformer.storageCapabilities?.totalCapacity || 0,
-    availableCapacity: availableCapacity || transformer.storageCapabilities?.availableCapacity || 0,
-    storageTypes: storageTypes || transformer.storageCapabilities?.storageTypes || [],
-    temperatureControlled: temperatureControlled !== undefined ? temperatureControlled : transformer.storageCapabilities?.temperatureControlled || false,
-    humidityControlled: humidityControlled !== undefined ? humidityControlled : transformer.storageCapabilities?.humidityControlled || false
-  };
-
-  await transformer.save();
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Capacités de stockage mises à jour avec succès',
-    data: {
-      storageCapabilities: transformer.storageCapabilities
-    }
-  });
-});
-
-// Services
-exports.getMyServices = catchAsync(async (req, res, next) => {
-  const transformer = await Transformer.findById(req.user._id).select('services');
-  
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      services: transformer.services || []
-    }
-  });
-});
-
-exports.updateMyServices = catchAsync(async (req, res, next) => {
-  const { services } = req.body;
-  
-  const transformer = await Transformer.findById(req.user._id);
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
-  }
-
-  transformer.services = services || [];
-  await transformer.save();
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Services mis à jour avec succès',
-    data: {
-      services: transformer.services
-    }
-  });
-});
-
-// Tarification
-exports.getMyPricing = catchAsync(async (req, res, next) => {
-  const transformer = await Transformer.findById(req.user._id).select('pricing');
-  
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      pricing: transformer.pricing || {
-        basePrice: 0,
-        pricePerUnit: 0,
-        minimumOrder: 0,
-        bulkDiscounts: [],
-        additionalServices: []
-      }
-    }
-  });
-});
-
-exports.updateMyPricing = catchAsync(async (req, res, next) => {
-  const { basePrice, pricePerUnit, minimumOrder, bulkDiscounts, additionalServices } = req.body;
-  
-  const transformer = await Transformer.findById(req.user._id);
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
-  }
-
-  transformer.pricing = {
-    basePrice: basePrice || transformer.pricing?.basePrice || 0,
-    pricePerUnit: pricePerUnit || transformer.pricing?.pricePerUnit || 0,
-    minimumOrder: minimumOrder || transformer.pricing?.minimumOrder || 0,
-    bulkDiscounts: bulkDiscounts || transformer.pricing?.bulkDiscounts || [],
-    additionalServices: additionalServices || transformer.pricing?.additionalServices || []
-  };
-
-  await transformer.save();
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Tarification mise à jour avec succès',
-    data: {
-      pricing: transformer.pricing
-    }
-  });
-});
-
-// Délais
-exports.getProcessingTimes = catchAsync(async (req, res, next) => {
-  const transformer = await Transformer.findById(req.user._id).select('processingTimes');
-  
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      processingTimes: transformer.processingTimes || {
-        standardProcessing: 0,
-        rushProcessing: 0,
-        bulkProcessing: 0,
-        customProcessing: []
-      }
-    }
-  });
-});
-
-exports.updateProcessingTimes = catchAsync(async (req, res, next) => {
-  const { standardProcessing, rushProcessing, bulkProcessing, customProcessing } = req.body;
-  
-  const transformer = await Transformer.findById(req.user._id);
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
-  }
-
-  transformer.processingTimes = {
-    standardProcessing: standardProcessing || transformer.processingTimes?.standardProcessing || 0,
-    rushProcessing: rushProcessing || transformer.processingTimes?.rushProcessing || 0,
-    bulkProcessing: bulkProcessing || transformer.processingTimes?.bulkProcessing || 0,
-    customProcessing: customProcessing || transformer.processingTimes?.customProcessing || []
-  };
-
-  await transformer.save();
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Délais de traitement mis à jour avec succès',
-    data: {
-      processingTimes: transformer.processingTimes
-    }
-  });
-});
 
 // Fournisseurs
 exports.getPreferredSuppliers = catchAsync(async (req, res, next) => {
-  const transformer = await Transformer.findById(req.user._id).select('preferredSuppliers');
-  
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
+  try {
+    const preferredSuppliers = await transformerSupplierService.getPreferredSuppliers(req.user._id);
+    res.status(200).json({
+      status: 'success',
+      data: { preferredSuppliers }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      preferredSuppliers: transformer.preferredSuppliers || []
-    }
-  });
 });
 
 exports.addPreferredSupplier = catchAsync(async (req, res, next) => {
-  const { name, contact, products, rating, notes } = req.body;
-  
-  const transformer = await Transformer.findById(req.user._id);
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
+  try {
+    const supplier = await transformerSupplierService.addPreferredSupplier(req.user._id, req.body);
+    res.status(201).json({
+      status: 'success',
+      message: 'Fournisseur ajouté avec succès',
+      data: { supplier }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  const newSupplier = {
-    name,
-    contact,
-    products: products || [],
-    rating: rating || 0,
-    notes: notes || '',
-    addedAt: new Date()
-  };
-
-  if (!transformer.preferredSuppliers) {
-    transformer.preferredSuppliers = [];
-  }
-  
-  transformer.preferredSuppliers.push(newSupplier);
-  await transformer.save();
-
-  res.status(201).json({
-    status: 'success',
-    message: 'Fournisseur ajouté avec succès',
-    data: {
-      supplier: newSupplier
-    }
-  });
 });
 
 exports.updateSupplierPreference = catchAsync(async (req, res, next) => {
-  const { supplierId } = req.params;
-  const updateData = req.body;
-  
-  const transformer = await Transformer.findById(req.user._id);
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
+  try {
+    const supplier = await transformerSupplierService.updateSupplierPreference(req.user._id, req.params.supplierId, req.body);
+    res.status(200).json({
+      status: 'success',
+      message: 'Fournisseur mis à jour avec succès',
+      data: { supplier }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  const supplier = transformer.preferredSuppliers.id(supplierId);
-  if (!supplier) {
-    return next(new AppError('Fournisseur non trouvé', 404));
-  }
-
-  Object.keys(updateData).forEach(key => {
-    if (updateData[key] !== undefined) {
-      supplier[key] = updateData[key];
-    }
-  });
-
-  supplier.updatedAt = new Date();
-  await transformer.save();
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Fournisseur mis à jour avec succès',
-    data: {
-      supplier
-    }
-  });
 });
 
 exports.removePreferredSupplier = catchAsync(async (req, res, next) => {
-  const { supplierId } = req.params;
-  
-  const transformer = await Transformer.findById(req.user._id);
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
+  try {
+    await transformerSupplierService.removePreferredSupplier(req.user._id, req.params.supplierId);
+    res.status(200).json({
+      status: 'success',
+      message: 'Fournisseur supprimé avec succès'
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  const supplier = transformer.preferredSuppliers.id(supplierId);
-  if (!supplier) {
-    return next(new AppError('Fournisseur non trouvé', 404));
-  }
-
-  supplier.remove();
-  await transformer.save();
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Fournisseur supprimé avec succès'
-  });
 });
 
 // Commandes
 exports.getMyOrders = (req, res, next) => orderController.getMyOrders(req, res, next);
 
 exports.acceptOrder = catchAsync(async (req, res, next) => {
-  const { orderId } = req.params;
-  const { estimatedDelivery, notes } = req.body;
-
-  const order = await Order.findOne({
-    _id: orderId,
-    transformer: req.user._id,
-    status: 'pending'
-  });
-
-  if (!order) {
-    return next(new AppError('Commande non trouvée ou déjà traitée', 404));
+  try {
+    const order = await transformerOrderService.acceptOrder(req.params.orderId, req.user._id, req.body);
+    res.status(200).json({
+      status: 'success',
+      message: 'Commande acceptée avec succès',
+      data: { order }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  order.status = 'accepted';
-  order.estimatedDelivery = estimatedDelivery ? new Date(estimatedDelivery) : null;
-  order.transformerNotes = notes || '';
-  order.acceptedAt = new Date();
-
-  await order.save();
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Commande acceptée avec succès',
-    data: {
-      order
-    }
-  });
 });
 
 exports.getMyOrder = (req, res, next) => {
@@ -742,32 +326,16 @@ exports.updateOrderStatus = (req, res, next) => {
 };
 
 exports.cancelOrder = catchAsync(async (req, res, next) => {
-  const { orderId } = req.params;
-  const { reason } = req.body;
-
-  const order = await Order.findOne({
-    _id: orderId,
-    transformer: req.user._id,
-    status: { $in: ['pending', 'accepted'] }
-  });
-
-  if (!order) {
-    return next(new AppError('Commande non trouvée ou ne peut pas être annulée', 404));
+  try {
+    const order = await transformerOrderService.cancelOrderByTransformer(req.params.orderId, req.user._id, req.body.reason);
+    res.status(200).json({
+      status: 'success',
+      message: 'Commande annulée avec succès',
+      data: { order }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  order.status = 'cancelled';
-  order.cancellationReason = reason || 'Annulée par le transformateur';
-  order.cancelledAt = new Date();
-
-  await order.save();
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Commande annulée avec succès',
-    data: {
-      order
-    }
-  });
 });
 
 exports.trackOrder = catchAsync(async (req, res, next) => {
@@ -802,777 +370,184 @@ exports.trackOrder = catchAsync(async (req, res, next) => {
 });
 
 exports.updateOrderProgress = catchAsync(async (req, res, next) => {
-  const { orderId } = req.params;
-  const { progress, notes, status } = req.body;
-
-  const order = await Order.findOne({
-    _id: orderId,
-    transformer: req.user._id
-  });
-
-  if (!order) {
-    return next(new AppError('Commande non trouvée', 404));
-  }
-
-  // Ajouter une mise à jour de progression
-  const trackingUpdate = {
-    progress: progress || order.status,
-    notes: notes || '',
-    timestamp: new Date(),
-    updatedBy: 'transformer'
-  };
-
-  if (!order.trackingUpdates) {
-    order.trackingUpdates = [];
-  }
-  
-  order.trackingUpdates.push(trackingUpdate);
-
-  // Mettre à jour le statut si fourni
-  if (status) {
-    order.status = status;
-  }
-
-  await order.save();
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Progression de la commande mise à jour avec succès',
-    data: {
-      order: {
-        id: order._id,
-        status: order.status,
-        trackingUpdates: order.trackingUpdates
+  try {
+    const order = await transformerOrderService.updateOrderProgress(req.params.orderId, req.user._id, req.body);
+    res.status(200).json({
+      status: 'success',
+      message: 'Progression de la commande mise à jour avec succès',
+      data: {
+        order: {
+          id: order._id,
+          status: order.status,
+          trackingUpdates: order.trackingUpdates
+        }
       }
-    }
-  });
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 
-// Horaires
-exports.getOperatingHours = temporaryResponse('Horaires d\'opération');
-exports.updateOperatingHours = temporaryResponse('Mise à jour horaires');
 
 
 // Produits de la boutique
 exports.getMyProducts = catchAsync(async (req, res, next) => {
-  const products = await Product.find({ 
-    transformer: req.user.id,
-    userType: 'transformer',
-    isActive: true  // Ne retourner que les produits actifs
-  }).sort({ createdAt: -1 });
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      products
-    }
-  });
+  try {
+    const products = await transformerProductService.getMyProducts(req.user._id);
+    res.status(200).json({
+      status: 'success',
+      data: { products }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.getProduct = catchAsync(async (req, res, next) => {
-  const Product = require('../models/Product');
-  
-  const product = await Product.findOne({
-    _id: req.params.productId,
-    transformer: req.user._id
-  })
-  .populate('transformer', 'companyName firstName lastName address salesStats certifications createdAt country');
-
-  if (!product) {
-    return next(new AppError('Produit non trouvé', 404));
+  try {
+    const product = await transformerProductService.getProduct(req.params.productId, req.user._id);
+    res.status(200).json({
+      status: 'success',
+      data: { product }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  res.status(200).json({
-    status: 'success',
-    data: { product }
-  });
 });
 exports.createProduct = catchAsync(async (req, res, next) => {
-  const {
-    name,
-    description,
-    shortDescription,
-    category,
-    subcategory,
-    tags,
-    price,
-    compareAtPrice,
-    stock,
-    minimumOrderQuantity,
-    maximumOrderQuantity,
-    unit,
-    status,
-    images
-  } = req.body;
-
-  // Validation des champs obligatoires
-  if (!name || !description || !category || !price || stock === undefined) {
+  if (!req.body.name || !req.body.description || !req.body.category || !req.body.price || req.body.stock === undefined) {
     return next(new AppError('Tous les champs obligatoires doivent être remplis', 400));
   }
 
-  const normalizedName = toPlainText(name, name);
-  const normalizedDescription = toPlainText(description, description);
-  const normalizedShortDescription = shortDescription !== undefined && shortDescription !== null
-    ? toPlainText(shortDescription, shortDescription)
-    : '';
-
-  if (!normalizedName || !normalizedDescription) {
-    return next(new AppError('Le nom et la description doivent être fournis', 400));
+  try {
+    const product = await transformerProductService.createProduct(req.user._id, req.body);
+    res.status(201).json({
+      status: 'success',
+      data: { product }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 400));
   }
-
-  // Créer le produit avec structure unilingue
-  const productData = {
-    name: normalizedName,
-    description: normalizedDescription,
-    shortDescription: normalizedShortDescription || undefined,
-    category,
-    subcategory: subcategory || category,
-    tags: tags || [],
-    price: parseFloat(price),
-    compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : undefined,
-    inventory: {
-      quantity: parseInt(stock) || 0
-    },
-    minimumOrderQuantity: minimumOrderQuantity !== undefined ? minimumOrderQuantity : 0,
-    maximumOrderQuantity: maximumOrderQuantity || undefined,
-    unit: unit || 'kg',
-    status: status || 'draft',
-    images: images ? images.map((img, index) => ({
-      ...img,
-      order: index,
-      isPrimary: index === 0
-    })) : [],
-    transformer: req.user.id,
-    userType: 'transformer'
-  };
-
-  const product = await Product.create(productData);
-
-  res.status(201).json({
-    status: 'success',
-    data: {
-      product
-    }
-  });
 });
 exports.updateProduct = temporaryResponse('Mise à jour produit');
 exports.deleteProduct = catchAsync(async (req, res, next) => {
-  const Product = require('../models/Product');
-  
-  const product = await Product.findOneAndUpdate(
-    { _id: req.params.productId, transformer: req.user._id },
-    { isActive: false, status: 'inactive' },
-    { new: true }
-  );
-
-  if (!product) {
-    return next(new AppError('Produit non trouvé', 404));
+  try {
+    await transformerProductService.deleteProduct(req.params.productId, req.user._id);
+    res.status(204).json({
+      status: 'success',
+      data: null
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  res.status(204).json({
-    status: 'success',
-    data: null
-  });
 });
 
 // Soumettre un produit pour révision
 exports.submitProductForReview = catchAsync(async (req, res, next) => {
-  const { productId } = req.params;
-  
-  const product = await Product.findOneAndUpdate(
-    { 
-      _id: productId, 
-      transformer: req.user.id,
-      status: 'draft' // Seuls les produits en brouillon peuvent être soumis
-    },
-    { status: 'pending-review' },
-    { new: true, runValidators: true }
-  );
-
-  if (!product) {
-    return next(new AppError('Produit non trouvé ou déjà soumis pour révision', 404));
+  try {
+    const product = await transformerProductService.submitProductForReview(req.params.productId, req.user._id);
+    res.status(200).json({
+      status: 'success',
+      message: 'Produit soumis pour révision avec succès',
+      data: { product }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Produit soumis pour révision avec succès',
-    data: {
-      product
-    }
-  });
 });
 
-// Production
-exports.getProductionBatches = temporaryResponse('Lots de production');
-exports.createProductionBatch = temporaryResponse('Création lot');
-exports.getProductionBatch = temporaryResponse('Détail lot');
-exports.updateProductionBatch = temporaryResponse('Mise à jour lot');
-exports.getBatchTraceability = temporaryResponse('Traçabilité lot');
-
-// Déchets
-exports.getWasteManagement = temporaryResponse('Gestion déchets');
-exports.updateWasteManagement = temporaryResponse('Mise à jour déchets');
 
 // Produits publics (pour la boutique publique)
 exports.getPublicProducts = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   
-  // Vérifier que l'ID n'est pas "me" (route protégée)
   if (id === 'me') {
     return next(new AppError('Route non autorisée', 403));
   }
   
-  // Vérifier que l'ID est un ObjectId valide
   if (!id.match(/^[0-9a-fA-F]{24}$/)) {
     return next(new AppError('ID de transformateur invalide', 400));
   }
   
-  // Vérifier que le transformateur existe
-  const transformer = await Transformer.findById(id);
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
+  try {
+    const products = await transformerProductService.getPublicProducts(id);
+    res.status(200).json({
+      status: 'success',
+      results: products.length,
+      data: { products }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  // Récupérer les produits approuvés du transformateur
-  const products = await Product.find({
-    transformer: id,
-    status: 'approved', // Seuls les produits approuvés sont visibles publiquement
-    userType: 'transformer'
-  }).sort({ createdAt: -1 });
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      products
-    }
-  });
 });
 
 // Statistiques
 exports.getBusinessStats = catchAsync(async (req, res, next) => {
-  const transformerId = req.user.id;
-
-  // Récupérer les statistiques de base
-  const transformer = await Transformer.findById(transformerId);
-  if (!transformer) {
-    return next(new AppError('Transformateur non trouvé', 404));
+  try {
+    const stats = await transformerStatsService.getBusinessStats(req.user._id);
+    res.status(200).json({
+      status: 'success',
+      data: stats
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  console.log('[getBusinessStats] Transformateur ID:', transformerId);
-
-  // Compter les commandes
-  const totalOrders = await Order.countDocuments({ 
-    seller: transformerId,
-    status: { $ne: 'cancelled' }
-  });
-
-  const completedOrders = await Order.countDocuments({ 
-    seller: transformerId,
-    status: 'completed'
-  });
-
-  const pendingOrders = await Order.countDocuments({ 
-    seller: transformerId,
-    status: { $in: ['pending', 'processing'] }
-  });
-
-  // Compter les produits
-  const totalProducts = await Product.countDocuments({ 
-    producer: transformerId,
-    userType: 'transformer'
-  });
-
-  const activeProducts = await Product.countDocuments({ 
-    producer: transformerId,
-    userType: 'transformer',
-    status: 'active'
-  });
-
-  // Calculer les revenus du mois en cours
-  const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-  const monthlyRevenue = await Order.aggregate([
-    {
-      $match: {
-        seller: transformerId,
-        status: 'completed',
-        createdAt: { $gte: startOfMonth, $lte: endOfMonth }
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        total: { $sum: '$total' }
-      }
-    }
-  ]);
-
-  // Calculer les revenus totaux
-  const totalRevenue = await Order.aggregate([
-    {
-      $match: {
-        seller: transformerId,
-        status: 'completed'
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        total: { $sum: '$total' }
-      }
-    }
-  ]);
-
-  // Compter les vues du profil
-  const profileViews = transformer.profileViews || 0;
-
-  // Calculer la note moyenne et le nombre d'avis depuis les reviews
-  const Review = require('../models/Review');
-  
-  // Récupérer les IDs des commandes du transformateur
-  const transformerOrderIds = await Order.distinct('_id', { seller: transformerId });
-  
-  const reviewStats = await Review.aggregate([
-    {
-      $match: {
-        $or: [
-          { transformer: transformerId },
-          { order: { $in: transformerOrderIds } }
-        ]
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        averageRating: { $avg: '$rating' },
-        totalReviews: { $sum: 1 }
-      }
-    }
-  ]);
-
-  const averageRating = reviewStats.length > 0 && reviewStats[0].averageRating 
-    ? Math.round(reviewStats[0].averageRating * 10) / 10 
-    : transformer.businessStats?.averageRating || 0;
-  const totalReviews = reviewStats.length > 0 && reviewStats[0].totalReviews 
-    ? reviewStats[0].totalReviews 
-    : transformer.businessStats?.totalReviews || 0;
-
-  // Calculer le taux de conversion (commandes terminées / total commandes)
-  const conversionRate = totalOrders > 0 ? (completedOrders / totalOrders) * 100 : 0;
-
-  // Calculer le temps de traitement moyen (en jours)
-  const processingTimeData = await Order.aggregate([
-    {
-      $match: {
-        seller: transformerId,
-        status: 'completed',
-        completedAt: { $exists: true }
-      }
-    },
-    {
-      $project: {
-        processingDays: {
-          $divide: [
-            { $subtract: ['$completedAt', '$createdAt'] },
-            1000 * 60 * 60 * 24 // Convertir en jours
-          ]
-        }
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        averageProcessingTime: { $avg: '$processingDays' }
-      }
-    }
-  ]);
-
-  const averageProcessingTime = processingTimeData.length > 0 
-    ? Math.round(processingTimeData[0].averageProcessingTime * 10) / 10 
-    : 0;
-
-  const stats = {
-    // Statistiques générales
-    totalOrders,
-    completedOrders,
-    pendingOrders,
-    cancelledOrders: totalOrders - completedOrders - pendingOrders,
-    
-    // Produits
-    totalProducts,
-    activeProducts,
-    inactiveProducts: totalProducts - activeProducts,
-    
-    // Revenus
-    monthlyRevenue: monthlyRevenue.length > 0 ? monthlyRevenue[0].total : 0,
-    totalRevenue: totalRevenue.length > 0 ? totalRevenue[0].total : 0,
-    
-    // Performance
-    averageRating: Math.round(averageRating * 10) / 10,
-    totalReviews,
-    conversionRate: Math.round(conversionRate * 10) / 10,
-    averageProcessingTime,
-    
-    // Vues du profil
-    profileViews,
-    
-    // Produits vendus (commandes complétées avec produits)
-    totalProductsSold: completedOrders, // Simplification: utiliser les commandes complétées
-    
-    // Informations de l'entreprise
-    companyName: transformer.companyName,
-    transformationType: transformer.transformationType,
-    isApproved: transformer.isApproved,
-    isActive: transformer.isActive,
-    
-    // Capacités
-    processingCapabilities: transformer.processingCapabilities?.length || 0,
-    certifications: transformer.certifications?.length || 0,
-    
-    // Adresse
-    region: transformer.address?.region || 'Non spécifié',
-    city: transformer.address?.city || 'Non spécifié'
-  };
-
-  console.log('[getBusinessStats] Stats calculées:', {
-    totalOrders,
-    completedOrders,
-    totalProducts,
-    activeProducts,
-    totalRevenue: stats.totalRevenue,
-    averageRating: stats.averageRating,
-    totalReviews: stats.totalReviews,
-    profileViews: stats.profileViews
-  });
-
-  res.status(200).json({
-    status: 'success',
-    data: stats
-  });
 });
 exports.getProductionAnalytics = catchAsync(async (req, res, next) => {
-  const transformerId = req.user.id;
-  const { period = '30d' } = req.query; // 7d, 30d, 90d, 1y
-
-  // Calculer la période
-  const now = new Date();
-  let startDate;
-  
-  switch (period) {
-    case '7d':
-      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      break;
-    case '30d':
-      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      break;
-    case '90d':
-      startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-      break;
-    case '1y':
-      startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-      break;
-    default:
-      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  try {
+    const { period = '30d' } = req.query;
+    const analytics = await transformerStatsService.getProductionAnalytics(req.user._id, period);
+    res.status(200).json({
+      status: 'success',
+      data: analytics
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  // Analytics de production par jour
-  const dailyProduction = await Order.aggregate([
-    {
-      $match: {
-        seller: transformerId,
-        status: 'completed',
-        createdAt: { $gte: startDate, $lte: now }
-      }
-    },
-    {
-      $group: {
-        _id: {
-          year: { $year: '$createdAt' },
-          month: { $month: '$createdAt' },
-          day: { $dayOfMonth: '$createdAt' }
-        },
-        totalOrders: { $sum: 1 },
-        totalRevenue: { $sum: '$total' },
-        totalItems: { $sum: { $sum: '$items.quantity' } }
-      }
-    },
-    {
-      $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 }
-    }
-  ]);
-
-  // Analytics par catégorie de produit
-  const categoryAnalytics = await Order.aggregate([
-    {
-      $match: {
-        seller: transformerId,
-        status: 'completed',
-        createdAt: { $gte: startDate, $lte: now }
-      }
-    },
-    { $unwind: '$items' },
-    {
-      $group: {
-        _id: '$items.category',
-        totalQuantity: { $sum: '$items.quantity' },
-        totalRevenue: { $sum: { $multiply: ['$items.quantity', '$items.unitPrice'] } },
-        averagePrice: { $avg: '$items.unitPrice' }
-      }
-    },
-    { $sort: { totalQuantity: -1 } }
-  ]);
-
-  // Analytics de performance temporelle
-  const timeAnalytics = await Order.aggregate([
-    {
-      $match: {
-        seller: transformerId,
-        status: 'completed',
-        createdAt: { $gte: startDate, $lte: now },
-        completedAt: { $exists: true }
-      }
-    },
-    {
-      $project: {
-        processingDays: {
-          $divide: [
-            { $subtract: ['$completedAt', '$createdAt'] },
-            1000 * 60 * 60 * 24
-          ]
-        },
-        orderValue: '$total'
-      }
-    },
-    {
-      $group: {
-        _id: null,
-        averageProcessingTime: { $avg: '$processingDays' },
-        minProcessingTime: { $min: '$processingDays' },
-        maxProcessingTime: { $max: '$processingDays' },
-        totalOrders: { $sum: 1 }
-      }
-    }
-  ]);
-
-  // Tendances de croissance
-  const growthTrends = await Order.aggregate([
-    {
-      $match: {
-        seller: transformerId,
-        status: 'completed',
-        createdAt: { $gte: startDate, $lte: now }
-      }
-    },
-    {
-      $group: {
-        _id: {
-          year: { $year: '$createdAt' },
-          month: { $month: '$createdAt' }
-        },
-        monthlyRevenue: { $sum: '$total' },
-        monthlyOrders: { $sum: 1 }
-      }
-    },
-    {
-      $sort: { '_id.year': 1, '_id.month': 1 }
-    }
-  ]);
-
-  // Calculer le taux de croissance
-  let growthRate = 0;
-  if (growthTrends.length >= 2) {
-    const current = growthTrends[growthTrends.length - 1];
-    const previous = growthTrends[growthTrends.length - 2];
-    growthRate = previous.monthlyRevenue > 0 
-      ? ((current.monthlyRevenue - previous.monthlyRevenue) / previous.monthlyRevenue) * 100 
-      : 0;
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      period,
-      startDate,
-      endDate: now,
-      dailyProduction,
-      categoryAnalytics,
-      timeAnalytics: timeAnalytics[0] || {
-        averageProcessingTime: 0,
-        minProcessingTime: 0,
-        maxProcessingTime: 0,
-        totalOrders: 0
-      },
-      growthTrends,
-      growthRate: Math.round(growthRate * 100) / 100
-    }
-  });
 });
 exports.getEfficiencyMetrics = temporaryResponse('Métriques efficacité');
 exports.getRevenueAnalytics = temporaryResponse('Analytics revenus');
 
-// Contrats
-exports.getContracts = temporaryResponse('Contrats clients');
-exports.createContract = temporaryResponse('Création contrat');
-exports.getContract = temporaryResponse('Détail contrat');
-exports.updateContract = temporaryResponse('Mise à jour contrat');
-exports.terminateContract = temporaryResponse('Résiliation contrat');
 
 // Avis
 exports.getMyReviews = catchAsync(async (req, res, next) => {
-  const transformerId = req.user.id;
-  const { page = 1, limit = 20, status = 'all' } = req.query;
-  
-  // Construire le filtre de statut
-  let statusFilter = {};
-  if (status === 'unread') {
-    statusFilter.isRead = false;
-  } else if (status === 'read') {
-    statusFilter.isRead = true;
+  try {
+    const result = await transformerReviewService.getMyReviews(req.user._id, req.query);
+    res.status(200).json({
+      status: 'success',
+      data: result
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-  // Si status === 'all', pas de filtre
-
-  // Récupérer les avis du transformateur
-  const reviews = await Review.find({ 
-    transformer: transformerId,
-    isActive: true,
-    ...statusFilter
-  })
-  .populate('reviewer', 'firstName lastName avatar email')
-  .populate('product', 'name images')
-  .populate('order', 'orderNumber total createdAt')
-  .sort('-createdAt')
-  .limit(limit * 1)
-  .skip((page - 1) * limit);
-
-  // Compter le total d'avis
-  const totalReviews = await Review.countDocuments({ 
-    transformer: transformerId,
-    isActive: true,
-    ...statusFilter
-  });
-
-  // Compter les avis non lus
-  const unreadCount = await Review.countDocuments({ 
-    transformer: transformerId,
-    isActive: true,
-    isRead: false
-  });
-
-  // Calculer les statistiques des avis
-  const stats = await Review.aggregate([
-    { $match: { transformer: transformerId, isActive: true } },
-    {
-      $group: {
-        _id: null,
-        totalReviews: { $sum: 1 },
-        averageRating: { $avg: '$rating' },
-        ratingDistribution: {
-          $push: '$rating'
-        },
-        recentReviews: {
-          $sum: {
-            $cond: [
-              { $gte: ['$createdAt', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)] },
-              1,
-              0
-            ]
-          }
-        }
-      }
-    }
-  ]);
-
-  const reviewStats = stats[0] || {
-    totalReviews: 0,
-    averageRating: 0,
-    ratingDistribution: [],
-    recentReviews: 0
-  };
-
-  // Calculer la distribution des notes
-  const ratingDistribution = {
-    5: reviewStats.ratingDistribution.filter(r => r === 5).length,
-    4: reviewStats.ratingDistribution.filter(r => r === 4).length,
-    3: reviewStats.ratingDistribution.filter(r => r === 3).length,
-    2: reviewStats.ratingDistribution.filter(r => r === 2).length,
-    1: reviewStats.ratingDistribution.filter(r => r === 1).length,
-  };
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      reviews,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(totalReviews / limit),
-        totalReviews,
-        hasNext: page * limit < totalReviews,
-        hasPrev: page > 1
-      },
-      stats: {
-        totalReviews: reviewStats.totalReviews,
-        averageRating: Math.round(reviewStats.averageRating * 10) / 10,
-        ratingDistribution,
-        recentReviews: reviewStats.recentReviews,
-        unreadCount
-      }
-    }
-  });
 });
 exports.respondToReview = temporaryResponse('Réponse avis');
 
 // Marquer un avis comme lu
 exports.markReviewAsRead = catchAsync(async (req, res, next) => {
-  const { reviewId } = req.params;
-  const transformerId = req.user.id;
-
-  // Vérifier que l'avis appartient au transformateur
-  const review = await Review.findOne({
-    _id: reviewId,
-    transformer: transformerId,
-    isActive: true
-  });
-
-  if (!review) {
-    return next(new AppError('Avis non trouvé ou non autorisé', 404));
+  try {
+    const review = await transformerReviewService.markReviewAsRead(req.params.reviewId, req.user._id);
+    res.status(200).json({
+      status: 'success',
+      message: 'Avis marqué comme lu',
+      data: { review }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  // Marquer comme lu
-  review.isRead = true;
-  review.readAt = new Date();
-  await review.save();
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Avis marqué comme lu',
-    data: { review }
-  });
 });
 
-// Marquer tous les avis comme lus
 exports.markAllReviewsAsRead = catchAsync(async (req, res, next) => {
-  const transformerId = req.user.id;
-
-  const result = await Review.updateMany(
-    { 
-      transformer: transformerId,
-      isActive: true,
-      isRead: false
-    },
-    { 
-      isRead: true,
-      readAt: new Date()
-    }
-  );
-
-  res.status(200).json({
-    status: 'success',
-    message: `${result.modifiedCount} avis marqués comme lus`,
-    data: { modifiedCount: result.modifiedCount }
-  });
+  try {
+    await transformerReviewService.markAllReviewsAsRead(req.user._id);
+    res.status(200).json({
+      status: 'success',
+      message: 'Tous les avis marqués comme lus'
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 // Réclamations
@@ -1580,17 +555,6 @@ exports.getComplaints = temporaryResponse('Réclamations');
 exports.handleComplaint = temporaryResponse('Traitement réclamation');
 exports.updateComplaint = temporaryResponse('Mise à jour réclamation');
 
-// Planification
-exports.getProductionPlanning = temporaryResponse('Planification production');
-exports.createProductionPlan = temporaryResponse('Création plan');
-exports.updateProductionPlan = temporaryResponse('Mise à jour plan');
-exports.deleteProductionPlan = temporaryResponse('Suppression plan');
-
-// Maintenance
-exports.getMaintenanceSchedule = temporaryResponse('Planning maintenance');
-exports.scheduleMaintenance = temporaryResponse('Planification maintenance');
-exports.getMaintenanceRecords = temporaryResponse('Historique maintenance');
-exports.addMaintenanceRecord = temporaryResponse('Ajout maintenance');
 
 // Documents
 exports.getMyDocuments = temporaryResponse('Mes documents');

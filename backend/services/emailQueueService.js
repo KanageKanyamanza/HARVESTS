@@ -10,6 +10,12 @@ class EmailQueueService {
 
   // Ajouter un email à la queue
   addToQueue(emailData) {
+    // En mode test, ignorer l'ajout à la queue
+    if (process.env.NODE_ENV === 'test') {
+      console.log(`⏭️  Mode TEST: Email ignoré pour ${emailData.email}`);
+      return null;
+    }
+    
     const emailJob = {
       id: Date.now() + Math.random(),
       ...emailData,
@@ -31,6 +37,12 @@ class EmailQueueService {
 
   // Traiter la queue d'emails
   async processQueue() {
+    // En mode test, ignorer le traitement de la queue
+    if (process.env.NODE_ENV === 'test') {
+      this.queue = []; // Vider la queue
+      return;
+    }
+    
     if (this.isProcessing || this.queue.length === 0) {
       return;
     }

@@ -335,13 +335,13 @@ const AdminDashboard = () => {
               to={card.link}
               className="bg-white rounded-lg shadow hover:shadow-md transition-shadow duration-200"
             >
-              <div className="p-6">
-                <div className="flex items-center">
-                  <div className={`p-3 rounded-lg ${card.color}`}>
+              <div className="p-3">
+                <div className="flex flex-wrap text-center items-center">
+                  <div className={`p-2 gap-2 mx-auto text-center flex rounded-lg ${card.color}`}>
                     <card.icon className="w-6 h-6 text-white" />
+                    <p className="text-sm font-medium text-white">{card.title}</p>
                   </div>
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-600">{card.title}</p>
+                  <div className="text-center mx-auto w-full mt-2">
                     <p className="text-2xl font-bold text-gray-900">{card.value}</p>
                     <p className="text-sm text-gray-500">{card.change}</p>
                   </div>

@@ -27,14 +27,14 @@ html(lang='fr')
         overflow: hidden;
       }
       .header {
-        background: linear-gradient(135deg, #4CAF50 0%, #F4C542 100%);
+        background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
         padding: 40px 30px;
         text-align: center;
         color: white;
       }
       .logo {
-        width: 80px;
-        height: 80px;
+        width: 120px;
+        height: 120px;
         background-color: rgba(255, 255, 255, 0.95);
         border-radius: 20px;
         display: inline-flex;
@@ -43,10 +43,11 @@ html(lang='fr')
         margin-bottom: 20px;
         backdrop-filter: blur(10px);
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 10px;
       }
       .logo img {
-        width: 50px;
-        height: 50px;
+        width: 100%;
+        height: 100%;
         object-fit: contain;
       }
       .title {
@@ -81,19 +82,20 @@ html(lang='fr')
       }
       .cta-button {
         display: inline-block;
-        background: linear-gradient(135deg, #4CAF50 0%, #F4C542 100%);
+        background-color: #16a34a;
         color: white;
         padding: 16px 32px;
         text-decoration: none;
         border-radius: 8px;
         font-weight: 600;
         font-size: 16px;
-        box-shadow: 0 4px 6px -1px rgba(76, 175, 80, 0.3);
+        box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.3);
         transition: all 0.2s ease;
       }
       .cta-button:hover {
+        background-color: #15803d;
         transform: translateY(-1px);
-        box-shadow: 0 6px 8px -1px rgba(76, 175, 80, 0.4);
+        box-shadow: 0 6px 8px -1px rgba(22, 163, 74, 0.4);
       }
       .features {
         background-color: #f7fafc;
@@ -123,7 +125,7 @@ html(lang='fr')
         content: '✓';
         position: absolute;
         left: 0;
-        color: #4CAF50;
+        color: #16a34a;
         font-weight: bold;
         font-size: 16px;
       }
@@ -179,7 +181,7 @@ html(lang='fr')
         margin: 12px 0;
       }
       .footer-contact a {
-        color: #4CAF50;
+        color: #16a34a;
         text-decoration: none;
       }
       .footer-contact a:hover {
@@ -197,16 +199,16 @@ html(lang='fr')
           font-size: 24px;
         }
         .logo {
-          width: 60px;
-          height: 60px;
-          font-size: 24px;
+          width: 100px;
+          height: 100px;
+          padding: 8px;
         }
       }
   body
     .email-container
       .header
         .logo
-          img(src=logoUrl, alt='Harvests Logo', style='width: 50px; height: 50px; object-fit: contain;')
+          img(src=logoUrl, alt='Harvests Logo', style='width: 100%; height: 100%; object-fit: contain;')
         .title Bienvenue sur Harvests !
         .subtitle La plateforme agricole africaine de référence
       
@@ -260,4 +262,4 @@ html(lang='fr')
           | 📧 Email : 
           a(href='mailto:contact@harvests.site') contact@harvests.site
         .footer-contact
-          | © 2024 Harvests. Tous droits réservés. | Dakar, Sénégal
+          | © 2025 Harvests. Tous droits réservés. | Dakar, Sénégal

@@ -30,12 +30,6 @@ export const useTransformerService = () => {
     ...transformerService,
     updateMyProfile: (...args) => updateWithRefresh(transformerService.updateMyProfile, ...args),
     updateCompanyInfo: (...args) => updateWithRefresh(transformerService.updateCompanyInfo, ...args),
-    updateStorageCapabilities: (...args) => updateWithRefresh(transformerService.updateStorageCapabilities, ...args),
-    updateMyServices: (...args) => updateWithRefresh(transformerService.updateMyServices, ...args),
-    updateMyPricing: (...args) => updateWithRefresh(transformerService.updateMyPricing, ...args),
-    updateProcessingTimes: (...args) => updateWithRefresh(transformerService.updateProcessingTimes, ...args),
-    updateOperatingHours: (...args) => updateWithRefresh(transformerService.updateOperatingHours, ...args),
-    updateWasteManagement: (...args) => updateWithRefresh(transformerService.updateWasteManagement, ...args),
   };
 };
 

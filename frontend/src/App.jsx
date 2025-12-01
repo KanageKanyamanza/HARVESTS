@@ -24,6 +24,7 @@ import AppRoutes from "./navigation/AppRoutes";
 // Loading Component
 import NotificationContainer from "./components/common/NotificationContainer";
 import LoadingSpinner from "./components/common/LoadingSpinner";
+import PWAInstallModal from "./components/common/PWAInstallModal";
 
 // Composant de fallback pour les routes
 const RouteFallback = () => (
@@ -54,9 +55,12 @@ function App() {
 											<AppRoutes />
 										</Suspense>
 
-										{/* Container des notifications */}
-										<NotificationContainer />
-									</UserTypeRedirect>
+									{/* Container des notifications */}
+									<NotificationContainer />
+									
+									{/* Modal d'installation PWA */}
+									<PWAInstallModal />
+								</UserTypeRedirect>
 								</div>
 							</Router>
 						</ModalProvider>
