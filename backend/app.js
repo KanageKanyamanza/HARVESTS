@@ -155,19 +155,6 @@ app.get('/api/v1/health', (req, res) => {
 });
 
 // Routes d'authentification
-// Middleware de logging pour déboguer les routes auth
-app.use('/api/v1/auth', (req, res, next) => {
-  if (req.path.includes('verify-email')) {
-    console.log('🔍 Route verify-email détectée:', {
-      method: req.method,
-      path: req.path,
-      originalUrl: req.originalUrl,
-      params: req.params,
-      query: req.query
-    });
-  }
-  next();
-});
 app.use('/api/v1/auth', authRoutes);
 
 // Routes d'authentification admin

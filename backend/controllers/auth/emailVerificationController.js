@@ -8,20 +8,12 @@ const emailQueue = require('../../services/emailQueueService');
 // Vérification email
 exports.verifyEmail = catchAsync(async (req, res, next) => {
   // Log pour déboguer
-  console.log('🔍 Vérification email - Token reçu (params):', req.params.token);
-  console.log('🔍 Vérification email - Token reçu (query):', req.query.token);
-  console.log('🔍 Vérification email - Longueur du token (params):', req.params.token?.length);
-  console.log('🔍 Vérification email - Longueur du token (query):', req.query.token?.length);
+  console.log('🔍 Vérification email - Token reçu:', req.params.token);
+  console.log('🔍 Vérification email - Longueur du token:', req.params.token?.length);
   console.log('🔍 Vérification email - URL complète:', req.originalUrl);
-  console.log('🔍 Vérification email - Méthode:', req.method);
-  console.log('🔍 Vérification email - Path:', req.path);
-  console.log('🔍 Vérification email - Query:', req.query);
-  console.log('🔍 Vérification email - Params:', req.params);
   
-  // Récupérer le token depuis les paramètres de route OU depuis les query parameters
-  // (pour gérer les cas où Render ne route pas correctement les URLs longues)
-  // Priorité au query parameter pour les nouveaux emails
-  const token = req.query.token || req.params.token;
+  // Récupérer le token depuis les paramètres de route
+  const token = req.params.token;
   
   // Vérifier si le token est présent
   if (!token || token.trim() === '') {
@@ -80,85 +72,6 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
   // L'utilisateur pourra ensuite se connecter depuis cette page
   res.redirect(`${frontendUrl}/verify-email?verified=true&token=${token}`);
 });
-
-// Vérification email via POST (alternative pour Render)
-exports.verifyEmailPost = catchAsync(async (req, res, next) => {
-  const { token } = req.body;
-  
-  // Log pour déboguer
-  console.log('🔍 Vérification email POST - Token reçu:', token);
-  console.log('🔍 Vérification email POST - Longueur du token:', token?.length);
-  
-  // Vérifier si le token est présent
-  if (!token || token.trim() === '') {
-    console.error('❌ Token manquant ou vide');
-    return res.status(400).json({
-      status: 'error',
-      message: 'Token de vérification manquant'
-    });
-  }
-  
-  // Vérifier la longueur du token (devrait être 64 caractères hex)
-  if (token.length !== 64) {
-    console.error(`❌ Token de longueur invalide: ${token.length} (attendu: 64)`);
-    return res.status(400).json({
-      status: 'error',
-      message: 'Token de vérification invalide'
-    });
-  }
-  
-  // 1) Récupérer l'utilisateur basé sur le token
-  const hashedToken = crypto
-    .createHash('sha256')
-    .update(token)
-    .digest('hex');
-
-  const user = await User.findOne({
-    emailVerificationToken: hashedToken,
-    emailVerificationExpires: { $gt: Date.now() },
-  });
-
-  // Frontend URL pour redirection
-  const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
-
-  // 2) Si le token n'a pas expiré et qu'il y a un utilisateur, définir l'email comme vérifié
-  if (!user) {
-    return res.status(400).json({
-      status: 'error',
-      message: 'Token de vérification invalide ou expiré',
-      redirectUrl: `${frontendUrl}/verify-email?error=invalid_token`
-    });
-  }
-
-  // Vérifier si l'email est déjà vérifié
-  if (user.isEmailVerified) {
-    return res.status(200).json({
-      status: 'success',
-      message: 'Email déjà vérifié',
-      redirectUrl: `${frontendUrl}/verify-email?status=already-verified`
-    });
-  }
-
-  user.isEmailVerified = true;
-  user.emailVerificationToken = undefined;
-  user.emailVerificationExpires = undefined;
-  
-  // Pour les types d'utilisateurs qui nécessitent une approbation
-  const userTypesRequiringApproval = ['producer', 'transformer', 'exporter', 'transporter'];
-  if (userTypesRequiringApproval.includes(user.userType)) {
-    user.isApproved = true;
-  }
-  
-  await user.save({ validateBeforeSave: false });
-
-  // Retourner une réponse JSON avec l'URL de redirection
-  res.status(200).json({
-    status: 'success',
-    message: 'Email vérifié avec succès',
-    redirectUrl: `${frontendUrl}/verify-email?verified=true`
-  });
-});
-
 // Renvoyer email de vérification
 exports.resendVerificationEmail = catchAsync(async (req, res, next) => {
   const { email } = req.body;
@@ -184,9 +97,8 @@ exports.resendVerificationEmail = catchAsync(async (req, res, next) => {
 
   try {
     // Le lien pointe vers le backend qui redirigera vers la page de vérification du frontend
-    // Utiliser une route alternative /verify avec query parameter pour éviter les problèmes avec Render
-    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'https://harvests-api.onrender.com';
-    const verifyURL = `${backendUrl}/api/v1/auth/verify?token=${verifyToken}`;
+    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'https://harvests.onrender.com';
+    const verifyURL = `${backendUrl}/api/v1/auth/verify-email/${verifyToken}`;
     
     await new Email(user, verifyURL, req.language).sendWelcome();
 
@@ -233,9 +145,8 @@ exports.retryEmailVerification = catchAsync(async (req, res, next) => {
 
   // Ajouter à la queue d'envoi
   // Le lien pointe vers le backend qui redirigera vers la page de vérification du frontend
-  // Utiliser une route alternative /verify avec query parameter pour éviter les problèmes avec Render
-  const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'https://harvests-api.onrender.com';
-  const verifyURL = `${backendUrl}/api/v1/auth/verify?token=${verifyToken}`;
+  const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'https://harvests.onrender.com';
+  const verifyURL = `${backendUrl}/api/v1/auth/verify-email/${verifyToken}`;
   
   emailQueue.addToQueue({
     user,

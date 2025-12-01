@@ -103,7 +103,7 @@ const createTestUser = async () => {
     console.log('=====================================');
     
     // Construire l'URL de vérification
-    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'https://harvests-api.onrender.com';
+    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'https://harvests.onrender.com';
     const verifyURL = `${backendUrl}/api/v1/auth/verify-email/${verifyToken}`;
     
     console.log('\n📧 Envoi de l\'email de vérification...');

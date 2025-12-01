@@ -112,9 +112,8 @@ exports.signup = catchAsync(async (req, res, next) => {
 
   // Ajouter l'email à la queue d'envoi en arrière-plan
   // Le lien pointe vers le backend qui redirigera vers la page de vérification du frontend
-  // Utiliser une route alternative /verify avec query parameter pour éviter les problèmes avec Render
-  const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'https://harvests-api.onrender.com';
-  const verifyURL = `${backendUrl}/api/v1/auth/verify?token=${verifyToken}`;
+  const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'https://harvests.onrender.com';
+  const verifyURL = `${backendUrl}/api/v1/auth/verify-email/${verifyToken}`;
   
   emailQueue.addToQueue({
     user: newUser,
