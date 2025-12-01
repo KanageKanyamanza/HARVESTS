@@ -555,6 +555,11 @@ exports.createProduct = catchAsync(async (req, res, next) => {
   // Ajouter le producteur
   req.body.producer = req.user.id;
 
+  // S'assurer que subcategory a une valeur par défaut si non fournie
+  if (!req.body.subcategory && req.body.category) {
+    req.body.subcategory = req.body.category;
+  }
+
   // Traiter les images si présentes
   if (req.body.images && req.body.images.length > 0) {
     req.body.images = req.body.images.map((img, index) => ({

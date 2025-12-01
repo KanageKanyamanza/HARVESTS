@@ -175,7 +175,7 @@ const productSchema = new mongoose.Schema({
   
   subcategory: {
     type: String,
-    required: [true, 'Sous-catégorie requise']
+    required: false
   },
   
   tags: [{
