@@ -45,14 +45,6 @@ router.use(authMiddleware.requireVerification);
 router.get('/me/profile', producerController.getMyProfile);
 router.patch('/me/profile', producerController.updateMyProfile);
 
-// Gestion des cultures
-router.route('/me/crops')
-  .get(producerController.getMyCrops)
-  .post(producerController.addCrop);
-
-router.route('/me/crops/:cropId')
-  .patch(producerController.updateCrop)
-  .delete(producerController.removeCrop);
 
 // Gestion des certifications
 router.route('/me/certifications')
@@ -69,14 +61,6 @@ router.route('/me/certifications/:certId')
   .patch(producerController.updateCertification)
   .delete(producerController.removeCertification);
 
-// Gestion des équipements
-router.route('/me/equipment')
-  .get(producerController.getMyEquipment)
-  .post(producerController.addEquipment);
-
-router.route('/me/equipment/:equipmentId')
-  .patch(producerController.updateEquipment)
-  .delete(producerController.removeEquipment);
 
 // Gestion des produits (création, modification, suppression nécessitent vérification)
 router.route('/me/products')

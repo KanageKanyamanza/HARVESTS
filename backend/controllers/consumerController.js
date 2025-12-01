@@ -4,496 +4,336 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const orderController = require('./orderController');
 
+// Services organisés par type
+const consumerProfileService = require('../services/consumer/consumerProfileService');
+const consumerPreferencesService = require('../services/consumer/consumerPreferencesService');
+const consumerAllergyService = require('../services/consumer/consumerAllergyService');
+const consumerAddressService = require('../services/consumer/consumerAddressService');
+const consumerWishlistService = require('../services/consumer/consumerWishlistService');
+const consumerSubscriptionService = require('../services/consumer/consumerSubscriptionService');
+const consumerLoyaltyService = require('../services/consumer/consumerLoyaltyService');
+const consumerPaymentService = require('../services/consumer/consumerPaymentService');
+const consumerOrderService = require('../services/consumer/consumerOrderService');
+const consumerFavoriteService = require('../services/consumer/consumerFavoriteService');
+const consumerStatsService = require('../services/consumer/consumerStatsService');
+const consumerReviewService = require('../services/consumer/consumerReviewService');
+const consumerNotificationService = require('../services/consumer/consumerNotificationService');
+
 // ROUTES PROTÉGÉES CONSOMMATEUR
 
 // Obtenir mon profil
 exports.getMyProfile = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      consumer,
-    },
-  });
+  try {
+    const consumer = await consumerProfileService.getConsumerProfile(req.user.id);
+    res.status(200).json({
+      status: 'success',
+      data: { consumer }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 // Mettre à jour mon profil
 exports.updateMyProfile = catchAsync(async (req, res, next) => {
-  const allowedFields = [
-    'shoppingPreferences', 'communicationPreferences'
-  ];
-  
-  const filteredBody = {};
-  Object.keys(req.body).forEach(key => {
-    if (allowedFields.includes(key)) {
-      filteredBody[key] = req.body[key];
-    }
-  });
-
-  const consumer = await Consumer.findByIdAndUpdate(req.user.id, filteredBody, {
-    new: true,
-    runValidators: true,
-  });
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      consumer,
-    },
-  });
+  try {
+    const consumer = await consumerProfileService.updateConsumerProfile(req.user.id, req.body);
+    res.status(200).json({
+      status: 'success',
+      data: { consumer }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 // Gestion des préférences alimentaires
 exports.getDietaryPreferences = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id).select('dietaryPreferences');
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      dietaryPreferences: consumer.dietaryPreferences,
-    },
-  });
+  try {
+    const dietaryPreferences = await consumerPreferencesService.getDietaryPreferences(req.user.id);
+    res.status(200).json({
+      status: 'success',
+      data: { dietaryPreferences }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.updateDietaryPreferences = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findByIdAndUpdate(
-    req.user.id,
-    { dietaryPreferences: req.body.dietaryPreferences },
-    { new: true, runValidators: true }
-  ).select('dietaryPreferences');
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      dietaryPreferences: consumer.dietaryPreferences,
-    },
-  });
+  try {
+    const dietaryPreferences = await consumerPreferencesService.updateDietaryPreferences(req.user.id, req.body.dietaryPreferences);
+    res.status(200).json({
+      status: 'success',
+      data: { dietaryPreferences }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 // Gestion des allergies
 exports.getAllergies = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id).select('allergies');
-
-  res.status(200).json({
-    status: 'success',
-    results: consumer.allergies.length,
-    data: {
-      allergies: consumer.allergies,
-    },
-  });
+  try {
+    const allergies = await consumerAllergyService.getAllergies(req.user.id);
+    res.status(200).json({
+      status: 'success',
+      results: allergies.length,
+      data: { allergies }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.addAllergy = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  
-  consumer.allergies.push(req.body);
-  await consumer.save();
-
-  res.status(201).json({
-    status: 'success',
-    data: {
-      allergy: consumer.allergies[consumer.allergies.length - 1],
-    },
-  });
+  try {
+    const allergy = await consumerAllergyService.addAllergy(req.user.id, req.body);
+    res.status(201).json({
+      status: 'success',
+      data: { allergy }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.updateAllergy = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  const allergy = consumer.allergies.id(req.params.allergyId);
-
-  if (!allergy) {
-    return next(new AppError('Allergie non trouvée', 404));
+  try {
+    const allergy = await consumerAllergyService.updateAllergy(req.user.id, req.params.allergyId, req.body);
+    res.status(200).json({
+      status: 'success',
+      data: { allergy }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  Object.keys(req.body).forEach(key => {
-    allergy[key] = req.body[key];
-  });
-
-  await consumer.save();
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      allergy,
-    },
-  });
 });
 
 exports.removeAllergy = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  
-  consumer.allergies.pull(req.params.allergyId);
-  await consumer.save();
-
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
+  try {
+    await consumerAllergyService.removeAllergy(req.user.id, req.params.allergyId);
+    res.status(204).json({
+      status: 'success',
+      data: null
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 // Gestion des adresses de livraison
 exports.getDeliveryAddresses = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id).select('deliveryAddresses');
-
-  res.status(200).json({
-    status: 'success',
-    results: consumer.deliveryAddresses.length,
-    data: {
-      addresses: consumer.deliveryAddresses,
-    },
-  });
+  try {
+    const addresses = await consumerAddressService.getDeliveryAddresses(req.user.id);
+    res.status(200).json({
+      status: 'success',
+      results: addresses.length,
+      data: { addresses }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.addDeliveryAddress = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  
-  // Si c'est la première adresse, la définir par défaut
-  const isFirstAddress = !consumer.deliveryAddresses || consumer.deliveryAddresses.length === 0;
-  const newAddress = {
-    ...req.body,
-    isDefault: req.body.isDefault || isFirstAddress
-  };
-
-  // Si c'est la nouvelle adresse par défaut, désactiver les autres
-  if (newAddress.isDefault) {
-    consumer.deliveryAddresses?.forEach(addr => addr.isDefault = false);
+  try {
+    const address = await consumerAddressService.addDeliveryAddress(req.user.id, req.body);
+    res.status(201).json({
+      status: 'success',
+      data: { address }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 400));
   }
-
-  consumer.deliveryAddresses.push(newAddress);
-  await consumer.save();
-
-  res.status(201).json({
-    status: 'success',
-    data: {
-      address: consumer.deliveryAddresses[consumer.deliveryAddresses.length - 1],
-    },
-  });
 });
 
 exports.updateDeliveryAddress = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  const address = consumer.deliveryAddresses.id(req.params.addressId);
-
-  if (!address) {
-    return next(new AppError('Adresse non trouvée', 404));
-  }
-
-  // Si on définit comme adresse par défaut, désactiver les autres
-  if (req.body.isDefault) {
-    consumer.deliveryAddresses.forEach(addr => {
-      if (addr.id !== req.params.addressId) addr.isDefault = false;
+  try {
+    const address = await consumerAddressService.updateDeliveryAddress(req.user.id, req.params.addressId, req.body);
+    res.status(200).json({
+      status: 'success',
+      data: { address }
     });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  Object.keys(req.body).forEach(key => {
-    address[key] = req.body[key];
-  });
-
-  await consumer.save();
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      address,
-    },
-  });
 });
 
 exports.removeDeliveryAddress = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  const address = consumer.deliveryAddresses.id(req.params.addressId);
-
-  if (!address) {
-    return next(new AppError('Adresse non trouvée', 404));
+  try {
+    await consumerAddressService.removeDeliveryAddress(req.user.id, req.params.addressId);
+    res.status(204).json({
+      status: 'success',
+      data: null
+    });
+  } catch (error) {
+    return next(new AppError(error.message, error.message.includes('au moins') ? 400 : 404));
   }
-
-  // Ne pas permettre la suppression si c'est la seule adresse
-  if (consumer.deliveryAddresses.length === 1) {
-    return next(new AppError('Vous devez avoir au moins une adresse de livraison', 400));
-  }
-
-  // Si c'était l'adresse par défaut, définir une autre comme par défaut
-  if (address.isDefault && consumer.deliveryAddresses.length > 1) {
-    const otherAddress = consumer.deliveryAddresses.find(addr => addr.id !== req.params.addressId);
-    if (otherAddress) otherAddress.isDefault = true;
-  }
-
-  consumer.deliveryAddresses.pull(req.params.addressId);
-  await consumer.save();
-
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
 });
 
 exports.setDefaultAddress = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  const address = consumer.deliveryAddresses.id(req.params.addressId);
-
-  if (!address) {
-    return next(new AppError('Adresse non trouvée', 404));
+  try {
+    const address = await consumerAddressService.setDefaultAddress(req.user.id, req.params.addressId);
+    res.status(200).json({
+      status: 'success',
+      data: { address }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  // Désactiver toutes les autres adresses par défaut
-  consumer.deliveryAddresses.forEach(addr => {
-    addr.isDefault = addr.id === req.params.addressId;
-  });
-
-  await consumer.save();
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      address,
-    },
-  });
 });
 
 // Gestion de la wishlist
 exports.getWishlist = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id)
-    .select('wishlist')
-    .populate('wishlist.product', 'name price images producer');
-
-  res.status(200).json({
-    status: 'success',
-    results: consumer.wishlist.length,
-    data: {
-      wishlist: consumer.wishlist,
-    },
-  });
+  try {
+    const wishlist = await consumerWishlistService.getWishlist(req.user.id);
+    res.status(200).json({
+      status: 'success',
+      results: wishlist.length,
+      data: { wishlist }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.addToWishlist = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  
-  // Vérifier si le produit n'est pas déjà dans la wishlist
-  const existingItem = consumer.wishlist.find(
-    item => item.product.toString() === req.body.productId
-  );
-
-  if (existingItem) {
-    return next(new AppError('Ce produit est déjà dans votre liste de souhaits', 400));
+  try {
+    await consumerWishlistService.addToWishlist(req.user.id, req.body.productId);
+    res.status(201).json({
+      status: 'success',
+      message: 'Produit ajouté à la liste de souhaits'
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 400));
   }
-
-  consumer.wishlist.push({
-    product: req.body.productId,
-    notifyWhenAvailable: req.body.notifyWhenAvailable || true
-  });
-
-  await consumer.save();
-
-  res.status(201).json({
-    status: 'success',
-    message: 'Produit ajouté à la liste de souhaits',
-  });
 });
 
 exports.removeFromWishlist = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  
-  const itemIndex = consumer.wishlist.findIndex(
-    item => item.product.toString() === req.params.productId
-  );
-
-  if (itemIndex === -1) {
-    return next(new AppError('Produit non trouvé dans la liste de souhaits', 404));
+  try {
+    await consumerWishlistService.removeFromWishlist(req.user.id, req.params.productId);
+    res.status(204).json({
+      status: 'success',
+      data: null
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  consumer.wishlist.splice(itemIndex, 1);
-  await consumer.save();
-
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
 });
 
 exports.toggleWishlistNotifications = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  
-  const item = consumer.wishlist.find(
-    item => item.product.toString() === req.params.productId
-  );
-
-  if (!item) {
-    return next(new AppError('Produit non trouvé dans la liste de souhaits', 404));
+  try {
+    const preferences = await consumerWishlistService.toggleWishlistNotifications(req.user.id, req.body.enabled);
+    res.status(200).json({
+      status: 'success',
+      data: { preferences }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  item.notifyWhenAvailable = !item.notifyWhenAvailable;
-  await consumer.save();
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      notifyWhenAvailable: item.notifyWhenAvailable,
-    },
-  });
 });
 
 // Gestion des abonnements (livraisons récurrentes)
 exports.getSubscriptions = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id)
-    .select('subscriptions')
-    .populate('subscriptions.product', 'name price images')
-    .populate('subscriptions.producer', 'farmName address');
-
-  res.status(200).json({
-    status: 'success',
-    results: consumer.subscriptions.length,
-    data: {
-      subscriptions: consumer.subscriptions,
-    },
-  });
+  try {
+    const subscriptions = await consumerSubscriptionService.getSubscriptions(req.user.id);
+    res.status(200).json({
+      status: 'success',
+      results: subscriptions.length,
+      data: { subscriptions }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.createSubscription = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  
-  const subscriptionData = {
-    ...req.body,
-    nextDelivery: calculateNextDelivery(req.body.frequency)
-  };
-
-  consumer.subscriptions.push(subscriptionData);
-  await consumer.save();
-
-  res.status(201).json({
-    status: 'success',
-    data: {
-      subscription: consumer.subscriptions[consumer.subscriptions.length - 1],
-    },
-  });
+  try {
+    const subscription = await consumerSubscriptionService.createSubscription(req.user.id, req.body);
+    res.status(201).json({
+      status: 'success',
+      data: { subscription }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 400));
+  }
 });
 
 exports.getSubscription = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  const subscription = consumer.subscriptions.id(req.params.subscriptionId);
-
-  if (!subscription) {
-    return next(new AppError('Abonnement non trouvé', 404));
+  try {
+    const subscription = await consumerSubscriptionService.getSubscription(req.user.id, req.params.subscriptionId);
+    res.status(200).json({
+      status: 'success',
+      data: { subscription }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      subscription,
-    },
-  });
 });
 
 exports.updateSubscription = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  const subscription = consumer.subscriptions.id(req.params.subscriptionId);
-
-  if (!subscription) {
-    return next(new AppError('Abonnement non trouvé', 404));
+  try {
+    const subscription = await consumerSubscriptionService.updateSubscription(req.user.id, req.params.subscriptionId, req.body);
+    res.status(200).json({
+      status: 'success',
+      data: { subscription }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  Object.keys(req.body).forEach(key => {
-    subscription[key] = req.body[key];
-  });
-
-  // Recalculer la prochaine livraison si la fréquence a changé
-  if (req.body.frequency) {
-    subscription.nextDelivery = calculateNextDelivery(req.body.frequency);
-  }
-
-  await consumer.save();
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      subscription,
-    },
-  });
 });
 
 exports.cancelSubscription = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  
-  consumer.subscriptions.pull(req.params.subscriptionId);
-  await consumer.save();
-
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
+  try {
+    await consumerSubscriptionService.cancelSubscription(req.user.id, req.params.subscriptionId);
+    res.status(204).json({
+      status: 'success',
+      data: null
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.pauseSubscription = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  const subscription = consumer.subscriptions.id(req.params.subscriptionId);
-
-  if (!subscription) {
-    return next(new AppError('Abonnement non trouvé', 404));
+  try {
+    await consumerSubscriptionService.pauseSubscription(req.user.id, req.params.subscriptionId);
+    res.status(200).json({
+      status: 'success',
+      message: 'Abonnement mis en pause'
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  subscription.isActive = false;
-  await consumer.save();
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Abonnement mis en pause',
-  });
 });
 
 exports.resumeSubscription = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  const subscription = consumer.subscriptions.id(req.params.subscriptionId);
-
-  if (!subscription) {
-    return next(new AppError('Abonnement non trouvé', 404));
+  try {
+    await consumerSubscriptionService.resumeSubscription(req.user.id, req.params.subscriptionId);
+    res.status(200).json({
+      status: 'success',
+      message: 'Abonnement repris'
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  subscription.isActive = true;
-  subscription.nextDelivery = calculateNextDelivery(subscription.frequency);
-  await consumer.save();
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Abonnement repris',
-  });
 });
 
 // Fonctions temporaires pour les fonctionnalités nécessitant d'autres modèles
-exports.getCart = catchAsync(async (req, res, next) => {
-  res.status(200).json({
+const tempResponse = (message, statusCode = 200, data = {}) => catchAsync(async (req, res, next) => {
+  res.status(statusCode).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle Cart requis',
-    data: { cart: [] },
+    message: `Fonctionnalité en cours de développement - ${message}`,
+    data
   });
 });
 
-exports.addToCart = catchAsync(async (req, res, next) => {
-  res.status(201).json({
-    status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle Cart requis',
-  });
-});
-
-exports.updateCartItem = catchAsync(async (req, res, next) => {
-  res.status(200).json({
-    status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle Cart requis',
-  });
-});
-
-exports.removeFromCart = catchAsync(async (req, res, next) => {
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-});
-
-exports.clearCart = catchAsync(async (req, res, next) => {
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-});
+exports.getCart = tempResponse('Modèle Cart requis', 200, { cart: [] });
+exports.addToCart = tempResponse('Modèle Cart requis', 201);
+exports.updateCartItem = tempResponse('Modèle Cart requis');
+exports.removeFromCart = tempResponse('Modèle Cart requis', 204, null);
+exports.clearCart = tempResponse('Modèle Cart requis', 204, null);
 
 // Commandes
 const Order = require('../models/Order');
@@ -502,338 +342,176 @@ const Payment = require('../models/Payment');
 const Notification = require('../models/Notification');
 
 exports.getMyOrders = catchAsync(async (req, res, next) => {
-  const { page = 1, limit = 10, status, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
-  
-  const query = { buyer: req.user.id };
-  if (status) {
-    query.status = status;
+  try {
+    const orders = await consumerOrderService.getConsumerOrders(req.user.id, req.query);
+    res.status(200).json({
+      status: 'success',
+      data: { orders }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  const sortOptions = {};
-  sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
-
-  const orders = await Order.find(query)
-    .populate('seller', 'firstName lastName email phone')
-    .populate('items.product', 'name images')
-    .sort(sortOptions)
-    .limit(limit * 1)
-    .skip((page - 1) * limit);
-
-  const total = await Order.countDocuments(query);
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      orders,
-      pagination: {
-        current: parseInt(page),
-        pages: Math.ceil(total / limit),
-        total
-      }
-    }
-  });
 });
 
 exports.createOrder = (req, res, next) => orderController.createOrder(req, res, next);
 
 exports.getMyOrder = catchAsync(async (req, res, next) => {
-  const order = await Order.findOne({
-    _id: req.params.orderId,
-    buyer: req.user.id
-  })
-    .populate('buyer', 'firstName lastName email phone')
-    .populate('seller', 'firstName lastName email phone')
-    .populate('items.product', 'name images');
-
-  if (!order) {
-    return next(new AppError('Commande non trouvée', 404));
+  try {
+    const order = await consumerOrderService.getConsumerOrderById(req.user.id, req.params.orderId);
+    res.status(200).json({
+      status: 'success',
+      data: { order }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  res.status(200).json({
-    status: 'success',
-    data: { order }
-  });
 });
 
 exports.cancelOrder = catchAsync(async (req, res, next) => {
-  const { reason } = req.body;
-  
-  const order = await Order.findOne({
-    _id: req.params.orderId,
-    buyer: req.user.id
-  });
-
-  if (!order) {
-    return next(new AppError('Commande non trouvée', 404));
+  try {
+    const orderServiceMain = require('../services/orderService');
+    const order = await orderServiceMain.cancelOrder(req.params.orderId, req.user.id, req.body.reason);
+    res.status(200).json({
+      status: 'success',
+      message: 'Commande annulée avec succès',
+      data: { order }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, error.message.includes('ne peut pas') ? 400 : 404));
   }
-
-  if (!['pending', 'confirmed'].includes(order.status)) {
-    return next(new AppError('Cette commande ne peut pas être annulée', 400));
-  }
-
-  order.status = 'cancelled';
-  order.cancellationReason = reason;
-  order.cancelledAt = new Date();
-  order.cancelledBy = req.user.id;
-
-  // Libérer le stock réservé
-  await order.releaseStock();
-
-  await order.save();
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Commande annulée avec succès',
-    data: { order }
-  });
 });
 
 exports.trackOrder = catchAsync(async (req, res, next) => {
-  const order = await Order.findOne({
-    _id: req.params.orderId,
-    buyer: req.user.id
-  })
-    .populate('seller', 'firstName lastName phone')
-    .populate('items.product', 'name images');
-
-  if (!order) {
-    return next(new AppError('Commande non trouvée', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: { 
-      order,
-      tracking: {
-        status: order.status,
-        estimatedDelivery: order.delivery?.estimatedDeliveryDate,
-        trackingNumber: order.trackingNumber,
-        updates: order.statusUpdates || []
-      }
-    }
-  });
-});
-
-// Fonctions utilitaires
-function calculateEstimatedDelivery(deliveryMethod) {
-  const now = new Date();
-  const days = deliveryMethod === 'express-delivery' ? 1 : 3;
-  return new Date(now.getTime() + (days * 24 * 60 * 60 * 1000));
-}
-
-async function sendOrderNotifications(order) {
   try {
-    // Notification au producteur (vendeur) - Nouvelle commande
-    await Notification.notifyOrderCreated(order);
-
-    // Notification à l'acheteur - Commande créée
-    await Notification.createNotification({
-      recipient: order.buyer,
-      type: 'order_confirmed',
-      category: 'order',
-      title: 'Commande créée',
-      message: `Votre commande ${order.orderNumber} a été créée avec succès`,
-      data: {
-        orderId: order._id,
-        orderNumber: order.orderNumber
-      },
-      channels: {
-        inApp: { enabled: true },
-        email: { enabled: true }
-      }
+    const result = await consumerOrderService.trackConsumerOrder(req.user.id, req.params.orderId);
+    res.status(200).json({
+      status: 'success',
+      data: result
     });
   } catch (error) {
-    console.error('Erreur lors de l\'envoi des notifications:', error);
+    return next(new AppError(error.message, 404));
   }
-}
+});
+
+// Fonctions utilitaires déplacées dans les services
 
 // Avis et évaluations
 exports.getMyReviews = catchAsync(async (req, res, next) => {
-  const Review = require('../models/Review');
-  
-  const reviews = await Review.find({ reviewer: req.user.id })
-    .populate('product', 'name images price')
-    .populate('order', 'orderNumber createdAt')
-    .sort({ createdAt: -1 });
-  
-  res.status(200).json({
-    status: 'success',
-    data: { reviews },
-  });
+  try {
+    const reviews = await consumerReviewService.getConsumerReviews(req.user.id);
+    res.status(200).json({
+      status: 'success',
+      data: { reviews }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.createReview = catchAsync(async (req, res, next) => {
-  res.status(201).json({
-    status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle Review requis',
-  });
+  try {
+    const review = await consumerReviewService.createReview(req.user.id, req.body);
+    res.status(201).json({
+      status: 'success',
+      data: { review }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 400));
+  }
 });
 
 exports.getMyReview = catchAsync(async (req, res, next) => {
-  res.status(200).json({
-    status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle Review requis',
-  });
+  try {
+    const review = await consumerReviewService.getConsumerReviewById(req.user.id, req.params.reviewId);
+    res.status(200).json({
+      status: 'success',
+      data: { review }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.updateMyReview = catchAsync(async (req, res, next) => {
-  res.status(200).json({
-    status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle Review requis',
-  });
+  try {
+    const review = await consumerReviewService.updateConsumerReview(req.user.id, req.params.reviewId, req.body);
+    res.status(200).json({
+      status: 'success',
+      data: { review }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.deleteMyReview = catchAsync(async (req, res, next) => {
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
+  try {
+    await consumerReviewService.deleteConsumerReview(req.user.id, req.params.reviewId);
+    res.status(204).json({
+      status: 'success',
+      data: null
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 // Gestion des favoris
 exports.getFavorites = catchAsync(async (req, res, next) => {
-  // Vérifier que l'utilisateur est bien un consommateur
-  if (req.user.userType !== 'consumer') {
-    return next(new AppError('Seuls les consommateurs peuvent voir leurs favoris', 403));
-  }
-
-  const consumer = await Consumer.findById(req.user.id)
-    .populate({
-      path: 'favorites.product',
-      populate: {
-        path: 'producer',
-        select: 'firstName lastName businessName avatar'
-      }
-    });
-
-  if (!consumer) {
-    return res.status(200).json({
+  try {
+    const favorites = await consumerFavoriteService.getFavoriteProducers(req.user.id);
+    res.status(200).json({
       status: 'success',
-      data: {
-        favorites: []
-      }
+      data: { favorites }
     });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      favorites: consumer.favorites || []
-    }
-  });
 });
 
 exports.addFavorite = catchAsync(async (req, res, next) => {
-  const { productId } = req.body;
-  
-  if (!productId) {
-    return next(new AppError('ID du produit requis', 400));
-  }
-
-  // Vérifier que l'utilisateur est bien un consommateur
-  if (req.user.userType !== 'consumer') {
-    return next(new AppError('Seuls les consommateurs peuvent ajouter des favoris', 403));
-  }
-
-  // Trouver ou créer le document Consumer
-  let consumer = await Consumer.findById(req.user.id);
-  
-  if (!consumer) {
-    // Si le document Consumer n'existe pas, le créer
-    consumer = await Consumer.create({
-      _id: req.user.id,
-      favorites: []
+  try {
+    await consumerFavoriteService.addFavorite(req.user.id, req.body.producerId || req.body.transformerId, req.body.userType || 'producer');
+    res.status(201).json({
+      status: 'success',
+      message: 'Ajouté aux favoris'
     });
+  } catch (error) {
+    return next(new AppError(error.message, 400));
   }
-  
-  // Vérifier si le produit est déjà en favori
-  const existingFavorite = consumer.favorites.find(fav => 
-    fav.product.toString() === productId
-  );
-  
-  if (existingFavorite) {
-    return next(new AppError('Ce produit est déjà dans vos favoris', 400));
-  }
-
-  // Ajouter le produit aux favoris
-  consumer.favorites.push({ product: productId });
-  await consumer.save();
-
-  // Mettre à jour les statistiques de favoris du produit
-  const Product = require('../models/Product');
-  await Product.findByIdAndUpdate(productId, {
-    $inc: { 'stats.favorites': 1 }
-  });
-
-  res.status(201).json({
-    status: 'success',
-    message: 'Produit ajouté aux favoris',
-    data: {
-      favorite: { product: productId }
-    }
-  });
 });
 
 exports.removeFavorite = catchAsync(async (req, res, next) => {
-  const { productId } = req.params;
-  
-  // Vérifier que l'utilisateur est bien un consommateur
-  if (req.user.userType !== 'consumer') {
-    return next(new AppError('Seuls les consommateurs peuvent retirer des favoris', 403));
+  try {
+    await consumerFavoriteService.removeFavorite(req.user.id, req.params.producerId || req.params.transformerId, req.query.userType || 'producer');
+    res.status(200).json({
+      status: 'success',
+      message: 'Retiré des favoris'
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  const consumer = await Consumer.findById(req.user.id);
-  
-  if (!consumer) {
-    return next(new AppError('Consommateur non trouvé', 404));
-  }
-  
-  // Retirer le produit des favoris
-  consumer.favorites = consumer.favorites.filter(fav => 
-    fav.product.toString() !== productId
-  );
-  
-  await consumer.save();
-
-  // Mettre à jour les statistiques de favoris du produit
-  const Product = require('../models/Product');
-  await Product.findByIdAndUpdate(productId, {
-    $inc: { 'stats.favorites': -1 }
-  });
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Produit retiré des favoris'
-  });
 });
 
 // Programme de fidélité
 exports.getLoyaltyStatus = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id).select('loyaltyProgram');
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      loyalty: consumer.loyaltyProgram,
-    },
-  });
+  try {
+    const loyalty = await consumerLoyaltyService.getLoyaltyStatus(req.user.id);
+    res.status(200).json({
+      status: 'success',
+      data: { loyalty }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.redeemLoyaltyPoints = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  const { pointsToRedeem } = req.body;
-
   try {
-    const discount = await consumer.redeemLoyaltyPoints(pointsToRedeem);
-    await consumer.save();
-
+    const result = await consumerLoyaltyService.redeemLoyaltyPoints(req.user.id, req.body.points, req.body.description);
     res.status(200).json({
       status: 'success',
-      data: {
-        pointsRedeemed: pointsToRedeem,
-        discountAmount: discount,
-        remainingPoints: consumer.loyaltyProgram.points,
-      },
+      data: result
     });
   } catch (error) {
     return next(new AppError(error.message, 400));
@@ -841,452 +519,273 @@ exports.redeemLoyaltyPoints = catchAsync(async (req, res, next) => {
 });
 
 exports.getLoyaltyHistory = catchAsync(async (req, res, next) => {
-  const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 20;
-  const skip = (page - 1) * limit;
-
-  const transactions = await LoyaltyTransaction.find({ consumer: req.user.id })
-    .sort('-createdAt')
-    .limit(limit)
-    .skip(skip)
-    .populate('order', 'orderNumber total status');
-
-  const total = await LoyaltyTransaction.countDocuments({ consumer: req.user.id });
-
-  res.status(200).json({
-    status: 'success',
-    results: transactions.length,
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit)
-    },
-    data: {
-      history: transactions
-    }
-  });
+  try {
+    const history = await consumerLoyaltyService.getLoyaltyHistory(req.user.id, req.query.limit);
+    res.status(200).json({
+      status: 'success',
+      results: history.length,
+      data: { history }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 // Méthodes de paiement
 exports.getPaymentMethods = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id).select('paymentMethods');
-
-  res.status(200).json({
-    status: 'success',
-    results: consumer.paymentMethods.length,
-    data: {
-      paymentMethods: consumer.paymentMethods,
-    },
-  });
+  try {
+    const paymentMethods = await consumerPaymentService.getPaymentMethods(req.user.id);
+    res.status(200).json({
+      status: 'success',
+      results: paymentMethods.length,
+      data: { paymentMethods }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.addPaymentMethod = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  
-  // Si c'est la première méthode de paiement, la définir par défaut
-  const isFirstMethod = !consumer.paymentMethods || consumer.paymentMethods.length === 0;
-  const newMethod = {
-    ...req.body,
-    isDefault: req.body.isDefault || isFirstMethod
-  };
-
-  // Si c'est la nouvelle méthode par défaut, désactiver les autres
-  if (newMethod.isDefault) {
-    consumer.paymentMethods?.forEach(method => method.isDefault = false);
+  try {
+    const paymentMethod = await consumerPaymentService.addPaymentMethod(req.user.id, req.body);
+    res.status(201).json({
+      status: 'success',
+      data: { paymentMethod }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  consumer.paymentMethods.push(newMethod);
-  await consumer.save();
-
-  res.status(201).json({
-    status: 'success',
-    data: {
-      paymentMethod: consumer.paymentMethods[consumer.paymentMethods.length - 1],
-    },
-  });
 });
 
 exports.updatePaymentMethod = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  const method = consumer.paymentMethods.id(req.params.methodId);
-
-  if (!method) {
-    return next(new AppError('Méthode de paiement non trouvée', 404));
+  try {
+    const paymentMethod = await consumerPaymentService.updatePaymentMethod(req.user.id, req.params.methodId, req.body);
+    res.status(200).json({
+      status: 'success',
+      data: { paymentMethod }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  Object.keys(req.body).forEach(key => {
-    method[key] = req.body[key];
-  });
-
-  await consumer.save();
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      paymentMethod: method,
-    },
-  });
 });
 
 exports.removePaymentMethod = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  
-  consumer.paymentMethods.pull(req.params.methodId);
-  await consumer.save();
-
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
+  try {
+    await consumerPaymentService.removePaymentMethod(req.user.id, req.params.methodId);
+    res.status(204).json({
+      status: 'success',
+      data: null
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.setDefaultPaymentMethod = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  const method = consumer.paymentMethods.id(req.params.methodId);
-
-  if (!method) {
-    return next(new AppError('Méthode de paiement non trouvée', 404));
+  try {
+    const paymentMethod = await consumerPaymentService.setDefaultPaymentMethod(req.user.id, req.params.methodId);
+    res.status(200).json({
+      status: 'success',
+      data: { paymentMethod }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  // Désactiver toutes les autres méthodes par défaut
-  consumer.paymentMethods.forEach(m => {
-    m.isDefault = m.id === req.params.methodId;
-  });
-
-  await consumer.save();
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      paymentMethod: method,
-    },
-  });
 });
 
 // Préférences de communication
 exports.getCommunicationPreferences = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id).select('communicationPreferences');
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      preferences: consumer.communicationPreferences,
-    },
-  });
+  try {
+    const preferences = await consumerPreferencesService.getCommunicationPreferences(req.user.id);
+    res.status(200).json({
+      status: 'success',
+      data: { preferences }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.updateCommunicationPreferences = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findByIdAndUpdate(
-    req.user.id,
-    { communicationPreferences: req.body },
-    { new: true, runValidators: true }
-  ).select('communicationPreferences');
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      preferences: consumer.communicationPreferences,
-    },
-  });
+  try {
+    const preferences = await consumerPreferencesService.updateCommunicationPreferences(req.user.id, req.body);
+    res.status(200).json({
+      status: 'success',
+      data: { preferences }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
-// Statistiques et analytics (fonctionnalités temporaires)
+// Statistiques et analytics
 exports.getPurchaseHistory = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id).select('purchaseHistory');
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      purchaseHistory: consumer.purchaseHistory,
-    },
-  });
+  try {
+    const history = await consumerStatsService.getPurchaseHistory(req.user.id, req.query.limit);
+    res.status(200).json({
+      status: 'success',
+      data: { purchaseHistory: history }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.getRecommendations = catchAsync(async (req, res, next) => {
-  res.status(200).json({
-    status: 'success',
-    message: 'Fonctionnalité en cours de développement - Algorithme de recommandation requis',
-    data: { recommendations: [] },
-  });
+  try {
+    const recommendations = await consumerStatsService.getRecommendations(req.user.id);
+    res.status(200).json({
+      status: 'success',
+      data: { recommendations }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.getFavoriteProducers = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id)
-    .select('purchaseHistory.favoriteProducers')
-    .populate('purchaseHistory.favoriteProducers.producer', 'farmName address salesStats');
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      favoriteProducers: consumer.purchaseHistory.favoriteProducers,
-    },
-  });
+  try {
+    const favorites = await consumerFavoriteService.getFavoriteProducers(req.user.id);
+    res.status(200).json({
+      status: 'success',
+      data: { favoriteProducers: favorites }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.getMyStats = catchAsync(async (req, res, next) => {
-  const Order = require('../models/Order');
-  const Review = require('../models/Review');
-  
-  const consumer = await Consumer.findById(req.user.id).select('activityStats loyaltyProgram');
-  
-  // Récupérer les vraies stats depuis les commandes
-  const orders = await Order.find({ buyer: req.user.id });
-  const completedOrders = orders.filter(o => o.status === 'completed' || o.status === 'delivered');
-  const cancelledOrders = orders.filter(o => o.status === 'cancelled');
-  
-  // Calculer le montant total dépensé
-  const totalSpent = completedOrders.reduce((sum, order) => sum + (order.total || 0), 0);
-  
-  // Récupérer les avis donnés par le consommateur
-  const reviewsGiven = await Review.find({ reviewer: req.user.id });
-  const averageRatingGiven = reviewsGiven.length > 0 
-    ? reviewsGiven.reduce((sum, r) => sum + r.rating, 0) / reviewsGiven.length 
-    : 0;
-  
-  // Les consommateurs ne reçoivent pas d'avis, ils en donnent sur les produits
-  // Donc la note moyenne reçue est toujours 0
-  const averageRatingReceived = 0;
-  const reviewsReceived = [];
-  
-  // Dernière commande
-  const sortedOrders = orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  const lastOrderDate = sortedOrders.length > 0 ? sortedOrders[0].createdAt : null;
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      stats: {
-        totalOrders: orders.length,
-        totalSpent: totalSpent,
-        reviewsWritten: reviewsGiven.length,
-        averageRatingGiven: averageRatingGiven,
-        profileViews: consumer.activityStats?.profileViews || 0
-      },
-      activityStats: {
-        totalOrders: orders.length,
-        cancelledOrders: cancelledOrders.length,
-        completedOrders: completedOrders.length,
-        averageRatingGiven: averageRatingGiven,
-        reviewsWritten: reviewsGiven.length,
-        lastOrderDate
-      },
-      loyaltyStats: consumer.loyaltyProgram,
-    },
-  });
+  try {
+    const stats = await consumerStatsService.getConsumerStats(req.user.id);
+    res.status(200).json({
+      status: 'success',
+      data: { stats }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.getSpendingAnalytics = catchAsync(async (req, res, next) => {
-  const Order = require('../models/Order');
-  const Product = require('../models/Product');
-  
-  const consumer = await Consumer.findById(req.user.id);
-  
-  // Récupérer toutes les commandes du consommateur
-  const orders = await Order.find({ 
-    buyer: req.user.id,
-    status: { $in: ['completed', 'delivered'] }
-  }).populate('items.product');
-  
-  // Calculer les analytics
-  const totalSpent = orders.reduce((sum, order) => sum + (order.total || 0), 0);
-  const averageOrderValue = orders.length > 0 ? totalSpent / orders.length : 0;
-  
-  // Date de la dernière commande
-  const lastOrder = orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
-  const lastOrderDate = lastOrder ? lastOrder.createdAt : null;
-  
-  // Commandes ce mois
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
-  const ordersThisMonth = orders.filter(order => {
-    const orderDate = new Date(order.createdAt);
-    return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
-  }).length;
-  
-  const spentThisMonth = orders
-    .filter(order => {
-      const orderDate = new Date(order.createdAt);
-      return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
-    })
-    .reduce((sum, order) => sum + (order.total || 0), 0);
-  
-  // Catégories favorites
-  const categoryCount = {};
-  orders.forEach(order => {
-    order.items.forEach(item => {
-      if (item.product && item.product.category) {
-        categoryCount[item.product.category] = (categoryCount[item.product.category] || 0) + 1;
-      }
+  try {
+    const analytics = await consumerStatsService.getSpendingAnalytics(req.user.id);
+    res.status(200).json({
+      status: 'success',
+      data: { analytics }
     });
-  });
-  
-  const favoriteCategories = Object.entries(categoryCount)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
-    .map(([category]) => category);
-  
-  // Producteurs favoris
-  const producerCount = {};
-  orders.forEach(order => {
-    if (order.seller) {
-      const producerId = order.seller._id || order.seller;
-      producerCount[producerId] = (producerCount[producerId] || 0) + 1;
-    }
-  });
-  
-  const favoriteProducers = await Promise.all(
-    Object.entries(producerCount)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(async ([producerId, count]) => {
-        const User = require('../models/User');
-        const producer = await User.findById(producerId).select('firstName lastName businessName farmName');
-        return {
-          id: producerId,
-          name: producer?.farmName || producer?.businessName || `${producer?.firstName} ${producer?.lastName}`,
-          orders: count
-        };
-      })
-  );
-  
-  res.status(200).json({
-    status: 'success',
-    data: {
-      analytics: {
-        totalSpent,
-        averageOrderValue,
-        lastOrderDate,
-        ordersThisMonth,
-        spentThisMonth,
-        favoriteCategories,
-        favoriteProducers
-      }
-    }
-  });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 // Notifications (fonctionnalités temporaires)
-exports.getNotifications = catchAsync(async (req, res, next) => {
-  res.status(200).json({
+const tempNotifResponse = (statusCode = 200, data = {}) => catchAsync(async (req, res, next) => {
+  res.status(statusCode).json({
     status: 'success',
     message: 'Fonctionnalité en cours de développement - Modèle Notification requis',
-    data: { notifications: [] },
+    data
   });
+});
+
+exports.getNotifications = catchAsync(async (req, res, next) => {
+  try {
+    const notifications = await consumerNotificationService.getNotifications(req.user.id);
+    res.status(200).json({
+      status: 'success',
+      data: { notifications }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.markNotificationsAsRead = catchAsync(async (req, res, next) => {
-  res.status(200).json({
-    status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle Notification requis',
-  });
+  try {
+    await consumerNotificationService.markNotificationsAsRead(req.user.id);
+    res.status(200).json({
+      status: 'success',
+      message: 'Notifications marquées comme lues'
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.markNotificationAsRead = catchAsync(async (req, res, next) => {
-  res.status(200).json({
-    status: 'success',
-    message: 'Fonctionnalité en cours de développement - Modèle Notification requis',
-  });
+  try {
+    const notification = await consumerNotificationService.markNotificationAsRead(req.user.id, req.params.notificationId);
+    res.status(200).json({
+      status: 'success',
+      data: { notification }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.deleteNotification = catchAsync(async (req, res, next) => {
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
+  try {
+    await consumerNotificationService.deleteNotification(req.user.id, req.params.notificationId);
+    res.status(204).json({
+      status: 'success',
+      data: null
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
-// Fonction utilitaire pour calculer la prochaine livraison
-function calculateNextDelivery(frequency) {
-  const now = new Date();
-  let nextDelivery;
-
-  switch (frequency) {
-    case 'weekly':
-      nextDelivery = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-      break;
-    case 'bi-weekly':
-      nextDelivery = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
-      break;
-    case 'monthly':
-      nextDelivery = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
-      break;
-    default:
-      nextDelivery = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-  }
-
-  return nextDelivery;
-}
+// Fonction utilitaire déplacée dans consumerSubscriptionService.calculateNextDelivery
 
 // Gestion des préférences d'achat
 exports.getShoppingPreferences = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id)
-    .select('shoppingPreferences');
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      shoppingPreferences: consumer.shoppingPreferences || {
-        preferredDeliveryTime: 'flexible',
-        maxDeliveryDistance: 25,
-        budgetRange: { min: 0, max: 100000, currency: 'XAF' },
-        preferredPaymentMethods: ['cash', 'paypal']
-      }
-    }
-  });
+  try {
+    const shoppingPreferences = await consumerPreferencesService.getShoppingPreferences(req.user.id);
+    res.status(200).json({
+      status: 'success',
+      data: { shoppingPreferences }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.updateShoppingPreferences = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  
-  consumer.shoppingPreferences = {
-    ...consumer.shoppingPreferences,
-    ...req.body
-  };
-
-  await consumer.save();
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Préférences d\'achat mises à jour avec succès',
-    data: {
-      shoppingPreferences: consumer.shoppingPreferences
-    }
-  });
+  try {
+    const shoppingPreferences = await consumerPreferencesService.updateShoppingPreferences(req.user.id, req.body);
+    res.status(200).json({
+      status: 'success',
+      message: 'Préférences d\'achat mises à jour avec succès',
+      data: { shoppingPreferences }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 // Gestion des préférences de notification
 exports.getNotificationPreferences = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id)
-    .select('notifications');
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      notifications: consumer.notifications || {
-        email: true,
-        sms: false,
-        push: true
-      }
-    }
-  });
+  try {
+    const notificationPreferences = await consumerPreferencesService.getNotificationPreferences(req.user.id);
+    res.status(200).json({
+      status: 'success',
+      data: { notificationPreferences }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.updateNotificationPreferences = catchAsync(async (req, res, next) => {
-  const consumer = await Consumer.findById(req.user.id);
-  
-  consumer.notifications = {
-    ...consumer.notifications,
-    ...req.body
-  };
-
-  await consumer.save();
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Préférences de notification mises à jour avec succès',
-    data: {
-      notifications: consumer.notifications
-    }
-  });
+  try {
+    const notificationPreferences = await consumerPreferencesService.updateNotificationPreferences(req.user.id, req.body);
+    res.status(200).json({
+      status: 'success',
+      message: 'Préférences de notification mises à jour avec succès',
+      data: { notificationPreferences }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });

@@ -1,0 +1,4 @@
+# Redirects pour Render
+# Toutes les routes doivent être redirigées vers index.html pour le routing SPA
+/*    /index.html   200
+

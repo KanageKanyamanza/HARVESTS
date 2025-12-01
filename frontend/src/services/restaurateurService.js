@@ -49,9 +49,9 @@ const restaurateurService = {
   updateOrderStatus: (orderId, data) => api.patch(`/restaurateurs/me/orders/${orderId}/status`, data),
   cancelOrder: (orderId) => api.patch(`/restaurateurs/me/orders/${orderId}/cancel`),
   
-  // Gestion des horaires d'ouverture
-  getOperatingHours: () => api.get('/restaurateurs/me/operating-hours'),
-  updateOperatingHours: (data) => api.patch('/restaurateurs/me/operating-hours', data),
+  // Gestion des horaires d'ouverture (temporaire - non utilisé dans les composants)
+  // getOperatingHours: () => api.get('/restaurateurs/me/operating-hours'),
+  // updateOperatingHours: (data) => api.patch('/restaurateurs/me/operating-hours', data),
   
   // Gestion des certifications
   getCertifications: () => api.get('/restaurateurs/me/certifications'),
@@ -110,12 +110,12 @@ const restaurateurService = {
   getPurchaseAnalytics: () => api.get('/restaurateurs/me/purchase-analytics'),
   getSupplierAnalytics: () => api.get('/restaurateurs/me/supplier-analytics'),
   
-  // Gestion des contrats avec fournisseurs
-  getContracts: () => api.get('/restaurateurs/me/contracts'),
-  getContract: (contractId) => api.get(`/restaurateurs/me/contracts/${contractId}`),
-  createContract: (data) => api.post('/restaurateurs/me/contracts', data),
-  updateContract: (contractId, data) => api.patch(`/restaurateurs/me/contracts/${contractId}`, data),
-  terminateContract: (contractId) => api.delete(`/restaurateurs/me/contracts/${contractId}`),
+  // Gestion des contrats avec fournisseurs (temporaire - non utilisé dans les composants)
+  // getContracts: () => api.get('/restaurateurs/me/contracts'),
+  // getContract: (contractId) => api.get(`/restaurateurs/me/contracts/${contractId}`),
+  // createContract: (data) => api.post('/restaurateurs/me/contracts', data),
+  // updateContract: (contractId, data) => api.patch(`/restaurateurs/me/contracts/${contractId}`, data),
+  // terminateContract: (contractId) => api.delete(`/restaurateurs/me/contracts/${contractId}`),
   
   // Évaluations et avis
   getMyReviews: () => api.get('/restaurateurs/me/reviews'),

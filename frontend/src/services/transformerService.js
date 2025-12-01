@@ -11,34 +11,11 @@ const transformerService = {
   getCompanyInfo: () => api.get('/transformers/me/company-info'),
   updateCompanyInfo: (data) => api.patch('/transformers/me/company-info', data),
 
-  // Capacités de transformation
-  getProcessingCapabilities: () => api.get('/transformers/me/processing-capabilities'),
-  addProcessingCapability: (data) => api.post('/transformers/me/processing-capabilities', data),
-  updateProcessingCapability: (capabilityId, data) => api.patch(`/transformers/me/processing-capabilities/${capabilityId}`, data),
-  removeProcessingCapability: (capabilityId) => api.delete(`/transformers/me/processing-capabilities/${capabilityId}`),
-
   // Certifications
   getMyCertifications: () => api.get('/transformers/me/certifications'),
   addCertification: (data) => api.post('/transformers/me/certifications', data),
   updateCertification: (certId, data) => api.patch(`/transformers/me/certifications/${certId}`, data),
   removeCertification: (certId) => api.delete(`/transformers/me/certifications/${certId}`),
-
-
-  // Capacités de stockage
-  getStorageCapabilities: () => api.get('/transformers/me/storage-capabilities'),
-  updateStorageCapabilities: (data) => api.patch('/transformers/me/storage-capabilities', data),
-
-  // Services offerts
-  getMyServices: () => api.get('/transformers/me/services'),
-  updateMyServices: (data) => api.patch('/transformers/me/services', data),
-
-  // Tarification
-  getMyPricing: () => api.get('/transformers/me/pricing'),
-  updateMyPricing: (data) => api.patch('/transformers/me/pricing', data),
-
-  // Délais de traitement
-  getProcessingTimes: () => api.get('/transformers/me/processing-times'),
-  updateProcessingTimes: (data) => api.patch('/transformers/me/processing-times', data),
 
   // Fournisseurs préférés
   getPreferredSuppliers: () => api.get('/transformers/me/preferred-suppliers'),
@@ -56,9 +33,6 @@ const transformerService = {
   updateOrderProgress: (orderId, data) => api.patch(`/transformers/me/orders/${orderId}/progress`, data),
 
 
-  // Horaires d'opération
-  getOperatingHours: () => api.get('/transformers/me/operating-hours'),
-  updateOperatingHours: (data) => api.patch('/transformers/me/operating-hours', data),
 
 
   // Produits de la boutique
@@ -69,9 +43,6 @@ const transformerService = {
   deleteProduct: (productId) => api.delete(`/transformers/me/products/${productId}`),
   submitProductForReview: (productId) => api.patch(`/transformers/me/products/${productId}/submit`),
 
-  // Gestion des déchets
-  getWasteManagement: () => api.get('/transformers/me/waste-management'),
-  updateWasteManagement: (data) => api.patch('/transformers/me/waste-management', data),
 
   // Produits publics (pour la boutique publique)
   getPublicProducts: (transformerId) => api.get(`/transformers/${transformerId}/products`),
@@ -83,12 +54,6 @@ const transformerService = {
   getEfficiencyMetrics: () => api.get('/transformers/me/efficiency-metrics'),
   getRevenueAnalytics: () => api.get('/transformers/me/revenue-analytics'),
 
-  // Contrats avec clients
-  getContracts: () => api.get('/transformers/me/contracts'),
-  getContract: (contractId) => api.get(`/transformers/me/contracts/${contractId}`),
-  createContract: (data) => api.post('/transformers/me/contracts', data),
-  updateContract: (contractId, data) => api.patch(`/transformers/me/contracts/${contractId}`, data),
-  terminateContract: (contractId) => api.delete(`/transformers/me/contracts/${contractId}`),
 
   // Évaluations et avis
   getMyReviews: (params = {}) => api.get('/transformers/me/reviews', { params }),
@@ -101,17 +66,6 @@ const transformerService = {
   handleComplaint: (data) => api.post('/transformers/me/complaints', data),
   updateComplaint: (complaintId, data) => api.patch(`/transformers/me/complaints/${complaintId}`, data),
 
-  // Planification de la production
-  getProductionPlanning: () => api.get('/transformers/me/production-planning'),
-  createProductionPlan: (data) => api.post('/transformers/me/production-planning', data),
-  updateProductionPlan: (planId, data) => api.patch(`/transformers/me/production-planning/${planId}`, data),
-  deleteProductionPlan: (planId) => api.delete(`/transformers/me/production-planning/${planId}`),
-
-  // Gestion des maintenances
-  getMaintenanceSchedule: () => api.get('/transformers/me/maintenance-schedule'),
-  scheduleMaintenance: (data) => api.post('/transformers/me/maintenance-schedule', data),
-  getMaintenanceRecords: () => api.get('/transformers/me/maintenance-records'),
-  addMaintenanceRecord: (data) => api.post('/transformers/me/maintenance-records', data),
 
   // Documents légaux
   getMyDocuments: () => api.get('/transformers/me/documents'),

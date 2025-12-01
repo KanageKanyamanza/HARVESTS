@@ -7,24 +7,12 @@ export const producerService = {
   getProfile: () => apiRequest.get('/producers/me/profile'),
   updateProfile: (data) => apiRequest.patch('/producers/me/profile', data),
   
-  // Crops Management
-  getCrops: () => apiRequest.get('/producers/me/crops'),
-  addCrop: (data) => apiRequest.post('/producers/me/crops', data),
-  updateCrop: (id, data) => apiRequest.patch(`/producers/me/crops/${id}`, data),
-  removeCrop: (id) => apiRequest.delete(`/producers/me/crops/${id}`),
-  
   // Certifications
   getCertifications: () => apiRequest.get('/producers/me/certifications'),
   addCertification: (data) => apiRequest.post('/producers/me/certifications', data),
   updateCertification: (id, data) => apiRequest.patch(`/producers/me/certifications/${id}`, data),
   removeCertification: (id) => apiRequest.delete(`/producers/me/certifications/${id}`),
   uploadCertificationDocument: (data) => apiRequest.post('/producers/me/certifications/upload', data),
-  
-  // Equipment
-  getEquipment: () => apiRequest.get('/producers/me/equipment'),
-  addEquipment: (data) => apiRequest.post('/producers/me/equipment', data),
-  updateEquipment: (id, data) => apiRequest.patch(`/producers/me/equipment/${id}`, data),
-  removeEquipment: (id) => apiRequest.delete(`/producers/me/equipment/${id}`),
   
   // Products Management
   getProducts: (params = {}) => apiRequest.get('/producers/me/products', { params }),

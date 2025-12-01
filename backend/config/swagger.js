@@ -386,10 +386,10 @@ const swaggerSpec = swaggerJsdoc(swaggerOptions);
 const swaggerUiOptions = {
   customCss: `
     .swagger-ui .topbar { display: none; }
-    .swagger-ui .info .title { color: #2E7D32; }
+    .swagger-ui .info .title { color: #16a34a; }
     .swagger-ui .scheme-container { background: #E8F5E8; }
     .swagger-ui .info .description p { color: #555; }
-    .swagger-ui .opblock.opblock-post { border-color: #4CAF50; }
+    .swagger-ui .opblock.opblock-post { border-color: #16a34a; }
     .swagger-ui .opblock.opblock-get { border-color: #2196F3; }
     .swagger-ui .opblock.opblock-put { border-color: #FF9800; }
     .swagger-ui .opblock.opblock-delete { border-color: #F44336; }

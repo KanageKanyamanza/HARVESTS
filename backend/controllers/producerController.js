@@ -11,6 +11,18 @@ const { toPlainText } = require('../utils/localization');
 // Import de la fonction de notification depuis orderController
 const { sendStatusNotifications } = require('./orderController');
 
+// Services organisés par type
+const producerSearchService = require('../services/producer/producerSearchService');
+const producerProfileService = require('../services/producer/producerProfileService');
+const producerCropService = require('../services/producer/producerCropService');
+const producerCertificationService = require('../services/producer/producerCertificationService');
+const producerEquipmentService = require('../services/producer/producerEquipmentService');
+const producerProductService = require('../services/producer/producerProductService');
+const producerStatsService = require('../services/producer/producerStatsService');
+const producerTransporterService = require('../services/producer/producerTransporterService');
+const producerDocumentService = require('../services/producer/producerDocumentService');
+const producerDeliveryService = require('../services/producer/producerDeliveryService');
+
 // Configuration Multer pour Cloudinary
 const createUploadMiddleware = (contentType, category = null, fieldName = 'images', maxFiles = 5) => {
   const storage = createDynamicStorage('producer', contentType, category);
@@ -50,739 +62,296 @@ exports.processProductImages = catchAsync(async (req, res, next) => {
 
 // Obtenir tous les producteurs
 exports.getAllProducers = catchAsync(async (req, res, next) => {
-  const baseQueryObj = { ...req.query };
-  const excludedFields = ['page', 'sort', 'limit', 'fields', 'lang', 'useLocation'];
-  excludedFields.forEach((el) => delete baseQueryObj[el]);
-
-  // Ajouter les filtres de base
-  baseQueryObj.isActive = true;
-  baseQueryObj.isApproved = true;
-  baseQueryObj.isEmailVerified = true;
-
-  // Détection automatique de la localisation si activée
-  let userLocation = null;
-  let noProducersInZone = false;
-  if (req.query.useLocation !== 'false') {
-    try {
-      userLocation = await getUserLocation(req);
-      // Si on a une localisation valide, vérifier s'il y a des producteurs dans la zone
-      if (userLocation && (userLocation.city || userLocation.region || userLocation.country)) {
-        const locationQuery = buildLocationQuery(userLocation, {
-          prioritizeRegion: true,
-          prioritizeCity: true
-        }, 'producer');
-        
-        // Vérifier d'abord s'il y a des producteurs dans la zone
-        const locationQueryObj = { ...baseQueryObj };
-        if (locationQuery.$or && locationQuery.$or.length > 0) {
-          locationQueryObj.$and = locationQueryObj.$and || [];
-          locationQueryObj.$and.push({ $or: locationQuery.$or });
-        }
-        
-        const countInZone = await Producer.countDocuments(locationQueryObj);
-        
-        // Si des producteurs existent dans la zone, utiliser le filtre
-        if (countInZone > 0) {
+  try {
+    let userLocation = null;
+    if (req.query.useLocation !== 'false') {
+      try {
+        const { getUserLocation, buildLocationQuery } = require('../utils/location');
+        userLocation = await getUserLocation(req);
+        if (userLocation && (userLocation.city || userLocation.region || userLocation.country)) {
+          const locationQuery = buildLocationQuery(userLocation, {
+            prioritizeRegion: true,
+            prioritizeCity: true
+          }, 'producer');
+          const baseQueryObj = producerSearchService.buildAllProducersQuery(req.query);
+          const locationQueryObj = { ...baseQueryObj };
           if (locationQuery.$or && locationQuery.$or.length > 0) {
-            baseQueryObj.$and = baseQueryObj.$and || [];
-            baseQueryObj.$and.push({ $or: locationQuery.$or });
+            locationQueryObj.$and = locationQueryObj.$and || [];
+            locationQueryObj.$and.push({ $or: locationQuery.$or });
           }
-        } else {
-          // Sinon, marquer qu'on affiche tous les producteurs
-          noProducersInZone = true;
+          const countInZone = await Producer.countDocuments(locationQueryObj);
+          if (countInZone > 0 && locationQuery.$or && locationQuery.$or.length > 0) {
+            req.query.locationQuery = locationQuery;
+          }
         }
+      } catch (error) {
+        console.error('Erreur lors de la détection de localisation:', error);
       }
-    } catch (error) {
-      console.error('Erreur lors de la détection de localisation:', error);
-      // Continuer sans filtre de localisation en cas d'erreur
     }
-  }
-
-  let queryStr = JSON.stringify(baseQueryObj);
-  queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-
-  let query = Producer.find(JSON.parse(queryStr));
-
-  // Tri
-  if (req.query.sort) {
-    const sortBy = req.query.sort.split(',').join(' ');
-    query = query.sort(sortBy);
-  } else {
-    query = query.sort('-salesStats.averageRating -createdAt');
-  }
-
-  // Pagination
-  const page = req.query.page * 1 || 1;
-  const limit = req.query.limit * 1 || 20;
-  const skip = (page - 1) * limit;
-
-  query = query.skip(skip).limit(limit);
-
-  const producers = await query;
-  const total = await Producer.countDocuments(JSON.parse(queryStr));
-
-  res.status(200).json({
-    status: 'success',
-    results: producers.length,
-    total,
-    page,
-    totalPages: Math.ceil(total / limit),
-    data: {
-      producers,
-      location: userLocation ? {
-        detected: true,
-        country: userLocation.country,
-        region: userLocation.region,
-        city: userLocation.city,
-        source: userLocation.source,
-        noProducersInZone: noProducersInZone
-      } : {
-        detected: false
+    const result = await producerSearchService.getAllProducers(req.query, userLocation);
+    res.status(200).json({
+      status: 'success',
+      results: result.producers.length,
+      total: result.total,
+      page: result.page,
+      totalPages: result.totalPages,
+      data: {
+        producers: result.producers,
+        location: result.userLocation ? {
+          detected: true,
+          country: result.userLocation.country,
+          region: result.userLocation.region,
+          city: result.userLocation.city,
+          source: result.userLocation.source
+        } : { detected: false }
       }
-    },
-  });
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 // Recherche de producteurs
 exports.searchProducers = catchAsync(async (req, res, next) => {
-  const { q, region, crop, farmingType, minRating } = req.query;
-
-  let searchQuery = {
-    isActive: true,
-    isApproved: true,
-    isEmailVerified: true,
-  };
-
-  // Recherche textuelle
-  if (q) {
-    searchQuery.$or = [
-      { farmName: { $regex: q, $options: 'i' } },
-      { firstName: { $regex: q, $options: 'i' } },
-      { lastName: { $regex: q, $options: 'i' } },
-      { 'crops.name': { $regex: q, $options: 'i' } }
-    ];
+  try {
+    const producers = await producerSearchService.searchProducers(req.query);
+    res.status(200).json({
+      status: 'success',
+      results: producers.length,
+      data: { producers }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  // Filtres spécifiques
-  if (region) searchQuery['address.region'] = region;
-  if (crop) searchQuery['crops.name'] = { $regex: crop, $options: 'i' };
-  if (farmingType) searchQuery.farmingType = farmingType;
-  if (minRating) searchQuery['salesStats.averageRating'] = { $gte: parseFloat(minRating) };
-
-  const producers = await Producer.find(searchQuery)
-    .sort('-salesStats.averageRating -salesStats.totalOrders')
-    .limit(50);
-
-  res.status(200).json({
-    status: 'success',
-    results: producers.length,
-    data: {
-      producers,
-    },
-  });
 });
 
 // Obtenir les producteurs par région
 exports.getProducersByRegion = catchAsync(async (req, res, next) => {
-  const producers = await Producer.find({
-    'address.region': req.params.region,
-    isActive: true,
-    isApproved: true,
-    isEmailVerified: true,
-  }).sort('-salesStats.averageRating');
-
-  res.status(200).json({
-    status: 'success',
-    results: producers.length,
-    data: {
-      producers,
-    },
-  });
+  try {
+    const producers = await producerSearchService.getProducersByRegion(req.params.region);
+    res.status(200).json({
+      status: 'success',
+      results: producers.length,
+      data: { producers }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 // Obtenir les producteurs par culture
 exports.getProducersByCrop = catchAsync(async (req, res, next) => {
-  const producers = await Producer.find({
-    'crops.name': { $regex: req.params.crop, $options: 'i' },
-    isActive: true,
-    isApproved: true,
-    isEmailVerified: true,
-  }).sort('-salesStats.averageRating');
-
-  res.status(200).json({
-    status: 'success',
-    results: producers.length,
-    data: {
-      producers,
-    },
-  });
+  try {
+    const producers = await producerSearchService.getProducersByCrop(req.params.crop);
+    res.status(200).json({
+      status: 'success',
+      results: producers.length,
+      data: { producers }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 // Obtenir un producteur par ID
 exports.getProducer = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findOne({
-    _id: req.params.id,
-    isActive: true,
-    isEmailVerified: true,
-  });
-
-  if (!producer) {
-    return next(new AppError('Producteur non trouvé', 404));
+  try {
+    const producer = await producerSearchService.getProducer(req.params.id);
+    const Review = require('../models/Review');
+    const reviews = await Review.find({ 
+      producer: req.params.id,
+      status: 'approved'
+    });
+    const totalReviews = reviews.length;
+    const averageRating = totalReviews > 0 
+      ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
+      : 0;
+    const producerWithStats = {
+      ...producer.toObject(),
+      ratings: { average: averageRating, count: totalReviews },
+      stats: { totalReviews, averageRating, ...producer.stats }
+    };
+    res.status(200).json({
+      status: 'success',
+      data: { producer: producerWithStats }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  // Calculer les statistiques de notation
-  const Review = require('../models/Review');
-  const reviews = await Review.find({ 
-    producer: req.params.id,
-    status: 'approved'
-  });
-
-  const totalReviews = reviews.length;
-  const averageRating = totalReviews > 0 
-    ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
-    : 0;
-
-  // Ajouter les statistiques de notation au producteur
-  const producerWithStats = {
-    ...producer.toObject(),
-    ratings: {
-      average: averageRating,
-      count: totalReviews
-    },
-    stats: {
-      totalReviews,
-      averageRating,
-      ...producer.stats
-    }
-  };
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      producer: producerWithStats,
-    },
-  });
 });
 
 // Obtenir les produits d'un producteur
 exports.getProducerProducts = catchAsync(async (req, res, next) => {
-  const Product = require('../models/Product');
-  
-  const queryObj = { 
-    producer: req.params.id,
-    status: { $in: ['approved', 'active'] } // Seulement les produits approuvés pour l'affichage public
-  };
-  
-  // Filtres optionnels
-  if (req.query.category) queryObj.category = req.query.category;
-  if (req.query.status) queryObj.status = req.query.status;
-
-  const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 20;
-  const skip = (page - 1) * limit;
-
-  const products = await Product.find(queryObj)
-    .sort('-createdAt')
-    .skip(skip)
-    .limit(limit)
-    .populate('producer', 'firstName lastName farmName');
-
-  const total = await Product.countDocuments(queryObj);
-
-  res.status(200).json({
-    status: 'success',
-    results: products.length,
-    total,
-    page,
-    totalPages: Math.ceil(total / limit),
-    data: {
-      products,
-    },
-  });
+  try {
+    const products = await producerSearchService.getProducerProducts(req.params.id);
+    res.status(200).json({
+      status: 'success',
+      results: products.length,
+      data: { products }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 // Obtenir les avis d'un producteur
 exports.getProducerReviews = catchAsync(async (req, res, next) => {
-  const producerId = req.params.id;
-  
-  // Vérifier que le producteur existe
-  const producer = await Producer.findById(producerId);
-  if (!producer) {
-    return next(new AppError('Producteur non trouvé', 404));
+  try {
+    const result = await producerSearchService.getProducerReviews(req.params.id);
+    res.status(200).json({
+      status: 'success',
+      data: result
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  // Récupérer tous les produits du producteur
-  const products = await Product.find({ 
-    producer: producerId,
-    isActive: true,
-    status: 'approved'
-  }).select('_id');
-
-  const productIds = products.map(p => p._id);
-
-  // Récupérer les avis pour les produits de ce producteur
-  const reviews = await Review.find({ 
-    product: { $in: productIds },
-    isActive: true 
-  })
-  .populate('reviewer', 'firstName lastName avatar')
-  .populate('product', 'name images')
-  .sort('-createdAt')
-  .limit(20);
-
-  // Calculer les statistiques des avis
-  const stats = await Review.aggregate([
-    { $match: { product: { $in: productIds }, isActive: true } },
-    {
-      $group: {
-        _id: null,
-        totalReviews: { $sum: 1 },
-        averageRating: { $avg: '$rating' },
-        ratingDistribution: {
-          $push: '$rating'
-        }
-      }
-    }
-  ]);
-
-  const reviewStats = stats[0] || {
-    totalReviews: 0,
-    averageRating: 0,
-    ratingDistribution: []
-  };
-
-  res.status(200).json({
-    status: 'success',
-    data: { 
-      reviews,
-      stats: {
-        totalReviews: reviewStats.totalReviews,
-        averageRating: Math.round(reviewStats.averageRating * 10) / 10,
-        ratingDistribution: {
-          5: reviewStats.ratingDistribution.filter(r => r === 5).length,
-          4: reviewStats.ratingDistribution.filter(r => r === 4).length,
-          3: reviewStats.ratingDistribution.filter(r => r === 3).length,
-          2: reviewStats.ratingDistribution.filter(r => r === 2).length,
-          1: reviewStats.ratingDistribution.filter(r => r === 1).length,
-        }
-      }
-    },
-  });
 });
 
 // ROUTES PROTÉGÉES PRODUCTEUR
 
 // Obtenir mon profil
 exports.getMyProfile = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user._id);
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      producer,
-    },
-  });
+  try {
+    const producer = await producerProfileService.getProducerProfile(req.user._id);
+    res.status(200).json({
+      status: 'success',
+      data: { producer }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 // Mettre à jour mon profil
 exports.updateMyProfile = catchAsync(async (req, res, next) => {
-  // Filtrer les champs autorisés
-  const allowedFields = [
-    'firstName',
-    'lastName',
-    'farmName', 
-    'farmSize', 
-    'farmingType', 
-    'storageCapacity',
-    'address',
-    'city',
-    'region',
-    'country',
-    'deliveryOptions', 
-    'minimumOrderQuantity'
-  ];
-  
-  const filteredBody = {};
-  Object.keys(req.body).forEach(key => {
-    if (allowedFields.includes(key)) {
-      filteredBody[key] = req.body[key];
-    }
-  });
-
-  const producer = await Producer.findByIdAndUpdate(req.user._id, filteredBody, {
-    new: true,
-    runValidators: true,
-  });
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      producer,
-    },
-  });
-});
-
-// Gestion des cultures
-exports.getMyCrops = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user._id).select('crops');
-
-  res.status(200).json({
-    status: 'success',
-    results: producer.crops.length,
-    data: {
-      crops: producer.crops,
-    },
-  });
-});
-
-exports.addCrop = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user._id);
-  
-  producer.crops.push(req.body);
-  await producer.save();
-
-  res.status(201).json({
-    status: 'success',
-    data: {
-      crop: producer.crops[producer.crops.length - 1],
-    },
-  });
-});
-
-exports.updateCrop = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user._id);
-  const crop = producer.crops.id(req.params.cropId);
-
-  if (!crop) {
-    return next(new AppError('Culture non trouvée', 404));
+  try {
+    const producer = await producerProfileService.updateProducerProfile(req.user._id, req.body);
+    res.status(200).json({
+      status: 'success',
+      data: { producer }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  Object.keys(req.body).forEach(key => {
-    crop[key] = req.body[key];
-  });
-
-  await producer.save();
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      crop,
-    },
-  });
 });
 
-exports.removeCrop = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user._id);
-  
-  producer.crops.pull(req.params.cropId);
-  await producer.save();
-
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-});
 
 // Gestion des certifications
 exports.getMyCertifications = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user._id).select('certifications');
-
-  res.status(200).json({
-    status: 'success',
-    results: producer.certifications.length,
-    data: {
-      certifications: producer.certifications,
-    },
-  });
+  try {
+    const certifications = await producerCertificationService.getCertifications(req.user._id);
+    res.status(200).json({
+      status: 'success',
+      results: certifications.length,
+      data: { certifications }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.addCertification = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user._id);
-  
-  const certificationData = { ...req.body };
-  
-  // Ajouter le document s'il y en a un
-  if (req.file) {
-    // Ici, on devrait uploader vers Cloudinary
-    // Pour l'instant, on sauvegarde localement
-    certificationData.document = req.file.filename;
+  try {
+    const certificationData = { ...req.body };
+    if (req.file) certificationData.document = req.file.filename;
+    const certification = await producerCertificationService.addCertification(req.user._id, certificationData);
+    res.status(201).json({
+      status: 'success',
+      data: { certification }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  producer.certifications.push(certificationData);
-  await producer.save();
-
-  res.status(201).json({
-    status: 'success',
-    data: {
-      certification: producer.certifications[producer.certifications.length - 1],
-    },
-  });
 });
 
 exports.updateCertification = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user._id);
-  const certification = producer.certifications.id(req.params.certId);
-
-  if (!certification) {
-    return next(new AppError('Certification non trouvée', 404));
+  try {
+    const certification = await producerCertificationService.updateCertification(req.user._id, req.params.certId, req.body);
+    res.status(200).json({
+      status: 'success',
+      data: { certification }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  Object.keys(req.body).forEach(key => {
-    certification[key] = req.body[key];
-  });
-
-  await producer.save();
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      certification,
-    },
-  });
 });
 
 exports.removeCertification = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user._id);
-  
-  producer.certifications.pull(req.params.certId);
-  await producer.save();
-
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-});
-
-// Gestion des équipements
-exports.getMyEquipment = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user._id).select('equipment');
-
-  res.status(200).json({
-    status: 'success',
-    results: producer.equipment.length,
-    data: {
-      equipment: producer.equipment,
-    },
-  });
-});
-
-exports.addEquipment = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user._id);
-  
-  producer.equipment.push(req.body);
-  await producer.save();
-
-  res.status(201).json({
-    status: 'success',
-    data: {
-      equipment: producer.equipment[producer.equipment.length - 1],
-    },
-  });
-});
-
-exports.updateEquipment = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user._id);
-  const equipment = producer.equipment.id(req.params.equipmentId);
-
-  if (!equipment) {
-    return next(new AppError('Équipement non trouvé', 404));
+  try {
+    await producerCertificationService.removeCertification(req.user._id, req.params.certId);
+    res.status(204).json({
+      status: 'success',
+      data: null
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  Object.keys(req.body).forEach(key => {
-    equipment[key] = req.body[key];
-  });
-
-  await producer.save();
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      equipment,
-    },
-  });
 });
 
-exports.removeEquipment = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user._id);
-  
-  producer.equipment.pull(req.params.equipmentId);
-  await producer.save();
 
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-});
-
-// Gestion des produits (implémentation complète)
+// Gestion des produits
 exports.getMyProducts = catchAsync(async (req, res, next) => {
-  console.log('🔍 getMyProducts appelé avec req.user:', req.user);
-  console.log('🔍 req.user._id:', req.user?.id);
-  console.log('🔍 req.user._id:', req.user?._id);
-  
-  const Product = require('../models/Product');
-  
-  // Utiliser _id au lieu de id car req.user est un document Mongoose
-  const queryObj = { 
-    producer: req.user._id,
-    isActive: true  // Ne retourner que les produits actifs
-  };
-  if (req.query.status) queryObj.status = req.query.status;
-  if (req.query.category) queryObj.category = req.query.category;
-
-  console.log('🔍 Query object:', queryObj);
-
-  const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 20;
-  const skip = (page - 1) * limit;
-
-  const products = await Product.find(queryObj)
-    .populate('producer', 'farmName firstName lastName address salesStats certifications businessName createdAt country')
-    .sort('-createdAt')
-    .skip(skip)
-    .limit(limit);
-
-  const total = await Product.countDocuments(queryObj);
-
-  console.log('🔍 Produits trouvés:', products.length, 'sur', total);
-
-  res.status(200).json({
-    status: 'success',
-    results: products.length,
-    total,
-    page,
-    totalPages: Math.ceil(total / limit),
-    data: { products }
-  });
+  try {
+    const products = await producerProductService.getProducts(req.user._id);
+    res.status(200).json({
+      status: 'success',
+      results: products.length,
+      data: { products }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.createProduct = catchAsync(async (req, res, next) => {
-  const Product = require('../models/Product');
-  
-  const {
-    name,
-    description,
-    shortDescription,
-    category,
-    subcategory,
-    tags,
-    price,
-    compareAtPrice,
-    stock,
-    minimumOrderQuantity,
-    maximumOrderQuantity,
-    unit,
-    status,
-    images
-  } = req.body;
-
-  // Validation des champs obligatoires
-  if (!name || !description || !category || !price || stock === undefined) {
-    return next(new AppError('Tous les champs obligatoires doivent être remplis', 400));
+  try {
+    const product = await producerProductService.createProduct(req.user._id, req.body);
+    res.status(201).json({
+      status: 'success',
+      data: { product }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 400));
   }
-
-  const normalizedName = toPlainText(name, name);
-  const normalizedDescription = toPlainText(description, description);
-  const normalizedShortDescription = shortDescription !== undefined && shortDescription !== null
-    ? toPlainText(shortDescription, shortDescription)
-    : '';
-
-  if (!normalizedName || !normalizedDescription) {
-    return next(new AppError('Le nom et la description doivent être fournis', 400));
-  }
-
-  // Créer le produit avec structure unilingue
-  const productData = {
-    name: normalizedName,
-    description: normalizedDescription,
-    shortDescription: normalizedShortDescription || undefined,
-    category,
-    subcategory: subcategory || category,
-    tags: tags || [],
-    price: parseFloat(price),
-    compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : undefined,
-    inventory: {
-      quantity: parseInt(stock) || 0
-    },
-    minimumOrderQuantity: minimumOrderQuantity !== undefined ? minimumOrderQuantity : 0,
-    maximumOrderQuantity: maximumOrderQuantity || undefined,
-    unit: unit || 'kg',
-    status: status || 'draft',
-    images: images ? images.map((img, index) => ({
-      ...img,
-      order: index,
-      isPrimary: index === 0
-    })) : [],
-    producer: req.user._id,
-    userType: 'producer'
-  };
-  
-  const product = await Product.create(productData);
-
-  res.status(201).json({
-    status: 'success',
-    data: { product }
-  });
 });
 
 exports.getMyProduct = catchAsync(async (req, res, next) => {
-  const Product = require('../models/Product');
-  
-  const product = await Product.findOne({
-    _id: req.params.productId,
-    producer: req.user._id
-  })
-  .populate('producer', 'farmName firstName lastName address salesStats certifications businessName createdAt country');
-
-  if (!product) {
-    return next(new AppError('Produit non trouvé', 404));
+  try {
+    const product = await producerProductService.getProduct(req.params.productId, req.user._id);
+    res.status(200).json({
+      status: 'success',
+      data: { product }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  res.status(200).json({
-    status: 'success',
-    data: { product }
-  });
 });
 
 exports.updateMyProduct = catchAsync(async (req, res, next) => {
-  const Product = require('../models/Product');
-  
-  const product = await Product.findOneAndUpdate(
-    { _id: req.params.productId, producer: req.user._id },
-    req.body,
-    { new: true, runValidators: true }
-  );
-
-  if (!product) {
-    return next(new AppError('Produit non trouvé', 404));
+  try {
+    const product = await producerProductService.updateProduct(req.params.productId, req.user._id, req.body);
+    res.status(200).json({
+      status: 'success',
+      data: { product }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  res.status(200).json({
-    status: 'success',
-    data: { product }
-  });
 });
 
 exports.deleteMyProduct = catchAsync(async (req, res, next) => {
-  const Product = require('../models/Product');
-  
-  const product = await Product.findOneAndUpdate(
-    { _id: req.params.productId, producer: req.user._id },
-    { isActive: false, status: 'inactive' },
-    { new: true }
-  );
-
-  if (!product) {
-    return next(new AppError('Produit non trouvé', 404));
+  try {
+    await producerProductService.deleteProduct(req.params.productId, req.user._id);
+    res.status(204).json({
+      status: 'success',
+      data: null
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
   }
-
-  res.status(204).json({
-    status: 'success',
-    data: null
-  });
 });
 
-// Gestion des commandes (implémentation complète)
+// Gestion des commandes
 exports.getMyOrders = (req, res, next) => orderController.getMyOrders(req, res, next);
 
 exports.getMyOrder = (req, res, next) => {
@@ -801,371 +370,144 @@ exports.updateOrderStatus = (req, res, next) => {
 
 // Statistiques
 exports.getMyStats = catchAsync(async (req, res, next) => {
-  const Order = require('../models/Order');
-  const Product = require('../models/Product');
-  
-  const producer = await Producer.findById(req.user._id).select('salesStats');
-  
-  // Récupérer toutes les commandes du producteur
-  const orders = await Order.find({ 
-    seller: req.user._id 
-  }).populate('buyer', 'firstName lastName');
-  
-  // Récupérer tous les produits du producteur
-  const products = await Product.find({ 
-    producer: req.user._id 
-  });
-  
-  // Calculer les statistiques
-  const completedOrders = orders.filter(o => o.status === 'completed' || o.status === 'delivered');
-  const totalRevenue = completedOrders.reduce((sum, order) => sum + (order.total || 0), 0);
-  const averageOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
-  
-  // Total de produits vendus
-  let totalProductsSold = 0;
-  completedOrders.forEach(order => {
-    order.items.forEach(item => {
-      totalProductsSold += item.quantity;
+  try {
+    const stats = await producerStatsService.getMyStats(req.user._id);
+    res.status(200).json({
+      status: 'success',
+      data: { stats }
     });
-  });
-  
-  // Clients uniques
-  const uniqueCustomers = new Set(orders.map(o => o.buyer?._id?.toString() || o.buyer?.toString())).size;
-  
-  // Produits les plus vendus
-  const productSales = {};
-  completedOrders.forEach(order => {
-    order.items.forEach(item => {
-      const productId = item.product?._id?.toString() || item.product?.toString();
-      if (!productSales[productId]) {
-        productSales[productId] = {
-          quantity: 0,
-          revenue: 0
-        };
-      }
-      productSales[productId].quantity += item.quantity;
-      productSales[productId].revenue += item.totalPrice || (item.quantity * item.unitPrice);
-    });
-  });
-  
-  const topProducts = await Promise.all(
-    Object.entries(productSales)
-      .sort((a, b) => b[1].quantity - a[1].quantity)
-      .slice(0, 5)
-      .map(async ([productId, sales]) => {
-        const product = await Product.findById(productId).select('name category');
-        return {
-          id: productId,
-          name: toPlainText(product?.name, 'Produit'),
-          category: product?.category,
-          quantitySold: sales.quantity,
-          revenue: sales.revenue
-        };
-      })
-  );
-  
-  // Taux de conversion (produits actifs / total produits)
-  const activeProducts = products.filter(p => p.isActive && p.status === 'approved').length;
-  const conversionRate = products.length > 0 ? Math.round((activeProducts / products.length) * 100) : 0;
-  
-  // Taux de fidélisation (clients qui ont commandé plus d'une fois)
-  const customerOrderCounts = {};
-  orders.forEach(order => {
-    const customerId = order.buyer?._id?.toString() || order.buyer?.toString();
-    customerOrderCounts[customerId] = (customerOrderCounts[customerId] || 0) + 1;
-  });
-  const repeatCustomers = Object.values(customerOrderCounts).filter(count => count > 1).length;
-  const customerRetentionRate = uniqueCustomers > 0 ? Math.round((repeatCustomers / uniqueCustomers) * 100) : 0;
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      stats: {
-        totalRevenue,
-        totalOrders: orders.length,
-        completedOrders: completedOrders.length,
-        totalProductsSold,
-        uniqueCustomers,
-        topProducts,
-        averageOrderValue,
-        conversionRate,
-        customerRetentionRate,
-        totalProducts: products.length,
-        activeProducts
-      }
-    }
-  });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.getStats = catchAsync(async (req, res, next) => {
-  const Order = require('../models/Order');
-  const Product = require('../models/Product');
-  
-  // Récupérer toutes les commandes du producteur
-  const orders = await Order.find({ seller: req.user._id });
-  const completedOrders = orders.filter(o => o.status === 'completed' || o.status === 'delivered');
-  
-  // Calculer les revenus totaux
-  const totalRevenue = completedOrders.reduce((sum, order) => sum + (order.total || 0), 0);
-  
-  // Récupérer les produits du producteur
-  const products = await Product.find({ producer: req.user._id });
-  const activeProducts = products.filter(p => p.isActive && p.status === 'approved');
-  
-  // Calculer les produits vendus
-  const totalProductsSold = completedOrders.reduce((sum, order) => {
-    return sum + order.items.reduce((itemSum, item) => itemSum + item.quantity, 0);
-  }, 0);
-  
-  // Clients uniques
-  const uniqueCustomers = new Set(completedOrders.map(order => order.buyer.toString())).size;
-  
-  // Produits les plus vendus
-  const productSales = {};
-  completedOrders.forEach(order => {
-    order.items.forEach(item => {
-      if (!productSales[item.product]) {
-        productSales[item.product] = {
-          name: item.name,
-          category: item.category,
-          quantitySold: 0,
-          revenue: 0
-        };
-      }
-      productSales[item.product].quantitySold += item.quantity;
-      productSales[item.product].revenue += item.price * item.quantity;
+  try {
+    const stats = await producerStatsService.getStats(req.user._id);
+    res.status(200).json({
+      status: 'success',
+      data: { stats }
     });
-  });
-  
-  const topProducts = Object.values(productSales)
-    .sort((a, b) => b.quantitySold - a.quantitySold)
-    .slice(0, 5);
-  
-  // Valeur moyenne des commandes
-  const averageOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
-  
-  res.status(200).json({
-    status: 'success',
-    data: {
-      stats: {
-        totalRevenue,
-        totalOrders: orders.length,
-        completedOrders: completedOrders.length,
-        totalProducts: products.length,
-        activeProducts: activeProducts.length,
-        totalProductsSold,
-        uniqueCustomers,
-        topProducts,
-        averageOrderValue,
-        conversionRate: orders.length > 0 ? (completedOrders.length / orders.length) * 100 : 0,
-        customerRetentionRate: 0 // À implémenter si nécessaire
-      }
-    }
-  });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.getSalesAnalytics = catchAsync(async (req, res, next) => {
-  const Order = require('../models/Order');
-  
-  // Récupérer les commandes des 12 derniers mois
-  const twelveMonthsAgo = new Date();
-  twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
-  
-  const orders = await Order.find({ 
-    seller: req.user._id,
-    status: { $in: ['completed', 'delivered'] },
-    createdAt: { $gte: twelveMonthsAgo }
-  });
-  
-  // Grouper par mois
-  const monthlySales = {};
-  orders.forEach(order => {
-    const month = new Date(order.createdAt).toLocaleDateString('fr-FR', { year: 'numeric', month: 'short' });
-    if (!monthlySales[month]) {
-      monthlySales[month] = {
-        orders: 0,
-        revenue: 0,
-        products: 0
-      };
-    }
-    monthlySales[month].orders += 1;
-    monthlySales[month].revenue += order.total || 0;
-    order.items.forEach(item => {
-      monthlySales[month].products += item.quantity;
+  try {
+    const analytics = await producerStatsService.getSalesAnalytics(req.user._id);
+    res.status(200).json({
+      status: 'success',
+      data: { analytics }
     });
-  });
-  
-  res.status(200).json({
-    status: 'success',
-    data: {
-      analytics: {
-        monthlySales: Object.entries(monthlySales).map(([month, data]) => ({
-          month,
-          ...data
-        }))
-      }
-    }
-  });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.getRevenueAnalytics = catchAsync(async (req, res, next) => {
-  const Order = require('../models/Order');
-  
-  const twelveMonthsAgo = new Date();
-  twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
-  
-  const orders = await Order.find({ 
-    seller: req.user._id,
-    status: { $in: ['completed', 'delivered'] },
-    createdAt: { $gte: twelveMonthsAgo }
-  });
-  
-  // Grouper les revenus par mois
-  const monthlyRevenue = {};
-  orders.forEach(order => {
-    const month = new Date(order.createdAt).toLocaleDateString('fr-FR', { year: 'numeric', month: 'short' });
-    if (!monthlyRevenue[month]) {
-      monthlyRevenue[month] = 0;
-    }
-    monthlyRevenue[month] += order.total || 0;
-  });
-  
-  // Mois actuel
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
-  const currentMonthRevenue = orders
-    .filter(order => {
-      const orderDate = new Date(order.createdAt);
-      return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
-    })
-    .reduce((sum, order) => sum + (order.total || 0), 0);
-  
-  res.status(200).json({
-    status: 'success',
-    data: {
-      analytics: {
-        monthlyRevenue: Object.entries(monthlyRevenue).map(([month, revenue]) => ({
-          month,
-          revenue
-        })),
-        currentMonthRevenue,
-        totalRevenue: orders.reduce((sum, order) => sum + (order.total || 0), 0)
-      }
-    }
-  });
+  try {
+    const analytics = await producerStatsService.getRevenueAnalytics(req.user._id);
+    res.status(200).json({
+      status: 'success',
+      data: { analytics }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 // Gestion des transporteurs préférés
 exports.getPreferredTransporters = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user._id)
-    .select('preferredTransporters')
-    .populate('preferredTransporters', 'companyName phone address performanceStats');
-
-  res.status(200).json({
-    status: 'success',
-    results: producer.preferredTransporters.length,
-    data: {
-      transporters: producer.preferredTransporters,
-    },
-  });
+  try {
+    const transporters = await producerTransporterService.getPreferredTransporters(req.user._id);
+    res.status(200).json({
+      status: 'success',
+      results: transporters.length,
+      data: { transporters }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.addPreferredTransporter = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user._id);
-  
-  // Vérifier si le transporteur n'est pas déjà dans la liste
-  if (producer.preferredTransporters.includes(req.body.transporterId)) {
-    return next(new AppError('Ce transporteur est déjà dans vos préférés', 400));
+  try {
+    await producerTransporterService.addPreferredTransporter(req.user._id, req.body.transporterId);
+    res.status(201).json({
+      status: 'success',
+      message: 'Transporteur ajouté aux préférés'
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 400));
   }
-
-  producer.preferredTransporters.push(req.body.transporterId);
-  await producer.save();
-
-  res.status(201).json({
-    status: 'success',
-    message: 'Transporteur ajouté aux préférés',
-  });
 });
 
 exports.removePreferredTransporter = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user._id);
-  
-  producer.preferredTransporters.pull(req.params.transporterId);
-  await producer.save();
-
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
+  try {
+    await producerTransporterService.removePreferredTransporter(req.user._id, req.params.transporterId);
+    res.status(204).json({
+      status: 'success',
+      data: null
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 // Gestion des documents
 exports.getMyDocuments = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user._id).select('documents');
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      documents: producer.documents,
-    },
-  });
+  try {
+    const documents = await producerDocumentService.getDocuments(req.user._id);
+    res.status(200).json({
+      status: 'success',
+      data: { documents }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.addDocument = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user._id);
-  
-  if (!req.file) {
-    return next(new AppError('Veuillez télécharger un document', 400));
-  }
-
-  // Ici, on devrait uploader vers Cloudinary
-  const documentData = {
-    ...req.body,
-    document: req.file.filename,
-  };
-
-  // Mettre à jour le document spécifique
-  const { documentType } = req.body;
-  if (producer.documents[documentType]) {
-    producer.documents[documentType] = {
-      ...producer.documents[documentType],
-      ...documentData,
+  try {
+    if (!req.file) {
+      return next(new AppError('Veuillez télécharger un document', 400));
+    }
+    const documentData = {
+      ...req.body,
+      document: req.file.filename
     };
+    const document = await producerDocumentService.addDocument(req.user._id, documentData);
+    res.status(201).json({
+      status: 'success',
+      data: { document }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 400));
   }
-
-  await producer.save();
-
-  res.status(201).json({
-    status: 'success',
-    data: {
-      document: producer.documents[documentType],
-    },
-  });
 });
 
 // Paramètres de livraison
 exports.getDeliverySettings = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findById(req.user._id).select('deliveryOptions');
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      deliverySettings: producer.deliveryOptions,
-    },
-  });
+  try {
+    const deliverySettings = await producerDeliveryService.getDeliverySettings(req.user._id);
+    res.status(200).json({
+      status: 'success',
+      data: { deliverySettings }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });
 
 exports.updateDeliverySettings = catchAsync(async (req, res, next) => {
-  const producer = await Producer.findByIdAndUpdate(
-    req.user._id,
-    { deliveryOptions: req.body },
-    { new: true, runValidators: true }
-  ).select('deliveryOptions');
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      deliverySettings: producer.deliveryOptions,
-    },
-  });
+  try {
+    const deliverySettings = await producerDeliveryService.updateDeliverySettings(req.user._id, req.body);
+    res.status(200).json({
+      status: 'success',
+      data: { deliverySettings }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
 });

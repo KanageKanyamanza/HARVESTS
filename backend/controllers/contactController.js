@@ -100,7 +100,7 @@ exports.sendContactMessage = catchAsync(async (req, res, next) => {
           background-color: #f9fafb;
         }
         .header {
-          background: linear-gradient(135deg, #4CAF50 0%, #F4C542 100%);
+          background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
           padding: 30px;
           text-align: center;
           color: white;
@@ -119,13 +119,13 @@ exports.sendContactMessage = catchAsync(async (req, res, next) => {
         }
         .label {
           font-weight: bold;
-          color: #4CAF50;
+          color: #16a34a;
         }
         .message-box {
           margin-top: 20px;
           padding: 15px;
           background-color: #f9fafb;
-          border-left: 4px solid #4CAF50;
+          border-left: 4px solid #16a34a;
           border-radius: 4px;
         }
         .footer {
