@@ -16,10 +16,12 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
   console.log('🔍 Vérification email - Méthode:', req.method);
   console.log('🔍 Vérification email - Path:', req.path);
   console.log('🔍 Vérification email - Query:', req.query);
+  console.log('🔍 Vérification email - Params:', req.params);
   
   // Récupérer le token depuis les paramètres de route OU depuis les query parameters
   // (pour gérer les cas où Render ne route pas correctement les URLs longues)
-  const token = req.params.token || req.query.token;
+  // Priorité au query parameter pour les nouveaux emails
+  const token = req.query.token || req.params.token;
   
   // Vérifier si le token est présent
   if (!token || token.trim() === '') {
@@ -182,9 +184,9 @@ exports.resendVerificationEmail = catchAsync(async (req, res, next) => {
 
   try {
     // Le lien pointe vers le backend qui redirigera vers la page de vérification du frontend
-    // Utiliser un query parameter au lieu d'un paramètre de route pour éviter les problèmes avec Render
+    // Utiliser une route alternative /verify avec query parameter pour éviter les problèmes avec Render
     const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'https://harvests-api.onrender.com';
-    const verifyURL = `${backendUrl}/api/v1/auth/verify-email?token=${verifyToken}`;
+    const verifyURL = `${backendUrl}/api/v1/auth/verify?token=${verifyToken}`;
     
     await new Email(user, verifyURL, req.language).sendWelcome();
 
@@ -231,9 +233,9 @@ exports.retryEmailVerification = catchAsync(async (req, res, next) => {
 
   // Ajouter à la queue d'envoi
   // Le lien pointe vers le backend qui redirigera vers la page de vérification du frontend
-  // Utiliser un query parameter au lieu d'un paramètre de route pour éviter les problèmes avec Render
+  // Utiliser une route alternative /verify avec query parameter pour éviter les problèmes avec Render
   const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'https://harvests-api.onrender.com';
-  const verifyURL = `${backendUrl}/api/v1/auth/verify-email?token=${verifyToken}`;
+  const verifyURL = `${backendUrl}/api/v1/auth/verify?token=${verifyToken}`;
   
   emailQueue.addToQueue({
     user,
