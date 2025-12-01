@@ -141,12 +141,15 @@ router.post('/login', authLimiter, authController.login);
 router.post('/logout', authController.logout);
 
 // Vérification et réinitialisation
-// Route GET pour la vérification d'email (utilisée dans les liens email)
-// Route avec paramètre de route (pour compatibilité)
-router.get('/verify-email/:token', emailVerificationController.verifyEmail);
-// Route GET alternative avec query parameter (pour Render qui peut avoir des problèmes avec les URLs longues)
+// IMPORTANT: L'ordre des routes est crucial ici
+// Route GET avec query parameter (doit être AVANT la route avec paramètre pour éviter les conflits)
+// Cette route est prioritaire pour Render qui peut avoir des problèmes avec les URLs longues
 router.get('/verify-email', emailVerificationController.verifyEmail);
-// Route POST alternative pour la vérification d'email (si GET ne fonctionne pas sur Render)
+// Route alternative pour le query parameter (si la route ci-dessus ne fonctionne pas sur Render)
+router.get('/verify', emailVerificationController.verifyEmail);
+// Route GET avec paramètre de route (pour compatibilité avec les anciens emails)
+router.get('/verify-email/:token', emailVerificationController.verifyEmail);
+// Route POST alternative pour la vérification d'email (si GET ne fonctionne pas)
 router.post('/verify-email', emailVerificationController.verifyEmailPost);
 router.post('/resend-verification', emailLimiter, emailVerificationController.resendVerificationEmail);
 router.post('/forgot-password', emailLimiter, passwordController.forgotPassword);
