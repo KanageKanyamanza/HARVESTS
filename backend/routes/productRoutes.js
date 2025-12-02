@@ -7,13 +7,162 @@ const router = express.Router();
 
 // ROUTES PUBLIQUES
 
-// Obtenir tous les produits avec filtres et recherche
+/**
+ * @swagger
+ * /api/v1/products:
+ *   get:
+ *     summary: Obtenir tous les produits avec filtres et recherche intelligente
+ *     description: |
+ *       Liste paginée de produits avec :
+ *       - **Recherche intelligente** : Gère pluriel/singulier et localisation
+ *       - **Filtres avancés** : Catégorie, prix, région, méthode de culture
+ *       - **Détection géographique** : "tomates Dakar" filtre automatiquement
+ *     tags: [Products]
+ *     parameters:
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: |
+ *           Recherche textuelle avec détection géographique :
+ *           - "tomates" → recherche flexible (tomate/tomates)
+ *           - "tomates Dakar" → filtre par localisation
+ *           - "légumes Yaoundé" → légumes à Yaoundé
+ *         example: "tomates Dakar"
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         description: Filtrer par catégorie
+ *       - in: query
+ *         name: region
+ *         schema:
+ *           type: string
+ *         description: Filtrer par région
+ *       - in: query
+ *         name: minPrice
+ *         schema:
+ *           type: number
+ *         description: Prix minimum
+ *       - in: query
+ *         name: maxPrice
+ *         schema:
+ *           type: number
+ *         description: Prix maximum
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Numéro de page
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Nombre de résultats par page
+ *     responses:
+ *       200:
+ *         description: Liste de produits
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 results:
+ *                   type: number
+ *                   example: 50
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     products:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Product'
+ *                     total:
+ *                       type: number
+ *                       example: 50
+ *                     page:
+ *                       type: number
+ *                       example: 1
+ *                     totalPages:
+ *                       type: number
+ *                       example: 3
+ */
 router.get('/', productController.getAllProducts);
 
 // Obtenir les produits basés sur la localisation de l'utilisateur
 router.get('/location-based', productController.getProductsByLocation);
 
-// Recherche avancée de produits
+/**
+ * @swagger
+ * /api/v1/products/search:
+ *   get:
+ *     summary: Recherche avancée de produits avec détection géographique
+ *     description: |
+ *       Recherche intelligente de produits avec :
+ *       - **Gestion pluriel/singulier** : "tomates" trouve aussi "tomate"
+ *       - **Détection de localisation** : "tomates à Dakar" filtre par ville
+ *       - **Recherche flexible** : Insensible à la casse et aux accents
+ *       - **Villes supportées** : Dakar, Yaoundé, Douala, Thiès, Saint-Louis, etc.
+ *     tags: [Products]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: |
+ *           Terme de recherche. Peut inclure une localisation :
+ *           - "tomates" → recherche tous les produits contenant "tomate" ou "tomates"
+ *           - "tomates à Dakar" → recherche les tomates à Dakar
+ *           - "Dakar" → tous les produits de Dakar
+ *         example: "tomates à Dakar"
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         description: Filtrer par catégorie
+ *         example: "vegetables"
+ *       - in: query
+ *         name: minPrice
+ *         schema:
+ *           type: number
+ *         description: Prix minimum
+ *       - in: query
+ *         name: maxPrice
+ *         schema:
+ *           type: number
+ *         description: Prix maximum
+ *     responses:
+ *       200:
+ *         description: Produits trouvés
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 results:
+ *                   type: number
+ *                   example: 15
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     products:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Product'
+ *       400:
+ *         description: Paramètre de recherche invalide
+ *       404:
+ *         description: Aucun produit trouvé
+ */
 router.get('/search', productController.searchProducts);
 
 // Produits en vedette

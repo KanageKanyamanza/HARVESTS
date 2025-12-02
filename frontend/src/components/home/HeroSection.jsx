@@ -44,14 +44,14 @@ const HeroSection = () => {
 			case 0:
 				return {
 					wrapper:
-						"absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center items-center px-4 md:px-0 md:left-auto md:right-6 md:top-1/2 md:translate-x-0 md:-translate-y-1/2 md:text-right md:items-end",
+						"absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center items-center justify-center px-4 w-full md:px-0 md:left-auto md:right-6 md:top-1/2 md:translate-x-0 md:-translate-y-1/2 md:text-right md:items-end md:w-auto",
 					button: "justify-center md:justify-end",
 					title: "text-center md:text-right",
 				};
 			case 3:
 				return {
 					wrapper:
-						"absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center items-center px-4 md:left-0 md:bottom-0 md:top-auto md:px-4 md:pb-6 md:translate-x-0 md:translate-y-0 md:text-left md:items-start",
+						"absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center items-center justify-center px-4 w-full md:left-0 md:bottom-0 md:top-auto md:px-4 md:pb-6 md:translate-x-0 md:translate-y-0 md:text-left md:items-start md:w-auto",
 					button: "justify-center md:justify-start",
 					title: "text-center md:text-left",
 				};
@@ -60,7 +60,7 @@ const HeroSection = () => {
 			default:
 				return {
 					wrapper:
-						"absolute left-1/2 bottom-24 sm:bottom-32 md:bottom-12 -translate-x-1/2 text-center items-center px-4 md:px-0",
+						"absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center items-center justify-center px-4 w-full md:bottom-12 md:top-auto md:translate-y-0 md:px-0 md:w-auto",
 					button: "justify-center",
 					title: "text-center",
 				};
@@ -150,7 +150,7 @@ const HeroSection = () => {
 				</div> */}
 
 				{/* Lien vers la section vidéo en bas à droite */}
-				<div className="absolute bottom-6 right-4 md:bottom-10 md:right-10">
+				<div className="absolute bottom-6 sm:right-24 md:bottom-10 md:right-[80px]">
 					<a
 						href="#why-harvests"
 						onClick={(e) => {

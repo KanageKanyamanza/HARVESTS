@@ -1,4 +1,5 @@
 import React from 'react';
+import { MessageCircle } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../contexts/CartContext';
 import useBackToTopVisible from '../../hooks/useBackToTopVisible';
@@ -46,8 +47,20 @@ const ChatBot = () => {
       if (message.toLowerCase() !== 'passer') setGuestInfo(prev => ({ ...prev, email: message }));
       setInfoStep(null);
       setAskingForInfo(false);
-      addBotMessage(`Parfait ! Je suis prêt à vous aider. Que puis-je faire pour vous ?`);
-      setShowCategories(true);
+      
+      // Récupérer la question en attente et y répondre
+      const pendingMessage = sessionStorage.getItem('pending_chat_message');
+      if (pendingMessage) {
+        sessionStorage.removeItem('pending_chat_message');
+        addBotMessage(`Parfait ! Je suis prêt à vous aider. 😊`);
+        // Traiter la question en attente
+        setTimeout(() => {
+          handleSendMessage(pendingMessage);
+        }, 500);
+      } else {
+        addBotMessage(`Parfait ! Je suis prêt à vous aider. Que puis-je faire pour vous ?`);
+        setShowCategories(true);
+      }
       return true;
     }
     return false;
@@ -146,8 +159,81 @@ const ChatBot = () => {
     setShowQuickActions(false);
   };
 
+  const [showTooltip, setShowTooltip] = React.useState(true);
+
+  // Masquer la bulle après 7 secondes
+  React.useEffect(() => {
+    if (showTooltip && !isOpen) {
+      const timer = setTimeout(() => {
+        setShowTooltip(false);
+      }, 7000); // 7 secondes
+
+      return () => clearTimeout(timer);
+    }
+  }, [showTooltip, isOpen]);
+
+  // Masquer la bulle si le chat est ouvert
+  React.useEffect(() => {
+    if (isOpen && showTooltip) {
+      setShowTooltip(false);
+    }
+  }, [isOpen, showTooltip]);
+
+  const handleCloseTooltip = () => {
+    setShowTooltip(false);
+  };
+
   if (!isOpen) {
-    return <ChatBotButton onClick={() => setIsOpen(true)} backToTopVisible={backToTopVisible} />;
+    return (
+      <>
+        <div 
+          className={`fixed right-6 z-50 ${backToTopVisible ? 'bottom-[80px]' : 'bottom-6'}`}
+        >
+          <ChatBotButton onClick={() => setIsOpen(true)} backToTopVisible={backToTopVisible} />
+        </div>
+        
+        {/* Bulle d'information à côté du bouton */}
+        {showTooltip && !isOpen && (
+          <div 
+            className="fixed right-24 z-[60] bg-white rounded-lg shadow-2xl p-4 border-2 border-green-200"
+            style={{ 
+              bottom: backToTopVisible ? '80px' : '24px',
+              width: '320px',
+              maxWidth: 'calc(100vw - 200px)'
+            }}
+          >
+            <button
+              onClick={handleCloseTooltip}
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors z-10"
+              aria-label="Fermer"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="flex items-start gap-3 pr-6">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <MessageCircle className="w-5 h-5 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-gray-900 text-sm mb-1">Salut ! 👋</h4>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Je suis l'assistant <span className="font-semibold text-green-600">Harvests</span> ! 
+                  Posez-moi vos questions, je suis là pour vous aider ! 😊
+                </p>
+              </div>
+            </div>
+            {/* Flèche pointant vers le bouton (en bas) */}
+            <div className="absolute right-0 bottom-0 translate-x-full">
+              <div className="w-0 h-0 border-t-8 border-t-transparent border-l-8 border-l-gray-200 border-b-8 border-b-transparent"></div>
+              <div className="absolute right-0 bottom-0 translate-x-full -ml-px">
+                <div className="w-0 h-0 border-t-8 border-t-transparent border-l-8 border-l-white border-b-8 border-b-transparent"></div>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
   }
 
   return (

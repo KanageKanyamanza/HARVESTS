@@ -469,6 +469,10 @@ export const adminService = {
   getUserChatHistory: async (userId, params = {}) => {
     const response = await api.get(`/chat/admin/user/${userId}/history`, { params });
     return response.data;
+  },
+  getAllInteractions: async (params = {}) => {
+    const response = await api.get('/chat/admin/interactions', { params });
+    return response.data;
   }
 };
 

@@ -60,8 +60,11 @@ export const findCustomAnswer = (message, customAnswers) => {
 };
 
 export const tryProductSearch = async (message, { addBotMessage, setIsTyping, setFoundProducts, setFoundSellers, setFoundTransporters, setQuickLinks, setShowCategories, logInteraction }) => {
+  // Nettoyer le message mais garder les mots importants (ne pas enlever "des" car c'est important pour "des tomates")
   const cleanedMessage = message
-    .replace(/\?|!|,|\.|vous|je|j'ai|des|du|de la|de|un|une|le|la|les|est-ce que|avez|vendez|proposez|cherche|veux|voudrais|besoin|acheter|livreur|transporteur|vendeur|producteur|catégorie|categorie/gi, '')
+    .replace(/\?|!|,|\./g, '') // Enlever seulement la ponctuation
+    .replace(/\b(vous|je|j'ai|est-ce que|avez|vendez|proposez|cherche|veux|voudrais|besoin|acheter|livreur|transporteur|vendeur|producteur|catégorie|categorie)\b/gi, '') // Enlever les mots de liaison
+    .replace(/\b(du|de la|un|une|le|la|les)\b/gi, '') // Enlever les articles définis
     .replace(/\s+/g, ' ')
     .trim();
   
@@ -120,12 +123,33 @@ export const tryProductSearch = async (message, { addBotMessage, setIsTyping, se
         return true;
       }
     }
+    
+    // Si aucun produit trouvé, proposer des produits similaires
+    addBotMessage(`Désolé, nous n'avons pas de "${cleanedMessage}" en stock pour le moment. 😔\n\nMais voici des produits similaires qui pourraient vous intéresser :`);
+    
+    // Chercher des produits similaires (produits populaires ou en vedette)
+    try {
+      const similarProducts = await chatService.getFeaturedProducts();
+      if (similarProducts?.length > 0) {
+        setFoundProducts(similarProducts.slice(0, 3));
+        setQuickLinks([
+          { to: '/products', label: 'Voir tous nos produits' },
+          { to: '/products?category=vegetables', label: 'Voir les légumes' }
+        ]);
+        logInteraction(message, 'Produits similaires proposés', 'similar_products');
+        setIsTyping(false);
+        return true;
+      }
+    } catch (error) {
+      console.error('Erreur recherche produits similaires:', error);
+    }
   } catch (error) {
     console.error('Erreur recherche:', error);
   }
   
   setIsTyping(false);
-  addBotMessage(faqData.defaultMessages.notUnderstood);
+  addBotMessage(`Désolé, nous n'avons pas de "${cleanedMessage}" en stock. 😔\n\nVoulez-vous voir notre catalogue complet ?`);
+  setQuickLinks([{ to: '/products', label: 'Voir tous nos produits' }]);
   setShowCategories(true);
   return false;
 };

@@ -124,6 +124,27 @@ export const chatService = {
     }
   },
 
+  // Obtenir les produits en vedette
+  getFeaturedProducts: async () => {
+    try {
+      const response = await api.get('/products/featured', {
+        params: { limit: 5 }
+      });
+      return response.data?.data?.products || response.data?.products || [];
+    } catch (error) {
+      console.error('Erreur chatService.getFeaturedProducts:', error);
+      // Fallback: produits récents
+      try {
+        const fallback = await api.get('/products', {
+          params: { limit: 5, sort: '-createdAt' }
+        });
+        return fallback.data?.data?.products || [];
+      } catch {
+        return [];
+      }
+    }
+  },
+
   // Obtenir les suggestions personnalisées (basées sur l'historique)
   getSuggestions: async () => {
     try {
