@@ -83,7 +83,7 @@ const Header = () => {
     { name: 'Accueil', href: '/', current: location.pathname === '/' },
     { name: 'Produits', href: '/products', current: location.pathname === '/products' },
     { name: 'Catégories', href: '/categories', current: location.pathname === '/categories' },
-    { name: 'Nos Vendeurs', href: '/vendeurs', current: location.pathname === '/vendeurs' },
+    { name: 'Nos Producteurs', href: '/producteurs', current: location.pathname === '/producteurs' },
     { name: 'Blog', href: '/blog', current: location.pathname === '/blog' },
     { name: 'Tarifs', href: '/pricing', current: location.pathname === '/pricing' },
     // { name: 'Contact', href: '/contact', current: location.pathname === '/contact' },
