@@ -314,6 +314,13 @@ export const updateAdminProfile = async (profileData) => {
   return response.data;
 };
 
+export const uploadAdminAvatar = async (formData) => {
+  const response = await api.patch('/admin-management/me/avatar', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+  return response.data;
+};
+
 // Service pour la gestion des blogs
 export const getBlogs = async (params = {}) => {
   const response = await adminBlogApiService.getBlogs(params);
@@ -437,6 +444,7 @@ export const adminService = {
   getAdminStats,
   getAdminProfile,
   updateAdminProfile,
+  uploadAdminAvatar,
   
   // Blogs
   getBlogs,

@@ -17,7 +17,8 @@ const FOLDERS = {
     TRANSFORMERS: 'harvests/profiles/transformers',
     RESTAURATEURS: 'harvests/profiles/restaurateurs',
     EXPORTERS: 'harvests/profiles/exporters',
-    TRANSPORTERS: 'harvests/profiles/transporters'
+    TRANSPORTERS: 'harvests/profiles/transporters',
+    ADMIN: 'harvests/profiles/admins'
   },
   
   // Produits et catalogue

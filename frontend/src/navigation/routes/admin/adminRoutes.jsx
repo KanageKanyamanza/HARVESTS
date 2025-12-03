@@ -20,6 +20,8 @@ const AdminBlogAnalytics = React.lazy(() => import('../../../pages/admin/AdminBl
 const AdminManagement = React.lazy(() => import('../../../pages/admin/AdminManagement'));
 const AdminSubscriptions = React.lazy(() => import('../../../pages/admin/AdminSubscriptions'));
 const ChatbotManagement = React.lazy(() => import('../../../pages/admin/ChatbotManagement'));
+const AdminSettings = React.lazy(() => import('../../../pages/admin/AdminSettings'));
+const UserDetails = React.lazy(() => import('../../../pages/admin/UserDetails'));
 const OrderDetail = React.lazy(() => import('../../../pages/orders/OrderDetail'));
 
 export const adminRoutes = [
@@ -32,6 +34,11 @@ export const adminRoutes = [
     path: '/admin/users',
     element: <AdminUsers />,
     title: 'Gestion des utilisateurs'
+  },
+  {
+    path: '/admin/users/:id',
+    element: <UserDetails />,
+    title: 'Détails de l\'utilisateur'
   },
   {
     path: '/admin/products',
@@ -107,6 +114,11 @@ export const adminRoutes = [
     path: '/admin/chatbot',
     element: <ChatbotManagement />,
     title: 'Gestion du Chatbot'
+  },
+  {
+    path: '/admin/settings',
+    element: <AdminSettings />,
+    title: 'Paramètres'
   },
 ];
 

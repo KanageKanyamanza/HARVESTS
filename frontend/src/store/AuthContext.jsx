@@ -253,8 +253,8 @@ export const AuthProvider = ({ children }) => {
           // Détecter si c'est un admin ou un utilisateur normal
           if (user.role === 'admin' || user.userType === 'admin') {
             response = await adminAuthService.getProfile();
-            if (response.success) {
-              const updatedAdmin = response.data.admin;
+            if (response.data?.status === 'success' && response.data?.data?.admin) {
+              const updatedAdmin = response.data.data.admin;
               // Convertir l'admin en format utilisateur pour la compatibilité
               const updatedUser = {
                 ...updatedAdmin,
@@ -352,8 +352,8 @@ export const AuthProvider = ({ children }) => {
       // Détecter si c'est un admin ou un utilisateur normal
       if (state.user.role === 'admin' || state.user.userType === 'admin') {
         response = await adminAuthService.getProfile();
-        if (response.success) {
-          const updatedAdmin = response.data.admin;
+        if (response.data?.status === 'success' && response.data?.data?.admin) {
+          const updatedAdmin = response.data.data.admin;
           updatedUser = {
             ...updatedAdmin,
             role: 'admin',
