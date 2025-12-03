@@ -29,6 +29,7 @@ import {
   FileText
 } from 'lucide-react';
 import NotificationDropdown from '../notifications/NotificationDropdown';
+import CloudinaryImage from '../common/CloudinaryImage';
 
 const AdminLayout = ({ children }) => {
   const { user, logout } = useAuth();
@@ -128,6 +129,12 @@ const AdminLayout = ({ children }) => {
       href: '/admin/chatbot',
       icon: MessageCircle,
       current: location.pathname.startsWith('/admin/chatbot')
+    },
+    {
+      name: 'Paramètres',
+      href: '/admin/settings',
+      icon: Settings,
+      current: location.pathname.startsWith('/admin/settings')
     }
   ];
 
@@ -174,6 +181,28 @@ const AdminLayout = ({ children }) => {
             {/* User info en bas */}
             <div className="flex-shrink-0 px-4 py-4 border-t border-gray-200">
               <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  {user?.avatar ? (
+                    <CloudinaryImage
+                      src={user.avatar}
+                      alt={`${user.firstName} ${user.lastName}`}
+                      className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
+                      fallback={
+                        <div className="h-10 w-10 rounded-full bg-green-600 flex items-center justify-center">
+                          <span className="text-white text-sm font-medium">
+                            {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                          </span>
+                        </div>
+                      }
+                    />
+                  ) : (
+                    <div className="h-10 w-10 rounded-full bg-green-600 flex items-center justify-center">
+                      <span className="text-white text-sm font-medium">
+                        {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-700">
                     {user?.firstName} {user?.lastName}
@@ -224,6 +253,28 @@ const AdminLayout = ({ children }) => {
           <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
             <div className="flex-shrink-0 w-full group block">
               <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  {user?.avatar ? (
+                    <CloudinaryImage
+                      src={user.avatar}
+                      alt={`${user.firstName} ${user.lastName}`}
+                      className={`rounded-full object-cover border-2 border-gray-200 ${sidebarCollapsed ? 'h-10 w-10 mx-auto' : 'h-10 w-10'}`}
+                      fallback={
+                        <div className={`rounded-full bg-green-600 flex items-center justify-center ${sidebarCollapsed ? 'h-10 w-10 mx-auto' : 'h-10 w-10'}`}>
+                          <span className="text-white text-sm font-medium">
+                            {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                          </span>
+                        </div>
+                      }
+                    />
+                  ) : (
+                    <div className={`rounded-full bg-green-600 flex items-center justify-center ${sidebarCollapsed ? 'h-10 w-10 mx-auto' : 'h-10 w-10'}`}>
+                      <span className="text-white text-sm font-medium">
+                        {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                      </span>
+                    </div>
+                  )}
+                </div>
                 {!sidebarCollapsed && (
                   <div className="ml-3">
                     <p className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
@@ -287,8 +338,31 @@ const AdminLayout = ({ children }) => {
               {/* Profile dropdown */}
               <div className="ml-3 relative">
                 <div className="flex items-center space-x-3">
-                  <div className="text-sm text-gray-700">
-                    Bienvenue, <br className="sm:hidden flex" /> {user?.firstName}
+                  <div className="flex items-center space-x-2">
+                    {user?.avatar ? (
+                      <CloudinaryImage
+                        src={user.avatar}
+                        alt={`${user.firstName} ${user.lastName}`}
+                        className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
+                        fallback={
+                          <div className="h-10 w-10 rounded-full bg-green-600 flex items-center justify-center">
+                            <span className="text-white text-sm font-medium">
+                              {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                            </span>
+                          </div>
+                        }
+                      />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-green-600 flex items-center justify-center">
+                        <span className="text-white text-sm font-medium">
+                          {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                        </span>
+                      </div>
+                    )}
+                    <div className="text-sm text-gray-700 hidden md:block">
+                      <div className="font-medium">{user?.firstName} {user?.lastName}</div>
+                      <div className="text-xs text-gray-500">Administrateur</div>
+                    </div>
                   </div>
                   <button
                     onClick={handleLogout}

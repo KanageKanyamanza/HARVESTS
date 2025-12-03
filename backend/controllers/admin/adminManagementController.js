@@ -2,6 +2,8 @@ const Admin = require('../../models/Admin');
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
 const { logAudit, AUDIT_ACTIONS } = require('../../utils/auditLogger');
+const multer = require('multer');
+const { createDynamicStorage } = require('../../config/cloudinary');
 
 // @desc    Créer un nouvel administrateur
 // @route   POST /api/v1/admin/admins
@@ -452,4 +454,49 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     }
   });
 });
+
+// @desc    Upload avatar admin
+// @route   PATCH /api/v1/admin-management/me/avatar
+// @access  Admin
+exports.uploadAvatar = catchAsync(async (req, res, next) => {
+  if (!req.file) {
+    return next(new AppError('Aucun fichier fourni', 400));
+  }
+
+  // Mettre à jour l'avatar de l'admin
+  const admin = await Admin.findByIdAndUpdate(
+    req.admin._id,
+    { avatar: req.file.path },
+    { new: true, runValidators: true }
+  ).select('-password -emailVerificationToken -passwordResetToken -passwordResetExpires -twoFactorSecret');
+
+  if (!admin) {
+    return next(new AppError('Admin non trouvé', 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Avatar mis à jour avec succès',
+    data: {
+      admin
+    }
+  });
+});
+
+// Middleware d'upload d'avatar pour admin
+exports.uploadAdminPhoto = (req, res, next) => {
+  const storage = createDynamicStorage('admin', 'profile');
+  const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype.startsWith('image')) {
+        cb(null, true);
+      } else {
+        cb(new AppError('Veuillez télécharger uniquement des images!', 400), false);
+      }
+    }
+  });
+  upload.single('avatar')(req, res, next);
+};
 

@@ -122,6 +122,39 @@ const AdminUsers = () => {
     }
   };
 
+  const handleDeleteUser = async (userId) => {
+    const user = users.find(u => u._id === userId);
+    const userName = user ? `${user.firstName} ${user.lastName}` : 'cet utilisateur';
+    
+    if (window.confirm(`⚠️ ATTENTION : Êtes-vous sûr de vouloir supprimer définitivement ${userName} ?\n\nCette action supprimera également tous les produits associés à cet utilisateur. Cette action est irréversible.`)) {
+      try {
+        await adminService.deleteUser(userId);
+        alert('Utilisateur supprimé avec succès');
+        loadUsers();
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+        alert(error.response?.data?.message || 'Erreur lors de la suppression de l\'utilisateur');
+      }
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (selectedUsers.length === 0) return;
+    
+    if (window.confirm(`⚠️ ATTENTION : Êtes-vous sûr de vouloir supprimer définitivement ${selectedUsers.length} utilisateur(s) ?\n\nCette action supprimera également tous les produits associés à ces utilisateurs. Cette action est irréversible.`)) {
+      try {
+        const deletePromises = selectedUsers.map(userId => adminService.deleteUser(userId));
+        await Promise.all(deletePromises);
+        alert(`${selectedUsers.length} utilisateur(s) supprimé(s) avec succès`);
+        setSelectedUsers([]);
+        loadUsers();
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+        alert('Erreur lors de la suppression des utilisateurs');
+      }
+    }
+  };
+
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('fr-FR', {
       year: 'numeric',
@@ -254,16 +287,30 @@ const AdminUsers = () => {
               {selectedUsers.length > 0 && (
                 <div className="flex space-x-2">
                   <button 
-                    className="bg-red-600 text-white px-3 py-1 rounded text-sm"
+                    className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
                     title="Bannir les utilisateurs sélectionnés"
+                    onClick={() => {
+                      selectedUsers.forEach(userId => handleBanUser(userId));
+                    }}
                   >
                     Bannir sélectionnés
                   </button>
                   <button 
-                    className="bg-green-600 text-white px-3 py-1 rounded text-sm"
+                    className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
                     title="Vérifier les utilisateurs sélectionnés"
+                    onClick={() => {
+                      selectedUsers.forEach(userId => handleVerifyUser(userId));
+                    }}
                   >
                     Vérifier sélectionnés
+                  </button>
+                  <button 
+                    className="bg-red-800 text-white px-3 py-1 rounded text-sm hover:bg-red-900"
+                    title="Supprimer définitivement les utilisateurs sélectionnés"
+                    onClick={handleDeleteSelected}
+                  >
+                    <Trash2 className="h-4 w-4 inline mr-1" />
+                    Supprimer sélectionnés
                   </button>
                 </div>
               )}
@@ -385,6 +432,13 @@ const AdminUsers = () => {
                               <Ban className="h-4 w-4" />
                             </button>
                           )}
+                          <button
+                            onClick={() => handleDeleteUser(user._id)}
+                            className="text-red-800 hover:text-red-900"
+                            title="Supprimer définitivement l'utilisateur"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>

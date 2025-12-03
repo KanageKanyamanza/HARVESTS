@@ -9,8 +9,8 @@ export const adminAuthService = {
   logout: () => apiRequest.post('/admin/auth/logout'),
   
   // Profil admin
-  getProfile: () => apiRequest.get('/admin/auth/me'),
+  getProfile: () => apiRequest.get('/admin-management/me'),
   
   // Vérification de session admin
-  verifyToken: () => apiRequest.get('/admin/auth/me')
+  verifyToken: () => apiRequest.get('/admin-management/me')
 };

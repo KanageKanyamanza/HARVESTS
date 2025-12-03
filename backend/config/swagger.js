@@ -22,10 +22,17 @@ const swaggerOptions = {
 ## 🚀 Fonctionnalités
 - **Multi-utilisateurs** : 6 types (producteur, consommateur, etc.)
 - **E-commerce** : Catalogue, commandes, paiements
+- **Recherche intelligente** : Gestion pluriel/singulier + détection géographique
 - **Sécurité** : JWT, rate limiting, chiffrement
 - **Notifications** : Email, push, webhooks
 - **Images** : Upload Cloudinary organisé
 - **Mobile Money** : Wave + Orange Money intégrés
+
+## 🔍 Recherche Intelligente
+- **Gestion pluriel/singulier** : "tomates" trouve aussi "tomate"
+- **Détection géographique** : "tomates à Dakar" filtre automatiquement
+- **Recherche flexible** : Insensible à la casse et aux accents
+- **Villes supportées** : Dakar, Yaoundé, Douala, Thiès, Saint-Louis, etc.
 
 ## 🔗 Liens utiles
 - **Frontend** : https://www.harvests.site

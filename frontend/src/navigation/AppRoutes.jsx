@@ -186,7 +186,7 @@ const AppRoutes = () => {
       <Route path="/categories/:category" element={<Layout><SuspenseRoute element={<Products />} /></Layout>} />
       <Route path="/producers" element={<Layout><SuspenseRoute element={<Producers />} /></Layout>} />
       <Route path="/producers/:id" element={<Layout><SuspenseRoute element={<ProducerProfile />} /></Layout>} />
-      <Route path="/vendeurs" element={<Layout><SuspenseRoute element={<Vendeurs />} /></Layout>} />
+      <Route path="/producteurs" element={<Layout><SuspenseRoute element={<Vendeurs />} /></Layout>} />
       <Route path="/transformers" element={<Layout><SuspenseRoute element={<Transformers />} /></Layout>} />
       <Route path="/transformers/:id" element={<Layout><SuspenseRoute element={<TransformerProfile />} /></Layout>} />
       <Route path="/restaurateurs/:id" element={<Layout><SuspenseRoute element={<PublicRestaurateurProfile />} /></Layout>} />

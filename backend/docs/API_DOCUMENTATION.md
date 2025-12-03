@@ -73,15 +73,21 @@ POST   /:id/follow     - Suivre producteur
 
 ### **🌾 Products (`/api/v1/products`)**
 ```
-GET    /               - Catalogue produits
+GET    /               - Catalogue produits (recherche intelligente)
 POST   /               - Créer produit
 GET    /:id            - Détails produit
 PATCH  /:id            - Modifier produit
 DELETE /:id            - Supprimer produit
 POST   /:id/images     - Upload images produit
-GET    /search         - Recherche produits
+GET    /search         - Recherche avancée (pluriel/singulier + géolocalisation)
 GET    /categories     - Liste catégories
 GET    /featured       - Produits mis en avant
+
+🔍 Recherche Intelligente:
+- "tomates" → trouve aussi "tomate" (gestion pluriel/singulier)
+- "tomates à Dakar" → filtre par localisation
+- "Dakar" → tous les produits de Dakar
+- Insensible à la casse et aux accents
 ```
 
 ### **📦 Orders (`/api/v1/orders`)**
@@ -104,6 +110,24 @@ GET    /:id/status     - Statut paiement
 POST   /:id/refund     - Remboursement
 GET    /methods        - Méthodes disponibles
 ```
+
+### **🤖 Chatbot (`/api/v1/chat`)**
+```
+GET    /search-products      - Recherche produits (géolocalisation)
+GET    /search-sellers       - Recherche vendeurs (géolocalisation)
+GET    /search-transporters  - Recherche transporteurs (géolocalisation)
+GET    /categories           - Liste catégories
+GET    /track/:orderNumber   - Suivi commande
+POST   /log-interaction      - Enregistrer interaction
+POST   /log-feedback         - Enregistrer feedback
+GET    /my-orders            - Mes commandes récentes (protégé)
+```
+
+**🔍 Recherche Intelligente:**
+- Gestion pluriel/singulier : "tomates" trouve "tomate"
+- Détection géographique : "tomates à Dakar" filtre automatiquement
+- Recherche flexible : Insensible à la casse et accents
+- Villes supportées : Dakar, Yaoundé, Douala, Thiès, Saint-Louis, etc.
 
 ---
 
@@ -231,6 +255,31 @@ Cookie: jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 /api/v1/producers?farmingType=organic&region=Thiès&isActive=true
 ```
 
+### **🔍 Recherche Intelligente**
+```javascript
+// Recherche avec gestion pluriel/singulier
+GET /api/v1/products/search?q=tomates
+// → Trouve "tomate", "tomates", "Tomate", "Tomates"
+
+// Recherche avec détection géographique
+GET /api/v1/products/search?q=tomates à Dakar
+// → Trouve les tomates à Dakar uniquement
+
+GET /api/v1/products/search?q=Dakar
+// → Trouve tous les produits de Dakar
+
+// Recherche dans le chatbot
+GET /api/v1/chat/search-products?query=producteurs Yaoundé
+// → Trouve les producteurs de Yaoundé
+
+GET /api/v1/chat/search-sellers?query=transporteurs Douala
+// → Trouve les transporteurs de Douala
+
+// Villes supportées
+// Cameroun: Yaoundé, Douala, Bafoussam, Garoua, Maroua, Bamenda, etc.
+// Sénégal: Dakar, Thiès, Saint-Louis, Kaolack, Ziguinchor, etc.
+```
+
 ---
 
 ## 🌾 **EXEMPLES DE REQUÊTES**
@@ -285,7 +334,19 @@ curl -X POST http://localhost:8000/api/v1/products \
   }'
 ```
 
-### **4. 🛒 Passer Commande**
+### **4. 🔍 Recherche Intelligente**
+```bash
+# Recherche simple (gère pluriel/singulier)
+curl -X GET "http://localhost:8000/api/v1/products/search?q=tomates"
+
+# Recherche avec localisation
+curl -X GET "http://localhost:8000/api/v1/products/search?q=tomates à Dakar"
+
+# Recherche via chatbot
+curl -X GET "http://localhost:8000/api/v1/chat/search-products?query=producteurs Yaoundé&limit=5"
+```
+
+### **5. 🛒 Passer Commande**
 ```bash
 curl -X POST http://localhost:8000/api/v1/orders \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
@@ -305,7 +366,7 @@ curl -X POST http://localhost:8000/api/v1/orders \
   }'
 ```
 
-### **5. 🌊 Paiement Wave**
+### **6. 🌊 Paiement Wave**
 ```bash
 curl -X POST http://localhost:8000/api/v1/payments/wave \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \

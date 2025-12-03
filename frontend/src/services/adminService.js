@@ -314,6 +314,13 @@ export const updateAdminProfile = async (profileData) => {
   return response.data;
 };
 
+export const uploadAdminAvatar = async (formData) => {
+  const response = await api.patch('/admin-management/me/avatar', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+  return response.data;
+};
+
 // Service pour la gestion des blogs
 export const getBlogs = async (params = {}) => {
   const response = await adminBlogApiService.getBlogs(params);
@@ -437,6 +444,7 @@ export const adminService = {
   getAdminStats,
   getAdminProfile,
   updateAdminProfile,
+  uploadAdminAvatar,
   
   // Blogs
   getBlogs,
@@ -468,6 +476,10 @@ export const adminService = {
   },
   getUserChatHistory: async (userId, params = {}) => {
     const response = await api.get(`/chat/admin/user/${userId}/history`, { params });
+    return response.data;
+  },
+  getAllInteractions: async (params = {}) => {
+    const response = await api.get('/chat/admin/interactions', { params });
     return response.data;
   }
 };

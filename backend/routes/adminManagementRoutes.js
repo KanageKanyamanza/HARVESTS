@@ -15,6 +15,10 @@ router.use(adminAuthController.protect);
 // Routes pour le profil de l'admin connecté
 router.get('/me', adminManagementController.getMe);
 router.put('/me', adminManagementController.updateMe);
+router.patch('/me/avatar', 
+  adminManagementController.uploadAdminPhoto,
+  adminManagementController.uploadAvatar
+);
 
 // Routes pour la gestion des administrateurs
 router.route('/admins')

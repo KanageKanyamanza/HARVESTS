@@ -15,7 +15,7 @@ export const ChatBotButton = ({ onClick, backToTopVisible }) => (
     }`}
     aria-label="Ouvrir le chat"
   >
-    <MessageCircle className="w-7 h-7" />
+    <span className="text-2xl">🤖</span>
   </button>
 );
 
