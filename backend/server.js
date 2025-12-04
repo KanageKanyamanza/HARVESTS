@@ -1,19 +1,22 @@
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 
-// Gestion des exceptions non capturées
+/**
+ * Gestion des exceptions non capturées
+ * Arrête le serveur en cas d'erreur critique
+ */
 process.on('uncaughtException', (err) => {
   console.log('UNCAUGHT EXCEPTION! 💥 Arrêt du serveur...');
   console.log(err.name, err.message);
   process.exit(1);
 });
 
-// Configuration des variables d'environnement
+// Chargement des variables d'environnement
 dotenv.config();
 
 const app = require('./app');
 
-// Configuration de la base de données
+// Détermination de l'URL de connexion MongoDB selon l'environnement
 let DB;
 if (process.env.DATABASE) {
   // Production avec mot de passe
@@ -29,7 +32,7 @@ if (process.env.DATABASE) {
   DB = 'mongodb://localhost:27017/harvests';
 }
 
-// Connexion à MongoDB
+// Connexion à la base de données MongoDB
 mongoose
   .connect(DB, {
     useNewUrlParser: true,
@@ -101,17 +104,20 @@ mongoose
     process.exit(1);
   });
 
-// Configuration du port
+// Configuration du port d'écoute
 const port = process.env.PORT || 8000;
 
-// Démarrage du serveur
+// Démarrage du serveur Express
 const server = app.listen(port, () => {
   console.log(`🚀 Serveur Harvests démarré sur le port ${port}`);
   console.log(`🌍 Environnement: ${process.env.NODE_ENV}`);
   console.log(`📅 Démarré le: ${new Date().toLocaleString('fr-FR')}`);
 });
 
-// Gestion des rejets de promesses non gérées
+/**
+ * Gestion des rejets de promesses non gérées
+ * Arrête le serveur gracieusement en cas d'erreur asynchrone non gérée
+ */
 process.on('unhandledRejection', (err) => {
   console.log('UNHANDLED REJECTION! 💥 Arrêt du serveur...');
   console.log(err.name, err.message);
@@ -120,7 +126,10 @@ process.on('unhandledRejection', (err) => {
   });
 });
 
-// Gestion gracieuse de l'arrêt du serveur
+/**
+ * Gestion gracieuse de l'arrêt du serveur
+ * Permet de fermer proprement les connexions avant l'arrêt
+ */
 process.on('SIGTERM', () => {
   console.log('👋 SIGTERM reçu. Arrêt gracieux du serveur...');
   server.close(() => {

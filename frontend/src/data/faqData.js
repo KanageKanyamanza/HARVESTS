@@ -56,6 +56,27 @@ export const faqData = {
       question: 'Comment obtenir un remboursement ?',
       answer: 'Pour demander un remboursement :\n1. Contactez-nous dans les 48h suivant la réception\n2. Expliquez le problème (produit endommagé, non conforme...)\n3. Nous traiterons votre demande sous 3-5 jours\n\nLe remboursement sera effectué via le même mode de paiement utilisé.'
     },
+    {
+      id: 'paiement-carte-rejetee',
+      category: 'paiement',
+      keywords: ['carte rejetée', 'carte rejeter', 'carte refusée', 'carte refuser', 'rejeter ma carte', 'refuser ma carte', 'carte bloquée', 'carte bloquer', 'carte invalide', 'carte expirée'],
+      question: 'Ma carte a été rejetée, que faire ?',
+      answer: 'Si votre carte a été rejetée, voici les solutions :\n\n1. **Vérifiez votre solde** : Assurez-vous d\'avoir suffisamment de fonds\n2. **Vérifiez les informations** : Numéro de carte, date d\'expiration et CVV corrects\n3. **Contactez votre banque** : La carte peut être bloquée pour sécurité\n4. **Essayez un autre mode** : Utilisez Mobile Money (Orange Money, Wave) ou paiement à la livraison\n\nSi le problème persiste, contactez notre support : contact@harvests.site'
+    },
+    {
+      id: 'paiement-erreur',
+      category: 'paiement',
+      keywords: ['arrive pas a payer', 'arrive pas payer', 'j\'arrive pas', 'ne peut pas payer', 'impossible de payer', 'erreur paiement', 'paiement échoué', 'paiement echoue', 'problème paiement', 'probleme paiement', 'bug paiement'],
+      question: 'Je n\'arrive pas à payer, que faire ?',
+      answer: 'Si vous rencontrez un problème de paiement :\n\n1. **Vérifiez votre connexion internet**\n2. **Rafraîchissez la page** et réessayez\n3. **Vérifiez vos informations** de paiement\n4. **Essayez un autre navigateur** ou mode navigation privée\n5. **Utilisez Mobile Money** : Orange Money, Wave ou Free Money\n6. **Paiement à la livraison** : Choisissez cette option si disponible\n\nSi le problème persiste, contactez-nous : contact@harvests.site ou +221 77 197 07 13'
+    },
+    {
+      id: 'paiement-probleme-technique',
+      category: 'paiement',
+      keywords: ['bug', 'erreur technique', 'ne fonctionne pas', 'marche pas', 'planté', 'bloqué'],
+      question: 'Problème technique lors du paiement',
+      answer: 'En cas de problème technique :\n\n1. **Rafraîchissez la page** (F5 ou Ctrl+R)\n2. **Videz le cache** de votre navigateur\n3. **Essayez un autre navigateur** (Chrome, Firefox, Safari)\n4. **Désactivez temporairement** les extensions de navigateur\n5. **Contactez le support** avec une capture d\'écran de l\'erreur\n\nEmail : contact@harvests.site\nTéléphone : +221 77 197 07 13'
+    },
 
     // Commandes
     {
@@ -101,6 +122,13 @@ export const faqData = {
       keywords: ['mot de passe', 'oublié', 'réinitialiser', 'password', 'connexion'],
       question: 'J\'ai oublié mon mot de passe',
       answer: 'Pour réinitialiser votre mot de passe :\n1. Cliquez sur "Connexion"\n2. Cliquez sur "Mot de passe oublié ?"\n3. Entrez votre email\n4. Suivez le lien reçu par email\n\nLe lien est valable 10 minutes.'
+    },
+    {
+      id: 'compte-connexion-probleme',
+      category: 'compte',
+      keywords: ['arrive pas connecter', 'arrive pas connexion', 'ne peut pas se connecter', 'impossible connexion', 'erreur connexion', 'bug connexion', 'problème connexion', 'probleme connexion'],
+      question: 'Je n\'arrive pas à me connecter',
+      answer: 'Si vous avez des difficultés de connexion :\n\n1. **Vérifiez vos identifiants** : Email et mot de passe corrects\n2. **Réinitialisez votre mot de passe** si oublié\n3. **Vérifiez votre email** : Vous devez valider votre compte\n4. **Videz le cache** de votre navigateur\n5. **Essayez un autre navigateur**\n\nSi le problème persiste, contactez-nous : contact@harvests.site'
     },
 
     // Produits
@@ -287,11 +315,44 @@ export const faqData = {
   ]
 };
 
+// Fonction pour détecter les problèmes spécifiques dans le message
+const detectSpecificIssues = (message) => {
+  const msg = message.toLowerCase();
+  
+  // Détection de problèmes de carte
+  if (msg.match(/\b(carte|card)\s+(rejet|rejeter|refus|refuser|bloqu|invalid|expir)/i) ||
+      msg.match(/\b(rejet|rejeter|refus|refuser)\s+(carte|card|ma carte)/i)) {
+    return 'paiement-carte-rejetee';
+  }
+  
+  // Détection de problèmes de paiement généraux
+  if (msg.match(/\b(arrive pas|ne peut pas|impossible|ne marche pas|ne fonctionne pas|bug|erreur|problème|probleme)\s+(a |de |le )?payer/i) ||
+      msg.match(/\b(payer|paiement)\s+(ne|pas|échou|echoue|erreur|bug)/i)) {
+    return 'paiement-erreur';
+  }
+  
+  // Détection de problèmes techniques
+  if (msg.match(/\b(bug|erreur technique|planté|bloqué|bloque|ne fonctionne pas|marche pas)/i)) {
+    return 'paiement-probleme-technique';
+  }
+  
+  return null;
+};
+
 // Fonction pour trouver la meilleure réponse
 export const findBestAnswer = (userMessage) => {
   const message = userMessage.toLowerCase().trim();
   
-  // Vérifier les intentions spéciales d'abord
+  // Détecter d'abord les problèmes spécifiques (priorité haute)
+  const specificIssue = detectSpecificIssues(message);
+  if (specificIssue) {
+    const faq = faqData.faqs.find(f => f.id === specificIssue);
+    if (faq) {
+      return { type: 'faq', faq: faq };
+    }
+  }
+  
+  // Vérifier les intentions spéciales
   for (const intent of faqData.intents) {
     for (const keyword of intent.keywords) {
       if (message.includes(keyword.toLowerCase())) {
@@ -306,16 +367,41 @@ export const findBestAnswer = (userMessage) => {
   
   for (const faq of faqData.faqs) {
     let score = 0;
+    let exactPhraseMatch = false;
+    
     for (const keyword of faq.keywords) {
       const kw = keyword.toLowerCase();
-      if (message.includes(kw)) {
-        // Les phrases complètes (avec espaces) ont un poids plus élevé
-        if (kw.includes(' ')) {
-          score += 3;
-        } else {
-          score += 1;
+      
+      // Vérifier les correspondances exactes de phrases (priorité maximale)
+      if (kw.includes(' ')) {
+        // Phrase complète - correspondance exacte
+        if (message.includes(kw)) {
+          score += 5; // Score très élevé pour les phrases complètes
+          exactPhraseMatch = true;
+        }
+      } else {
+        // Mot simple
+        // Vérifier si c'est un mot complet (pas juste une partie d'un autre mot)
+        const wordBoundary = new RegExp(`\\b${kw}\\b`, 'i');
+        if (wordBoundary.test(message)) {
+          score += 2; // Score moyen pour les mots complets
+        } else if (message.includes(kw)) {
+          score += 1; // Score faible pour les correspondances partielles
         }
       }
+    }
+    
+    // Bonus si plusieurs mots-clés correspondent (question plus spécifique)
+    const matchingKeywords = faq.keywords.filter(kw => 
+      message.includes(kw.toLowerCase())
+    ).length;
+    if (matchingKeywords > 1) {
+      score += matchingKeywords * 0.5;
+    }
+    
+    // Prioriser les FAQs spécifiques sur les générales
+    if (faq.id.includes('erreur') || faq.id.includes('probleme') || faq.id.includes('rejetee')) {
+      score += 2;
     }
     
     if (score > highestScore) {
@@ -332,4 +418,5 @@ export const findBestAnswer = (userMessage) => {
 };
 
 export default faqData;
+
 

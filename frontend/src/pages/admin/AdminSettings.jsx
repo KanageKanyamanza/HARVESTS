@@ -68,8 +68,8 @@ const AdminSettings = () => {
         setErrors(prev => ({ ...prev, avatar: 'Format de fichier non supporté. Utilisez JPG, PNG ou WEBP.' }));
         return;
       }
-      if (!profileService.validateFileSize(file)) {
-        setErrors(prev => ({ ...prev, avatar: 'Fichier trop volumineux. Taille maximale: 2MB.' }));
+      if (!profileService.validateFileSize(file, 5 * 1024 * 1024)) {
+        setErrors(prev => ({ ...prev, avatar: 'Fichier trop volumineux. Taille maximale: 5MB.' }));
         return;
       }
       setAvatarFile(file);

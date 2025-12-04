@@ -5,7 +5,9 @@ const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../mi
 
 const router = express.Router();
 
+// ============================================
 // ROUTES PUBLIQUES
+// ============================================
 
 /**
  * @swagger
@@ -171,25 +173,27 @@ router.get('/featured', productController.getFeaturedProducts);
 // Nouveaux produits
 router.get('/new', productController.getNewProducts);
 
-// Obtenir les catégories de produits
+// Catégories de produits
 router.get('/categories', productController.getCategories);
 
-// Obtenir les produits par catégorie
+// Produits par catégorie
 router.get('/category/:category', productController.getProductsByCategory);
 
-// Obtenir un produit par ID ou slug
+// Produit par ID ou slug
 router.get('/:id', productController.getProduct);
 
-// ROUTES PROTÉGÉES PRODUCTEUR
+// ============================================
+// ROUTES PROTÉGÉES - PRODUCTEUR
+// ============================================
 
-// Middleware d'authentification
+// Authentification requise
 router.use(authMiddleware.protect);
 
-// Routes pour les producteurs
+// Restriction aux producteurs uniquement
 router.use('/my', authMiddleware.restrictTo('producer'));
 router.use('/my', authMiddleware.requireVerification);
 
-// Mes produits
+// Gestion des produits du producteur
 router.route('/my')
   .get(productController.getMyProducts)
   .post(
@@ -201,13 +205,13 @@ router.route('/my')
     productController.createProduct
   );
 
-// Gestion d'un produit spécifique
+// Gestion d'un produit spécifique du producteur
 router.route('/my/:id')
   .get(productController.getMyProduct)
   .patch(productController.updateMyProduct)
   .delete(productController.deleteMyProduct);
 
-// Gestion des variantes
+// Gestion des variantes de produit
 router.route('/my/:id/variants')
   .post(productController.addVariant);
 
@@ -215,22 +219,24 @@ router.route('/my/:id/variants/:variantId')
   .patch(productController.updateVariant)
   .delete(productController.deleteVariant);
 
-// Gestion du stock
+// Mise à jour du stock
 router.patch('/my/:id/stock', productController.updateStock);
 
-// Statistiques de mes produits
+// Statistiques des produits du producteur
 router.get('/my/stats/overview', productController.getMyProductStats);
 
+// ============================================
 // ROUTES ADMIN
+// ============================================
 
 router.use(authMiddleware.restrictTo('admin'));
 
-// Modération des produits
+// Modération des produits en attente
 router.get('/pending', productController.getPendingProducts);
 router.patch('/:id/approve', productController.approveProduct);
 router.patch('/:id/reject', productController.rejectProduct);
 
-// Gestion de la vedette
+// Gestion des produits en vedette
 router.patch('/:id/feature', productController.featureProduct);
 router.patch('/:id/unfeature', productController.unfeatureProduct);
 

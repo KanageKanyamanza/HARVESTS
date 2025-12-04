@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 
-// Configuration de la connexion MongoDB
+/**
+ * Établit la connexion à MongoDB
+ * Configure les événements de connexion et la fermeture gracieuse
+ */
 const connectDB = async () => {
   try {
     const DB = process.env.DATABASE.replace(
