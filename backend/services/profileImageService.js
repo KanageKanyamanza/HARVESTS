@@ -28,7 +28,7 @@ const createImageUploadMiddleware = (imageType, fieldName) => {
     const upload = multer({
       storage: storage,
       limits: { 
-        fileSize: imageType === 'banner' ? 5 * 1024 * 1024 : 2 * 1024 * 1024 // 5MB pour bannière, 2MB pour le reste
+        fileSize: 5 * 1024 * 1024 // 5MB pour toutes les images
       },
       fileFilter: (req, file, cb) => {
         if (file.mimetype.startsWith('image')) {

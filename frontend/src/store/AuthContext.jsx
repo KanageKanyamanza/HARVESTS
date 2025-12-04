@@ -1,9 +1,13 @@
-import React, { createContext, useReducer, useEffect } from 'react';
-import { authService, consumerService, producerService, transformerService, restaurateurService, exporterService, transporterService } from '../services';
-import { adminAuthService } from '../services/adminAuthService';
+import React, { createContext, useReducer, useCallback } from 'react';
 import { getDefaultRoute, hasPermission, canAccessRoute } from '../utils/authUtils';
 import { initialState, AUTH_ACTIONS } from './authTypes';
 import { authReducer } from './authReducer';
+import { saveAuthData, clearAuthData } from './auth/authStorage';
+import { login as authLogin, register as authRegister, logout as authLogout } from './auth/authLogin';
+import { updateProfile, refreshUser, restoreSession } from './auth/authProfile';
+import { verifyEmail, forgotPassword, resetPassword, updatePassword } from './auth/authPassword';
+import { setUser, updateActivity, isTokenExpired, createContextValue } from './auth/authUtils';
+import { useRestoreSession, useUserActivity } from './auth/authHooks';
 
 // Création du contexte
 const AuthContext = createContext();
@@ -12,563 +16,76 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-
-  // Fonction pour sauvegarder les données d'auth dans localStorage
-  const saveAuthData = (user, token, tokenExpiry = null) => {
-    // Vérification basique du token (structure seulement)
-    if (!token || token === 'undefined' || token === 'null') {
-      console.warn('Tentative de sauvegarde d\'un token vide');
-      return;
-    }
-    
-    const authData = {
-      user,
-      token,
-      lastActivity: new Date().toISOString(),
-      tokenExpiry
-    };
-    
-    try {
-      localStorage.setItem('harvests_user', JSON.stringify(user));
-      localStorage.setItem('harvests_token', token);
-      localStorage.setItem('harvests_auth_data', JSON.stringify(authData));
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
-    }
-  };
-
-  // Fonction pour supprimer les données d'auth du localStorage
-  const clearAuthData = () => {
-    localStorage.removeItem('harvests_user');
-    localStorage.removeItem('harvests_token');
-    localStorage.removeItem('harvests_auth_data');
-  };
-
-  // Fonction de connexion
+  // Wrapper functions pour les actions
   const login = async (credentials) => {
-    try {
-      dispatch({ type: AUTH_ACTIONS.LOGIN_START });
-
-      let response;
-      let user;
-      let token;
-
-      // Essayer d'abord l'authentification admin
-      try {
-        response = await adminAuthService.login(credentials);
-        const { admin } = response.data.data;
-        token = response.data.token;
-        
-        // Convertir l'admin en format utilisateur pour la compatibilité
-        user = {
-          ...admin,
-          role: 'admin', // Toujours 'admin' pour l'interface
-          userType: 'admin',
-          originalRole: admin.role // Garder le rôle original pour référence
-        };
-        
-        console.log('✅ Connexion admin réussie');
-      } catch {
-        // Si l'auth admin échoue, essayer l'auth normale
-        // Ne pas logger l'erreur admin car c'est normal pour les utilisateurs non-admin
-        response = await authService.login(credentials);
-        user = response.data.data.user;
-        token = response.data.token;
-        
-        console.log('✅ Connexion utilisateur normale réussie');
-      }
-
-      // Sauvegarder dans localStorage
-      saveAuthData(user, token);
-
-      // Ajouter le statut d'approbation à l'utilisateur
-      const userWithApprovalStatus = {
-        ...user,
-        approvalStatus: {
-          isApproved: user.isApproved,
-          needsApproval: ['producer', 'transformer', 'exporter', 'transporter'].includes(user.userType),
-          canAccessDashboard: true,
-          canPerformOperations: user.isApproved || !['producer', 'transformer', 'exporter', 'transporter'].includes(user.userType)
-        }
-      };
-
-      dispatch({
-        type: AUTH_ACTIONS.LOGIN_SUCCESS,
-        payload: { user: userWithApprovalStatus, token },
-      });
-
-      return { success: true, user: userWithApprovalStatus, token };
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Erreur de connexion';
-      
-      dispatch({
-        type: AUTH_ACTIONS.LOGIN_FAILURE,
-        payload: errorMessage,
-      });
-
-      return { success: false, error: errorMessage };
-    }
+    return await authLogin(credentials, dispatch);
   };
 
-  // Fonction d'inscription
   const register = async (userData) => {
-    try {
-      dispatch({ type: AUTH_ACTIONS.REGISTER_START });
-
-      const response = await authService.register(userData);
-
-      dispatch({ type: AUTH_ACTIONS.REGISTER_SUCCESS });
-
-      return { 
-        success: true, 
-        message: response.data.message || 'Inscription réussie' 
-      };
-    } catch (error) {
-      let errorMessage = 'Erreur d\'inscription';
-      
-      // Gérer les erreurs de timeout
-      if (error.isTimeout) {
-        errorMessage = 'La requête a pris trop de temps. Veuillez réessayer.';
-      } 
-      // Gérer les erreurs de serveur
-      else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-      // Gérer les erreurs réseau
-      else if (error.code === 'NETWORK_ERROR' || !error.response) {
-        errorMessage = 'Problème de connexion. Vérifiez votre connexion internet.';
-      }
-      
-      dispatch({
-        type: AUTH_ACTIONS.REGISTER_FAILURE,
-        payload: errorMessage,
-      });
-
-      return { success: false, error: errorMessage };
-    }
+    return await authRegister(userData, dispatch);
   };
 
-  // Fonction de déconnexion
   const logout = async () => {
-    try {
-      // Appeler l'API de déconnexion si nécessaire
-      await authService.logout();
-    } catch (error) {
-      console.warn('Logout API call failed:', error);
-    } finally {
-      // Nettoyer les données locales
-      clearAuthData();
-      dispatch({ type: AUTH_ACTIONS.LOGOUT });
-    }
+    return await authLogout(dispatch, clearAuthData);
   };
 
-  // Fonction de mise à jour du profil
-  const updateProfile = async (userData) => {
-    try {
-      let response;
-      
-      // Utiliser le bon service selon le type d'utilisateur
-      if (state.user?.userType === 'consumer') {
-        response = await consumerService.updateProfile(userData);
-      } else if (state.user?.userType === 'producer') {
-        response = await producerService.updateProfile(userData);
-      } else if (state.user?.userType === 'transformer') {
-        response = await transformerService.updateProfile(userData);
-      } else if (state.user?.userType === 'restaurateur') {
-        response = await restaurateurService.updateMyProfile(userData);
-      } else if (state.user?.userType === 'exporter') {
-        response = await exporterService.updateProfile(userData);
-      } else if (state.user?.userType === 'transporter') {
-        response = await transporterService.updateProfile(userData);
-      } else {
-        // Fallback vers le service générique
-        response = await authService.updateProfile(userData);
-      }
-      
-      // Extraire l'utilisateur mis à jour selon la structure de la réponse
-      const updatedUser = response.data?.data?.restaurateur || 
-                         response.data?.data?.transformer || 
-                         response.data?.data?.producer || 
-                         response.data?.data?.consumer ||
-                         response.data?.data?.exporter ||
-                         response.data?.data?.transporter ||
-                         response.data?.data?.user ||
-                         response.data?.user ||
-                         response.data?.data;
-
-      // Mettre à jour localStorage
-      saveAuthData(updatedUser, state.token);
-
-      dispatch({
-        type: AUTH_ACTIONS.UPDATE_PROFILE,
-        payload: updatedUser,
-      });
-
-      return { success: true, user: updatedUser };
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Erreur de mise à jour';
-      return { success: false, error: errorMessage };
-    }
+  const updateProfileWrapper = async (userData) => {
+    return await updateProfile(userData, state, dispatch);
   };
 
-  // Fonction pour restaurer la session et recharger les données complètes
-  const restoreSession = async () => {
-    // Marquer comme en cours de chargement pour éviter les redirections prématurées
-    dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: true });
-    
-    try {
-      const token = localStorage.getItem('harvests_token');
-      const userStr = localStorage.getItem('harvests_user');
-      const authDataStr = localStorage.getItem('harvests_auth_data');
-
-      // Vérifier que nous avons des données (moins strict)
-      if (token && userStr) {
-        const user = JSON.parse(userStr);
-        let authData = null;
-        
-        try {
-          authData = authDataStr ? JSON.parse(authDataStr) : null;
-        } catch (parseError) {
-          console.warn('Erreur parsing auth data:', parseError);
-        }
-
-        // Restaurer la session avec les données locales
-        dispatch({
-          type: AUTH_ACTIONS.RESTORE_SESSION,
-          payload: { 
-            user, 
-            token,
-            lastActivity: authData?.lastActivity,
-            tokenExpiry: authData?.tokenExpiry
-          },
-        });
-
-        // Recharger les données complètes depuis l'API
-        try {
-          // Délai pour éviter le rate limiting
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-          let response;
-          
-          // Détecter si c'est un admin ou un utilisateur normal
-          if (user.role === 'admin' || user.userType === 'admin') {
-            response = await adminAuthService.getProfile();
-            if (response.data?.status === 'success' && response.data?.data?.admin) {
-              const updatedAdmin = response.data.data.admin;
-              // Convertir l'admin en format utilisateur pour la compatibilité
-              const updatedUser = {
-                ...updatedAdmin,
-                role: 'admin',
-                userType: 'admin'
-              };
-              
-              // Mettre à jour le localStorage avec les données complètes
-              saveAuthData(updatedUser, token);
-              
-              // Mettre à jour le contexte avec les données complètes
-              dispatch({
-                type: AUTH_ACTIONS.UPDATE_PROFILE,
-                payload: updatedUser,
-              });
-            }
-          } else {
-            // Utiliser le service spécifique selon le type d'utilisateur
-            const userType = user.userType;
-            let response;
-            let updatedUser = null;
-            
-            if (userType === 'restaurateur') {
-              response = await restaurateurService.getMyProfile();
-              updatedUser = response.data?.data?.restaurateur || response.data?.restaurateur;
-            } else if (userType === 'transformer') {
-              response = await transformerService.getProfile();
-              updatedUser = response.data?.data?.transformer || response.data?.transformer || response.data?.data?.user || response.data?.user;
-            } else if (userType === 'producer') {
-              response = await producerService.getProfile();
-              updatedUser = response.data?.data?.producer || response.data?.producer || response.data?.data?.user || response.data?.user;
-            } else if (userType === 'consumer') {
-              response = await consumerService.getProfile();
-              updatedUser = response.data?.data?.consumer || response.data?.consumer || response.data?.data?.user || response.data?.user;
-            } else if (userType === 'exporter') {
-              response = await exporterService.getProfile();
-              updatedUser = response.data?.data?.exporter || response.data?.exporter || response.data?.data?.user || response.data?.user;
-            } else if (userType === 'transporter') {
-              response = await transporterService.getProfile();
-              updatedUser = response.data?.data?.transporter || response.data?.transporter || response.data?.data?.user || response.data?.user;
-            } else {
-              response = await authService.getProfile();
-              updatedUser = response.data?.user || response.data?.data?.user;
-            }
-            
-            if (updatedUser) {
-              // Mettre à jour le localStorage avec les données complètes
-              saveAuthData(updatedUser, token);
-              
-              // Mettre à jour le contexte avec les données complètes
-              dispatch({
-                type: AUTH_ACTIONS.UPDATE_PROFILE,
-                payload: updatedUser,
-              });
-            }
-          }
-        } catch (apiError) {
-          console.warn('Impossible de recharger les données depuis l\'API:', apiError);
-          // Continuer avec les données locales si l'API échoue
-        }
-
-        // Session restaurée avec succès
-      } else {
-        // Nettoyer les données invalides seulement si vraiment corrompues
-        if (token && (token === 'undefined' || token === 'null' || token.length < 10)) {
-          clearAuthData();
-        }
-      }
-    } catch (error) {
-      console.error('Erreur lors de la restauration de session:', error);
-      clearAuthData();
-    } finally {
-      // Toujours arrêter le loading
-      dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
-    }
+  const refreshUserWrapper = async () => {
+    return await refreshUser(state, dispatch);
   };
 
-  // Fonction pour effacer les erreurs
+  // Utiliser useCallback pour éviter la boucle infinie
+  const restoreSessionWrapper = useCallback(async () => {
+    return await restoreSession(dispatch, clearAuthData);
+  }, [dispatch]);
+
+  const setUserWrapper = (updatedUser) => {
+    const token = localStorage.getItem('harvests_token');
+    setUser(updatedUser, token, dispatch);
+  };
+
+  const updateActivityWrapper = () => {
+    updateActivity(dispatch);
+  };
+
+  const isTokenExpiredWrapper = () => {
+    return isTokenExpired(state.tokenExpiry);
+  };
+
   const clearError = () => {
     dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
   };
 
-  // Fonction pour recharger les données de l'utilisateur
-  const refreshUser = async () => {
-    if (!state.isAuthenticated || !state.user) {
-      console.warn('Impossible de recharger les données: utilisateur non connecté');
-      return { success: false, message: 'Utilisateur non connecté' };
-    }
-
-    try {
-      const token = localStorage.getItem('harvests_token');
-      let response;
-      let updatedUser = null;
-      
-      // Détecter si c'est un admin ou un utilisateur normal
-      if (state.user.role === 'admin' || state.user.userType === 'admin') {
-        response = await adminAuthService.getProfile();
-        if (response.data?.status === 'success' && response.data?.data?.admin) {
-          const updatedAdmin = response.data.data.admin;
-          updatedUser = {
-            ...updatedAdmin,
-            role: 'admin',
-            userType: 'admin'
-          };
-        }
-      } else {
-        // Utiliser le service spécifique selon le type d'utilisateur
-        const userType = state.user.userType;
-        
-        if (userType === 'restaurateur') {
-          response = await restaurateurService.getMyProfile();
-          updatedUser = response.data?.data?.restaurateur || response.data?.restaurateur;
-        } else if (userType === 'transformer') {
-          response = await transformerService.getProfile();
-          updatedUser = response.data?.data?.transformer || response.data?.transformer || response.data?.data?.user || response.data?.user;
-        } else if (userType === 'producer') {
-          response = await producerService.getProfile();
-          updatedUser = response.data?.data?.producer || response.data?.producer || response.data?.data?.user || response.data?.user;
-        } else if (userType === 'consumer') {
-          response = await consumerService.getProfile();
-          updatedUser = response.data?.data?.consumer || response.data?.consumer || response.data?.data?.user || response.data?.user;
-        } else if (userType === 'exporter') {
-          response = await exporterService.getProfile();
-          updatedUser = response.data?.data?.exporter || response.data?.exporter || response.data?.data?.user || response.data?.user;
-        } else if (userType === 'transporter') {
-          response = await transporterService.getProfile();
-          updatedUser = response.data?.data?.transporter || response.data?.transporter || response.data?.data?.user || response.data?.user;
-        } else {
-          // Fallback vers le service générique
-          response = await authService.getProfile();
-          updatedUser = response.data?.user || response.data?.data?.user;
-        }
-      }
-      
-      if (updatedUser) {
-        saveAuthData(updatedUser, token);
-        dispatch({
-          type: AUTH_ACTIONS.UPDATE_PROFILE,
-          payload: updatedUser,
-        });
-        return { success: true, message: 'Données utilisateur mises à jour', user: updatedUser };
-      }
-      
-      return { success: false, message: 'Erreur lors de la mise à jour' };
-    } catch (error) {
-      console.error('Erreur lors du rechargement des données utilisateur:', error);
-      return { success: false, message: 'Erreur lors de la mise à jour' };
-    }
-  };
-
-  // Fonction pour vérifier l'email
-  const verifyEmail = async (token) => {
-    try {
-      const response = await authService.verifyEmail(token);
-      return { success: true, message: response.data.message };
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Erreur de vérification';
-      return { success: false, error: errorMessage };
-    }
-  };
-
-  // Fonction pour mot de passe oublié
-  const forgotPassword = async (email) => {
-    try {
-      const response = await authService.forgotPassword(email);
-      return { success: true, message: response.data.message };
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Erreur d\'envoi d\'email';
-      return { success: false, error: errorMessage };
-    }
-  };
-
-  // Fonction pour réinitialiser le mot de passe
-  const resetPassword = async (token, password) => {
-    try {
-      const response = await authService.resetPassword(token, password);
-      return { success: true, message: response.data.message };
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Erreur de réinitialisation';
-      return { success: false, error: errorMessage };
-    }
-  };
-
-  // Fonction pour changer le mot de passe
-  const updatePassword = async (passwords) => {
-    try {
-      const response = await authService.updatePassword(passwords);
-      return { success: true, message: response.data.message };
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Erreur de changement de mot de passe';
-      return { success: false, error: errorMessage };
-    }
-  };
-
-  // Fonction pour mettre à jour l'activité utilisateur
-  const updateActivity = () => {
-    if (state.isAuthenticated) {
-      dispatch({ type: AUTH_ACTIONS.UPDATE_LAST_ACTIVITY });
-    }
-  };
-
-  // Fonction pour vérifier si le token est expiré
-  const isTokenExpired = () => {
-    if (!state.tokenExpiry) return false;
-    return new Date() > new Date(state.tokenExpiry);
-  };
-
-
-  // Restaurer la session au chargement
-  useEffect(() => {
-    const initializeSession = async () => {
-      await restoreSession();
-    };
-    initializeSession();
-  }, []);
-
-  // Surveiller l'activité utilisateur et la gestion du token
-  useEffect(() => {
-    if (!state.isAuthenticated) return;
-
-    // Fonction pour gérer l'activité utilisateur
-    const handleUserActivity = () => {
-      updateActivity();
-    };
-
-    // Ajouter les écouteurs d'événements pour détecter l'activité
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
-    events.forEach(event => {
-      document.addEventListener(event, handleUserActivity, { passive: true });
-    });
-
-    // Vérifier périodiquement l'expiration du token
-    const tokenCheckInterval = setInterval(() => {
-      if (isTokenExpired()) {
-        console.warn('Token expiré, déconnexion automatique');
-        logout().then(() => {
-          // Rediriger vers l'accueil après déconnexion automatique
-          window.location.href = '/';
-        });
-      }
-    }, 60000); // Vérifier chaque minute
-
-    // Nettoyer les écouteurs et intervalles
-    return () => {
-      events.forEach(event => {
-        document.removeEventListener(event, handleUserActivity);
-      });
-      clearInterval(tokenCheckInterval);
-    };
-  }, [state.isAuthenticated, state.tokenExpiry]);
-
-  // Fonction pour mettre à jour l'utilisateur directement (sans appel API)
-  // Utilisée après une mise à jour réussie pour éviter un double appel
-  const setUser = (updatedUser) => {
-    if (!updatedUser) return;
-    
-    const token = localStorage.getItem('harvests_token');
-    saveAuthData(updatedUser, token);
-    dispatch({
-      type: AUTH_ACTIONS.UPDATE_PROFILE,
-      payload: updatedUser,
-    });
-  };
+  // Hooks
+  useRestoreSession(restoreSessionWrapper);
+  useUserActivity(state, updateActivityWrapper, isTokenExpiredWrapper, logout);
 
   // Valeur du contexte
-  const value = {
-    // État
-    ...state,
-    
-    // Actions
-    login,
-    register,
-    logout,
-    updateProfile,
-    setUser, // Nouvelle fonction pour mettre à jour directement
-    clearError,
-    refreshUser,
-    verifyEmail,
-    forgotPassword,
-    resetPassword,
-    updatePassword,
-    updateActivity,
-    
-    // Fonctions utilitaires de type d'utilisateur
-    isProducer: state.user?.userType === 'producer',
-    isConsumer: state.user?.userType === 'consumer',
-    isTransformer: state.user?.userType === 'transformer',
-    isRestaurateur: state.user?.userType === 'restaurateur',
-    isExporter: state.user?.userType === 'exporter',
-    isTransporter: state.user?.userType === 'transporter',
-    isExplorer: state.user?.userType === 'explorer',
-    userType: state.user?.userType || null,
-    
-    // Vérifications de statut
-    isEmailVerified: state.user?.isEmailVerified || false,
-    isAccountApproved: state.user?.isApproved || false,
-    isAccountActive: state.user?.isActive || false,
-    isProfileComplete: state.user?.isProfileComplete || false,
-    
-    // Fonctions de gestion des permissions et routes
-    hasPermission: (permission) => hasPermission(state.user?.userType, permission),
-    canAccessRoute: (route) => canAccessRoute(route, state.user?.userType, state.isAuthenticated, state.user?.role),
-    getDefaultRoute: () => getDefaultRoute(state.user?.userType, state.user?.role),
-    isTokenExpired,
-    
-    // Informations utilisateur enrichies
-    userDisplayName: state.user ? `${state.user.firstName} ${state.user.lastName || ''}`.trim() : null,
-    userInitials: state.user ? `${state.user.firstName?.charAt(0) || ''}${state.user.lastName?.charAt(0) || ''}`.toUpperCase() : null,
-    userPreferences: {
-      language: state.user?.preferredLanguage || 'fr',
-      country: state.user?.country || 'SN',
-      currency: state.user?.preferredCurrency || 'XAF',
+  const value = createContextValue(
+    state,
+    {
+      login,
+      register,
+      logout,
+      updateProfile: updateProfileWrapper,
+      setUser: setUserWrapper,
+      clearError,
+      refreshUser: refreshUserWrapper,
+      verifyEmail,
+      forgotPassword,
+      resetPassword,
+      updatePassword,
+      updateActivity: updateActivityWrapper,
     },
-  };
+    {
+      hasPermission,
+      canAccessRoute,
+      getDefaultRoute,
+    }
+  );
 
   return (
     <AuthContext.Provider value={value}>
@@ -579,4 +96,3 @@ export const AuthProvider = ({ children }) => {
 
 // Exporter le contexte pour le hook
 export { AuthContext };
-

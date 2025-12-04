@@ -1,30 +1,47 @@
 const AppError = require('../utils/appError');
 
+/**
+ * Gère les erreurs de conversion MongoDB (ID invalide)
+ */
 const handleCastErrorDB = (err) => {
   const message = `Ressource invalide: ${err.path} = ${err.value}`;
   return new AppError(message, 400);
 };
 
+/**
+ * Gère les erreurs de champs dupliqués dans MongoDB
+ */
 const handleDuplicateFieldsDB = (err) => {
   const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
   const message = `Valeur dupliquée: ${value}. Veuillez utiliser une autre valeur!`;
   return new AppError(message, 400);
 };
 
+/**
+ * Gère les erreurs de validation Mongoose
+ */
 const handleValidationErrorDB = (err) => {
   const errors = Object.values(err.errors).map((el) => el.message);
   const message = `Données invalides: ${errors.join('. ')}`;
   return new AppError(message, 400);
 };
 
+/**
+ * Gère les erreurs de token JWT invalide
+ */
 const handleJWTError = () =>
   new AppError('Token invalide. Veuillez vous reconnecter!', 401);
 
+/**
+ * Gère les erreurs de token JWT expiré
+ */
 const handleJWTExpiredError = () =>
   new AppError('Votre token a expiré! Veuillez vous reconnecter.', 401);
 
+/**
+ * Envoie les erreurs en mode développement (avec détails complets)
+ */
 const sendErrorDev = (err, req, res) => {
-  // API
   if (req.originalUrl.startsWith('/api')) {
     return res.status(err.statusCode).json({
       status: err.status,
@@ -34,7 +51,6 @@ const sendErrorDev = (err, req, res) => {
     });
   }
 
-  // RENDERED WEBSITE - Retour JSON au lieu de render
   console.error('ERROR 💥', err);
   return res.status(err.statusCode).json({
     status: err.status,
@@ -44,44 +60,41 @@ const sendErrorDev = (err, req, res) => {
   });
 };
 
+/**
+ * Envoie les erreurs en mode production (sans détails sensibles)
+ */
 const sendErrorProd = (err, req, res) => {
-  // A) API
   if (req.originalUrl.startsWith('/api')) {
-    // A) Operational, trusted error: send message to client
     if (err.isOperational) {
       return res.status(err.statusCode).json({
         status: err.status,
         message: err.message,
       });
     }
-    // B) Programming or other unknown error: don't leak error details
-    // 1) Log error
     console.error('ERROR 💥', err);
-    // 2) Send generic message
     return res.status(500).json({
       status: 'error',
       message: 'Une erreur est survenue!',
     });
   }
 
-  // B) RENDERED WEBSITE - Retour JSON au lieu de render
-  // A) Operational, trusted error: send message to client
   if (err.isOperational) {
     return res.status(err.statusCode).json({
       status: err.status,
       message: err.message,
     });
   }
-  // B) Programming or other unknown error: don't leak error details
-  // 1) Log error
   console.error('ERROR 💥', err);
-  // 2) Send generic message
   return res.status(err.statusCode).json({
     status: 'error',
     message: 'Une erreur est survenue!',
   });
 };
 
+/**
+ * Middleware global de gestion des erreurs
+ * Centralise la gestion de toutes les erreurs de l'application
+ */
 module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
@@ -92,6 +105,7 @@ module.exports = (err, req, res, next) => {
     let error = { ...err };
     error.message = err.message;
 
+    // Traitement des erreurs spécifiques MongoDB et JWT
     if (error.name === 'CastError') error = handleCastErrorDB(error);
     if (error.code === 11000) error = handleDuplicateFieldsDB(error);
     if (error.name === 'ValidationError')

@@ -1,18 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { adminService } from '../../services/adminService';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  Shield, 
-  UserCheck,
-  UserX,
-  MoreVertical
-} from 'lucide-react';
+import { Plus } from 'lucide-react';
+import AdminFilters from './adminManagement/AdminFilters';
+import AdminTable from './adminManagement/AdminTable';
+import AdminPagination from './adminManagement/AdminPagination';
+import AdminCreateModal from './adminManagement/AdminCreateModal';
+import AdminViewModal from './adminManagement/AdminViewModal';
+import AdminEditModal from './adminManagement/AdminEditModal';
+import { getRoleColor, getRoleLabel, getDepartmentLabel, formatDate } from './adminManagement/utils';
 
 const AdminManagement = () => {
   const [admins, setAdmins] = useState([]);
@@ -21,34 +17,48 @@ const AdminManagement = () => {
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [itemsPerPage] = useState(10);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  // Fonction loadAdmins mémorisée pour éviter les re-rendus
+  // Formulaire de création/édition
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    phone: '',
+    role: 'moderator',
+    department: 'support',
+    isActive: true
+  });
+
+  // Fonction loadAdmins mémorisée
   const loadAdmins = useCallback(async () => {
     try {
       setLoading(true);
+      setError('');
       const response = await adminService.getAdmins({
         page: currentPage,
         limit: itemsPerPage,
         search: searchTerm,
         role: roleFilter,
-        status: statusFilter
+        status: statusFilter === 'active' ? 'true' : statusFilter === 'inactive' ? 'false' : undefined
       });
       
-      // Vérifier si la réponse contient des administrateurs
-      if (response.data && response.data.admins) {
-        setAdmins(response.data.admins || []);
-        setTotalPages(response.data.totalPages || 1);
-        setTotalItems(response.data.totalItems || 0);
-      } else if (response.data && response.data.data && response.data.data.admins) {
-        // Structure alternative avec data.admins
-        setAdmins(response.data.data.admins || []);
-        setTotalPages(response.data.data.totalPages || 1);
-        setTotalItems(response.data.data.totalItems || 0);
+      if (response.status === 'success' || response.data) {
+        const data = response.data || response;
+        setAdmins(data.admins || []);
+        const total = data.total || data.admins?.length || 0;
+        setTotalItems(total);
+        setTotalPages(Math.ceil(total / itemsPerPage));
       } else {
         setAdmins([]);
         setTotalPages(1);
@@ -56,6 +66,7 @@ const AdminManagement = () => {
       }
     } catch (error) {
       console.error('Erreur lors du chargement des administrateurs:', error);
+      setError('Erreur lors du chargement des administrateurs');
       setAdmins([]);
       setTotalPages(1);
       setTotalItems(0);
@@ -68,69 +79,158 @@ const AdminManagement = () => {
     loadAdmins();
   }, [loadAdmins]);
 
-  const filteredAdmins = admins.filter(admin => {
-    const matchesSearch = admin.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         admin.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         admin.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = !roleFilter || admin.role === roleFilter;
-    const matchesStatus = !statusFilter || 
-                         (statusFilter === 'active' && admin.isActive) ||
-                         (statusFilter === 'inactive' && !admin.isActive);
+  // Réinitialiser les filtres quand ils changent
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, roleFilter, statusFilter]);
+
+  // Gestion de la création
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      await adminService.createAdmin(formData);
+      setSuccess('Administrateur créé avec succès');
+      setShowCreateModal(false);
+      resetForm();
+      loadAdmins();
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      setError(error.response?.data?.message || 'Erreur lors de la création de l\'administrateur');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Gestion de l'édition
+  const handleEdit = async (e) => {
+    e.preventDefault();
+    if (!selectedAdmin) return;
     
-    return matchesSearch && matchesRole && matchesStatus;
-  });
+    setSaving(true);
+    setError('');
+    setSuccess('');
 
-  const getRoleColor = (role) => {
-    const colors = {
-      'super-admin': 'bg-red-100 text-red-800',
-      'admin': 'bg-blue-100 text-blue-800',
-      'moderator': 'bg-green-100 text-green-800',
-      'support': 'bg-yellow-100 text-yellow-800'
-    };
-    return colors[role] || 'bg-gray-100 text-gray-800';
+    try {
+      const updateData = { ...formData };
+      // Ne pas envoyer le mot de passe s'il est vide
+      if (!updateData.password) {
+        delete updateData.password;
+      }
+      await adminService.updateAdmin(selectedAdmin._id, updateData);
+      setSuccess('Administrateur mis à jour avec succès');
+      setShowEditModal(false);
+      setSelectedAdmin(null);
+      resetForm();
+      loadAdmins();
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      setError(error.response?.data?.message || 'Erreur lors de la mise à jour de l\'administrateur');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const getRoleLabel = (role) => {
-    const labels = {
-      'super-admin': 'Super Admin',
-      'admin': 'Admin',
-      'moderator': 'Modérateur',
-      'support': 'Support'
-    };
-    return labels[role] || role;
+  // Gestion de la suppression
+  const handleDelete = async (admin) => {
+    if (!window.confirm(`Êtes-vous sûr de vouloir supprimer l'administrateur ${admin.firstName} ${admin.lastName} ?`)) {
+      return;
+    }
+
+    try {
+      setError('');
+      await adminService.deleteAdmin(admin._id);
+      setSuccess('Administrateur supprimé avec succès');
+      loadAdmins();
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      setError(error.response?.data?.message || 'Erreur lors de la suppression de l\'administrateur');
+    }
   };
 
-  const getDepartmentLabel = (department) => {
-    const labels = {
-      'technical': 'Technique',
-      'support': 'Support',
-      'marketing': 'Marketing',
-      'finance': 'Finance',
-      'operations': 'Opérations'
-    };
-    return labels[department] || department;
+  // Gestion du toggle status
+  const handleToggleStatus = async (admin) => {
+    try {
+      setError('');
+      await adminService.toggleAdminStatus(admin._id);
+      setSuccess(`Administrateur ${admin.isActive ? 'désactivé' : 'activé'} avec succès`);
+      loadAdmins();
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (error) {
+      setError(error.response?.data?.message || 'Erreur lors du changement de statut');
+    }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+  // Ouvrir modal de visualisation
+  const handleView = async (admin) => {
+    try {
+      const response = await adminService.getAdminById(admin._id);
+      setSelectedAdmin(response.data?.admin || response.admin || admin);
+      setShowViewModal(true);
+    } catch (error) {
+      setError('Erreur lors du chargement des détails');
+      setSelectedAdmin(admin);
+      setShowViewModal(true);
+    }
+  };
+
+  // Ouvrir modal d'édition
+  const handleEditClick = (admin) => {
+    setSelectedAdmin(admin);
+    setFormData({
+      firstName: admin.firstName || '',
+      lastName: admin.lastName || '',
+      email: admin.email || '',
+      password: '',
+      phone: admin.phone || '',
+      role: admin.role || 'moderator',
+      department: admin.department || 'support',
+      isActive: admin.isActive !== undefined ? admin.isActive : true
     });
+    setShowEditModal(true);
   };
 
-  if (loading) {
+  // Réinitialiser le formulaire
+  const resetForm = () => {
+    setFormData({
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+      phone: '',
+      role: 'moderator',
+      department: 'support',
+      isActive: true
+    });
+    setSelectedAdmin(null);
+  };
+
+  if (loading && admins.length === 0) {
     return (
-      <div className="min-h-screen bg-harvests-light flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <LoadingSpinner size="lg" text="Chargement..." />
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Messages de succès/erreur */}
+        {success && (
+          <div className="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
+            {success}
+          </div>
+        )}
+        {error && (
+          <div className="mb-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+            {error}
+          </div>
+        )}
+
         {/* En-tête */}
         <div className="mb-8">
           <div className="flex justify-between items-center">
@@ -143,7 +243,10 @@ const AdminManagement = () => {
               </p>
             </div>
             <button
-              onClick={() => setShowCreateModal(true)}
+              onClick={() => {
+                resetForm();
+                setShowCreateModal(true);
+              }}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
             >
               <Plus className="h-5 w-5 mr-2" />
@@ -153,190 +256,74 @@ const AdminManagement = () => {
         </div>
 
         {/* Filtres */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Recherche
-              </label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Rechercher un administrateur..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Rôle
-              </label>
-              <select
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Tous les rôles</option>
-                <option value="super-admin">Super Admin</option>
-                <option value="admin">Admin</option>
-                <option value="moderator">Modérateur</option>
-                <option value="support">Support</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Statut
-              </label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Tous les statuts</option>
-                <option value="active">Actif</option>
-                <option value="inactive">Inactif</option>
-              </select>
-            </div>
-          </div>
-        </div>
+        <AdminFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          roleFilter={roleFilter}
+          setRoleFilter={setRoleFilter}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+        />
 
         {/* Tableau des administrateurs */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-harvests-light">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nom
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Rôle
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Département
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Statut
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Dernière connexion
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredAdmins.map((admin) => (
-                  <tr key={admin._id} className="hover:bg-harvests-light">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                            <span className="text-sm font-medium text-gray-700">
-                              {admin.firstName[0]}{admin.lastName[0]}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {admin.firstName} {admin.lastName}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {admin.email}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(admin.role)}`}>
-                        {getRoleLabel(admin.role)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {getDepartmentLabel(admin.department)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        admin.isActive 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {admin.isActive ? (
-                          <>
-                            <UserCheck className="h-3 w-3 mr-1" />
-                            Actif
-                          </>
-                        ) : (
-                          <>
-                            <UserX className="h-3 w-3 mr-1" />
-                            Inactif
-                          </>
-                        )}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(admin.lastLogin)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => setSelectedAdmin(admin)}
-                          className="text-blue-600 hover:text-blue-900"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => setSelectedAdmin(admin)}
-                          className="text-indigo-600 hover:text-indigo-900"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (window.confirm('Êtes-vous sûr de vouloir supprimer cet administrateur ?')) {
-                              // Logique de suppression
-                              // Logique de suppression
-                            }
-                          }}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <AdminTable
+          admins={admins}
+          getRoleColor={getRoleColor}
+          getRoleLabel={getRoleLabel}
+          getDepartmentLabel={getDepartmentLabel}
+          formatDate={formatDate}
+          handleView={handleView}
+          handleEditClick={handleEditClick}
+          handleDelete={handleDelete}
+          handleToggleStatus={handleToggleStatus}
+        />
 
         {/* Pagination */}
-        <div className="mt-6 flex items-center justify-between">
-          <div className="text-sm text-gray-700">
-            Affichage de <span className="font-medium">1</span> à <span className="font-medium">{filteredAdmins.length}</span> sur <span className="font-medium">{admins.length}</span> résultats
-          </div>
-          <div className="flex space-x-2">
-            <button className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-harvests-light">
-              Précédent
-            </button>
-            <button className="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700">
-              1
-            </button>
-            <button className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-harvests-light">
-              Suivant
-            </button>
-          </div>
-        </div>
+        <AdminPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          setCurrentPage={setCurrentPage}
+        />
+
+        {/* Modal de création */}
+        <AdminCreateModal
+          show={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          formData={formData}
+          setFormData={setFormData}
+          onSubmit={handleCreate}
+          saving={saving}
+          resetForm={resetForm}
+        />
+
+        {/* Modal de visualisation */}
+        <AdminViewModal
+          show={showViewModal}
+          onClose={() => {
+            setShowViewModal(false);
+            setSelectedAdmin(null);
+          }}
+          admin={selectedAdmin}
+          getRoleColor={getRoleColor}
+          getRoleLabel={getRoleLabel}
+          getDepartmentLabel={getDepartmentLabel}
+          formatDate={formatDate}
+        />
+
+        {/* Modal d'édition */}
+        <AdminEditModal
+          show={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          admin={selectedAdmin}
+          formData={formData}
+          setFormData={setFormData}
+          onSubmit={handleEdit}
+          saving={saving}
+          resetForm={resetForm}
+        />
+      </div>
     </div>
   );
 };

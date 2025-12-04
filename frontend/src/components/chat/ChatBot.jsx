@@ -48,15 +48,14 @@ const ChatBot = () => {
       setInfoStep(null);
       setAskingForInfo(false);
       
-      // Récupérer la question en attente et y répondre
+      // Récupérer la question en attente et y répondre directement
       const pendingMessage = sessionStorage.getItem('pending_chat_message');
       if (pendingMessage) {
         sessionStorage.removeItem('pending_chat_message');
-        addBotMessage(`Parfait ! Je suis prêt à vous aider. 😊`);
-        // Traiter la question en attente
+        // Traiter directement la question en attente sans message intermédiaire
         setTimeout(() => {
           handleSendMessage(pendingMessage);
-        }, 500);
+        }, 300);
       } else {
         addBotMessage(`Parfait ! Je suis prêt à vous aider. Que puis-je faire pour vous ?`);
         setShowCategories(true);

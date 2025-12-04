@@ -4,9 +4,12 @@ const User = require('../../models/User');
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
 
-// Middleware de protection des routes
+/**
+ * Middleware de protection des routes
+ * Vérifie l'authentification de l'utilisateur via JWT
+ */
 exports.protect = catchAsync(async (req, res, next) => {
-  // 1) Récupérer le token et vérifier s'il est là
+  // Récupérer le token depuis les headers ou les cookies
   let token;
   if (
     req.headers.authorization &&
@@ -23,10 +26,10 @@ exports.protect = catchAsync(async (req, res, next) => {
     );
   }
 
-  // 2) Vérifier le token
+  // Vérifier et décoder le token JWT
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
-  // 3) Vérifier si l'utilisateur existe toujours
+  // Vérifier si l'utilisateur existe toujours
   const currentUser = await User.findById(decoded.id);
   if (!currentUser) {
     return next(
@@ -34,36 +37,36 @@ exports.protect = catchAsync(async (req, res, next) => {
     );
   }
 
-  // 4) Vérifier si l'utilisateur a changé de mot de passe après l'émission du token
+  // Vérifier si le mot de passe a été changé après l'émission du token
   if (currentUser.changedPasswordAfter(decoded.iat)) {
     return next(
       new AppError('L\'utilisateur a récemment changé de mot de passe! Veuillez vous reconnecter.', 401)
     );
   }
 
-  // 5) Vérifier si le compte est actif
+  // Vérifier si le compte est actif
   if (!currentUser.isActive) {
     return next(new AppError('Votre compte a été désactivé', 401));
   }
 
-  // 6) Vérifier si le compte n'est pas suspendu
+  // Vérifier si le compte n'est pas suspendu
   if (currentUser.suspendedUntil && currentUser.suspendedUntil > new Date()) {
     return next(new AppError('Votre compte est temporairement suspendu', 403));
   }
 
-  // ACCÈS ACCORDÉ À LA ROUTE PROTÉGÉE
+  // Ajouter l'utilisateur à la requête
   req.user = currentUser;
   res.locals.user = currentUser;
-  
-  // Ajouter les informations de vérification d'email
-  // Note: emailVerified est un alias pour isEmailVerified pour compatibilité
   req.user.emailVerified = currentUser.isEmailVerified;
   req.user.requiresEmailVerification = !currentUser.isEmailVerified;
   
   next();
 });
 
-// Middleware de restriction par rôle
+/**
+ * Middleware de restriction par type d'utilisateur
+ * Limite l'accès aux routes selon le type d'utilisateur
+ */
 exports.restrictTo = (...userTypes) => {
   return (req, res, next) => {
     if (!userTypes.includes(req.user.userType)) {
@@ -75,7 +78,10 @@ exports.restrictTo = (...userTypes) => {
   };
 };
 
-// Middleware pour vérifier si l'utilisateur est vérifié
+/**
+ * Middleware pour vérifier la vérification d'email
+ * Exige que l'utilisateur ait vérifié son email pour accéder à certaines fonctionnalités
+ */
 exports.requireVerification = (req, res, next) => {
   if (!req.user.isEmailVerified) {
     return res.status(403).json({

@@ -50,7 +50,7 @@ const profileService = {
   },
   
   // Validation de la taille des fichiers
-  validateFileSize: (file, maxSize = 2 * 1024 * 1024) => { // 2MB par défaut
+  validateFileSize: (file, maxSize = 5 * 1024 * 1024) => { // 5MB par défaut
     return file.size <= maxSize;
   },
   
@@ -58,7 +58,7 @@ const profileService = {
   getImageConfig: (imageType) => {
     const configs = {
       avatar: {
-        maxSize: 2 * 1024 * 1024, // 2MB
+        maxSize: 5 * 1024 * 1024, // 5MB
         allowedTypes: ['image/jpeg', 'image/png', 'image/webp'],
         fieldName: 'avatar',
         uploadFunction: 'uploadAvatar'

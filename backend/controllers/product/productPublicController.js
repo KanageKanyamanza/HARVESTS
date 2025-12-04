@@ -3,7 +3,10 @@ const AppError = require('../../utils/appError');
 const productPublicService = require('../../services/product/productPublicService');
 const { getUserLocation } = require('../../utils/locationService');
 
-// Obtenir tous les produits (avec filtres et recherche)
+/**
+ * Récupère tous les produits avec filtres et recherche
+ * Supporte la détection automatique de localisation
+ */
 exports.getAllProducts = catchAsync(async (req, res, next) => {
   try {
     let userLocation = null;
@@ -45,7 +48,9 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
   }
 });
 
-// Obtenir les produits basés sur la localisation de l'utilisateur
+/**
+ * Récupère les produits basés sur la localisation de l'utilisateur
+ */
 exports.getProductsByLocation = catchAsync(async (req, res, next) => {
   try {
     const result = await productPublicService.getProductsByLocation(req.query);
@@ -66,7 +71,9 @@ exports.getProductsByLocation = catchAsync(async (req, res, next) => {
   }
 });
 
-// Recherche avancée de produits
+/**
+ * Recherche avancée de produits avec détection géographique
+ */
 exports.searchProducts = catchAsync(async (req, res, next) => {
   try {
     const { q, filters = {} } = req.query;

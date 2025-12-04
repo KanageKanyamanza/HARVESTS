@@ -44,14 +44,16 @@ const i18nResponse = require('./middleware/i18nResponse');
 
 const app = express();
 
-// Configuration du proxy de confiance (pour les headers X-Forwarded-*)
+// Configuration du proxy de confiance pour les headers X-Forwarded-*
 app.set('trust proxy', 1);
 
 // Configuration du moteur de template Pug pour les emails
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
+// ============================================
 // MIDDLEWARES GLOBAUX
+// ============================================
 
 // Sécurité - Headers HTTP
 app.use(helmet);

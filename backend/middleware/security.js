@@ -6,7 +6,9 @@ const hpp = require('hpp');
 const cors = require('cors');
 const compression = require('compression');
 
-// Configuration CORS sécurisée
+/**
+ * Configuration CORS pour autoriser les requêtes depuis les domaines spécifiés
+ */
 const corsOptions = {
   origin: function (origin, callback) {
     // Liste des domaines autorisés
@@ -41,7 +43,10 @@ const corsOptions = {
   exposedHeaders: ['X-Total-Count']
 };
 
-// Limiteur de taux global
+/**
+ * Limiteur de taux global pour toutes les routes API
+ * Limite à 1000 requêtes par IP toutes les 15 minutes
+ */
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 1000, // limite chaque IP à 1000 requêtes par windowMs
@@ -57,7 +62,10 @@ const globalLimiter = rateLimit({
   }
 });
 
-// Limiteur strict pour les routes d'authentification
+/**
+ * Limiteur strict pour les routes d'authentification
+ * Limite à 10 tentatives de connexion par IP toutes les 15 minutes
+ */
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10, // limite à 10 tentatives de connexion par IP
@@ -70,7 +78,10 @@ const authLimiter = rateLimit({
   skipSuccessfulRequests: true // Ne pas compter les requêtes réussies
 });
 
-// Limiteur pour la création de compte
+/**
+ * Limiteur pour la création de compte
+ * Limite à 5 créations de compte par IP par heure
+ */
 const signupLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 heure
   max: 5, // limite à 5 créations de compte par IP par heure
@@ -82,7 +93,10 @@ const signupLimiter = rateLimit({
   legacyHeaders: false
 });
 
-// Limiteur pour les emails (reset password, verification)
+/**
+ * Limiteur pour l'envoi d'emails (réinitialisation mot de passe, vérification)
+ * Limite à 10 emails par IP toutes les 15 minutes
+ */
 const emailLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10, // limite à 10 emails par IP par 15 minutes
@@ -94,7 +108,10 @@ const emailLimiter = rateLimit({
   legacyHeaders: false
 });
 
-// Limiteur pour les uploads de fichiers
+/**
+ * Limiteur pour les uploads de fichiers
+ * Limite à 50 uploads par utilisateur toutes les 15 minutes
+ */
 const uploadLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 50, // limite à 50 uploads par utilisateur
@@ -107,7 +124,10 @@ const uploadLimiter = rateLimit({
   }
 });
 
-// Configuration Helmet pour la sécurité des headers
+/**
+ * Configuration Helmet pour sécuriser les headers HTTP
+ * Protège contre les attaques XSS, clickjacking, etc.
+ */
 const helmetConfig = helmet({
   contentSecurityPolicy: {
     directives: {
@@ -136,7 +156,10 @@ const helmetConfig = helmet({
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 });
 
-// Middleware de validation des types de fichiers
+/**
+ * Middleware de validation des types de fichiers
+ * Vérifie que les fichiers uploadés sont d'un type autorisé
+ */
 const fileTypeValidation = (allowedTypes) => {
   return (req, res, next) => {
     if (!req.files && !req.file) {
@@ -158,7 +181,10 @@ const fileTypeValidation = (allowedTypes) => {
   };
 };
 
-// Middleware de validation de la taille des fichiers
+/**
+ * Middleware de validation de la taille des fichiers
+ * Vérifie que les fichiers ne dépassent pas la taille maximale autorisée
+ */
 const fileSizeValidation = (maxSize) => {
   return (req, res, next) => {
     if (!req.files && !req.file) {
@@ -180,7 +206,10 @@ const fileSizeValidation = (maxSize) => {
   };
 };
 
-// Middleware de logging des requêtes suspectes
+/**
+ * Middleware de logging des requêtes suspectes
+ * Détecte et enregistre les tentatives d'injection ou d'attaque
+ */
 const suspiciousActivityLogger = (req, res, next) => {
   const suspiciousPatterns = [
     /\$where/i,
@@ -220,7 +249,10 @@ const suspiciousActivityLogger = (req, res, next) => {
   next();
 };
 
-// Middleware de validation des paramètres d'ID MongoDB
+/**
+ * Middleware de validation des paramètres d'ID MongoDB
+ * Vérifie que les IDs dans les paramètres de route sont valides
+ */
 const validateObjectId = (req, res, next) => {
   const mongoose = require('mongoose');
   
@@ -249,7 +281,10 @@ const validateObjectId = (req, res, next) => {
   next();
 };
 
-// Configuration de compression
+/**
+ * Configuration de compression des réponses HTTP
+ * Réduit la taille des réponses pour améliorer les performances
+ */
 const compressionConfig = compression({
   filter: (req, res) => {
     if (req.headers['x-no-compression']) {
@@ -260,7 +295,10 @@ const compressionConfig = compression({
   threshold: 1024 // Compresser seulement si > 1KB
 });
 
-// Middleware XSS personnalisé utilisant le package xss
+/**
+ * Middleware XSS personnalisé
+ * Nettoie les données d'entrée pour prévenir les attaques XSS
+ */
 const xssMiddleware = (req, res, next) => {
   // Exclure les routes qui utilisent des tokens (pas besoin de nettoyer les tokens hexadécimaux)
   const tokenRoutes = [
@@ -374,7 +412,7 @@ module.exports = {
 
   // Tailles de fichiers
   fileSizes: {
-    avatar: 2 * 1024 * 1024, // 2MB
+    avatar: 5 * 1024 * 1024, // 5MB
     document: 10 * 1024 * 1024, // 10MB
     productImage: 5 * 1024 * 1024 // 5MB
   }
