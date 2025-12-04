@@ -56,6 +56,7 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
   }
 
   user.isEmailVerified = true;
+  user.emailVerifiedAt = new Date(); // Enregistrer la date de vérification
   user.emailVerificationToken = undefined;
   user.emailVerificationExpires = undefined;
   

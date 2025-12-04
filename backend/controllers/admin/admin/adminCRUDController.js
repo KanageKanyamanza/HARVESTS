@@ -28,7 +28,8 @@ exports.createAdmin = catchAsync(async (req, res, next) => {
   const defaultPermissions = Admin.getDefaultPermissions(role);
   const adminPermissions = permissions || defaultPermissions;
 
-  // Créer l'admin
+  // Créer l'admin avec email vérifié automatiquement
+  // (les admins créés depuis le dashboard sont considérés comme vérifiés)
   const admin = await Admin.create({
     firstName,
     lastName,
@@ -38,7 +39,8 @@ exports.createAdmin = catchAsync(async (req, res, next) => {
     department,
     phone,
     permissions: adminPermissions,
-    createdBy: req.admin._id
+    createdBy: req.admin._id,
+    isEmailVerified: true // Auto-vérifier l'email pour les admins créés depuis le dashboard
   });
 
   // Log audit

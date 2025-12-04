@@ -31,7 +31,7 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
       case 'Actif':
         filter.isActive = true;
         filter.isApproved = true;
-        filter.isEmailVerified = false;
+        // Note: Un utilisateur actif peut avoir son email vérifié ou non
         break;
       case 'Vérifié':
         filter.isActive = true;
