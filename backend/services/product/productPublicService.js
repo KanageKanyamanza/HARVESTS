@@ -1,5 +1,17 @@
 // Ce fichier a été réorganisé en sous-modules dans le dossier public/
-// Utilisez require('./public/index') pour importer les services
-const productPublicService = require('./public/index.js');
+// Import direct des services pour éviter les problèmes de résolution de module
+const { getAllProducts, searchProducts } = require('./public/productSearchService');
+const { getProductsByLocation } = require('./public/productLocationService');
+const { getCategories, getProductsByCategory } = require('./public/productCategoryService');
+const { getProductById, getFeaturedProducts, getNewProducts } = require('./public/productDetailService');
 
-module.exports = productPublicService;
+module.exports = {
+  getAllProducts,
+  getProductsByLocation,
+  searchProducts,
+  getProductById,
+  getFeaturedProducts,
+  getNewProducts,
+  getCategories,
+  getProductsByCategory
+};
