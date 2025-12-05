@@ -1,2 +1,2 @@
 // Re-export all order controllers from organized structure
-module.exports = require('./order');
+module.exports = require('./order/index');

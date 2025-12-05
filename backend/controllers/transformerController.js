@@ -1,2 +1,2 @@
 // Re-export all transformer controllers from organized structure
-module.exports = require('./transformer');
+module.exports = require('./transformer/index');

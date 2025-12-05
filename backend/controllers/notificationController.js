@@ -1,2 +1,2 @@
 // Re-export all notification controllers from organized structure
-module.exports = require('./notification');
+module.exports = require('./notification/index');
