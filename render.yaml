@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: harvests-backend
+    env: node
+    region: frankfurt
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    rootDir: backend
+    healthCheckPath: /api/v1/health
+
