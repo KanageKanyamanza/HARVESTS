@@ -1,2 +1,2 @@
 // Re-export all product controllers from organized structure
-module.exports = require('./product');
+module.exports = require('./product/index');

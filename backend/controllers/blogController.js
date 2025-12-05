@@ -1,2 +1,2 @@
 // Re-export all blog controllers from organized structure
-module.exports = require('./blog');
+module.exports = require('./blog/index');

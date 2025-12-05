@@ -1,2 +1,2 @@
 // Re-export all consumer controllers from organized structure
-module.exports = require('./consumer');
+module.exports = require('./consumer/index');
