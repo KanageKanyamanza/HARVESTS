@@ -167,7 +167,7 @@ const AdminBlogs = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 overflow-x-auto">
       {/* En-tête */}
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -308,7 +308,7 @@ const AdminBlogs = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200 overflow-x-auto">
+              <tbody className="bg-white divide-y divide-gray-200">
                 {blogs.map((blog) => (
                   <tr key={blog._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 truncate max-w-[250px]">

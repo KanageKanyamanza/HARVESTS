@@ -75,9 +75,18 @@ export const useChatBot = (isAuthenticated, user, cart, clearCartAction) => {
     setMessages(prev => [...prev, { id: Date.now(), text, isBot: false, timestamp: new Date() }]);
   }, []);
 
-  const logInteraction = useCallback(async (question, response, responseType, matchedFaqId = null, matchedIntent = null) => {
+  const logInteraction = useCallback(async (question, response, responseType, matchedFaqId = null, matchedIntent = null, startTime = null) => {
     try {
-      return await chatService.logInteraction({ question, response, responseType, matchedFaqId, matchedIntent, sessionId });
+      const responseTime = startTime ? Date.now() - startTime : null;
+      return await chatService.logInteraction({ 
+        question, 
+        response, 
+        responseType, 
+        matchedFaqId, 
+        matchedIntent, 
+        sessionId,
+        responseTime
+      });
     } catch (error) {
       console.error('Erreur logging interaction:', error);
       return null;

@@ -108,6 +108,22 @@ export const getAddProductRoute = (user) => {
 };
 
 /**
+ * Obtient la route des notifications selon le type d'utilisateur
+ * @param {Object} user - L'objet utilisateur
+ * @returns {string} - La route des notifications
+ */
+export const getNotificationsRoute = (user) => {
+  if (user?.role === 'admin') return '/admin/notifications';
+  if (user?.userType === 'producer') return '/producer/notifications';
+  if (user?.userType === 'transformer') return '/transformer/notifications';
+  if (user?.userType === 'restaurateur') return '/restaurateur/notifications';
+  if (user?.userType === 'transporter') return '/transporter/notifications';
+  if (user?.userType === 'exporter') return '/exporter/notifications';
+  if (user?.userType === 'explorer') return '/explorer/notifications';
+  return '/consumer/notifications';
+};
+
+/**
  * Génère la navigation utilisateur complète selon le type d'utilisateur
  * @param {Object} user - L'objet utilisateur
  * @param {Array} icons - Les icônes à utiliser

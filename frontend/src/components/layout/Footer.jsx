@@ -137,6 +137,7 @@ const Footer = () => {
 
   const footerLinks = {
     help: [
+      { name: 'À propos', href: '/about' },
       { name: 'Contact', href: '/contact' },
       { name: 'FAQs', href: '/help' },
       { name: 'Conditions d\'utilisation', href: '/terms' },
@@ -170,8 +171,7 @@ const Footer = () => {
             </Link>
             <p className="text-gray-400 text-sm mb-6">
               Produits agricoles frais.<br />
-              Système de gestion des équipements<br />
-              Concentrateur agricole
+              Partenaires de la chaine de valeur alimentaire.
             </p>
             
             {/* Contact info */}

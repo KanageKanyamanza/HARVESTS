@@ -23,6 +23,7 @@ module.exports = {
   uploadAdminPhoto: adminProfileController.uploadAdminPhoto,
   
   // Mot de passe
+  changeMyPassword: adminPasswordController.changeMyPassword,
   changePassword: adminPasswordController.changePassword,
   
   // Statut

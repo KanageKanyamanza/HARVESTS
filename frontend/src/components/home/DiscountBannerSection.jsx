@@ -6,14 +6,14 @@ import harvestIntroVideo from '../../assets/videos/harvestintro.mp4';
 
 const DiscountBannerSection = () => {
   return (
-    <section id="why-harvests" className="py-20 bg-harvests-light">
+    <section id="why-harvests" className="py-20 bg-harvests-light" data-aos="fade-up">
       <div className="container-xl">
         {/* En-tête de la section */}
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-display font-bold text-gray-900 mb-4">
+          <h2 className="text-4xl md:text-5xl font-display font-bold text-gray-900 mb-4" data-aos="fade-up">
             Pourquoi choisir Harvests ?
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto" data-aos="fade-up" data-aos-delay="100">
             Découvrez notre vision et notre engagement pour une agriculture durable et connectée
           </p>
         </div>

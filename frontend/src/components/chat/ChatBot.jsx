@@ -6,6 +6,15 @@ import useBackToTopVisible from '../../hooks/useBackToTopVisible';
 import { useChatBot } from '../../hooks/useChatBot';
 import { faqData, findBestAnswer } from '../../data/faqData';
 import { chatService } from '../../services/chatService';
+import { generateContextualSuggestions, understandQuestion } from '../../utils/chatbotImprovements';
+import {
+  addMessageToContext,
+  addSearchToContext,
+  addTopicToContext,
+  addIntentToContext,
+  getContextualSuggestions as getContextSuggestions,
+  updatePreferencesFromQuestion
+} from '../../utils/chatbotContext';
 import ChatInput from './ChatInput';
 import {
   ChatBotButton, ChatBotHeader, ChatMessages,
@@ -76,7 +85,11 @@ const ChatBot = () => {
   };
 
   const handleSendMessage = async (message) => {
+    const startTime = Date.now(); // Mesurer le temps de réponse
     addUserMessage(message);
+    
+    // Ajouter le message au contexte de conversation
+    addMessageToContext(message, false);
     
     if (askingForInfo && infoStep) { handleGuestInfoCollection(message); return; }
     if (!isAuthenticated && !guestInfo?.name && messages.length <= 1) {
@@ -91,31 +104,111 @@ const ChatBot = () => {
     setFoundSellers([]);
     setFoundTransporters([]);
     
+    // Analyser le type de question pour améliorer la réponse
+    const questionAnalysis = understandQuestion(message);
+    updatePreferencesFromQuestion(questionAnalysis.type);
+    
+    // Ajouter le sujet au contexte si détecté
+    if (questionAnalysis.type !== 'general') {
+      addTopicToContext(questionAnalysis.type);
+    }
+    
     const customAnswer = findCustomAnswer(message, customAnswers);
     if (customAnswer) {
-      addBotMessage(customAnswer.answer);
-      logInteraction(message, customAnswer.answer, 'faq', customAnswer._id);
+      const response = customAnswer.answer;
+      addBotMessage(response);
+      addMessageToContext(response, true, { type: 'faq', faqId: customAnswer._id });
+      logInteraction(message, response, 'faq', customAnswer._id, null, startTime);
       return;
     }
     
     const result = findBestAnswer(message);
     
     if (result.type === 'faq') {
-      addBotMessage(result.faq.answer);
-      logInteraction(message, result.faq.answer, 'faq', result.faq.id);
+      const response = result.faq.answer;
+      addBotMessage(response);
+      addMessageToContext(response, true, { type: 'faq', faqId: result.faq.id });
+      logInteraction(message, response, 'faq', result.faq.id, null, startTime);
+      
+      // Ajouter des suggestions contextuelles améliorées
+      const contextSuggestions = getContextSuggestions();
+      const basicSuggestions = generateContextualSuggestions({
+        isAuthenticated,
+        cartItems: cart?.items || [],
+        recentSearches: [message]
+      });
+      
+      // Combiner les suggestions
+      const allSuggestions = [...contextSuggestions, ...basicSuggestions].slice(0, 5);
+      
+      if (allSuggestions.length > 0) {
+        setTimeout(() => {
+          setQuickLinks(allSuggestions.map(s => {
+            let to = '/products';
+            if (s.action === 'MY_CART') to = '/cart';
+            else if (s.action === 'MY_ORDERS') to = '/dashboard/orders';
+            else if (s.action?.startsWith('CATEGORY_')) to = `/products?category=${s.action.replace('CATEGORY_', '').toLowerCase()}`;
+            else if (typeof s.action === 'string' && s.action.length > 0 && !s.action.startsWith('CATEGORY_') && !s.action.startsWith('TOPIC_')) {
+              // C'est une recherche
+              to = `/products?q=${encodeURIComponent(s.action)}`;
+            }
+            
+            return { 
+              to,
+              label: s.text,
+              action: s.action
+            };
+          }));
+        }, 500);
+      }
     } else if (result.type === 'intent') {
+      addIntentToContext(result.intent, result.confidence || 1);
+      
       await handleIntent(result.intent, message, {
         isAuthenticated, getUserFirstName, addBotMessage, setIsTyping,
         setQuickLinks, setFoundProducts, setShowCategories, logInteraction,
         cart, clearCartAction
       });
-      logInteraction(message, '', 'intent', null, result.intent);
+      logInteraction(message, '', 'intent', null, result.intent, startTime);
     } else {
       const found = await tryProductSearch(message, {
         addBotMessage, setIsTyping, setFoundProducts, setFoundSellers,
-        setFoundTransporters, setQuickLinks, setShowCategories, logInteraction
+        setFoundTransporters, setQuickLinks, setShowCategories, logInteraction,
+        getUserFirstName,
+        onSearchComplete: (searchTerm, results) => {
+          // Ajouter la recherche au contexte
+          addSearchToContext(searchTerm, results);
+        }
       });
-      if (!found) logInteraction(message, faqData.defaultMessages.notUnderstood, 'no_answer');
+      if (!found) {
+        logInteraction(message, faqData.defaultMessages.notUnderstood, 'no_answer', null, null, startTime);
+        // Ajouter des suggestions contextuelles améliorées
+        const contextSuggestions = getContextSuggestions();
+        const basicSuggestions = generateContextualSuggestions({
+          isAuthenticated,
+          cartItems: cart?.items || [],
+          recentSearches: [message]
+        });
+        
+        const allSuggestions = [...contextSuggestions, ...basicSuggestions].slice(0, 5);
+        if (allSuggestions.length > 0) {
+          setQuickLinks(allSuggestions.map(s => {
+            let to = '/products';
+            if (s.action === 'MY_CART') to = '/cart';
+            else if (s.action === 'MY_ORDERS') to = '/dashboard/orders';
+            else if (s.action?.startsWith('CATEGORY_')) to = `/products?category=${s.action.replace('CATEGORY_', '').toLowerCase()}`;
+            else if (typeof s.action === 'string' && s.action.length > 0 && !s.action.startsWith('CATEGORY_') && !s.action.startsWith('TOPIC_')) {
+              to = `/products?q=${encodeURIComponent(s.action)}`;
+            }
+            
+            return { 
+              to,
+              label: s.text,
+              action: s.action
+            };
+          }));
+        }
+      }
     }
   };
 
@@ -198,7 +291,7 @@ const ChatBot = () => {
             style={{ 
               bottom: backToTopVisible ? '80px' : '24px',
               width: '320px',
-              maxWidth: 'calc(100vw - 200px)'
+              maxWidth: 'calc(100vw - 110px)'
             }}
           >
             <button

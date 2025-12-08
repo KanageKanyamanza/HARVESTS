@@ -352,11 +352,28 @@ export const findBestAnswer = (userMessage) => {
     }
   }
   
-  // Vérifier les intentions spéciales
+  // Utiliser la détection d'intentions améliorée avec scoring
+  try {
+    const { detectIntentWithScore } = require('../utils/chatbotImprovements');
+    const intentMatch = detectIntentWithScore(message, faqData.intents);
+    if (intentMatch && intentMatch.score >= 1) {
+      return { 
+        type: 'intent', 
+        intent: intentMatch.intent.action, 
+        data: intentMatch.intent,
+        confidence: intentMatch.score
+      };
+    }
+  } catch (error) {
+    // Fallback sur la méthode basique si l'import échoue
+    console.warn('Erreur import detectIntentWithScore, utilisation méthode basique:', error);
+  }
+  
+  // Vérifier les intentions spéciales (fallback méthode basique si import échoue)
   for (const intent of faqData.intents) {
     for (const keyword of intent.keywords) {
       if (message.includes(keyword.toLowerCase())) {
-        return { type: 'intent', intent: intent.action, data: intent };
+        return { type: 'intent', intent: intent.action, data: intent, confidence: 1 };
       }
     }
   }

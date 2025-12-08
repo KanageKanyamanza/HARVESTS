@@ -39,7 +39,7 @@ const ProductsSection = () => {
   }
 
   return (
-    <section className="py-20 bg-harvests-light">
+    <section className="py-20 bg-harvests-light" data-aos="fade-up">
       <div className="container-xl">
         {/* En-tête */}
         <div className="flex justify-between items-center mb-5">

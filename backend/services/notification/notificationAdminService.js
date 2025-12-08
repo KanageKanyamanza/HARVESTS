@@ -46,7 +46,9 @@ async function getAllNotifications(queryParams = {}, adminId = null) {
   const limit = parseInt(queryParams.limit, 10) || 50;
   const skip = (page - 1) * limit;
 
-  const queryObj = {};
+  const queryObj = {
+    recipientModel: 'Admin' // Filtrer uniquement les notifications destinées aux admins
+  };
   
   // Si c'est un admin, filtrer par ses notifications uniquement
   if (adminId) {
@@ -59,6 +61,8 @@ async function getAllNotifications(queryParams = {}, adminId = null) {
   if (queryParams.category) queryObj.category = queryParams.category;
   if (queryParams.status) queryObj.status = queryParams.status;
 
+  console.log('[getAllNotifications] Requête de recherche:', JSON.stringify(queryObj, null, 2));
+  
   // Populate le recipient selon son modèle (User ou Admin)
   const notifications = await Notification.find(queryObj)
     .populate({
@@ -75,6 +79,8 @@ async function getAllNotifications(queryParams = {}, adminId = null) {
     .skip(skip)
     .limit(limit);
 
+  console.log(`[getAllNotifications] ${notifications.length} notification(s) trouvée(s) pour l'admin ${adminId}`);
+
   const total = await Notification.countDocuments(queryObj);
   
   // Calculer le nombre de notifications non lues pour l'admin
@@ -83,6 +89,8 @@ async function getAllNotifications(queryParams = {}, adminId = null) {
     readAt: { $exists: false },
     status: { $in: ['pending', 'sent', 'delivered'] }
   });
+  
+  console.log(`[getAllNotifications] Total: ${total}, Non lues: ${unreadCount}`);
 
   return {
     notifications,

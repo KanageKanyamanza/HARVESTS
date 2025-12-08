@@ -191,7 +191,7 @@ const AdminProducts = () => {
   }
 
   return (
-    <div>
+    <div className="overflow-x-auto">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">

@@ -13,6 +13,7 @@ import {
 } from "react-icons/fi";
 import { useNotifications } from "../../contexts/NotificationContext";
 import { useAuth } from "../../hooks/useAuth";
+import { getNotificationsRoute } from "../../utils/routeUtils";
 
 const NotificationDropdown = () => {
 	const [isOpen, setIsOpen] = useState(false);
@@ -119,7 +120,22 @@ const NotificationDropdown = () => {
 			setIsOpen(false);
 		} else if (notification.actions && notification.actions[0]?.url) {
 			// Utiliser l'URL définie dans les actions
-			navigate(notification.actions[0].url);
+			// Nettoyer l'URL si elle contient une URL absolue (extraire le chemin)
+			let url = notification.actions[0].url;
+			// Si l'URL commence par http:// ou https://, extraire le chemin
+			if (url.startsWith('http://') || url.startsWith('https://')) {
+				try {
+					const urlObj = new URL(url);
+					url = urlObj.pathname;
+				} catch {
+					// Si l'URL est malformée, essayer d'extraire le chemin manuellement
+					const match = url.match(/\/admin\/.*/);
+					if (match) {
+						url = match[0];
+					}
+				}
+			}
+			navigate(url);
 			setIsOpen(false);
 		}
 	};
@@ -141,7 +157,7 @@ const NotificationDropdown = () => {
 
 			{/* Dropdown des notifications */}
 			{isOpen && (
-				<div className="absolute -right-14 sm:right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+				<div className="fixed sm:absolute right-4 sm:right-0 left-4 sm:left-auto mt-2 sm:mt-2 w-auto sm:w-80 max-w-sm bg-white rounded-lg shadow-lg border border-gray-200 z-50">
 					{/* Header */}
 					<div className="px-5 py-2 border-b border-gray-200 flex items-center justify-between">
 						<h3 className="text-lg font-semibold text-gray-900">
@@ -253,19 +269,40 @@ const NotificationDropdown = () => {
 					</div>
 
 					{/* Footer */}
-					{notifications.length > 0 && (
-						<div className="px-4 py-3 border-t border-gray-200 bg-harvests-light rounded-b-lg">
-							<p className="text-xs text-gray-500 text-center">
-								{notifications.length} notification
-								{notifications.length > 1 ? "s" : ""}
-								{unreadCount > 0 && (
-									<span className="ml-1">
-										({unreadCount} non lue{unreadCount > 1 ? "s" : ""})
-									</span>
-								)}
-							</p>
-						</div>
-					)}
+					<div className="px-4 py-3 border-t border-gray-200 bg-harvests-light rounded-b-lg">
+						{notifications.length > 0 ? (
+							<div className="flex items-center justify-between">
+								<p className="text-xs text-gray-500">
+									{notifications.length} notification
+									{notifications.length > 1 ? "s" : ""}
+									{unreadCount > 0 && (
+										<span className="ml-1">
+											({unreadCount} non lue{unreadCount > 1 ? "s" : ""})
+										</span>
+									)}
+								</p>
+								<button
+									onClick={() => {
+										navigate(getNotificationsRoute(user));
+										setIsOpen(false);
+									}}
+									className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+								>
+									Voir toutes →
+								</button>
+							</div>
+						) : (
+							<button
+								onClick={() => {
+									navigate(getNotificationsRoute(user));
+									setIsOpen(false);
+								}}
+								className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors w-full text-center"
+							>
+								Voir toutes les notifications →
+							</button>
+						)}
+					</div>
 				</div>
 			)}
 		</div>

@@ -33,6 +33,23 @@ async function searchProducts(searchTerm, filters = {}) {
     if (searchQuery.$or && searchQuery.$or.length > 0) {
       queryObj.$and = queryObj.$and || [];
       queryObj.$and.push({ $or: searchQuery.$or });
+    } else if (searchTerm.trim()) {
+      // Fallback : recherche simple si buildSearchWithLocation ne retourne rien
+      // Cela peut arriver si le terme est trop court ou ne correspond à aucune variante
+      const normalizedTerm = searchTerm.trim().toLowerCase();
+      const searchRegex = new RegExp(normalizedTerm, 'i');
+      queryObj.$and = queryObj.$and || [];
+      queryObj.$and.push({
+        $or: [
+          { name: searchRegex },
+          { 'name.fr': searchRegex },
+          { 'name.en': searchRegex },
+          { description: searchRegex },
+          { shortDescription: searchRegex },
+          { tags: { $in: [searchRegex] } },
+          { subcategory: searchRegex }
+        ]
+      });
     }
     
     // Ajouter le filtre de localisation (chercher dans l'adresse du producteur/transformateur)

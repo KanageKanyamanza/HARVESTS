@@ -90,7 +90,7 @@ const AdminOrders = () => {
   if (loading) return <div className="flex items-center justify-center h-64"><LoadingSpinner size="lg" /></div>;
 
   return (
-      <div className="space-y-6">
+      <div className="space-y-6 overflow-x-auto">
         {/* Header */}
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Gestion des commandes</h1>

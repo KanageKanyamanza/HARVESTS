@@ -5,7 +5,8 @@ class NotificationService {
   // Détecter si l'utilisateur est un admin
   isAdmin() {
     const user = JSON.parse(localStorage.getItem('harvests_user') || '{}');
-    return user.userType === 'admin';
+    // Les admins ont 'role' === 'admin' ou 'super-admin', pas 'userType'
+    return user.role === 'admin' || user.role === 'super-admin';
   }
 
   // Récupérer toutes les notifications de l'utilisateur

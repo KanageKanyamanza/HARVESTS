@@ -1,8 +1,10 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import {
 	BrowserRouter as Router,
 } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 
 // Configuration i18n
 import "./utils/i18n";
@@ -40,6 +42,33 @@ function App() {
 	React.useEffect(() => {
 		document.documentElement.lang = i18n.language;
 	}, [i18n.language]);
+
+	// Initialiser AOS (Animate On Scroll)
+	useEffect(() => {
+		AOS.init({
+			duration: 800,
+			easing: 'ease-in-out',
+			once: true,
+			mirror: false,
+			offset: 100,
+			delay: 0,
+		});
+		
+		// Rafraîchir AOS lors des changements de route
+		const refreshAOS = () => {
+			setTimeout(() => {
+				AOS.refresh();
+			}, 100);
+		};
+		
+		window.addEventListener('load', refreshAOS);
+		window.addEventListener('resize', refreshAOS);
+		
+		return () => {
+			window.removeEventListener('load', refreshAOS);
+			window.removeEventListener('resize', refreshAOS);
+		};
+	}, []);
 
 	return (
 		<ErrorBoundary>

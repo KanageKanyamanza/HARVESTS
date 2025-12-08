@@ -13,6 +13,7 @@ const Statistics = React.lazy(() => import('../../../pages/dashboard/transporter
 const ProfilePage = React.lazy(() => import('../../../pages/dashboard/common/ProfilePage'));
 const SettingsPage = React.lazy(() => import('../../../pages/dashboard/common/SettingsPage'));
 const OrderDetail = React.lazy(() => import('../../../pages/orders/OrderDetail'));
+const NotificationsPage = React.lazy(() => import('../../../pages/dashboard/common/NotificationsPage'));
 
 export const transporterRoutes = [
   {
@@ -59,6 +60,11 @@ export const transporterRoutes = [
     path: '/transporter/settings',
     element: <SettingsPage />,
     title: 'Paramètres'
+  },
+  {
+    path: '/transporter/notifications',
+    element: <NotificationsPage />,
+    title: 'Notifications'
   }
 ];
 

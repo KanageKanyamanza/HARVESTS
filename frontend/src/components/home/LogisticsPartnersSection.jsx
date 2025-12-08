@@ -25,11 +25,11 @@ const stats = [
 
 const LogisticsPartnersSection = () => {
 	return (
-		<section className="relative py-20 ">
+		<section className="relative py-20 " data-aos="fade-up">
 			<div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-harvests-light via-white to-transparent" />
 			<div className="relative max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-					<div className="space-y-6">
+					<div className="space-y-6" data-aos="fade-right">
 						<span className="inline-flex items-center px-3 py-1 rounded-full bg-harvests-light text-harvests-green font-semibold text-xs uppercase tracking-widest">
 							Logistique intégrée
 						</span>
@@ -45,7 +45,7 @@ const LogisticsPartnersSection = () => {
 						</p>
 					</div>
 
-					<div className="relative">
+					<div className="relative" data-aos="fade-left">
 						<div className="absolute -inset-4 bg-harvests-light opacity-40 blur-2xl rounded-3xl" />
 						<div className="relative bg-white border border-gray-100 rounded-3xl shadow-xl overflow-hidden">
 							{/* <div className="h-56 bg-[url('https://images.unsplash.com/photo-1546549037-47f0e96c77ec?auto=format&fit=crop&w=1200&q=80')] bg-cover bg-center" /> */}
@@ -99,10 +99,12 @@ const LogisticsPartnersSection = () => {
 			</div>
 			<div className="p-4 sm:p-6">
 				<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-					{stats.map((item) => (
+					{stats.map((item, index) => (
 						<div
 							key={item.label}
 							className="bg-white border border-gray-100 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
+							data-aos="fade-up"
+							data-aos-delay={index * 100}
 						>
 							<div className="flex items-center gap-3">
 								<span className="flex items-center justify-center h-10 w-10 rounded-full bg-harvests-light">

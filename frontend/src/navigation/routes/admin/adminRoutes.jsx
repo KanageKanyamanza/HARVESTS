@@ -23,6 +23,7 @@ const ChatbotManagement = React.lazy(() => import('../../../pages/admin/ChatbotM
 const AdminSettings = React.lazy(() => import('../../../pages/admin/AdminSettings'));
 const UserDetails = React.lazy(() => import('../../../pages/admin/UserDetails'));
 const OrderDetail = React.lazy(() => import('../../../pages/orders/OrderDetail'));
+const NotificationsPage = React.lazy(() => import('../../../pages/dashboard/common/NotificationsPage'));
 
 export const adminRoutes = [
   {
@@ -119,6 +120,11 @@ export const adminRoutes = [
     path: '/admin/settings',
     element: <AdminSettings />,
     title: 'Paramètres'
+  },
+  {
+    path: '/admin/notifications',
+    element: <NotificationsPage />,
+    title: 'Notifications'
   },
 ];
 

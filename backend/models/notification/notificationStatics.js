@@ -42,6 +42,14 @@ function addNotificationStatics(notificationSchema) {
     }
     
     await notification.save();
+    console.log('💾 [Notification.createNotification] Notification sauvegardée avec succès:', {
+      id: notification._id,
+      recipient: notification.recipient,
+      recipientModel: notification.recipientModel,
+      type: notification.type,
+      category: notification.category,
+      title: notification.title
+    });
     
     // Vérifier après sauvegarde que les données sont toujours présentes
     const savedNotification = await this.findById(notification._id).lean();
@@ -55,9 +63,14 @@ function addNotificationStatics(notificationSchema) {
       });
     }
     
-    // Envoyer immédiatement si pas planifié
+    // Envoyer immédiatement si pas planifié (seulement pour inApp, email désactivé)
     if (!notification.scheduledFor || notification.scheduledFor <= new Date()) {
-      await notification.sendToAllChannels();
+      try {
+        await notification.sendToAllChannels();
+      } catch (error) {
+        console.error('⚠️ [Notification.createNotification] Erreur lors de l\'envoi aux canaux:', error.message);
+        // Ne pas bloquer si l'envoi échoue, la notification est déjà sauvegardée
+      }
     }
     
     return notification;

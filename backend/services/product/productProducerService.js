@@ -1,7 +1,9 @@
 const Product = require('../../models/Product');
 const Producer = require('../../models/Producer');
+const User = require('../../models/User');
 const { toPlainText } = require('../../utils/localization');
 const notificationSystemService = require('../notification/notificationSystemService');
+const adminNotifications = require('../../utils/adminNotifications');
 
 /**
  * Service pour la gestion des produits par les producteurs
@@ -59,15 +61,27 @@ async function createProduct(producerId, productData) {
 
   // Notifier les admins d'un nouveau produit en attente d'approbation
   try {
-    const producer = await Producer.findById(producerId).select('firstName lastName farmName');
-    const producerName = producer.farmName || `${producer.firstName} ${producer.lastName}`;
-    const productName = toPlainText(product.name, 'Sans nom');
+    // Récupérer l'utilisateur producteur
+    const producerUser = await User.findById(producerId).select('firstName lastName email');
+    if (producerUser) {
+      // Notifier les admins par email
+      adminNotifications.notifyProductPending(product, producerUser).catch(err => {
+        console.error('Erreur notification produit en attente:', err);
+      });
+    }
     
-    await notificationSystemService.notifyProductPendingApproval(
-      product._id, 
-      productName, 
-      producerName
-    );
+    // Notification système existante (garder pour compatibilité - notifications in-app)
+    const producer = await Producer.findById(producerId).select('firstName lastName farmName');
+    if (producer) {
+      const producerName = producer.farmName || `${producer.firstName} ${producer.lastName}`;
+      const productName = toPlainText(product.name, 'Sans nom');
+      
+      await notificationSystemService.notifyProductPendingApproval(
+        product._id, 
+        productName, 
+        producerName
+      );
+    }
   } catch (error) {
     console.error('Erreur lors de l\'envoi de notification admin:', error);
   }

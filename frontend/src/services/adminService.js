@@ -321,6 +321,14 @@ export const uploadAdminAvatar = async (formData) => {
   return response.data;
 };
 
+export const changeMyPassword = async (currentPassword, newPassword) => {
+  const response = await api.put('/admin-management/me/password', {
+    currentPassword,
+    newPassword
+  });
+  return response.data;
+};
+
 // Service pour la gestion des blogs
 export const getBlogs = async (params = {}) => {
   const response = await adminBlogApiService.getBlogs(params);
@@ -445,6 +453,7 @@ export const adminService = {
   getAdminProfile,
   updateAdminProfile,
   uploadAdminAvatar,
+  changeMyPassword,
   
   // Blogs
   getBlogs,

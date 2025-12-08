@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { MessageCircle, AlertCircle, TrendingUp } from 'lucide-react';
+import { MessageCircle, AlertCircle, TrendingUp, BarChart3 } from 'lucide-react';
 import { adminService } from '../../services/adminService';
 import StatsTab from './chatbotManagement/StatsTab';
+import AdvancedStatsTab from './chatbotManagement/AdvancedStatsTab';
 import QuestionsTab from './chatbotManagement/QuestionsTab';
 import InteractionsTab from './chatbotManagement/InteractionsTab';
 import AnswerModal from './chatbotManagement/AnswerModal';
@@ -11,6 +12,7 @@ import { formatDate, formatTime } from './chatbotManagement/utils';
 const ChatbotManagement = () => {
   const [activeTab, setActiveTab] = useState('stats');
   const [stats, setStats] = useState(null);
+  const [timeRange, setTimeRange] = useState('30d');
   const [questions, setQuestions] = useState([]);
   const [interactions, setInteractions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,14 +36,14 @@ const ChatbotManagement = () => {
 
   const loadStats = useCallback(async () => {
     try {
-      const response = await adminService.getChatStats();
+      const response = await adminService.getChatStats({ timeRange });
       if (response.status === 'success') {
         setStats(response.data);
       }
     } catch (error) {
       console.error('Erreur chargement stats:', error);
     }
-  }, []);
+  }, [timeRange]);
 
   const loadQuestions = useCallback(async (page = 1) => {
     try {
@@ -163,7 +165,7 @@ const ChatbotManagement = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-6 overflow-x-auto">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -174,6 +176,24 @@ const ChatbotManagement = () => {
           <p className="text-gray-600 mt-1">
             Statistiques d'utilisation et gestion des questions sans réponse
           </p>
+        </div>
+
+        {/* Header avec sélecteur de période */}
+        <div className="bg-white rounded-lg shadow mb-6 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <select
+                value={timeRange}
+                onChange={(e) => setTimeRange(e.target.value)}
+                className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                <option value="7d">7 derniers jours</option>
+                <option value="30d">30 derniers jours</option>
+                <option value="90d">90 derniers jours</option>
+                <option value="1y">Dernière année</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -189,7 +209,18 @@ const ChatbotManagement = () => {
                 }`}
               >
                 <TrendingUp className="h-4 w-4 inline mr-2" />
-                Statistiques
+                Vue d'ensemble
+              </button>
+              <button
+                onClick={() => setActiveTab('advanced')}
+                className={`px-6 py-4 text-sm font-medium border-b-2 ${
+                  activeTab === 'advanced'
+                    ? 'border-green-500 text-green-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <BarChart3 className="h-4 w-4 inline mr-2" />
+                Analytics Avancées
               </button>
               <button
                 onClick={() => setActiveTab('questions')}
@@ -229,6 +260,11 @@ const ChatbotManagement = () => {
             setActiveTab={setActiveTab} 
             setSelectedQuestion={setSelectedQuestion} 
           />
+        )}
+
+        {/* Advanced Stats Tab */}
+        {activeTab === 'advanced' && (
+          <AdvancedStatsTab stats={stats} />
         )}
 
         {/* Questions Tab */}
