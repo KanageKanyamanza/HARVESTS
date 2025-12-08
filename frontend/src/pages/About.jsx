@@ -198,7 +198,7 @@ const About = () => {
               Rejoignez la Révolution Agricole
             </h2>
             <p className="text-xl text-primary-100 mb-8" data-aos="fade-up" data-aos-delay="100">
-              Que vous soyez producteur, transformateur ou consommateur, 
+              Que vous soyez producteur, transformateur, restaurateur, transporteur ou consommateur, 
               Harvests est votre partenaire de confiance.
             </p>
             <div className="flex flex-wrap justify-center gap-4" data-aos="fade-up" data-aos-delay="200">
