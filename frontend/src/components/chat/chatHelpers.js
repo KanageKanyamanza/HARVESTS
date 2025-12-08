@@ -232,6 +232,14 @@ export const handleIntent = async (intent, message, { isAuthenticated, getUserFi
       addBotMessage(`${namePrefix}Voici ce que je peux faire pour vous 🤖 :\n\n📦 **Commandes**\n• Suivre vos commandes\n\n🔍 **Recherche**\n• Trouver des produits\n\n🛒 **Panier**\n• Voir votre panier\n\n❓ **Questions fréquentes**\n• Livraison, Paiements, Compte`);
       setShowCategories(true);
       break;
+
+    case 'SERVICES_PLATFORM':
+      addBotMessage(`${namePrefix}Harvests est une plateforme de commerce en ligne spécialisée dans les produits agricoles et alimentaires locaux. Nos services incluent :\n\n🛒 **Achat de produits**\n• Fruits et légumes frais\n• Produits transformés\n• Plats cuisinés\n• Produits bio et locaux\n\n👨‍🌾 **Vente pour producteurs**\n• Mise en ligne de vos produits\n• Gestion des commandes\n• Paiement sécurisé\n\n🚚 **Livraison**\n• Livraison rapide dans tout le Sénégal\n• Suivi en temps réel\n• Réseau de transporteurs partenaires\n\n💳 **Paiement sécurisé**\n• Mobile Money (Orange Money, Wave)\n• Cartes bancaires\n• Paiement à la livraison`);
+      setQuickLinks([
+        { to: '/products', label: 'Voir nos produits' },
+        { to: '/register', label: 'Devenir vendeur' }
+      ]);
+      break;
       
     case 'GREETING':
       if (isAuthenticated && firstName) {
@@ -353,6 +361,71 @@ export const handleIntent = async (intent, message, { isAuthenticated, getUserFi
     case 'CONTACT_SUPPORT':
       addBotMessage(faqData.defaultMessages.contactSupport);
       setQuickLinks([{ to: '/contact', label: 'Page Contact' }]);
+      break;
+
+    case 'DEVENIR_TRANSFORMATEUR':
+      addBotMessage(`${namePrefix}Pour devenir transformateur sur Harvests :\n\n1. Créez un compte "Transformateur"\n2. Remplissez votre profil avec vos informations d'entreprise\n3. Téléchargez vos documents (certificats, licences)\n4. Attendez la validation de votre compte\n5. Commencez à ajouter vos produits transformés\n\nLes transformateurs peuvent vendre des jus, confitures, conserves, etc.`);
+      setQuickLinks([{ to: '/register', label: 'Créer un compte Transformateur' }]);
+      break;
+
+    case 'DEVENIR_RESTAURATEUR':
+      addBotMessage(`${namePrefix}Pour devenir restaurateur sur Harvests :\n\n1. Créez un compte "Restaurateur"\n2. Complétez votre profil avec les informations de votre restaurant\n3. Ajoutez votre menu et vos plats\n4. Configurez vos horaires et zones de livraison\n5. Attendez la validation\n\nLes restaurateurs peuvent vendre des plats cuisinés ET acheter des produits pour leur cuisine !`);
+      setQuickLinks([{ to: '/register', label: 'Créer un compte Restaurateur' }]);
+      break;
+
+    case 'DEVENIR_EXPORTATEUR':
+      addBotMessage(`${namePrefix}Pour devenir exportateur sur Harvests :\n\n1. Créez un compte "Exportateur"\n2. Remplissez votre profil avec vos informations d'entreprise\n3. Téléchargez vos documents d'exportation\n4. Définissez vos zones d'export et produits\n5. Attendez la validation\n\nLes exportateurs peuvent exporter des produits agricoles vers l'international.`);
+      setQuickLinks([{ to: '/register', label: 'Créer un compte Exportateur' }]);
+      break;
+
+    case 'PRODUITS_BIO':
+      setIsTyping(true);
+      try {
+        const bioProducts = await chatService.searchProducts('bio');
+        if (bioProducts?.length > 0) {
+          addBotMessage('🌱 Voici nos produits biologiques certifiés :');
+          setFoundProducts(bioProducts.slice(0, 3));
+          setQuickLinks([{ to: '/products?category=bio', label: 'Voir tous les produits bio' }]);
+        } else {
+          addBotMessage('🌱 Nous proposons des produits biologiques certifiés. Utilisez le filtre "Bio" dans la recherche pour les trouver. Tous nos producteurs bio sont vérifiés et certifiés.');
+          setQuickLinks([{ to: '/products', label: 'Voir tous les produits' }]);
+        }
+      } catch {
+        addBotMessage('🌱 Nous proposons des produits biologiques certifiés. Utilisez le filtre "Bio" dans la recherche pour les trouver.');
+        setQuickLinks([{ to: '/products', label: 'Voir tous les produits' }]);
+      } finally {
+        setIsTyping(false);
+      }
+      break;
+
+    case 'PROMOTIONS':
+      setIsTyping(true);
+      try {
+        const promotions = await chatService.getPromotions();
+        if (promotions?.length > 0) {
+          addBotMessage('🎉 Voici nos promotions actuelles :');
+          setFoundProducts(promotions.slice(0, 3));
+          setQuickLinks([{ to: '/products?promo=true', label: 'Voir toutes les promotions' }]);
+        } else {
+          addBotMessage('💡 Actuellement, la livraison est gratuite à partir de 50 000 FCFA ! Consultez régulièrement nos offres spéciales.');
+          setQuickLinks([{ to: '/products', label: 'Voir nos produits' }]);
+        }
+      } catch {
+        addBotMessage('💡 Actuellement, la livraison est gratuite à partir de 50 000 FCFA ! Consultez régulièrement nos offres spéciales.');
+        setQuickLinks([{ to: '/products', label: 'Voir nos produits' }]);
+      } finally {
+        setIsTyping(false);
+      }
+      break;
+
+    case 'AVIS_PRODUITS':
+      if (!isAuthenticated) {
+        addBotMessage('Pour laisser un avis, vous devez être connecté et avoir commandé le produit.');
+        setQuickLinks([{ to: '/login', label: 'Se connecter' }]);
+      } else {
+        addBotMessage(`${namePrefix}Pour laisser un avis sur un produit :\n\n1. Allez dans "Mes commandes"\n2. Sélectionnez une commande livrée\n3. Cliquez sur "Laisser un avis" pour chaque produit\n4. Donnez une note (1 à 5 étoiles) et un commentaire\n\nLes avis aident les autres clients à faire leur choix !`);
+        setQuickLinks([{ to: '/dashboard/orders', label: 'Voir mes commandes' }]);
+      }
       break;
 
     default:

@@ -232,6 +232,150 @@ export const faqData = {
       question: 'Dans quelles zones livrez-vous ?',
       answer: 'Nous livrons dans tout le Sénégal :\n• Dakar et banlieue : livraison rapide (24-48h)\n• Autres régions : 2-5 jours selon la distance\n\nLes zones de livraison dépendent aussi des vendeurs et transporteurs disponibles dans votre région.'
     },
+
+    // Services proposés
+    {
+      id: 'services-proposes',
+      category: 'produits',
+      keywords: ['service', 'services', 'proposez', 'proposer', 'offrez', 'offre', 'offres', 'que proposez', 'que proposer', 'quels services', 'quels service', 'que faites', 'que fait', 'activité', 'activités'],
+      question: 'Quels services proposez-vous ?',
+      answer: 'Harvests est une plateforme de commerce en ligne spécialisée dans les produits agricoles et alimentaires locaux. Nos services incluent :\n\n🛒 **Achat de produits**\n• Fruits et légumes frais\n• Produits transformés\n• Plats cuisinés\n• Produits bio et locaux\n\n👨‍🌾 **Vente pour producteurs**\n• Mise en ligne de vos produits\n• Gestion des commandes\n• Paiement sécurisé\n\n🚚 **Livraison**\n• Livraison rapide dans tout le Sénégal\n• Suivi en temps réel\n• Réseau de transporteurs partenaires\n\n💳 **Paiement sécurisé**\n• Mobile Money (Orange Money, Wave)\n• Cartes bancaires\n• Paiement à la livraison'
+    },
+
+    // Avis et évaluations
+    {
+      id: 'produits-avis',
+      category: 'produits',
+      keywords: ['avis', 'évaluation', 'evaluation', 'note', 'commenter', 'commentaire', 'noter', 'review', 'reviews'],
+      question: 'Comment laisser un avis sur un produit ?',
+      answer: 'Pour laisser un avis sur un produit :\n1. Connectez-vous à votre compte\n2. Allez dans "Mes commandes"\n3. Sélectionnez une commande livrée\n4. Cliquez sur "Laisser un avis" pour chaque produit\n5. Donnez une note (1 à 5 étoiles) et un commentaire\n\nLes avis aident les autres clients à faire leur choix !'
+    },
+
+    // Favoris
+    {
+      id: 'produits-favoris',
+      category: 'produits',
+      keywords: ['favoris', 'favori', 'sauvegarder', 'garder', 'liste', 'wishlist', 'envie'],
+      question: 'Comment ajouter un produit en favoris ?',
+      answer: 'Pour ajouter un produit en favoris :\n1. Allez sur la page du produit\n2. Cliquez sur l\'icône cœur (❤️) en haut à droite\n3. Le produit sera sauvegardé dans vos favoris\n\nVous pouvez consulter tous vos favoris depuis votre profil ou en me demandant "mes favoris".'
+    },
+
+    // Devenir transformateur
+    {
+      id: 'compte-transformateur',
+      category: 'compte',
+      keywords: ['transformateur', 'transformer', 'transformation', 'devenir transformateur', 'produits transformés', 'produits transformes'],
+      question: 'Comment devenir transformateur ?',
+      answer: 'Pour devenir transformateur sur Harvests :\n1. Créez un compte "Transformateur"\n2. Remplissez votre profil avec vos informations d\'entreprise\n3. Téléchargez vos documents (certificats, licences)\n4. Attendez la validation de votre compte\n5. Commencez à ajouter vos produits transformés\n\nLes transformateurs peuvent vendre des jus, confitures, conserves, etc.'
+    },
+
+    // Devenir restaurateur
+    {
+      id: 'compte-restaurateur',
+      category: 'compte',
+      keywords: ['restaurateur', 'restaurant', 'devenir restaurateur', 'plats', 'cuisine', 'menu'],
+      question: 'Comment devenir restaurateur ?',
+      answer: 'Pour devenir restaurateur sur Harvests :\n1. Créez un compte "Restaurateur"\n2. Complétez votre profil avec les informations de votre restaurant\n3. Ajoutez votre menu et vos plats\n4. Configurez vos horaires et zones de livraison\n5. Attendez la validation\n\nLes restaurateurs peuvent vendre des plats cuisinés ET acheter des produits pour leur cuisine !'
+    },
+
+    // Devenir exportateur
+    {
+      id: 'compte-exportateur',
+      category: 'compte',
+      keywords: ['exportateur', 'exporter', 'export', 'devenir exportateur', 'international', 'exportation'],
+      question: 'Comment devenir exportateur ?',
+      answer: 'Pour devenir exportateur sur Harvests :\n1. Créez un compte "Exportateur"\n2. Remplissez votre profil avec vos informations d\'entreprise\n3. Téléchargez vos documents d\'exportation\n4. Définissez vos zones d\'export et produits\n5. Attendez la validation\n\nLes exportateurs peuvent exporter des produits agricoles vers l\'international.'
+    },
+
+    // Produits bio
+    {
+      id: 'produits-bio',
+      category: 'produits',
+      keywords: ['bio', 'biologique', 'organique', 'organic', 'certifié', 'certifie', 'certification'],
+      question: 'Avez-vous des produits bio ?',
+      answer: 'Oui ! Nous proposons des produits biologiques certifiés. Vous pouvez :\n• Filtrer les produits par "Bio" dans la recherche\n• Vérifier les certifications sur chaque fiche produit\n• Contacter directement les producteurs pour plus d\'informations\n\nTous nos producteurs bio sont vérifiés et certifiés.'
+    },
+
+    // Prix et négociation
+    {
+      id: 'produits-prix',
+      category: 'produits',
+      keywords: ['prix', 'coût', 'cout', 'cher', 'bon marché', 'bon marche', 'négocier', 'negocier', 'réduction', 'reduction', 'discount'],
+      question: 'Puis-je négocier le prix d\'un produit ?',
+      answer: 'Les prix sont fixés par les vendeurs. Cependant :\n• Certains vendeurs proposent des prix dégressifs pour les commandes en gros\n• Des promotions sont régulièrement disponibles\n• La livraison est gratuite à partir de 50 000 FCFA\n\nContactez directement le vendeur pour discuter d\'un prix pour une commande importante.'
+    },
+
+    // Garantie
+    {
+      id: 'produits-garantie',
+      category: 'produits',
+      keywords: ['garantie', 'garanti', 'remboursement', 'rembourser', 'satisfait', 'satisfaction', 'remboursé', 'rembourse'],
+      question: 'Y a-t-il une garantie sur les produits ?',
+      answer: 'Oui, nous garantissons la qualité de vos achats :\n• Produits frais et conformes à la description\n• Remboursement sous 48h si produit défectueux ou non conforme\n• Support client disponible pour toute réclamation\n• Avis clients pour vérifier la qualité avant achat\n\nContactez-nous rapidement en cas de problème.'
+    },
+
+    // Retours et échanges
+    {
+      id: 'commande-retour',
+      category: 'commande',
+      keywords: ['retour', 'retourner', 'échanger', 'echanger', 'remplacer', 'changer', 'rendre'],
+      question: 'Puis-je retourner ou échanger un produit ?',
+      answer: 'Oui, vous pouvez retourner un produit dans les cas suivants :\n• Produit défectueux ou endommagé\n• Produit non conforme à la description\n• Erreur de commande\n\nPour retourner :\n1. Contactez-nous dans les 48h suivant la réception\n2. Expliquez le problème\n3. Nous organiserons le retour et le remboursement\n\nLes produits périssables ne peuvent pas être retournés sauf en cas de défaut.'
+    },
+
+    // Partenariats
+    {
+      id: 'partenariat',
+      category: 'compte',
+      keywords: ['partenariat', 'partenaire', 'collaborer', 'collaboration', 'association', 'alliance'],
+      question: 'Comment devenir partenaire de Harvests ?',
+      answer: 'Harvests recherche des partenaires pour développer le marché agricole :\n• Producteurs locaux\n• Transformateurs\n• Restaurants et établissements\n• Transporteurs et logistique\n• Organisations agricoles\n\nContactez-nous à contact@harvests.site pour discuter d\'un partenariat adapté à vos besoins.'
+    },
+
+    // Promotions
+    {
+      id: 'produits-promotions',
+      category: 'produits',
+      keywords: ['promotion', 'promo', 'réduction', 'reduction', 'soldes', 'offre spéciale', 'offre speciale', 'discount', 'rabais'],
+      question: 'Y a-t-il des promotions disponibles ?',
+      answer: 'Oui ! Nous proposons régulièrement des promotions :\n• Réductions sur certains produits\n• Offres spéciales saisonnières\n• Livraison gratuite à partir de 50 000 FCFA\n• Codes promo pour nouveaux clients\n\nConsultez la section "Promotions" ou demandez-moi "quelles sont les promotions" pour voir les offres actuelles.'
+    },
+
+    // Fraîcheur des produits
+    {
+      id: 'produits-fraicheur',
+      category: 'produits',
+      keywords: ['frais', 'fraîcheur', 'fraisheur', 'date', 'expiration', 'périmé', 'perime', 'conservation'],
+      question: 'Comment garantir la fraîcheur des produits ?',
+      answer: 'Nous garantissons la fraîcheur de nos produits :\n• Livraison rapide (24-48h à Dakar)\n• Produits récoltés à la commande quand possible\n• Chaîne du froid respectée pour les produits sensibles\n• Dates de péremption clairement indiquées\n• Instructions de conservation sur chaque produit\n\nEn cas de problème de fraîcheur, contactez-nous immédiatement pour remboursement.'
+    },
+
+    // Commandes en gros
+    {
+      id: 'commande-gros',
+      category: 'commande',
+      keywords: ['gros', 'quantité', 'quantite', 'volume', 'wholesale', 'en gros', 'commande importante', 'bulk'],
+      question: 'Puis-je commander en gros ?',
+      answer: 'Oui, nous acceptons les commandes en gros :\n• Contactez directement le producteur pour négocier les prix\n• Certains vendeurs proposent des tarifs dégressifs\n• Livraison adaptée pour les grandes quantités\n• Paiement échelonné possible pour les commandes importantes\n\nParfait pour les restaurants, transformateurs et revendeurs !'
+    },
+
+    // Contact vendeur
+    {
+      id: 'produits-contact-vendeur',
+      category: 'produits',
+      keywords: ['contacter vendeur', 'contacter producteur', 'vendeur', 'producteur', 'téléphone vendeur', 'telephone vendeur', 'coordonnées', 'coordonnees'],
+      question: 'Comment contacter un vendeur ?',
+      answer: 'Pour contacter un vendeur :\n1. Allez sur la page du produit\n2. Cliquez sur le nom du vendeur\n3. Consultez son profil avec ses coordonnées\n4. Utilisez le formulaire de contact ou appelez directement\n\nVous pouvez aussi passer par notre service client si besoin.'
+    },
+
+    // Catégories de produits
+    {
+      id: 'produits-categories',
+      category: 'produits',
+      keywords: ['catégorie', 'categorie', 'types', 'variétés', 'varietes', 'quels produits', 'quels produit'],
+      question: 'Quelles catégories de produits proposez-vous ?',
+      answer: 'Nous proposons une large gamme de produits agricoles :\n• Fruits frais (mangues, bananes, oranges...)\n• Légumes (tomates, oignons, carottes...)\n• Céréales (riz, mil, maïs...)\n• Produits transformés (jus, confitures, conserves...)\n• Plats cuisinés (par les restaurateurs)\n• Produits bio certifiés\n\nUtilisez les filtres de recherche pour trouver ce que vous cherchez !'
+    },
   ],
 
   // Messages par défaut
@@ -251,6 +395,11 @@ export const faqData = {
       id: 'bot_capabilities',
       keywords: ['que peux tu faire', 'comment peux tu m\'aider', 'tu fais quoi', 'que sais tu faire', 'tes capacités', 'tu peux faire quoi', 'aide moi', 'comment m\'aider', 'peux tu m\'aider', 'tu peux m\'aider'],
       action: 'BOT_CAPABILITIES'
+    },
+    {
+      id: 'services_platform',
+      keywords: ['que proposez', 'que proposer', 'quels services', 'quels service', 'que faites', 'que fait', 'activité', 'activités', 'offrez', 'offre', 'offres'],
+      action: 'SERVICES_PLATFORM'
     },
     {
       id: 'greeting',
@@ -311,40 +460,95 @@ export const faqData = {
       id: 'contact_support',
       keywords: ['parler', 'humain', 'agent', 'support', 'aide', 'contacter'],
       action: 'CONTACT_SUPPORT'
+    },
+    {
+      id: 'devenir_transformateur',
+      keywords: ['devenir transformateur', 'transformateur', 'transformer produits', 'produits transformés'],
+      action: 'DEVENIR_TRANSFORMATEUR'
+    },
+    {
+      id: 'devenir_restaurateur',
+      keywords: ['devenir restaurateur', 'restaurateur', 'restaurant', 'vendre plats'],
+      action: 'DEVENIR_RESTAURATEUR'
+    },
+    {
+      id: 'devenir_exportateur',
+      keywords: ['devenir exportateur', 'exportateur', 'exporter', 'export international'],
+      action: 'DEVENIR_EXPORTATEUR'
+    },
+    {
+      id: 'produits_bio',
+      keywords: ['produits bio', 'bio', 'biologique', 'organique', 'certifié bio'],
+      action: 'PRODUITS_BIO'
+    },
+    {
+      id: 'promotions',
+      keywords: ['promotion', 'promotions', 'promo', 'promos', 'réduction', 'soldes', 'offre'],
+      action: 'PROMOTIONS'
+    },
+    {
+      id: 'avis_produits',
+      keywords: ['laisser avis', 'noter produit', 'évaluer', 'commenter produit'],
+      action: 'AVIS_PRODUITS'
     }
   ]
 };
 
+// Fonction pour normaliser un texte (enlever accents, minuscules, etc.)
+const normalizeText = (text) => {
+  return text.toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Enlever les accents
+    .replace(/[^\w\s]/g, ' ') // Remplacer la ponctuation par des espaces
+    .replace(/\s+/g, ' ') // Normaliser les espaces multiples
+    .trim();
+};
+
 // Fonction pour détecter les problèmes spécifiques dans le message
-const detectSpecificIssues = (message) => {
-  const msg = message.toLowerCase();
-  
-  // Détection de problèmes de carte
-  if (msg.match(/\b(carte|card)\s+(rejet|rejeter|refus|refuser|bloqu|invalid|expir)/i) ||
-      msg.match(/\b(rejet|rejeter|refus|refuser)\s+(carte|card|ma carte)/i)) {
-    return 'paiement-carte-rejetee';
+const detectSpecificIssues = (normalizedMessage) => {
+  // Détection de problèmes de carte (plus stricte - doit contenir "carte" ET un mot de problème)
+  if ((normalizedMessage.includes('carte') || normalizedMessage.includes('card')) && 
+      (normalizedMessage.match(/\b(rejet|rejeter|refus|refuser|bloqu|invalid|expir)/i))) {
+    // Vérifier que ce n'est pas une question générale sur les services
+    if (!normalizedMessage.match(/\b(que|quoi|quels|quelles|proposez|proposer|offrez|service|services)\b/i)) {
+      return 'paiement-carte-rejetee';
+    }
   }
   
-  // Détection de problèmes de paiement généraux
-  if (msg.match(/\b(arrive pas|ne peut pas|impossible|ne marche pas|ne fonctionne pas|bug|erreur|problème|probleme)\s+(a |de |le )?payer/i) ||
-      msg.match(/\b(payer|paiement)\s+(ne|pas|échou|echoue|erreur|bug)/i)) {
+  // Détection de problèmes de paiement généraux (plus stricte)
+  if ((normalizedMessage.match(/\b(arrive pas|ne peut pas|impossible|ne marche pas|ne fonctionne pas|bug|erreur|probleme)\s+(a |de |le )?payer/i) ||
+      normalizedMessage.match(/\b(payer|paiement)\s+(ne|pas|echoue|erreur|bug)/i)) &&
+      !normalizedMessage.match(/\b(que|quoi|quels|quelles|proposez|proposer|offrez|service|services|mode|modes)\b/i)) {
     return 'paiement-erreur';
   }
   
-  // Détection de problèmes techniques
-  if (msg.match(/\b(bug|erreur technique|planté|bloqué|bloque|ne fonctionne pas|marche pas)/i)) {
+  // Détection de problèmes techniques (plus stricte)
+  if (normalizedMessage.match(/\b(bug|erreur technique|plante|bloque|ne fonctionne pas|marche pas)\b/i) &&
+      !normalizedMessage.match(/\b(que|quoi|quels|quelles|proposez|proposer|offrez|service|services)\b/i)) {
     return 'paiement-probleme-technique';
   }
   
   return null;
 };
 
+// Fonction pour normaliser un texte (enlever accents, minuscules, etc.)
+const normalizeText = (text) => {
+  return text.toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Enlever les accents
+    .replace(/[^\w\s]/g, ' ') // Remplacer la ponctuation par des espaces
+    .replace(/\s+/g, ' ') // Normaliser les espaces multiples
+    .trim();
+};
+
 // Fonction pour trouver la meilleure réponse
 export const findBestAnswer = (userMessage) => {
+  // Normaliser le message utilisateur (enlever accents, etc.)
+  const normalizedMessage = normalizeText(userMessage);
   const message = userMessage.toLowerCase().trim();
   
   // Détecter d'abord les problèmes spécifiques (priorité haute)
-  const specificIssue = detectSpecificIssues(message);
+  const specificIssue = detectSpecificIssues(normalizedMessage);
   if (specificIssue) {
     const faq = faqData.faqs.find(f => f.id === specificIssue);
     if (faq) {
@@ -355,7 +559,7 @@ export const findBestAnswer = (userMessage) => {
   // Utiliser la détection d'intentions améliorée avec scoring
   try {
     const { detectIntentWithScore } = require('../utils/chatbotImprovements');
-    const intentMatch = detectIntentWithScore(message, faqData.intents);
+    const intentMatch = detectIntentWithScore(userMessage, faqData.intents);
     if (intentMatch && intentMatch.score >= 1) {
       return { 
         type: 'intent', 
@@ -370,55 +574,70 @@ export const findBestAnswer = (userMessage) => {
   }
   
   // Vérifier les intentions spéciales (fallback méthode basique si import échoue)
+  // Utiliser la version normalisée pour la comparaison
   for (const intent of faqData.intents) {
     for (const keyword of intent.keywords) {
-      if (message.includes(keyword.toLowerCase())) {
+      const normalizedKeyword = normalizeText(keyword);
+      if (normalizedMessage.includes(normalizedKeyword)) {
         return { type: 'intent', intent: intent.action, data: intent, confidence: 1 };
       }
     }
   }
   
-  // Chercher dans les FAQs avec scoring amélioré
+  // Chercher dans les FAQs avec scoring amélioré et plus strict
   let bestMatch = null;
   let highestScore = 0;
   
   for (const faq of faqData.faqs) {
     let score = 0;
     let exactPhraseMatch = false;
+    let matchedKeywords = [];
     
     for (const keyword of faq.keywords) {
+      // Normaliser le mot-clé pour la comparaison
+      const normalizedKeyword = normalizeText(keyword);
       const kw = keyword.toLowerCase();
       
       // Vérifier les correspondances exactes de phrases (priorité maximale)
-      if (kw.includes(' ')) {
-        // Phrase complète - correspondance exacte
-        if (message.includes(kw)) {
+      if (normalizedKeyword.includes(' ')) {
+        // Phrase complète - correspondance exacte (avec normalisation)
+        if (normalizedMessage.includes(normalizedKeyword)) {
           score += 5; // Score très élevé pour les phrases complètes
           exactPhraseMatch = true;
+          matchedKeywords.push(normalizedKeyword);
         }
       } else {
         // Mot simple
         // Vérifier si c'est un mot complet (pas juste une partie d'un autre mot)
-        const wordBoundary = new RegExp(`\\b${kw}\\b`, 'i');
-        if (wordBoundary.test(message)) {
+        // Utiliser la version normalisée pour la comparaison
+        const wordBoundary = new RegExp(`\\b${normalizedKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        if (wordBoundary.test(normalizedMessage)) {
           score += 2; // Score moyen pour les mots complets
-        } else if (message.includes(kw)) {
-          score += 1; // Score faible pour les correspondances partielles
+          matchedKeywords.push(normalizedKeyword);
+        } else if (normalizedMessage.includes(normalizedKeyword)) {
+          score += 0.5; // Score très faible pour les correspondances partielles
         }
       }
     }
     
     // Bonus si plusieurs mots-clés correspondent (question plus spécifique)
-    const matchingKeywords = faq.keywords.filter(kw => 
-      message.includes(kw.toLowerCase())
-    ).length;
-    if (matchingKeywords > 1) {
-      score += matchingKeywords * 0.5;
+    if (matchedKeywords.length > 1) {
+      score += matchedKeywords.length * 0.5;
     }
     
-    // Prioriser les FAQs spécifiques sur les générales
-    if (faq.id.includes('erreur') || faq.id.includes('probleme') || faq.id.includes('rejetee')) {
-      score += 2;
+    // Prioriser les FAQs spécifiques sur les générales (mais seulement si elles matchent vraiment)
+    if (matchedKeywords.length > 0 && (faq.id.includes('erreur') || faq.id.includes('probleme') || faq.id.includes('rejetee'))) {
+      score += 1; // Bonus réduit
+    }
+    
+    // Pénalité si la FAQ concerne les paiements mais la question ne mentionne pas de problème
+    if ((faq.category === 'paiement' && faq.id.includes('rejetee')) || 
+        (faq.category === 'paiement' && faq.id.includes('erreur'))) {
+      const paymentKeywords = ['carte', 'paiement', 'payer', 'rejet', 'refus', 'erreur', 'probleme', 'bug'];
+      const hasPaymentKeyword = paymentKeywords.some(pk => normalizedMessage.includes(normalizeText(pk)));
+      if (!hasPaymentKeyword) {
+        score = 0; // Ignorer complètement si pas de mot-clé lié au paiement
+      }
     }
     
     if (score > highestScore) {
@@ -427,7 +646,8 @@ export const findBestAnswer = (userMessage) => {
     }
   }
   
-  if (bestMatch && highestScore >= 1) {
+  // Seuil minimum plus élevé pour éviter les faux positifs
+  if (bestMatch && highestScore >= 2) {
     return { type: 'faq', faq: bestMatch };
   }
   
