@@ -14,6 +14,7 @@ const ProducerReviews = React.lazy(() => import('../../../pages/dashboard/produc
 const ProfilePage = React.lazy(() => import('../../../pages/dashboard/common/ProfilePage'));
 const SettingsPage = React.lazy(() => import('../../../pages/dashboard/common/SettingsPage'));
 const OrderDetail = React.lazy(() => import('../../../pages/orders/OrderDetail'));
+const NotificationsPage = React.lazy(() => import('../../../pages/dashboard/common/NotificationsPage'));
 
 export const producerRoutes = [
   {
@@ -65,6 +66,11 @@ export const producerRoutes = [
     path: '/producer/reviews',
     element: <ProducerReviews />,
     title: 'Avis reçus'
+  },
+  {
+    path: '/producer/notifications',
+    element: <NotificationsPage />,
+    title: 'Notifications'
   }
 ];
 

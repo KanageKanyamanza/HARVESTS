@@ -18,7 +18,7 @@ import logo from '../../assets/logo.png';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../contexts/CartContext';
 import NotificationDropdown from '../notifications/NotificationDropdown';
-import SearchDropdown from '../common/SearchDropdown';
+import SearchModal from '../common/SearchModal';
 import { generateUserNavigation } from '../../navigation';
 
 const Header = () => {
@@ -29,25 +29,14 @@ const Header = () => {
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   // Fermer les menus au clic extérieur
   React.useEffect(() => {
     const handleClickOutside = (event) => {
-      // Ne pas fermer si on clique sur le dropdown de recherche
-      if (event.target.closest('[data-search-dropdown]')) {
-        return;
-      }
-      
       // Ne pas fermer si on clique sur le bouton du menu mobile
       if (event.target.closest('[data-mobile-menu-button]')) {
-        return;
-      }
-      
-      // Ne pas fermer si on clique dans le champ de recherche mobile
-      if (event.target.closest('[data-mobile-search]')) {
         return;
       }
       
@@ -98,55 +87,12 @@ const Header = () => {
     Shield
   });
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/products?q=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchQuery('');
-      setIsSearchDropdownOpen(false);
-    }
-  };
-
-  const handleSearchInputChange = (e) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-    
-    // Pour desktop : afficher le dropdown
-    setIsSearchDropdownOpen(value.length >= 2);
-  };
-
-  const navigateToSearchResults = (query) => {
-    if (query.trim()) {
-      // Fermer le menu mobile
-      setIsMobileMenuOpen(false);
-      
-      // Naviguer vers les résultats
-      navigate(`/products?q=${encodeURIComponent(query.trim())}`);
-      
-      // Nettoyer la recherche
-      setSearchQuery('');
-      setIsSearchDropdownOpen(false);
-    }
-  };
-
   const handleProductClick = (product) => {
     // Fermer le menu mobile si ouvert
     setIsMobileMenuOpen(false);
     
     // Naviguer vers le produit
     navigate(`/products/${product._id}`);
-    
-    // Nettoyer la recherche
-    setSearchQuery('');
-    setIsSearchDropdownOpen(false);
-  };
-
-  const handleSearchDropdownClose = () => {
-    setIsSearchDropdownOpen(false);
-  };
-
-  const handleMobileSearchSubmit = () => {
-    navigateToSearchResults(searchQuery);
   };
 
   const handleLogout = async () => {
@@ -197,32 +143,36 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* Barre de recherche - Desktop */}
-          <div className="hidden lg:block flex-1 max-w-[200px] relative">
-            <form onSubmit={handleSearch} className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className={`h-5 w-5 transition-colors duration-500 ease-in-out ${shouldBeTransparent ? 'text-white' : 'text-gray-400'}`} />
-              </div>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={handleSearchInputChange}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                placeholder="Rechercher des produits..."
-              />
-            </form>
-            
-            {/* Dropdown de recherche */}
-            <SearchDropdown
-              searchQuery={searchQuery}
-              isOpen={isSearchDropdownOpen}
-              onClose={handleSearchDropdownClose}
-              onProductClick={handleProductClick}
-            />
+          {/* Icône de recherche - Desktop */}
+          <div className="hidden lg:block">
+            <button
+              onClick={() => setIsSearchModalOpen(true)}
+              className={`${
+                shouldBeTransparent 
+                  ? 'text-white hover:text-primary-200' 
+                  : 'text-gray-700 hover:text-primary-600'
+              } transition-colors duration-500 ease-in-out p-2 hover:bg-gray-100 rounded-lg`}
+              aria-label="Rechercher"
+            >
+              <Search className="h-6 w-6" />
+            </button>
           </div>
 
           {/* Actions utilisateur */}
           <div className="flex items-center space-x-4">
+            {/* Icône de recherche - Mobile */}
+            <button
+              onClick={() => setIsSearchModalOpen(true)}
+              className={`lg:hidden ${
+                shouldBeTransparent 
+                  ? 'text-white hover:text-primary-200' 
+                  : 'text-gray-700 hover:text-primary-600'
+              } transition-colors duration-500 ease-in-out p-2 hover:bg-gray-100 rounded-lg`}
+              aria-label="Rechercher"
+            >
+              <Search className="h-6 w-6" />
+            </button>
+
             {/* Panier - visible pour tous sauf producteurs et admins connectés */}
             {(!isAuthenticated || (user?.userType !== 'producer' && user?.userType !== 'admin')) && (
               <Link
@@ -355,33 +305,18 @@ const Header = () => {
             </div>
             
             <div className="px-2 pt-2 pb-3 space-y-1 h-[calc(100%-80px)] overflow-y-auto">
-              {/* Barre de recherche mobile */}
-              <div className="px-3 py-2" data-mobile-search>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Search className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={handleSearchInputChange}
-                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 text-sm"
-                      placeholder="Rechercher des produits..."
-                    />
-                  </div>
-                  
-                  {/* Bouton de validation */}
-                  {searchQuery.trim().length >= 2 && (
-                    <button
-                      onClick={handleMobileSearchSubmit}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium whitespace-nowrap"
-                    >
-                      Valider
-                    </button>
-                  )}
-                </div>
-                
+              {/* Bouton de recherche mobile */}
+              <div className="px-3 py-2">
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setIsSearchModalOpen(true);
+                  }}
+                  className="flex items-center w-full px-4 py-2 text-base font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <Search className="h-5 w-5 mr-3" />
+                  Rechercher des produits
+                </button>
               </div>
 
               {/* Navigation principale mobile */}
@@ -418,6 +353,13 @@ const Header = () => {
           </div>
         </div>
       </div>
+
+      {/* Modale de recherche */}
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        onProductClick={handleProductClick}
+      />
     </header>
   );
 };

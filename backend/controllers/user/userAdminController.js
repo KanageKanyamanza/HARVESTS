@@ -1,6 +1,8 @@
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
 const userAdminService = require('../../services/user/userAdminService');
+const adminNotifications = require('../../utils/adminNotifications');
+const User = require('../../models/User');
 
 // Obtenir tous les utilisateurs (admin seulement)
 exports.getAllUsers = catchAsync(async (req, res, next) => {
@@ -117,6 +119,12 @@ exports.suspendUser = catchAsync(async (req, res, next) => {
   try {
     const { reason, duration } = req.body;
     const user = await userAdminService.suspendUser(req.params.id, reason, duration);
+
+    // Notifier les admins
+    const admin = req.admin || req.user;
+    adminNotifications.notifyUserSuspended(user, admin, reason, duration).catch(err => {
+      console.error('Erreur notification utilisateur suspendu:', err);
+    });
 
     res.status(200).json({
       status: 'success',

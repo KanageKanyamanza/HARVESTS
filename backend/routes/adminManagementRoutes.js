@@ -19,6 +19,7 @@ router.patch('/me/avatar',
   adminManagementController.uploadAdminPhoto,
   adminManagementController.uploadAvatar
 );
+router.put('/me/password', adminManagementController.changeMyPassword);
 
 // Routes pour la gestion des administrateurs
 router.route('/admins')

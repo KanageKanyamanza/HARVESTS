@@ -36,6 +36,7 @@ import ExporterProfile from '../pages/ExporterProfile';
 import TransporteursExportateurs from '../pages/TransporteursExportateurs';
 import CartPage from '../pages/Cart';
 import Contact from '../pages/Contact';
+import About from '../pages/About';
 import FAQ from '../pages/FAQ';
 import Terms from '../pages/Terms';
 import Privacy from '../pages/Privacy';
@@ -195,6 +196,8 @@ const AppRoutes = () => {
       <Route path="/exporters/:id" element={<Layout><SuspenseRoute element={<ExporterProfile />} /></Layout>} />
       <Route path="/cart" element={<Layout><SuspenseRoute element={<CartPage />} /></Layout>} />
       <Route path="/checkout" element={<CheckoutGateway />} />
+      <Route path="/about" element={<Layout><SuspenseRoute element={<About />} /></Layout>} />
+      <Route path="/a-propos" element={<Layout><SuspenseRoute element={<About />} /></Layout>} />
       <Route path="/contact" element={<Layout><SuspenseRoute element={<Contact />} /></Layout>} />
       <Route path="/help" element={<SuspenseRoute element={<FAQ />} />} />
       <Route path="/terms" element={<SuspenseRoute element={<Terms />} />} />

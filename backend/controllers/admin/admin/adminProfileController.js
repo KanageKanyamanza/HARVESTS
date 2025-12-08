@@ -24,7 +24,7 @@ exports.getMe = catchAsync(async (req, res, next) => {
 // @route   PUT /api/v1/admin/me
 // @access  Admin
 exports.updateMe = catchAsync(async (req, res, next) => {
-  const { firstName, lastName, phone, timezone, language } = req.body;
+  const { firstName, lastName, phone, timezone, language, notificationEmail } = req.body;
 
   const updateData = {};
   if (firstName) updateData.firstName = firstName;
@@ -32,6 +32,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   if (phone) updateData.phone = phone;
   if (timezone) updateData.timezone = timezone;
   if (language) updateData.language = language;
+  if (notificationEmail !== undefined) updateData.notificationEmail = notificationEmail || null;
 
   const admin = await Admin.findByIdAndUpdate(
     req.admin._id,

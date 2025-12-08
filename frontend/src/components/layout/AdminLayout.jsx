@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import {
   LayoutDashboard,
@@ -34,7 +34,6 @@ import CloudinaryImage from '../common/CloudinaryImage';
 const AdminLayout = ({ children }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
@@ -129,6 +128,12 @@ const AdminLayout = ({ children }) => {
       href: '/admin/chatbot',
       icon: MessageCircle,
       current: location.pathname.startsWith('/admin/chatbot')
+    },
+    {
+      name: 'Notifications',
+      href: '/admin/notifications',
+      icon: Bell,
+      current: location.pathname.startsWith('/admin/notifications')
     },
     {
       name: 'Paramètres',

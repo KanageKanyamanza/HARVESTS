@@ -5,6 +5,7 @@ const AppError = require('../../utils/appError');
 const Email = require('../../utils/email');
 const emailQueue = require('../../services/emailQueueService');
 const { logAudit, AUDIT_ACTIONS } = require('../../utils/auditLogger');
+const adminNotifications = require('../../utils/adminNotifications');
 
 // Fonction pour signer un JWT
 const signToken = (id) => {
@@ -121,6 +122,11 @@ exports.signup = catchAsync(async (req, res, next) => {
     language: req.language,
     emailType: 'welcome',
     email: newUser.email
+  });
+
+  // Envoyer une notification aux admins (en arrière-plan, ne pas bloquer la réponse)
+  adminNotifications.notifyNewUserAccount(newUser).catch(err => {
+    console.error('Erreur lors de l\'envoi de la notification admin:', err);
   });
 
   // Réponse immédiate de succès d'inscription

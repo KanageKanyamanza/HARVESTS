@@ -86,10 +86,10 @@ const Contact = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4" data-aos="fade-up">
               Contactez-nous
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto" data-aos="fade-up" data-aos-delay="100">
               Nous sommes là pour vous aider. N'hésitez pas à nous contacter pour toute question, 
               suggestion ou demande d'assistance.
             </p>
@@ -97,7 +97,7 @@ const Contact = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Informations de contact */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1" data-aos="fade-right">
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-2xl font-semibold text-gray-900 mb-6">
                   Nos coordonnées
@@ -162,7 +162,7 @@ const Contact = () => {
             </div>
 
             {/* Formulaire de contact */}
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2" data-aos="fade-left">
               <div className="bg-white rounded-lg shadow-sm p-6">
                 <h2 className="text-2xl font-semibold text-gray-900 mb-6">
                   Envoyez-nous un message

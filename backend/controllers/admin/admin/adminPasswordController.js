@@ -2,6 +2,46 @@ const Admin = require('../../../models/Admin');
 const catchAsync = require('../../../utils/catchAsync');
 const AppError = require('../../../utils/appError');
 
+// @desc    Changer le mot de passe de l'administrateur connecté
+// @route   PUT /api/v1/admin-management/me/password
+// @access  Admin
+exports.changeMyPassword = catchAsync(async (req, res, next) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword) {
+    return next(new AppError('Veuillez fournir votre mot de passe actuel', 400));
+  }
+
+  if (!newPassword) {
+    return next(new AppError('Veuillez fournir un nouveau mot de passe', 400));
+  }
+
+  if (newPassword.length < 6) {
+    return next(new AppError('Le mot de passe doit contenir au moins 6 caractères', 400));
+  }
+
+  // Récupérer l'admin avec le mot de passe
+  const admin = await Admin.findById(req.admin._id).select('+password');
+  if (!admin) {
+    return next(new AppError('Administrateur non trouvé', 404));
+  }
+
+  // Vérifier le mot de passe actuel
+  if (!(await admin.comparePassword(currentPassword))) {
+    return next(new AppError('Mot de passe actuel incorrect', 400));
+  }
+
+  // Mettre à jour le mot de passe
+  admin.password = newPassword;
+  admin.lastPasswordChange = new Date();
+  await admin.save();
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Mot de passe modifié avec succès'
+  });
+});
+
 // @desc    Changer le mot de passe d'un administrateur
 // @route   PUT /api/v1/admin/admins/:id/password
 // @access  Super Admin, Admin (propre compte)

@@ -43,13 +43,14 @@ const BannersSection = () => {
   const formatTime = (value) => String(value).padStart(2, '0');
 
   return (
-    <section className="py-20 bg-harvests-light">
+    <section className="py-20 bg-harvests-light" data-aos="fade-up">
       <div className="container-xl">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           {/* Bannière 1 - Sale of the Month */}
           <div 
             className="relative rounded-2xl text-center overflow-hidden h-[550px] bg-cover bg-center group"
             style={{ backgroundImage: `url(${Banner54})` }}
+            data-aos="fade-right"
           >
             <div className="absolute inset-0 bg-gradient-to-b from-blue-900/50 via-transparent to-transparent"></div>
             <div className="relative h-full flex flex-col justify-start p-8 pt-10">
@@ -102,6 +103,7 @@ const BannersSection = () => {
           <div 
             className="relative rounded-2xl text-center overflow-hidden h-[550px] bg-cover bg-center group"
             style={{ backgroundImage: `url(${Banner55})` }}
+            data-aos="fade-left"
           >
             <div className="absolute inset-0 bg-gradient-to-b from-yellow-400/30 via-transparent to-transparent"></div>
             <div className="relative h-full flex flex-col justify-start p-8 pt-10">

@@ -36,10 +36,14 @@ const chatInteractionSchema = new mongoose.Schema({
     min: 0,
     max: 1
   },
+  // Temps de réponse en millisecondes
+  responseTime: {
+    type: Number,
+    default: null
+  },
   // Feedback utilisateur
   feedback: {
-    type: String,
-    enum: ['helpful', 'not_helpful', null],
+    type: Boolean,
     default: null
   },
   // Métadonnées

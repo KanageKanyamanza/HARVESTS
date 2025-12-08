@@ -13,6 +13,7 @@ const Statistics = React.lazy(() => import('../../../pages/dashboard/exporter/St
 const ProfilePage = React.lazy(() => import('../../../pages/dashboard/common/ProfilePage'));
 const SettingsPage = React.lazy(() => import('../../../pages/dashboard/common/SettingsPage'));
 const OrderDetail = React.lazy(() => import('../../../pages/orders/OrderDetail'));
+const NotificationsPage = React.lazy(() => import('../../../pages/dashboard/common/NotificationsPage'));
 
 export const exporterRoutes = [
   {
@@ -59,6 +60,11 @@ export const exporterRoutes = [
     path: '/exporter/settings',
     element: <SettingsPage />,
     title: 'Paramètres'
+  },
+  {
+    path: '/exporter/notifications',
+    element: <NotificationsPage />,
+    title: 'Notifications'
   }
 ];
 

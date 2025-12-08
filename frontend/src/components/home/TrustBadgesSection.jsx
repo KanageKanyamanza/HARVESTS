@@ -30,7 +30,7 @@ const TrustBadgesSection = () => {
   ];
 
   return (
-    <section className="py-12 bg-harvests-light">
+    <section className="py-12 bg-harvests-light" data-aos="fade-up">
       <div className="container-xl">
         <div className="shadow-lg p-2 bg-white rounded-lg grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {badges.map((badge, index) => {
@@ -39,6 +39,8 @@ const TrustBadgesSection = () => {
               <div 
                 key={index} 
                 className="flex items-center gap-4 p-1 rounded-lg hover:bg-harvests-light transition-colors"
+                data-aos="fade-up"
+                data-aos-delay={index * 100}
               >
                 <div 
                   className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center"

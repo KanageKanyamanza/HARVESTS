@@ -8,6 +8,7 @@ const {
 } = require('../../utils/orderSegments');
 const orderService = require('../../services/orderService');
 const orderStatusService = require('../../services/orderStatusService');
+const adminNotifications = require('../../utils/adminNotifications');
 
 // Estimer les frais avant création de commande
 exports.estimateOrderCosts = catchAsync(async (req, res, next) => {
@@ -69,18 +70,16 @@ exports.createOrder = catchAsync(async (req, res, next) => {
       console.error('Erreur lors de l\'envoi de la notification:', error);
     }
 
+    // Notifier les admins de la nouvelle commande
+    adminNotifications.notifyNewOrder(order, req.user).catch(err => {
+      console.error('Erreur notification nouvelle commande:', err);
+    });
+
     // Notifier les admins pour les commandes de forte valeur (> 100,000 FCFA)
     if (order.total >= 100000) {
-      try {
-        const customerName = `${req.user.firstName} ${req.user.lastName}`;
-        await notificationController.notifyHighValueOrder(
-          order._id,
-          order.total,
-          customerName
-        );
-      } catch (error) {
-        console.error('Erreur lors de l\'envoi de notification admin:', error);
-      }
+      adminNotifications.notifyHighValueOrder(order, req.user).catch(err => {
+        console.error('Erreur notification commande de forte valeur:', err);
+      });
     }
 
     res.status(201).json({
@@ -219,6 +218,12 @@ exports.cancelOrder = catchAsync(async (req, res, next) => {
 
   try {
     const cancelledOrder = await orderService.cancelOrder(order, req.user._id, reason);
+    
+    // Notifier les admins de l'annulation
+    adminNotifications.notifyOrderCancelled(cancelledOrder, req.user, reason).catch(err => {
+      console.error('Erreur notification commande annulée:', err);
+    });
+    
     res.status(200).json({
       status: 'success',
       data: { order: cancelledOrder }

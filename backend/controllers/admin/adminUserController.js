@@ -3,6 +3,7 @@ const Product = require('../../models/Product');
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
 const { logAudit, AUDIT_ACTIONS } = require('../../utils/auditLogger');
+const adminNotifications = require('../../utils/adminNotifications');
 
 // @desc    Obtenir tous les utilisateurs
 // @route   GET /api/v1/admin/users
@@ -180,6 +181,16 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
 
   console.log(`🗑️ Suppression de ${deletedProducts.deletedCount} produit(s) associé(s) à l'utilisateur ${deletedUserEmail}`);
 
+  // Notifier les admins avant la suppression
+  adminNotifications.notifyUserDeleted({
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    userType: user.userType
+  }, req.admin).catch(err => {
+    console.error('Erreur notification utilisateur supprimé:', err);
+  });
+
   // Supprimer l'utilisateur
   await User.findByIdAndDelete(req.params.id);
 
@@ -214,6 +225,11 @@ exports.banUser = catchAsync(async (req, res, next) => {
   if (!user) {
     return next(new AppError('Utilisateur non trouvé', 404));
   }
+
+  // Notifier les admins
+  adminNotifications.notifyUserBanned(user, req.admin, req.body.reason).catch(err => {
+    console.error('Erreur notification utilisateur banni:', err);
+  });
 
   // Audit log
   await logAudit({

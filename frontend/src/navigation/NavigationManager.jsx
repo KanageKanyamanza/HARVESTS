@@ -8,7 +8,8 @@ import {
   getProfileRoute, 
   getSettingsRoute,
   getProductsRoute,
-  getAddProductRoute
+  getAddProductRoute,
+  getNotificationsRoute
 } from '../utils/routeUtils';
 
 // Import des icônes par défaut
@@ -28,7 +29,8 @@ import {
   FiTruck,
   FiGlobe,
   FiCompass,
-  FiSearch
+  FiSearch,
+  FiBell
 } from 'react-icons/fi';
 import { FaChartBar } from 'react-icons/fa';
 
@@ -86,7 +88,8 @@ export const generateSidebarNavigation = (user, icons = {}) => {
     FiTrendingUp: TrendingUpIcon = FiTrendingUp,
     FiShoppingCart: ShoppingCartIcon = FiShoppingCart,
     FaChartBar: ChartBarIcon = FaChartBar,
-    FiTruck: TruckIcon = FiTruck
+    FiTruck: TruckIcon = FiTruck,
+    FiBell: BellIcon = FiBell
   } = icons;
 
   // Si des navigationItems sont fournis en prop, les utiliser
@@ -109,6 +112,7 @@ export const generateSidebarNavigation = (user, icons = {}) => {
         { name: 'Mes commandes', href: '/consumer/orders', icon: ShoppingBagIcon },
         { name: 'Mes avis', href: '/consumer/reviews', icon: StarIcon },
         { name: 'Statistiques', href: '/consumer/statistics', icon: TrendingUpIcon },
+        { name: 'Notifications', href: getNotificationsRoute(user), icon: BellIcon },
         { name: 'Profil', href: getProfileRoute(user), icon: UserIcon },
         { name: 'Paramètres', href: getSettingsRoute(user), icon: SettingsIcon }
       ];
@@ -122,6 +126,7 @@ export const generateSidebarNavigation = (user, icons = {}) => {
         { name: 'Mes commandes', href: '/explorer/orders', icon: ShoppingBagIcon },
         { name: 'Mes avis', href: '/explorer/reviews', icon: StarIcon },
         { name: 'Statistiques', href: '/explorer/statistics', icon: TrendingUpIcon },
+        { name: 'Notifications', href: getNotificationsRoute(user), icon: BellIcon },
         { name: 'Profil', href: getProfileRoute(user), icon: UserIcon },
         { name: 'Paramètres', href: getSettingsRoute(user), icon: SettingsIcon }
       ];
@@ -135,6 +140,7 @@ export const generateSidebarNavigation = (user, icons = {}) => {
       { name: 'Commandes', href: getOrdersRoute(user), icon: ShoppingBagIcon },
       { name: 'Avis reçus', href: '/producer/reviews', icon: StarIcon },
       { name: 'Statistiques', href: '/producer/stats', icon: ChartBarIcon },
+      { name: 'Notifications', href: getNotificationsRoute(user), icon: BellIcon },
       { name: 'Profil', href: getProfileRoute(user), icon: UserIcon },
       { name: 'Paramètres', href: getSettingsRoute(user), icon: SettingsIcon }
     ];
@@ -147,6 +153,7 @@ export const generateSidebarNavigation = (user, icons = {}) => {
       { name: 'Mes Produits', href: getProductsRoute(user), icon: PackageIcon },
       { name: 'Avis reçus', href: '/transformer/reviews', icon: StarIcon },
       { name: 'Statistiques', href: '/transformer/stats', icon: ChartBarIcon },
+      { name: 'Notifications', href: getNotificationsRoute(user), icon: BellIcon },
       { name: 'Profil', href: getProfileRoute(user), icon: UserIcon },
       { name: 'Paramètres', href: getSettingsRoute(user), icon: SettingsIcon }
     ];
@@ -159,6 +166,7 @@ export const generateSidebarNavigation = (user, icons = {}) => {
       { name: 'Mes commandes', href: getOrdersRoute(user), icon: ShoppingBagIcon },
       { name: 'Mes plats', href: getProductsRoute(user), icon: PackageIcon },
       { name: 'Statistiques', href: '/restaurateur/stats', icon: ChartBarIcon },
+      { name: 'Notifications', href: getNotificationsRoute(user), icon: BellIcon },
       { name: 'Profil', href: getProfileRoute(user), icon: UserIcon },
       { name: 'Paramètres', href: getSettingsRoute(user), icon: SettingsIcon }
     ];
@@ -170,6 +178,7 @@ export const generateSidebarNavigation = (user, icons = {}) => {
       { name: 'Commandes d\'export', href: getOrdersRoute(user), icon: ShoppingBagIcon },
       { name: 'Ma flotte', href: '/exporter/fleet', icon: TruckIcon },
       { name: 'Statistiques', href: '/exporter/statistics', icon: ChartBarIcon },
+      { name: 'Notifications', href: getNotificationsRoute(user), icon: BellIcon },
       { name: 'Profil', href: getProfileRoute(user), icon: UserIcon },
       { name: 'Paramètres', href: getSettingsRoute(user), icon: SettingsIcon }
     ];
@@ -181,6 +190,7 @@ export const generateSidebarNavigation = (user, icons = {}) => {
       { name: 'Commandes', href: getOrdersRoute(user), icon: ShoppingBagIcon },
       { name: 'Ma flotte', href: getProductsRoute(user), icon: PackageIcon },
       { name: 'Statistiques', href: '/transporter/statistics', icon: ChartBarIcon },
+      { name: 'Notifications', href: getNotificationsRoute(user), icon: BellIcon },
       { name: 'Profil', href: getProfileRoute(user), icon: UserIcon },
       { name: 'Paramètres', href: getSettingsRoute(user), icon: SettingsIcon }
     ];

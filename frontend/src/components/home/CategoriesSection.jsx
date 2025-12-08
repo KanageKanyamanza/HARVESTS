@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import CloudinaryImage from '../common/CloudinaryImage';
@@ -14,7 +14,7 @@ const CategoriesSection = () => {
   const [categoryProducts, setCategoryProducts] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [categoryIndex, setCategoryIndex] = useState(0);
+  const categoryIndexRef = useRef(0);
 
   const getCategoryLabel = (category) => {
     const labels = {
@@ -116,22 +116,20 @@ const CategoriesSection = () => {
     if (allCategories.length <= 4) return;
 
     const interval = setInterval(() => {
-      setCategoryIndex(prev => {
-        const newIndex = (prev + 4) % allCategories.length;
-        const newCats = [];
-        for (let i = 0; i < 4 && i < allCategories.length; i++) {
-          newCats.push(allCategories[(newIndex + i) % allCategories.length]);
+      const newIndex = (categoryIndexRef.current + 4) % allCategories.length;
+      categoryIndexRef.current = newIndex;
+      
+      const newCats = [];
+      for (let i = 0; i < 4 && i < allCategories.length; i++) {
+        newCats.push(allCategories[(newIndex + i) % allCategories.length]);
+      }
+      setDisplayedCategories(newCats);
+      
+      // Charger les produits pour les nouvelles catégories
+      newCats.forEach(cat => {
+        if (!categoryProducts[cat]) {
+          loadCategoryProduct(cat);
         }
-        setDisplayedCategories(newCats);
-        
-        // Charger les produits pour les nouvelles catégories
-        newCats.forEach(cat => {
-          if (!categoryProducts[cat]) {
-            loadCategoryProduct(cat);
-          }
-        });
-        
-        return newIndex;
       });
     }, 180000); // 3 minutes
 
@@ -140,7 +138,7 @@ const CategoriesSection = () => {
 
 
   return (
-    <section className="py-20 bg-harvests-light">
+    <section className="py-20 bg-harvests-light" data-aos="fade-up">
       <div className="container-xl">
         {/* En-tête */}
         <div className="flex justify-between items-center mb-5">

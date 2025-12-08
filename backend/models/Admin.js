@@ -120,6 +120,18 @@ const adminSchema = new mongoose.Schema({
     }
   },
   
+  notificationEmail: {
+    type: String,
+    trim: true,
+    lowercase: true,
+    validate: {
+      validator: function(email) {
+        return !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      },
+      message: 'Format d\'email de notification invalide'
+    }
+  },
+  
   avatar: {
     type: String,
     default: null

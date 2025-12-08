@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const { getAllAdminEmails } = require('../utils/adminEmailUtils');
 
 // Configuration du transport email
 const getEmailTransport = () => {
@@ -67,7 +68,9 @@ exports.sendContactMessage = catchAsync(async (req, res, next) => {
     return next(new AppError('Configuration email non disponible', 500));
   }
 
-  const contactEmail = process.env.CONTACT_EMAIL || 'contact@harvests.site';
+  // Récupérer tous les emails des admins actifs qui ont configuré leur email de notification
+  const recipientEmails = await getAllAdminEmails();
+
   const fromEmail = process.env.EMAIL_FROM || 'noreply@harvests.site';
 
   // Types de demande
@@ -189,9 +192,9 @@ Vous pouvez répondre directement à cet email pour contacter ${name}
 
   try {
     if (transport.type === 'sendgrid') {
-      // Envoi via SendGrid
-      const msg = {
-        to: contactEmail,
+      // Envoi via SendGrid à tous les admins
+      const messages = recipientEmails.map(recipientEmail => ({
+        to: recipientEmail,
         from: {
           email: fromEmail,
           name: 'Harvests Contact'
@@ -200,19 +203,24 @@ Vous pouvez répondre directement à cet email pour contacter ${name}
         subject: `[Contact Harvests] ${subject}`,
         text: textContent,
         html: htmlContent,
-      };
+      }));
 
-      await transport.client.send(msg);
+      // SendGrid peut envoyer plusieurs emails en une seule requête
+      await transport.client.send(messages);
     } else {
-      // Envoi via Nodemailer
-      await transport.client.sendMail({
-        from: `"Harvests Contact" <${fromEmail}>`,
-        to: contactEmail,
-        replyTo: email,
-        subject: `[Contact Harvests] ${subject}`,
-        text: textContent,
-        html: htmlContent,
-      });
+      // Envoi via Nodemailer à tous les admins
+      const emailPromises = recipientEmails.map(recipientEmail =>
+        transport.client.sendMail({
+          from: `"Harvests Contact" <${fromEmail}>`,
+          to: recipientEmail,
+          replyTo: email,
+          subject: `[Contact Harvests] ${subject}`,
+          text: textContent,
+          html: htmlContent,
+        })
+      );
+
+      await Promise.all(emailPromises);
     }
 
     res.status(200).json({

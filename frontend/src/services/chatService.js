@@ -228,7 +228,8 @@ export const chatService = {
     matchedFaqId,
     matchedIntent,
     confidence,
-    sessionId
+    sessionId,
+    responseTime
   }) => {
     try {
       const res = await api.post('/chat/log-interaction', {
@@ -238,7 +239,8 @@ export const chatService = {
         matchedFaqId,
         matchedIntent,
         confidence,
-        sessionId
+        sessionId,
+        responseTime
       });
       return res.data?.data?.interactionId || null;
     } catch (error) {

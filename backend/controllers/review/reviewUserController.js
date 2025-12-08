@@ -4,6 +4,7 @@ const Review = require('../../models/Review');
 const Order = require('../../models/Order');
 const Product = require('../../models/Product');
 const Notification = require('../../models/Notification');
+const adminNotifications = require('../../utils/adminNotifications');
 
 // Créer un avis (acheteurs seulement)
 exports.createReview = catchAsync(async (req, res, next) => {
@@ -121,6 +122,14 @@ exports.createReview = catchAsync(async (req, res, next) => {
       email: { enabled: true }
     }
   });
+
+  // Notifier les admins du nouvel avis
+  const product = await Product.findById(productId).populate('producer');
+  if (product) {
+    adminNotifications.notifyNewReview(review, req.user, product).catch(err => {
+      console.error('Erreur notification nouvel avis:', err);
+    });
+  }
 
   res.status(201).json({
     status: 'success',
@@ -270,6 +279,14 @@ exports.reportReview = catchAsync(async (req, res, next) => {
   }
 
   await review.report(req.user.id, reason, description);
+
+  // Notifier les admins de l'avis signalé
+  const reviewer = await require('../../models/User').findById(review.reviewer);
+  if (reviewer) {
+    adminNotifications.notifyReviewReported(review, reviewer, reason, description).catch(err => {
+      console.error('Erreur notification avis signalé:', err);
+    });
+  }
 
   res.status(200).json({
     status: 'success',

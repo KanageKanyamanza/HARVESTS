@@ -217,7 +217,7 @@ const AdminManagement = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-6 overflow-x-auto">
       <div className="max-w-7xl mx-auto">
         {/* Messages de succès/erreur */}
         {success && (

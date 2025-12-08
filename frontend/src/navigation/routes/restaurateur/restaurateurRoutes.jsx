@@ -14,6 +14,7 @@ const RestaurateurStats = React.lazy(() => import('../../../pages/dashboard/rest
 const ProfilePage = React.lazy(() => import('../../../pages/dashboard/common/ProfilePage'));
 const SettingsPage = React.lazy(() => import('../../../pages/dashboard/common/SettingsPage'));
 const OrderDetail = React.lazy(() => import('../../../pages/orders/OrderDetail'));
+const NotificationsPage = React.lazy(() => import('../../../pages/dashboard/common/NotificationsPage'));
 
 export const restaurateurRoutes = [
   {
@@ -65,6 +66,11 @@ export const restaurateurRoutes = [
     path: '/restaurateur/settings',
     element: <SettingsPage />,
     title: 'Paramètres'
+  },
+  {
+    path: '/restaurateur/notifications',
+    element: <NotificationsPage />,
+    title: 'Notifications'
   }
 ];
 

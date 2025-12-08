@@ -1,5 +1,13 @@
 import { faqData, findBestAnswer } from '../../data/faqData';
 import { chatService } from '../../services/chatService';
+import { 
+  extractKeywords, 
+  generateSearchVariations,
+  enhanceResponse,
+  handleSearchError,
+  understandQuestion,
+  generateContextualSuggestions
+} from '../../utils/chatbotImprovements';
 
 export const getProductImage = (product) => {
   if (product.images?.length > 0) {
@@ -59,34 +67,18 @@ export const findCustomAnswer = (message, customAnswers) => {
   return null;
 };
 
-export const tryProductSearch = async (message, { addBotMessage, setIsTyping, setFoundProducts, setFoundSellers, setFoundTransporters, setQuickLinks, setShowCategories, logInteraction }) => {
-  // Nettoyer le message pour extraire les mots-clés de recherche
-  // Enlever les mots de liaison, verbes et articles, mais garder les noms de produits
-  const stopWords = [
-    'vous', 'je', 'j\'ai', 'est-ce que', 'avez', 'vendez', 'proposez', 
-    'cherche', 'cherches', 'chercher', 'veux', 'voudrais', 'besoin', 'besoins', 
-    'acheter', 'achete', 'livreur', 'transporteur', 'vendeur', 'producteur', 
-    'catégorie', 'categorie', 'manger', 'mange', 'boire', 'bois', 'pour',
-    'du', 'de la', 'un', 'une', 'le', 'la', 'les', 'des', 'd\'', 'de'
-  ];
+export const tryProductSearch = async (message, { addBotMessage, setIsTyping, setFoundProducts, setFoundSellers, setFoundTransporters, setQuickLinks, setShowCategories, logInteraction, getUserFirstName, onSearchComplete }) => {
+  // Utiliser l'extraction améliorée de mots-clés
+  const keywords = extractKeywords(message);
   
-  let cleanedMessage = message
-    .replace(/\?|!|,|\./g, '') // Enlever la ponctuation
-    .toLowerCase()
-    .split(/\s+/) // Séparer en mots
-    .filter(word => word.length > 1 && !stopWords.includes(word)) // Garder seulement les mots significatifs
-    .join(' ')
-    .trim();
-  
-  // Si le message est trop court après nettoyage, essayer d'extraire le dernier mot significatif
-  if (cleanedMessage.length < 2) {
-    const words = message.toLowerCase().split(/\s+/);
-    // Prendre les 2-3 derniers mots qui ne sont pas des stop words
-    const significantWords = words
-      .filter(word => word.length > 2 && !stopWords.includes(word))
-      .slice(-2);
-    cleanedMessage = significantWords.join(' ').trim();
+  if (keywords.length === 0) {
+    addBotMessage(faqData.defaultMessages.notUnderstood);
+    setShowCategories(true);
+    return false;
   }
+  
+  // Utiliser les mots-clés extraits pour créer le terme de recherche
+  const cleanedMessage = keywords.join(' ').trim();
   
   if (cleanedMessage.length < 2) {
     addBotMessage(faqData.defaultMessages.notUnderstood);
@@ -96,18 +88,28 @@ export const tryProductSearch = async (message, { addBotMessage, setIsTyping, se
 
   setIsTyping(true);
   const searchType = detectSearchType(message);
-  const searchTerms = getSearchVariants(cleanedMessage);
+  // Utiliser les variations améliorées de recherche
+  const searchTerms = generateSearchVariations(cleanedMessage);
   
   try {
     if (searchType === 'transporter') {
       for (const term of searchTerms) {
-        const transporters = await chatService.searchTransporters(term);
-        if (transporters?.length > 0) {
-          addBotMessage('🚚 Voici les livreurs trouvés :');
-          setFoundTransporters(transporters.slice(0, 3));
-          logInteraction(message, 'Livreurs trouvés', 'product_search');
-          setIsTyping(false);
-          return true;
+        try {
+          const transporters = await chatService.searchTransporters(term);
+          if (transporters?.length > 0) {
+            const response = enhanceResponse(
+              '🚚 Voici les livreurs trouvés :',
+              { firstName: getUserFirstName?.() }
+            );
+            addBotMessage(response);
+            setFoundTransporters(transporters.slice(0, 3));
+            logInteraction(message, 'Livreurs trouvés', 'product_search');
+            setIsTyping(false);
+            return true;
+          }
+        } catch (error) {
+          // Continuer avec le terme suivant en cas d'erreur
+          continue;
         }
       }
       addBotMessage(`Aucun livreur trouvé pour "${cleanedMessage}".`);
@@ -118,13 +120,22 @@ export const tryProductSearch = async (message, { addBotMessage, setIsTyping, se
     
     if (searchType === 'seller') {
       for (const term of searchTerms) {
-        const sellers = await chatService.searchSellers(term);
-        if (sellers?.length > 0) {
-          addBotMessage('👨‍🌾 Voici les vendeurs trouvés :');
-          setFoundSellers(sellers.slice(0, 3));
-          logInteraction(message, 'Vendeurs trouvés', 'product_search');
-          setIsTyping(false);
-          return true;
+        try {
+          const sellers = await chatService.searchSellers(term);
+          if (sellers?.length > 0) {
+            const response = enhanceResponse(
+              '👨‍🌾 Voici les vendeurs trouvés :',
+              { firstName: getUserFirstName?.() }
+            );
+            addBotMessage(response);
+            setFoundSellers(sellers.slice(0, 3));
+            logInteraction(message, 'Vendeurs trouvés', 'product_search');
+            setIsTyping(false);
+            return true;
+          }
+        } catch (error) {
+          // Continuer avec le terme suivant en cas d'erreur
+          continue;
         }
       }
       addBotMessage(`Aucun vendeur trouvé pour "${cleanedMessage}".`);
@@ -134,22 +145,47 @@ export const tryProductSearch = async (message, { addBotMessage, setIsTyping, se
     }
 
     for (const term of searchTerms) {
-      const products = await chatService.searchProducts(term);
-      if (products?.length > 0) {
-        addBotMessage('🔍 Voici ce que j\'ai trouvé :');
-        setFoundProducts(products.slice(0, 3));
-        logInteraction(message, 'Produits trouvés', 'product_search');
-        setIsTyping(false);
-        return true;
+      try {
+        const products = await chatService.searchProducts(term);
+        if (products?.length > 0) {
+          const response = enhanceResponse(
+            '🔍 Voici ce que j\'ai trouvé :',
+            { 
+              firstName: getUserFirstName?.(),
+              previousSearch: message
+            }
+          );
+          addBotMessage(response);
+          setFoundProducts(products.slice(0, 3));
+          logInteraction(message, 'Produits trouvés', 'product_search');
+          
+          // Notifier le callback de recherche complétée
+          if (onSearchComplete) {
+            onSearchComplete(term, products);
+          }
+          
+          setIsTyping(false);
+          return true;
+        }
+      } catch (error) {
+        // Si erreur sur le premier terme, essayer les autres
+        if (term === searchTerms[0]) {
+          const errorInfo = handleSearchError(error, term);
+          // Ne pas afficher l'erreur immédiatement, continuer avec les autres termes
+        }
+        continue;
       }
     }
     
     // Si aucun produit trouvé, proposer des produits similaires
-    // Chercher des produits similaires (produits populaires ou en vedette)
     try {
       const similarProducts = await chatService.getFeaturedProducts();
       if (similarProducts?.length > 0) {
-        addBotMessage(`Voici des produits qui pourraient vous intéresser :`);
+        const response = enhanceResponse(
+          `Voici des produits qui pourraient vous intéresser :`,
+          { firstName: getUserFirstName?.() }
+        );
+        addBotMessage(response);
         setFoundProducts(similarProducts.slice(0, 3));
         setQuickLinks([
           { to: '/products', label: 'Voir tous nos produits' },
@@ -164,10 +200,24 @@ export const tryProductSearch = async (message, { addBotMessage, setIsTyping, se
     }
   } catch (error) {
     console.error('Erreur recherche:', error);
+    const errorInfo = handleSearchError(error, cleanedMessage);
+    addBotMessage(errorInfo.message);
+    if (errorInfo.suggestions) {
+      setQuickLinks(errorInfo.suggestions.map(s => ({ 
+        to: s.action === 'categories' ? '/categories' : '/products',
+        label: s.text 
+      })));
+    }
+    setIsTyping(false);
+    return false;
   }
   
   setIsTyping(false);
-  addBotMessage(`Désolé, nous n'avons pas de "${cleanedMessage}" en stock. 😔\n\nVoulez-vous voir notre catalogue complet ?`);
+  const response = enhanceResponse(
+    `Désolé, nous n'avons pas de "${cleanedMessage}" en stock. 😔\n\nVoulez-vous voir notre catalogue complet ?`,
+    { firstName: getUserFirstName?.() }
+  );
+  addBotMessage(response);
   setQuickLinks([{ to: '/products', label: 'Voir tous nos produits' }]);
   setShowCategories(true);
   return false;

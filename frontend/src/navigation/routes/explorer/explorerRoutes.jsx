@@ -12,6 +12,7 @@ const Reviews = React.lazy(() => import('../../../pages/dashboard/consumer/Revie
 const Statistics = React.lazy(() => import('../../../pages/dashboard/consumer/Statistics'));
 const ProfilePage = React.lazy(() => import('../../../pages/dashboard/common/ProfilePage'));
 const SettingsPage = React.lazy(() => import('../../../pages/dashboard/common/SettingsPage'));
+const NotificationsPage = React.lazy(() => import('../../../pages/dashboard/common/NotificationsPage'));
 
 export const explorerRoutes = [
   {
@@ -53,6 +54,11 @@ export const explorerRoutes = [
     path: '/explorer/settings',
     element: <SettingsPage />,
     title: 'Paramètres'
+  },
+  {
+    path: '/explorer/notifications',
+    element: <NotificationsPage />,
+    title: 'Notifications'
   }
 ];
 

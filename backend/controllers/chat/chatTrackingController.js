@@ -12,7 +12,8 @@ exports.logInteraction = catchAsync(async (req, res, next) => {
     matchedFaqId, 
     matchedIntent,
     confidence,
-    sessionId 
+    sessionId,
+    responseTime
   } = req.body;
 
   const interaction = await ChatInteraction.create({
@@ -24,6 +25,7 @@ exports.logInteraction = catchAsync(async (req, res, next) => {
     matchedFaqId,
     matchedIntent,
     confidence,
+    responseTime,
     ip: req.ip,
     userAgent: req.get('User-Agent')
   });
@@ -76,11 +78,17 @@ exports.logInteraction = catchAsync(async (req, res, next) => {
 exports.logFeedback = catchAsync(async (req, res, next) => {
   const { interactionId, feedback } = req.body;
 
-  if (!['helpful', 'not_helpful'].includes(feedback)) {
+  // Accepter boolean ou string
+  let feedbackValue = feedback;
+  if (typeof feedback === 'string') {
+    feedbackValue = feedback === 'true' || feedback === 'helpful';
+  } else if (typeof feedback === 'boolean') {
+    feedbackValue = feedback;
+  } else {
     return next(new AppError('Feedback invalide', 400));
   }
 
-  await ChatInteraction.findByIdAndUpdate(interactionId, { feedback });
+  await ChatInteraction.findByIdAndUpdate(interactionId, { feedback: feedbackValue });
 
   res.status(200).json({
     status: 'success',

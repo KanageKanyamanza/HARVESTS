@@ -33,6 +33,24 @@ exports.searchProducts = catchAsync(async (req, res, next) => {
   if (searchQuery.$or && searchQuery.$or.length > 0) {
     mongoQuery.$and = mongoQuery.$and || [];
     mongoQuery.$and.push({ $or: searchQuery.$or });
+  } else if (query.trim()) {
+    // Fallback : recherche simple si buildSearchWithLocation ne retourne rien
+    // Cela peut arriver si le terme est trop court ou ne correspond à aucune variante
+    const normalizedTerm = query.trim().toLowerCase();
+    const searchRegex = new RegExp(normalizedTerm, 'i');
+    mongoQuery.$and = mongoQuery.$and || [];
+    mongoQuery.$and.push({
+      $or: [
+        { name: searchRegex },
+        { 'name.fr': searchRegex },
+        { 'name.en': searchRegex },
+        { description: searchRegex },
+        { shortDescription: searchRegex },
+        { tags: { $in: [searchRegex] } },
+        { category: searchRegex },
+        { subcategory: searchRegex }
+      ]
+    });
   }
   
   // Ajouter le filtre de localisation

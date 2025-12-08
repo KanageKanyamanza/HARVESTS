@@ -14,6 +14,7 @@ const TransformerStats = React.lazy(() => import('../../../pages/dashboard/trans
 const ProfilePage = React.lazy(() => import('../../../pages/dashboard/common/ProfilePage'));
 const SettingsPage = React.lazy(() => import('../../../pages/dashboard/common/SettingsPage'));
 const OrderDetail = React.lazy(() => import('../../../pages/orders/OrderDetail'));
+const NotificationsPage = React.lazy(() => import('../../../pages/dashboard/common/NotificationsPage'));
 
 export const transformerRoutes = [
   {
@@ -65,6 +66,11 @@ export const transformerRoutes = [
     path: '/transformer/settings',
     element: <SettingsPage />,
     title: 'Paramètres'
+  },
+  {
+    path: '/transformer/notifications',
+    element: <NotificationsPage />,
+    title: 'Notifications'
   }
 ];
 

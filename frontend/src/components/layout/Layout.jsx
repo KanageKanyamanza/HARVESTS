@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import AOS from 'aos';
 import Header from './Header';
 import Footer from './Footer';
 import BackToTop from '../common/BackToTop';
@@ -24,6 +25,14 @@ const Layout = ({ children, className = '' }) => {
       document.body.classList.remove('bg-harvests-light');
     };
   }, [isHomePage]);
+
+  // Rafraîchir AOS lors des changements de route
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      AOS.refresh();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
   
   return (
     <div className={`min-h-screen flex flex-col ${isHomePage ? '' : 'bg-harvests-light'}`}>

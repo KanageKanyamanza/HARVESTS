@@ -80,10 +80,18 @@ function buildFlexibleSearchQuery(searchTerm, fields = ['name', 'description', '
   const orConditions = [];
   
   fields.forEach(field => {
-    // Pour chaque variante, créer une condition regex
-    searchRegexes.forEach(regex => {
-      orConditions.push({ [field]: regex });
-    });
+    // Pour le champ 'name', utiliser buildNameSearchQuery qui gère les objets {fr, en}
+    if (field === 'name') {
+      const nameQuery = buildNameSearchQuery(searchTerm);
+      if (nameQuery.$or && nameQuery.$or.length > 0) {
+        orConditions.push(...nameQuery.$or);
+      }
+    } else {
+      // Pour les autres champs, créer une condition regex normale
+      searchRegexes.forEach(regex => {
+        orConditions.push({ [field]: regex });
+      });
+    }
   });
   
   // Si tags est dans les champs, ajouter aussi une recherche dans le tableau
