@@ -531,16 +531,6 @@ const detectSpecificIssues = (normalizedMessage) => {
   return null;
 };
 
-// Fonction pour normaliser un texte (enlever accents, minuscules, etc.)
-const normalizeText = (text) => {
-  return text.toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Enlever les accents
-    .replace(/[^\w\s]/g, ' ') // Remplacer la ponctuation par des espaces
-    .replace(/\s+/g, ' ') // Normaliser les espaces multiples
-    .trim();
-};
-
 // Fonction pour trouver la meilleure réponse
 export const findBestAnswer = (userMessage) => {
   // Normaliser le message utilisateur (enlever accents, etc.)
