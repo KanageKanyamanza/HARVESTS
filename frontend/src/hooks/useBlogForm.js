@@ -86,10 +86,10 @@ export const useBlogForm = (id = null) => {
         setFormData(savedData);
         if (savedData.selectedLanguage) setSelectedLanguage(savedData.selectedLanguage);
         if (savedData.useAutoTranslation !== undefined) setUseAutoTranslation(savedData.useAutoTranslation);
-        showSuccess('Brouillon restauré');
+        // Note: Pas de notification toast, l'indicateur visuel dans le header est suffisant
       }
     }
-  }, [isEdit, loadFromStorage, showSuccess]);
+  }, [isEdit, loadFromStorage]);
 
   // Auto-save draft
   useEffect(() => {
