@@ -49,7 +49,7 @@ const ChatBot = () => {
     if (infoStep === 'name') {
       setGuestInfo(prev => ({ ...prev, name: message }));
       setInfoStep('email');
-      addBotMessage(`Enchanté ${message.split(' ')[0]} ! 😊\n\nPour mieux vous aider, votre email ? (tapez "passer" pour ignorer)`);
+      addBotMessage(`Enchanté ${message.split(' ')[0]} ! 😊\n\nPour mieux vous aider et pouvoir vous contacter ultérieurement si nécessaire, pourriez-vous me donner votre adresse email ?\n\nVotre email nous permet de vous envoyer des mises à jour importantes concernant vos commandes et nos services. (Vous pouvez taper "passer" si vous préférez ne pas le partager)`);
       return true;
     }
     if (infoStep === 'email') {
