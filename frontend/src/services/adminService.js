@@ -458,6 +458,7 @@ export const adminService = {
   // Blogs
   getBlogs,
   getBlogById,
+  getBlog: getBlogById, // Alias pour compatibilité
   createBlog,
   updateBlog,
   deleteBlog,
