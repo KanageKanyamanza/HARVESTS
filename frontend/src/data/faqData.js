@@ -577,6 +577,8 @@ export const findBestAnswer = (userMessage) => {
   // Chercher dans les FAQs avec scoring amélioré et plus strict
   let bestMatch = null;
   let highestScore = 0;
+  let secondBestScore = 0;
+  let secondBestMatch = null;
   
   for (const faq of faqData.faqs) {
     let score = 0;
@@ -592,7 +594,7 @@ export const findBestAnswer = (userMessage) => {
       if (normalizedKeyword.includes(' ')) {
         // Phrase complète - correspondance exacte (avec normalisation)
         if (normalizedMessage.includes(normalizedKeyword)) {
-          score += 5; // Score très élevé pour les phrases complètes
+          score += 10; // Score très élevé pour les phrases complètes (augmenté de 5 à 10)
           exactPhraseMatch = true;
           matchedKeywords.push(normalizedKeyword);
         }
@@ -602,22 +604,27 @@ export const findBestAnswer = (userMessage) => {
         // Utiliser la version normalisée pour la comparaison
         const wordBoundary = new RegExp(`\\b${normalizedKeyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
         if (wordBoundary.test(normalizedMessage)) {
-          score += 2; // Score moyen pour les mots complets
+          score += 3; // Score moyen pour les mots complets (augmenté de 2 à 3)
           matchedKeywords.push(normalizedKeyword);
         } else if (normalizedMessage.includes(normalizedKeyword)) {
-          score += 0.5; // Score très faible pour les correspondances partielles
+          score += 0.3; // Score très faible pour les correspondances partielles (réduit de 0.5 à 0.3)
         }
       }
     }
     
     // Bonus si plusieurs mots-clés correspondent (question plus spécifique)
     if (matchedKeywords.length > 1) {
-      score += matchedKeywords.length * 0.5;
+      score += matchedKeywords.length * 1; // Augmenté de 0.5 à 1 pour favoriser les matches multiples
+    }
+    
+    // Bonus important pour les correspondances exactes de phrases
+    if (exactPhraseMatch) {
+      score += 5; // Bonus supplémentaire pour les phrases exactes
     }
     
     // Prioriser les FAQs spécifiques sur les générales (mais seulement si elles matchent vraiment)
     if (matchedKeywords.length > 0 && (faq.id.includes('erreur') || faq.id.includes('probleme') || faq.id.includes('rejetee'))) {
-      score += 1; // Bonus réduit
+      score += 2; // Bonus augmenté de 1 à 2
     }
     
     // Pénalité si la FAQ concerne les paiements mais la question ne mentionne pas de problème
@@ -630,14 +637,31 @@ export const findBestAnswer = (userMessage) => {
       }
     }
     
+    // Pénalité pour les mots-clés trop génériques qui peuvent créer des confusions
+    const genericKeywords = ['service', 'services', 'produit', 'produits', 'commande', 'commandes', 'livraison', 'paiement'];
+    const hasOnlyGenericKeywords = matchedKeywords.every(kw => genericKeywords.includes(kw.toLowerCase()));
+    if (hasOnlyGenericKeywords && matchedKeywords.length <= 2) {
+      score *= 0.5; // Réduire le score de moitié si seulement des mots génériques
+    }
+    
+    // Garder trace du meilleur et deuxième meilleur match
     if (score > highestScore) {
+      secondBestScore = highestScore;
+      secondBestMatch = bestMatch;
       highestScore = score;
       bestMatch = faq;
+    } else if (score > secondBestScore) {
+      secondBestScore = score;
+      secondBestMatch = faq;
     }
   }
   
   // Seuil minimum plus élevé pour éviter les faux positifs
-  if (bestMatch && highestScore >= 2) {
+  // Vérifier aussi que le meilleur match est significativement meilleur que le deuxième
+  const scoreDifference = highestScore - secondBestScore;
+  const minimumDifference = 2; // Le meilleur doit être au moins 2 points meilleur
+  
+  if (bestMatch && highestScore >= 3 && (scoreDifference >= minimumDifference || secondBestScore === 0)) {
     return { type: 'faq', faq: bestMatch };
   }
   
