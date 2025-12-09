@@ -37,6 +37,8 @@ export const useBlogForm = (id = null) => {
   const [useAutoTranslation, setUseAutoTranslation] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef(null);
+  const hasLoadedRef = useRef(false);
+  const currentIdRef = useRef(null);
 
   const STORAGE_KEY = `blog-edit-draft-${id || 'new'}`;
 
@@ -54,29 +56,42 @@ export const useBlogForm = (id = null) => {
 
   // Load blog for edit
   useEffect(() => {
-    if (isEdit && id) {
-      setFetchingBlog(true);
-      adminService.getBlog(id)
-        .then(response => {
-          const blog = response.data?.data?.blog || response.data?.blog;
-          if (blog) {
-            setFormData(prev => ({
-              ...prev,
-              ...blog,
-              title: blog.title || { fr: '', en: '' },
-              slug: blog.slug || { fr: '', en: '' },
-              excerpt: blog.excerpt || { fr: '', en: '' },
-              content: blog.content || { fr: '', en: '' },
-              caseStudy: blog.caseStudy || prev.caseStudy,
-              tutorial: blog.tutorial || prev.tutorial,
-              testimonial: blog.testimonial || prev.testimonial
-            }));
-          }
-        })
-        .catch(err => showError('Erreur lors du chargement du blog'))
-        .finally(() => setFetchingBlog(false));
+    // Réinitialiser si l'ID change
+    if (currentIdRef.current !== id) {
+      hasLoadedRef.current = false;
+      currentIdRef.current = id;
     }
-  }, [id, isEdit, showError]);
+
+    // Ne charger qu'une seule fois par ID
+    if (!isEdit || !id || hasLoadedRef.current) return;
+
+    hasLoadedRef.current = true;
+    setFetchingBlog(true);
+    
+    adminService.getBlog(id)
+      .then(response => {
+        const blog = response.data?.data?.blog || response.data?.blog || response.data?.data || response.data;
+        if (blog) {
+          setFormData(prev => ({
+            ...prev,
+            ...blog,
+            title: blog.title || { fr: '', en: '' },
+            slug: blog.slug || { fr: '', en: '' },
+            excerpt: blog.excerpt || { fr: '', en: '' },
+            content: blog.content || { fr: '', en: '' },
+            caseStudy: blog.caseStudy || prev.caseStudy,
+            tutorial: blog.tutorial || prev.tutorial,
+            testimonial: blog.testimonial || prev.testimonial
+          }));
+        }
+      })
+      .catch(err => {
+        console.error('Erreur lors du chargement du blog:', err);
+        showError('Erreur lors du chargement du blog');
+        hasLoadedRef.current = false; // Permettre de réessayer en cas d'erreur
+      })
+      .finally(() => setFetchingBlog(false));
+  }, [id, isEdit]); // Retirer showError des dépendances
 
   // Load draft for new
   useEffect(() => {
@@ -91,13 +106,16 @@ export const useBlogForm = (id = null) => {
     }
   }, [isEdit, loadFromStorage]);
 
-  // Auto-save draft
+  // Auto-save draft (seulement pour les nouveaux blogs, pas en mode édition)
   useEffect(() => {
+    // Ne pas auto-sauvegarder en mode édition
+    if (isEdit) return;
+    
     const timeoutId = setTimeout(() => {
       saveToStorage({ ...formData, selectedLanguage, useAutoTranslation, lastSaved: new Date().toISOString() });
     }, 2000);
     return () => clearTimeout(timeoutId);
-  }, [formData, selectedLanguage, useAutoTranslation, saveToStorage]);
+  }, [formData, selectedLanguage, useAutoTranslation, saveToStorage, isEdit]);
 
   const handleChange = useCallback((field, value) => {
     if (field.includes('.')) {

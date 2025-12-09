@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
@@ -25,6 +25,8 @@ const BlogDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [relatedBlogs, setRelatedBlogs] = useState([]);
   const [liked, setLiked] = useState(false);
+  const isLoadingRef = useRef(false);
+  const currentSlugRef = useRef(null);
   
   // Vérifier si on est en mode prévisualisation admin
   const isPreviewMode = searchParams.get('preview') === 'true' && searchParams.get('admin') === 'true';
@@ -33,6 +35,11 @@ const BlogDetailPage = () => {
   const getLocalizedContentWrapper = (content, fallback = '') => {
     return getLocalizedContent(content, fallback, i18n);
   };
+
+  // Mémoriser le titre du blog pour éviter les re-renders inutiles
+  const blogTitle = useMemo(() => {
+    return blog ? getLocalizedContentWrapper(blog.title, 'Titre non disponible') : '';
+  }, [blog, i18n.language]);
 
   // Hook pour la modale des visiteurs (seulement en mode normal)
   const {
@@ -44,12 +51,20 @@ const BlogDetailPage = () => {
     handleFormSubmit
   } = useBlogVisitorModal(
     blog?._id, 
-    blog ? getLocalizedContentWrapper(blog.title, 'Titre non disponible') : '', 
+    blogTitle, 
     slug
   );
 
   // Charger le blog
   const loadBlog = async () => {
+    // Éviter les chargements multiples simultanés
+    if (isLoadingRef.current && currentSlugRef.current === slug) {
+      return;
+    }
+    
+    isLoadingRef.current = true;
+    currentSlugRef.current = slug;
+    
     try {
       setLoading(true);
       
@@ -74,8 +89,8 @@ const BlogDetailPage = () => {
         // Mode normal, utiliser l'API publique
         response = await blogApiService.getBlogBySlug(slug);
         
-        // Initialiser le tracking si un visitId est fourni
-        if (response.data.visitId) {
+        // Initialiser le tracking si un visitId est fourni (seulement si pas déjà en cours)
+        if (response.data.visitId && !trackingService.isTracking) {
           trackingService.initTracking(response.data.visitId);
         }
       }
@@ -102,6 +117,7 @@ const BlogDetailPage = () => {
       }
     } finally {
       setLoading(false);
+      isLoadingRef.current = false;
     }
   };
 
