@@ -12,16 +12,36 @@ const BlogContent = ({
 }) => {
   return (
     <article className="bg-white rounded-lg shadow-sm p-2 sm:p-8">
+      {/* Image featured en haut - pleine largeur */}
+      {blog.featuredImage?.url && (
+        <div className="mb-8 -mx-2 sm:-mx-8 px-3">
+          <div className="w-full overflow-hidden rounded-lg">
+            <div className="w-full relative">
+              <CloudinaryImage
+                src={blog.featuredImage.url}
+                alt={blog.featuredImage.alt || getLocalizedContent(blog.title, 'Image du blog')}
+                className="w-full h-auto"
+              />
+              {blog.featuredImage.caption && (
+                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-4">
+                  {blog.featuredImage.caption}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Images en haut - pleine largeur */}
       {blog.images && blog.images.filter(img => img.position === 'top').length > 0 && (
         <div className="mb-8 -mx-2 sm:-mx-8 px-3">
-          <div className="w-full h-[350px] overflow-hidden rounded-lg">
+          <div className="w-full overflow-hidden rounded-lg">
             {blog.images.filter(img => img.position === 'top').map((image, index) => (
-              <div key={index} className="w-full h-full relative">
+              <div key={index} className="w-full relative">
                 <CloudinaryImage
                   src={image.url || image.cloudinaryId}
                   alt={image.alt || `Image ${index + 1}`}
-                  className="w-full h-full object-cover"
+                  className="w-full h-auto"
                 />
                 {image.caption && (
                   <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-4">
