@@ -234,17 +234,122 @@ router.get('/search-sellers', chatController.searchSellers);
  *         description: Terme de recherche trop court (minimum 2 caractères)
  */
 router.get('/search-transporters', chatController.searchTransporters);
+
+/**
+ * @swagger
+ * /api/v1/chat/categories:
+ *   get:
+ *     summary: Obtenir toutes les catégories de produits
+ *     tags: [Chat]
+ *     responses:
+ *       200:
+ *         description: Liste des catégories
+ */
 router.get('/categories', chatController.getCategories);
+
+/**
+ * @swagger
+ * /api/v1/chat/custom-answers:
+ *   get:
+ *     summary: Obtenir les réponses personnalisées du chatbot
+ *     tags: [Chat]
+ *     responses:
+ *       200:
+ *         description: Réponses personnalisées
+ */
 router.get('/custom-answers', chatController.getCustomAnswers);
 
-// Routes avec authentification optionnelle (public pour l'instant)
+/**
+ * @swagger
+ * /api/v1/chat/track/{orderNumber}:
+ *   get:
+ *     summary: Suivre une commande par numéro
+ *     tags: [Chat]
+ *     parameters:
+ *       - in: path
+ *         name: orderNumber
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: HRV-SN-2025-001
+ *     responses:
+ *       200:
+ *         description: Informations de suivi
+ *       404:
+ *         description: Commande non trouvée
+ */
 router.get('/track/:orderNumber', chatController.trackOrder);
 
-// Tracking des interactions (public mais enregistre l'utilisateur si connecté)
+/**
+ * @swagger
+ * /api/v1/chat/log-interaction:
+ *   post:
+ *     summary: Enregistrer une interaction avec le chatbot
+ *     tags: [Chat]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               query:
+ *                 type: string
+ *               response:
+ *                 type: string
+ *               intent:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Interaction enregistrée
+ */
 router.post('/log-interaction', chatController.logInteraction);
+
+/**
+ * @swagger
+ * /api/v1/chat/log-feedback:
+ *   post:
+ *     summary: Enregistrer un feedback sur le chatbot
+ *     tags: [Chat]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               rating:
+ *                 type: number
+ *                 minimum: 1
+ *                 maximum: 5
+ *               comment:
+ *                 type: string
+ *               helpful:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Feedback enregistré
+ */
 router.post('/log-feedback', chatController.logFeedback);
 
-// Routes protégées (utilisateur connecté)
+/**
+ * @swagger
+ * /api/v1/chat/my-orders:
+ *   get:
+ *     summary: Obtenir mes commandes récentes (utilisateur connecté)
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 5
+ *     responses:
+ *       200:
+ *         description: Liste des commandes récentes
+ */
 router.get('/my-orders', protect, chatController.getMyRecentOrders);
 
 // ========================================
@@ -252,18 +357,129 @@ router.get('/my-orders', protect, chatController.getMyRecentOrders);
 // ========================================
 router.use('/admin', adminAuthController.protect);
 
-// Questions sans réponse
+/**
+ * @swagger
+ * /api/v1/chat/admin/unanswered:
+ *   get:
+ *     summary: Obtenir les questions sans réponse (Admin)
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des questions sans réponse
+ */
 router.get('/admin/unanswered', chatController.getUnansweredQuestions);
+
+/**
+ * @swagger
+ * /api/v1/chat/admin/unanswered/{id}/answer:
+ *   patch:
+ *     summary: Répondre à une question (Admin)
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: objectId
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - answer
+ *             properties:
+ *               answer:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Question répondue
+ */
 router.patch('/admin/unanswered/:id/answer', chatController.answerQuestion);
+
+/**
+ * @swagger
+ * /api/v1/chat/admin/unanswered/{id}/ignore:
+ *   patch:
+ *     summary: Ignorer une question (Admin)
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: objectId
+ *     responses:
+ *       200:
+ *         description: Question ignorée
+ */
 router.patch('/admin/unanswered/:id/ignore', chatController.ignoreQuestion);
 
-// Statistiques
+/**
+ * @swagger
+ * /api/v1/chat/admin/stats:
+ *   get:
+ *     summary: Obtenir les statistiques du chatbot (Admin)
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Statistiques du chatbot
+ */
 router.get('/admin/stats', chatController.getChatStats);
 
-// Toutes les interactions avec filtres
+/**
+ * @swagger
+ * /api/v1/chat/admin/interactions:
+ *   get:
+ *     summary: Obtenir toutes les interactions (Admin)
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Liste des interactions
+ */
 router.get('/admin/interactions', chatController.getAllInteractions);
 
-// Historique utilisateur
+/**
+ * @swagger
+ * /api/v1/chat/admin/user/{userId}/history:
+ *   get:
+ *     summary: Obtenir l'historique de chat d'un utilisateur (Admin)
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: objectId
+ *     responses:
+ *       200:
+ *         description: Historique de chat
+ */
 router.get('/admin/user/:userId/history', chatController.getUserChatHistory);
 
 module.exports = router;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiStar, FiEdit, FiTrash2, FiClock, FiUser } from 'react-icons/fi';
-import { consumerService } from '../../../services/genericService';
+import { reviewService } from '../../../services';
 import LoadingSpinner from '../../../components/common/LoadingSpinner';
 import ErrorMessage from '../../../components/common/ErrorMessage';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
@@ -13,16 +13,27 @@ const Reviews = () => {
 
   useEffect(() => {
     loadReviews();
+    
+    // Écouter les événements de changement d'avis
+    const handleReviewChange = () => {
+      loadReviews();
+    };
+    
+    window.addEventListener('reviewChanged', handleReviewChange);
+    
+    return () => {
+      window.removeEventListener('reviewChanged', handleReviewChange);
+    };
   }, []);
 
   const loadReviews = async () => {
     try {
       setLoading(true);
-      const response = await consumerService.getMyReviews();
+      const response = await reviewService.getMyReviews();
       
-      if (response.data.status === 'success') {
-        setReviews(response.data.data.reviews || []);
-      }
+      // La réponse peut avoir différentes structures
+      const reviewsData = response.data?.reviews || response.reviews || response.data || [];
+      setReviews(Array.isArray(reviewsData) ? reviewsData : []);
     } catch (err) {
       console.error('Erreur lors du chargement des avis:', err);
       setError('Impossible de charger vos avis');
@@ -37,8 +48,10 @@ const Reviews = () => {
     }
 
     try {
-      await consumerService.deleteReview(reviewId);
+      await reviewService.deleteMyReview(reviewId);
       setReviews(prev => prev.filter(review => review._id !== reviewId));
+      // Déclencher un événement pour rafraîchir les avis dans le dashboard
+      window.dispatchEvent(new Event('reviewChanged'));
     } catch (err) {
       console.error('Erreur lors de la suppression de l\'avis:', err);
     }
@@ -138,10 +151,10 @@ const Reviews = () => {
                     {/* Produit concerné */}
                     <div className="mb-3">
                       <h3 className="text-lg font-medium text-gray-900">
-                        {review.product?.name?.fr || review.product?.name || 'Produit supprimé'}
+                        {review.product?.name?.fr || review.product?.name?.en || review.product?.name || 'Produit supprimé'}
                       </h3>
                       <p className="text-sm text-gray-500">
-                        Vendu par {review.producer?.businessName || review.producer?.firstName + ' ' + review.producer?.lastName || 'Producteur inconnu'}
+                        Vendu par {review.producer?.farmName || review.producer?.businessName || (review.producer?.firstName && review.producer?.lastName ? `${review.producer.firstName} ${review.producer.lastName}` : '') || review.transformer?.companyName || 'Producteur inconnu'}
                       </p>
                     </div>
 

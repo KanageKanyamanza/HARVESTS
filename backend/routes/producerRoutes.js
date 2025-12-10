@@ -3,22 +3,154 @@ const producerController = require('../controllers/producerController');
 const authMiddleware = require('../controllers/auth/authMiddleware');
 const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
 
+/**
+ * @swagger
+ * tags:
+ *   name: Producers
+ *   description: 👨‍🌾 Gestion des producteurs
+ */
+
 const router = express.Router();
 
 // ========================================
 // ROUTES PUBLIQUES (sans authentification)
 // ========================================
 
-// Routes de recherche de producteurs
+/**
+ * @swagger
+ * /api/v1/producers:
+ *   get:
+ *     summary: Obtenir tous les producteurs (public)
+ *     tags: [Producers]
+ *     parameters:
+ *       - in: query
+ *         name: region
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: farmingType
+ *         schema:
+ *           type: string
+ *           enum: [organic, conventional, mixed]
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Liste des producteurs
+ */
 router.get('/', producerController.getAllProducers);
+
+/**
+ * @swagger
+ * /api/v1/producers/search:
+ *   get:
+ *     summary: Rechercher des producteurs
+ *     tags: [Producers]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Résultats de recherche
+ */
 router.get('/search', producerController.searchProducers);
+
+/**
+ * @swagger
+ * /api/v1/producers/by-region/{region}:
+ *   get:
+ *     summary: Obtenir les producteurs par région
+ *     tags: [Producers]
+ *     parameters:
+ *       - in: path
+ *         name: region
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Liste des producteurs de la région
+ */
 router.get('/by-region/:region', producerController.getProducersByRegion);
+
+/**
+ * @swagger
+ * /api/v1/producers/by-crop/{crop}:
+ *   get:
+ *     summary: Obtenir les producteurs par culture
+ *     tags: [Producers]
+ *     parameters:
+ *       - in: path
+ *         name: crop
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Liste des producteurs pour cette culture
+ */
 router.get('/by-crop/:crop', producerController.getProducersByCrop);
 
-// Routes publiques pour un producteur spécifique (doivent être après /me/*)
-// Ces routes utilisent des paramètres ObjectId valides
+/**
+ * @swagger
+ * /api/v1/producers/{id}:
+ *   get:
+ *     summary: Obtenir un producteur spécifique (public)
+ *     tags: [Producers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: objectId
+ *     responses:
+ *       200:
+ *         description: Détails du producteur
+ */
 router.get('/:id([0-9a-fA-F]{24})', producerController.getProducer);
+
+/**
+ * @swagger
+ * /api/v1/producers/{id}/products:
+ *   get:
+ *     summary: Obtenir les produits d'un producteur (public)
+ *     tags: [Producers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: objectId
+ *     responses:
+ *       200:
+ *         description: Liste des produits
+ */
 router.get('/:id([0-9a-fA-F]{24})/products', producerController.getProducerProducts);
+
+/**
+ * @swagger
+ * /api/v1/producers/{id}/reviews:
+ *   get:
+ *     summary: Obtenir les avis d'un producteur (public)
+ *     tags: [Producers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: objectId
+ *     responses:
+ *       200:
+ *         description: Liste des avis
+ */
 router.get('/:id([0-9a-fA-F]{24})/reviews', producerController.getProducerReviews);
 
 // ========================================
@@ -31,9 +163,46 @@ router.use(authMiddleware.protect);
 // Routes pour les producteurs seulement
 router.use(authMiddleware.restrictTo('producer'));
 
-// Routes de lecture qui ne nécessitent pas de vérification d'email
+/**
+ * @swagger
+ * /api/v1/producers/me/stats:
+ *   get:
+ *     summary: Obtenir mes statistiques (Producteur)
+ *     tags: [Producers]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Statistiques du producteur
+ */
 router.get('/me/stats', producerController.getMyStats);
+
+/**
+ * @swagger
+ * /api/v1/producers/me/products:
+ *   get:
+ *     summary: Obtenir mes produits (Producteur)
+ *     tags: [Producers]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste de mes produits
+ */
 router.get('/me/products', producerController.getMyProducts);
+
+/**
+ * @swagger
+ * /api/v1/producers/me/orders:
+ *   get:
+ *     summary: Obtenir mes commandes (Producteur)
+ *     tags: [Producers]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste de mes commandes
+ */
 router.get('/me/orders', producerController.getMyOrders);
 
 // Toutes les autres routes nécessitent une vérification d'email

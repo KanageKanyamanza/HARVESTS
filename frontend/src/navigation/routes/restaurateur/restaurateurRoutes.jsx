@@ -11,6 +11,7 @@ const DishesManagement = React.lazy(() => import('../../../pages/dashboard/resta
 const AddDish = React.lazy(() => import('../../../pages/dashboard/restaurateur/AddDish'));
 const DishDetail = React.lazy(() => import('../../../pages/dashboard/restaurateur/DishDetail'));
 const RestaurateurStats = React.lazy(() => import('../../../pages/dashboard/restaurateur/Stats'));
+const RestaurateurReviews = React.lazy(() => import('../../../pages/dashboard/restaurateur/RestaurateurReviews'));
 const ProfilePage = React.lazy(() => import('../../../pages/dashboard/common/ProfilePage'));
 const SettingsPage = React.lazy(() => import('../../../pages/dashboard/common/SettingsPage'));
 const OrderDetail = React.lazy(() => import('../../../pages/orders/OrderDetail'));
@@ -56,6 +57,11 @@ export const restaurateurRoutes = [
     path: '/restaurateur/stats',
     element: <RestaurateurStats />,
     title: 'Statistiques'
+  },
+  {
+    path: '/restaurateur/reviews',
+    element: <RestaurateurReviews />,
+    title: 'Avis reçus'
   },
   {
     path: '/restaurateur/profile',

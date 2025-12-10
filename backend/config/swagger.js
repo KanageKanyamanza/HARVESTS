@@ -334,12 +334,32 @@ const swaggerOptions = {
         description: '👥 Gestion des utilisateurs'
       },
       {
+        name: 'Profiles',
+        description: '👤 Profils utilisateurs centralisés'
+      },
+      {
         name: 'Producers',
         description: '👨‍🌾 Gestion des producteurs'
       },
       {
+        name: 'Transformers',
+        description: '🏭 Gestion des transformateurs'
+      },
+      {
         name: 'Consumers', 
         description: '🛒 Gestion des consommateurs'
+      },
+      {
+        name: 'Restaurateurs',
+        description: '🍽️ Gestion des restaurateurs'
+      },
+      {
+        name: 'Exporters',
+        description: '🚢 Gestion des exportateurs'
+      },
+      {
+        name: 'Transporters',
+        description: '🚛 Gestion des transporteurs'
       },
       {
         name: 'Products',
@@ -351,7 +371,7 @@ const swaggerOptions = {
       },
       {
         name: 'Payments',
-        description: '💳 Paiements (Wave, Orange Money, Stripe)'
+        description: '💳 Paiements (Wave, Orange Money, Stripe, PayPal)'
       },
       {
         name: 'Reviews',
@@ -366,21 +386,54 @@ const swaggerOptions = {
         description: '💬 Chat et messagerie'
       },
       {
+        name: 'Chat',
+        description: '🤖 Chatbot et recherche intelligente'
+      },
+      {
+        name: 'Blog',
+        description: '📝 Blog et articles'
+      },
+      {
+        name: 'Blog Visitors',
+        description: '👥 Gestion des visiteurs du blog'
+      },
+      {
+        name: 'Contact',
+        description: '📧 Formulaire de contact'
+      },
+      {
         name: 'Upload',
         description: '📸 Upload d\'images (Cloudinary)'
+      },
+      {
+        name: 'Subscriptions',
+        description: '📋 Gestion des abonnements'
+      },
+      {
+        name: 'Admin',
+        description: '⚙️ Administration'
+      },
+      {
+        name: 'Admin Auth',
+        description: '🔐 Authentification administrateur'
+      },
+      {
+        name: 'Admin Management',
+        description: '👥 Gestion des administrateurs'
       },
       {
         name: 'Webhooks',
         description: '🔗 Intégrations webhooks'
       },
       {
-        name: 'Admin',
-        description: '⚙️ Administration'
+        name: 'Health',
+        description: '💚 Health check et monitoring'
       }
     ]
   },
   apis: [
     './routes/*.js',
+    './routes/swagger-docs.js', // Documentation complémentaire
     './controllers/*.js',
     './models/*.js'
   ]
@@ -432,7 +485,13 @@ const setupSwagger = (app) => {
     res.redirect('/api/docs');
   });
   
+  // Redirection depuis /api-docs (pour compatibilité)
+  app.get('/api-docs', (req, res) => {
+    res.redirect('/api/docs');
+  });
+  
   console.log('📖 Swagger UI disponible sur: http://localhost:8000/api/docs');
+  console.log('📖 Swagger UI (alternatif): http://localhost:8000/api-docs');
   console.log('📄 Spécification JSON: http://localhost:8000/api/docs.json');
 };
 

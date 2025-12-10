@@ -6,14 +6,28 @@ const Product = require('../../models/Product');
  */
 
 async function getConsumerReviews(consumerId, limit = 20) {
-  const reviews = await Review.find({ reviewer: consumerId })
-    .populate('product', 'name images')
-    .populate('producer', 'farmName')
-    .populate('transformer', 'companyName')
-    .sort('-createdAt')
-    .limit(limit);
-  
-  return reviews;
+  try {
+    const reviews = await Review.find({ reviewer: consumerId })
+      .populate({
+        path: 'product',
+        select: 'name images price unit',
+        populate: {
+          path: 'producer transformer',
+          select: 'farmName companyName firstName lastName'
+        }
+      })
+      .populate('producer', 'farmName firstName lastName')
+      .populate('transformer', 'companyName firstName lastName')
+      .populate('order', 'orderNumber')
+      .sort('-createdAt')
+      .limit(limit);
+    
+    return reviews || [];
+  } catch (error) {
+    console.error('Erreur dans getConsumerReviews:', error.message);
+    // Retourner un tableau vide en cas d'erreur
+    return [];
+  }
 }
 
 async function createReview(consumerId, reviewData) {

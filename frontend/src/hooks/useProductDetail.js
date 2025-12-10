@@ -78,14 +78,25 @@ export const useProductDetail = (id, user) => {
         try {
           const response = await consumerService.getFavorites();
           const favorites = response.data.data?.favorites || [];
+          console.log('🔍 useProductDetail - Checking favorites:', favorites);
+          console.log('🔍 useProductDetail - Current product ID:', product._id);
           const isProductFavorite = favorites.some(fav => {
-            const productId = fav.product?._id || fav.product;
-            return productId === product._id;
+            // Gérer différentes structures : fav.product._id, fav.product (string), ou fav._id si c'est directement le produit
+            const productId = fav.product?._id || fav.product || (fav._id && !fav.product ? fav._id : null);
+            const matches = productId && (productId.toString() === product._id.toString() || productId === product._id);
+            if (matches) {
+              console.log('✅ useProductDetail - Found favorite match:', fav);
+            }
+            return matches;
           });
+          console.log('🔍 useProductDetail - Is favorite:', isProductFavorite);
           setIsFavorite(isProductFavorite);
         } catch (error) {
           console.error('Erreur lors du chargement des favoris:', error);
+          setIsFavorite(false);
         }
+      } else {
+        setIsFavorite(false);
       }
     };
     loadFavoriteStatus();

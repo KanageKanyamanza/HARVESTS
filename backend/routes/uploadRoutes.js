@@ -9,6 +9,13 @@ const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../mi
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 
+/**
+ * @swagger
+ * tags:
+ *   name: Upload
+ *   description: 📸 Upload d'images et fichiers (Cloudinary)
+ */
+
 const router = express.Router();
 
 // Middleware qui accepte à la fois les utilisateurs normaux et les admins
@@ -59,7 +66,30 @@ const protectUserOrAdmin = catchAsync(async (req, res, next) => {
 // Toutes les routes d'upload nécessitent une authentification (utilisateur ou admin)
 router.use(protectUserOrAdmin);
 
-// Upload d'images de produits
+/**
+ * @swagger
+ * /api/v1/upload/product-images:
+ *   post:
+ *     summary: Upload d'images de produits
+ *     tags: [Upload]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *     responses:
+ *       200:
+ *         description: Images uploadées avec succès
+ */
 router.post(
   '/product-images',
   uploadLimiter,
@@ -69,7 +99,24 @@ router.post(
   uploadController.uploadProductImagesToCloudinary
 );
 
-// Supprimer une image par public ID
+/**
+ * @swagger
+ * /api/v1/upload/image/{publicId}:
+ *   delete:
+ *     summary: Supprimer une image par public ID
+ *     tags: [Upload]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: publicId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Image supprimée
+ */
 router.delete('/image/:publicId', uploadController.deleteImage);
 
 // Supprimer une image par URL
@@ -78,7 +125,31 @@ router.delete('/image-by-url', uploadController.deleteImageByUrl);
 // Obtenir une URL optimisée
 router.get('/optimize/:publicId', uploadController.getOptimizedImageUrl);
 
-// Upload direct vers Cloudinary (pour les blogs, etc.)
+/**
+ * @swagger
+ * /api/v1/upload/cloudinary:
+ *   post:
+ *     summary: Upload direct vers Cloudinary (images générales)
+ *     tags: [Upload]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *               folder:
+ *                 type: string
+ *                 example: blog
+ *     responses:
+ *       200:
+ *         description: Fichier uploadé avec succès
+ */
 router.post(
   '/cloudinary',
   uploadLimiter,

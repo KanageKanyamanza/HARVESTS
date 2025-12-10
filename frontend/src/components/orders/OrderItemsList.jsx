@@ -48,7 +48,12 @@ const OrderItemsList = ({ order, isSellerView, updateOrderStatus, updating }) =>
           const totalPrice = item.totalPrice || (productPrice * quantity);
           const { url: imageUrl, alt: imageAlt } = getImageUrl(productImages, productName);
           
-          const itemStatus = item.status || 'pending';
+          // Si la commande est terminée, afficher "Terminée" pour tous les articles
+          // Sinon, afficher le statut de l'article
+          const orderStatus = order.status || currentSegmentStatus || 'pending';
+          const itemStatus = (orderStatus === 'completed' || orderStatus === 'delivered') 
+            ? orderStatus 
+            : (item.status || 'pending');
           const itemStatusConfig = getItemStatusConfig(itemStatus);
           const itemId = item._id || item.id || `${order._id}-${index}`;
           const canConfirmItem = isSellerView && currentSegmentStatus === 'pending' && itemStatus === 'pending' && item._id;

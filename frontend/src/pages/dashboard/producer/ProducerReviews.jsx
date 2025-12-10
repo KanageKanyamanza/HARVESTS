@@ -175,41 +175,6 @@ const ProducerReviews = () => {
           </div>
         </div>
 
-        {/* Détails des évaluations */}
-        {getDetailedStats() && (
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Détails des évaluations
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {Object.entries(getDetailedStats()).map(([criteria, rating]) => {
-                const labels = {
-                  quality: 'Qualité',
-                  freshness: 'Fraîcheur',
-                  packaging: 'Emballage',
-                  delivery: 'Livraison',
-                  communication: 'Communication',
-                  valueForMoney: 'Rapport qualité/prix'
-                };
-                
-                return (
-                  <div key={criteria} className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">
-                      {labels[criteria] || criteria}
-                    </span>
-                    <div className="flex items-center space-x-2">
-                      <StarRating rating={rating} size="sm" />
-                      <span className="text-sm text-gray-600">
-                        {rating.toFixed(1)}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
         {/* Filtres */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="flex items-center justify-between mb-4">

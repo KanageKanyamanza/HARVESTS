@@ -35,7 +35,7 @@ export const reviewService = {
 
   // Obtenir mes avis (consommateur)
   getMyReviews: async (params = {}) => {
-    const response = await api.get('/reviews/my', { params });
+    const response = await api.get('/reviews/my/reviews', { params });
     return response.data;
   },
 

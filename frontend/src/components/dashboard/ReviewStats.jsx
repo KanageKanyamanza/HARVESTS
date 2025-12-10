@@ -135,41 +135,6 @@ const ReviewStats = ({
         </div>
       )}
 
-      {/* Détails des évaluations */}
-      {showDetailed && getDetailedStats() && (
-        <div>
-          <h4 className="text-sm font-medium text-gray-900 mb-3">
-            Détails des évaluations
-          </h4>
-          <div className="space-y-2">
-            {Object.entries(getDetailedStats()).map(([criteria, rating]) => {
-              const labels = {
-                quality: 'Qualité',
-                freshness: 'Fraîcheur',
-                packaging: 'Emballage',
-                delivery: 'Livraison',
-                communication: 'Communication',
-                valueForMoney: 'Rapport qualité/prix'
-              };
-              
-              return (
-                <div key={criteria} className="flex items-center justify-between">
-                  <span className="text-sm text-gray-700">
-                    {labels[criteria] || criteria}
-                  </span>
-                  <div className="flex items-center space-x-2">
-                    <StarRating rating={rating} size="sm" />
-                    <span className="text-sm text-gray-600 w-8">
-                      {rating.toFixed(1)}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {/* Statistiques rapides */}
       <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
         <div className="text-center">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiStar, FiClock, FiShoppingCart } from 'react-icons/fi';
-import { consumerService } from '../../../services/genericService';
+import { reviewService } from '../../../services';
 import CloudinaryImage from '../../common/CloudinaryImage';
 
 const ReviewsSection = () => {
@@ -11,14 +11,26 @@ const ReviewsSection = () => {
 
   useEffect(() => {
     loadReviews();
+    
+    // Écouter les événements de changement d'avis
+    const handleReviewChange = () => {
+      loadReviews();
+    };
+    
+    window.addEventListener('reviewChanged', handleReviewChange);
+    
+    return () => {
+      window.removeEventListener('reviewChanged', handleReviewChange);
+    };
   }, []);
 
   const loadReviews = async () => {
     try {
       setLoading(true);
-      const response = await consumerService.getMyReviews();
-      const reviewsData = response.data.data?.reviews || [];
-      setReviews(reviewsData.slice(0, 3)); // Afficher seulement les 3 premiers
+      const response = await reviewService.getMyReviews();
+      // La réponse peut avoir différentes structures
+      const reviewsData = response.data?.reviews || response.reviews || response.data || [];
+      setReviews(Array.isArray(reviewsData) ? reviewsData.slice(0, 3) : []); // Afficher seulement les 3 premiers
     } catch (error) {
       console.error('Erreur lors du chargement des avis:', error);
       setError('Erreur lors du chargement des avis');

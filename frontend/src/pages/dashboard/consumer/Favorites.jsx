@@ -20,10 +20,38 @@ const Favorites = () => {
     try {
       setLoading(true);
       const response = await consumerService.getFavorites();
+      console.log('📦 Favorites Page - Full Response:', response);
+      console.log('📦 Favorites Page - Response.data:', response.data);
+      console.log('📦 Favorites Page - Response.data.data:', response.data.data);
       
-      if (response.data.status === 'success') {
-        setFavorites(response.data.data.favorites || []);
+      // Essayer différentes structures de réponse
+      let favoritesData = [];
+      if (response.data) {
+        if (response.data.data?.favorites) {
+          favoritesData = response.data.data.favorites;
+        } else if (response.data.favorites) {
+          favoritesData = response.data.favorites;
+        } else if (response.data.data && Array.isArray(response.data.data)) {
+          favoritesData = response.data.data;
+        } else if (Array.isArray(response.data)) {
+          favoritesData = response.data;
+        }
       }
+      
+      console.log('📦 Favorites Page - Favorites data after extraction:', favoritesData);
+      console.log('📦 Favorites Page - Favorites data length:', favoritesData.length);
+      
+      // Filtrer les favoris qui ont un produit valide
+      const validFavorites = favoritesData.filter(fav => {
+        const hasProduct = fav.product && (fav.product._id || fav.product);
+        if (!hasProduct) {
+          console.warn('⚠️ Favorite without product:', fav);
+        }
+        return hasProduct;
+      });
+      
+      console.log('📦 Favorites Page - Valid favorites:', validFavorites.length);
+      setFavorites(validFavorites);
     } catch (err) {
       console.error('Erreur lors du chargement des favoris:', err);
       setError('Impossible de charger vos produits favoris');

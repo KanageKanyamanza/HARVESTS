@@ -56,11 +56,38 @@ const ProductDetail = () => {
         setIsFavorite(false);
         setFavoritesCount(prev => Math.max(0, prev - 1));
         showSuccess('Produit retiré de vos favoris');
+        // Déclencher un événement pour rafraîchir les favoris dans le dashboard
+        window.dispatchEvent(new Event('favoriteChanged'));
       } else {
-        await consumerService.addFavorite(product._id);
-        setIsFavorite(true);
-        setFavoritesCount(prev => prev + 1);
-        showSuccess('Produit ajouté à vos favoris');
+        const response = await consumerService.addFavorite(product._id);
+        // Si le produit était déjà favori, mettre à jour l'état local
+        if (response.data?.alreadyFavorite || response.data?.message?.includes('déjà')) {
+          setIsFavorite(true);
+          showSuccess('Produit déjà dans vos favoris');
+        } else {
+          setIsFavorite(true);
+          setFavoritesCount(prev => prev + 1);
+          showSuccess('Produit ajouté à vos favoris');
+        }
+        // Déclencher un événement pour rafraîchir les favoris dans le dashboard
+        window.dispatchEvent(new Event('favoriteChanged'));
+        // Recharger le statut favori pour s'assurer qu'il est à jour
+        setTimeout(() => {
+          const loadFavoriteStatus = async () => {
+            try {
+              const favResponse = await consumerService.getFavorites();
+              const favorites = favResponse.data.data?.favorites || [];
+              const isProductFavorite = favorites.some(fav => {
+                const favProductId = fav.product?._id || fav.product;
+                return favProductId && (favProductId.toString() === product._id.toString() || favProductId === product._id);
+              });
+              setIsFavorite(isProductFavorite);
+            } catch (error) {
+              console.error('Erreur lors du rechargement du statut favori:', error);
+            }
+          };
+          loadFavoriteStatus();
+        }, 500);
       }
     } catch (error) {
       const msg = error.response?.data?.message;
@@ -95,6 +122,8 @@ const ProductDetail = () => {
       showSuccess('Votre avis a été publié avec succès !');
       setShowReviewForm(false);
       loadReviews();
+      // Déclencher un événement pour rafraîchir les avis dans le dashboard
+      window.dispatchEvent(new Event('reviewChanged'));
     } catch (error) {
       let msg = error.response?.data?.message || 'Erreur lors de la publication de l\'avis';
       if (msg.includes('Vous devez avoir acheté')) msg = 'Vous devez avoir acheté ce produit pour laisser un avis';

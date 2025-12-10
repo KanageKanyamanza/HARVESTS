@@ -12,14 +12,55 @@ const FavoritesSection = () => {
 
   useEffect(() => {
     loadFavorites();
+    
+    // Écouter les événements de changement de favoris
+    const handleFavoriteChange = () => {
+      loadFavorites();
+    };
+    
+    window.addEventListener('favoriteChanged', handleFavoriteChange);
+    
+    return () => {
+      window.removeEventListener('favoriteChanged', handleFavoriteChange);
+    };
   }, []);
 
   const loadFavorites = async () => {
     try {
       setLoading(true);
       const response = await consumerService.getFavorites();
-      const favoritesData = response.data.data?.favorites || [];
-      setFavorites(favoritesData.slice(0, 3)); // Afficher seulement les 3 premiers
+      console.log('📦 FavoritesSection - Full Response:', response);
+      console.log('📦 FavoritesSection - Response.data:', response.data);
+      console.log('📦 FavoritesSection - Response.data.data:', response.data.data);
+      
+      // Essayer différentes structures de réponse
+      let favoritesData = [];
+      if (response.data) {
+        if (response.data.data?.favorites) {
+          favoritesData = response.data.data.favorites;
+        } else if (response.data.favorites) {
+          favoritesData = response.data.favorites;
+        } else if (response.data.data && Array.isArray(response.data.data)) {
+          favoritesData = response.data.data;
+        } else if (Array.isArray(response.data)) {
+          favoritesData = response.data;
+        }
+      }
+      
+      console.log('📦 FavoritesSection - Favorites data after extraction:', favoritesData);
+      console.log('📦 FavoritesSection - Favorites data length:', favoritesData.length);
+      
+      // Filtrer les favoris qui ont un produit valide
+      const validFavorites = favoritesData.filter(fav => {
+        const hasProduct = fav.product && (fav.product._id || fav.product);
+        if (!hasProduct) {
+          console.warn('⚠️ FavoritesSection - Favorite without product:', fav);
+        }
+        return hasProduct;
+      });
+      
+      console.log('📦 FavoritesSection - Valid favorites:', validFavorites.length);
+      setFavorites(validFavorites.slice(0, 3)); // Afficher seulement les 3 premiers
     } catch (error) {
       console.error('Erreur lors du chargement des favoris:', error);
       setError('Erreur lors du chargement des favoris');

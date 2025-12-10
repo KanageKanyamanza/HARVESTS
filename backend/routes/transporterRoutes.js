@@ -3,17 +3,157 @@ const transporterController = require('../controllers/transporterController');
 const authMiddleware = require('../controllers/auth/authMiddleware');
 const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
 
+/**
+ * @swagger
+ * tags:
+ *   name: Transporters
+ *   description: 🚛 Gestion des transporteurs
+ */
+
 const router = express.Router();
 
-// Routes publiques pour recherche de transporteurs
+/**
+ * @swagger
+ * /api/v1/transporters:
+ *   get:
+ *     summary: Obtenir tous les transporteurs (public)
+ *     tags: [Transporters]
+ *     parameters:
+ *       - in: query
+ *         name: region
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: service
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Liste des transporteurs
+ */
 router.get('/', transporterController.getAllTransporters);
+
+/**
+ * @swagger
+ * /api/v1/transporters/search:
+ *   get:
+ *     summary: Rechercher des transporteurs
+ *     tags: [Transporters]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Résultats de recherche
+ */
 router.get('/search', transporterController.searchTransporters);
+
+/**
+ * @swagger
+ * /api/v1/transporters/by-region/{region}:
+ *   get:
+ *     summary: Obtenir les transporteurs par région
+ *     tags: [Transporters]
+ *     parameters:
+ *       - in: path
+ *         name: region
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Liste des transporteurs de la région
+ */
 router.get('/by-region/:region', transporterController.getTransportersByRegion);
+
+/**
+ * @swagger
+ * /api/v1/transporters/by-service/{service}:
+ *   get:
+ *     summary: Obtenir les transporteurs par type de service
+ *     tags: [Transporters]
+ *     parameters:
+ *       - in: path
+ *         name: service
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Liste des transporteurs pour ce service
+ */
 router.get('/by-service/:service', transporterController.getTransportersByService);
+
+/**
+ * @swagger
+ * /api/v1/transporters/{id}:
+ *   get:
+ *     summary: Obtenir un transporteur spécifique (public)
+ *     tags: [Transporters]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: objectId
+ *     responses:
+ *       200:
+ *         description: Détails du transporteur
+ */
 router.get('/:id', transporterController.getTransporter);
+
+/**
+ * @swagger
+ * /api/v1/transporters/{id}/availability:
+ *   get:
+ *     summary: Vérifier la disponibilité d'un transporteur
+ *     tags: [Transporters]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: objectId
+ *     responses:
+ *       200:
+ *         description: Statut de disponibilité
+ */
 router.get('/:id/availability', transporterController.checkAvailability);
 
-// Calculateur de tarifs public
+/**
+ * @swagger
+ * /api/v1/transporters/calculate-rate:
+ *   post:
+ *     summary: Calculer un tarif de livraison (public)
+ *     tags: [Transporters]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - origin
+ *               - destination
+ *               - weight
+ *             properties:
+ *               origin:
+ *                 type: object
+ *               destination:
+ *                 type: object
+ *               weight:
+ *                 type: number
+ *               serviceType:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Tarif calculé
+ */
 router.post('/calculate-rate', transporterController.calculateShippingRate);
 
 // Toutes les routes suivantes nécessitent une authentification
@@ -22,7 +162,31 @@ router.use(authMiddleware.restrictTo('transporter'));
 router.use(authMiddleware.requireVerification);
 router.use(authMiddleware.requireApproval); // Les transporteurs doivent être approuvés
 
-// Gestion du profil transporteur
+/**
+ * @swagger
+ * /api/v1/transporters/me/profile:
+ *   get:
+ *     summary: Obtenir mon profil transporteur
+ *     tags: [Transporters]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profil transporteur
+ *   patch:
+ *     summary: Mettre à jour mon profil transporteur
+ *     tags: [Transporters]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Profil mis à jour
+ */
 router.get('/me/profile', transporterController.getMyProfile);
 router.patch('/me/profile', transporterController.updateMyProfile);
 

@@ -1,282 +1,53 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useSearchParams, useParams, useNavigate } from "react-router-dom";
-import { productService } from "../services";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ProductCard from "../components/products/ProductCard";
+import ProductFilters from "../components/products/ProductFilters";
+import ProductPagination from "../components/products/ProductPagination";
 import LoadingSpinner from "../components/common/LoadingSpinner";
-import {
-	FiSearch,
-	FiFilter,
-	FiChevronDown,
-	FiX,
-	FiPackage,
-} from "react-icons/fi";
+import { useProducts } from "../hooks/useProducts";
+import { useProductURL } from "../hooks/useProductURL";
+import { getCategoryLabel } from "../utils/productHelpers";
+import { FiPackage } from "react-icons/fi";
 
 const Products = () => {
-	const [searchParams, setSearchParams] = useSearchParams();
-	const { category: categoryFromRoute } = useParams();
 	const navigate = useNavigate();
-
-	// États
-	const [products, setProducts] = useState([]);
-	const [categories, setCategories] = useState([]);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState(null);
 	const [showFilters, setShowFilters] = useState(false);
-	const [isSearching, setIsSearching] = useState(false);
-	const [locationInfo, setLocationInfo] = useState(null);
-
-	// Filtres et recherche - Prioriser le paramètre de route s'il existe
-	const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
-	const [selectedCategory, setSelectedCategory] = useState(
-		categoryFromRoute || searchParams.get("category") || ""
-	);
-	const [sortBy, setSortBy] = useState(searchParams.get("sort") || "newest");
-	const [isFeatured, setIsFeatured] = useState(
-		searchParams.get("featured") === "true"
-	);
-	const [priceRange, setPriceRange] = useState({
-		min: searchParams.get("minPrice") || "",
-		max: searchParams.get("maxPrice") || "",
-	});
-
-	// Pagination
-	const [currentPage, setCurrentPage] = useState(1);
-	const [totalPages, setTotalPages] = useState(1);
-	const [totalProducts, setTotalProducts] = useState(0);
-	const productsPerPage = 12;
-
-	// Déclarer les états debouncés en premier
-	const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchParams.get("q") || "");
-	const [debouncedPriceRange, setDebouncedPriceRange] = useState({
-		min: searchParams.get("minPrice") || "",
-		max: searchParams.get("maxPrice") || "",
-	});
-
-	const loadProducts = useCallback(async () => {
-		try {
-			setLoading(true);
-			setError(null);
-
-			const params = {
-				page: currentPage,
-				limit: productsPerPage,
-			};
-
-			// Ajouter les paramètres seulement s'ils ont des valeurs valides
-			if (debouncedSearchQuery && debouncedSearchQuery.trim() !== "") {
-				params.search = debouncedSearchQuery.trim();
-			}
-			
-			if (selectedCategory && selectedCategory !== "") {
-				params.category = selectedCategory;
-			}
-			
-			if (debouncedPriceRange.min && debouncedPriceRange.min !== "" && !isNaN(parseFloat(debouncedPriceRange.min))) {
-				params.minPrice = parseFloat(debouncedPriceRange.min).toString();
-			}
-			
-			if (debouncedPriceRange.max && debouncedPriceRange.max !== "" && !isNaN(parseFloat(debouncedPriceRange.max))) {
-				params.maxPrice = parseFloat(debouncedPriceRange.max).toString();
-			}
-			
-			// Gérer le tri
-			if (sortBy && sortBy !== "newest") {
-				params.sort = sortBy;
-			} else if (sortBy === "newest") {
-				params.sort = "-createdAt";
-			}
-
-			// Activer la détection automatique de localisation par défaut
-			// Peut être désactivée avec ?useLocation=false dans l'URL
-			if (params.useLocation === undefined) {
-				params.useLocation = 'true';
-			}
-
-			const response = isFeatured
-				? await productService.getFeaturedProducts(params)
-				: await productService.getProducts(params);
-
-			if (response.data.status === "success") {
-				setProducts(response.data.data.products || []);
-				setTotalPages(response.data.pagination?.totalPages || 1);
-				setTotalProducts(response.data.pagination?.total || 0);
-			}
-		} catch (error) {
-			console.error("Erreur lors du chargement des produits:", error);
-			setError("Erreur lors du chargement des produits");
-		} finally {
-			setLoading(false);
-		}
-	}, [
-		currentPage,
+	
+	const {
+		products,
+		categories,
+		loading,
+		error,
+		isSearching,
+		searchQuery,
+		setSearchQuery,
 		selectedCategory,
 		sortBy,
-		debouncedPriceRange,
-		debouncedSearchQuery,
 		isFeatured,
-		productsPerPage,
-	]);
+		priceRange,
+		currentPage,
+		setCurrentPage,
+		totalPages,
+		totalProducts,
+		handleFilterChange,
+		clearFilters,
+		loadProducts
+	} = useProducts();
 
-	// Synchroniser les paramètres URL avec l'état local
-	useEffect(() => {
-		const urlSearchQuery = searchParams.get("q") || "";
-		const urlCategory = categoryFromRoute || searchParams.get("category") || "";
-		const urlSort = searchParams.get("sort") || "newest";
-		const urlFeatured = searchParams.get("featured") === "true";
-		const urlPriceRange = {
-			min: searchParams.get("minPrice") || "",
-			max: searchParams.get("maxPrice") || "",
-		};
-		const urlPage = parseInt(searchParams.get("page")) || 1;
+	// Synchronisation URL (utilise les valeurs debouncées internes)
+	useProductURL(
+		searchQuery, // Le hook useProducts gère déjà le debounce
+		selectedCategory,
+		sortBy,
+		isFeatured,
+		priceRange,
+		currentPage
+	);
 
-		setSearchQuery(urlSearchQuery);
-		setSelectedCategory(urlCategory);
-		setSortBy(urlSort);
-		setIsFeatured(urlFeatured);
-		setPriceRange(urlPriceRange);
-		setCurrentPage(urlPage);
-
-		// Synchroniser aussi les états debouncés
-		setDebouncedSearchQuery(urlSearchQuery);
-		setDebouncedPriceRange(urlPriceRange);
-	}, [searchParams, categoryFromRoute]);
-
-	// Charger les données
-	useEffect(() => {
-		loadProducts();
-		loadCategories();
-	}, [loadProducts]);
-
-	const loadCategories = async () => {
-		try {
-			const response = await productService.getCategories();
-			if (response.data.status === "success") {
-				setCategories(response.data.data || []);
-			}
-		} catch (error) {
-			console.error("Erreur lors du chargement des catégories:", error);
-		}
-	};
-
-
-
-	// Debounce pour la recherche textuelle
-	useEffect(() => {
-		const timer = setTimeout(() => {
-			setDebouncedSearchQuery(searchQuery);
-		}, 1000); // 1 seconde de délai pour la recherche
-
-		return () => clearTimeout(timer);
-	}, [searchQuery]);
-
-	// Debounce pour les prix
-	useEffect(() => {
-		const timer = setTimeout(() => {
-			setDebouncedPriceRange(priceRange);
-		}, 800); // 800ms pour les prix
-
-		return () => clearTimeout(timer);
-	}, [priceRange]);
-
-	// Fonction pour mettre à jour l'URL
-	const updateURL = useCallback(() => {
-		const params = new URLSearchParams();
-		if (debouncedSearchQuery) params.set("q", debouncedSearchQuery);
-		if (selectedCategory) params.set("category", selectedCategory);
-		if (sortBy !== "newest") params.set("sort", sortBy);
-		if (isFeatured) params.set("featured", "true");
-		if (debouncedPriceRange.min) params.set("minPrice", debouncedPriceRange.min);
-		if (debouncedPriceRange.max) params.set("maxPrice", debouncedPriceRange.max);
-		if (currentPage > 1) params.set("page", currentPage);
-
-		// Construire l'URL avec les paramètres
-		const newUrl = `/products${params.toString() ? `?${params.toString()}` : ''}`;
-		navigate(newUrl, { replace: true });
-	}, [debouncedSearchQuery, selectedCategory, sortBy, isFeatured, debouncedPriceRange.min, debouncedPriceRange.max, currentPage, navigate]);
-
-	// Recherche avec debounce pour les valeurs debouncées
-	useEffect(() => {
-		// Éviter les recherches inutiles au chargement initial
-		const hasActiveFilters = debouncedSearchQuery || selectedCategory || debouncedPriceRange.min || debouncedPriceRange.max || isFeatured;
-		
-		if (hasActiveFilters || currentPage > 1) {
-			setIsSearching(true);
-			loadProducts().finally(() => setIsSearching(false));
-		}
-	}, [debouncedSearchQuery, selectedCategory, sortBy, isFeatured, debouncedPriceRange.min, debouncedPriceRange.max, currentPage, loadProducts]);
-
-	// Mise à jour de l'URL avec debounce séparé
-	useEffect(() => {
-		const timeoutId = setTimeout(() => {
-			updateURL();
-		}, 1200); // Délai plus long pour l'URL
-
-		return () => clearTimeout(timeoutId);
-	}, [updateURL]);
-
-	const handleFilterChange = (filterType, value) => {
-		setCurrentPage(1);
-		switch (filterType) {
-			case "category":
-				setSelectedCategory(value);
-				break;
-			case "sort":
-				setSortBy(value);
-				break;
-			case "priceMin":
-				setPriceRange((prev) => ({ ...prev, min: value }));
-				break;
-			case "priceMax":
-				setPriceRange((prev) => ({ ...prev, max: value }));
-				break;
-			default:
-				break;
-		}
-		// L'URL sera mise à jour par le useEffect avec debounce
-	};
-
-	const clearFilters = () => {
-		setSearchQuery("");
-		setSelectedCategory("");
-		setSortBy("newest");
-		setIsFeatured(false);
-		setPriceRange({ min: "", max: "" });
-		setCurrentPage(1);
-		setSearchParams({});
+	const handleClearFilters = () => {
+		clearFilters();
 		navigate("/products");
 	};
-
-	const getCategoryLabel = (category) => {
-		const categories = {
-			cereals: "Céréales",
-			vegetables: "Légumes",
-			fruits: "Fruits",
-			legumes: "Légumineuses",
-			tubers: "Tubercules",
-			spices: "Épices",
-			herbs: "Herbes",
-			grains: "Grains",
-			nuts: "Noix",
-			seeds: "Graines",
-			dairy: "Produits laitiers",
-			meat: "Viande",
-			poultry: "Volaille",
-			fish: "Poisson",
-			"processed-foods": "Aliments transformés",
-			beverages: "Boissons",
-			other: "Autres",
-		};
-		return categories[category] || category;
-	};
-
-	const getSortOptions = () => [
-		{ value: "newest", label: "Plus récents" },
-		{ value: "createdAt", label: "Plus anciens" },
-		{ value: "price", label: "Prix croissant" },
-		{ value: "-price", label: "Prix décroissant" },
-		{ value: "name", label: "Nom A-Z" },
-		{ value: "-name", label: "Nom Z-A" },
-	];
 
 	if (loading && products.length === 0) {
 		return (
@@ -309,138 +80,22 @@ const Products = () => {
 						{totalProducts > 0 && ` (${totalProducts} produits)`}
 					</p>
 					
-					{/* Message discret si pas de produits dans la zone */}
-					{locationInfo?.detected && locationInfo?.noProductsInZone && (
-						<div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-700">
-							<svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-							</svg>
-							<span>
-								Aucun produit disponible dans votre zone. Affichage de tous les produits.
-							</span>
-						</div>
-					)}
 				</div>
 
 				{/* Barre de recherche et filtres */}
-				<div className="bg-white gap-2 flex flex-wrap justify-around rounded-lg shadow-sm border p-6 mb-8">
-					<div className="w-full flex flex-wrap gap-2">
-						<div className="w-full md:w-1/2">
-						<div className="flex flex-col sm:flex-row gap-4">
-							<div className="flex-1">
-								<div className="relative">
-									<FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-									<input
-										type="text"
-										value={searchQuery}
-										onChange={(e) => setSearchQuery(e.target.value)}
-										placeholder="Rechercher des produits..."
-										className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
-									/>
-								</div>
-							</div>
-							{searchQuery && (
-								<button
-									type="button"
-									onClick={() => {
-										setSearchQuery("");
-										setCurrentPage(1);
-									}}
-									className="px-4 py-2 bg-harvests-light0 text-white rounded-md hover:bg-gray-600 transition-colors"
-								>
-									Effacer
-								</button>
-							)}
-						</div>
-					</div>
-
-					{/* Filtres */}
-					<div className="flex flex-wrap gap-2">
-						<button
-							onClick={() => setShowFilters(!showFilters)}
-							className=" flex items-center px-4 py-2 border border-gray-300 rounded-md hover:bg-harvests-light"
-						>
-							<FiFilter className="h-4 w-4 mr-2" />
-							Filtres
-							<FiChevronDown
-								className={`h-4 w-4 ml-2 transition-transform ${
-									showFilters ? "rotate-180" : ""
-								}`}
-							/>
-						</button>
-
-						<select
-							value={sortBy}
-							onChange={(e) => handleFilterChange("sort", e.target.value)}
-							className="px-2 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500"
-						>
-							{getSortOptions().map((option) => (
-								<option key={option.value} value={option.value}>
-									{option.label}
-								</option>
-							))}
-						</select>
-
-						<select
-							value={selectedCategory}
-							onChange={(e) => handleFilterChange("category", e.target.value)}
-							className="flex-1 px-8 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500"
-						>
-							<option value="">Toutes les catégories</option>
-							{categories.map((category) => (
-								<option key={category} value={category}>
-									{getCategoryLabel(category)}
-								</option>
-							))}
-						</select>
-
-						{(selectedCategory ||
-							sortBy !== "newest" ||
-							priceRange.min ||
-							priceRange.max) && (
-							<button
-								onClick={clearFilters}
-								className="flex items-center px-3 py-2 text-red-600 hover:bg-red-50 rounded-md"
-							>
-								<FiX className="h-4 w-4 mr-1" />
-								Effacer
-							</button>
-						)}
-					</div>
-					</div>
-
-					{/* Filtres avancés */}
-					{showFilters && (
-						<div className="w-full md:w-1/2 mt-6 pt-6 border-t border-gray-200">
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<div>
-									<label className="block text-sm font-medium text-gray-700 mb-2">
-										Prix minimum (XOF)
-									</label>
-									<input
-										type="number"
-										value={priceRange.min}
-										onChange={(e) => handleFilterChange("priceMin", e.target.value)}
-										placeholder="0"
-										className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500"
-									/>
-								</div>
-								<div>
-									<label className="block text-sm font-medium text-gray-700 mb-2">
-										Prix maximum (XOF)
-									</label>
-									<input
-										type="number"
-										value={priceRange.max}
-										onChange={(e) => handleFilterChange("priceMax", e.target.value)}
-										placeholder="100000"
-										className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500"
-									/>
-								</div>
-							</div>
-						</div>
-					)}
-				</div>
+				<ProductFilters
+					showFilters={showFilters}
+					setShowFilters={setShowFilters}
+					searchQuery={searchQuery}
+					setSearchQuery={setSearchQuery}
+					selectedCategory={selectedCategory}
+					sortBy={sortBy}
+					priceRange={priceRange}
+					categories={categories}
+					onFilterChange={handleFilterChange}
+					onClearFilters={handleClearFilters}
+					onPageReset={() => setCurrentPage(1)}
+				/>
 
 				{/* Informations de pagination */}
 				<div className="flex justify-between items-center mb-6">
@@ -477,68 +132,11 @@ const Products = () => {
 						</div>
 
 						{/* Pagination */}
-						{totalPages > 1 && (
-							<div className="mt-8 flex justify-center">
-								<nav className="flex items-center space-x-2">
-									<button
-										onClick={() => {
-											const newPage = Math.max(1, currentPage - 1);
-											setCurrentPage(newPage);
-										}}
-										disabled={currentPage === 1}
-										className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-harvests-light disabled:opacity-50 disabled:cursor-not-allowed"
-									>
-										Précédent
-									</button>
-
-									{[...Array(totalPages)].map((_, i) => {
-										const page = i + 1;
-										const isCurrentPage = page === currentPage;
-										const isNearCurrent = Math.abs(page - currentPage) <= 2;
-										const isFirstOrLast = page === 1 || page === totalPages;
-
-										if (!isNearCurrent && !isFirstOrLast) {
-											if (page === 2 || page === totalPages - 1) {
-												return (
-													<span
-														key={page}
-														className="px-3 py-2 text-sm text-gray-500"
-													>
-														...
-													</span>
-												);
-											}
-											return null;
-										}
-
-										return (
-											<button
-												key={page}
-												onClick={() => setCurrentPage(page)}
-												className={`px-3 py-2 text-sm font-medium rounded-md ${
-													isCurrentPage
-														? "bg-green-600 text-white"
-														: "text-gray-700 bg-white border border-gray-300 hover:bg-harvests-light"
-												}`}
-											>
-												{page}
-											</button>
-										);
-									})}
-
-									<button
-										onClick={() => {
-											const newPage = Math.min(totalPages, currentPage + 1);
-											setCurrentPage(newPage);
-										}}
-										disabled={currentPage === totalPages}
-										className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-harvests-light disabled:opacity-50 disabled:cursor-not-allowed"
-									>
-										Suivant
-									</button>
-								</nav>
-							</div>
-						)}
+						<ProductPagination
+							currentPage={currentPage}
+							totalPages={totalPages}
+							onPageChange={setCurrentPage}
+						/>
 					</>
 				) : (
 					<div className="text-center py-12">

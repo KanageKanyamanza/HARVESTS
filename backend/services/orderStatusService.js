@@ -436,11 +436,44 @@ async function updateOrderStatus(order, status, user, options = {}) {
 
     const segmentItems = segment.items || [];
     segmentItems.forEach((segmentItem) => {
-      const updated = updateItemStatus(segmentItem, true, previousSegmentStatus);
-      if (updated) {
-        const baseItem = findBaseItemForSegmentItem(segmentItem);
-        if (baseItem && baseItem !== segmentItem) {
-          updateItemStatus(baseItem, false, previousSegmentStatus);
+      // Si le segment passe à 'completed', mettre à jour tous les articles à 'completed'
+      // même s'ils n'ont pas encore le statut 'delivered'
+      if (status === 'completed') {
+        const currentItemStatus = segmentItem.status || 'pending';
+        if (currentItemStatus !== 'completed') {
+          segmentItem.status = 'completed';
+          segmentItem.statusHistory = segmentItem.statusHistory || [];
+          segmentItem.statusHistory.push({
+            status: 'completed',
+            timestamp: now,
+            updatedBy: user._id,
+            reason: reason || 'Commande terminée',
+            note: note || 'Article marqué comme terminé avec la commande'
+          });
+          itemUpdatesCount += 1;
+          
+          // Mettre à jour aussi l'article de base
+          const baseItem = findBaseItemForSegmentItem(segmentItem);
+          if (baseItem && baseItem !== segmentItem && baseItem.status !== 'completed') {
+            baseItem.status = 'completed';
+            baseItem.statusHistory = baseItem.statusHistory || [];
+            baseItem.statusHistory.push({
+              status: 'completed',
+              timestamp: now,
+              updatedBy: user._id,
+              reason: reason || 'Commande terminée',
+              note: note || 'Article marqué comme terminé avec la commande'
+            });
+          }
+        }
+      } else {
+        // Pour les autres statuts, utiliser la logique normale de transition
+        const updated = updateItemStatus(segmentItem, true, previousSegmentStatus);
+        if (updated) {
+          const baseItem = findBaseItemForSegmentItem(segmentItem);
+          if (baseItem && baseItem !== segmentItem) {
+            updateItemStatus(baseItem, false, previousSegmentStatus);
+          }
         }
       }
     });
