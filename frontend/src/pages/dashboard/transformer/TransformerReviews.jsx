@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { transformerService } from '../../../services';
+import { transformerService, reviewService } from '../../../services';
 import { useNotifications } from '../../../contexts/NotificationContext';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import EmailVerificationRequired from '../../../components/common/EmailVerificationRequired';
@@ -45,15 +45,34 @@ const TransformerReviews = () => {
       setLoading(true);
       setEmailVerificationError(null);
       setError(null);
-      const response = await transformerService.getMyReviews({
-        status: filters.status,
-        rating: filters.rating,
-        search: filters.search
+      const response = await reviewService.getReceivedReviews({
+        rating: filters.rating !== 'all' ? filters.rating : undefined,
+        hasResponse: filters.hasResponse !== 'all' ? filters.hasResponse : undefined,
+        sort: filters.sort || 'newest'
       });
       
-      if (response.data?.status === 'success') {
-        setReviews(response.data.data.reviews || []);
-        setStats(response.data.data.stats || {});
+      if (response.status === 'success' || response.data?.status === 'success') {
+        const reviewsData = response.data?.reviews || response.data?.data?.reviews || response.reviews || [];
+        setReviews(reviewsData);
+        
+        // Calculer les stats à partir des avis
+        const totalReviews = reviewsData.length;
+        const averageRating = totalReviews > 0 
+          ? reviewsData.reduce((sum, r) => sum + (r.rating || 0), 0) / totalReviews 
+          : 0;
+        const ratingDistribution = reviewsData.reduce((acc, r) => {
+          const rating = r.rating || 0;
+          acc[rating] = (acc[rating] || 0) + 1;
+          return acc;
+        }, {});
+        const unreadCount = reviewsData.filter(r => !r.isRead).length;
+        
+        setStats({
+          totalReviews,
+          averageRating,
+          ratingDistribution,
+          unreadCount
+        });
       }
     } catch (error) {
       console.error('Erreur lors du chargement des avis:', error);

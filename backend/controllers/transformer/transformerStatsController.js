@@ -17,7 +17,7 @@ exports.getBusinessStats = catchAsync(async (req, res, next) => {
     const stats = await transformerStatsService.getBusinessStats(req.user._id);
     res.status(200).json({
       status: 'success',
-      data: stats
+      data: { stats }
     });
   } catch (error) {
     return next(new AppError(error.message, 404));

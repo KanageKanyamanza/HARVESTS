@@ -6,11 +6,16 @@ const orderService = require('../orderService');
  */
 
 async function getConsumerOrders(consumerId, queryParams = {}) {
-  const orders = await orderService.getAllOrders({
-    buyer: consumerId,
-    ...queryParams
-  });
-  return orders;
+  try {
+    const orders = await orderService.getAllOrders({
+      buyer: consumerId,
+      ...queryParams
+    });
+    return orders || [];
+  } catch (error) {
+    // Retourner un tableau vide en cas d'erreur
+    return [];
+  }
 }
 
 async function getConsumerOrderById(consumerId, orderId) {

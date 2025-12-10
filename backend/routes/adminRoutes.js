@@ -15,6 +15,13 @@ const adminSettingsController = require('../controllers/admin/adminSettingsContr
 const adminTransporterController = require('../controllers/admin/adminTransporterController');
 const adminAuditController = require('../controllers/admin/adminAuditController');
 
+/**
+ * @swagger
+ * tags:
+ *   name: Admin
+ *   description: ⚙️ Administration - Toutes les routes nécessitent une authentification admin
+ */
+
 const router = express.Router();
 
 // Toutes les routes admin nécessitent une authentification admin
@@ -24,7 +31,18 @@ router.use(adminAuthController.protect);
 // DASHBOARD ET STATISTIQUES
 // ========================================
 
-// Statistiques générales du dashboard
+/**
+ * @swagger
+ * /api/v1/admin/dashboard/stats:
+ *   get:
+ *     summary: Obtenir les statistiques du dashboard
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Statistiques du dashboard
+ */
 router.get('/dashboard/stats', adminDashboardController.getDashboardStats);
 
 // Données détaillées pour le dashboard
@@ -39,7 +57,31 @@ router.get('/dashboard/product-stats', adminDashboardController.getProductStats)
 // GESTION DES UTILISATEURS
 // ========================================
 
-// Obtenir tous les utilisateurs avec filtres
+/**
+ * @swagger
+ * /api/v1/admin/users:
+ *   get:
+ *     summary: Obtenir tous les utilisateurs (Admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: userType
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Liste des utilisateurs
+ */
 router.get('/users', adminUserController.getAllUsers);
 
 // Obtenir un utilisateur spécifique
@@ -64,7 +106,28 @@ router.post('/users/:id/verify', adminUserController.verifyUser);
 // GESTION DES PRODUITS
 // ========================================
 
-// Obtenir tous les produits avec filtres
+/**
+ * @swagger
+ * /api/v1/admin/products:
+ *   get:
+ *     summary: Obtenir tous les produits (Admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [draft, pending-review, approved, rejected, inactive]
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Liste des produits
+ */
 router.get('/products', adminProductController.getAllProducts);
 
 // Obtenir un produit spécifique
@@ -114,7 +177,27 @@ router.post('/dishes/:id/reject', adminDishController.rejectDish);
 // GESTION DES COMMANDES
 // ========================================
 
-// Obtenir toutes les commandes avec filtres
+/**
+ * @swagger
+ * /api/v1/admin/orders:
+ *   get:
+ *     summary: Obtenir toutes les commandes (Admin)
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Liste des commandes
+ */
 router.get('/orders', adminOrderController.getAllOrders);
 
 // Obtenir une commande spécifique

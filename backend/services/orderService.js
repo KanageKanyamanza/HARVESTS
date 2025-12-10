@@ -559,6 +559,43 @@ async function estimateOrderCosts(items, deliveryAddress, deliveryMethod, user, 
   };
 }
 
+// Obtenir toutes les commandes selon les critères
+async function getAllOrders(queryParams = {}) {
+  const query = buildAllOrdersQuery(queryParams);
+  
+  const page = parseInt(queryParams.page, 10) || 1;
+  const limit = parseInt(queryParams.limit, 10) || 20;
+  const skip = (page - 1) * limit;
+  
+  const orders = await Order.find(query)
+    .populate('buyer', 'firstName lastName email userType')
+    .populate('seller', 'farmName companyName firstName lastName userType')
+    .populate({
+      path: 'segments.seller',
+      select: 'farmName companyName firstName lastName email phone userType'
+    })
+    .sort('-createdAt')
+    .skip(skip)
+    .limit(limit);
+  
+  return orders;
+}
+
+// Obtenir une commande par ID
+async function getOrderById(orderId) {
+  const order = await Order.findById(orderId)
+    .populate('buyer', 'firstName lastName email userType')
+    .populate('seller', 'farmName companyName firstName lastName userType')
+    .populate({
+      path: 'segments.seller',
+      select: 'farmName companyName firstName lastName email phone userType'
+    })
+    .populate('items.product', 'name images price')
+    .populate('delivery.transporter', 'firstName lastName email phone companyName userType');
+  
+  return order;
+}
+
 module.exports = {
   buildOrderUrl,
   buildFrontendUrl,
@@ -575,6 +612,8 @@ module.exports = {
   buildAllOrdersQuery,
   estimateOrderCosts,
   ensureSegmentsForOrder,
-  updateOrderStatusFromSegments
+  updateOrderStatusFromSegments,
+  getAllOrders,
+  getOrderById
 };
 

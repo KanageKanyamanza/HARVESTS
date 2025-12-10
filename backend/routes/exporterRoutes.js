@@ -3,13 +3,107 @@ const exporterController = require('../controllers/exporterController');
 const authMiddleware = require('../controllers/auth/authMiddleware');
 const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
 
+/**
+ * @swagger
+ * tags:
+ *   name: Exporters
+ *   description: 🚢 Gestion des exportateurs
+ */
+
 const router = express.Router();
 
-// Routes publiques pour recherche d'exportateurs
+/**
+ * @swagger
+ * /api/v1/exporters:
+ *   get:
+ *     summary: Obtenir tous les exportateurs (public)
+ *     tags: [Exporters]
+ *     parameters:
+ *       - in: query
+ *         name: country
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Liste des exportateurs
+ */
 router.get('/', exporterController.getAllExporters);
+
+/**
+ * @swagger
+ * /api/v1/exporters/search:
+ *   get:
+ *     summary: Rechercher des exportateurs
+ *     tags: [Exporters]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Résultats de recherche
+ */
 router.get('/search', exporterController.searchExporters);
+
+/**
+ * @swagger
+ * /api/v1/exporters/by-market/{country}:
+ *   get:
+ *     summary: Obtenir les exportateurs par marché cible
+ *     tags: [Exporters]
+ *     parameters:
+ *       - in: path
+ *         name: country
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Liste des exportateurs pour ce marché
+ */
 router.get('/by-market/:country', exporterController.getExportersByMarket);
+
+/**
+ * @swagger
+ * /api/v1/exporters/by-product/{product}:
+ *   get:
+ *     summary: Obtenir les exportateurs par produit
+ *     tags: [Exporters]
+ *     parameters:
+ *       - in: path
+ *         name: product
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Liste des exportateurs pour ce produit
+ */
 router.get('/by-product/:product', exporterController.getExportersByProduct);
+
+/**
+ * @swagger
+ * /api/v1/exporters/{id}:
+ *   get:
+ *     summary: Obtenir un exportateur spécifique (public)
+ *     tags: [Exporters]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: objectId
+ *     responses:
+ *       200:
+ *         description: Détails de l'exportateur
+ */
 router.get('/:id', exporterController.getExporter);
 
 // Toutes les routes suivantes nécessitent une authentification
@@ -18,7 +112,31 @@ router.use(authMiddleware.restrictTo('exporter'));
 router.use(authMiddleware.requireVerification);
 router.use(authMiddleware.requireApproval); // Les exportateurs doivent être approuvés
 
-// Gestion du profil exportateur
+/**
+ * @swagger
+ * /api/v1/exporters/me/profile:
+ *   get:
+ *     summary: Obtenir mon profil exportateur
+ *     tags: [Exporters]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profil exportateur
+ *   patch:
+ *     summary: Mettre à jour mon profil exportateur
+ *     tags: [Exporters]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Profil mis à jour
+ */
 router.get('/me/profile', exporterController.getMyProfile);
 router.patch('/me/profile', exporterController.updateMyProfile);
 

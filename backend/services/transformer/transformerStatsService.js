@@ -59,13 +59,39 @@ async function getBusinessStats(transformerId) {
     }
   ]);
 
+  // Récupérer la note moyenne depuis les avis
+  let averageRating = 0;
+  let totalReviews = 0;
+  try {
+    const Review = require('../../models/Review');
+    const reviewStats = await Review.aggregate([
+      { $match: { transformer: transformerId, status: 'approved' } },
+      {
+        $group: {
+          _id: null,
+          averageRating: { $avg: '$rating' },
+          totalReviews: { $sum: 1 }
+        }
+      }
+    ]);
+    
+    if (reviewStats.length > 0 && reviewStats[0].averageRating) {
+      averageRating = Math.round(reviewStats[0].averageRating * 10) / 10;
+      totalReviews = reviewStats[0].totalReviews || 0;
+    }
+  } catch (error) {
+    console.error('Erreur lors du calcul de la note moyenne:', error);
+  }
+
   return {
     totalOrders,
     completedOrders,
     pendingOrders,
     totalProducts,
     activeProducts,
-    monthlyRevenue: monthlyRevenue[0]?.total || 0
+    monthlyRevenue: monthlyRevenue[0]?.total || 0,
+    averageRating,
+    totalReviews
   };
 }
 

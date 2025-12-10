@@ -1,229 +1,35 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Eye, EyeOff, User, Mail, Lock, Phone, Users, ChevronDown, MapPin } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+import { Mail, Lock, Phone, MapPin } from 'lucide-react';
 import SocialLinks from '../../components/common/SocialLinks';
-import { useModal } from '../../hooks/useModal';
+import UserTypeSelector from '../../components/auth/UserTypeSelector';
+import NameFields from '../../components/auth/NameFields';
+import FormField from '../../components/auth/FormField';
+import { useRegisterForm } from '../../hooks/useRegisterForm';
+import { useRegisterSubmission } from '../../hooks/useRegisterSubmission';
 import logo from '../../assets/logo.png';
 import authbg from '../../assets/images/authbg.png';
 
 const Register = () => {
-  const { register } = useAuth();
-  const { openEmailVerificationModal } = useModal();
-  
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    phone: '',
-    userType: '',
-    country: 'Sénégal',
-    preferredLanguage: 'fr'
-  });
-
-  // Types d'utilisateurs disponibles
-  const userTypes = [
-    { value: 'consumer', label: '🛒 Consommateur', description: 'Achetez des produits frais directement des producteurs' },
-    { value: 'producer', label: '🌾 Producteur', description: 'Vendez vos produits agricoles sur notre plateforme' },
-    { value: 'transformer', label: '🏭 Transformateur', description: 'Transformez et commercialisez des produits agricoles' },
-    { value: 'restaurateur', label: '🍽️ Restaurateur', description: 'Commandez des ingrédients frais pour votre restaurant' },
-    { value: 'exporter', label: '🚢 Exportateur', description: 'Exportez des produits agricoles vers d\'autres pays' },
-    { value: 'transporter', label: '🚛 Transporteur', description: 'Transportez des produits agricoles en toute sécurité' }
-  ];
-  
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Hooks personnalisés
+  const {
+    formData,
+    showPassword,
+    setShowPassword,
+    showConfirmPassword,
+    setShowConfirmPassword,
+    errors,
+    setErrors,
+    isDropdownOpen,
+    setIsDropdownOpen,
+    handleChange,
+    setUserType,
+    resetForm
+  } = useRegisterForm();
 
-  // Fonction pour sélectionner un type d'utilisateur
-  const selectUserType = (type) => {
-    setFormData(prev => ({
-      ...prev,
-      userType: type.value
-    }));
-    setIsDropdownOpen(false);
-    
-    // Clear error
-    if (errors.userType) {
-      setErrors(prev => ({
-        ...prev,
-        userType: ''
-      }));
-    }
-  };
-
-  // Fermer le dropdown au clic extérieur
-  React.useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest('.profile-dropdown')) {
-        setIsDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, []);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-    
-    // Pour les consommateurs : prénom et nom séparés
-    if (formData.userType === 'consumer') {
-      if (!formData.firstName.trim()) {
-        newErrors.firstName = 'Le prénom est requis';
-      }
-      if (!formData.lastName.trim()) {
-        newErrors.lastName = 'Le nom est requis';
-      }
-    } else {
-      // Pour les autres : juste le nom (firstName sera utilisé comme nom complet)
-      if (!formData.firstName.trim()) {
-        newErrors.firstName = 'Le nom est requis';
-      }
-    }
-    
-    if (!formData.email.trim()) {
-      newErrors.email = 'L\'email est requis';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Format d\'email invalide';
-    }
-    
-    if (!formData.password) {
-      newErrors.password = 'Le mot de passe est requis';
-    } else if (formData.password.length < 8) {
-      newErrors.password = 'Le mot de passe doit contenir au moins 8 caractères';
-    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(formData.password)) {
-      newErrors.password = 'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre';
-    }
-    
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
-    }
-    
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'Le téléphone est requis';
-    } else {
-      // Validation flexible pour tous les numéros internationaux
-      const cleaned = formData.phone.replace(/\D/g, '');
-      if (cleaned.length < 7 || cleaned.length > 15) {
-        newErrors.phone = 'Le numéro doit contenir entre 7 et 15 chiffres';
-      }
-    }
-    
-    if (!formData.userType) {
-      newErrors.userType = 'Le type d\'utilisateur est requis';
-    }
-    
-    if (!formData.country.trim()) {
-      newErrors.country = 'Le pays est requis';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsSubmitting(true);
-    setErrors({}); // Effacer les erreurs précédentes
-
-    try {
-      // Préparer les données selon le type d'utilisateur
-      let registrationData;
-      
-      if (formData.userType === 'consumer') {
-        // Consommateur : prénom et nom séparés
-        registrationData = {
-          ...formData,
-          address: {
-            street: 'À compléter',
-            city: 'À compléter', 
-            region: 'À compléter',
-            country: formData.country
-          }
-        };
-      } else {
-        // Autres : nom complet dans firstName, lastName vide
-        registrationData = {
-          ...formData,
-          lastName: formData.lastName || 'À compléter',
-          address: {
-            street: 'À compléter',
-            city: 'À compléter', 
-            region: 'À compléter',
-            country: formData.country
-          }
-        };
-      }
-
-      const result = await register(registrationData);
-      if (result.success) {
-        // Afficher la modale de vérification d'email via ModalManager
-        openEmailVerificationModal(formData.email, true);
-        
-        // Afficher un message de succès avec information sur l'email
-        console.log('✅ Inscription réussie:', result.message);
-        
-        // Réinitialiser le formulaire après succès
-        setFormData({
-          firstName: '',
-          lastName: '',
-          email: '',
-          password: '',
-          confirmPassword: '',
-          phone: '',
-          userType: '',
-          country: 'Sénégal',
-          preferredLanguage: 'fr'
-        });
-      } else {
-        setErrors({ submit: result.error });
-      }
-    } catch (error) {
-      console.error('Erreur inscription:', error);
-      
-      let errorMessage = 'Erreur lors de l\'inscription';
-      
-      // Gérer les erreurs spécifiques
-      if (error.isTimeout) {
-        errorMessage = 'La requête a pris trop de temps. Veuillez réessayer.';
-      } else if (error.message && error.message.includes('existe déjà')) {
-        errorMessage = 'Un compte avec cet email existe déjà. Essayez de vous connecter.';
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      setErrors({ submit: errorMessage });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const { handleSubmit, isSubmitting } = useRegisterSubmission(formData, setErrors, resetForm);
 
   return (
     <div className="flex items-center justify-center" style={{ backgroundImage: `url(${authbg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
@@ -274,267 +80,87 @@ const Register = () => {
 
             <form onSubmit={handleSubmit}>
               <div className="space-y-2 px-5 pt-5 pb-2 sm:px-10 sm:pt-10 sm:pb-5 backdrop-blur-sm shadow-lg rounded-4xl bg-green-500/10">
-                {/* Type de profil - Custom Dropdown - EN PREMIER */}
-                <div className="relative profile-dropdown">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                    <Users className="h-5 w-5 text-black" />
-                  </div>
-                  
-                  {/* Trigger du dropdown */}
-                  <button
-                    type="button"
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white text-left flex items-center justify-between ${
-                      errors.userType ? 'border-red-300' : 'border-gray-300'
-                    }`}
-                  >
-                    <span className={formData.userType ? 'text-gray-900' : 'text-gray-500'}>
-                      {formData.userType 
-                        ? userTypes.find(type => type.value === formData.userType)?.label 
-                        : 'Sélectionner un profil'
-                      }
-                    </span>
-                    <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  {/* Menu dropdown - S'ouvre vers le bas */}
-                  {isDropdownOpen && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-20 max-h-80 overflow-y-auto">
-                      <div className="py-2">
-                        {userTypes.map((type) => (
-                          <button
-                            key={type.value}
-                            type="button"
-                            onClick={() => selectUserType(type)}
-                            className={`w-full px-4 py-3 text-left hover:bg-green-50 transition-colors border-b border-gray-100 last:border-b-0 ${
-                              formData.userType === type.value ? 'bg-green-50 text-green-700' : 'text-gray-700'
-                            }`}
-                          >
-                            <div className="flex items-start space-x-3">
-                              <div className="text-2xl">{type.label.split(' ')[0]}</div>
-                              <div className="flex-1">
-                                <div className="font-medium text-sm">
-                                  {type.label.split(' ').slice(1).join(' ')}
-                                </div>
-                                <div className="text-xs text-gray-500 mt-1">
-                                  {type.description}
-                                </div>
-                              </div>
-                              {formData.userType === type.value && (
-                                <div className="flex-shrink-0">
-                                  <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
-                                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {errors.userType && (
-                    <p className="mt-1 text-sm text-red-600">{errors.userType}</p>
-                  )}
-                </div>
+                {/* Type de profil */}
+                <UserTypeSelector
+                  selectedUserType={formData.userType}
+                  isOpen={isDropdownOpen}
+                  onToggle={() => setIsDropdownOpen(!isDropdownOpen)}
+                  onSelect={setUserType}
+                  error={errors.userType}
+                />
 
                 {/* Nom - Conditionnel selon le type d'utilisateur */}
-                {formData.userType === 'consumer' ? (
-                  <>
-                    {/* Prénom pour consommateur */}
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <User className="h-5 w-5 text-black" />
-                      </div>
-                      <input
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleChange}
-                        placeholder="Votre prénom"
-                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                          errors.firstName ? 'border-red-300' : 'border-gray-300'
-                        }`}
-                      />
-                      {errors.firstName && (
-                        <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
-                      )}
-                    </div>
+                <NameFields
+                  userType={formData.userType}
+                  firstName={formData.firstName}
+                  lastName={formData.lastName}
+                  onFirstNameChange={handleChange}
+                  onLastNameChange={handleChange}
+                  firstNameError={errors.firstName}
+                  lastNameError={errors.lastName}
+                />
 
-                    {/* Nom pour consommateur */}
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <User className="h-5 w-5 text-black" />
-                      </div>
-                      <input
-                        type="text"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleChange}
-                        placeholder="Votre nom"
-                        className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                          errors.lastName ? 'border-red-300' : 'border-gray-300'
-                        }`}
-                      />
-                      {errors.lastName && (
-                        <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  /* Nom complet pour les autres types d'utilisateurs */
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User className="h-5 w-5 text-black" />
-                    </div>
-                    <input
-                      type="text"
-                      name="firstName"
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      placeholder={
-                        formData.userType === 'producer' ? 'Nom de votre ferme/exploitation' :
-                        formData.userType === 'transformer' ? 'Nom de votre entreprise' :
-                        formData.userType === 'restaurateur' ? 'Nom de votre restaurant' :
-                        formData.userType === 'exporter' ? 'Nom de votre entreprise' :
-                        formData.userType === 'transporter' ? 'Nom de votre entreprise' :
-                        'Votre nom'
-                      }
-                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                        errors.firstName ? 'border-red-300' : 'border-gray-300'
-                      }`}
-                    />
-                    {errors.firstName && (
-                      <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
-                    )}
-                  </div>
-                )}
-
-              {/* Email */}
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-black" />
-                </div>
-                <input
+                {/* Email */}
+                <FormField
+                  icon={Mail}
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="Votre email"
-                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                    errors.email ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  error={errors.email}
                 />
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-                )}
-              </div>
 
-              {/* Mot de passe */}
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-black" />
-                </div>
-                <input
+                {/* Mot de passe */}
+                <FormField
+                  icon={Lock}
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Votre mot de passe"
-                  className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                    errors.password ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  error={errors.password}
+                  showPasswordToggle={true}
+                  showPassword={showPassword}
+                  onTogglePassword={() => setShowPassword(!showPassword)}
+                  helperText="Min. 8 caractères, 1 majuscule, 1 minuscule, 1 chiffre"
                 />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-black" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-black" />
-                  )}
-                </button>
-                {errors.password && (
-                  <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-                )}
-                <p className="mt-1 text-xs text-gray-500">
-                  Min. 8 caractères, 1 majuscule, 1 minuscule, 1 chiffre
-                </p>
-              </div>
 
-              {/* Confirmer mot de passe */}
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-black" />
-                </div>
-                <input
+                {/* Confirmer mot de passe */}
+                <FormField
+                  icon={Lock}
                   type={showConfirmPassword ? 'text' : 'password'}
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="Confirmez votre mot de passe"
-                  className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                    errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  error={errors.confirmPassword}
+                  showPasswordToggle={true}
+                  showPassword={showConfirmPassword}
+                  onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
                 />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5 text-black" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-black" />
-                  )}
-                </button>
-                {errors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
-                )}
-              </div>
 
-              {/* Téléphone */}
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Phone className="h-5 w-5 text-black" />
-                </div>
-                <input
+                {/* Téléphone */}
+                <FormField
+                  icon={Phone}
                   type="tel"
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="Ex: +221 77 123 45 67 ou 1234567890"
-                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                    errors.phone ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  error={errors.phone}
                 />
-                {errors.phone && (
-                  <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
-                )}
-              </div>
 
-              {/* Pays */}
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MapPin className="h-5 w-5 text-black" />
-                </div>
-                <input
+                {/* Pays */}
+                <FormField
+                  icon={MapPin}
                   type="text"
                   name="country"
                   value={formData.country}
                   onChange={handleChange}
                   placeholder="Saisissez votre pays (ex: Sénégal, Cameroun, Ghana...)"
-                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                    errors.country ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  error={errors.country}
                 />
-                {errors.country && (
-                  <p className="mt-1 text-sm text-red-600">{errors.country}</p>
-                )}
-              </div>
 
               {/* Lien de connexion */}
               <div className="text-center">

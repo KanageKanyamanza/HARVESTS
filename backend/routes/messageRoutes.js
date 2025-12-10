@@ -3,6 +3,13 @@ const messageController = require('../controllers/messageController');
 const authMiddleware = require('../controllers/auth/authMiddleware');
 const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
 
+/**
+ * @swagger
+ * tags:
+ *   name: Messages
+ *   description: 💬 Messagerie et conversations
+ */
+
 const router = express.Router();
 
 // Toutes les routes nécessitent une authentification
@@ -11,10 +18,47 @@ router.use(authMiddleware.requireVerification);
 
 // ROUTES DES CONVERSATIONS
 
-// Obtenir mes conversations
+/**
+ * @swagger
+ * /api/v1/messages/conversations:
+ *   get:
+ *     summary: Obtenir mes conversations
+ *     tags: [Messages]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste des conversations
+ */
 router.get('/conversations', messageController.getMyConversations);
 
-// Créer une nouvelle conversation
+/**
+ * @swagger
+ * /api/v1/messages/conversations:
+ *   post:
+ *     summary: Créer une nouvelle conversation
+ *     tags: [Messages]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - recipient
+ *               - content
+ *             properties:
+ *               recipient:
+ *                 type: string
+ *                 format: objectId
+ *               content:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Conversation créée
+ */
 router.post('/conversations', messageController.createConversation);
 
 // Obtenir une conversation spécifique

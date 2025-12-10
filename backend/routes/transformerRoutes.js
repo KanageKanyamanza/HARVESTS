@@ -3,12 +3,88 @@ const transformerController = require('../controllers/transformerController');
 const authMiddleware = require('../controllers/auth/authMiddleware');
 const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
 
+/**
+ * @swagger
+ * tags:
+ *   name: Transformers
+ *   description: 🏭 Gestion des transformateurs
+ */
+
 const router = express.Router();
 
-// Routes publiques pour recherche de transformateurs
+/**
+ * @swagger
+ * /api/v1/transformers:
+ *   get:
+ *     summary: Obtenir tous les transformateurs (public)
+ *     tags: [Transformers]
+ *     parameters:
+ *       - in: query
+ *         name: region
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Liste des transformateurs
+ */
 router.get('/', transformerController.getAllTransformers);
+
+/**
+ * @swagger
+ * /api/v1/transformers/search:
+ *   get:
+ *     summary: Rechercher des transformateurs
+ *     tags: [Transformers]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Résultats de recherche
+ */
 router.get('/search', transformerController.searchTransformers);
+
+/**
+ * @swagger
+ * /api/v1/transformers/by-region/{region}:
+ *   get:
+ *     summary: Obtenir les transformateurs par région
+ *     tags: [Transformers]
+ *     parameters:
+ *       - in: path
+ *         name: region
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Liste des transformateurs de la région
+ */
 router.get('/by-region/:region', transformerController.getTransformersByRegion);
+
+/**
+ * @swagger
+ * /api/v1/transformers/by-type/{type}:
+ *   get:
+ *     summary: Obtenir les transformateurs par type
+ *     tags: [Transformers]
+ *     parameters:
+ *       - in: path
+ *         name: type
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Liste des transformateurs du type
+ */
 router.get('/by-type/:type', transformerController.getTransformersByType);
 router.get('/:id/public', transformerController.getPublicTransformer);
 router.get('/:id/services', transformerController.getTransformerServices);

@@ -130,6 +130,30 @@ async function getStats(restaurateurId) {
   
   const averageOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
 
+  // Récupérer la note moyenne depuis les avis
+  let averageRating = 0;
+  let totalReviews = 0;
+  try {
+    const Review = require('../../models/Review');
+    const reviewStats = await Review.aggregate([
+      { $match: { producer: restaurateurId, status: 'approved' } },
+      {
+        $group: {
+          _id: null,
+          averageRating: { $avg: '$rating' },
+          totalReviews: { $sum: 1 }
+        }
+      }
+    ]);
+    
+    if (reviewStats.length > 0 && reviewStats[0].averageRating) {
+      averageRating = Math.round(reviewStats[0].averageRating * 10) / 10;
+      totalReviews = reviewStats[0].totalReviews || 0;
+    }
+  } catch (error) {
+    console.error('Erreur lors du calcul de la note moyenne:', error);
+  }
+
   return {
     totalRevenue,
     totalOrders: orders.length,
@@ -141,7 +165,9 @@ async function getStats(restaurateurId) {
     topProducts,
     averageOrderValue,
     conversionRate: orders.length > 0 ? (completedOrders.length / orders.length) * 100 : 0,
-    customerRetentionRate: 0
+    customerRetentionRate: 0,
+    averageRating,
+    totalReviews
   };
 }
 

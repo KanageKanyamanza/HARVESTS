@@ -2,6 +2,13 @@ const express = require('express');
 const consumerController = require('../controllers/consumerController');
 const authMiddleware = require('../controllers/auth/authMiddleware');
 
+/**
+ * @swagger
+ * tags:
+ *   name: Consumers
+ *   description: 🛒 Gestion des consommateurs
+ */
+
 const router = express.Router();
 
 // Toutes les routes nécessitent une authentification
@@ -9,7 +16,7 @@ router.use(authMiddleware.protect);
 // Permettre aux consommateurs ET aux restaurateurs (qui peuvent aussi être consommateurs)
 router.use(authMiddleware.restrictTo('consumer', 'restaurateur'));
 
-// Routes qui nécessitent une vérification d'email
+// Routes qui nécessitent une vérification d'email (seulement pour les méthodes POST/PATCH/DELETE)
 const requireVerificationRoutes = [
   '/me/orders',
   '/me/cart',
@@ -20,20 +27,45 @@ const requireVerificationRoutes = [
   '/me/notifications'
 ];
 
-// Appliquer la vérification d'email seulement aux routes spécifiées
+// Appliquer la vérification d'email seulement aux routes spécifiées et seulement pour les méthodes non-GET
 router.use((req, res, next) => {
   const requiresVerification = requireVerificationRoutes.some(route => 
     req.path.startsWith(route)
   );
   
-  if (requiresVerification) {
+  // Autoriser les requêtes GET même sans vérification d'email
+  if (requiresVerification && req.method !== 'GET') {
     return authMiddleware.requireVerification(req, res, next);
   }
   
   next();
 });
 
-// Gestion du profil consommateur
+/**
+ * @swagger
+ * /api/v1/consumers/me/profile:
+ *   get:
+ *     summary: Obtenir mon profil consommateur
+ *     tags: [Consumers]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profil consommateur
+ *   patch:
+ *     summary: Mettre à jour mon profil consommateur
+ *     tags: [Consumers]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *     responses:
+ *       200:
+ *         description: Profil mis à jour
+ */
 router.get('/me/profile', consumerController.getMyProfile);
 router.patch('/me/profile', consumerController.updateMyProfile);
 
@@ -94,7 +126,52 @@ router.route('/me/subscriptions/:subscriptionId')
 router.patch('/me/subscriptions/:subscriptionId/pause', consumerController.pauseSubscription);
 router.patch('/me/subscriptions/:subscriptionId/resume', consumerController.resumeSubscription);
 
-// Gestion du panier (cart)
+/**
+ * @swagger
+ * /api/v1/consumers/me/cart:
+ *   get:
+ *     summary: Obtenir mon panier
+ *     tags: [Consumers]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Contenu du panier
+ *   post:
+ *     summary: Ajouter un produit au panier
+ *     tags: [Consumers]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - product
+ *               - quantity
+ *             properties:
+ *               product:
+ *                 type: string
+ *                 format: objectId
+ *               variant:
+ *                 type: string
+ *                 format: objectId
+ *               quantity:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Produit ajouté au panier
+ *   delete:
+ *     summary: Vider le panier
+ *     tags: [Consumers]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Panier vidé
+ */
 router.route('/me/cart')
   .get(consumerController.getCart)
   .post(consumerController.addToCart)
@@ -104,7 +181,36 @@ router.route('/me/cart/:itemId')
   .patch(consumerController.updateCartItem)
   .delete(consumerController.removeFromCart);
 
-// Gestion des commandes
+/**
+ * @swagger
+ * /api/v1/consumers/me/orders:
+ *   get:
+ *     summary: Obtenir mes commandes (Consommateur)
+ *     tags: [Consumers]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste de mes commandes
+ *   post:
+ *     summary: Créer une commande depuis le panier
+ *     tags: [Consumers]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               deliveryAddress:
+ *                 type: object
+ *               paymentMethod:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Commande créée
+ */
 router.route('/me/orders')
   .get(consumerController.getMyOrders)
   .post(consumerController.createOrder);

@@ -3,14 +3,78 @@ const userController = require('../controllers/userController');
 const authMiddleware = require('../controllers/auth/authMiddleware');
 const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
 
+/**
+ * @swagger
+ * tags:
+ *   name: Users
+ *   description: 👥 Gestion des utilisateurs
+ */
+
 const router = express.Router();
 
 // Toutes les routes sont protégées
 router.use(authMiddleware.protect);
 
-// Routes communes à tous les utilisateurs
+/**
+ * @swagger
+ * /api/v1/users/me:
+ *   get:
+ *     summary: Obtenir mon profil utilisateur
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profil utilisateur
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ */
 router.get('/me', userController.getMe, userController.getUser);
+
+/**
+ * @swagger
+ * /api/v1/users/update-me:
+ *   patch:
+ *     summary: Mettre à jour mon profil
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               address:
+ *                 type: object
+ *               bio:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Profil mis à jour
+ */
 router.patch('/update-me', userController.updateMe);
+
+/**
+ * @swagger
+ * /api/v1/users/delete-me:
+ *   delete:
+ *     summary: Supprimer mon compte
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       204:
+ *         description: Compte supprimé
+ */
 router.delete('/delete-me', userController.deleteMe);
 
 // Import des services centralisés

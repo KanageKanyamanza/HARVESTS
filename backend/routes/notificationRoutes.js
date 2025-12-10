@@ -3,6 +3,13 @@ const notificationController = require('../controllers/notificationController');
 const authMiddleware = require('../controllers/auth/authMiddleware');
 const adminAuthController = require('../controllers/adminAuthController');
 
+/**
+ * @swagger
+ * tags:
+ *   name: Notifications
+ *   description: 🔔 Notifications multi-canaux
+ */
+
 const router = express.Router();
 
 // ROUTES UTILISATEUR (authentification normale)
@@ -11,7 +18,24 @@ const userRoutes = express.Router();
 userRoutes.use(authMiddleware.protect);
 userRoutes.use(authMiddleware.requireVerification);
 
-// Obtenir mes notifications
+/**
+ * @swagger
+ * /api/v1/notifications/my:
+ *   get:
+ *     summary: Obtenir mes notifications
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: unread
+ *         schema:
+ *           type: boolean
+ *         description: Filtrer les non lues
+ *     responses:
+ *       200:
+ *         description: Liste des notifications
+ */
 userRoutes.get('/my', notificationController.getMyNotifications);
 
 // Obtenir le nombre de notifications non lues

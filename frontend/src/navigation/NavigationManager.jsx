@@ -165,6 +165,7 @@ export const generateSidebarNavigation = (user, icons = {}) => {
       { name: 'Mon panier', href: '/restaurateur/cart', icon: ShoppingCartIcon },
       { name: 'Mes commandes', href: getOrdersRoute(user), icon: ShoppingBagIcon },
       { name: 'Mes plats', href: getProductsRoute(user), icon: PackageIcon },
+      { name: 'Avis reçus', href: '/restaurateur/reviews', icon: StarIcon },
       { name: 'Statistiques', href: '/restaurateur/stats', icon: ChartBarIcon },
       { name: 'Notifications', href: getNotificationsRoute(user), icon: BellIcon },
       { name: 'Profil', href: getProfileRoute(user), icon: UserIcon },

@@ -3,12 +3,88 @@ const restaurateurController = require('../controllers/restaurateurController');
 const authMiddleware = require('../controllers/auth/authMiddleware');
 const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
 
+/**
+ * @swagger
+ * tags:
+ *   name: Restaurateurs
+ *   description: 🍽️ Gestion des restaurateurs
+ */
+
 const router = express.Router();
 
-// Routes publiques pour recherche de restaurateurs
+/**
+ * @swagger
+ * /api/v1/restaurateurs:
+ *   get:
+ *     summary: Obtenir tous les restaurateurs (public)
+ *     tags: [Restaurateurs]
+ *     parameters:
+ *       - in: query
+ *         name: region
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: cuisineType
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Liste des restaurateurs
+ */
 router.get('/', restaurateurController.getAllRestaurateurs);
+
+/**
+ * @swagger
+ * /api/v1/restaurateurs/search:
+ *   get:
+ *     summary: Rechercher des restaurateurs
+ *     tags: [Restaurateurs]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Résultats de recherche
+ */
 router.get('/search', restaurateurController.searchRestaurateurs);
+
+/**
+ * @swagger
+ * /api/v1/restaurateurs/by-region/{region}:
+ *   get:
+ *     summary: Obtenir les restaurateurs par région
+ *     tags: [Restaurateurs]
+ *     parameters:
+ *       - in: path
+ *         name: region
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Liste des restaurateurs de la région
+ */
 router.get('/by-region/:region', restaurateurController.getRestaurateursByRegion);
+
+/**
+ * @swagger
+ * /api/v1/restaurateurs/by-cuisine/{cuisine}:
+ *   get:
+ *     summary: Obtenir les restaurateurs par type de cuisine
+ *     tags: [Restaurateurs]
+ *     parameters:
+ *       - in: path
+ *         name: cuisine
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Liste des restaurateurs pour ce type de cuisine
+ */
 router.get('/by-cuisine/:cuisine', restaurateurController.getRestaurateursByCuisine);
 
 // Toutes les routes 
@@ -16,9 +92,46 @@ router.get('/by-cuisine/:cuisine', restaurateurController.getRestaurateursByCuis
 router.use('/me', authMiddleware.protect);
 router.use('/me', authMiddleware.restrictTo('restaurateur'));
 
-// Routes protégées spécifiques (doivent être AVANT les routes génériques)
+/**
+ * @swagger
+ * /api/v1/restaurateurs/me/profile:
+ *   get:
+ *     summary: Obtenir mon profil restaurateur
+ *     tags: [Restaurateurs]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Profil restaurateur
+ */
 router.get('/me/profile', restaurateurController.getMyProfile);
+
+/**
+ * @swagger
+ * /api/v1/restaurateurs/me/dishes:
+ *   get:
+ *     summary: Obtenir mes plats (Restaurateur)
+ *     tags: [Restaurateurs]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste de mes plats
+ */
 router.get('/me/dishes', restaurateurController.getMyDishes);
+
+/**
+ * @swagger
+ * /api/v1/restaurateurs/me/products:
+ *   get:
+ *     summary: Obtenir mes produits (Restaurateur)
+ *     tags: [Restaurateurs]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Liste de mes produits
+ */
 router.get('/me/products', restaurateurController.getMyProducts);
 
 // Routes de lecture (autorisées sans vérification d'email)

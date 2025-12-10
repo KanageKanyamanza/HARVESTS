@@ -225,7 +225,7 @@ app.get('/', (req, res) => {
     timestamp: new Date().toISOString(),
     endpoints: {
       health: '/api/v1/health',
-      documentation: '/api-docs',
+      documentation: '/api/docs',
       auth: '/api/v1/auth',
       api: '/api/v1'
     }

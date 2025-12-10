@@ -62,6 +62,8 @@ exports.getReceivedReviews = catchAsync(async (req, res, next) => {
   const limit = parseInt(req.query.limit, 10) || 10;
   const skip = (page - 1) * limit;
 
+  // Pour les producteurs, transformateurs et restaurateurs, chercher les avis où ils sont le producteur
+  // (les transformateurs et restaurateurs peuvent aussi être référencés comme producteur dans les avis)
   const queryObj = { producer: req.user.id };
   
   if (req.query.rating && req.query.rating !== 'all') {
@@ -72,9 +74,9 @@ exports.getReceivedReviews = catchAsync(async (req, res, next) => {
   }
   
   if (req.query.hasResponse && req.query.hasResponse !== 'all') {
-    if (req.query.hasResponse === 'true') {
+    if (req.query.hasResponse === 'true' || req.query.hasResponse === 'responded') {
       queryObj['producerResponse.comment'] = { $exists: true };
-    } else {
+    } else if (req.query.hasResponse === 'false' || req.query.hasResponse === 'not-responded') {
       queryObj['producerResponse.comment'] = { $exists: false };
     }
   }
