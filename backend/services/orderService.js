@@ -225,19 +225,32 @@ function getTrackingData(order) {
 // Formater les commandes selon le type d'utilisateur
 function formatOrders(orders, userId, userType) {
   const { formatOrderForSeller } = require('../utils/orderFormatting');
+  const userIdStr = userId?.toString?.() || userId?.toString();
   const isSellerView = ['producer', 'transformer', 'restaurateur'].includes(userType);
   
   return isSellerView
     ? orders
         .map(order => {
           try {
+            // Vérifier si l'utilisateur est l'acheteur
+            const buyerId = order.buyer?._id?.toString?.() || order.buyer?.toString?.();
+            const isBuyer = buyerId === userIdStr;
+            
+            if (isBuyer) {
+              // Si le restaurateur est l'acheteur, formater comme un consommateur
+              const orderObj = order.toObject({ virtuals: true });
+              orderObj.role = 'buyer';
+              return orderObj;
+            }
+            
+            // Sinon, formater comme vendeur
             return formatOrderForSeller(order, userId);
           } catch (error) {
             console.error(`Erreur lors du formatage de la commande ${order._id}:`, error.message);
             return null;
           }
         })
-        .filter(order => order && order.items && order.items.length > 0)
+        .filter(order => order !== null)
     : orders.map(order => {
         try {
           return order.toObject({ virtuals: true });
@@ -251,10 +264,30 @@ function formatOrders(orders, userId, userType) {
 // Formater une commande unique
 function formatOrder(order, userId, userType) {
   const { formatOrderForSeller } = require('../utils/orderFormatting');
-  const isSellerView = ['producer', 'transformer', 'restaurateur'].includes(userType);
-  return isSellerView 
-    ? formatOrderForSeller(order, userId) 
-    : order.toObject({ virtuals: true });
+  const userIdStr = userId?.toString?.() || userId?.toString();
+  
+  if (['producer', 'transformer', 'restaurateur'].includes(userType)) {
+    // Vérifier si l'utilisateur est l'acheteur
+    const buyerId = order.buyer?._id?.toString?.() || order.buyer?.toString?.();
+    const isBuyer = buyerId === userIdStr;
+    
+    if (isBuyer) {
+      // Si le restaurateur est l'acheteur, formater comme un consommateur
+      const orderObj = order.toObject({ virtuals: true });
+      orderObj.role = 'buyer';
+      return orderObj;
+    }
+    
+    // Sinon, formater comme vendeur
+    try {
+      return formatOrderForSeller(order, userId);
+    } catch (error) {
+      console.error(`Erreur formatOrderForSeller pour commande ${order._id}:`, error);
+      return order.toObject({ virtuals: true });
+    }
+  }
+  
+  return order.toObject({ virtuals: true });
 }
 
 // Créer une commande complète

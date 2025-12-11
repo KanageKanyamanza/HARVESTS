@@ -52,7 +52,7 @@ exports.getAvailableTransporters = catchAsync(async (req, res, next) => {
       isApproved: true,
       isEmailVerified: true
     })
-      .select('firstName lastName email phone companyName serviceAreas performanceStats userType')
+      .select('firstName lastName email phone companyName serviceAreas performanceStats userType fleet')
       .sort('-performanceStats.onTimeDeliveryRate -performanceStats.averageRating')
       .limit(50);
 
@@ -66,6 +66,7 @@ exports.getAvailableTransporters = catchAsync(async (req, res, next) => {
       email: transporter.email || '',
       phone: transporter.phone || '',
       serviceAreas: transporter.serviceAreas || [],
+      fleet: transporter.fleet || [],
       performance: {
         onTimeDeliveryRate: transporter.performanceStats?.onTimeDeliveryRate || 0,
         averageRating: transporter.performanceStats?.averageRating || 0,
@@ -95,7 +96,7 @@ exports.getAvailableTransporters = catchAsync(async (req, res, next) => {
     isApproved: true,
     isEmailVerified: true
   })
-    .select('firstName lastName email phone companyName serviceAreas performanceStats userType isActive isApproved isEmailVerified')
+    .select('firstName lastName email phone companyName serviceAreas performanceStats userType isActive isApproved isEmailVerified fleet')
     .sort('-performanceStats.onTimeDeliveryRate -performanceStats.averageRating')
     .limit(100);
 
@@ -190,6 +191,7 @@ exports.getAvailableTransporters = catchAsync(async (req, res, next) => {
       serviceAreas: deliverer.serviceAreas ? deliverer.serviceAreas.filter(area => 
         area.region === deliveryRegion
       ) : [],
+      fleet: deliverer.fleet || [],
       performance: deliverer.userType === 'transporter' ? {
         onTimeDeliveryRate: deliverer.performanceStats?.onTimeDeliveryRate || 0,
         averageRating: deliverer.performanceStats?.averageRating || 0,

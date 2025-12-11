@@ -35,6 +35,10 @@ const OrderListItem = ({ order, userType, onUpdateStatus, updatingOrders, isColl
               <div className="mt-3 ml-8 flex items-center space-x-4 text-sm text-gray-600">
                 <span>{orderItems.length} article{orderItems.length > 1 ? 's' : ''}</span>
                 <span className="font-medium text-gray-900">{displayedTotal.toLocaleString('fr-FR')} FCFA</span>
+                <Link to={`/${userType}/orders/${order._id}`} className="inline-flex items-center text-harvests-green hover:text-harvests-green-dark ml-auto">
+                  <FiEye className="h-4 w-4 mr-1" />
+                  <span>Voir</span>
+                </Link>
               </div>
             )}
           </div>

@@ -13,6 +13,7 @@ module.exports = {
   updateOrderStatus: orderUserController.updateOrderStatus,
   cancelOrder: orderUserController.cancelOrder,
   trackOrder: orderUserController.trackOrder,
+  generateInvoice: orderUserController.generateInvoice,
   
   // Admin routes
   getAllOrders: orderAdminController.getAllOrders,

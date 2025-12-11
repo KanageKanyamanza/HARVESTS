@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { restaurateurService } from '../../../services';
 import { useNotifications } from '../../../contexts/NotificationContext';
+import { useAuth } from '../../../hooks/useAuth';
 import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
 import OrderList from '../../../components/orders/OrderList';
 import {
@@ -12,11 +13,13 @@ import {
 
 const OrdersList = () => {
   const { showSuccess, showError } = useNotifications();
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [orderTypeFilter, setOrderTypeFilter] = useState('all'); // 'all', 'received', 'placed'
   const [updatingOrders, setUpdatingOrders] = useState(new Set());
 
   const isOrderReceived = useCallback((order) => {
@@ -29,6 +32,15 @@ const OrdersList = () => {
     return Boolean(order.seller);
   }, []);
 
+  const isOrderPlaced = useCallback((order) => {
+    if (!order || !user) return false;
+    if (order.role === 'buyer') return true;
+    // Vérifier si l'utilisateur est l'acheteur
+    const buyerId = order.buyer?._id?.toString() || order.buyer?.toString();
+    const userId = user._id?.toString() || user.id?.toString();
+    return buyerId === userId;
+  }, [user]);
+
   const getOrderStatus = useCallback(
     (order) => order?.segment?.status || order?.status || 'pending',
     []
@@ -39,6 +51,27 @@ const OrdersList = () => {
       setLoading(true);
       const response = await restaurateurService.getOrders();
       const ordersData = response.data.data?.orders || response.data.orders || [];
+
+      console.log('🛒 [OrdersList] Réponse complète:', response.data);
+      console.log('🛒 [OrdersList] OrdersData:', ordersData);
+      console.log('🛒 [OrdersList] Nombre de commandes:', ordersData.length);
+      console.log('🛒 [OrdersList] User ID:', user?._id || user?.id);
+
+      if (Array.isArray(ordersData) && ordersData.length > 0) {
+        ordersData.forEach((order, index) => {
+          console.log(`🛒 [OrdersList] Commande ${index}:`, {
+            _id: order._id,
+            orderNumber: order.orderNumber,
+            buyer: order.buyer,
+            buyerId: order.buyer?._id || order.buyer,
+            seller: order.seller,
+            sellerId: order.seller?._id || order.seller,
+            role: order.role,
+            isReceived: isOrderReceived(order),
+            isPlaced: isOrderPlaced(order)
+          });
+        });
+      }
 
       if (Array.isArray(ordersData)) {
         const missingSegments = ordersData.filter(order => !order.segment && order.items?.length);
@@ -56,7 +89,7 @@ const OrdersList = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user, isOrderReceived, isOrderPlaced]);
 
   useEffect(() => {
     loadOrders();
@@ -107,8 +140,16 @@ const OrdersList = () => {
     
     const matchesStatus = statusFilter === 'all' || getOrderStatus(order) === statusFilter;
     
-    // Pour les restaurateurs, ne montrer que les commandes reçues (où ils sont vendeurs ou segments associés)
-    return matchesStatus && matchesSearch && isOrderReceived(order);
+    // Filtrer par type de commande
+    let matchesOrderType = true;
+    if (orderTypeFilter === 'received') {
+      matchesOrderType = isOrderReceived(order);
+    } else if (orderTypeFilter === 'placed') {
+      matchesOrderType = isOrderPlaced(order);
+    }
+    // Si 'all', on montre toutes les commandes
+    
+    return matchesStatus && matchesSearch && matchesOrderType;
   });
 
   if (loading) {
@@ -139,7 +180,7 @@ const OrdersList = () => {
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Mes Commandes</h1>
           <p className="text-gray-600 mt-1">
-            Gérez et suivez toutes les commandes reçues
+            Gérez et suivez toutes vos commandes (reçues et passées)
           </p>
         </div>
 
@@ -158,7 +199,16 @@ const OrdersList = () => {
                 />
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4 flex-wrap gap-2">
+              <select
+                value={orderTypeFilter}
+                onChange={(e) => setOrderTypeFilter(e.target.value)}
+                className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+              >
+                <option value="all">Toutes les commandes</option>
+                <option value="received">Commandes reçues</option>
+                <option value="placed">Commandes passées</option>
+              </select>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}

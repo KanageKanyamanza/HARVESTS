@@ -126,7 +126,7 @@ const OrderDetail = () => {
   const isAdmin = user?.role === 'admin' || user?.userType === 'admin';
   const buyerId = order?.buyer?._id?.toString?.() || order?.buyer?.id?.toString?.() || (typeof order?.buyer?.toString === 'function' ? order.buyer.toString() : null);
   const userId = user?._id?.toString?.() || user?.id?.toString?.();
-  const isBuyerView = user?.userType === 'consumer' && buyerId && userId && buyerId === userId;
+  const isBuyerView = (user?.userType === 'consumer' || user?.userType === 'restaurateur') && buyerId && userId && buyerId === userId;
   const isSellerView = ['producer', 'transformer', 'restaurateur'].includes(user?.userType);
   const isTransporterView = user?.userType === 'transporter' || user?.userType === 'exporter';
   const displayedStatus = order.segment?.status || order.status;

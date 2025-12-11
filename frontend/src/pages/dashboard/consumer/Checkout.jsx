@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import { useCart } from '../../../contexts/CartContext';
 import { useCheckout } from '../../../hooks/useCheckout';
-import { consumerService } from '../../../services';
+import { consumerService, orderService, restaurateurService } from '../../../services';
 import cartService from '../../../services/cartService';
 import { ProgressSteps, AddressStep, PaymentStep, ConfirmationStep } from '../../../components/checkout/CheckoutSteps';
 import OrderSummary from '../../../components/checkout/OrderSummary';
@@ -20,11 +20,28 @@ const Checkout = () => {
   } = useCheckout(user, cartItems);
 
   const handleSubmitOrder = async () => {
-    if (!validateStep(1) || !validateStep(2)) return;
+    console.log('🛒 [Checkout] handleSubmitOrder appelé');
+    console.log('🛒 [Checkout] User:', user);
+    console.log('🛒 [Checkout] UserType:', user?.userType);
+    console.log('🛒 [Checkout] CartItems:', cartItems);
+    
+    const step1Valid = validateStep(1);
+    const step2Valid = validateStep(2);
+    console.log('🛒 [Checkout] Validation Step 1:', step1Valid);
+    console.log('🛒 [Checkout] Validation Step 2:', step2Valid);
+    console.log('🛒 [Checkout] OrderData:', orderData);
+    
+    if (!step1Valid || !step2Valid) {
+      console.warn('🛒 [Checkout] Validation échouée, arrêt de la création de commande');
+      return;
+    }
 
     setSubmitting(true);
     try {
+      console.log('🛒 [Checkout] Traitement des articles du panier...');
       const { valid: validCartItems, invalid: invalidCartItems } = processCartItems();
+      console.log('🛒 [Checkout] Articles valides:', validCartItems.length);
+      console.log('🛒 [Checkout] Articles invalides:', invalidCartItems.length);
 
       if (invalidCartItems.length > 0) {
         invalidCartItems.forEach(item => removeFromCart(item.productId || item.id, item.originType || 'product'));
@@ -53,7 +70,25 @@ const Checkout = () => {
         }))
       };
 
-      const response = await consumerService.createOrder(orderPayload);
+      // Utiliser le service approprié selon le type d'utilisateur
+      let response;
+      const userType = user?.userType || 'consumer';
+      
+      console.log('🛒 [Checkout] Préparation de la requête de commande');
+      console.log('🛒 [Checkout] UserType détecté:', userType);
+      console.log('🛒 [Checkout] OrderPayload:', JSON.stringify(orderPayload, null, 2));
+      
+      if (userType === 'restaurateur') {
+        console.log('🛒 [Checkout] Utilisation de restaurateurService.createOrder');
+        response = await restaurateurService.createOrder(orderPayload);
+      } else {
+        console.log('🛒 [Checkout] Utilisation de orderService.createOrder');
+        response = await orderService.createOrder(orderPayload);
+      }
+      
+      console.log('🛒 [Checkout] Réponse reçue:', response);
+      console.log('🛒 [Checkout] Response.data:', response.data);
+      
       const orderId = response.data?.data?.order?._id || response.data?.order?._id || response.data?.data?._id || null;
 
       validCartItems.forEach(item => removeFromCart(item.productId || item.id, item.originType || 'product'));
@@ -61,9 +96,38 @@ const Checkout = () => {
 
       try { await cartService.clearCart(); } catch (e) { console.error('Erreur vidage panier serveur:', e); }
 
-      navigate(orderId ? `/consumer/orders/${orderId}/confirmation` : '/consumer/orders');
+      // Navigation adaptée selon le type d'utilisateur
+      const ordersRoute = userType === 'restaurateur' ? '/restaurateur/orders' : '/consumer/orders';
+      const confirmationRoute = userType === 'restaurateur' 
+        ? `/restaurateur/orders/${orderId}/confirmation` 
+        : `/consumer/orders/${orderId}/confirmation`;
+      
+      navigate(orderId ? confirmationRoute : ordersRoute);
     } catch (error) {
-      console.error('Erreur création commande:', error);
+      console.error('🛒 [Checkout] Erreur création commande:', error);
+      console.error('🛒 [Checkout] Error.response:', error.response);
+      console.error('🛒 [Checkout] Error.response?.data:', error.response?.data);
+      console.error('🛒 [Checkout] Error.response?.status:', error.response?.status);
+      console.error('🛒 [Checkout] Error.message:', error.message);
+      console.error('🛒 [Checkout] Error.stack:', error.stack);
+      
+      // Gestion d'erreur améliorée
+      if (error.response?.status === 403 && error.response?.data?.code === 'EMAIL_VERIFICATION_REQUIRED') {
+        const message = error.response.data.message || 'Vérification d\'email requise';
+        console.warn('🛒 [Checkout] Email non vérifié');
+        window.alert(`${message}\n\nVeuillez vérifier votre email pour pouvoir passer une commande.`);
+        // Optionnel : rediriger vers la page de vérification d'email
+        // navigate('/verify-email');
+      } else if (error.response?.data?.message) {
+        console.error('🛒 [Checkout] Erreur du serveur:', error.response.data.message);
+        window.alert(`Erreur : ${error.response.data.message}`);
+      } else if (error.message) {
+        console.error('🛒 [Checkout] Erreur:', error.message);
+        window.alert(`Erreur : ${error.message}`);
+      } else {
+        console.error('🛒 [Checkout] Erreur inconnue');
+        window.alert('Une erreur est survenue lors de la création de la commande. Veuillez réessayer.');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -119,7 +183,14 @@ const Checkout = () => {
                   Suivant
                 </button>
               ) : (
-                <button onClick={handleSubmitOrder} disabled={submitting || !validateStep(1) || !validateStep(2)} className="px-6 py-2 bg-harvests-green text-white rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
+                <button 
+                  onClick={() => {
+                    console.log('🛒 [Checkout] Bouton "Confirmer la commande" cliqué');
+                    handleSubmitOrder();
+                  }} 
+                  disabled={submitting || !validateStep(1) || !validateStep(2)} 
+                  className="px-6 py-2 bg-harvests-green text-white rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                >
                   {submitting ? (
                     <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>Création...</>
                   ) : 'Confirmer la commande'}
