@@ -9,6 +9,7 @@ const {
 const orderService = require('../../services/orderService');
 const orderStatusService = require('../../services/orderStatusService');
 const adminNotifications = require('../../utils/adminNotifications');
+const invoiceService = require('../../services/invoiceService');
 
 // Estimer les frais avant création de commande
 exports.estimateOrderCosts = catchAsync(async (req, res, next) => {
@@ -253,5 +254,27 @@ exports.trackOrder = catchAsync(async (req, res, next) => {
       tracking: orderService.getTrackingData(order)
     }
   });
+});
+
+// Générer une facture PDF
+exports.generateInvoice = catchAsync(async (req, res, next) => {
+  const orderId = req.params.id;
+  
+  try {
+    const pdfBuffer = await invoiceService.generateInvoicePDF(orderId, req.user);
+    
+    // Définir les headers pour le téléchargement
+    const order = await Order.findById(orderId);
+    const invoiceNumber = order?.invoiceNumber || order?.orderNumber || `INV-${orderId.substring(0, 8).toUpperCase()}`;
+    const filename = `facture-${invoiceNumber}.pdf`;
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    
+    res.send(pdfBuffer);
+  } catch (error) {
+    return next(error);
+  }
 });
 

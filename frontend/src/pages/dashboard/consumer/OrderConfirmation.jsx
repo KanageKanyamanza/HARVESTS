@@ -121,7 +121,50 @@ const OrderConfirmation = () => {
     setPaymentProcessing(false);
   }, []);
 
-  const handleDownloadInvoice = () => console.log('Téléchargement facture:', orderId);
+  const handleDownloadInvoice = async () => {
+    if (!orderId) {
+      console.error('🛒 [OrderConfirmation] Pas d\'ID de commande pour télécharger la facture');
+      return;
+    }
+
+    try {
+      console.log('🛒 [OrderConfirmation] Téléchargement de la facture pour la commande:', orderId);
+      setLoading(true);
+      
+      const response = await orderService.generateInvoice(orderId);
+      
+      // Créer un blob à partir de la réponse
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      
+      // Créer un lien de téléchargement
+      const link = document.createElement('a');
+      link.href = url;
+      const invoiceNumber = order?.invoiceNumber || order?.orderNumber || `INV-${orderId.substring(0, 8).toUpperCase()}`;
+      link.download = `facture-${invoiceNumber}.pdf`;
+      
+      // Déclencher le téléchargement
+      document.body.appendChild(link);
+      link.click();
+      
+      // Nettoyer
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      console.log('🛒 [OrderConfirmation] Facture téléchargée avec succès');
+    } catch (error) {
+      console.error('🛒 [OrderConfirmation] Erreur lors du téléchargement de la facture:', error);
+      if (error.response?.status === 403) {
+        window.alert('Vous n\'avez pas le droit de télécharger cette facture.');
+      } else if (error.response?.status === 404) {
+        window.alert('Commande non trouvée.');
+      } else {
+        window.alert('Une erreur est survenue lors du téléchargement de la facture. Veuillez réessayer.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleShareOrder = () => {
     if (navigator.share) navigator.share({ title: `Commande #${order?.orderNumber}`, text: `Ma commande sur Harvests`, url: window.location.href });
     else navigator.clipboard.writeText(window.location.href);
@@ -150,7 +193,16 @@ const OrderConfirmation = () => {
             {error === 'Vous devez être connecté pour voir cette commande' ? (
               <button onClick={() => navigate('/login')} className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-harvests-green hover:bg-green-600">Se connecter</button>
             ) : (
-              <button onClick={() => navigate('/consumer/orders')} className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-harvests-green hover:bg-green-600"><FiArrowRight className="mr-2 h-5 w-5" />Voir mes commandes</button>
+              <button 
+                onClick={() => {
+                  const userType = user?.userType || 'consumer';
+                  const ordersRoute = userType === 'restaurateur' ? '/restaurateur/orders' : '/consumer/orders';
+                  navigate(ordersRoute);
+                }} 
+                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-harvests-green hover:bg-green-600"
+              >
+                <FiArrowRight className="mr-2 h-5 w-5" />Voir mes commandes
+              </button>
             )}
             <button onClick={() => navigate('/')} className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light"><FiHome className="mr-2 h-5 w-5" />Accueil</button>
           </div>
@@ -189,7 +241,17 @@ const OrderConfirmation = () => {
         />
       )}
 
-      <OrderInfoCard order={order} statusConfig={statusConfig} onDownload={handleDownloadInvoice} onShare={handleShareOrder} onViewOrders={() => navigate('/consumer/orders')} />
+      <OrderInfoCard 
+        order={order} 
+        statusConfig={statusConfig} 
+        onDownload={handleDownloadInvoice} 
+        onShare={handleShareOrder} 
+        onViewOrders={() => {
+          const userType = user?.userType || 'consumer';
+          const ordersRoute = userType === 'restaurateur' ? '/restaurateur/orders' : '/consumer/orders';
+          navigate(ordersRoute);
+        }} 
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <OrderItemsCard items={order.items} />
@@ -199,7 +261,14 @@ const OrderConfirmation = () => {
       </div>
 
       <NextStepsCard />
-      <ActionButtons onHome={() => navigate('/')} onViewOrders={() => navigate('/consumer/orders')} />
+      <ActionButtons 
+        onHome={() => navigate('/')} 
+        onViewOrders={() => {
+          const userType = user?.userType || 'consumer';
+          const ordersRoute = userType === 'restaurateur' ? '/restaurateur/orders' : '/consumer/orders';
+          navigate(ordersRoute);
+        }} 
+      />
     </div>
   );
 };

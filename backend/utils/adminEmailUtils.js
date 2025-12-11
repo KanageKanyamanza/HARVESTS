@@ -143,21 +143,21 @@ exports.sendNotificationToAdmins = async ({ title, message, data = {}, actions =
             color: #333;
           }
           .container {
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 10px;
             background-color: #f9fafb;
           }
           .header {
             background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-            padding: 30px;
+            padding: 10px;
             text-align: center;
             color: white;
             border-radius: 8px 8px 0 0;
           }
           .content {
             background: white;
-            padding: 30px;
+            padding: 10px;
             border-radius: 0 0 8px 8px;
           }
           .info-box {

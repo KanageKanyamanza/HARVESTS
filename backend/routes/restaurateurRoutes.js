@@ -173,7 +173,14 @@ router.get('/suppliers/:supplierId', restaurateurController.getSupplierDetails);
 
 // Routes d'écriture (nécessitent une vérification d'email)
 // Appliquer requireVerification uniquement aux routes /me/* qui en ont besoin
-router.use('/me', authMiddleware.requireVerification);
+// Exception : permettre la création de commandes même sans vérification d'email
+router.use('/me', (req, res, next) => {
+  // Permettre la création de commandes sans vérification d'email
+  if (req.path === '/orders' && req.method === 'POST') {
+    return next();
+  }
+  return authMiddleware.requireVerification(req, res, next);
+});
 
 // Gestion du profil restaurateur
 router.patch('/me/profile', restaurateurController.updateMyProfile);

@@ -137,8 +137,17 @@ const Cart = () => {
 
               <button 
                 onClick={() => {
+                  console.log('🛒 [Cart] Bouton "Passer la commande" cliqué');
+                  console.log('🛒 [Cart] User:', user);
+                  console.log('🛒 [Cart] UserType:', user?.userType);
                   // Navigation conditionnelle selon le type d'utilisateur
-                  const checkoutRoute = user?.userType === 'consumer' ? '/consumer/checkout' : '/checkout';
+                  let checkoutRoute = '/checkout';
+                  if (user?.userType === 'consumer') {
+                    checkoutRoute = '/consumer/checkout';
+                  } else if (user?.userType === 'restaurateur') {
+                    checkoutRoute = '/restaurateur/checkout';
+                  }
+                  console.log('🛒 [Cart] Navigation vers:', checkoutRoute);
                   navigate(checkoutRoute);
                 }}
                 className="w-full bg-harvests-green text-white py-3 rounded-lg hover:bg-green-600 transition-colors font-medium"

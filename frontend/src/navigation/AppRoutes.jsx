@@ -160,15 +160,25 @@ const CheckoutGateway = () => {
   const { isAuthenticated, user, getDefaultRoute } = useAuth();
   const location = useLocation();
 
+  console.log('🛒 [CheckoutGateway] Rendu, isAuthenticated:', isAuthenticated, 'userType:', user?.userType);
+
   if (!isAuthenticated) {
+    console.log('🛒 [CheckoutGateway] Non authentifié, redirection vers /login');
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
-  if (['consumer', 'restaurateur'].includes(user?.userType)) {
+  if (user?.userType === 'consumer') {
+    console.log('🛒 [CheckoutGateway] Consumer, redirection vers /consumer/checkout');
     return <Navigate to="/consumer/checkout" replace />;
+  }
+  
+  if (user?.userType === 'restaurateur') {
+    console.log('🛒 [CheckoutGateway] Restaurateur, redirection vers /restaurateur/checkout');
+    return <Navigate to="/restaurateur/checkout" replace />;
   }
 
   const fallbackRoute = typeof getDefaultRoute === 'function' ? getDefaultRoute() : '/';
+  console.log('🛒 [CheckoutGateway] Autre type d\'utilisateur, redirection vers:', fallbackRoute);
   return <Navigate to={fallbackRoute || '/'} replace />;
 };
 

@@ -42,6 +42,7 @@ function getValidStatusTransitions(currentStatus, userType) {
     },
     delivered: {
       consumer: ['completed'],
+      restaurateur: ['completed'],
       admin: ['completed']
     },
     completed: {
@@ -168,7 +169,11 @@ async function updateOrderStatus(order, status, user, options = {}) {
   const sellerTypes = ['producer', 'transformer', 'restaurateur'];
   let currentStatusToCheck = currentOrderStatus;
   
-  if (sellerTypes.includes(userType)) {
+  // Vérifier si l'utilisateur est le buyer
+  const isBuyer = buyerId && buyerId === user._id.toString();
+  
+  // Si l'utilisateur est un seller type ET qu'il est effectivement le seller (pas seulement le buyer)
+  if (sellerTypes.includes(userType) && !isBuyer) {
     const sellerSegment = order.segments?.find(seg =>
       seg.seller && seg.seller.toString() === user._id.toString()
     );
@@ -211,7 +216,8 @@ async function updateOrderStatus(order, status, user, options = {}) {
       throw new AppError('Segment de commande introuvable', 404);
     }
     targetSegments = [segment];
-  } else if (sellerTypes.includes(userType)) {
+  } else if (sellerTypes.includes(userType) && !isBuyer) {
+    // Si l'utilisateur est un seller type ET qu'il est effectivement le seller (pas seulement le buyer)
     const segment = order.segments.find(seg =>
       seg.seller && seg.seller.toString() === user._id.toString()
     );
@@ -220,6 +226,7 @@ async function updateOrderStatus(order, status, user, options = {}) {
     }
     targetSegments = [segment];
   } else {
+    // Si l'utilisateur est le buyer ou un autre type, mettre à jour tous les segments
     targetSegments = order.segments;
   }
 
@@ -399,19 +406,45 @@ async function updateOrderStatus(order, status, user, options = {}) {
       }
     }
   } else {
-    for (const segment of targetSegments) {
-      const currentStatus = segment.status || order.status;
-      if (currentStatus === status) continue;
-      const validTransitions = getValidStatusTransitions(currentStatus, userType);
-      if (!validTransitions.includes(status)) {
-        throw new AppError(`Transition de statut invalide: ${currentStatus} -> ${status}`, 400);
+    // Si l'utilisateur est le buyer et qu'il n'y a pas de segments spécifiques à mettre à jour,
+    // on gérera cela plus tard dans la logique
+    if (isBuyer && targetSegments.length === 0) {
+      // Pas de segments à mettre à jour pour le buyer, on passera directement à la mise à jour du statut principal
+    } else {
+      for (const segment of targetSegments) {
+        const currentStatus = segment.status || order.status;
+        if (currentStatus === status) continue;
+        const validTransitions = getValidStatusTransitions(currentStatus, userType);
+        if (!validTransitions.includes(status)) {
+          throw new AppError(`Transition de statut invalide: ${currentStatus} -> ${status}`, 400);
+        }
+        segmentsToUpdate.push(segment);
       }
-      segmentsToUpdate.push(segment);
     }
   }
 
   if (itemUpdatesCount > 0) {
     order.markModified('items');
+  }
+
+  // Si l'utilisateur est le buyer et qu'il marque la commande comme terminée,
+  // mettre à jour directement le statut de la commande principale
+  if (isBuyer && status === 'completed' && segmentsToUpdate.length === 0 && itemUpdatesCount === 0) {
+    if (order.status !== 'completed') {
+      order.status = 'completed';
+      order.completedAt = now;
+      order.statusHistory = order.statusHistory || [];
+      order.statusHistory.push({
+        status: 'completed',
+        timestamp: now,
+        updatedBy: user._id,
+        reason: reason || 'Commande terminée par le client',
+        note: note || 'Commande marquée comme terminée'
+      });
+      await order.save();
+      return { order, changed: true };
+    }
+    return { order, changed: false };
   }
 
   if (segmentsToUpdate.length === 0 && itemUpdatesCount === 0) {

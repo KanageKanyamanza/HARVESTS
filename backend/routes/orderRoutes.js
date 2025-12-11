@@ -62,6 +62,36 @@ router.get('/:id/tracking', orderController.trackOrder);
 
 /**
  * @swagger
+ * /api/v1/orders/{id}/invoice:
+ *   get:
+ *     summary: Générer une facture PDF pour une commande
+ *     tags: [Orders]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: objectId
+ *     responses:
+ *       200:
+ *         description: Facture PDF générée
+ *         content:
+ *           application/pdf:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       403:
+ *         description: Accès non autorisé
+ *       404:
+ *         description: Commande non trouvée
+ */
+router.get('/:id/invoice', orderController.generateInvoice);
+
+/**
+ * @swagger
  * /api/v1/orders/{id}:
  *   get:
  *     summary: Obtenir une commande spécifique

@@ -1,0 +1,54 @@
+# robots.txt pour HARVESTS
+# https://www.harvests.site/robots.txt
+
+User-agent: *
+Allow: /
+
+# Pages à ne pas indexer
+Disallow: /api/
+Disallow: /admin/
+Disallow: /consumer/
+Disallow: /producer/
+Disallow: /transformer/
+Disallow: /restaurateur/
+Disallow: /transporter/
+Disallow: /exporter/
+Disallow: /auth/
+Disallow: /checkout
+Disallow: /cart
+Disallow: /orders/
+Disallow: /payments/
+Disallow: /settings
+Disallow: /notifications
+Disallow: /profile
+Disallow: /dashboard
+
+# Autoriser les pages publiques importantes
+Allow: /products
+Allow: /products/*
+Allow: /categories
+Allow: /producers
+Allow: /producers/*
+Allow: /transformers
+Allow: /transformers/*
+Allow: /restaurateurs
+Allow: /restaurateurs/*
+Allow: /transporteurs-exportateurs
+Allow: /transporteurs/*
+Allow: /exportateurs/*
+Allow: /about
+Allow: /contact
+Allow: /faq
+Allow: /terms
+Allow: /privacy
+Allow: /pricing
+Allow: /loyalty-program
+Allow: /blog
+Allow: /blog/*
+
+# Sitemap
+Sitemap: https://www.harvests.site/sitemap.xml
+
+# Crawl-delay (optionnel, en secondes)
+Crawl-delay: 1
+

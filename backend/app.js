@@ -194,6 +194,7 @@ const blogRoutes = require('./routes/blogRoutes');
 const blogVisitorRoutes = require('./routes/blogVisitorRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const contactRoutes = require('./routes/contactRoutes');
+const seoRoutes = require('./routes/seoRoutes');
 
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/orders', orderRoutes);
@@ -208,6 +209,8 @@ app.use('/api/v1/blog-visitors', blogVisitorRoutes);
 app.use('/api/v1/chat', chatRoutes);
 app.use('/api/v1/contact', contactRoutes);
 
+// Routes SEO (sitemap et robots.txt)
+app.use('/', seoRoutes);
 
 // Routes à implémenter plus tard
 // app.use('/api/v1/deliveries', deliveryRoutes);
