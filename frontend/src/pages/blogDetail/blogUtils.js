@@ -129,7 +129,7 @@ export const markdownToHtml = (markdown) => {
     // Titres
     if (trimmedLine.match(/^###\s+/)) {
       if (inList) {
-        processedLines.push(`<ul class="list-disc list-inside my-4 space-y-2">${currentList.map(item => `<li>${item}</li>`).join('')}</ul>`);
+        processedLines.push(`<ul class="list-disc list-inside my-4">${currentList.map(item => `<li>${item}</li>`).join('')}</ul>`);
         currentList = [];
         inList = false;
       }
@@ -138,7 +138,7 @@ export const markdownToHtml = (markdown) => {
     }
     if (trimmedLine.match(/^##\s+/)) {
       if (inList) {
-        processedLines.push(`<ul class="list-disc list-inside my-4 space-y-2">${currentList.map(item => `<li>${item}</li>`).join('')}</ul>`);
+        processedLines.push(`<ul class="list-disc list-inside my-4">${currentList.map(item => `<li>${item}</li>`).join('')}</ul>`);
         currentList = [];
         inList = false;
       }
@@ -147,7 +147,7 @@ export const markdownToHtml = (markdown) => {
     }
     if (trimmedLine.match(/^#\s+/)) {
       if (inList) {
-        processedLines.push(`<ul class="list-disc list-inside my-4 space-y-2">${currentList.map(item => `<li>${item}</li>`).join('')}</ul>`);
+        processedLines.push(`<ul class="list-disc list-inside my-4">${currentList.map(item => `<li>${item}</li>`).join('')}</ul>`);
         currentList = [];
         inList = false;
       }
@@ -168,7 +168,7 @@ export const markdownToHtml = (markdown) => {
     
     // Si on sort de la liste
     if (inList && !bulletMatch && trimmedLine) {
-      processedLines.push(`<ul class="list-disc list-inside my-4 space-y-2">${currentList.map(item => `<li>${item}</li>`).join('')}</ul>`);
+      processedLines.push(`<ul class="list-disc list-inside my-4">${currentList.map(item => `<li>${item}</li>`).join('')}</ul>`);
       currentList = [];
       inList = false;
     }
@@ -176,7 +176,7 @@ export const markdownToHtml = (markdown) => {
     // Ligne vide = nouveau paragraphe
     if (!trimmedLine) {
       if (inList) {
-        processedLines.push(`<ul class="list-disc list-inside my-4 space-y-2">${currentList.map(item => `<li>${item}</li>`).join('')}</ul>`);
+        processedLines.push(`<ul class="list-disc list-inside my-4">${currentList.map(item => `<li>${item}</li>`).join('')}</ul>`);
         currentList = [];
         inList = false;
       }
@@ -191,7 +191,7 @@ export const markdownToHtml = (markdown) => {
   
   // Fermer la dernière liste si nécessaire
   if (inList && currentList.length > 0) {
-    processedLines.push(`<ul class="list-disc list-inside my-4 space-y-2">${currentList.map(item => `<li>${item}</li>`).join('')}</ul>`);
+    processedLines.push(`<ul class="list-disc list-inside my-4">${currentList.map(item => `<li>${item}</li>`).join('')}</ul>`);
   }
   
   // Rejoindre et traiter le formatage inline
