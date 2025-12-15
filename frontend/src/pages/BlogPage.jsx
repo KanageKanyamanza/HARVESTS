@@ -41,7 +41,7 @@ const BlogPage = () => {
 
       const params = {
         page: currentPage,
-        limit: 10,
+        limit: 12,
         lang: language
       };
 
