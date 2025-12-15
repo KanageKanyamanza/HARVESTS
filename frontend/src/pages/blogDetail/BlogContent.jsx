@@ -2,6 +2,7 @@ import React from 'react';
 import BlogImageGallery from '../../components/blog/BlogImageGallery';
 import CloudinaryImage from '../../components/common/CloudinaryImage';
 import { Tag } from 'lucide-react';
+import { markdownToHtml } from './blogUtils';
 
 const BlogContent = ({
   blog,
@@ -63,8 +64,10 @@ const BlogContent = ({
 
       {/* Contenu */}
       <div 
-        className="prose prose-lg max-w-none"
-        dangerouslySetInnerHTML={{ __html: getLocalizedContent(blog.content, 'Contenu non disponible') }}
+        className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-primary-600 prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700"
+        dangerouslySetInnerHTML={{ 
+          __html: markdownToHtml(getLocalizedContent(blog.content, 'Contenu non disponible')) 
+        }}
       />
 
       {/* Images au milieu */}

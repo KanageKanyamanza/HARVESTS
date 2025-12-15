@@ -5,9 +5,12 @@ import Header from './Header';
 import Footer from './Footer';
 import BackToTop from '../common/BackToTop';
 import ChatBot from '../chat/ChatBot';
+import SEOHead from '../seo/SEOHead';
+import { useSEO } from '../../hooks/useSEO';
 
-const Layout = ({ children, className = '' }) => {
+const Layout = ({ children, className = '', seo }) => {
   const location = useLocation();
+  const seoConfig = useSEO(seo);
   
   // Sur la page d'accueil, ne pas appliquer de fond pour permettre la navbar transparente
   const isHomePage = location.pathname === '/';
@@ -36,6 +39,9 @@ const Layout = ({ children, className = '' }) => {
   
   return (
     <div className={`min-h-screen flex flex-col ${isHomePage ? '' : 'bg-harvests-light'}`}>
+      {/* SEO Head pour toutes les pages publiques */}
+      <SEOHead {...seoConfig} />
+      
       <Header />
       
       <main className={`flex-1 ${className}`}>

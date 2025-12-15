@@ -1,5 +1,6 @@
 import React from 'react';
 import { MessageCircle } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../contexts/CartContext';
 import useBackToTopVisible from '../../hooks/useBackToTopVisible';
@@ -30,6 +31,7 @@ const ChatBot = () => {
   const { isAuthenticated, user } = useAuth();
   const { cart, clearCart: clearCartAction } = useCart();
   const backToTopVisible = useBackToTopVisible();
+  const location = useLocation();
   
   const state = useChatBot(isAuthenticated, user, cart, clearCartAction);
   const {
@@ -251,14 +253,49 @@ const ChatBot = () => {
     setShowQuickActions(false);
   };
 
-  const [showTooltip, setShowTooltip] = React.useState(true);
+  const [showTooltip, setShowTooltip] = React.useState(false);
 
-  // Masquer la bulle après 7 secondes
+  const isHomePage = location.pathname === '/';
+  const TOOLTIP_STORAGE_KEY = 'chatbot_tooltip_last_shown';
+  const TOOLTIP_DISPLAY_DURATION = 10000; // 10 secondes
+  const TOOLTIP_COOLDOWN = 5 * 60 * 1000; // 5 minutes
+
+  // Afficher la bulle sur la page d'accueil toutes les 5 minutes maximum
+  React.useEffect(() => {
+    if (!isHomePage || isOpen) {
+      // Ne jamais afficher en dehors de la home ou si le chat est ouvert
+      setShowTooltip(false);
+      return;
+    }
+
+    try {
+      const now = Date.now();
+      const lastShownRaw = localStorage.getItem(TOOLTIP_STORAGE_KEY);
+      const lastShown = lastShownRaw ? parseInt(lastShownRaw, 10) : 0;
+
+      if (!Number.isNaN(lastShown)) {
+        const elapsed = now - lastShown;
+        if (elapsed < TOOLTIP_COOLDOWN) {
+          // Trop tôt pour la réafficher
+          return;
+        }
+      }
+
+      // Conditions remplies : on affiche la bulle et on enregistre l'horodatage
+      setShowTooltip(true);
+      localStorage.setItem(TOOLTIP_STORAGE_KEY, String(now));
+    } catch {
+      // En cas de problème avec localStorage, on affiche quand même la bulle
+      setShowTooltip(true);
+    }
+  }, [isHomePage, isOpen, location.pathname]);
+
+  // Masquer la bulle après 10 secondes
   React.useEffect(() => {
     if (showTooltip && !isOpen) {
       const timer = setTimeout(() => {
         setShowTooltip(false);
-      }, 7000); // 7 secondes
+      }, TOOLTIP_DISPLAY_DURATION); // 10 secondes
 
       return () => clearTimeout(timer);
     }

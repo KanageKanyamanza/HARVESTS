@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import ProductCard from "../components/products/ProductCard";
 import ProductFilters from "../components/products/ProductFilters";
 import ProductPagination from "../components/products/ProductPagination";
@@ -12,6 +13,7 @@ import { FiPackage } from "react-icons/fi";
 const Products = () => {
 	const navigate = useNavigate();
 	const [showFilters, setShowFilters] = useState(false);
+	const baseUrl = (import.meta.env.VITE_FRONTEND_URL || (typeof window !== 'undefined' ? window.location.origin : '') || '').replace(/\/$/, '');
 	
 	const {
 		products,
@@ -49,6 +51,20 @@ const Products = () => {
 		navigate("/products");
 	};
 
+	const pageTitle = selectedCategory
+		? `Produits : ${getCategoryLabel(selectedCategory)} | Harvests`
+		: isFeatured
+		? "Produits mis en avant | Harvests"
+		: "Nos produits | Harvests";
+
+	const pageDescription = selectedCategory
+		? `Découvrez notre sélection de ${getCategoryLabel(selectedCategory).toLowerCase()} : produits frais, circuits courts et logistique fiable.`
+		: isFeatured
+		? "Nos produits mis en avant : qualité, fraîcheur et livraison rapide avec Harvests."
+		: "Parcourez tous les produits Harvests : qualité, fraîcheur et livraison assurée.";
+
+	const canonicalUrl = `${baseUrl || 'https://www.harvests.site'}/products`;
+
 	if (loading && products.length === 0) {
 		return (
 			<div className="min-h-screen bg-harvests-light flex items-center justify-center">
@@ -59,6 +75,20 @@ const Products = () => {
 
 	return (
 		<div className="min-h-screen bg-harvests-light">
+			<Helmet>
+				<title>{pageTitle}</title>
+				<meta name="description" content={pageDescription} />
+				<link rel="canonical" href={canonicalUrl} />
+				<meta property="og:type" content="website" />
+				<meta property="og:title" content={pageTitle} />
+				<meta property="og:description" content={pageDescription} />
+				<meta property="og:url" content={canonicalUrl} />
+				<meta property="og:image" content={`${baseUrl || 'https://www.harvests.site'}/logo.png`} />
+				<meta name="twitter:card" content="summary_large_image" />
+				<meta name="twitter:title" content={pageTitle} />
+				<meta name="twitter:description" content={pageDescription} />
+				<meta name="twitter:image" content={`${baseUrl || 'https://www.harvests.site'}/logo.png`} />
+			</Helmet>
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				{/* En-tête */}
 				<div className="mb-8">
