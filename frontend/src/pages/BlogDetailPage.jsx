@@ -213,39 +213,48 @@ const BlogDetailPage = () => {
   const normalizedTags = normalizeTags(blog.tags);
 
   // Configuration SEO dynamique basée sur le blog
-  const baseUrl = (import.meta.env.VITE_FRONTEND_URL || 
-    (typeof window !== 'undefined' ? window.location.origin : '') || 
-    'https://www.harvests.site').replace(/\/$/, '');
-  
-  const blogTitle = getLocalizedContentWrapper(blog.title);
-  const blogExcerpt = getLocalizedContentWrapper(blog.excerpt);
-  const blogContent = getLocalizedContentWrapper(blog.content);
-  const blogImage = blog.featuredImage?.url || `${baseUrl}/logo.png`;
-  const blogUrl = `${baseUrl}/blog/${slug}`;
-  const blogPublishedTime = blog.publishedAt ? new Date(blog.publishedAt).toISOString() : null;
-  const blogModifiedTime = blog.updatedAt ? new Date(blog.updatedAt).toISOString() : null;
-  
-  const seoConfig = useMemo(() => ({
-    title: blogTitle,
-    description: blogExcerpt || blogContent?.substring(0, 160) || t('blog.defaultDescription', 'Découvrez cet article sur Harvests'),
-    keywords: blog.tags?.join(', ') || '',
-    image: blogImage,
-    type: 'article',
-    canonical: blogUrl,
-    ogTitle: blogTitle,
-    ogDescription: blogExcerpt || blogContent?.substring(0, 160),
-    ogImage: blogImage,
-    twitterTitle: blogTitle,
-    twitterDescription: blogExcerpt || blogContent?.substring(0, 160),
-    twitterImage: blogImage,
-    articleAuthor: blog.author?.firstName && blog.author?.lastName 
-      ? `${blog.author.firstName} ${blog.author.lastName}` 
-      : 'Harvests',
-    articlePublishedTime: blogPublishedTime,
-    articleModifiedTime: blogModifiedTime,
-    articleSection: blog.category || '',
-    articleTags: blog.tags || []
-  }), [blog, blogTitle, blogExcerpt, blogContent, blogImage, blogUrl, blogPublishedTime, blogModifiedTime, slug, t]);
+  const seoConfig = useMemo(() => {
+    if (!blog) {
+      return {
+        title: t('blog.defaultTitle', 'Blog | Harvests'),
+        description: t('blog.defaultDescription', 'Découvrez nos articles sur Harvests')
+      };
+    }
+
+    const baseUrl = (import.meta.env.VITE_FRONTEND_URL || 
+      (typeof window !== 'undefined' ? window.location.origin : '') || 
+      'https://www.harvests.site').replace(/\/$/, '');
+    
+    const blogTitle = getLocalizedContentWrapper(blog.title);
+    const blogExcerpt = getLocalizedContentWrapper(blog.excerpt);
+    const blogContent = getLocalizedContentWrapper(blog.content);
+    const blogImage = blog.featuredImage?.url || `${baseUrl}/logo.png`;
+    const blogUrl = `${baseUrl}/blog/${slug}`;
+    const blogPublishedTime = blog.publishedAt ? new Date(blog.publishedAt).toISOString() : null;
+    const blogModifiedTime = blog.updatedAt ? new Date(blog.updatedAt).toISOString() : null;
+    
+    return {
+      title: blogTitle,
+      description: blogExcerpt || blogContent?.substring(0, 160) || t('blog.defaultDescription', 'Découvrez cet article sur Harvests'),
+      keywords: blog.tags?.join(', ') || '',
+      image: blogImage,
+      type: 'article',
+      canonical: blogUrl,
+      ogTitle: blogTitle,
+      ogDescription: blogExcerpt || blogContent?.substring(0, 160),
+      ogImage: blogImage,
+      twitterTitle: blogTitle,
+      twitterDescription: blogExcerpt || blogContent?.substring(0, 160),
+      twitterImage: blogImage,
+      articleAuthor: blog.author?.firstName && blog.author?.lastName 
+        ? `${blog.author.firstName} ${blog.author.lastName}` 
+        : 'Harvests',
+      articlePublishedTime: blogPublishedTime,
+      articleModifiedTime: blogModifiedTime,
+      articleSection: blog.category || '',
+      articleTags: blog.tags || []
+    };
+  }, [blog, slug, t, getLocalizedContentWrapper]);
 
   return (
     <Layout seo={seoConfig}>
