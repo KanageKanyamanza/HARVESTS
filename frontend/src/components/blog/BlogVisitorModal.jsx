@@ -63,12 +63,7 @@ const BlogVisitorModal = ({
     setIsSubmitting(true);
 
     try {
-      await onFormSubmit({
-        ...formData,
-        blogId,
-        blogTitle,
-        blogSlug
-      });
+      await onFormSubmit(formData);
       
       showSuccess(
         isReturningVisitor 

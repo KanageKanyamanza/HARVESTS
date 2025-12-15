@@ -225,9 +225,10 @@ const BlogDetailPage = () => {
       (typeof window !== 'undefined' ? window.location.origin : '') || 
       'https://www.harvests.site').replace(/\/$/, '');
     
-    const blogTitle = getLocalizedContentWrapper(blog.title);
-    const blogExcerpt = getLocalizedContentWrapper(blog.excerpt);
-    const blogContent = getLocalizedContentWrapper(blog.content);
+    // Utiliser getLocalizedContent directement avec i18n au lieu de getLocalizedContentWrapper
+    const blogTitle = getLocalizedContent(blog.title, '', i18n);
+    const blogExcerpt = getLocalizedContent(blog.excerpt, '', i18n);
+    const blogContent = getLocalizedContent(blog.content, '', i18n);
     const blogImage = blog.featuredImage?.url || `${baseUrl}/logo.png`;
     const blogUrl = `${baseUrl}/blog/${slug}`;
     const blogPublishedTime = blog.publishedAt ? new Date(blog.publishedAt).toISOString() : null;
@@ -254,7 +255,7 @@ const BlogDetailPage = () => {
       articleSection: blog.category || '',
       articleTags: blog.tags || []
     };
-  }, [blog, slug, t, getLocalizedContentWrapper]);
+  }, [blog, slug, t, i18n]);
 
   return (
     <Layout seo={seoConfig}>
