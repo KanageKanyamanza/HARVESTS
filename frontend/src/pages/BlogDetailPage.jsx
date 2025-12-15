@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
@@ -38,9 +38,7 @@ const BlogDetailPage = () => {
   };
 
   // Mémoriser le titre du blog pour éviter les re-renders inutiles
-  const blogTitle = useMemo(() => {
-    return blog ? getLocalizedContentWrapper(blog.title, 'Titre non disponible') : '';
-  }, [blog, i18n.language]);
+  const blogTitle = blog ? getLocalizedContentWrapper(blog.title, 'Titre non disponible') : '';
 
   // Hook pour la modale des visiteurs (seulement en mode normal)
   const {
@@ -212,50 +210,40 @@ const BlogDetailPage = () => {
 
   const normalizedTags = normalizeTags(blog.tags);
 
-  // Configuration SEO dynamique basée sur le blog
-  const seoConfig = useMemo(() => {
-    if (!blog) {
-      return {
-        title: t('blog.defaultTitle', 'Blog | Harvests'),
-        description: t('blog.defaultDescription', 'Découvrez nos articles sur Harvests')
-      };
-    }
+  // Configuration SEO dynamique basée sur le blog (pas de hook ici pour éviter les erreurs de hooks)
+  const baseUrl = (import.meta.env.VITE_FRONTEND_URL || 
+    (typeof window !== 'undefined' ? window.location.origin : '') || 
+    'https://www.harvests.site').replace(/\/$/, '');
+  
+  const localizedTitle = getLocalizedContent(blog.title, '', i18n);
+  const localizedExcerpt = getLocalizedContent(blog.excerpt, '', i18n);
+  const localizedContent = getLocalizedContent(blog.content, '', i18n);
+  const blogImage = blog.featuredImage?.url || `${baseUrl}/logo.png`;
+  const blogUrl = `${baseUrl}/blog/${slug}`;
+  const blogPublishedTime = blog.publishedAt ? new Date(blog.publishedAt).toISOString() : null;
+  const blogModifiedTime = blog.updatedAt ? new Date(blog.updatedAt).toISOString() : null;
 
-    const baseUrl = (import.meta.env.VITE_FRONTEND_URL || 
-      (typeof window !== 'undefined' ? window.location.origin : '') || 
-      'https://www.harvests.site').replace(/\/$/, '');
-    
-    // Utiliser getLocalizedContent directement avec i18n au lieu de getLocalizedContentWrapper
-    const blogTitle = getLocalizedContent(blog.title, '', i18n);
-    const blogExcerpt = getLocalizedContent(blog.excerpt, '', i18n);
-    const blogContent = getLocalizedContent(blog.content, '', i18n);
-    const blogImage = blog.featuredImage?.url || `${baseUrl}/logo.png`;
-    const blogUrl = `${baseUrl}/blog/${slug}`;
-    const blogPublishedTime = blog.publishedAt ? new Date(blog.publishedAt).toISOString() : null;
-    const blogModifiedTime = blog.updatedAt ? new Date(blog.updatedAt).toISOString() : null;
-    
-    return {
-      title: blogTitle,
-      description: blogExcerpt || blogContent?.substring(0, 160) || t('blog.defaultDescription', 'Découvrez cet article sur Harvests'),
-      keywords: blog.tags?.join(', ') || '',
-      image: blogImage,
-      type: 'article',
-      canonical: blogUrl,
-      ogTitle: blogTitle,
-      ogDescription: blogExcerpt || blogContent?.substring(0, 160),
-      ogImage: blogImage,
-      twitterTitle: blogTitle,
-      twitterDescription: blogExcerpt || blogContent?.substring(0, 160),
-      twitterImage: blogImage,
-      articleAuthor: blog.author?.firstName && blog.author?.lastName 
-        ? `${blog.author.firstName} ${blog.author.lastName}` 
-        : 'Harvests',
-      articlePublishedTime: blogPublishedTime,
-      articleModifiedTime: blogModifiedTime,
-      articleSection: blog.category || '',
-      articleTags: blog.tags || []
-    };
-  }, [blog, slug, t, i18n]);
+  const seoConfig = {
+    title: localizedTitle,
+    description: localizedExcerpt || localizedContent?.substring(0, 160) || t('blog.defaultDescription', 'Découvrez cet article sur Harvests'),
+    keywords: blog.tags?.join(', ') || '',
+    image: blogImage,
+    type: 'article',
+    canonical: blogUrl,
+    ogTitle: localizedTitle,
+    ogDescription: localizedExcerpt || localizedContent?.substring(0, 160),
+    ogImage: blogImage,
+    twitterTitle: localizedTitle,
+    twitterDescription: localizedExcerpt || localizedContent?.substring(0, 160),
+    twitterImage: blogImage,
+    articleAuthor: blog.author?.firstName && blog.author?.lastName 
+      ? `${blog.author.firstName} ${blog.author.lastName}` 
+      : 'Harvests',
+    articlePublishedTime: blogPublishedTime,
+    articleModifiedTime: blogModifiedTime,
+    articleSection: blog.category || '',
+    articleTags: blog.tags || []
+  };
 
   return (
     <Layout seo={seoConfig}>
