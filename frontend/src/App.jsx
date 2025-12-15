@@ -3,6 +3,7 @@ import {
 	BrowserRouter as Router,
 } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Helmet } from "react-helmet-async";
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
@@ -37,6 +38,7 @@ const RouteFallback = () => (
 
 function App() {
 	const { i18n } = useTranslation();
+	const baseUrl = (import.meta.env.VITE_FRONTEND_URL || (typeof window !== 'undefined' ? window.location.origin : '') || '').replace(/\/$/, '');
 
 	// Mettre à jour l'attribut lang du document
 	React.useEffect(() => {
@@ -77,6 +79,20 @@ function App() {
 					<CartProvider>
 						<ModalProvider>
 							<Router>
+								<Helmet>
+									<title>Harvests | Produits frais, logistique fiable</title>
+									<meta name="description" content="Marketplace Harvests : produits frais, circuits courts, logistique fiable et rapide pour restaurateurs, consommateurs et transporteurs." />
+									<link rel="canonical" href={baseUrl || 'https://www.harvests.site'} />
+									<meta property="og:type" content="website" />
+									<meta property="og:title" content="Harvests | Produits frais, logistique fiable" />
+									<meta property="og:description" content="Découvrez Harvests, la plateforme qui connecte producteurs, restaurateurs et transporteurs pour des livraisons rapides et fiables." />
+									<meta property="og:url" content={baseUrl || 'https://www.harvests.site'} />
+									<meta property="og:image" content={`${baseUrl || 'https://www.harvests.site'}/logo.png`} />
+									<meta name="twitter:card" content="summary_large_image" />
+									<meta name="twitter:title" content="Harvests | Produits frais, logistique fiable" />
+									<meta name="twitter:description" content="Produits frais, circuits courts, logistique rapide pour tous les acteurs de la chaîne alimentaire." />
+									<meta name="twitter:image" content={`${baseUrl || 'https://www.harvests.site'}/logo.png`} />
+								</Helmet>
 								<ScrollToTop />
 								<div className="App bg-[#f3f9e5]">
 									<UserTypeRedirect>

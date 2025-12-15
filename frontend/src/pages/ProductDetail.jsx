@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '../hooks/useAuth';
 import { useCart } from '../contexts/CartContext';
 import { useNotifications } from '../contexts/NotificationContext';
@@ -24,6 +25,7 @@ const ProductDetail = () => {
   const { addToCart } = useCart();
   const { showSuccess, showError } = useNotifications();
   const navigate = useNavigate();
+  const baseUrl = (import.meta.env.VITE_FRONTEND_URL || (typeof window !== 'undefined' ? window.location.origin : '') || '').replace(/\/$/, '');
   
   const {
     product, producer, reviews, reviewStats, loading, reviewsLoading, error,
@@ -174,9 +176,28 @@ const ProductDetail = () => {
   const statusConfig = getStatusConfig(product.status);
   const StatusIcon = { check: FiCheckCircle, clock: FiClock, package: FiPackage, x: FiXCircle }[statusConfig.iconName] || FiPackage;
   const canLeaveReview = user?.userType === 'consumer';
+  const rawImage = Array.isArray(product?.images) ? product.images[0] : null;
+  const imageUrl = typeof rawImage === 'string'
+    ? rawImage
+    : rawImage?.url || `${baseUrl || 'https://www.harvests.site'}/logo.png`;
+  const canonicalUrl = `${baseUrl || 'https://www.harvests.site'}/products/${product?.slug || product?._id || id}`;
 
   return (
     <div className="min-h-screen bg-harvests-light">
+      <Helmet>
+        <title>{`${productName} | Harvests`}</title>
+        <meta name="description" content={productDescription || 'Découvrez ce produit disponible sur Harvests.'} />
+        <link rel="canonical" href={canonicalUrl} />
+        <meta property="og:type" content="product" />
+        <meta property="og:title" content={`${productName} | Harvests`} />
+        <meta property="og:description" content={productDescription || 'Produit disponible sur Harvests.'} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:image" content={imageUrl} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${productName} | Harvests`} />
+        <meta name="twitter:description" content={productDescription || 'Produit disponible sur Harvests.'} />
+        <meta name="twitter:image" content={imageUrl} />
+      </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
           <button onClick={() => navigate(-1)} className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4">

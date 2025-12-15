@@ -215,7 +215,7 @@ const AppRoutes = () => {
       <Route path="/pricing" element={<Layout><SuspenseRoute element={<Pricing />} /></Layout>} />
       <Route path="/loyalty" element={<Layout><SuspenseRoute element={<LoyaltyProgram />} /></Layout>} />
       <Route path="/blog" element={<Layout><SuspenseRoute element={<BlogPage />} /></Layout>} />
-      <Route path="/blog/:slug" element={<Layout><SuspenseRoute element={<BlogDetailPage />} /></Layout>} />
+      <Route path="/blog/:slug" element={<SuspenseRoute element={<BlogDetailPage />} />} />
       <Route path="/payments/paypal/success" element={<Layout><SuspenseRoute element={<PayPalSuccess />} /></Layout>} />
       <Route path="/payments/paypal/cancel" element={<Layout><SuspenseRoute element={<PayPalCancel />} /></Layout>} />
       <Route path="/payment/subscription/:planId" element={<Layout><SuspenseRoute element={<SubscriptionPayment />} /></Layout>} />

@@ -12,6 +12,7 @@ import BlogPreviewBanner from './blogDetail/BlogPreviewBanner';
 import BlogHeader from './blogDetail/BlogHeader';
 import BlogContent from './blogDetail/BlogContent';
 import BlogSidebar from './blogDetail/BlogSidebar';
+import Layout from '../components/layout/Layout';
 import { getTypeIcon, getTypeLabel, getCategoryLabel, translateTag, normalizeTags, formatDate, getLocalizedContent } from './blogDetail/blogUtils';
 
 const BlogDetailPage = () => {
@@ -211,74 +212,111 @@ const BlogDetailPage = () => {
 
   const normalizedTags = normalizeTags(blog.tags);
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Indicateur de prévisualisation */}
-      {isPreviewMode && (
-        <BlogPreviewBanner onClose={() => window.close()} />
-      )}
-      
-      {/* Header */}
-      <BlogHeader
-        blog={blog}
-        isPreviewMode={isPreviewMode}
-        navigate={navigate}
-        t={t}
-        getLocalizedContent={getLocalizedContentWrapper}
-        getTypeIcon={getTypeIcon}
-        getTypeLabel={getTypeLabelWrapper}
-        getCategoryLabel={getCategoryLabelWrapper}
-        formatDate={formatDate}
-        liked={liked}
-        handleLike={handleLike}
-        handleShare={handleShare}
-      />
+  // Configuration SEO dynamique basée sur le blog
+  const baseUrl = (import.meta.env.VITE_FRONTEND_URL || 
+    (typeof window !== 'undefined' ? window.location.origin : '') || 
+    'https://www.harvests.site').replace(/\/$/, '');
+  
+  const blogTitle = getLocalizedContentWrapper(blog.title);
+  const blogExcerpt = getLocalizedContentWrapper(blog.excerpt);
+  const blogContent = getLocalizedContentWrapper(blog.content);
+  const blogImage = blog.featuredImage?.url || `${baseUrl}/logo.png`;
+  const blogUrl = `${baseUrl}/blog/${slug}`;
+  const blogPublishedTime = blog.publishedAt ? new Date(blog.publishedAt).toISOString() : null;
+  const blogModifiedTime = blog.updatedAt ? new Date(blog.updatedAt).toISOString() : null;
+  
+  const seoConfig = useMemo(() => ({
+    title: blogTitle,
+    description: blogExcerpt || blogContent?.substring(0, 160) || t('blog.defaultDescription', 'Découvrez cet article sur Harvests'),
+    keywords: blog.tags?.join(', ') || '',
+    image: blogImage,
+    type: 'article',
+    canonical: blogUrl,
+    ogTitle: blogTitle,
+    ogDescription: blogExcerpt || blogContent?.substring(0, 160),
+    ogImage: blogImage,
+    twitterTitle: blogTitle,
+    twitterDescription: blogExcerpt || blogContent?.substring(0, 160),
+    twitterImage: blogImage,
+    articleAuthor: blog.author?.firstName && blog.author?.lastName 
+      ? `${blog.author.firstName} ${blog.author.lastName}` 
+      : 'Harvests',
+    articlePublishedTime: blogPublishedTime,
+    articleModifiedTime: blogModifiedTime,
+    articleSection: blog.category || '',
+    articleTags: blog.tags || []
+  }), [blog, blogTitle, blogExcerpt, blogContent, blogImage, blogUrl, blogPublishedTime, blogModifiedTime, slug, t]);
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Contenu principal */}
-          <div className="lg:col-span-2">
-            <BlogContent
+  return (
+    <Layout seo={seoConfig}>
+      <div className="min-h-screen bg-gray-50">
+        {/* Indicateur de prévisualisation */}
+        {isPreviewMode && (
+          <BlogPreviewBanner onClose={() => window.close()} />
+        )}
+        
+        {/* Header */}
+        <BlogHeader
+          blog={blog}
+          isPreviewMode={isPreviewMode}
+          navigate={navigate}
+          t={t}
+          getLocalizedContent={getLocalizedContentWrapper}
+          getTypeIcon={getTypeIcon}
+          getTypeLabel={getTypeLabelWrapper}
+          getCategoryLabel={getCategoryLabelWrapper}
+          formatDate={formatDate}
+          liked={liked}
+          handleLike={handleLike}
+          handleShare={handleShare}
+        />
+
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Contenu principal */}
+            <div className="lg:col-span-2">
+              <BlogContent
+                blog={blog}
+                getLocalizedContent={getLocalizedContentWrapper}
+                normalizedTags={normalizedTags}
+                translateTag={translateTagWrapper}
+                t={t}
+              />
+            </div>
+
+            {/* Sidebar */}
+            <BlogSidebar
+              isPreviewMode={isPreviewMode}
               blog={blog}
+              relatedBlogs={relatedBlogs}
+              liked={liked}
+              handleLike={handleLike}
+              handleShare={handleShare}
               getLocalizedContent={getLocalizedContentWrapper}
-              normalizedTags={normalizedTags}
-              translateTag={translateTagWrapper}
+              getTypeIcon={getTypeIcon}
+              getTypeLabel={getTypeLabelWrapper}
+              formatDate={formatDate}
               t={t}
             />
           </div>
-
-          {/* Sidebar */}
-          <BlogSidebar
-            isPreviewMode={isPreviewMode}
-            blog={blog}
-            relatedBlogs={relatedBlogs}
-            liked={liked}
-            handleLike={handleLike}
-            handleShare={handleShare}
-            getLocalizedContent={getLocalizedContentWrapper}
-            getTypeIcon={getTypeIcon}
-            getTypeLabel={getTypeLabelWrapper}
-            formatDate={formatDate}
-            t={t}
-          />
         </div>
-      </div>
 
-      {/* Modale des visiteurs - seulement en mode normal */}
-      {!isPreviewMode && (
-        <BlogVisitorModal
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          blogId={blog?._id}
-          blogTitle={blog ? getLocalizedContentWrapper(blog.title, 'Titre non disponible') : ''}
-          blogSlug={slug}
-          isReturningVisitor={isReturningVisitor}
-          isAuthenticatedUser={isAuthenticatedUser}
-          visitorData={visitorData}
-          onFormSubmit={handleFormSubmit}
-        />
-      )}
-    </div>
+        {/* Modale des visiteurs - seulement en mode normal */}
+        {!isPreviewMode && (
+          <BlogVisitorModal
+            isOpen={isModalOpen}
+            onClose={closeModal}
+            blogId={blog?._id}
+            blogTitle={blog ? getLocalizedContentWrapper(blog.title, 'Titre non disponible') : ''}
+            blogSlug={slug}
+            isReturningVisitor={isReturningVisitor}
+            isAuthenticatedUser={isAuthenticatedUser}
+            visitorData={visitorData}
+            onFormSubmit={handleFormSubmit}
+          />
+        )}
+      </div>
+    </Layout>
   );
 };
 
