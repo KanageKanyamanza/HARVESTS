@@ -19,14 +19,26 @@ const useBlogVisitorModal = (blogId, blogTitle, blogSlug) => {
     try {
       const metrics = trackingService.getMetrics();
       
-      await blogApiService.submitVisitorForm({
-        ...formData,
+      // S'assurer que tous les champs requis sont présents avec des valeurs par défaut
+      const submitData = {
+        firstName: formData.firstName || 'Utilisateur',
+        lastName: formData.lastName || '',
+        email: formData.email || '',
+        country: formData.country || 'Unknown',
         blogId,
         blogTitle,
         blogSlug,
-        scrollDepth: metrics.scrollDepth,
-        timeOnPage: metrics.timeOnPage
-      });
+        scrollDepth: metrics.scrollDepth || 0,
+        timeOnPage: metrics.timeOnPage || 0
+      };
+
+      // Validation finale avant envoi
+      if (!submitData.firstName || !submitData.lastName || !submitData.email || !submitData.country) {
+        console.error('Données incomplètes pour la soumission:', submitData);
+        throw new Error('Tous les champs sont requis');
+      }
+      
+      await blogApiService.submitVisitorForm(submitData);
 
       // Fermer le modal après soumission réussie
       setIsModalOpen(false);
@@ -45,11 +57,17 @@ const useBlogVisitorModal = (blogId, blogTitle, blogSlug) => {
       setHasShownModal(true); // Marquer comme déjà traité pour éviter l'affichage du modal
       // Récupérer les informations de l'utilisateur
       const userData = {
-        firstName: user.firstName || user.name?.split(' ')[0] || '',
+        firstName: user.firstName || user.name?.split(' ')[0] || 'Utilisateur',
         lastName: user.lastName || user.name?.split(' ').slice(1).join(' ') || '',
         email: user.email || '',
-        country: user.country || user.address?.country || ''
+        country: user.country || user.address?.country || 'Unknown'
       };
+
+      // Vérifier que tous les champs requis sont présents
+      if (!userData.firstName || !userData.lastName || !userData.email || !userData.country) {
+        console.warn('Données utilisateur incomplètes, impossible de soumettre automatiquement');
+        return;
+      }
 
       // Soumettre automatiquement avec les données de l'utilisateur connecté (sans afficher le modal)
       await handleFormSubmit(userData);
