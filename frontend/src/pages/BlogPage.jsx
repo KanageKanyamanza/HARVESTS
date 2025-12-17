@@ -233,7 +233,7 @@ const BlogPage = () => {
                     <div className="h-48 overflow-hidden">
                       <CloudinaryImage
                         src={blog.featuredImage.url}
-                        alt={blog.featuredImage.alt || getLocalizedContent(blog.title)}
+                        alt={blog.featuredImage.alt || getLocalizedContent(blog.title, 'Image du blog')}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                       />
                     </div>
@@ -252,11 +252,11 @@ const BlogPage = () => {
                     </div>
 
                     <h2 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">
-                      {getLocalizedContent(blog.title)}
+                      {getLocalizedContent(blog.title, 'Titre non disponible')}
                     </h2>
 
                     <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                      {getLocalizedContent(blog.excerpt)}
+                      {getLocalizedContent(blog.excerpt, 'Aucun extrait disponible')}
                     </p>
 
                     {blog.tags && blog.tags.length > 0 && (
