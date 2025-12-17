@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet-async';
@@ -30,11 +30,19 @@ const BlogPage = () => {
   
   // Filtres
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchParams.get('search') || '');
   const [selectedType, setSelectedType] = useState(searchParams.get('type') || '');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || '');
   const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
   const [totalPages, setTotalPages] = useState(1);
   const language = i18n.language || 'fr';
+  
+  // Ref pour le debounce de recherche
+  const searchDebounceRef = useRef(null);
+  
+  // Cache simple pour les blogs (5 minutes)
+  const blogCacheRef = useRef(new Map());
+  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
   // Configuration SEO dynamique
   // Mémoriser baseUrl pour éviter les recalculs inutiles
@@ -59,7 +67,7 @@ const BlogPage = () => {
     };
   }, [t, baseUrl, location.pathname, location.search]);
 
-  const loadBlogs = useCallback(async () => {
+  const loadBlogs = useCallback(async (forceRefresh = false) => {
     try {
       setLoading(true);
       setError(null);
@@ -70,15 +78,38 @@ const BlogPage = () => {
         lang: language
       };
 
-      if (searchTerm) params.search = searchTerm;
+      if (debouncedSearchTerm) params.search = debouncedSearchTerm;
       if (selectedType) params.type = selectedType;
       if (selectedCategory) params.category = selectedCategory;
+
+      // Créer une clé de cache basée sur les paramètres
+      const cacheKey = JSON.stringify(params);
+      const cachedData = blogCacheRef.current.get(cacheKey);
+      const now = Date.now();
+
+      // Vérifier le cache si pas de refresh forcé
+      if (!forceRefresh && cachedData && (now - cachedData.timestamp < CACHE_DURATION)) {
+        setBlogs(cachedData.data || []);
+        setTotalPages(cachedData.pagination?.pages || 1);
+        setLoading(false);
+        return;
+      }
 
       const response = await blogApiService.getBlogs(params);
 
       if (response.data.success) {
-        setBlogs(response.data.data || []);
-        setTotalPages(response.data.pagination?.pages || 1);
+        const blogsData = response.data.data || [];
+        const pagination = response.data.pagination || {};
+        
+        // Mettre en cache
+        blogCacheRef.current.set(cacheKey, {
+          data: blogsData,
+          pagination: pagination,
+          timestamp: now
+        });
+        
+        setBlogs(blogsData);
+        setTotalPages(pagination.pages || 1);
       }
     } catch (error) {
       console.error('Erreur lors du chargement des blogs:', error);
@@ -86,15 +117,41 @@ const BlogPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, searchTerm, selectedType, selectedCategory, language]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, debouncedSearchTerm, selectedType, selectedCategory, language]);
 
+  // Debounce pour la recherche (500ms)
+  useEffect(() => {
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+    
+    searchDebounceRef.current = setTimeout(() => {
+      setDebouncedSearchTerm(prev => {
+        // Réinitialiser la page à 1 si le terme de recherche change
+        if (prev !== searchTerm) {
+          setCurrentPage(1);
+        }
+        return searchTerm;
+      });
+    }, 500);
+
+    return () => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+      }
+    };
+  }, [searchTerm]);
+
+  // Charger les blogs uniquement quand les paramètres changent (pas au montage initial si déjà en cache)
   useEffect(() => {
     loadBlogs();
   }, [loadBlogs]);
 
-  // Recharger lors du changement de langue
+  // Recharger lors du changement de langue (forcer le refresh pour éviter le cache)
   useEffect(() => {
-    loadBlogs();
+    loadBlogs(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [i18n.language]);
 
   const handleBlogClick = (blog) => {
@@ -173,7 +230,10 @@ const BlogPage = () => {
               <input
                 type="text"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  // Ne pas déclencher de recherche immédiate, le debounce s'en charge
+                }}
                 placeholder={t('blog.searchPlaceholder', 'Rechercher...')}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />

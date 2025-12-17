@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useParams } from 'react-router-dom';
 import { productService } from '../services';
+import { useApiCache } from './useApiCache';
 
 /**
  * Hook personnalisé pour gérer les produits et leurs filtres
@@ -35,6 +36,9 @@ export const useProducts = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
   const productsPerPage = 12;
+
+  // Cache pour les produits
+  const { getCachedData, setCachedData } = useApiCache(5 * 60 * 1000); // Cache de 5 minutes
 
   // États debouncés
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchParams.get("q") || "");
@@ -79,14 +83,37 @@ export const useProducts = () => {
         params.useLocation = 'true';
       }
 
+      // Créer une clé de cache basée sur les paramètres
+      const cacheKey = `products_${JSON.stringify(params)}_${isFeatured}`;
+      
+      // Vérifier le cache
+      const cached = getCachedData(cacheKey);
+      if (cached) {
+        setProducts(cached.products || []);
+        setTotalPages(cached.totalPages || 1);
+        setTotalProducts(cached.totalProducts || 0);
+        setLoading(false);
+        return;
+      }
+
       const response = isFeatured
         ? await productService.getFeaturedProducts(params)
         : await productService.getProducts(params);
 
       if (response.data.status === "success") {
-        setProducts(response.data.data.products || []);
-        setTotalPages(response.data.pagination?.totalPages || 1);
-        setTotalProducts(response.data.pagination?.total || 0);
+        const productsData = response.data.data.products || [];
+        const paginationData = response.data.pagination || {};
+        
+        setProducts(productsData);
+        setTotalPages(paginationData.totalPages || 1);
+        setTotalProducts(paginationData.total || 0);
+        
+        // Mettre en cache
+        setCachedData(cacheKey, {
+          products: productsData,
+          totalPages: paginationData.totalPages || 1,
+          totalProducts: paginationData.total || 0
+        });
       }
     } catch (error) {
       console.error("Erreur lors du chargement des produits:", error);
@@ -102,6 +129,8 @@ export const useProducts = () => {
     debouncedSearchQuery,
     isFeatured,
     productsPerPage,
+    getCachedData,
+    setCachedData,
   ]);
 
   const loadCategories = useCallback(async () => {

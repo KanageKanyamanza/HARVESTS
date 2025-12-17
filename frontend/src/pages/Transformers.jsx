@@ -1,30 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { transformerService } from '../services';
 import { FiMapPin, FiStar, FiTool, FiArrowRight, FiClock, FiAward } from 'react-icons/fi';
 import { getCountryName } from '../utils/countryMapper';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { useApiCache } from '../hooks/useApiCache';
 
 const Transformers = () => {
   const [transformers, setTransformers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { getCachedData, setCachedData } = useApiCache(5 * 60 * 1000); // Cache de 5 minutes
+  const hasLoadedRef = useRef(false);
 
   useEffect(() => {
-    const loadTransformers = async () => {
+    const loadTransformers = async (forceRefresh = false) => {
+      // Éviter les appels multiples simultanés
+      if (hasLoadedRef.current && !forceRefresh) return;
+      hasLoadedRef.current = true;
+
       try {
+        const cacheKey = 'transformers_list';
+        
+        // Vérifier le cache
+        if (!forceRefresh) {
+          const cached = getCachedData(cacheKey);
+          if (cached) {
+            setTransformers(cached);
+            setLoading(false);
+            hasLoadedRef.current = false;
+            return;
+          }
+        }
+
+        setLoading(true);
         const response = await transformerService.getAllPublic({ limit: 20 });
         if (response.data.status === 'success') {
-          setTransformers(response.data.data.transformers || []);
+          const transformersData = response.data.data.transformers || [];
+          setTransformers(transformersData);
+          
+          // Mettre en cache
+          setCachedData(cacheKey, transformersData);
         }
       } catch (error) {
         console.error('Erreur lors du chargement des transformateurs:', error);
       } finally {
         setLoading(false);
+        hasLoadedRef.current = false;
       }
     };
 
     loadTransformers();
-  }, []);
+  }, [getCachedData, setCachedData]);
 
 
   const getTransformationTypeLabel = (type) => {

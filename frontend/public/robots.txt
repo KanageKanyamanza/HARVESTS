@@ -4,8 +4,18 @@
 User-agent: *
 Allow: /
 
-# Pages à ne pas indexer
+# Bloquer l'accès aux endpoints API sensibles
 Disallow: /api/
+Disallow: /api/auth/
+Disallow: /api/admin/
+Disallow: /api/blogs/admin/
+Disallow: /api/blog-visitors/admin/
+Disallow: /api/orders/
+Disallow: /api/payments/
+Disallow: /api/users/
+Disallow: /api/notifications/
+
+# Pages à ne pas indexer
 Disallow: /admin/
 Disallow: /consumer/
 Disallow: /producer/
