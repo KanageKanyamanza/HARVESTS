@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Helmet } from 'react-helmet-async';
 import { blogApiService } from '../services/blogService';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import CloudinaryImage from '../components/common/CloudinaryImage';
@@ -21,6 +22,7 @@ const BlogPage = () => {
   const { t, i18n } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +35,29 @@ const BlogPage = () => {
   const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
   const [totalPages, setTotalPages] = useState(1);
   const language = i18n.language || 'fr';
+
+  // Configuration SEO dynamique
+  // Mémoriser baseUrl pour éviter les recalculs inutiles
+  const baseUrl = useMemo(() => {
+    return (import.meta.env.VITE_FRONTEND_URL || 
+      (typeof window !== 'undefined' ? window.location.origin : '') || 
+      'https://www.harvests.site').replace(/\/$/, '');
+  }, []); // Pas de dépendances car l'URL de base ne change pas pendant la session
+
+  const seoConfig = useMemo(() => {
+    const title = t('seo.blog.title', 'Blog | Harvests');
+    const description = t('seo.blog.description', 'Découvrez nos articles, actualités et ressources sur l\'agriculture, la logistique et les circuits courts au Sénégal.');
+    const keywords = t('seo.blog.keywords', 'blog, articles, actualités, agriculture, logistique, circuits courts, Sénégal');
+    
+    return {
+      title,
+      description,
+      keywords,
+      image: `${baseUrl}/logo.png`,
+      type: 'website',
+      canonical: `${baseUrl}${location.pathname}${location.search ? location.search : ''}`
+    };
+  }, [t, baseUrl, location.pathname, location.search]);
 
   const loadBlogs = useCallback(async () => {
     try {
@@ -114,16 +139,31 @@ const BlogPage = () => {
 
   return (
     <div className="min-h-screen bg-harvests-light">
+      <Helmet>
+        <title>{seoConfig.title}</title>
+        <meta name="description" content={seoConfig.description} />
+        <meta name="keywords" content={seoConfig.keywords} />
+        <link rel="canonical" href={seoConfig.canonical} />
+        <meta property="og:type" content={seoConfig.type} />
+        <meta property="og:title" content={seoConfig.title} />
+        <meta property="og:description" content={seoConfig.description} />
+        <meta property="og:url" content={seoConfig.canonical} />
+        <meta property="og:image" content={seoConfig.image} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={seoConfig.title} />
+        <meta name="twitter:description" content={seoConfig.description} />
+        <meta name="twitter:image" content={seoConfig.image} />
+      </Helmet>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* En-tête */}
-        <div className="mb-8">
+        <header className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">
             {t('blog.title', 'Blog')}
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 text-lg">
             {t('blog.subtitle', 'Découvrez nos articles, actualités et ressources')}
           </p>
-        </div>
+        </header>
 
         {/* Filtres */}
         <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
@@ -171,7 +211,7 @@ const BlogPage = () => {
 
         {/* Liste des blogs */}
         {error ? (
-          <div className="text-center py-12">
+          <section className="text-center py-12" aria-label="Erreur de chargement">
             <div className="text-red-600 mb-4">{error}</div>
             <button
               onClick={loadBlogs}
@@ -179,12 +219,12 @@ const BlogPage = () => {
             >
               {t('blog.retry', 'Réessayer')}
             </button>
-          </div>
+          </section>
         ) : blogs.length > 0 ? (
           <>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <section className="grid gap-6 md:grid-cols-2 lg:grid-cols-3" aria-label="Liste des articles de blog">
               {blogs.map((blog) => (
-                <div
+                <article
                   key={blog._id}
                   onClick={() => handleBlogClick(blog)}
                   className="bg-white rounded-lg shadow-sm border overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
@@ -193,7 +233,7 @@ const BlogPage = () => {
                     <div className="h-48 overflow-hidden">
                       <CloudinaryImage
                         src={blog.featuredImage.url}
-                        alt={blog.featuredImage.alt || getLocalizedContent(blog.title)}
+                        alt={blog.featuredImage.alt || getLocalizedContent(blog.title, 'Image du blog')}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                       />
                     </div>
@@ -212,11 +252,11 @@ const BlogPage = () => {
                     </div>
 
                     <h2 className="text-xl font-bold text-gray-900 mb-2 line-clamp-2">
-                      {getLocalizedContent(blog.title)}
+                      {getLocalizedContent(blog.title, 'Titre non disponible')}
                     </h2>
 
                     <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                      {getLocalizedContent(blog.excerpt)}
+                      {getLocalizedContent(blog.excerpt, 'Aucun extrait disponible')}
                     </p>
 
                     {blog.tags && blog.tags.length > 0 && (
@@ -255,9 +295,9 @@ const BlogPage = () => {
                       </button>
                     </div>
                   </div>
-                </div>
+                </article>
               ))}
-            </div>
+            </section>
 
             {/* Pagination */}
             {totalPages > 1 && (
@@ -315,14 +355,14 @@ const BlogPage = () => {
             )}
           </>
         ) : (
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <section className="text-center py-12" aria-label="Aucun résultat">
+            <h2 className="text-lg font-medium text-gray-900 mb-2">
               {t('blog.noBlogs', 'Aucun blog trouvé')}
-            </h3>
+            </h2>
             <p className="text-gray-500">
               {t('blog.noBlogsDescription', 'Essayez de modifier vos critères de recherche')}
             </p>
-          </div>
+          </section>
         )}
       </div>
     </div>
