@@ -295,6 +295,11 @@ const BlogPage = () => {
                         src={blog.featuredImage.url}
                         alt={blog.featuredImage.alt || getLocalizedContent(blog.title, 'Image du blog')}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        width={800}
+                        height={400}
+                        quality="auto"
+                        format="auto"
+                        loading="lazy"
                       />
                     </div>
                   )}
