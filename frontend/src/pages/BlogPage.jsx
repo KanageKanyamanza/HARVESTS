@@ -37,9 +37,12 @@ const BlogPage = () => {
   const language = i18n.language || 'fr';
 
   // Configuration SEO dynamique
-  const baseUrl = (import.meta.env.VITE_FRONTEND_URL || 
-    (typeof window !== 'undefined' ? window.location.origin : '') || 
-    'https://www.harvests.site').replace(/\/$/, '');
+  // Mémoriser baseUrl pour éviter les recalculs inutiles
+  const baseUrl = useMemo(() => {
+    return (import.meta.env.VITE_FRONTEND_URL || 
+      (typeof window !== 'undefined' ? window.location.origin : '') || 
+      'https://www.harvests.site').replace(/\/$/, '');
+  }, []); // Pas de dépendances car l'URL de base ne change pas pendant la session
 
   const seoConfig = useMemo(() => {
     const title = t('seo.blog.title', 'Blog | Harvests');
