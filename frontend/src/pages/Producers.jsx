@@ -1,35 +1,65 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { producerService } from '../services';
 import { FiMapPin, FiStar, FiPackage, FiArrowRight } from 'react-icons/fi';
 import { getCountryName } from '../utils/countryMapper';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { useApiCache } from '../hooks/useApiCache';
 
 const Producers = () => {
   const [producers, setProducers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [locationInfo, setLocationInfo] = useState(null);
+  const { getCachedData, setCachedData } = useApiCache(5 * 60 * 1000); // Cache de 5 minutes
+  const hasLoadedRef = useRef(false);
 
   useEffect(() => {
-    const loadProducers = async () => {
+    const loadProducers = async (forceRefresh = false) => {
+      // Éviter les appels multiples simultanés
+      if (hasLoadedRef.current && !forceRefresh) return;
+      hasLoadedRef.current = true;
+
       try {
+        const cacheKey = 'producers_list';
+        
+        // Vérifier le cache
+        if (!forceRefresh) {
+          const cached = getCachedData(cacheKey);
+          if (cached) {
+            setProducers(cached.producers || []);
+            setLocationInfo(cached.locationInfo || null);
+            setLoading(false);
+            hasLoadedRef.current = false;
+            return;
+          }
+        }
+
+        setLoading(true);
         // Activer la détection automatique de localisation
         const response = await producerService.getAllPublic({ limit: 20, useLocation: 'true' });
         if (response.data.status === 'success') {
-          setProducers(response.data.data.producers || []);
-          if (response.data.data.location) {
-            setLocationInfo(response.data.data.location);
-          }
+          const producersData = response.data.data.producers || [];
+          const locationData = response.data.data.location || null;
+          
+          setProducers(producersData);
+          setLocationInfo(locationData);
+          
+          // Mettre en cache
+          setCachedData(cacheKey, {
+            producers: producersData,
+            locationInfo: locationData
+          });
         }
       } catch (error) {
         console.error('Erreur lors du chargement des producteurs:', error);
       } finally {
         setLoading(false);
+        hasLoadedRef.current = false;
       }
     };
 
     loadProducers();
-  }, []);
+  }, [getCachedData, setCachedData]);
 
 
   if (loading) {

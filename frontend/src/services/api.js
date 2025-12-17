@@ -14,6 +14,10 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // Configuration du cache HTTP
+  cache: {
+    maxAge: 5 * 60 * 1000, // 5 minutes par défaut
+  },
 });
 
 // Intercepteur de requête
@@ -29,8 +33,24 @@ api.interceptors.request.use(
       '/auth/resend-verification'
     ];
     
+    // Routes qui peuvent être mises en cache (GET uniquement)
+    const cacheableRoutes = [
+      '/blogs',
+      '/products',
+      '/categories',
+      '/producers',
+      '/transformers'
+    ];
+    
     // Vérifier si la route est publique
     const isPublicRoute = publicRoutes.some(route => config.url?.includes(route));
+    const isCacheableRoute = cacheableRoutes.some(route => config.url?.includes(route)) && config.method === 'get';
+    
+    // Ajouter les headers de cache pour les routes cacheables
+    if (isCacheableRoute && !config.headers['Cache-Control']) {
+      // Utiliser le cache du navigateur pour les requêtes GET publiques
+      config.headers['Cache-Control'] = 'public, max-age=300'; // 5 minutes
+    }
     
     // Ajouter le token d'authentification seulement pour les routes protégées
     if (!isPublicRoute) {

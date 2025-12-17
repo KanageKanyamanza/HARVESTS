@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
 	producerService,
@@ -21,12 +21,15 @@ import {
 } from "../utils/vendorRatings";
 import { getCountryName } from "../utils/countryMapper";
 import LoadingSpinner from "../components/common/LoadingSpinner";
+import { useApiCache } from "../hooks/useApiCache";
 
 const Vendeurs = () => {
 	const [vendeurs, setVendeurs] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [filter, setFilter] = useState("all"); // 'all', 'producers', 'transformers', 'restaurateurs'
 	const [locationInfo, setLocationInfo] = useState(null);
+	const { getCachedData, setCachedData } = useApiCache(5 * 60 * 1000); // Cache de 5 minutes
+	const hasLoadedRef = useRef(false);
 
 	const buildVendorRating = (vendor) => {
 		const average = getVendorAverageRating(vendor);
@@ -38,8 +41,26 @@ const Vendeurs = () => {
 	};
 
 	useEffect(() => {
-		const loadVendeurs = async () => {
+		const loadVendeurs = async (forceRefresh = false) => {
+			// Éviter les appels multiples simultanés
+			if (hasLoadedRef.current && !forceRefresh) return;
+			hasLoadedRef.current = true;
+
 			try {
+				const cacheKey = 'vendeurs_list';
+				
+				// Vérifier le cache
+				if (!forceRefresh) {
+					const cached = getCachedData(cacheKey);
+					if (cached) {
+						setVendeurs(cached.vendeurs || []);
+						setLocationInfo(cached.locationInfo || null);
+						setLoading(false);
+						hasLoadedRef.current = false;
+						return;
+					}
+				}
+
 				setLoading(true);
 
 			// Charger producteurs, transformateurs et restaurateurs en parallèle
@@ -186,15 +207,22 @@ const Vendeurs = () => {
 				);
 
 				setVendeurs(vendeursAvecNotes);
+				
+				// Mettre en cache
+				setCachedData(cacheKey, {
+					vendeurs: vendeursAvecNotes,
+					locationInfo: locationInfo
+				});
 			} catch (error) {
 				console.error("Erreur lors du chargement des vendeurs:", error);
 			} finally {
 				setLoading(false);
+				hasLoadedRef.current = false;
 			}
 		};
 
 		loadVendeurs();
-	}, []);
+	}, [getCachedData, setCachedData]);
 
 
 	const getTypeBadge = (type) => {
