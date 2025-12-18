@@ -1,6 +1,17 @@
 import React from "react";
 import { FiClock, FiUsers, FiShoppingBag, FiInfo } from "react-icons/fi";
 
+const RESTAURANT_TYPES = [
+	{ value: "fine-dining", label: "Restaurant gastronomique" },
+	{ value: "casual", label: "Restaurant décontracté" },
+	{ value: "fast-food", label: "Restaurant rapide" },
+	{ value: "cafe", label: "Café" },
+	{ value: "bar", label: "Bar" },
+	{ value: "catering", label: "Traiteur" },
+	{ value: "food-truck", label: "Food truck" },
+	{ value: "bakery", label: "Boulangerie" },
+];
+
 const RestaurateurFields = ({ formData, editing, onInputChange }) => {
 	const DAYS = [
 		{ key: "monday", label: "Lundi" },
@@ -12,15 +23,31 @@ const RestaurateurFields = ({ formData, editing, onInputChange }) => {
 		{ key: "sunday", label: "Dimanche" },
 	];
 
-	const RESTAURANT_TYPES = [
-		{ value: "fine-dining", label: "Gastronomique" },
-		{ value: "casual", label: "Décontracté" },
-		{ value: "fast-food", label: "Restauration rapide" },
-		{ value: "cafe", label: "Café" },
-		{ value: "bar", label: "Bar" },
-		{ value: "catering", label: "Traiteur" },
-		{ value: "bakery", label: "Boulangerie" },
+	const CUISINE_OPTIONS = [
+		{ value: "african", label: "Africaine" },
+		{ value: "french", label: "Française" },
+		{ value: "italian", label: "Italienne" },
+		{ value: "asian", label: "Asiatique" },
+		{ value: "american", label: "Américaine" },
+		{ value: "mediterranean", label: "Méditerranéenne" },
+		{ value: "fusion", label: "Fusion" },
+		{ value: "vegetarian", label: "Végétarienne" },
+		{ value: "vegan", label: "Végane" },
 	];
+
+	const handleCuisineTypeChange = (e) => {
+		const { value, checked } = e.target;
+		const current = formData.cuisineTypes || [];
+		let newVal;
+		if (checked) {
+			newVal = [...current, value];
+		} else {
+			newVal = current.filter((t) => t !== value);
+		}
+		onInputChange({
+			target: { name: "cuisineTypes", value: newVal, type: "custom" },
+		});
+	};
 
 	return (
 		<div className="space-y-6 mt-6 pt-6 border-t border-gray-100">
@@ -53,6 +80,47 @@ const RestaurateurFields = ({ formData, editing, onInputChange }) => {
 							{RESTAURANT_TYPES.find((t) => t.value === formData.restaurantType)
 								?.label || formData.restaurantType}
 						</span>
+					)}
+				</div>
+
+				{/* Cuisine Types */}
+				<div>
+					<label className="block text-sm font-medium text-gray-700 mb-2">
+						Types de cuisine
+					</label>
+					{editing ? (
+						<div className="grid grid-cols-2 gap-2">
+							{CUISINE_OPTIONS.map((cuisine) => (
+								<label key={cuisine.value} className="flex items-center">
+									<input
+										type="checkbox"
+										value={cuisine.value}
+										checked={(formData.cuisineTypes || []).includes(
+											cuisine.value
+										)}
+										onChange={handleCuisineTypeChange}
+										className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+									/>
+									<span className="text-sm text-gray-700">{cuisine.label}</span>
+								</label>
+							))}
+						</div>
+					) : (
+						<div className="flex flex-wrap gap-2">
+							{(formData.cuisineTypes || []).length > 0 ? (
+								formData.cuisineTypes.map((type, idx) => (
+									<span
+										key={idx}
+										className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800"
+									>
+										{CUISINE_OPTIONS.find((c) => c.value === type)?.label ||
+											type}
+									</span>
+								))
+							) : (
+								<span className="text-gray-500 text-sm">Non renseigné</span>
+							)}
+						</div>
 					)}
 				</div>
 

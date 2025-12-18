@@ -50,6 +50,7 @@ import ConsumerFields from "./specific/ConsumerFields";
 import RestaurateurFields from "./specific/RestaurateurFields";
 import TransporterFields from "./specific/TransporterFields";
 import TransformerFields from "./specific/TransformerFields";
+import ExporterFields from "./specific/ExporterFields";
 
 const ProfileFormFields = ({
 	user,
@@ -193,7 +194,7 @@ const ProfileFormFields = ({
 				{/* Specific Fields Section */}
 				{user?.userType === "producer" && (
 					<ProducerFields
-						formData={formData}
+						formData={editing ? formData : user}
 						editing={editing}
 						onInputChange={onInputChange}
 						safeDisplay={safeDisplay}
@@ -202,7 +203,7 @@ const ProfileFormFields = ({
 
 				{user?.userType === "consumer" && (
 					<ConsumerFields
-						formData={formData}
+						formData={editing ? formData : user}
 						editing={editing}
 						onInputChange={onInputChange}
 					/>
@@ -210,7 +211,7 @@ const ProfileFormFields = ({
 
 				{user?.userType === "restaurateur" && (
 					<RestaurateurFields
-						formData={formData}
+						formData={editing ? formData : user}
 						editing={editing}
 						onInputChange={onInputChange}
 					/>
@@ -218,7 +219,7 @@ const ProfileFormFields = ({
 
 				{user?.userType === "transporter" && (
 					<TransporterFields
-						formData={formData}
+						formData={editing ? formData : user}
 						editing={editing}
 						onInputChange={onInputChange}
 					/>
@@ -226,7 +227,15 @@ const ProfileFormFields = ({
 
 				{user?.userType === "transformer" && (
 					<TransformerFields
-						formData={formData}
+						formData={editing ? formData : user}
+						editing={editing}
+						onInputChange={onInputChange}
+					/>
+				)}
+
+				{user?.userType === "exporter" && (
+					<ExporterFields
+						formData={editing ? formData : user}
 						editing={editing}
 						onInputChange={onInputChange}
 					/>

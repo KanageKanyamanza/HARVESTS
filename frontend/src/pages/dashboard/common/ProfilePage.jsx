@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { CheckCircle, XCircle, Clock, Truck, Globe } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 import {
@@ -96,30 +97,7 @@ const ProfilePage = () => {
 			let response;
 
 			if (user?.userType === "restaurateur") {
-				const dataToSend = {
-					firstName: formData.firstName,
-					lastName: formData.lastName,
-					restaurantName: formData.restaurantName,
-					restaurantType: formData.restaurantType,
-					cuisineTypes: formData.cuisineTypes || [],
-					seatingCapacity: formData.seatingCapacity,
-					address: formData.address,
-					city: formData.city,
-					region: formData.region,
-					country: formData.country,
-					additionalServices: formData.additionalServices,
-					operatingHours: formData.operatingHours,
-				};
-				Object.keys(dataToSend).forEach((key) => {
-					if (
-						dataToSend[key] === undefined ||
-						dataToSend[key] === null ||
-						dataToSend[key] === ""
-					) {
-						delete dataToSend[key];
-					}
-				});
-				response = await restaurateurService.updateMyProfile(dataToSend);
+				response = await restaurateurService.updateMyProfile(formData);
 			} else if (user?.userType === "producer") {
 				response = await producerService.updateProfile(formData);
 			} else if (user?.userType === "transformer") {
@@ -166,7 +144,6 @@ const ProfilePage = () => {
 			setSaving(false);
 		}
 	};
-
 	const handleInputChange = (e) => {
 		const { name, value, type, checked } = e.target;
 		const inputValue = type === "checkbox" ? checked : value;
@@ -178,6 +155,8 @@ const ProfilePage = () => {
 				let current = newData;
 				for (let i = 0; i < parts.length - 1; i++) {
 					if (!current[parts[i]]) current[parts[i]] = {};
+					// Create a shallow copy to maintain immutability
+					current[parts[i]] = { ...current[parts[i]] };
 					current = current[parts[i]];
 				}
 				current[parts[parts.length - 1]] = inputValue;

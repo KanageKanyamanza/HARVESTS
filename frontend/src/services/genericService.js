@@ -123,6 +123,9 @@ const createGenericService = (userType) => ({
 	getPublicReviews: (id, params = {}) => {
 		return api.get(`/${userType}s/${id}/reviews`, { params });
 	},
+	getReviews: (id, params = {}) => {
+		return api.get(`/${userType}s/${id}/reviews`, { params });
+	},
 });
 
 // Services spécifiques pour chaque type d'utilisateur

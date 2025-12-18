@@ -165,6 +165,121 @@ const ProducerFields = ({ formData, editing, onInputChange, safeDisplay }) => {
 				</div>
 			</div>
 
+			{/* Crops Section */}
+			<div className="mt-6 border-t border-gray-100 pt-6">
+				<h4 className="text-md font-medium text-gray-800 mb-3 flex items-center">
+					<FiPackage className="mr-2" />
+					Cultures & Produits
+				</h4>
+
+				{editing ? (
+					<div className="space-y-4">
+						{(formData.crops || []).map((crop, index) => (
+							<div
+								key={index}
+								className="flex items-center space-x-2 bg-gray-50 p-2 rounded-md"
+							>
+								<input
+									type="text"
+									value={crop.name || ""}
+									onChange={(e) => {
+										const newCrops = [...(formData.crops || [])];
+										newCrops[index] = {
+											...newCrops[index],
+											name: e.target.value,
+										};
+										onInputChange({
+											target: {
+												name: "crops",
+												value: newCrops,
+												type: "custom",
+											},
+										});
+									}}
+									className={`${inputClass} text-sm py-1`}
+									placeholder="Nom de la culture (ex: Tomates)"
+								/>
+								<select
+									value={crop.category || ""}
+									onChange={(e) => {
+										const newCrops = [...(formData.crops || [])];
+										newCrops[index] = {
+											...newCrops[index],
+											category: e.target.value,
+										};
+										onInputChange({
+											target: {
+												name: "crops",
+												value: newCrops,
+												type: "custom",
+											},
+										});
+									}}
+									className={`${inputClass} text-sm py-1 w-40`}
+								>
+									<option value="">Catégorie...</option>
+									<option value="cereals">Céréales</option>
+									<option value="vegetables">Légumes</option>
+									<option value="fruits">Fruits</option>
+									<option value="legumes">Légumineuses</option>
+									<option value="tubers">Tubercules</option>
+								</select>
+								<button
+									type="button"
+									onClick={() => {
+										const newCrops = (formData.crops || []).filter(
+											(_, i) => i !== index
+										);
+										onInputChange({
+											target: {
+												name: "crops",
+												value: newCrops,
+												type: "custom",
+											},
+										});
+									}}
+									className="text-red-500 hover:text-red-700 p-1"
+								>
+									<FiMinimize2 />
+								</button>
+							</div>
+						))}
+						<button
+							type="button"
+							onClick={() => {
+								const newCrops = [
+									...(formData.crops || []),
+									{ name: "", category: "" },
+								];
+								onInputChange({
+									target: { name: "crops", value: newCrops, type: "custom" },
+								});
+							}}
+							className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+						>
+							+ Ajouter une culture
+						</button>
+					</div>
+				) : (
+					<div className="flex flex-wrap gap-2">
+						{(formData.crops || []).length > 0 ? (
+							formData.crops.map((crop, idx) => (
+								<span
+									key={idx}
+									className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-100"
+								>
+									{crop.name} ({crop.category})
+								</span>
+							))
+						) : (
+							<span className="text-gray-500 italic text-sm">
+								Aucune culture renseignée
+							</span>
+						)}
+					</div>
+				)}
+			</div>
+
 			{/* Delivery Options */}
 			<div className="mt-4 border-t border-gray-100 pt-4">
 				<h4 className="text-md font-medium text-gray-800 mb-3">
@@ -228,6 +343,96 @@ const ProducerFields = ({ formData, editing, onInputChange, safeDisplay }) => {
 							)}
 						</div>
 					)}
+				</div>
+			</div>
+
+			{/* Operating Hours */}
+			<div className="mt-6 pt-6 border-t border-gray-100">
+				<h4 className="text-md font-medium text-gray-800 mb-3 flex items-center">
+					<FiLayers className="mr-2" />
+					Horaires d'ouverture
+				</h4>
+
+				<div className="grid grid-cols-1 gap-2">
+					{[
+						{ key: "monday", label: "Lundi" },
+						{ key: "tuesday", label: "Mardi" },
+						{ key: "wednesday", label: "Mercredi" },
+						{ key: "thursday", label: "Jeudi" },
+						{ key: "friday", label: "Vendredi" },
+						{ key: "saturday", label: "Samedi" },
+						{ key: "sunday", label: "Dimanche" },
+					].map((day) => (
+						<div
+							key={day.key}
+							className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0"
+						>
+							<span className="w-24 font-medium text-sm text-gray-700">
+								{day.label}
+							</span>
+							{editing ? (
+								<div className="flex items-center space-x-2 flex-1">
+									<input
+										type="checkbox"
+										name={`shopInfo.openingHours.${day.key}.isOpen`}
+										checked={
+											formData.shopInfo?.openingHours?.[day.key]?.isOpen ?? true
+										}
+										onChange={onInputChange}
+										className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+									/>
+									{(formData.shopInfo?.openingHours?.[day.key]?.isOpen ??
+										true) && (
+										<>
+											<input
+												type="time"
+												name={`shopInfo.openingHours.${day.key}.open`}
+												value={
+													formData.shopInfo?.openingHours?.[day.key]?.open ||
+													"08:00"
+												}
+												onChange={onInputChange}
+												className="px-2 py-1 border border-gray-300 rounded text-sm w-24"
+											/>
+											<span className="text-gray-500">-</span>
+											<input
+												type="time"
+												name={`shopInfo.openingHours.${day.key}.close`}
+												value={
+													formData.shopInfo?.openingHours?.[day.key]?.close ||
+													"18:00"
+												}
+												onChange={onInputChange}
+												className="px-2 py-1 border border-gray-300 rounded text-sm w-24"
+											/>
+										</>
+									)}
+									{!(
+										formData.shopInfo?.openingHours?.[day.key]?.isOpen ?? true
+									) && (
+										<span className="text-sm text-gray-400 italic ml-2">
+											Fermé
+										</span>
+									)}
+								</div>
+							) : (
+								<div className="flex-1 text-right">
+									{formData.shopInfo?.openingHours?.[day.key]?.isOpen ===
+									false ? (
+										<span className="text-gray-400 italic text-sm">Fermé</span>
+									) : (
+										<span className="text-gray-900 text-sm">
+											{formData.shopInfo?.openingHours?.[day.key]?.open ||
+												"08:00"}{" "}
+											-{" "}
+											{formData.shopInfo?.openingHours?.[day.key]?.close ||
+												"18:00"}
+										</span>
+									)}
+								</div>
+							)}
+						</div>
+					))}
 				</div>
 			</div>
 		</div>
