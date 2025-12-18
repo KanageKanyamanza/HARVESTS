@@ -1,351 +1,398 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
-import { generateUniqueId } from '../utils/uuid';
-import { notificationService } from '../services/notificationService';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { useAuth } from "../hooks/useAuth";
+import { generateUniqueId } from "../utils/uuid";
+import { notificationService } from "../services/notificationService";
 
 const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  
-  // Vérifier si useAuth est disponible
-  let isAuthenticated = false;
-  try {
-    const auth = useAuth();
-    isAuthenticated = auth?.isAuthenticated || false;
-  } catch (error) {
-    console.warn('useAuth non disponible dans NotificationProvider:', error);
-    isAuthenticated = false;
-  }
+	const [notifications, setNotifications] = useState([]);
+	const [unreadCount, setUnreadCount] = useState(0);
 
-  // Nettoyer les notifications anciennes (plus de 30 jours)
-  const cleanupOldNotifications = () => {
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
-    setNotifications(prev => {
-      const filtered = prev.filter(notification => {
-        const notificationDate = new Date(notification.timestamp);
-        return notificationDate > thirtyDaysAgo;
-      });
-      
-      // Mettre à jour le localStorage avec les notifications filtrées
-      if (filtered.length !== prev.length) {
-        if (filtered.length > 0) {
-          localStorage.setItem('harvests_notifications', JSON.stringify(filtered));
-        } else {
-          localStorage.removeItem('harvests_notifications');
-        }
-      }
-      
-      return filtered;
-    });
-    
-    // Recalculer le nombre de notifications non lues
-    const currentNotifications = JSON.parse(localStorage.getItem('harvests_notifications') || '[]');
-    setUnreadCount(currentNotifications.filter(n => !n.read).length);
-  };
+	// Vérifier si useAuth est disponible
+	let isAuthenticated = false;
+	try {
+		const auth = useAuth();
+		isAuthenticated = auth?.isAuthenticated || false;
+	} catch (error) {
+		console.warn("useAuth non disponible dans NotificationProvider:", error);
+		isAuthenticated = false;
+	}
 
-  // Charger les notifications (backend + localStorage pour les non-connectés)
-  useEffect(() => {
-    const loadNotifications = async () => {
-      if (isAuthenticated) {
-        // Délai pour éviter le rate limiting
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Utilisateur connecté : récupérer depuis le backend
-        try {
-          console.log('[NotificationContext] Chargement des notifications pour utilisateur connecté');
-          const backendNotifications = await notificationService.getNotifications(1, 50);
-          console.log('[NotificationContext] Notifications chargées:', {
-            count: backendNotifications.notifications?.length || 0,
-            unreadCount: backendNotifications.unreadCount || 0
-          });
-          setNotifications(backendNotifications.notifications || []);
-          setUnreadCount(backendNotifications.unreadCount || 0);
-        } catch (error) {
-          // Ne pas logger les erreurs 401 (non authentifié) pour éviter le spam
-          if (error.response?.status !== 401) {
-            console.error('[NotificationContext] Erreur lors du chargement des notifications du backend:', error);
-          }
-          // Fallback sur localStorage en cas d'erreur
-          loadFromLocalStorage();
-        }
-      } else {
-        // Utilisateur non connecté : utiliser localStorage
-        loadFromLocalStorage();
-      }
-    };
+	// Nettoyer les notifications anciennes (plus de 30 jours)
+	const cleanupOldNotifications = () => {
+		const thirtyDaysAgo = new Date();
+		thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const loadFromLocalStorage = () => {
-      const savedNotifications = localStorage.getItem('harvests_notifications');
-      if (savedNotifications) {
-        try {
-          const parsed = JSON.parse(savedNotifications);
-          setNotifications(parsed);
-          setUnreadCount(parsed.filter(n => !n.read).length);
-        } catch (error) {
-          console.error('Erreur lors du chargement des notifications:', error);
-        }
-      }
-    };
+		setNotifications((prev) => {
+			const filtered = prev.filter((notification) => {
+				const notificationDate = new Date(notification.timestamp);
+				return notificationDate > thirtyDaysAgo;
+			});
 
-    loadNotifications();
-    
-    // Nettoyer les notifications anciennes au chargement (seulement pour localStorage)
-    if (!isAuthenticated) {
-      cleanupOldNotifications();
-    }
+			// Mettre à jour le localStorage avec les notifications filtrées
+			if (filtered.length !== prev.length) {
+				if (filtered.length > 0) {
+					localStorage.setItem(
+						"harvests_notifications",
+						JSON.stringify(filtered)
+					);
+				} else {
+					localStorage.removeItem("harvests_notifications");
+				}
+			}
 
-    // 🔄 Polling automatique toutes les 30 secondes pour actualiser les notifications
-    let pollingInterval;
-    if (isAuthenticated) {
-      pollingInterval = setInterval(async () => {
-        try {
-          const backendNotifications = await notificationService.getNotifications(1, 50);
-          setNotifications(backendNotifications.notifications || []);
-          setUnreadCount(backendNotifications.unreadCount || 0);
-        } catch (error) {
-          // Ne pas logger les erreurs 401 (non authentifié) pour éviter le spam
-          if (error.response?.status !== 401) {
-            console.error('Erreur lors de l\'actualisation automatique:', error);
-          }
-        }
-      }, 30000); // 30 secondes
-    }
+			return filtered;
+		});
 
-    // Nettoyer l'intervalle au démontage
-    return () => {
-      if (pollingInterval) {
-        clearInterval(pollingInterval);
-      }
-    };
-  }, [isAuthenticated]); // Recharger quand l'état d'authentification change
+		// Recalculer le nombre de notifications non lues
+		const currentNotifications = JSON.parse(
+			localStorage.getItem("harvests_notifications") || "[]"
+		);
+		setUnreadCount(currentNotifications.filter((n) => !n.read).length);
+	};
 
-  // Sauvegarder les notifications dans localStorage (seulement pour les non-connectés)
-  useEffect(() => {
-    if (!isAuthenticated && notifications.length > 0) {
-      localStorage.setItem('harvests_notifications', JSON.stringify(notifications));
-    }
-  }, [notifications, isAuthenticated]);
+	// Charger les notifications (backend + localStorage pour les non-connectés)
+	useEffect(() => {
+		const loadNotifications = async () => {
+			if (isAuthenticated) {
+				// Délai pour éviter le rate limiting
+				await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  // Ajouter une notification
-  const addNotification = (notification) => {
-    const newNotification = {
-      id: generateUniqueId(),
-      ...notification,
-      timestamp: new Date().toISOString(),
-      read: false,
-      showAsToast: notification.showAsToast !== false // Par défaut, ne pas afficher comme toast
-    };
+				// Utilisateur connecté : récupérer depuis le backend
+				try {
+					console.log(
+						"[NotificationContext] Chargement des notifications pour utilisateur connecté"
+					);
+					const backendNotifications =
+						await notificationService.getNotifications(1, 50);
+					console.log("[NotificationContext] Notifications chargées:", {
+						count: backendNotifications.notifications?.length || 0,
+						unreadCount: backendNotifications.unreadCount || 0,
+					});
+					setNotifications(backendNotifications.notifications || []);
+					setUnreadCount(backendNotifications.unreadCount || 0);
+				} catch (error) {
+					// Ne pas logger les erreurs 401 (non authentifié) pour éviter le spam
+					if (error.response?.status !== 401) {
+						console.error(
+							"[NotificationContext] Erreur lors du chargement des notifications du backend:",
+							error
+						);
+					}
+					// Fallback sur localStorage en cas d'erreur
+					loadFromLocalStorage();
+				}
+			} else {
+				// Utilisateur non connecté : utiliser localStorage
+				loadFromLocalStorage();
+			}
+		};
 
-    setNotifications(prev => [newNotification, ...prev]);
-    setUnreadCount(prev => prev + 1);
+		const loadFromLocalStorage = () => {
+			const savedNotifications = localStorage.getItem("harvests_notifications");
+			if (savedNotifications) {
+				try {
+					const parsed = JSON.parse(savedNotifications);
+					setNotifications(parsed);
+					setUnreadCount(parsed.filter((n) => !n.read).length);
+				} catch (error) {
+					console.error("Erreur lors du chargement des notifications:", error);
+				}
+			}
+		};
 
-    // Auto-supprimer après 5 secondes SEULEMENT pour les toasts temporaires
-    if (notification.showAsToast === true) {
-      setTimeout(() => {
-        removeNotification(newNotification.id);
-      }, 5000);
-    }
-  };
+		loadNotifications();
 
-  // Marquer une notification comme lue
-  const markAsRead = async (notificationId) => {
-    // Synchroniser avec le backend d'abord si l'utilisateur est connecté
-    if (isAuthenticated) {
-      try {
-        await notificationService.markAsRead(notificationId);
-        // Après succès, recharger les notifications depuis le backend pour s'assurer de la cohérence
-        const backendNotifications = await notificationService.getNotifications(1, 50);
-        setNotifications(backendNotifications.notifications || []);
-        setUnreadCount(backendNotifications.unreadCount || 0);
-      } catch (error) {
-        console.error('Erreur lors de la synchronisation avec le backend:', error);
-        // En cas d'erreur, mettre à jour l'état local quand même
-        setNotifications(prev => 
-          prev.map(notif => 
-            notif.id === notificationId 
-              ? { ...notif, read: true }
-              : notif
-          )
-        );
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      }
-    } else {
-      // Mode local : mettre à jour l'état local uniquement
-      setNotifications(prev => 
-        prev.map(notif => 
-          notif.id === notificationId 
-            ? { ...notif, read: true }
-            : notif
-        )
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    }
-  };
+		// Nettoyer les notifications anciennes au chargement (seulement pour localStorage)
+		if (!isAuthenticated) {
+			cleanupOldNotifications();
+		}
 
-  // Marquer toutes les notifications comme lues
-  const markAllAsRead = async () => {
-    // Synchroniser avec le backend d'abord si l'utilisateur est connecté
-    if (isAuthenticated) {
-      try {
-        await notificationService.markAllAsRead();
-        // Après succès, recharger les notifications depuis le backend pour s'assurer de la cohérence
-        const backendNotifications = await notificationService.getNotifications(1, 50);
-        setNotifications(backendNotifications.notifications || []);
-        setUnreadCount(backendNotifications.unreadCount || 0);
-      } catch (error) {
-        console.error('Erreur lors de la synchronisation avec le backend:', error);
-        // En cas d'erreur, mettre à jour l'état local quand même
-        setNotifications(prev => 
-          prev.map(notif => ({ ...notif, read: true }))
-        );
-        setUnreadCount(0);
-      }
-    } else {
-      // Mode local : mettre à jour l'état local uniquement
-      setNotifications(prev => 
-        prev.map(notif => ({ ...notif, read: true }))
-      );
-      setUnreadCount(0);
-    }
-  };
+		// 🔄 Polling automatique toutes les 30 secondes pour actualiser les notifications
+		let pollingInterval;
+		if (isAuthenticated) {
+			pollingInterval = setInterval(async () => {
+				// Ne pas poller si l'onglet n'est pas visible
+				if (document.hidden) return;
 
-  // Supprimer une notification
-  const removeNotification = async (notificationId) => {
-    // Mettre à jour l'état local immédiatement
-    setNotifications(prev => {
-      const notification = prev.find(n => n.id === notificationId);
-      if (notification && !notification.read) {
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      }
-      return prev.filter(n => n.id !== notificationId);
-    });
+				try {
+					const backendNotifications =
+						await notificationService.getNotifications(1, 50);
+					setNotifications(backendNotifications.notifications || []);
+					setUnreadCount(backendNotifications.unreadCount || 0);
+				} catch (error) {
+					// Ne pas logger les erreurs 401 (non authentifié) pour éviter le spam
+					if (error.response?.status !== 401) {
+						console.error("Erreur lors de l'actualisation automatique:", error);
+					}
+				}
+			}, 60000); // 60 secondes au lieu de 30
+		}
 
-    // Synchroniser avec le backend si l'utilisateur est connecté ET que c'est un ID MongoDB valide
-    if (isAuthenticated && notificationId && notificationId.match(/^[0-9a-fA-F]{24}$/)) {
-      try {
-        await notificationService.deleteNotification(notificationId);
-      } catch (error) {
-        console.error('Erreur lors de la synchronisation avec le backend:', error);
-      }
-    }
-  };
+		// Nettoyer l'intervalle au démontage
+		return () => {
+			if (pollingInterval) {
+				clearInterval(pollingInterval);
+			}
+		};
+	}, [isAuthenticated]); // Recharger quand l'état d'authentification change
 
-  // Supprimer toutes les notifications
-  const clearAllNotifications = async () => {
-    // Mettre à jour l'état local immédiatement
-    setNotifications([]);
-    setUnreadCount(0);
-    localStorage.removeItem('harvests_notifications');
+	// Sauvegarder les notifications dans localStorage (seulement pour les non-connectés)
+	useEffect(() => {
+		if (!isAuthenticated && notifications.length > 0) {
+			localStorage.setItem(
+				"harvests_notifications",
+				JSON.stringify(notifications)
+			);
+		}
+	}, [notifications, isAuthenticated]);
 
-    // Synchroniser avec le backend si l'utilisateur est connecté
-    if (isAuthenticated) {
-      try {
-        await notificationService.deleteAllNotifications();
-      } catch (error) {
-        console.error('Erreur lors de la synchronisation avec le backend:', error);
-      }
-    }
-  };
+	// Ajouter une notification
+	const addNotification = (notification) => {
+		const newNotification = {
+			id: generateUniqueId(),
+			...notification,
+			timestamp: new Date().toISOString(),
+			read: false,
+			showAsToast: notification.showAsToast !== false, // Par défaut, ne pas afficher comme toast
+		};
 
-  // Fonctions utilitaires pour différents types de notifications
-  const showSuccess = (message, title = 'Succès', showAsToast = true) => {
-    addNotification({
-      type: 'success',
-      title,
-      message,
-      icon: '✅',
-      showAsToast
-    });
-  };
+		setNotifications((prev) => [newNotification, ...prev]);
+		setUnreadCount((prev) => prev + 1);
 
-  const showError = (message, title = 'Erreur', showAsToast = true) => {
-    addNotification({
-      type: 'error',
-      title,
-      message,
-      icon: '❌',
-      showAsToast
-    });
-  };
+		// Auto-supprimer après 5 secondes SEULEMENT pour les toasts temporaires
+		if (notification.showAsToast === true) {
+			setTimeout(() => {
+				removeNotification(newNotification.id);
+			}, 5000);
+		}
+	};
 
-  const showInfo = (message, title = 'Information', showAsToast = true) => {
-    addNotification({
-      type: 'info',
-      title,
-      message,
-      icon: 'ℹ️',
-      showAsToast
-    });
-  };
+	// Marquer une notification comme lue
+	const markAsRead = async (notificationId) => {
+		// Synchroniser avec le backend d'abord si l'utilisateur est connecté
+		if (isAuthenticated) {
+			try {
+				await notificationService.markAsRead(notificationId);
+				// Après succès, recharger les notifications depuis le backend pour s'assurer de la cohérence
+				const backendNotifications = await notificationService.getNotifications(
+					1,
+					50
+				);
+				setNotifications(backendNotifications.notifications || []);
+				setUnreadCount(backendNotifications.unreadCount || 0);
+			} catch (error) {
+				console.error(
+					"Erreur lors de la synchronisation avec le backend:",
+					error
+				);
+				// En cas d'erreur, mettre à jour l'état local quand même
+				setNotifications((prev) =>
+					prev.map((notif) =>
+						notif.id === notificationId ? { ...notif, read: true } : notif
+					)
+				);
+				setUnreadCount((prev) => Math.max(0, prev - 1));
+			}
+		} else {
+			// Mode local : mettre à jour l'état local uniquement
+			setNotifications((prev) =>
+				prev.map((notif) =>
+					notif.id === notificationId ? { ...notif, read: true } : notif
+				)
+			);
+			setUnreadCount((prev) => Math.max(0, prev - 1));
+		}
+	};
 
-  const showWarning = (message, title = 'Attention', showAsToast = true) => {
-    addNotification({
-      type: 'warning',
-      title,
-      message,
-      icon: '⚠️',
-      showAsToast
-    });
-  };
+	// Marquer toutes les notifications comme lues
+	const markAllAsRead = async () => {
+		// Synchroniser avec le backend d'abord si l'utilisateur est connecté
+		if (isAuthenticated) {
+			try {
+				await notificationService.markAllAsRead();
+				// Après succès, recharger les notifications depuis le backend pour s'assurer de la cohérence
+				const backendNotifications = await notificationService.getNotifications(
+					1,
+					50
+				);
+				setNotifications(backendNotifications.notifications || []);
+				setUnreadCount(backendNotifications.unreadCount || 0);
+			} catch (error) {
+				console.error(
+					"Erreur lors de la synchronisation avec le backend:",
+					error
+				);
+				// En cas d'erreur, mettre à jour l'état local quand même
+				setNotifications((prev) =>
+					prev.map((notif) => ({ ...notif, read: true }))
+				);
+				setUnreadCount(0);
+			}
+		} else {
+			// Mode local : mettre à jour l'état local uniquement
+			setNotifications((prev) =>
+				prev.map((notif) => ({ ...notif, read: true }))
+			);
+			setUnreadCount(0);
+		}
+	};
 
-  // Rafraîchir les notifications depuis le backend
-  const refreshNotifications = async () => {
-    if (isAuthenticated) {
-      try {
-        const backendNotifications = await notificationService.getNotifications(1, 50);
-        setNotifications(backendNotifications.notifications || []);
-        setUnreadCount(backendNotifications.unreadCount || 0);
-      } catch (error) {
-        console.error('Erreur lors du rafraîchissement des notifications:', error);
-      }
-    } else {
-      // Mode local : recharger depuis localStorage
-      const savedNotifications = localStorage.getItem('harvests_notifications');
-      if (savedNotifications) {
-        try {
-          const parsed = JSON.parse(savedNotifications);
-          setNotifications(parsed);
-          setUnreadCount(parsed.filter(n => !n.read).length);
-        } catch (error) {
-          console.error('Erreur lors du rafraîchissement des notifications:', error);
-        }
-      }
-    }
-  };
+	// Supprimer une notification
+	const removeNotification = async (notificationId) => {
+		// Mettre à jour l'état local immédiatement
+		setNotifications((prev) => {
+			const notification = prev.find((n) => n.id === notificationId);
+			if (notification && !notification.read) {
+				setUnreadCount((prev) => Math.max(0, prev - 1));
+			}
+			return prev.filter((n) => n.id !== notificationId);
+		});
 
-  const value = {
-    notifications,
-    unreadCount,
-    addNotification,
-    markAsRead,
-    markAllAsRead,
-    removeNotification,
-    clearAllNotifications,
-    refreshNotifications,
-    cleanupOldNotifications,
-    showSuccess,
-    showError,
-    showInfo,
-    showWarning
-  };
+		// Synchroniser avec le backend si l'utilisateur est connecté ET que c'est un ID MongoDB valide
+		if (
+			isAuthenticated &&
+			notificationId &&
+			notificationId.match(/^[0-9a-fA-F]{24}$/)
+		) {
+			try {
+				await notificationService.deleteNotification(notificationId);
+			} catch (error) {
+				console.error(
+					"Erreur lors de la synchronisation avec le backend:",
+					error
+				);
+			}
+		}
+	};
 
-  return (
-    <NotificationContext.Provider value={value}>
-      {children}
-    </NotificationContext.Provider>
-  );
+	// Supprimer toutes les notifications
+	const clearAllNotifications = async () => {
+		// Mettre à jour l'état local immédiatement
+		setNotifications([]);
+		setUnreadCount(0);
+		localStorage.removeItem("harvests_notifications");
+
+		// Synchroniser avec le backend si l'utilisateur est connecté
+		if (isAuthenticated) {
+			try {
+				await notificationService.deleteAllNotifications();
+			} catch (error) {
+				console.error(
+					"Erreur lors de la synchronisation avec le backend:",
+					error
+				);
+			}
+		}
+	};
+
+	// Fonctions utilitaires pour différents types de notifications
+	const showSuccess = (message, title = "Succès", showAsToast = true) => {
+		addNotification({
+			type: "success",
+			title,
+			message,
+			icon: "✅",
+			showAsToast,
+		});
+	};
+
+	const showError = (message, title = "Erreur", showAsToast = true) => {
+		addNotification({
+			type: "error",
+			title,
+			message,
+			icon: "❌",
+			showAsToast,
+		});
+	};
+
+	const showInfo = (message, title = "Information", showAsToast = true) => {
+		addNotification({
+			type: "info",
+			title,
+			message,
+			icon: "ℹ️",
+			showAsToast,
+		});
+	};
+
+	const showWarning = (message, title = "Attention", showAsToast = true) => {
+		addNotification({
+			type: "warning",
+			title,
+			message,
+			icon: "⚠️",
+			showAsToast,
+		});
+	};
+
+	// Rafraîchir les notifications depuis le backend
+	const refreshNotifications = async () => {
+		if (isAuthenticated) {
+			try {
+				const backendNotifications = await notificationService.getNotifications(
+					1,
+					50
+				);
+				setNotifications(backendNotifications.notifications || []);
+				setUnreadCount(backendNotifications.unreadCount || 0);
+			} catch (error) {
+				console.error(
+					"Erreur lors du rafraîchissement des notifications:",
+					error
+				);
+			}
+		} else {
+			// Mode local : recharger depuis localStorage
+			const savedNotifications = localStorage.getItem("harvests_notifications");
+			if (savedNotifications) {
+				try {
+					const parsed = JSON.parse(savedNotifications);
+					setNotifications(parsed);
+					setUnreadCount(parsed.filter((n) => !n.read).length);
+				} catch (error) {
+					console.error(
+						"Erreur lors du rafraîchissement des notifications:",
+						error
+					);
+				}
+			}
+		}
+	};
+
+	const value = {
+		notifications,
+		unreadCount,
+		addNotification,
+		markAsRead,
+		markAllAsRead,
+		removeNotification,
+		clearAllNotifications,
+		refreshNotifications,
+		cleanupOldNotifications,
+		showSuccess,
+		showError,
+		showInfo,
+		showWarning,
+	};
+
+	return (
+		<NotificationContext.Provider value={value}>
+			{children}
+		</NotificationContext.Provider>
+	);
 };
 
 const useNotifications = () => {
-  const context = useContext(NotificationContext);
-  if (!context) {
-    throw new Error('useNotifications doit être utilisé dans un NotificationProvider');
-  }
-  return context;
+	const context = useContext(NotificationContext);
+	if (!context) {
+		throw new Error(
+			"useNotifications doit être utilisé dans un NotificationProvider"
+		);
+	}
+	return context;
 };
 
 export { useNotifications };

@@ -2,10 +2,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
-import heroBg1 from "../../assets/images/herobgcar1.jpg";
-import heroBg2 from "../../assets/images/herobgcar2.jpg";
-import heroBg3 from "../../assets/images/herobgcar3.jpg";
-import heroBg4 from "../../assets/images/herobgcar4.jpg";
+import heroBg1 from "../../assets/images/herobgcar1.webp";
+import heroBg2 from "../../assets/images/herobgcar2.webp";
+import heroBg3 from "../../assets/images/herobgcar3.webp";
+import heroBg4 from "../../assets/images/herobgcar4.webp";
 
 const HeroSection = () => {
 	const { isAuthenticated, getDefaultRoute } = useAuth();
@@ -20,7 +20,8 @@ const HeroSection = () => {
 			{
 				id: 1,
 				image: heroBg1,
-				subtitle: "Avec HARVESTS, les restaurateurs peuvent acheter des produits agricoles frais et de qualité directement du producteur.",
+				subtitle:
+					"Avec HARVESTS, les hotels et restaurants peuvent acheter des produits agricoles frais et de qualité directement du producteur.",
 			},
 			{
 				id: 2,
@@ -75,23 +76,33 @@ const HeroSection = () => {
 		return () => clearInterval(interval);
 	}, [slides.length]);
 
-	// const goToSlide = (index) => {
-	// 	setCurrentSlide((index + slides.length) % slides.length);
-	// };
-
 	const slide = slides[currentSlide];
 
 	return (
-		<section
-			className="relative flex h-screen overflow-hidden text-white bg-cover bg-center bg-no-repeat transition-all duration-700 ease-out"
-			style={{
-				backgroundImage: `url(${slide.image})`,
-			}}
-		>
+		<section className="relative flex h-screen overflow-hidden text-white">
+			{/* Image de fond optimisée pour LCP */}
+			{slides.map((item, index) => (
+				<img
+					key={item.id}
+					src={item.image}
+					alt="Background"
+					className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-out ${
+						index === currentSlide ? "opacity-100" : "opacity-0"
+					}`}
+					fetchPriority={index === 0 ? "high" : "auto"} // Priorité haute pour la première image (LCP)
+					loading={index === 0 ? "eager" : "lazy"} // Charger immédiatement la première image
+					decoding="async"
+				/>
+			))}
+
 			<div className="absolute bg-black inset-0 bg-pattern opacity-50"></div>
 			<div className="relative container-xl flex flex-1 py-16 md:py-20">
-				<div className={`flex w-full md:max-w-4xl flex-col gap-6 ${position.wrapper}`}>
-					<h1 className={`text-3xl font-display font-bold text-balance ${position.title}`}>
+				<div
+					className={`flex w-full md:max-w-4xl flex-col gap-6 ${position.wrapper}`}
+				>
+					<h1
+						className={`text-3xl font-display font-bold text-balance ${position.title}`}
+					>
 						{slide.subtitle}
 					</h1>
 
@@ -106,48 +117,19 @@ const HeroSection = () => {
 						</Link>
 						{/* Bouton Se connecter/Dashboard visible uniquement sur mobile et tablette */}
 						<Link
-							to={isAuthenticated ? (getDefaultRoute ? getDefaultRoute() : '/dashboard') : '/login'}
+							to={
+								isAuthenticated
+									? getDefaultRoute
+										? getDefaultRoute()
+										: "/dashboard"
+									: "/login"
+							}
 							className="btn-lg bg-white/20 backdrop-blur-sm border border-white/40 font-semibold inline-flex items-center text-white hover:bg-white/30 hover:border-white/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-in-out md:hidden"
 						>
-							{isAuthenticated ? 'Dashboard' : 'Se connecter'}
+							{isAuthenticated ? "Dashboard" : "Se connecter"}
 						</Link>
 					</div>
 				</div>
-
-				{/* Contrôles du carrousel */}
-				{/* <div className="absolute inset-x-0 bottom-10 flex items-center justify-center gap-6">
-					<button
-						type="button"
-						onClick={() => goToSlide(currentSlide - 1)}
-						className="inline-flex items-center justify-center h-12 w-12 rounded-full border border-white/40 bg-white/10 backdrop-blur-sm hover:bg-white/20 transition"
-						aria-label="Slide précédent"
-					>
-						<ChevronLeft className="h-6 w-6" />
-					</button>
-					<div className="flex items-center gap-3">
-						{slides.map((item, index) => (
-							<button
-								key={item.id}
-								type="button"
-								onClick={() => goToSlide(index)}
-								className={`h-2 rounded-full transition-all duration-300 ${
-									index === currentSlide
-										? "w-10 bg-white"
-										: "w-4 bg-white/40 hover:bg-white/70"
-								}`}
-								aria-label={`Aller au slide ${index + 1}`}
-							/>
-						))}
-					</div>
-					<button
-						type="button"
-						onClick={() => goToSlide(currentSlide + 1)}
-						className="inline-flex items-center justify-center h-12 w-12 rounded-full border border-white/40 bg-white/10 backdrop-blur-sm hover:bg-white/20 transition"
-						aria-label="Slide suivant"
-					>
-						<ChevronRight className="h-6 w-6" />
-					</button>
-				</div> */}
 
 				{/* Lien vers la section vidéo en bas à droite */}
 				<div className="absolute bottom-6 sm:right-24 md:bottom-10 md:right-[80px]">
