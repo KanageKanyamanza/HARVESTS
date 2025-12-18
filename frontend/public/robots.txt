@@ -62,3 +62,8 @@ Sitemap: https://www.harvests.site/sitemap.xml
 # Crawl-delay (optionnel, en secondes)
 Crawl-delay: 1
 
+
+# Bloquer l'accès aux dossiers techniques
+Disallow: /backend/
+Disallow: /uploads/
+Disallow: /node_modules/
