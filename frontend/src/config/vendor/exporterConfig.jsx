@@ -11,6 +11,7 @@ import {
 	VendorReviewsList,
 	VendorEmptyState,
 } from "../../components/common/vendor";
+import CertificationsSection from "../../components/profile/specific/CertificationsSection";
 
 const VEHICLE_TYPES = {
 	container: "Conteneur standard",
@@ -138,25 +139,27 @@ export const exporterConfig = {
 	getEmptyStateDescription:
 		"Cet exportateur n'a pas encore de véhicules ou conteneurs enregistrés.",
 
-	tabs: ["fleet", "markets", "about", "reviews"],
+	tabs: ["fleet", "markets", "about", "certifications", "reviews"],
 	getTabLabel: (tab) =>
 		({
 			fleet: "Flotte",
 			markets: "Marchés",
 			about: "À propos",
+			certifications: "Certifications",
 			reviews: "Avis",
 		}[tab] || tab),
-	getTabCount: (tab, items, reviews = []) => {
-		if (tab === "fleet") return items.length;
-		if (tab === "reviews") return reviews.length;
-		if (tab === "markets") return vendor.targetMarkets?.length || 0;
+	getTabCount: (tab, items, reviews, vendor) => {
+		if (tab === "fleet") return items?.length || 0;
+		if (tab === "reviews") return reviews?.length || 0;
+		if (tab === "markets") return vendor?.targetMarkets?.length || 0;
 		if (tab === "about") return 1;
+		if (tab === "certifications") return vendor?.certifications?.length || 0;
 		return 0;
 	},
 
 	getTabContent: (tab, items, vendor, helpers, reviews = []) => {
 		if (tab === "fleet") {
-			if (items.length === 0) {
+			if (!items || items.length === 0) {
 				return (
 					<VendorEmptyState
 						icon={helpers.getEmptyStateIcon}
@@ -312,6 +315,14 @@ export const exporterConfig = {
 
 		if (tab === "reviews") {
 			return <VendorReviewsList reviews={reviews} />;
+		}
+		if (tab === "certifications") {
+			return (
+				<CertificationsSection
+					certifications={vendor.certifications}
+					editing={false}
+				/>
+			);
 		}
 		return null;
 	},

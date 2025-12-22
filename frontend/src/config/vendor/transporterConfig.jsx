@@ -17,6 +17,7 @@ import {
 	VendorHours,
 	VendorEmptyState,
 } from "../../components/common/vendor";
+import CertificationsSection from "../../components/profile/specific/CertificationsSection";
 
 const TRANSPORT_TYPES = {
 	road: "Transport routier",
@@ -135,30 +136,32 @@ export const transporterConfig = {
 	getEmptyStateDescription:
 		"Ce transporteur n'a pas encore de véhicules enregistrés.",
 
-	tabs: ["fleet", "services", "about", "reviews", "hours"],
+	tabs: ["fleet", "services", "about", "certifications", "reviews", "hours"],
 	getTabLabel: (tab) =>
 		({
 			fleet: "Flotte",
 			services: "Logistique",
 			about: "À propos",
+			certifications: "Certifications",
 			reviews: "Avis",
 			hours: "Horaires",
 		}[tab] || tab),
-	getTabCount: (tab, items, reviews = []) => {
-		if (tab === "fleet") return items.length;
-		if (tab === "reviews") return reviews.length;
+	getTabCount: (tab, items, reviews, vendor) => {
+		if (tab === "fleet") return items?.length || 0;
+		if (tab === "reviews") return reviews?.length || 0;
 		if (tab === "services")
 			return (
-				(vendor.serviceAreas?.length || 0) +
-				(vendor.specialCapabilities ? 1 : 0)
+				(vendor?.serviceAreas?.length || 0) +
+				(vendor?.specialCapabilities ? 1 : 0)
 			);
 		if (tab === "about" || tab === "hours") return 1;
+		if (tab === "certifications") return vendor?.certifications?.length || 0;
 		return 0;
 	},
 
 	getTabContent: (tab, items, vendor, helpers, reviews = []) => {
 		if (tab === "fleet") {
-			if (items.length === 0) {
+			if (!items || items.length === 0) {
 				return (
 					<VendorEmptyState
 						icon={helpers.getEmptyStateIcon}
@@ -298,6 +301,14 @@ export const transporterConfig = {
 					openField="start"
 					closeField="end"
 					isOpenField="isAvailable"
+				/>
+			);
+		}
+		if (tab === "certifications") {
+			return (
+				<CertificationsSection
+					certifications={vendor.certifications}
+					editing={false}
 				/>
 			);
 		}

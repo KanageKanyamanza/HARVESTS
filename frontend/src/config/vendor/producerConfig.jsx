@@ -12,6 +12,7 @@ import {
 	VendorReviewsList,
 	VendorEmptyState,
 } from "../../components/common/vendor";
+import CertificationsSection from "../../components/profile/specific/CertificationsSection";
 
 export const producerConfig = {
 	vendorType: "producer",
@@ -74,24 +75,25 @@ export const producerConfig = {
 	getEmptyStateDescription:
 		"Ce producteur n'a pas encore de produits en vente.",
 
-	tabs: ["products", "about", "reviews", "hours"],
+	tabs: ["products", "about", "certifications", "reviews"],
 	getTabLabel: (tab) =>
 		({
 			products: "Produits",
 			about: "À propos",
+			certifications: "Certifications",
 			reviews: "Avis",
-			hours: "Horaires",
 		}[tab] || tab),
-	getTabCount: (tab, items, reviews = []) => {
-		if (tab === "products") return items.length;
-		if (tab === "reviews") return reviews.length;
-		if (tab === "about" || tab === "hours") return 1;
+	getTabCount: (tab, items, reviews, vendor) => {
+		if (tab === "products") return items?.length || 0;
+		if (tab === "reviews") return reviews?.length || 0;
+		if (tab === "about") return 1;
+		if (tab === "certifications") return vendor?.certifications?.length || 0;
 		return 0;
 	},
 
 	getTabContent: (tab, items, vendor, helpers, reviews = []) => {
 		if (tab === "products") {
-			if (items.length === 0) {
+			if (!items || items.length === 0) {
 				return (
 					<VendorEmptyState
 						icon={helpers.getEmptyStateIcon}
@@ -201,13 +203,11 @@ export const producerConfig = {
 				</div>
 			);
 		}
-		if (tab === "hours") {
+		if (tab === "certifications") {
 			return (
-				<VendorHours
-					hours={vendor.shopInfo?.openingHours}
-					openField="open"
-					closeField="close"
-					isOpenField="isOpen"
+				<CertificationsSection
+					certifications={vendor.certifications}
+					editing={false}
 				/>
 			);
 		}

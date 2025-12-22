@@ -37,40 +37,43 @@ const SettingsPage = () => {
 			try {
 				setLoading(true);
 
-				const [
-					financialResponse,
-					notificationResponse,
-					addressesResponse,
-				] = await Promise.all([
-					commonService.getFinancialInfo().catch(() => ({ data: null })),
-					commonService.getNotificationSettings().catch(() => ({ data: null })),
-					commonService.getDeliveryAddresses().catch(() => ({ data: [] })),
-				]);
+				const [financialResponse, notificationResponse, addressesResponse] =
+					await Promise.all([
+						commonService.getFinancialInfo().catch(() => ({ data: null })),
+						commonService
+							.getNotificationPreferences()
+							.catch(() => ({ data: null })),
+						commonService.getDeliveryAddresses().catch(() => ({ data: [] })),
+					]);
 
 				setFinancialInfo(financialResponse.data);
-				setNotificationSettings(notificationResponse.data);
+				// Extraire les préférences de l'objet de réponse du backend
+				setNotificationSettings(
+					notificationResponse.data?.data?.preferences ||
+						notificationResponse.data
+				);
 				setDeliveryAddresses(addressesResponse.data || []);
-				
+
 				// Créer le statut de vérification basé sur les données utilisateur
 				const verificationData = {
 					email: {
 						verified: user.isEmailVerified,
 						verifiedAt: user.emailVerifiedAt,
-						pending: !user.isEmailVerified
+						pending: !user.isEmailVerified,
 					},
 					phone: {
 						verified: user.isPhoneVerified,
 						verifiedAt: user.phoneVerifiedAt,
-						pending: !user.isPhoneVerified
+						pending: !user.isPhoneVerified,
 					},
 					overall: {
 						verified: user.isEmailVerified && user.isPhoneVerified,
-						level: user.isEmailVerified ? 'Vérifié' : 'Non vérifié'
-					}
+						level: user.isEmailVerified ? "Vérifié" : "Non vérifié",
+					},
 				};
-				
+
 				setVerificationStatus(verificationData);
-				console.log('Données de vérification calculées:', verificationData);
+				console.log("Données de vérification calculées:", verificationData);
 			} catch (error) {
 				console.error("Erreur lors du chargement des paramètres:", error);
 			} finally {
@@ -86,29 +89,29 @@ const SettingsPage = () => {
 		try {
 			setIsRefreshing(true);
 			await refreshUser();
-			
+
 			// Recalculer le statut après le refresh
 			const verificationData = {
 				email: {
 					verified: user.isEmailVerified,
 					verifiedAt: user.emailVerifiedAt,
-					pending: !user.isEmailVerified
+					pending: !user.isEmailVerified,
 				},
 				phone: {
 					verified: user.isPhoneVerified,
 					verifiedAt: user.phoneVerifiedAt,
-					pending: !user.isPhoneVerified
+					pending: !user.isPhoneVerified,
 				},
 				overall: {
 					verified: user.isEmailVerified && user.isPhoneVerified,
-					level: user.isEmailVerified ? 'Vérifié' : 'Non vérifié'
-				}
+					level: user.isEmailVerified ? "Vérifié" : "Non vérifié",
+				},
 			};
-			
+
 			setVerificationStatus(verificationData);
-			console.log('🔄 Données actualisées manuellement:', verificationData);
+			console.log("🔄 Données actualisées manuellement:", verificationData);
 		} catch (error) {
-			console.error('Erreur lors de l\'actualisation:', error);
+			console.error("Erreur lors de l'actualisation:", error);
 		} finally {
 			setIsRefreshing(false);
 		}
@@ -275,14 +278,16 @@ const SettingsPage = () => {
 
 							{/* Onglet Financier */}
 							{activeTab === "financial" && (
-								<FinancialInfo data={financialInfo} />
+								<FinancialInfo
+									bankAccount={financialInfo?.bankAccount}
+									paymentMethods={financialInfo?.paymentMethods}
+									onUpdate={handleRefresh}
+								/>
 							)}
 
 							{/* Onglet Notifications */}
 							{activeTab === "notifications" && (
-								
-
-									<NotificationSettings data={notificationSettings} />
+								<NotificationSettings data={notificationSettings} />
 							)}
 
 							{/* Onglet Sécurité */}
@@ -297,13 +302,15 @@ const SettingsPage = () => {
 											onClick={handleRefresh}
 											disabled={isRefreshing}
 											className={`flex items-center px-3 py-2 text-sm font-medium ${
-												isRefreshing 
-													? 'text-gray-400 cursor-not-allowed' 
-													: 'text-blue-600 hover:text-blue-800'
+												isRefreshing
+													? "text-gray-400 cursor-not-allowed"
+													: "text-blue-600 hover:text-blue-800"
 											}`}
 										>
-											<FiRefreshCw className={`mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
-											{isRefreshing ? 'Actualisation...' : 'Actualiser'}
+											<FiRefreshCw
+												className={`mr-1 ${isRefreshing ? "animate-spin" : ""}`}
+											/>
+											{isRefreshing ? "Actualisation..." : "Actualiser"}
 										</button>
 									</div>
 

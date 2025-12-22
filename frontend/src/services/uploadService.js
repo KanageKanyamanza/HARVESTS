@@ -19,6 +19,15 @@ const uploadService = {
 		});
 	},
 
+	// Upload de document (PDF ou Image)
+	uploadDocument: (formData) => {
+		return apiRequest.post("/upload/documents", formData, {
+			headers: {
+				"Content-Type": "multipart/form-data",
+			},
+		});
+	},
+
 	// Upload de logo de boutique
 	uploadShopLogo: (formData) => {
 		return apiRequest.post("/users/upload-shop-logo", formData, {

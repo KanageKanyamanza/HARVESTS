@@ -13,6 +13,7 @@ import {
 	VendorHours,
 	VendorEmptyState,
 } from "../../components/common/vendor";
+import CertificationsSection from "../../components/profile/specific/CertificationsSection";
 
 const RESTAURANT_TYPES = {
 	"fine-dining": "Restaurant gastronomique",
@@ -95,18 +96,20 @@ export const restaurateurConfig = {
 	getEmptyStateTitle: "Menu en cours de préparation",
 	getEmptyStateDescription: "Notre menu sera bientôt disponible.",
 
-	tabs: ["menu", "about", "reviews", "hours"],
+	tabs: ["menu", "about", "certifications", "reviews", "hours"],
 	getTabLabel: (tab) =>
 		({
 			menu: "Menu",
 			about: "À propos",
+			certifications: "Certifications",
 			reviews: "Avis",
 			hours: "Horaires",
 		}[tab] || tab),
-	getTabCount: (tab, items, reviews = []) => {
-		if (tab === "menu") return items.length;
-		if (tab === "reviews") return reviews.length;
+	getTabCount: (tab, items, reviews, vendor) => {
+		if (tab === "menu") return items?.length || 0;
+		if (tab === "reviews") return reviews?.length || 0;
 		if (tab === "about" || tab === "hours") return 1;
+		if (tab === "certifications") return vendor?.certifications?.length || 0;
 		return 0;
 	},
 
@@ -245,6 +248,14 @@ export const restaurateurConfig = {
 		}
 		if (tab === "hours") {
 			return <VendorHours hours={vendor.operatingHours} />;
+		}
+		if (tab === "certifications") {
+			return (
+				<CertificationsSection
+					certifications={vendor.certifications}
+					editing={false}
+				/>
+			);
 		}
 		if (tab === "reviews") {
 			return <VendorReviewsList reviews={reviews} />;

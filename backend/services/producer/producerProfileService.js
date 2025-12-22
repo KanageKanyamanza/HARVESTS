@@ -30,6 +30,8 @@ async function updateProducerProfile(producerId, updateData) {
 		"bio",
 		"phone",
 		"specialties",
+		"documents",
+		"certifications",
 	];
 
 	const filteredBody = {};
