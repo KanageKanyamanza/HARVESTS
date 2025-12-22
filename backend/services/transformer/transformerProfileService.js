@@ -33,6 +33,8 @@ async function updateTransformerProfile(transformerId, updateData) {
 		"services",
 		"pricing",
 		"operatingHours",
+		"documents",
+		"certifications",
 	];
 
 	const filteredBody = {};

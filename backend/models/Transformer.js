@@ -80,6 +80,15 @@ const transformerSchema = new mongoose.Schema({
 			validUntil: Date,
 			certificateNumber: String,
 			document: String,
+			isVerified: {
+				type: Boolean,
+				default: false,
+			},
+			status: {
+				type: String,
+				enum: ["pending", "approved", "rejected"],
+				default: "pending",
+			},
 		},
 	],
 
@@ -254,9 +263,6 @@ const transformerSchema = new mongoose.Schema({
 			},
 		},
 	},
-
-	// Méthodes de paiement préférées (centralisées depuis User)
-	paymentMethods: [String],
 
 	// Préférences de notification (centralisées depuis User)
 	notifications: {

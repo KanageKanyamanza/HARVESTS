@@ -22,6 +22,8 @@ async function updateMyProfile(restaurateurId, updateData) {
 		"dishes",
 		"bio",
 		"phone",
+		"documents",
+		"certifications",
 	];
 	const filteredBody = {};
 	Object.keys(updateData).forEach((key) => {

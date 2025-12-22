@@ -1,295 +1,401 @@
-const User = require('../../models/User');
-const Product = require('../../models/Product');
-const catchAsync = require('../../utils/catchAsync');
-const AppError = require('../../utils/appError');
-const { logAudit, AUDIT_ACTIONS } = require('../../utils/auditLogger');
-const adminNotifications = require('../../utils/adminNotifications');
+const axios = require("axios");
+const cloudinary = require("cloudinary").v2;
+const User = require("../../models/User");
+const Product = require("../../models/Product");
+const catchAsync = require("../../utils/catchAsync");
+const AppError = require("../../utils/appError");
+const { logAudit, AUDIT_ACTIONS } = require("../../utils/auditLogger");
+const adminNotifications = require("../../utils/adminNotifications");
 
 // @desc    Obtenir tous les utilisateurs
 // @route   GET /api/v1/admin/users
 // @access  Admin
 exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const { page = 1, limit = 10, search, role, status } = req.query;
-  
-  // Construire le filtre
-  const filter = {};
-  
-  if (search) {
-    filter.$or = [
-      { firstName: { $regex: search, $options: 'i' } },
-      { lastName: { $regex: search, $options: 'i' } },
-      { email: { $regex: search, $options: 'i' } }
-    ];
-  }
-  
-  if (role) {
-    filter.userType = role;
-  }
-  
-  if (status) {
-    // Mapper les statuts textuels vers les champs de base de données
-    switch (status) {
-      case 'Actif':
-        filter.isActive = true;
-        filter.isApproved = true;
-        // Note: Un utilisateur actif peut avoir son email vérifié ou non
-        break;
-      case 'Vérifié':
-        filter.isActive = true;
-        filter.isApproved = true;
-        filter.isEmailVerified = true;
-        break;
-      case 'En attente':
-        filter.isActive = true;
-        filter.isApproved = false;
-        break;
-      case 'Banni':
-        filter.isActive = false;
-        break;
-    }
-  }
+	const { page = 1, limit = 10, search, role, status } = req.query;
 
-  // Pagination
-  const skip = (page - 1) * limit;
-  
-  // Récupérer les utilisateurs
-  const users = await User.find(filter)
-    .select('-password -passwordResetToken -passwordResetExpires')
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(parseInt(limit));
+	// Construire le filtre
+	const filter = {};
 
-  // Mapper les utilisateurs pour ajouter un champ status textuel
-  const usersWithStatus = users.map(user => {
-    const userObj = user.toObject();
-    
-    // Déterminer le statut basé sur isActive et isApproved
-    if (!userObj.isActive) {
-      userObj.status = 'Banni';
-    } else if (!userObj.isApproved) {
-      userObj.status = 'En attente';
-    } else if (userObj.isEmailVerified) {
-      userObj.status = 'Vérifié';
-    } else {
-      userObj.status = 'Actif';
-    }
-    
-    return userObj;
-  });
+	if (search) {
+		filter.$or = [
+			{ firstName: { $regex: search, $options: "i" } },
+			{ lastName: { $regex: search, $options: "i" } },
+			{ email: { $regex: search, $options: "i" } },
+		];
+	}
 
-  // Compter le total
-  const total = await User.countDocuments(filter);
+	if (role) {
+		filter.userType = role;
+	}
 
-  res.status(200).json({
-    status: 'success',
-    data: {
-      users: usersWithStatus,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / limit),
-        totalUsers: total,
-        hasNext: page < Math.ceil(total / limit),
-        hasPrev: page > 1
-      }
-    }
-  });
+	if (status) {
+		// Mapper les statuts textuels vers les champs de base de données
+		switch (status) {
+			case "Actif":
+				filter.isActive = true;
+				filter.isApproved = true;
+				break;
+			case "Vérifié":
+				filter.isActive = true;
+				filter.isApproved = true;
+				filter.isEmailVerified = true;
+				break;
+			case "En attente":
+				filter.isActive = true;
+				filter.isApproved = false;
+				break;
+			case "Banni":
+				filter.isActive = false;
+				break;
+		}
+	}
+
+	// Pagination
+	const skip = (page - 1) * limit;
+
+	// Récupérer les utilisateurs
+	const users = await User.find(filter)
+		.select("-password -passwordResetToken -passwordResetExpires")
+		.sort({ createdAt: -1 })
+		.skip(skip)
+		.limit(parseInt(limit));
+
+	// Mapper les utilisateurs pour ajouter un champ status textuel
+	const usersWithStatus = users.map((user) => {
+		const userObj = user.toObject();
+		if (!userObj.isActive) {
+			userObj.status = "Banni";
+		} else if (!userObj.isApproved) {
+			userObj.status = "En attente";
+		} else if (userObj.isEmailVerified) {
+			userObj.status = "Vérifié";
+		} else {
+			userObj.status = "Actif";
+		}
+		return userObj;
+	});
+
+	const total = await User.countDocuments(filter);
+
+	res.status(200).json({
+		status: "success",
+		data: {
+			users: usersWithStatus,
+			pagination: {
+				currentPage: parseInt(page),
+				totalPages: Math.ceil(total / limit),
+				totalUsers: total,
+				hasNext: page < Math.ceil(total / limit),
+				hasPrev: page > 1,
+			},
+		},
+	});
 });
 
 // @desc    Obtenir un utilisateur par ID
-// @route   GET /api/v1/admin/users/:id
-// @access  Admin
 exports.getUserById = catchAsync(async (req, res, next) => {
-  const user = await User.findById(req.params.id)
-    .select('-password -passwordResetToken -passwordResetExpires');
+	const user = await User.findById(req.params.id).select(
+		"-password -passwordResetToken -passwordResetExpires"
+	);
 
-  if (!user) {
-    return next(new AppError('Utilisateur non trouvé', 404));
-  }
+	if (!user) {
+		return next(new AppError("Utilisateur non trouvé", 404));
+	}
 
-  // Ajouter le statut textuel
-  const userObj = user.toObject();
-  
-  // Déterminer le statut basé sur isActive et isApproved
-  if (!userObj.isActive) {
-    userObj.status = 'Banni';
-  } else if (!userObj.isApproved) {
-    userObj.status = 'En attente';
-  } else if (userObj.isEmailVerified) {
-    userObj.status = 'Vérifié';
-  } else {
-    userObj.status = 'Actif';
-  }
+	const userObj = user.toObject();
+	if (!userObj.isActive) {
+		userObj.status = "Banni";
+	} else if (!userObj.isApproved) {
+		userObj.status = "En attente";
+	} else if (userObj.isEmailVerified) {
+		userObj.status = "Vérifié";
+	} else {
+		userObj.status = "Actif";
+	}
 
-  res.status(200).json({
-    status: 'success',
-    data: { user: userObj }
-  });
+	res.status(200).json({
+		status: "success",
+		data: { user: userObj },
+	});
 });
 
 // @desc    Mettre à jour un utilisateur
-// @route   PATCH /api/v1/admin/users/:id
-// @access  Admin
 exports.updateUser = catchAsync(async (req, res, next) => {
-  const { firstName, lastName, email, phone, address, isActive, isEmailVerified, emailVerified } = req.body;
-  
-  // Préparer les données de mise à jour
-  const updateData = { firstName, lastName, email, phone, address, isActive };
-  
-  // Mettre à jour le champ de vérification email
-  if (isEmailVerified !== undefined) {
-    updateData.isEmailVerified = isEmailVerified;
-  }
-  
-  const user = await User.findByIdAndUpdate(
-    req.params.id,
-    updateData,
-    { new: true, runValidators: true }
-  ).select('-password -passwordResetToken -passwordResetExpires');
+	const {
+		firstName,
+		lastName,
+		email,
+		phone,
+		address,
+		isActive,
+		isEmailVerified,
+	} = req.body;
+	const updateData = { firstName, lastName, email, phone, address, isActive };
+	if (isEmailVerified !== undefined)
+		updateData.isEmailVerified = isEmailVerified;
 
-  if (!user) {
-    return next(new AppError('Utilisateur non trouvé', 404));
-  }
+	const user = await User.findByIdAndUpdate(req.params.id, updateData, {
+		new: true,
+		runValidators: true,
+	}).select("-password -passwordResetToken -passwordResetExpires");
 
-  res.status(200).json({
-    status: 'success',
-    message: 'Utilisateur mis à jour avec succès',
-    data: { user }
-  });
+	if (!user) return next(new AppError("Utilisateur non trouvé", 404));
+
+	res.status(200).json({
+		status: "success",
+		message: "Utilisateur mis à jour avec succès",
+		data: { user },
+	});
 });
 
 // @desc    Supprimer un utilisateur
-// @route   DELETE /api/v1/admin/users/:id
-// @access  Admin
 exports.deleteUser = catchAsync(async (req, res, next) => {
-  const user = await User.findById(req.params.id);
-  
-  if (!user) {
-    return next(new AppError('Utilisateur non trouvé', 404));
-  }
+	const user = await User.findById(req.params.id);
+	if (!user) return next(new AppError("Utilisateur non trouvé", 404));
 
-  const deletedUserEmail = user.email;
+	const deletedUserEmail = user.email;
+	const deletedProducts = await Product.deleteMany({
+		$or: [
+			{ producer: user._id },
+			{ transformer: user._id },
+			{ restaurateur: user._id },
+		],
+	});
 
-  // Supprimer tous les produits associés à cet utilisateur (cascade delete)
-  // Les produits peuvent être associés via producer, transformer ou restaurateur
-  const deletedProducts = await Product.deleteMany({
-    $or: [
-      { producer: user._id },
-      { transformer: user._id },
-      { restaurateur: user._id }
-    ]
-  });
+	adminNotifications
+		.notifyUserDeleted(
+			{
+				firstName: user.firstName,
+				lastName: user.lastName,
+				email: user.email,
+				userType: user.userType,
+			},
+			req.admin
+		)
+		.catch((err) => console.error("Erreur notification:", err));
 
-  console.log(`🗑️ Suppression de ${deletedProducts.deletedCount} produit(s) associé(s) à l'utilisateur ${deletedUserEmail}`);
+	await User.findByIdAndDelete(req.params.id);
 
-  // Notifier les admins avant la suppression
-  adminNotifications.notifyUserDeleted({
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    userType: user.userType
-  }, req.admin).catch(err => {
-    console.error('Erreur notification utilisateur supprimé:', err);
-  });
+	await logAudit({
+		userId: req.admin._id,
+		action: AUDIT_ACTIONS.USER_DELETED,
+		targetType: "User",
+		targetId: req.params.id,
+		details: {
+			deletedUserEmail,
+			deletedProductsCount: deletedProducts.deletedCount,
+		},
+	});
 
-  // Supprimer l'utilisateur
-  await User.findByIdAndDelete(req.params.id);
-
-  // Audit log
-  await logAudit({
-    adminId: req.admin._id,
-    action: AUDIT_ACTIONS.USER_DELETED,
-    targetType: 'User',
-    targetId: req.params.id,
-    details: { 
-      deletedUserEmail,
-      deletedProductsCount: deletedProducts.deletedCount
-    }
-  });
-
-  res.status(200).json({
-    status: 'success',
-    message: `Utilisateur et ${deletedProducts.deletedCount} produit(s) supprimé(s) avec succès`
-  });
+	res.status(200).json({ status: "success", message: `Utilisateur supprimé` });
 });
 
 // @desc    Bannir un utilisateur
-// @route   POST /api/v1/admin/users/:id/ban
-// @access  Admin
 exports.banUser = catchAsync(async (req, res, next) => {
-  const user = await User.findByIdAndUpdate(
-    req.params.id,
-    { isActive: false, bannedAt: new Date() },
-    { new: true }
-  ).select('-password');
+	const user = await User.findByIdAndUpdate(
+		req.params.id,
+		{ isActive: false, bannedAt: new Date() },
+		{ new: true }
+	).select("-password");
 
-  if (!user) {
-    return next(new AppError('Utilisateur non trouvé', 404));
-  }
+	if (!user) return next(new AppError("Utilisateur non trouvé", 404));
 
-  // Notifier les admins
-  adminNotifications.notifyUserBanned(user, req.admin, req.body.reason).catch(err => {
-    console.error('Erreur notification utilisateur banni:', err);
-  });
+	adminNotifications
+		.notifyUserBanned(user, req.admin, req.body.reason)
+		.catch((err) => console.error("Erreur notification:", err));
 
-  // Audit log
-  await logAudit({
-    adminId: req.admin._id,
-    action: AUDIT_ACTIONS.USER_BANNED,
-    targetType: 'User',
-    targetId: user._id,
-    details: { bannedUserEmail: user.email, reason: req.body.reason }
-  });
+	await logAudit({
+		adminId: req.admin._id,
+		action: AUDIT_ACTIONS.USER_BANNED,
+		targetType: "User",
+		targetId: user._id,
+		details: { bannedUserEmail: user.email, reason: req.body.reason },
+	});
 
-  res.status(200).json({
-    status: 'success',
-    message: 'Utilisateur banni avec succès',
-    data: { user }
-  });
+	res.status(200).json({ status: "success", data: { user } });
 });
 
 // @desc    Débannir un utilisateur
-// @route   POST /api/v1/admin/users/:id/unban
-// @access  Admin
 exports.unbanUser = catchAsync(async (req, res, next) => {
-  const user = await User.findByIdAndUpdate(
-    req.params.id,
-    { isActive: true, $unset: { bannedAt: 1 } },
-    { new: true }
-  ).select('-password');
-
-  if (!user) {
-    return next(new AppError('Utilisateur non trouvé', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Utilisateur débanni avec succès',
-    data: { user }
-  });
+	const user = await User.findByIdAndUpdate(
+		req.params.id,
+		{ isActive: true, $unset: { bannedAt: 1 } },
+		{ new: true }
+	).select("-password");
+	if (!user) return next(new AppError("Utilisateur non trouvé", 404));
+	res.status(200).json({ status: "success", data: { user } });
 });
 
 // @desc    Vérifier un utilisateur
-// @route   POST /api/v1/admin/users/:id/verify
-// @access  Admin
 exports.verifyUser = catchAsync(async (req, res, next) => {
-  const user = await User.findByIdAndUpdate(
-    req.params.id,
-    { 
-      isEmailVerified: true,
-      emailVerified: true, // Synchroniser les deux champs
-      isApproved: true 
-    },
-    { new: true }
-  ).select('-password');
-
-  if (!user) {
-    return next(new AppError('Utilisateur non trouvé', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Utilisateur vérifié avec succès',
-    data: { user }
-  });
+	const user = await User.findByIdAndUpdate(
+		req.params.id,
+		{ isEmailVerified: true, emailVerified: true, isApproved: true },
+		{ new: true }
+	).select("-password");
+	if (!user) return next(new AppError("Utilisateur non trouvé", 404));
+	res.status(200).json({ status: "success", data: { user } });
 });
 
+// @desc    Vérifier un document spécifique de l'utilisateur
+exports.verifyUserDocument = catchAsync(async (req, res, next) => {
+	const { id } = req.params;
+	const { docType, status, docId } = req.body; // docType: 'businessLicense', status: 'approved'/'rejected', docId: (optionnel pour les tableaux)
+
+	let user = await User.findById(id);
+	if (!user) return next(new AppError("Utilisateur non trouvé", 404));
+
+	// 1. Gérer le format objet (Restaurateur, Transformer, etc.)
+	if (user.documents && user.documents[docType] !== undefined) {
+		user.documents[docType].isVerified = status === "approved";
+		user.markModified("documents");
+	}
+
+	// 2. Gérer le format tableau (certifications, exportLicenses)
+	const arrayTypes = ["certifications", "exportLicenses"];
+	if (arrayTypes.includes(docType) && docId && user[docType]) {
+		const doc = user[docType].id(docId);
+		if (doc) {
+			doc.isVerified = status === "approved";
+			doc.status = status; // Au cas où on utilise status
+			user.markModified(docType);
+		}
+	}
+
+	// 3. Gérer le format tableau verificationStatus (Transporter, etc.)
+	if (
+		user.verificationStatus &&
+		user.verificationStatus.verificationDocuments &&
+		docId
+	) {
+		const doc = user.verificationStatus.verificationDocuments.id(docId);
+		if (doc) {
+			doc.status = status;
+			user.markModified("verificationStatus");
+		}
+	} else if (
+		user.verificationStatus &&
+		user.verificationStatus.verificationDocuments &&
+		docType &&
+		!arrayTypes.includes(docType)
+	) {
+		// Fallback par type si pas de docId
+		const doc = user.verificationStatus.verificationDocuments.find(
+			(d) => d.type === docType
+		);
+		if (doc) {
+			doc.status = status;
+			user.markModified("verificationStatus");
+		}
+	}
+
+	await user.save({ validateBeforeSave: false });
+
+	await logAudit({
+		userId: req.admin._id,
+		action: AUDIT_ACTIONS.USER_UPDATED,
+		targetType: "User",
+		targetId: id,
+		details: { document: docType, status },
+	});
+
+	res.status(200).json({
+		status: "success",
+		message: "Statut du document mis à jour",
+		data: { user },
+	});
+});
+
+// @desc    Proxy Cloudinary pour les téléchargements sécurisés (Méthode Simplifiée)
+exports.proxyDownloadDocument = catchAsync(async (req, res, next) => {
+	const { url, filename } = req.query;
+	if (!url) return next(new AppError("URL requise", 400));
+	if (!url.includes("cloudinary.com"))
+		return next(new AppError("URL non autorisée", 400));
+
+	try {
+		// Nettoyage rigoureux des clés (pour éviter les espaces/retours à la ligne invisibles)
+		cloudinary.config({
+			cloud_name: (process.env.CLOUDINARY_CLOUD_NAME || "").trim(),
+			api_key: (process.env.CLOUDINARY_API_KEY || "").trim(),
+			api_secret: (process.env.CLOUDINARY_API_SECRET || "").trim(),
+		});
+
+		const { publicId } = extractPublicIdAndVersion(url);
+		if (!publicId) throw new Error("Public ID non trouvé");
+
+		console.log(`[Proxy] Signature simplifiée pour: ${publicId}`);
+
+		// Étape 1: Métadonnées
+		let resource;
+		try {
+			resource = await cloudinary.api.resource(publicId, {
+				resource_type: "image",
+			});
+		} catch (e) {
+			resource = await cloudinary.api.resource(publicId, {
+				resource_type: "raw",
+			});
+		}
+
+		// Étape 2: Signature sans 'version' (souvent la cause du 401 si mal placé)
+		const signedUrl = cloudinary.url(publicId, {
+			resource_type: resource.resource_type,
+			type: resource.type,
+			format: resource.format,
+			sign_url: true,
+			secure: true,
+		});
+
+		console.log(`[Proxy] Target: ${signedUrl}`);
+
+		const response = await axios({
+			method: "GET",
+			url: signedUrl,
+			responseType: "stream",
+			timeout: 30000,
+		});
+
+		res.setHeader(
+			"Content-Type",
+			response.headers["content-type"] || "application/pdf"
+		);
+		res.setHeader(
+			"Content-Disposition",
+			`attachment; filename="${encodeURIComponent(filename || "document.pdf")}"`
+		);
+
+		response.data.pipe(res);
+	} catch (error) {
+		console.error("Erreur proxy (Simple Sign):", error.message);
+		if (error.response?.status === 401) {
+			console.error("Signature rejetée. Essayez sans extension.");
+		}
+		return next(new AppError("Erreur de téléchargement sécurisé.", 500));
+	}
+});
+
+function extractPublicIdAndVersion(url) {
+	if (!url || !url.includes("cloudinary.com"))
+		return { publicId: null, version: null };
+	const parts = url.split("/");
+	const uploadIndex = parts.findIndex((part) => part === "upload");
+	if (uploadIndex === -1 || uploadIndex + 1 >= parts.length)
+		return { publicId: null, version: null };
+
+	let pathSegments = parts.slice(uploadIndex + 1);
+	let version = null;
+	const vIndex = pathSegments.findIndex((s) => s.match(/^v\d+$/));
+	if (vIndex !== -1) {
+		version = pathSegments[vIndex].substring(1);
+		pathSegments = pathSegments.slice(vIndex + 1);
+	} else {
+		while (
+			pathSegments.length > 0 &&
+			(pathSegments[0].includes(",") || pathSegments[0].match(/^[a-z]_.+/))
+		) {
+			pathSegments.shift();
+		}
+	}
+	return { publicId: pathSegments.join("/").split(".")[0], version };
+}

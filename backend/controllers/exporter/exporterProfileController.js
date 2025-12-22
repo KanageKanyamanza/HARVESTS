@@ -27,6 +27,8 @@ exports.updateMyProfile = catchAsync(async (req, res, next) => {
 		"internationalCertifications",
 		"logisticsCapabilities",
 		"operatingHours",
+		"documents",
+		"certifications",
 	];
 	const filteredBody = {};
 	Object.keys(req.body).forEach((key) => {

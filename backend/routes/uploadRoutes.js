@@ -1,13 +1,17 @@
-const express = require('express');
-const jwt = require('jsonwebtoken');
-const Admin = require('../models/Admin');
-const User = require('../models/User');
-const uploadController = require('../controllers/uploadController');
-const authMiddleware = require('../controllers/auth/authMiddleware');
-const adminAuthController = require('../controllers/adminAuthController');
-const { uploadLimiter, fileTypeValidation, fileSizeValidation } = require('../middleware/security');
-const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/appError');
+const express = require("express");
+const jwt = require("jsonwebtoken");
+const Admin = require("../models/Admin");
+const User = require("../models/User");
+const uploadController = require("../controllers/uploadController");
+const authMiddleware = require("../controllers/auth/authMiddleware");
+const adminAuthController = require("../controllers/adminAuthController");
+const {
+	uploadLimiter,
+	fileTypeValidation,
+	fileSizeValidation,
+} = require("../middleware/security");
+const catchAsync = require("../utils/catchAsync");
+const AppError = require("../utils/appError");
 
 /**
  * @swagger
@@ -20,47 +24,62 @@ const router = express.Router();
 
 // Middleware qui accepte à la fois les utilisateurs normaux et les admins
 const protectUserOrAdmin = catchAsync(async (req, res, next) => {
-  // 1) Récupérer le token
-  let token;
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1];
-  } else if (req.cookies.jwt) {
-    token = req.cookies.jwt;
-  }
+	// 1) Récupérer le token
+	let token;
+	if (
+		req.headers.authorization &&
+		req.headers.authorization.startsWith("Bearer")
+	) {
+		token = req.headers.authorization.split(" ")[1];
+	} else if (req.cookies.jwt) {
+		token = req.cookies.jwt;
+	}
 
-  if (!token) {
-    return next(new AppError('Vous n\'êtes pas connecté. Veuillez vous connecter pour accéder à cette page.', 401));
-  }
+	if (!token) {
+		return next(
+			new AppError(
+				"Vous n'êtes pas connecté. Veuillez vous connecter pour accéder à cette page.",
+				401
+			)
+		);
+	}
 
-  // 2) Vérifier le token
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+	// 2) Vérifier le token
+	const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-  // 3) Essayer d'abord de trouver un admin avec cet ID
-  const admin = await Admin.findById(decoded.id);
-  if (admin && admin.isActive) {
-    req.admin = admin;
-    return next();
-  }
+	// 3) Essayer d'abord de trouver un admin avec cet ID
+	const admin = await Admin.findById(decoded.id);
+	if (admin && admin.isActive) {
+		req.admin = admin;
+		return next();
+	}
 
-  // 4) Si ce n'est pas un admin, essayer de trouver un utilisateur normal
-  const user = await User.findById(decoded.id);
-  if (!user) {
-    return next(new AppError('L\'utilisateur propriétaire de ce token n\'existe plus.', 401));
-  }
+	// 4) Si ce n'est pas un admin, essayer de trouver un utilisateur normal
+	const user = await User.findById(decoded.id);
+	if (!user) {
+		return next(
+			new AppError("L'utilisateur propriétaire de ce token n'existe plus.", 401)
+		);
+	}
 
-  // 5) Vérifier si l'utilisateur a changé de mot de passe après l'émission du token
-  if (user.changedPasswordAfter && user.changedPasswordAfter(decoded.iat)) {
-    return next(new AppError('L\'utilisateur a récemment changé de mot de passe! Veuillez vous reconnecter.', 401));
-  }
+	// 5) Vérifier si l'utilisateur a changé de mot de passe après l'émission du token
+	if (user.changedPasswordAfter && user.changedPasswordAfter(decoded.iat)) {
+		return next(
+			new AppError(
+				"L'utilisateur a récemment changé de mot de passe! Veuillez vous reconnecter.",
+				401
+			)
+		);
+	}
 
-  // 6) Vérifier si le compte est actif
-  if (!user.isActive) {
-    return next(new AppError('Votre compte a été désactivé.', 401));
-  }
+	// 6) Vérifier si le compte est actif
+	if (!user.isActive) {
+		return next(new AppError("Votre compte a été désactivé.", 401));
+	}
 
-  // 7) Donner accès à la route protégée
-  req.user = user;
-  next();
+	// 7) Donner accès à la route protégée
+	req.user = user;
+	next();
 });
 
 // Toutes les routes d'upload nécessitent une authentification (utilisateur ou admin)
@@ -91,12 +110,12 @@ router.use(protectUserOrAdmin);
  *         description: Images uploadées avec succès
  */
 router.post(
-  '/product-images',
-  uploadLimiter,
-  uploadController.uploadProductImages,
-  fileTypeValidation(['image/jpeg', 'image/png', 'image/webp']),
-  fileSizeValidation(5 * 1024 * 1024), // 5MB par image
-  uploadController.uploadProductImagesToCloudinary
+	"/product-images",
+	uploadLimiter,
+	uploadController.uploadProductImages,
+	fileTypeValidation(["image/jpeg", "image/png", "image/webp"]),
+	fileSizeValidation(5 * 1024 * 1024), // 5MB par image
+	uploadController.uploadProductImagesToCloudinary
 );
 
 /**
@@ -117,13 +136,13 @@ router.post(
  *       200:
  *         description: Image supprimée
  */
-router.delete('/image/:publicId', uploadController.deleteImage);
+router.delete("/image/:publicId", uploadController.deleteImage);
 
 // Supprimer une image par URL
-router.delete('/image-by-url', uploadController.deleteImageByUrl);
+router.delete("/image-by-url", uploadController.deleteImageByUrl);
 
 // Obtenir une URL optimisée
-router.get('/optimize/:publicId', uploadController.getOptimizedImageUrl);
+router.get("/optimize/:publicId", uploadController.getOptimizedImageUrl);
 
 /**
  * @swagger
@@ -151,12 +170,48 @@ router.get('/optimize/:publicId', uploadController.getOptimizedImageUrl);
  *         description: Fichier uploadé avec succès
  */
 router.post(
-  '/cloudinary',
-  uploadLimiter,
-  uploadController.uploadSingleFile,
-  fileTypeValidation(['image/jpeg', 'image/png', 'image/webp', 'image/gif']),
-  fileSizeValidation(10 * 1024 * 1024), // 10MB pour les images de blog
-  uploadController.uploadToCloudinary
+	"/cloudinary",
+	uploadLimiter,
+	uploadController.uploadSingleFile,
+	fileTypeValidation(["image/jpeg", "image/png", "image/webp", "image/gif"]),
+	fileSizeValidation(10 * 1024 * 1024), // 10MB pour les images de blog
+	uploadController.uploadToCloudinary
+);
+
+/**
+ * @swagger
+ * /api/v1/upload/documents:
+ *   post:
+ *     summary: Upload de document (PDF ou Image)
+ *     tags: [Upload]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *               folder:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Document uploadé avec succès
+ */
+router.post(
+	"/documents",
+	uploadLimiter,
+	uploadController.uploadDocumentMiddleware,
+	// Note: fileTypeValidation middleware might be redundant if multer filter handles it,
+	// but let's keep it consistent if needed.
+	// Here we rely on multer's documentFilter which we just added.
+	// extending fileTypeValidation to support PDF involves modifying security.js middleware too?
+	// Let's rely on multer filter which we implemented in controller.
+	uploadController.uploadDocumentToCloudinary
 );
 
 module.exports = router;

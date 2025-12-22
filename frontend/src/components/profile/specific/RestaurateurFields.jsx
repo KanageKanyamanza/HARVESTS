@@ -225,6 +225,8 @@ const RestaurateurFields = ({ formData, editing, onInputChange }) => {
 					))}
 				</div>
 			</div>
+
+			{/* Documents Section */}
 		</div>
 	);
 };

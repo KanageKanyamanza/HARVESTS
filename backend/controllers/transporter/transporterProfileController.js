@@ -32,6 +32,8 @@ exports.updateMyProfile = catchAsync(async (req, res, next) => {
 		"avatar",
 		"shopBanner",
 		"shopLogo",
+		"documents",
+		"certifications",
 	];
 
 	const filteredBody = {};

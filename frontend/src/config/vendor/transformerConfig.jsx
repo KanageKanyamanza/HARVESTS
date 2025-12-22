@@ -13,6 +13,7 @@ import {
 	VendorHours,
 	VendorEmptyState,
 } from "../../components/common/vendor";
+import CertificationsSection from "../../components/profile/specific/CertificationsSection";
 
 export const transformerConfig = {
 	vendorType: "transformer",
@@ -31,7 +32,7 @@ export const transformerConfig = {
 			},
 			{
 				icon: <FiPackage className="w-5 h-5 text-green-500" />,
-				value: products.length,
+				value: products?.length || 0,
 				label: "Produits",
 			},
 			{
@@ -67,24 +68,26 @@ export const transformerConfig = {
 	getEmptyStateDescription:
 		"Ce transformateur n'a pas encore de produits en vente.",
 
-	tabs: ["products", "about", "reviews", "hours"],
+	tabs: ["products", "about", "certifications", "reviews", "hours"],
 	getTabLabel: (tab) =>
 		({
 			products: "Produits",
 			about: "À propos",
+			certifications: "Certifications",
 			reviews: "Avis",
 			hours: "Horaires",
 		}[tab] || tab),
-	getTabCount: (tab, items, reviews = []) => {
-		if (tab === "products") return items.length;
-		if (tab === "reviews") return reviews.length;
+	getTabCount: (tab, items, reviews, vendor) => {
+		if (tab === "products") return items?.length || 0;
+		if (tab === "reviews") return reviews?.length || 0;
 		if (tab === "about" || tab === "hours") return 1;
+		if (tab === "certifications") return vendor?.certifications?.length || 0;
 		return 0;
 	},
 
 	getTabContent: (tab, items, vendor, helpers, reviews = []) => {
 		if (tab === "products") {
-			if (items.length === 0) {
+			if (!items || items.length === 0) {
 				return (
 					<VendorEmptyState
 						icon={helpers.getEmptyStateIcon}
@@ -154,6 +157,14 @@ export const transformerConfig = {
 		}
 		if (tab === "hours") {
 			return <VendorHours hours={vendor.operatingHours} />;
+		}
+		if (tab === "certifications") {
+			return (
+				<CertificationsSection
+					certifications={vendor.certifications}
+					editing={false}
+				/>
+			);
 		}
 		if (tab === "reviews") {
 			return <VendorReviewsList reviews={reviews} />;
