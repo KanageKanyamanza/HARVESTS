@@ -274,6 +274,9 @@ function addNotificationMethods(notificationSchema) {
 				return false;
 			}
 
+			// Récupérer le nombre de notifications non lues pour le badge
+			const unreadCount = await this.constructor.getUnreadCount(this.recipient);
+
 			// Préparer les données pour le service
 			const notificationPayload = {
 				title: this.title,
@@ -283,6 +286,7 @@ function addNotificationMethods(notificationSchema) {
 				clickAction: this.actions?.find((a) => a.type === "view")?.url || "/",
 				actions: this.actions,
 				image: this.data?.image || null,
+				unreadCount: unreadCount,
 			};
 
 			// Utiliser le service existant
