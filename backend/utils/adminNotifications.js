@@ -342,7 +342,7 @@ exports.notifyNewReview = async (review, reviewer, product) => {
 				? product.name.fr || product.name.en || "Produit"
 				: product.name || "Produit";
 
-		await sendNotificationToAdmins({
+		const notificationData = {
 			title: "Nouvel avis créé",
 			message: `${reviewerName} a laissé un avis ${review.rating} étoiles pour le produit "${productName}".`,
 			data: {
@@ -353,14 +353,25 @@ exports.notifyNewReview = async (review, reviewer, product) => {
 				Titre: review.title || "Sans titre",
 				"Achat vérifié": review.isVerifiedPurchase ? "Oui" : "Non",
 				Date: new Date(review.createdAt).toLocaleString("fr-FR"),
+				reviewId: review._id?.toString(),
 			},
 			actions: [
 				{
 					label: "Voir l'avis",
-					url: `/admin/reviews/${review._id}`, // Chemin relatif au lieu d'URL absolue
+					url: `/admin/reviews/${review._id}`,
 				},
 			],
+		};
+
+		// In-app & Push
+		await createNotificationsForAdmins({
+			...notificationData,
+			type: "announcement",
+			category: "product",
 		});
+
+		// Email
+		await sendNotificationToAdmins(notificationData);
 	} catch (error) {
 		console.error("Erreur notification nouvel avis:", error);
 	}
@@ -378,7 +389,7 @@ exports.notifyReviewReported = async (
 	try {
 		const reporterName = `${reporter.firstName} ${reporter.lastName}`;
 
-		await sendNotificationToAdmins({
+		const notificationData = {
 			title: "Avis signalé",
 			message: `Un avis a été signalé par ${reporterName} pour la raison: ${reason}.`,
 			data: {
@@ -393,12 +404,20 @@ exports.notifyReviewReported = async (
 			actions: [
 				{
 					label: "Examiner l'avis",
-					url: `${
-						process.env.FRONTEND_URL || "https://www.harvests.site"
-					}/admin/reviews/${review._id}`,
+					url: `/admin/reviews/${review._id}`,
 				},
 			],
+		};
+
+		// In-app & Push
+		await createNotificationsForAdmins({
+			...notificationData,
+			type: "announcement",
+			category: "product",
 		});
+
+		// Email
+		await sendNotificationToAdmins(notificationData);
 	} catch (error) {
 		console.error("Erreur notification avis signalé:", error);
 	}
@@ -414,7 +433,7 @@ exports.notifyUserSuspended = async (user, suspendedBy, reason, duration) => {
 			? `${suspendedBy.firstName} ${suspendedBy.lastName}`
 			: "Système";
 
-		await sendNotificationToAdmins({
+		const notificationData = {
 			title: "Utilisateur suspendu",
 			message: `L'utilisateur ${userName} a été suspendu par ${suspendedByName}.`,
 			data: {
@@ -425,14 +444,25 @@ exports.notifyUserSuspended = async (user, suspendedBy, reason, duration) => {
 				Raison: reason || "Non spécifiée",
 				Durée: duration || "Indéfinie",
 				Date: new Date().toLocaleString("fr-FR"),
+				userId: user._id?.toString(),
 			},
 			actions: [
 				{
 					label: "Voir le profil utilisateur",
-					url: `/admin/users/${user._id}`, // Chemin relatif au lieu d'URL absolue
+					url: `/admin/users/${user._id}`,
 				},
 			],
+		};
+
+		// In-app & Push
+		await createNotificationsForAdmins({
+			...notificationData,
+			type: "announcement",
+			category: "account",
 		});
+
+		// Email
+		await sendNotificationToAdmins(notificationData);
 	} catch (error) {
 		console.error("Erreur notification utilisateur suspendu:", error);
 	}
@@ -448,7 +478,7 @@ exports.notifyUserBanned = async (user, bannedBy, reason) => {
 			? `${bannedBy.firstName} ${bannedBy.lastName}`
 			: "Système";
 
-		await sendNotificationToAdmins({
+		const notificationData = {
 			title: "Utilisateur banni",
 			message: `L'utilisateur ${userName} a été banni par ${bannedByName}.`,
 			data: {
@@ -458,14 +488,25 @@ exports.notifyUserBanned = async (user, bannedBy, reason) => {
 				"Banni par": bannedByName,
 				Raison: reason || "Non spécifiée",
 				Date: new Date().toLocaleString("fr-FR"),
+				userId: user._id?.toString(),
 			},
 			actions: [
 				{
 					label: "Voir le profil utilisateur",
-					url: `/admin/users/${user._id}`, // Chemin relatif au lieu d'URL absolue
+					url: `/admin/users/${user._id}`,
 				},
 			],
+		};
+
+		// In-app & Push
+		await createNotificationsForAdmins({
+			...notificationData,
+			type: "announcement",
+			category: "account",
 		});
+
+		// Email
+		await sendNotificationToAdmins(notificationData);
 	} catch (error) {
 		console.error("Erreur notification utilisateur banni:", error);
 	}
@@ -484,7 +525,7 @@ exports.notifyUserDeleted = async (userData, deletedBy) => {
 			? `${deletedBy.firstName} ${deletedBy.lastName}`
 			: "Système";
 
-		await sendNotificationToAdmins({
+		const notificationData = {
 			title: "Utilisateur supprimé",
 			message: `L'utilisateur ${userName} a été supprimé par ${deletedByName}.`,
 			data: {
@@ -494,7 +535,17 @@ exports.notifyUserDeleted = async (userData, deletedBy) => {
 				"Supprimé par": deletedByName,
 				Date: new Date().toLocaleString("fr-FR"),
 			},
+		};
+
+		// In-app & Push
+		await createNotificationsForAdmins({
+			...notificationData,
+			type: "announcement",
+			category: "account",
 		});
+
+		// Email
+		await sendNotificationToAdmins(notificationData);
 	} catch (error) {
 		console.error("Erreur notification utilisateur supprimé:", error);
 	}
@@ -510,7 +561,7 @@ exports.notifyPaymentFailed = async (order, paymentData, errorMessage) => {
 				? `${order.buyer.firstName} ${order.buyer.lastName}`
 				: "Client";
 
-		await sendNotificationToAdmins({
+		const notificationData = {
 			title: "Paiement échoué",
 			message: `Le paiement pour la commande ${
 				order.orderNumber || order._id
@@ -523,14 +574,25 @@ exports.notifyPaymentFailed = async (order, paymentData, errorMessage) => {
 				"Méthode de paiement": paymentData?.method || "N/A",
 				Erreur: errorMessage || "Non spécifiée",
 				Date: new Date().toLocaleString("fr-FR"),
+				orderId: order._id?.toString(),
 			},
 			actions: [
 				{
 					label: "Voir la commande",
-					url: `/admin/orders/${order._id}`, // Chemin relatif au lieu d'URL absolue
+					url: `/admin/orders/${order._id}`,
 				},
 			],
+		};
+
+		// In-app & Push
+		await createNotificationsForAdmins({
+			...notificationData,
+			type: "announcement",
+			category: "payment",
 		});
+
+		// Email
+		await sendNotificationToAdmins(notificationData);
 	} catch (error) {
 		console.error("Erreur notification paiement échoué:", error);
 	}
@@ -544,7 +606,7 @@ exports.notifyHighValueOrder = async (order, buyer) => {
 		const buyerName = `${buyer.firstName} ${buyer.lastName}`;
 		const orderValue = order.total?.toLocaleString("fr-FR") || "0";
 
-		await sendNotificationToAdmins({
+		const notificationData = {
 			title: "Commande de forte valeur",
 			message: `Une commande de forte valeur (${orderValue} FCFA) a été créée par ${buyerName}.`,
 			data: {
@@ -554,14 +616,25 @@ exports.notifyHighValueOrder = async (order, buyer) => {
 				"Montant total": `${orderValue} FCFA`,
 				Statut: order.status || "pending",
 				Date: new Date().toLocaleString("fr-FR"),
+				orderId: order._id?.toString(),
 			},
 			actions: [
 				{
 					label: "Voir la commande",
-					url: `/admin/orders/${order._id}`, // Chemin relatif au lieu d'URL absolue
+					url: `/admin/orders/${order._id}`,
 				},
 			],
+		};
+
+		// In-app & Push
+		await createNotificationsForAdmins({
+			...notificationData,
+			type: "announcement",
+			category: "order",
 		});
+
+		// Email
+		await sendNotificationToAdmins(notificationData);
 	} catch (error) {
 		console.error("Erreur notification commande de forte valeur:", error);
 	}

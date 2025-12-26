@@ -150,11 +150,11 @@ class NotificationService {
 			const payloadObj = {
 				title: notification.title,
 				body: notification.body,
-				icon: "/logo.png", // Simplification pour debug
+				icon: "/logo.png",
 				badge: "/logo.png",
-				// image: notification.image, // Désactivé temporairement car souvent trop lourd si url longue ou base64
 				data: safeData,
 				actions: notification.actions || [],
+				unreadCount: notification.unreadCount, // Ajout du compteur pour le badge PWA
 			};
 
 			const payload = JSON.stringify(payloadObj);

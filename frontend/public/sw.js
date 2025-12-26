@@ -130,7 +130,15 @@ self.addEventListener("push", (event) => {
 		requireInteraction: true, // Garder la notification visible
 	};
 
-	event.waitUntil(self.registration.showNotification(data.title, options));
+	event.waitUntil(
+		Promise.all([
+			self.registration.showNotification(data.title, options),
+			// Mise à jour du badge
+			"setAppBadge" in navigator
+				? navigator.setAppBadge(data.unreadCount || 1).catch(() => {})
+				: Promise.resolve(),
+		])
+	);
 });
 
 // Gestion des clics sur les notifications

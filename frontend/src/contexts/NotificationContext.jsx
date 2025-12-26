@@ -138,6 +138,28 @@ export const NotificationProvider = ({ children }) => {
 		};
 	}, [isAuthenticated]); // Recharger quand l'état d'authentification change
 
+	// 📱 Mettre à jour le badge de l'icône de l'application (PWA Badging API)
+	useEffect(() => {
+		const updateAppBadge = async () => {
+			try {
+				if ("setAppBadge" in navigator) {
+					if (unreadCount > 0) {
+						await navigator.setAppBadge(unreadCount);
+					} else {
+						await navigator.clearAppBadge();
+					}
+				}
+			} catch (error) {
+				console.warn(
+					"⚠️ [NotificationContext] Erreur lors de la mise à jour du badge:",
+					error
+				);
+			}
+		};
+
+		updateAppBadge();
+	}, [unreadCount]);
+
 	// Sauvegarder les notifications dans localStorage (seulement pour les non-connectés)
 	useEffect(() => {
 		if (!isAuthenticated && notifications.length > 0) {
