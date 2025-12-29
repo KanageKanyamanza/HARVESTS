@@ -109,8 +109,6 @@ const ExporterFields = ({ formData, editing, onInputChange }) => {
 					</div>
 				</div>
 			</div>
-
-			{/* Documents Section */}
 		</div>
 	);
 };

@@ -2,7 +2,6 @@ const jwt = require("jsonwebtoken");
 const User = require("../../models/User");
 const catchAsync = require("../../utils/catchAsync");
 const AppError = require("../../utils/appError");
-const Email = require("../../utils/email");
 const emailQueue = require("../../services/emailQueueService");
 const { logAudit, AUDIT_ACTIONS } = require("../../utils/auditLogger");
 const adminNotifications = require("../../utils/adminNotifications");

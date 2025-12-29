@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { FiUpload, FiX, FiCheck, FiFileText, FiImage } from "react-icons/fi";
 import { uploadService } from "../../services";
 
@@ -12,7 +13,14 @@ const DocumentUpload = ({
 }) => {
 	const [uploading, setUploading] = useState(false);
 	const [error, setError] = useState("");
+	const [showPreview, setShowPreview] = useState(false);
+	const [pdfPage, setPdfPage] = useState(1);
 	const fileInputRef = useRef(null);
+
+	// Reset pdf page when opening new preview
+	React.useEffect(() => {
+		if (showPreview) setPdfPage(1);
+	}, [showPreview]);
 
 	const allowedTypes = [
 		"application/pdf",
@@ -61,7 +69,8 @@ const DocumentUpload = ({
 
 	const isPdf =
 		currentFile?.toLowerCase().endsWith(".pdf") ||
-		currentFile?.includes(".pdf");
+		currentFile?.includes(".pdf") ||
+		currentFile?.includes("format=pdf");
 
 	return (
 		<div className={`w-full ${className}`}>
@@ -102,22 +111,35 @@ const DocumentUpload = ({
 						)}
 					</div>
 					<div className="flex-1 min-w-0">
-						<a
-							href={currentFile}
-							target="_blank"
-							rel="noopener noreferrer"
-							className="text-sm font-medium text-blue-600 hover:underline truncate block"
+						<button
+							type="button"
+							onClick={() => setShowPreview(true)}
+							className="text-sm font-medium text-blue-600 hover:underline truncate block focus:outline-none"
 						>
 							Voir le document
-						</a>
+						</button>
 						<span className="text-xs text-green-600 flex items-center mt-1">
 							<FiCheck className="mr-1" /> Uploadé
 						</span>
 					</div>
 					{!disabled && (
 						<button
-							onClick={(e) => {
+							onClick={async (e) => {
 								e.stopPropagation();
+
+								// Supprimer de Cloudinary si c'est une URL distante
+								if (currentFile && currentFile.includes("http")) {
+									try {
+										await uploadService.deleteImageByUrl(currentFile);
+									} catch (err) {
+										console.error(
+											"Erreur lors de la suppression de l'image sur Cloudinary",
+											err
+										);
+										// On continue quand même pour supprimer de l'interface
+									}
+								}
+
 								onFileRemove();
 							}}
 							className="ml-2 p-1 text-gray-400 hover:text-red-500"
@@ -141,6 +163,121 @@ const DocumentUpload = ({
 				}
 				disabled={disabled}
 			/>
+
+			{/* Modal de prévisualisation */}
+			{showPreview &&
+				createPortal(
+					<div
+						className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-75 p-4"
+						onClick={() => setShowPreview(false)}
+					>
+						<div
+							className="relative bg-white rounded-lg shadow-2xl overflow-hidden animate-fade-in-up flex flex-col max-h-[90vh] max-w-[95vw]"
+							onClick={(e) => e.stopPropagation()}
+						>
+							{/* En-tête du modal */}
+							<div className="flex justify-between items-center p-4 border-b bg-gray-50 flex-shrink-0">
+								<h3 className="text-lg font-semibold text-gray-800">
+									Prévisualisation du document
+								</h3>
+								<button
+									onClick={() => setShowPreview(false)}
+									className="p-1 rounded-full hover:bg-gray-200 transition-colors"
+								>
+									<FiX className="w-6 h-6 text-gray-600" />
+								</button>
+							</div>
+
+							{/* Contenu du document */}
+							<div className="overflow-auto bg-gray-100 flex items-center justify-center p-4">
+								{isPdf ? (
+									currentFile?.includes("cloudinary") ? (
+										<div className="flex flex-col items-center w-full h-full">
+											<div className="flex-1 flex items-center justify-center overflow-hidden w-full relative">
+												<img
+													key={pdfPage}
+													src={currentFile
+														.replace(/\.pdf$/i, ".jpg")
+														.replace(/\/upload\/?/, `/upload/pg_${pdfPage}/`)}
+													alt={`Page ${pdfPage}`}
+													className="max-w-full max-h-[75vh] object-contain rounded shadow-sm"
+													onError={(e) => {
+														e.target.onerror = null;
+														e.target.src =
+															"https://placehold.co/600x800?text=Fin+du+document";
+													}}
+												/>
+											</div>
+
+											{/* Pagination Controls */}
+											<div className="flex items-center justify-center space-x-4 mt-4 bg-white p-2 rounded-full shadow-md border">
+												<button
+													onClick={() => setPdfPage((p) => Math.max(1, p - 1))}
+													disabled={pdfPage <= 1}
+													className={`p-2 rounded-full ${
+														pdfPage <= 1
+															? "text-gray-300 cursor-not-allowed"
+															: "text-blue-600 hover:bg-blue-50"
+													}`}
+												>
+													<svg
+														xmlns="http://www.w3.org/2000/svg"
+														className="h-6 w-6"
+														fill="none"
+														viewBox="0 0 24 24"
+														stroke="currentColor"
+													>
+														<path
+															strokeLinecap="round"
+															strokeLinejoin="round"
+															strokeWidth={2}
+															d="M15 19l-7-7 7-7"
+														/>
+													</svg>
+												</button>
+												<span className="font-medium text-gray-700">
+													Page {pdfPage}
+												</span>
+												<button
+													onClick={() => setPdfPage((p) => p + 1)}
+													className="p-2 rounded-full text-blue-600 hover:bg-blue-50"
+												>
+													<svg
+														xmlns="http://www.w3.org/2000/svg"
+														className="h-6 w-6"
+														fill="none"
+														viewBox="0 0 24 24"
+														stroke="currentColor"
+													>
+														<path
+															strokeLinecap="round"
+															strokeLinejoin="round"
+															strokeWidth={2}
+															d="M9 5l7 7-7 7"
+														/>
+													</svg>
+												</button>
+											</div>
+										</div>
+									) : (
+										<iframe
+											src={`${currentFile}#toolbar=0`}
+											title="Document PDF"
+											className="w-[85vw] md:w-[800px] h-[70vh] rounded border border-gray-200 bg-white"
+										/>
+									)
+								) : (
+									<img
+										src={currentFile}
+										alt="Document preview"
+										className="max-w-full max-h-[80vh] object-contain rounded shadow-sm"
+									/>
+								)}
+							</div>
+						</div>
+					</div>,
+					document.body
+				)}
 		</div>
 	);
 };

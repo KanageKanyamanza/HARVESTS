@@ -1019,7 +1019,7 @@ const UserDetails = () => {
 						</div>
 
 						<div className="flex-1 overflow-auto bg-gray-100 flex flex-col items-center justify-center p-4 min-h-[500px]">
-							<div className="relative group max-w-full">
+							<div className="relative group max-w-full mt-20">
 								<img
 									src={
 										previewDoc.type === "pdf"
@@ -1029,6 +1029,11 @@ const UserDetails = () => {
 									alt={previewDoc.name}
 									className="max-w-full max-h-[75vh] object-contain shadow-2xl rounded border bg-white"
 									key={`${previewDoc.url}-${previewPage}`} // Forcer le rechargement au changement de page
+									onError={(e) => {
+										e.target.onerror = null;
+										e.target.src =
+											"https://placehold.co/600x800?text=Fin+doc&font=roboto";
+									}}
 								/>
 
 								{previewDoc.type === "pdf" && (

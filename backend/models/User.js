@@ -441,6 +441,7 @@ baseUserSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
 baseUserSchema.methods.toJSON = function () {
 	const userObject = this.toObject();
 
+	// Champs de sécurité / système interne existants
 	delete userObject.password;
 	delete userObject.emailVerificationToken;
 	delete userObject.emailVerificationExpires;
@@ -448,6 +449,21 @@ baseUserSchema.methods.toJSON = function () {
 	delete userObject.passwordResetExpires;
 	delete userObject.loginAttempts;
 	delete userObject.accountLockedUntil;
+
+	// Optimisation : Suppression des données techniques backend uniquement
+	delete userObject.webPushSubscriptions;
+	delete userObject.fcmTokens;
+
+	// Optimisation : Suppression des données redondantes (récupérées via endpoints dédiés)
+	delete userObject.bankAccount;
+	delete userObject.paymentMethods;
+	delete userObject.notificationSettings;
+
+	// Optimisation : Suppression des données inutilisées par le frontend
+	delete userObject.salesStats;
+	delete userObject.coordinates;
+	delete userObject.identityVerifiedAt;
+	delete userObject.businessVerifiedAt;
 
 	return userObject;
 };
