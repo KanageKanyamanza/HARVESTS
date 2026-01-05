@@ -12,7 +12,7 @@ import {
 } from "react-icons/fi";
 import CloudinaryImage from "../common/CloudinaryImage";
 import { getDishImageUrl } from "../../utils/dishImageUtils";
-import { formatPrice } from "../../utils/productUtils";
+import { formatPrice } from "../../utils/currencyUtils";
 
 export const getStatusBadge = (dish) => {
 	const normalized = dish.status || "pending-review";

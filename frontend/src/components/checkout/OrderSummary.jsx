@@ -1,7 +1,7 @@
 import React from "react";
 import { FiShoppingBag, FiShield } from "react-icons/fi";
 import CloudinaryImage from "../common/CloudinaryImage";
-import { formatPrice, convertPrice } from "../../utils/productUtils";
+import { formatPrice, convertPrice } from "../../utils/currencyUtils";
 import { useCurrency } from "../../contexts/CurrencyContext.jsx";
 import { DEFAULT_CURRENCY } from "../../config/currencies";
 

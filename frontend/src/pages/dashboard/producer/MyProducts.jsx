@@ -20,7 +20,7 @@ import {
 } from "react-icons/fi";
 
 import { toPlainText } from "../../../utils/textHelpers";
-import { formatPrice } from "../../../utils/productUtils";
+import { formatPrice } from "../../../utils/currencyUtils";
 
 const MyProducts = () => {
 	const { user } = useAuth();

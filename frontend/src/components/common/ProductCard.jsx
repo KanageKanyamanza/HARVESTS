@@ -14,7 +14,7 @@ import {
 	FiSend,
 } from "react-icons/fi";
 import { toPlainText } from "../../utils/textHelpers";
-import { formatPrice, convertPrice } from "../../utils/productUtils";
+import { formatPrice, convertPrice } from "../../utils/currencyUtils";
 import { useCurrency } from "../../contexts/CurrencyContext.jsx";
 
 const ProductCard = ({
