@@ -15,9 +15,12 @@ import {
 	getProductAverageRating,
 	getProductReviewCount,
 } from "../../utils/vendorRatings";
+import { convertPrice, formatPrice } from "../../utils/currencyUtils";
+import { useCurrency } from "../../contexts/CurrencyContext";
 
 const ProductCard = ({ product }) => {
 	const { addToCart } = useCart();
+	const { currency } = useCurrency();
 	const [isAdded, setIsAdded] = useState(false);
 	const initialAverage = getProductAverageRating(product);
 	const initialCount = getProductReviewCount(product);
@@ -81,11 +84,18 @@ const ProductCard = ({ product }) => {
 	};
 
 	const formatPrice = (price) => {
+		const convertedPrice = convertPrice(
+			price,
+			product.currency || "FCFA",
+			currency
+		);
 		return new Intl.NumberFormat("fr-FR", {
 			style: "currency",
-			currency: "XOF",
-			minimumFractionDigits: 0,
-		}).format(price);
+			currency: currency === "FCFA" ? "XOF" : currency,
+			minimumFractionDigits: currency === "FCFA" ? 0 : 2,
+		})
+			.format(convertedPrice)
+			.replace("XOF", "FCFA");
 	};
 
 	const getCategoryLabel = (category) => {

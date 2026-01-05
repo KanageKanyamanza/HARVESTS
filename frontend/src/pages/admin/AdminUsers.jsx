@@ -24,458 +24,484 @@ import CloudinaryImage from '../../components/common/CloudinaryImage';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 
 const AdminUsers = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [selectedUsers, setSelectedUsers] = useState([]);
+	const [users, setUsers] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [searchTerm, setSearchTerm] = useState("");
+	const [roleFilter, setRoleFilter] = useState("");
+	const [statusFilter, setStatusFilter] = useState("");
+	const [currentPage, setCurrentPage] = useState(1);
+	const [totalPages, setTotalPages] = useState(1);
+	const [selectedUsers, setSelectedUsers] = useState([]);
 
-  // Fonction loadUsers mémorisée pour éviter les re-rendus
-  const loadUsers = useCallback(async () => {
-    try {
-      setLoading(true);
-      const params = {
-        page: currentPage,
-        limit: 50, // Augmenté pour voir plus d'utilisateurs
-        search: searchTerm,
-        role: roleFilter,
-        status: statusFilter
-      };
-      const response = await adminService.getUsers(params);
-      
-      // Vérifier si la réponse contient des utilisateurs
-      if (response.data && response.data.users) {
-        setUsers(response.data.users || []);
-        setTotalPages(response.data.pagination?.totalPages || 1);
-      } else if (response.data && response.data.data && response.data.data.users) {
-        // Structure alternative avec data.users
-        setUsers(response.data.data.users || []);
-        setTotalPages(response.data.data.pagination?.totalPages || 1);
-      } else {
-        setUsers([]);
-        setTotalPages(1);
-      }
-    } catch (error) {
-      console.error('Erreur lors du chargement des utilisateurs:', error);
-      setUsers([]);
-      setTotalPages(1);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentPage, roleFilter, statusFilter, searchTerm]);
+	const loadUsers = useCallback(async () => {
+		try {
+			setLoading(true);
+			const params = {
+				page: currentPage,
+				limit: 10,
+				search: searchTerm,
+				role: roleFilter,
+				status: statusFilter,
+			};
+			const response = await adminService.getUsers(params);
 
-  useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
+			if (response.data && response.data.users) {
+				setUsers(response.data.users || []);
+				setTotalPages(response.data.pagination?.totalPages || 1);
+			} else if (response.data && response.data.data && response.data.data.users) {
+				setUsers(response.data.data.users || []);
+				setTotalPages(response.data.data.pagination?.totalPages || 1);
+			} else {
+				setUsers([]);
+				setTotalPages(1);
+			}
+		} catch (error) {
+			console.error("Erreur lors du chargement des utilisateurs:", error);
+			setUsers([]);
+			setTotalPages(1);
+		} finally {
+			setLoading(false);
+		}
+	}, [currentPage, roleFilter, statusFilter, searchTerm]);
 
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-    setCurrentPage(1);
-  };
+	useEffect(() => {
+		loadUsers();
+	}, [loadUsers]);
 
-  const handleRoleFilter = (e) => {
-    setRoleFilter(e.target.value);
-    setCurrentPage(1);
-  };
+	const handleSearch = (e) => {
+		setSearchTerm(e.target.value);
+		setCurrentPage(1);
+	};
 
-  const handleStatusFilter = (e) => {
-    setStatusFilter(e.target.value);
-    setCurrentPage(1);
-  };
+	const handleRoleFilter = (e) => {
+		setRoleFilter(e.target.value);
+		setCurrentPage(1);
+	};
 
-  const handleSelectUser = (userId) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId) 
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
-    );
-  };
+	const handleStatusFilter = (e) => {
+		setStatusFilter(e.target.value);
+		setCurrentPage(1);
+	};
 
-  const handleSelectAll = () => {
-    setSelectedUsers(
-      selectedUsers.length === users.length 
-        ? [] 
-        : users.map(user => user._id)
-    );
-  };
+	const handleSelectUser = (userId) => {
+		setSelectedUsers((prev) =>
+			prev.includes(userId)
+				? prev.filter((id) => id !== userId)
+				: [...prev, userId]
+		);
+	};
 
-  const handleBanUser = async (userId) => {
-    if (window.confirm('Êtes-vous sûr de vouloir bannir cet utilisateur ?')) {
-      try {
-        await adminService.banUser(userId, 'Violation des règles');
-        loadUsers();
-      } catch (error) {
-        console.error('Erreur lors du bannissement:', error);
-      }
-    }
-  };
+	const handleSelectAll = () => {
+		setSelectedUsers(
+			selectedUsers.length === users.length ? [] : users.map((user) => user._id)
+		);
+	};
 
-  const handleVerifyUser = async (userId) => {
-    try {
-      await adminService.verifyUser(userId);
-      loadUsers();
-    } catch (error) {
-      console.error('Erreur lors de la vérification:', error);
-    }
-  };
+	const handleBanUser = async (userId) => {
+		if (window.confirm("Êtes-vous sûr de vouloir bannir cet utilisateur ?")) {
+			try {
+				await adminService.banUser(userId, "Violation des règles");
+				loadUsers();
+			} catch (error) {
+				console.error("Erreur lors du bannissement:", error);
+			}
+		}
+	};
 
-  const handleDeleteUser = async (userId) => {
-    const user = users.find(u => u._id === userId);
-    const userName = user ? `${user.firstName} ${user.lastName}` : 'cet utilisateur';
-    
-    if (window.confirm(`⚠️ ATTENTION : Êtes-vous sûr de vouloir supprimer définitivement ${userName} ?\n\nCette action supprimera également tous les produits associés à cet utilisateur. Cette action est irréversible.`)) {
-      try {
-        await adminService.deleteUser(userId);
-        alert('Utilisateur supprimé avec succès');
-        loadUsers();
-      } catch (error) {
-        console.error('Erreur lors de la suppression:', error);
-        alert(error.response?.data?.message || 'Erreur lors de la suppression de l\'utilisateur');
-      }
-    }
-  };
+	const handleVerifyUser = async (userId) => {
+		try {
+			await adminService.verifyUser(userId);
+			loadUsers();
+		} catch (error) {
+			console.error("Erreur lors de la vérification:", error);
+		}
+	};
 
-  const handleDeleteSelected = async () => {
-    if (selectedUsers.length === 0) return;
-    
-    if (window.confirm(`⚠️ ATTENTION : Êtes-vous sûr de vouloir supprimer définitivement ${selectedUsers.length} utilisateur(s) ?\n\nCette action supprimera également tous les produits associés à ces utilisateurs. Cette action est irréversible.`)) {
-      try {
-        const deletePromises = selectedUsers.map(userId => adminService.deleteUser(userId));
-        await Promise.all(deletePromises);
-        alert(`${selectedUsers.length} utilisateur(s) supprimé(s) avec succès`);
-        setSelectedUsers([]);
-        loadUsers();
-      } catch (error) {
-        console.error('Erreur lors de la suppression:', error);
-        alert('Erreur lors de la suppression des utilisateurs');
-      }
-    }
-  };
+	const handleDeleteUser = async (userId) => {
+		const user = users.find((u) => u._id === userId);
+		const userName = user
+			? `${user.firstName} ${user.lastName}`
+			: "cet utilisateur";
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+		if (
+			window.confirm(
+				`⚠️ ATTENTION : Êtes-vous sûr de vouloir supprimer définitivement ${userName} ?\n\nCette action supprimera également tous les produits associés à cet utilisateur. Cette action est irréversible.`
+			)
+		) {
+			try {
+				await adminService.deleteUser(userId);
+				loadUsers();
+			} catch (error) {
+				console.error("Erreur lors de la suppression:", error);
+			}
+		}
+	};
 
-  const getRoleColor = (role) => {
-    const colors = {
-      'admin': 'text-red-600 bg-red-100',
-      'producer': 'text-green-600 bg-green-100',
-      'consumer': 'text-blue-600 bg-blue-100',
-      'transformer': 'text-purple-600 bg-purple-100',
-      'restaurateur': 'text-orange-600 bg-orange-100',
-      'exporter': 'text-indigo-600 bg-indigo-100',
-      'transporter': 'text-gray-600 bg-gray-100'
-    };
-    return colors[role] || 'text-gray-600 bg-gray-100';
-  };
+	const handleDeleteSelected = async () => {
+		if (selectedUsers.length === 0) return;
 
-  const getRoleLabel = (userType) => {
-    const labels = {
-      'producer': 'Producteur',
-      'consumer': 'Consommateur',
-      'transformer': 'Transformateur',
-      'restaurateur': 'Restaurateur',
-      'exporter': 'Exportateur',
-      'transporter': 'Transporteur'
-    };
-    return labels[userType] || userType;
-  };
+		if (
+			window.confirm(
+				`⚠️ ATTENTION : Êtes-vous sûr de vouloir supprimer définitivement ${selectedUsers.length} utilisateur(s) ?\n\nCette action supprimera également tous les produits associés à ces utilisateurs. Cette action est irréversible.`
+			)
+		) {
+			try {
+				const deletePromises = selectedUsers.map((userId) =>
+					adminService.deleteUser(userId)
+				);
+				await Promise.all(deletePromises);
+				setSelectedUsers([]);
+				loadUsers();
+			} catch (error) {
+				console.error("Erreur lors de la suppression:", error);
+			}
+		}
+	};
 
-  const getStatusColor = (status) => {
-    const colors = {
-      'Actif': 'text-green-600 bg-green-100',
-      'Vérifié': 'text-blue-600 bg-blue-100',
-      'En attente': 'text-yellow-600 bg-yellow-100',
-      'Banni': 'text-red-600 bg-red-100'
-    };
-    return colors[status] || 'text-gray-600 bg-gray-100';
-  };
+	const formatDate = (date) => {
+		return new Date(date).toLocaleDateString("fr-FR", {
+			year: "numeric",
+			month: "short",
+			day: "numeric",
+		});
+	};
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <LoadingSpinner size="lg" text="Chargement des utilisateurs..." />
-      </div>
-    );
-  }
+	const getRoleColor = (role) => {
+		const colors = {
+			admin: "text-rose-600 bg-rose-50 border-rose-100",
+			producer: "text-emerald-600 bg-emerald-50 border-emerald-100",
+			consumer: "text-sky-600 bg-sky-50 border-sky-100",
+			transformer: "text-purple-600 bg-purple-50 border-purple-100",
+			restaurateur: "text-amber-600 bg-amber-50 border-amber-100",
+			exporter: "text-indigo-600 bg-indigo-50 border-indigo-100",
+			transporter: "text-slate-600 bg-slate-50 border-slate-100",
+		};
+		return colors[role] || "text-gray-600 bg-gray-50 border-gray-100";
+	};
 
-  return (
-    <div className="overflow-x-auto">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Utilisateurs</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Gérez tous les utilisateurs de la plateforme
-            </p>
-          </div>
-          <div className="flex space-x-3">
-            <button 
-              className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700"
-              title="Exporter la liste des utilisateurs"
-            >
-              Exporter
-            </button>
-            <button 
-              className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700"
-              title="Créer un nouvel utilisateur"
-            >
-              Ajouter un utilisateur
-            </button>
-          </div>
-        </div>
+	const getRoleLabel = (userType) => {
+		const labels = {
+			producer: "Producteur",
+			consumer: "Consommateur",
+			transformer: "Transformateur",
+			restaurateur: "Restaurateur",
+			exporter: "Exportateur",
+			transporter: "Transporteur",
+			admin: "Admin",
+		};
+		return labels[userType] || userType;
+	};
 
-        {/* Filters */}
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Rechercher des utilisateurs..."
-                value={searchTerm}
-                onChange={handleSearch}
-                className="pl-10 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-              />
-            </div>
-            <select
-              value={roleFilter}
-              onChange={handleRoleFilter}
-              className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              <option value="">Tous les rôles</option>
-              <option value="producer">Producteur</option>
-              <option value="consumer">Consommateur</option>
-              <option value="transformer">Transformateur</option>
-              <option value="restaurateur">Restaurateur</option>
-              <option value="exporter">Exportateur</option>
-              <option value="transporter">Transporteur</option>
-            </select>
-            <select
-              value={statusFilter}
-              onChange={handleStatusFilter}
-              className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              <option value="">Tous les statuts</option>
-              <option value="Actif">Actif</option>
-              <option value="Vérifié">Vérifié</option>
-              <option value="En attente">En attente</option>
-              <option value="Banni">Banni</option>
-            </select>
-            <button className="bg-gray-100 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-200">
-              <Filter className="h-4 w-4 inline mr-2" />
-              Plus de filtres
-            </button>
-          </div>
-        </div>
+	const getStatusColor = (status) => {
+		const colors = {
+			Actif: "text-emerald-600 bg-emerald-50 border-emerald-100",
+			Vérifié: "text-sky-600 bg-sky-50 border-sky-100",
+			"En attente": "text-amber-600 bg-amber-50 border-amber-100",
+			Banni: "text-rose-600 bg-rose-50 border-rose-100",
+		};
+		return colors[status] || "text-gray-600 bg-gray-50 border-gray-100";
+	};
 
-        {/* Users Table */}
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium text-gray-900">
-                Liste des utilisateurs ({users.length})
-              </h3>
-              {selectedUsers.length > 0 && (
-                <div className="flex space-x-2">
-                  <button 
-                    className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
-                    title="Bannir les utilisateurs sélectionnés"
-                    onClick={() => {
-                      selectedUsers.forEach(userId => handleBanUser(userId));
-                    }}
-                  >
-                    Bannir sélectionnés
-                  </button>
-                  <button 
-                    className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
-                    title="Vérifier les utilisateurs sélectionnés"
-                    onClick={() => {
-                      selectedUsers.forEach(userId => handleVerifyUser(userId));
-                    }}
-                  >
-                    Vérifier sélectionnés
-                  </button>
-                  <button 
-                    className="bg-red-800 text-white px-3 py-1 rounded text-sm hover:bg-red-900"
-                    title="Supprimer définitivement les utilisateurs sélectionnés"
-                    onClick={handleDeleteSelected}
-                  >
-                    <Trash2 className="h-4 w-4 inline mr-1" />
-                    Supprimer sélectionnés
-                  </button>
-                </div>
-              )}
-            </div>
+	if (loading) {
+		return (
+			<div className="flex items-center justify-center min-h-[400px]">
+				<LoadingSpinner size="lg" text="Chargement des utilisateurs..." />
+			</div>
+		);
+	}
 
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-harvests-light">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <input
-                        type="checkbox"
-                        checked={selectedUsers.length === users.length && users.length > 0}
-                        onChange={handleSelectAll}
-                        className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                        title="Sélectionner tous les utilisateurs"
-                      />
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Utilisateur
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Rôle
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Statut
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Inscrit le
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {users.map((user) => (
-                    <tr key={user._id} className="hover:bg-harvests-light">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <input
-                          type="checkbox"
-                          checked={selectedUsers.includes(user._id)}
-                          onChange={() => handleSelectUser(user._id)}
-                          className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                          title={`Sélectionner ${user.firstName} ${user.lastName}`}
-                        />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10">
-                            {user.avatar ? (
-                              <CloudinaryImage
-                                src={user.avatar}
-                                alt={`${user.firstName} ${user.lastName}`}
-                                className="h-10 w-10 rounded-full object-cover"
-                                fallback={
-                                  <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                    <span className="text-sm font-medium text-gray-600">
-                                      {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
-                                    </span>
-                                  </div>
-                                }
-                              />
-                            ) : (
-                              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                <span className="text-sm font-medium text-gray-600">
-                                  {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {user.firstName} {user.lastName}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {user.email}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user.userType)}`}>
-                          {getRoleLabel(user.userType)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}>
-                          {user.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(user.createdAt)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex items-center space-x-2">
-                          <Link
-                            to={`/admin/users/${user._id}`}
-                            className="text-green-600 hover:text-green-900"
-                            title="Voir les détails"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Link>
-                          {user.status !== 'Vérifié' && (
-                            <button
-                              onClick={() => handleVerifyUser(user._id)}
-                              className="text-blue-600 hover:text-blue-900"
-                              title="Vérifier l'utilisateur"
-                            >
-                              <UserCheck className="h-4 w-4" />
-                            </button>
-                          )}
-                          {user.status !== 'Banni' && (
-                            <button
-                              onClick={() => handleBanUser(user._id)}
-                              className="text-red-600 hover:text-red-900"
-                              title="Bannir l'utilisateur"
-                            >
-                              <Ban className="h-4 w-4" />
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleDeleteUser(user._id)}
-                            className="text-red-800 hover:text-red-900"
-                            title="Supprimer définitivement l'utilisateur"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+	return (
+		<div className="min-h-screen pb-20 relative overflow-hidden">
+			{/* Background radial glows */}
+			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
+				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-green-100/30 rounded-full blur-[120px]"></div>
+				<div className="absolute top-[20%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
+				<div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-purple-100/20 rounded-full blur-[120px]"></div>
+			</div>
 
-            {/* Pagination */}
-            <div className="mt-6 flex items-center justify-between">
-              <div className="text-sm text-gray-700">
-                Affichage de {((currentPage - 1) * 10) + 1} à {Math.min(currentPage * 10, users.length)} sur {users.length} résultats
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Page précédente"
-                >
-                  Précédent
-                </button>
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="Page suivante"
-                >
-                  Suivant
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+			<div className="max-w-[1700px] mx-auto px-4 py-12 space-y-10 relative z-10">
+				{/* Header */}
+				<div className="flex flex-col md:flex-row md:items-end justify-between gap-8 px-2">
+					<div className="animate-fade-in-down">
+						<h1 className="text-5xl font-[1000] text-gray-900 tracking-tighter leading-[1] mb-4">
+							Gestion des <span className="text-green-600">Utilisateurs</span>
+						</h1>
+						<p className="text-lg text-gray-500 font-medium max-w-xl">
+							Gérez les comptes, les rôles et les accès de l'ensemble de la
+							communauté Harvests.
+						</p>
+					</div>
+					<div className="flex items-center gap-4 animate-fade-in-up">
+						{/* Boutons simplifiés/premium style optionnels */}
+					</div>
+				</div>
+
+				{/* Filtres */}
+				<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white/60 animate-fade-in-up delay-100">
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+						<div className="relative group">
+							<Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400 group-focus-within:text-green-500 transition-colors" />
+							<input
+								type="text"
+								placeholder="Rechercher..."
+								value={searchTerm}
+								onChange={handleSearch}
+								className="w-full pl-12 pr-6 py-4 bg-gray-200/50 border border-transparent focus:border-green-100 focus:bg-white focus:ring-4 focus:ring-green-500/5 rounded-2xl transition-all duration-300 font-bold text-gray-900 placeholder:text-gray-400"
+							/>
+						</div>
+
+						<div className="relative">
+							<select
+								value={roleFilter}
+								onChange={handleRoleFilter}
+								className="w-full px-6 py-4 bg-gray-200/50 border border-transparent focus:border-green-100 focus:bg-white focus:ring-4 focus:ring-green-500/5 rounded-2xl transition-all duration-300 font-bold text-gray-900 appearance-none cursor-pointer"
+							>
+								<option value="">Tous les rôles</option>
+								<option value="producer">Producteur</option>
+								<option value="consumer">Consommateur</option>
+								<option value="transformer">Transformateur</option>
+								<option value="restaurateur">Restaurateur</option>
+								<option value="exporter">Exportateur</option>
+								<option value="transporter">Transporteur</option>
+								<option value="admin">Admin</option>
+							</select>
+						</div>
+
+						<div className="relative">
+							<select
+								value={statusFilter}
+								onChange={handleStatusFilter}
+								className="w-full px-6 py-4 bg-gray-200/50 border border-transparent focus:border-green-100 focus:bg-white focus:ring-4 focus:ring-green-500/5 rounded-2xl transition-all duration-300 font-bold text-gray-900 appearance-none cursor-pointer"
+							>
+								<option value="">Tous les statuts</option>
+								<option value="Actif">Actif</option>
+								<option value="Vérifié">Vérifié</option>
+								<option value="En attente">En attente</option>
+								<option value="Banni">Banni</option>
+							</select>
+						</div>
+
+						<button className="flex items-center justify-center px-6 py-4 bg-gray-200/50 hover:bg-white border border-transparent hover:border-gray-100 rounded-2xl transition-all duration-300 text-gray-600 font-black text-[10px] uppercase tracking-widest gap-2">
+							<Filter className="h-4 w-4" />
+							Plus
+						</button>
+					</div>
+				</div>
+
+				{/* Table */}
+				<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white/60 overflow-hidden animate-fade-in-up delay-200">
+					<div className="p-8 border-b border-gray-200/50 flex items-center justify-between bg-white/30">
+						<div>
+							<h3 className="text-2xl font-[1000] text-gray-900 tracking-tight">
+								Liste des Membres
+							</h3>
+							<p className="text-[10px] font-black text-gray-400 mt-1 uppercase tracking-[0.2em]">
+								Total: {users.length} utilisateurs
+							</p>
+						</div>
+						{selectedUsers.length > 0 && (
+							<div className="flex gap-3 animate-fade-in">
+								<button
+									onClick={() =>
+										selectedUsers.forEach((id) => handleVerifyUser(id))
+									}
+									className="px-6 py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-all duration-300"
+								>
+									Vérifier ({selectedUsers.length})
+								</button>
+								<button
+									onClick={handleDeleteSelected}
+									className="px-6 py-2.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all duration-300"
+								>
+									Supprimer ({selectedUsers.length})
+								</button>
+							</div>
+						)}
+					</div>
+
+					<div className="overflow-x-auto">
+						<table className="w-full">
+							<thead>
+								<tr className="border-b border-gray-200/50">
+									<th className="px-8 py-6 text-left">
+										<input
+											type="checkbox"
+											checked={
+												selectedUsers.length === users.length &&
+												users.length > 0
+											}
+											onChange={handleSelectAll}
+											className="w-5 h-5 border-2 border-gray-200 rounded-lg bg-white checked:bg-green-600 checked:border-green-600 transition-all cursor-pointer appearance-none"
+										/>
+									</th>
+									<th className="px-4 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">
+										Utilisateur
+									</th>
+									<th className="px-4 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">
+										Rôle
+									</th>
+									<th className="px-4 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">
+										Statut
+									</th>
+									<th className="px-4 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">
+										Membre depuis
+									</th>
+									<th className="px-8 py-6 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">
+										Actions
+									</th>
+								</tr>
+							</thead>
+							<tbody className="divide-y divide-gray-200/50">
+								{users.length === 0 ? (
+									<tr>
+										<td colSpan="6" className="px-8 py-20 text-center">
+											<div className="flex flex-col items-center">
+												<div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+													<User className="h-10 w-10 text-gray-300" />
+												</div>
+												<p className="text-xl font-[1000] text-gray-900 tracking-tight">
+													Aucun utilisateur
+												</p>
+											</div>
+										</td>
+									</tr>
+								) : (
+									users.map((user) => (
+										<tr
+											key={user._id}
+											className="group hover:bg-gray-50/50 transition-colors duration-300"
+										>
+											<td className="px-8 py-6">
+												<input
+													type="checkbox"
+													checked={selectedUsers.includes(user._id)}
+													onChange={() => handleSelectUser(user._id)}
+													className="w-5 h-5 border-2 border-gray-200 rounded-lg bg-white checked:bg-green-600 checked:border-green-600 transition-all cursor-pointer appearance-none"
+												/>
+											</td>
+											<td className="px-4 py-6">
+												<div className="flex items-center gap-4">
+													<div className="h-12 w-12 rounded-2xl overflow-hidden border border-gray-100 shadow-sm flex-shrink-0">
+														{user.avatar ? (
+															<CloudinaryImage
+																src={user.avatar}
+																alt={`${user.firstName} ${user.lastName}`}
+																className="h-full w-full object-cover"
+															/>
+														) : (
+															<div className="h-full w-full bg-gray-200 flex items-center justify-center">
+																<span className="text-sm font-black text-gray-500">
+																	{user.firstName?.charAt(0)}
+																	{user.lastName?.charAt(0)}
+																</span>
+															</div>
+														)}
+													</div>
+													<div>
+														<p className="text-base font-black text-gray-900 tracking-tight leading-tight mb-1 group-hover:text-green-600 transition-colors">
+															{user.firstName} {user.lastName}
+														</p>
+														<p className="text-[10px] font-bold text-gray-400">
+															{user.email}
+														</p>
+													</div>
+												</div>
+											</td>
+											<td className="px-4 py-6">
+												<span
+													className={`inline-flex px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest border ${getRoleColor(
+														user.userType
+													)}`}
+												>
+													{getRoleLabel(user.userType)}
+												</span>
+											</td>
+											<td className="px-4 py-6">
+												<span
+													className={`inline-flex px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest border ${getStatusColor(
+														user.status
+													)}`}
+												>
+													{user.status}
+												</span>
+											</td>
+											<td className="px-4 py-6">
+												<div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+													<Calendar className="h-3 w-3" />
+													{formatDate(user.createdAt)}
+												</div>
+											</td>
+											<td className="px-8 py-6 text-right">
+												<div className="flex items-center justify-end gap-2">
+													<Link
+														to={`/admin/users/${user._id}`}
+														className="p-2.5 bg-gray-50 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300 border border-transparent hover:border-blue-100"
+														title="Voir détails"
+													>
+														<Eye className="h-4 w-4" />
+													</Link>
+													{user.status !== "Vérifié" && (
+														<button
+															onClick={() => handleVerifyUser(user._id)}
+															className="p-2.5 bg-gray-50 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-xl transition-all duration-300 border border-transparent hover:border-green-100"
+															title="Vérifier"
+														>
+															<UserCheck className="h-4 w-4" />
+														</button>
+													)}
+													{user.status !== "Banni" && (
+														<button
+															onClick={() => handleBanUser(user._id)}
+															className="p-2.5 bg-gray-50 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all duration-300 border border-transparent hover:border-rose-100"
+															title="Bannir"
+														>
+															<Ban className="h-4 w-4" />
+														</button>
+													)}
+													<button
+														onClick={() => handleDeleteUser(user._id)}
+														className="p-2.5 bg-gray-50 text-gray-400 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-300 border border-transparent hover:border-red-100"
+														title="Supprimer"
+													>
+														<Trash2 className="h-4 w-4" />
+													</button>
+												</div>
+											</td>
+										</tr>
+									))
+								)}
+							</tbody>
+						</table>
+					</div>
+
+					{/* Pagination */}
+					<div className="p-8 border-t border-gray-200/50 flex flex-col sm:flex-row items-center justify-between gap-6 bg-white/30">
+						<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+							Page {currentPage} sur {totalPages}
+						</p>
+						<div className="flex items-center gap-2">
+							<button
+								onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+								disabled={currentPage === 1}
+								className="px-6 py-3 bg-white text-gray-500 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-gray-100 hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-gray-500"
+							>
+								Précédent
+							</button>
+							<button
+								onClick={() =>
+									setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+								}
+								disabled={currentPage === totalPages}
+								className="px-6 py-3 bg-white text-gray-500 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-gray-100 hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-gray-500"
+							>
+								Suivant
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
 };
 
 export default AdminUsers;

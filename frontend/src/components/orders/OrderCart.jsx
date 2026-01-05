@@ -1,6 +1,10 @@
 import React from 'react';
 import { FiPlus, FiMinus } from 'react-icons/fi';
+import { FiPlus, FiMinus } from 'react-icons/fi';
 import { toPlainText } from '../../utils/textHelpers';
+import { useCurrency } from '../../contexts/CurrencyContext';
+import { convertPrice, formatPrice } from '../../utils/currencyUtils';
+import { DEFAULT_CURRENCY } from '../../config/currencies';
 
 const OrderCart = ({ 
   cart, 
@@ -8,7 +12,9 @@ const OrderCart = ({
   onRemoveFromCart, 
   onCalculateTotal,
   onBackToSuppliers 
+  onBackToSuppliers 
 }) => {
+  const { currency } = useCurrency();
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Panier</h3>
@@ -34,7 +40,14 @@ const OrderCart = ({
                   {toPlainText(item.product.name, 'Produit') || 'Produit'}
                 </h4>
                 <p className="text-sm text-gray-500">
-                  {(Number(item.product.price?.value ?? item.product.price ?? 0)).toLocaleString()} FCFA
+                  {formatPrice(
+                      convertPrice(
+                        Number(item.product.price?.value ?? item.product.price ?? 0),
+                        item.product.currency || DEFAULT_CURRENCY,
+                         currency
+                      ),
+                      currency
+                    )}
                 </p>
               </div>
               <div className="flex items-center space-x-2">
@@ -66,7 +79,7 @@ const OrderCart = ({
           <div className="border-t border-gray-200 pt-4">
             <div className="flex justify-between text-lg font-semibold text-gray-900">
               <span>Total:</span>
-              <span>{onCalculateTotal().toLocaleString()} FCFA</span>
+              <span>{formatPrice(convertPrice(onCalculateTotal(), DEFAULT_CURRENCY, currency), currency)}</span>
             </div>
           </div>
         </div>

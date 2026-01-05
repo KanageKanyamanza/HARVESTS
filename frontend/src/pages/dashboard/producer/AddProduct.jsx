@@ -11,6 +11,9 @@ import {
 	FiTag,
 	FiAlignLeft,
 } from "react-icons/fi";
+import { CURRENCIES, DEFAULT_CURRENCY } from "../../../config/currencies";
+
+import { UNITS, DEFAULT_UNIT } from "../../../config/units";
 
 const AddProduct = () => {
 	const { showSuccess, showError } = useNotifications();
@@ -22,10 +25,10 @@ const AddProduct = () => {
 		name: "",
 		description: "",
 		price: "",
-		currency: "FCFA",
+		currency: DEFAULT_CURRENCY,
 		category: "",
 		stock: "",
-		unit: "kg",
+		unit: DEFAULT_UNIT,
 	});
 
 	const categories = [
@@ -45,19 +48,6 @@ const AddProduct = () => {
 		{ value: "processed-foods", label: "Aliments transformés" },
 		{ value: "beverages", label: "Boissons" },
 		{ value: "other", label: "Autres" },
-	];
-
-	const units = [
-		{ value: "kg", label: "Kilogrammes (kg)" },
-		{ value: "g", label: "Grammes (g)" },
-		{ value: "pièces", label: "Pièces" },
-		{ value: "sachet", label: "Sachet" },
-		{ value: "bunch", label: "Botte/Bouquet" },
-		{ value: "bag", label: "Sac" },
-		{ value: "box", label: "Caisse/Boîte" },
-		{ value: "L", label: "Litre (L)" },
-		{ value: "ml", label: "Millilitre (ml)" },
-		{ value: "unité", label: "Unité" },
 	];
 
 	const handleInputChange = (e) => {
@@ -170,7 +160,7 @@ const AddProduct = () => {
 										onChange={handleInputChange}
 										className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
 									>
-										{units.map((unit) => (
+										{UNITS.map((unit) => (
 											<option key={unit.value} value={unit.value}>
 												{unit.label}
 											</option>
@@ -234,9 +224,11 @@ const AddProduct = () => {
 									onChange={handleInputChange}
 									className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
 								>
-									<option value="FCFA">FCFA</option>
-									<option value="EUR">EUR</option>
-									<option value="USD">USD</option>
+									{CURRENCIES.map((currency) => (
+										<option key={currency.code} value={currency.code}>
+											{currency.code} - {currency.name}
+										</option>
+									))}
 								</select>
 							</div>
 							<div>

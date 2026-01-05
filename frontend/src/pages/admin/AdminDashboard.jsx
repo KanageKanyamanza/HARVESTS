@@ -1,83 +1,110 @@
-import React from 'react';
-import RecentOrders from '../../components/admin/RecentOrders';
-import PendingProducts from '../../components/admin/PendingProducts';
-import TopProducers from '../../components/admin/TopProducers';
-import ProductStats from '../../components/admin/ProductStats';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
-import StatCards from './adminDashboard/StatCards';
-import SalesAndUserStats from './adminDashboard/SalesAndUserStats';
-import QuickActions from './adminDashboard/QuickActions';
-import MainSections from './adminDashboard/MainSections';
-import { useDashboardStats } from './adminDashboard/dashboardHooks';
-import { createStatCards, createMarketplaceStats, createQuickActions } from './adminDashboard/dashboardUtils';
+import React from "react";
+import RecentOrders from "../../components/admin/RecentOrders";
+import PendingProducts from "../../components/admin/PendingProducts";
+import TopProducers from "../../components/admin/TopProducers";
+import ProductStats from "../../components/admin/ProductStats";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import StatCards from "./adminDashboard/StatCards";
+import SalesAndUserStats from "./adminDashboard/SalesAndUserStats";
+import MainSections from "./adminDashboard/MainSections";
+import { useDashboardStats } from "./adminDashboard/dashboardHooks";
+import {
+	createStatCards,
+	createMarketplaceStats,
+	createQuickActions,
+} from "./adminDashboard/dashboardUtils";
 
 const AdminDashboard = () => {
-  const {
-    stats,
-    recentOrders,
-    pendingProducts,
-    salesChartData,
-    topProducers,
-    productStats,
-    loading
-  } = useDashboardStats();
+	const {
+		stats,
+		recentOrders,
+		pendingProducts,
+		salesChartData,
+		topProducers,
+		productStats,
+		loading,
+	} = useDashboardStats();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-harvests-light flex items-center justify-center">
-        <LoadingSpinner size="lg" text="Chargement..." />
-      </div>
-    );
-  }
+	if (loading) {
+		return (
+			<div className="min-h-screen bg-harvests-light flex items-center justify-center">
+				<LoadingSpinner size="lg" text="Chargement..." />
+			</div>
+		);
+	}
 
-  const statCards = createStatCards(stats);
-  const marketplaceStats = createMarketplaceStats(stats);
-  const quickActions = createQuickActions(stats);
+	const statCards = createStatCards(stats);
+	const marketplaceStats = createMarketplaceStats(stats);
+	const quickActions = createQuickActions(stats);
 
-  return (
-    <div className="min-h-screen bg-harvests-light overflow-x-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* En-tête */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Tableau de bord administrateur
-          </h1>
-          <p className="mt-2 text-gray-600">
-            Vue d'ensemble de la plateforme Harvests
-          </p>
-        </div>
+	return (
+		<div className="min-h-screen pb-20 relative overflow-hidden">
+			{/* Background radial glows for "wow" effect */}
+			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
+				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-green-100/30 rounded-full blur-[120px]"></div>
+				<div className="absolute top-[20%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
+				<div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-purple-100/20 rounded-full blur-[120px]"></div>
+			</div>
 
-        {/* Cartes de statistiques principales */}
-        <StatCards statCards={statCards} />
+			<div className="max-w-[1700px] mx-auto px-4 py-12 space-y-8 relative z-10">
+				{/* En-tête avec message d'accueil */}
+				<div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-2 animate-fade-in-down">
+					<div>
+						<h1 className="text-5xl font-[1000] text-gray-900 tracking-tighter leading-[1] mb-6">
+							Tableau de
+							<span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-500 italic">
+								Bord.
+							</span>
+						</h1>
+						<p className="text-xl text-gray-500 max-w-2xl font-medium leading-relaxed">
+							Bienvenue sur l'interface de pilotage{" "}
+							<span className="text-harvests-green font-black">Harvests</span>.
+							Voici les indicateurs clés de votre écosystème aujourd'hui.
+						</p>
+					</div>
+				</div>
 
-        {/* Graphique des ventes et statistiques utilisateurs */}
-        <SalesAndUserStats 
-          salesChartData={salesChartData} 
-          marketplaceStats={marketplaceStats} 
-        />
+				{/* Cartes de statistiques principales */}
+				<div className="animate-fade-in-up">
+					<StatCards statCards={statCards} />
+				</div>
 
-        {/* Commandes récentes et produits en attente */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <RecentOrders orders={recentOrders} />
-          <PendingProducts products={pendingProducts} />
-        </div>
+				{/* Section Graphique & Stats Utilisateurs */}
+				<div className="animate-fade-in-up delay-150">
+					<SalesAndUserStats
+						salesChartData={salesChartData}
+						marketplaceStats={marketplaceStats}
+						monthlyGrowth={stats.monthlyGrowth}
+					/>
+				</div>
 
-        {/* Top producteurs et actions rapides */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <TopProducers producers={topProducers} />
-          <QuickActions quickActions={quickActions} />
-        </div>
+				{/* Commandes & Produits */}
+				<div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-fade-in-up delay-300">
+					<div className="">
+						<RecentOrders orders={recentOrders} />
+					</div>
+					<div>
+						<PendingProducts products={pendingProducts} />
+					</div>
+				</div>
 
-        {/* Statistiques des produits */}
-        <div className="mb-8">
-          <ProductStats data={productStats} />
-        </div>
+				{/* Dashboard Power Grid: TopProducers, ProductStats */}
+				<div className="grid grid-cols-1 gap-10 animate-fade-in-up delay-[450ms]">
+					<div className="flex flex-col">
+						<TopProducers producers={topProducers} />
+					</div>
+					<div className="flex flex-col">
+						<ProductStats data={productStats} />
+					</div>
+				</div>
 
-        {/* Liens rapides vers les sections principales */}
-        <MainSections />
-      </div>
-    </div>
-  );
+				{/* Navigation Centrée */}
+				<div className="pt-12 animate-fade-in-up delay-[600ms]">
+					<MainSections />
+				</div>
+			</div>
+		</div>
+	);
 };
 
 export default AdminDashboard;

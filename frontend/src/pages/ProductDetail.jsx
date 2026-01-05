@@ -247,7 +247,7 @@ const ProductDetail = () => {
 
             {/* Prix */}
             <div className="flex items-center space-x-4">
-              <span className="text-3xl font-bold text-gray-900">{formatPrice(product.price)}</span>
+              <span className="text-3xl font-bold text-gray-900">{formatPrice(product.price, product.currency)}</span>
               <span className="text-sm text-gray-600">par {product.unit || 'unité'}</span>
             </div>
 

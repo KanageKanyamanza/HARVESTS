@@ -219,5 +219,6 @@ export const buildCartItem = (product) => {
 			name: supplierName,
 			type: supplierType,
 		},
+		currency: product.currency || "XOF",
 	};
 };
