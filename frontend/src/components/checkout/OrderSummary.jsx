@@ -57,16 +57,14 @@ const OrderSummary = ({
 							<p className="text-sm text-gray-500">x {item.quantity}</p>
 						</div>
 						<p className="text-sm font-medium text-gray-900">
-							<p className="text-sm font-medium text-gray-900">
-								{formatPrice(
-									convertPrice(
-										item.price * item.quantity,
-										item.currency || DEFAULT_CURRENCY,
-										currency
-									),
+							{formatPrice(
+								convertPrice(
+									item.price * item.quantity,
+									item.currency || DEFAULT_CURRENCY,
 									currency
-								)}
-							</p>
+								),
+								currency
+							)}
 						</p>
 					</div>
 				))}
