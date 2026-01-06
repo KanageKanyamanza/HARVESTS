@@ -1,7 +1,7 @@
 import React from "react";
 import { FiDollarSign } from "react-icons/fi";
-import { CURRENCIES } from "../../../config/currencies";
-import { UNITS } from "../../../config/units";
+import { CURRENCIES } from "../../config/currencies";
+import { UNITS } from "../../config/units";
 
 const ProductPricingStockTransformer = ({
 	formData,
