@@ -207,6 +207,10 @@ const AdminProducts = () => {
 				{/* Header avec typographie premium */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-8 px-2">
 					<div className="animate-fade-in-down">
+						<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-3">
+							<div className="w-8 h-[2px] bg-emerald-600"></div>
+							<span>Inventory Control</span>
+						</div>
 						<h1 className="text-5xl font-[1000] text-gray-900 tracking-tighter leading-[1] mb-4">
 							Gestion du <span className="text-green-600">Catalogue</span>
 						</h1>

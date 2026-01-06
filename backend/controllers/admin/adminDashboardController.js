@@ -54,7 +54,7 @@ exports.getDashboardStats = catchAsync(async (req, res, next) => {
 
 	// Calculer le revenu total
 	const revenueResult = await Order.aggregate([
-		{ $match: { status: "completed" } },
+		{ $match: { status: { $in: ["completed", "delivered"] } } },
 		{ $group: { _id: null, total: { $sum: "$total" } } },
 	]);
 	const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
@@ -285,7 +285,7 @@ exports.getTopProducers = catchAsync(async (req, res, next) => {
 		},
 		{
 			$lookup: {
-				from: "producers",
+				from: "users",
 				localField: "_id",
 				foreignField: "_id",
 				as: "producer",

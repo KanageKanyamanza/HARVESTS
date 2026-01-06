@@ -32,20 +32,17 @@ const pushService = {
 		}
 
 		try {
-			console.log("[pushService] Registering Service Worker...");
 			// 1. Register Service Worker
 			const registration = await navigator.serviceWorker.register("/sw.js");
 
 			// Wait for the service worker to be active
 			await navigator.serviceWorker.ready;
-			console.log("[pushService] Service Worker ready");
 
 			// 2. Check permission
 			let permission = Notification.permission;
-			console.log("[pushService] Current notification permission:", permission);
+
 			if (permission === "default") {
 				permission = await Notification.requestPermission();
-				console.log("[pushService] New notification permission:", permission);
 			}
 
 			if (permission !== "granted") {
@@ -54,26 +51,18 @@ const pushService = {
 			}
 
 			// 3. Subscribe
-			console.log("[pushService] Getting push subscription...");
+
 			let subscription = await registration.pushManager.getSubscription();
 			if (!subscription) {
-				console.log("[pushService] No existing subscription, subscribing...");
 				subscription = await registration.pushManager.subscribe({
 					userVisibleOnly: true,
 					applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
 				});
-				console.log("[pushService] New subscription created");
 			} else {
-				console.log("[pushService] Existing subscription found");
 			}
 
 			// 4. Send subscription to backend
 			await this.sendSubscriptionToBackend(subscription, isAdmin);
-			console.log(
-				`[pushService] Web Push Subscribed (${
-					isAdmin ? "Admin" : "User"
-				}) successfully`
-			);
 		} catch (error) {
 			console.error("[pushService] Web Push Subscription Error:", error);
 		}
@@ -89,14 +78,9 @@ const pushService = {
 				? "/notifications/admin/subscribe"
 				: "/notifications/subscribe";
 
-			console.log(`[pushService] Sending subscription to ${endpoint}...`);
 			const response = await api.post(endpoint, {
 				subscription,
 			});
-			console.log(
-				"[pushService] Subscription sent successfully:",
-				response.data
-			);
 		} catch (error) {
 			console.error(
 				"[pushService] Error sending subscription to backend:",

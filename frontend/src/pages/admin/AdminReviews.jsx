@@ -206,6 +206,10 @@ const AdminReviews = () => {
 				{/* Header */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 animate-fade-in-down">
 					<div>
+						<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-3">
+							<div className="w-8 h-[2px] bg-emerald-600"></div>
+							<span>Reputation Monitor</span>
+						</div>
 						<h1 className="text-5xl font-[1000] text-gray-900 tracking-tighter leading-none mb-4">
 							Avis & <span className="text-green-600">Modération</span>
 						</h1>

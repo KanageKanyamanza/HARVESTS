@@ -87,10 +87,6 @@ export const AuthProvider = ({ children }) => {
 				["super-admin", "admin", "moderator", "support"].includes(
 					state.user.role
 				);
-			console.log(
-				`[AuthContext] Triggering push subscription for ${state.user.userType} (isAdmin: ${isAdmin})`
-			);
-			pushService.registerAndSubscribe(isAdmin);
 		}
 	}, [state.user, state.isAuthenticated]);
 

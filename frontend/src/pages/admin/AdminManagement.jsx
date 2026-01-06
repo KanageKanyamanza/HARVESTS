@@ -274,6 +274,10 @@ const AdminManagement = () => {
 				{/* En-tête Premium */}
 				<div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
 					<div>
+						<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-3">
+							<div className="w-8 h-[2px] bg-emerald-600"></div>
+							<span>Operational Security</span>
+						</div>
 						<h1 className="text-4xl lg:text-5xl font-[1000] text-gray-900 tracking-tight leading-none mb-4">
 							Gestion <span className="text-green-600">Admin</span>
 						</h1>

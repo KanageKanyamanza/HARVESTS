@@ -1,27 +1,27 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
 import {
-  Search,
-  Filter,
-  MoreVertical,
-  Eye,
-  Edit,
-  Trash2,
-  Shield,
-  ShieldOff,
-  CheckCircle,
-  XCircle,
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  Ban,
-  UserCheck
-} from 'lucide-react';
-import { adminService } from '../../services/adminService';
-import CloudinaryImage from '../../components/common/CloudinaryImage';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+	Search,
+	Filter,
+	MoreVertical,
+	Eye,
+	Edit,
+	Trash2,
+	Shield,
+	ShieldOff,
+	CheckCircle,
+	XCircle,
+	User,
+	Mail,
+	Phone,
+	MapPin,
+	Calendar,
+	Ban,
+	UserCheck,
+} from "lucide-react";
+import { adminService } from "../../services/adminService";
+import CloudinaryImage from "../../components/common/CloudinaryImage";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 const AdminUsers = () => {
 	const [users, setUsers] = useState([]);
@@ -48,7 +48,11 @@ const AdminUsers = () => {
 			if (response.data && response.data.users) {
 				setUsers(response.data.users || []);
 				setTotalPages(response.data.pagination?.totalPages || 1);
-			} else if (response.data && response.data.data && response.data.data.users) {
+			} else if (
+				response.data &&
+				response.data.data &&
+				response.data.data.users
+			) {
 				setUsers(response.data.data.users || []);
 				setTotalPages(response.data.data.pagination?.totalPages || 1);
 			} else {
@@ -223,6 +227,10 @@ const AdminUsers = () => {
 				{/* Header */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-8 px-2">
 					<div className="animate-fade-in-down">
+						<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-3">
+							<div className="w-8 h-[2px] bg-emerald-600"></div>
+							<span>User Ecosystem</span>
+						</div>
 						<h1 className="text-5xl font-[1000] text-gray-900 tracking-tighter leading-[1] mb-4">
 							Gestion des <span className="text-green-600">Utilisateurs</span>
 						</h1>

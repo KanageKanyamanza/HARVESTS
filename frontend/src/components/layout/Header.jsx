@@ -154,21 +154,6 @@ const Header = () => {
 						))}
 					</nav>
 
-					{/* Sélecteur de devise - Desktop */}
-					<div className="hidden md:flex items-center ml-4">
-						<select
-							value={currency}
-							onChange={(e) => setCurrency(e.target.value)}
-							className="bg-transparent text-sm font-medium text-gray-700 hover:text-gray-900 border-none focus:ring-0 cursor-pointer"
-						>
-							{currencies.map((c) => (
-								<option key={c.code} value={c.code}>
-									{c.code}
-								</option>
-							))}
-						</select>
-					</div>
-
 					{/* Icône de recherche - Desktop */}
 					<div className="hidden lg:block">
 						<button
@@ -185,7 +170,25 @@ const Header = () => {
 					</div>
 
 					{/* Actions utilisateur */}
-					<div className="flex items-center space-x-4">
+					<div className="flex items-center space-x-2 sm:space-x-4">
+						{/* Sélecteur de devise - Universel */}
+						<div className="flex items-center">
+							<select
+								value={currency}
+								onChange={(e) => setCurrency(e.target.value)}
+								className={`bg-transparent text-sm font-bold border-none focus:ring-0 cursor-pointer transition-colors duration-500 ease-in-out pl-2 pr-6 ${
+									shouldBeTransparent
+										? "text-white hover:text-primary-200"
+										: "text-primary-600 hover:text-primary-700"
+								}`}
+							>
+								{currencies.map((c) => (
+									<option key={c.code} value={c.code} className="text-gray-900">
+										{c.code}
+									</option>
+								))}
+							</select>
+						</div>
 						{/* Icône de recherche - Mobile */}
 						<button
 							onClick={() => setIsSearchModalOpen(true)}
@@ -224,7 +227,9 @@ const Header = () => {
 						{isAuthenticated ? (
 							<>
 								{/* Notifications */}
-								<NotificationDropdown />
+								<NotificationDropdown
+									shouldBeTransparent={shouldBeTransparent}
+								/>
 
 								{/* Menu profil */}
 								<div className="relative">
@@ -233,7 +238,11 @@ const Header = () => {
 											e.stopPropagation();
 											setIsProfileMenuOpen(!isProfileMenuOpen);
 										}}
-										className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors"
+										className={`flex items-center space-x-2 transition-colors ${
+											shouldBeTransparent
+												? "text-white hover:text-primary-200"
+												: "text-gray-700 hover:text-primary-600"
+										}`}
 									>
 										<div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
 											<img

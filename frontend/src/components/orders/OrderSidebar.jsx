@@ -11,6 +11,9 @@ import {
 } from "lucide-react";
 import CloudinaryImage from "../common/CloudinaryImage";
 
+import { useCurrency } from "../../contexts/CurrencyContext";
+import { convertPrice, formatPrice } from "../../utils/currencyUtils";
+
 const formatDate = (dateString) =>
 	new Date(dateString).toLocaleDateString("fr-FR", {
 		year: "numeric",
@@ -19,7 +22,22 @@ const formatDate = (dateString) =>
 		hour: "2-digit",
 		minute: "2-digit",
 	});
-const formatCurrency = (amount) => amount?.toLocaleString("fr-FR") || "0";
+
+// Note: On passera dorénavant l'ordre pour avoir sa devise source
+const useOrderCurrency = (order) => {
+	const { currency: userCurrency } = useCurrency();
+
+	const formatAmount = (amount) => {
+		const converted = convertPrice(
+			amount,
+			order?.currency || "XOF",
+			userCurrency
+		);
+		return formatPrice(converted, userCurrency);
+	};
+
+	return { formatAmount, userCurrency };
+};
 
 const deliveryMethodLabels = {
 	pickup: "Retrait sur place",
@@ -161,97 +179,97 @@ export const OrderSummaryCard = ({
 	isSellerView,
 	deliveryFee,
 	deliveryDetail,
-}) => (
-	<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-8 md:p-10 border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)]">
-		<h3 className="text-xl font-[1000] text-gray-900 mb-8 uppercase tracking-tight">
-			Résumé financier
-		</h3>
-		<div className="space-y-6">
-			<div className="flex justify-between items-center px-2">
-				<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-					Sous-total
-				</span>
-				<span className="text-base font-black text-gray-900 tracking-tighter">
-					{formatCurrency(
-						isSellerView
-							? order.segment?.subtotal ?? order.subtotal ?? 0
-							: order.subtotal ??
-									order.originalTotals?.subtotal ??
-									order.total - deliveryFee + (order.couponDiscount || 0)
-					)}{" "}
-					FCFA
-				</span>
-			</div>
+}) => {
+	const { formatAmount } = useOrderCurrency(order);
 
-			{((!isSellerView && deliveryFee > 0) ||
-				(isSellerView && (order.segment?.deliveryFee ?? 0) > 0)) && (
+	return (
+		<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-8 md:p-10 border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)]">
+			<h3 className="text-xl font-[1000] text-gray-900 mb-8 uppercase tracking-tight">
+				Résumé financier
+			</h3>
+			<div className="space-y-6">
 				<div className="flex justify-between items-center px-2">
-					<div className="flex flex-col">
-						<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-							Frais de port
-						</span>
-						{deliveryFee > 0 && !isSellerView && deliveryDetail?.reason && (
-							<span className="text-[8px] font-bold text-gray-400">
-								{deliveryDetail.reason}
-							</span>
-						)}
-					</div>
+					<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+						Sous-total
+					</span>
 					<span className="text-base font-black text-gray-900 tracking-tighter">
-						{formatCurrency(
-							isSellerView ? order.segment?.deliveryFee ?? 0 : deliveryFee
-						)}{" "}
-						FCFA
-					</span>
-				</div>
-			)}
-
-			{(order.couponDiscount > 0 ||
-				(isSellerView && order.segment?.discount > 0)) && (
-				<div className="flex justify-between items-center px-2 py-3 bg-emerald-50 rounded-2xl border border-emerald-100">
-					<span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
-						Réduction coupon
-					</span>
-					<span className="text-base font-black text-emerald-600 tracking-tighter">
-						-
-						{formatCurrency(
+						{formatAmount(
 							isSellerView
-								? order.segment?.discount ?? 0
-								: order.couponDiscount ?? 0
-						)}{" "}
-						FCFA
+								? order.segment?.subtotal ?? order.subtotal ?? 0
+								: order.subtotal ??
+										order.originalTotals?.subtotal ??
+										order.total - deliveryFee + (order.couponDiscount || 0)
+						)}
 					</span>
 				</div>
-			)}
 
-			<div className="pt-6 border-t border-gray-100">
-				<div className="flex justify-between items-center px-2">
-					<span className="text-lg font-[1000] text-gray-900 uppercase tracking-tighter">
-						Total
-					</span>
-					<div className="text-right">
-						<span className="text-3xl font-[1000] text-green-600 tracking-tighter block mb-1">
-							{formatCurrency(
-								isSellerView
-									? order.segment?.total ??
-											order.segment?.subtotal ??
-											order.subtotal ??
-											0
-									: order.total ||
-											(order.subtotal ?? 0) +
-												deliveryFee -
-												(order.couponDiscount ?? 0)
-							)}{" "}
-							FCFA
+				{((!isSellerView && deliveryFee > 0) ||
+					(isSellerView && (order.segment?.deliveryFee ?? 0) > 0)) && (
+					<div className="flex justify-between items-center px-2">
+						<div className="flex flex-col">
+							<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+								Frais de port
+							</span>
+							{deliveryFee > 0 && !isSellerView && deliveryDetail?.reason && (
+								<span className="text-[8px] font-bold text-gray-400">
+									{deliveryDetail.reason}
+								</span>
+							)}
+						</div>
+						<span className="text-base font-black text-gray-900 tracking-tighter">
+							{formatAmount(
+								isSellerView ? order.segment?.deliveryFee ?? 0 : deliveryFee
+							)}
 						</span>
-						<p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
-							TVA & Taxes incluses
-						</p>
+					</div>
+				)}
+
+				{(order.couponDiscount > 0 ||
+					(isSellerView && order.segment?.discount > 0)) && (
+					<div className="flex justify-between items-center px-2 py-3 bg-emerald-50 rounded-2xl border border-emerald-100">
+						<span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
+							Réduction coupon
+						</span>
+						<span className="text-base font-black text-emerald-600 tracking-tighter">
+							-
+							{formatAmount(
+								isSellerView
+									? order.segment?.discount ?? 0
+									: order.couponDiscount ?? 0
+							)}
+						</span>
+					</div>
+				)}
+
+				<div className="pt-6 border-t border-gray-100">
+					<div className="flex justify-between items-center px-2">
+						<span className="text-lg font-[1000] text-gray-900 uppercase tracking-tighter">
+							Total
+						</span>
+						<div className="text-right">
+							<span className="text-3xl font-[1000] text-green-600 tracking-tighter block mb-1">
+								{formatAmount(
+									isSellerView
+										? order.segment?.total ??
+												order.segment?.subtotal ??
+												order.subtotal ??
+												0
+										: order.total ||
+												(order.subtotal ?? 0) +
+													deliveryFee -
+													(order.couponDiscount ?? 0)
+								)}
+							</span>
+							<p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
+								TVA & Taxes incluses
+							</p>
+						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-	</div>
-);
+	);
+};
 
 export const DeliveryInfoCard = ({ order }) => (
 	<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-8 md:p-10 border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)]">

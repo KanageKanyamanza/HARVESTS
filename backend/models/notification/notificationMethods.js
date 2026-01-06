@@ -100,16 +100,6 @@ function addNotificationMethods(notificationSchema) {
 					: freshNotification.actions
 				: null;
 
-			// Debug: vérifier les données avant envoi
-			console.log("📧 [Notification.sendViaEmail] Données préparées:", {
-				hasData: !!dataToSend,
-				hasProducts: !!(dataToSend && dataToSend.products),
-				productsCount:
-					dataToSend && dataToSend.products ? dataToSend.products.length : 0,
-				hasBuyer: !!(dataToSend && dataToSend.buyer),
-				dataKeys: dataToSend ? Object.keys(dataToSend) : [],
-			});
-
 			await new Email(recipient).sendNotification({
 				title: freshNotification.title,
 				message: freshNotification.message,
@@ -195,31 +185,11 @@ function addNotificationMethods(notificationSchema) {
 				.select("email webPushSubscriptions notificationSettings preferences")
 				.lean();
 
-			console.log(
-				`[sendViaPush] Target: ${this.recipient} (${this.recipientModel})`
-			);
-			console.log(
-				`[sendViaPush] Recipient loaded:`,
-				recipient
-					? {
-							email: recipient.email,
-							hasWebPushSubs: !!recipient.webPushSubscriptions,
-							subsCount: recipient.webPushSubscriptions?.length || 0,
-							subsIsArray: Array.isArray(recipient.webPushSubscriptions),
-					  }
-					: "NULL"
-			);
-
 			if (
 				!recipient ||
 				!recipient.webPushSubscriptions ||
 				recipient.webPushSubscriptions.length === 0
 			) {
-				console.log(
-					`[sendViaPush] ❌ Abandon: Pas de souscriptions pour ${
-						recipient?.email || this.recipient
-					}`
-				);
 				return false;
 			}
 
@@ -255,22 +225,11 @@ function addNotificationMethods(notificationSchema) {
 				} else if (typeof settings.push === "boolean") {
 					isPushEnabled = settings.push;
 				}
-				console.log(
-					`[sendViaPush] User: ${recipient.email}, Category: ${this.category}, PrefKey: ${prefKey}, Resolved: ${isPushEnabled}`
-				);
 			} else {
-				console.log(
-					`[sendViaPush] User: ${
-						recipient.email
-					}, No push settings found (settings.push is ${typeof settings.push}), defaulting to TRUE`
-				);
 				isPushEnabled = true;
 			}
 
 			if (!isPushEnabled) {
-				console.log(
-					`[sendViaPush] Abandon: Push désactivé par l'utilisateur ${recipient.email}`
-				);
 				return false;
 			}
 

@@ -162,6 +162,7 @@ class NotificationService {
 			// Logger la taille pour debug
 			const payloadSize = Buffer.byteLength(payload, "utf8");
 			if (payloadSize > 3000) {
+				// Garder cet avertissement car il est important
 				console.warn(
 					`⚠️ Attention: Charge utile Web Push volumineuse (${payloadSize} bytes). Limite ~4000 bytes.`
 				);
@@ -181,20 +182,8 @@ class NotificationService {
 						},
 					};
 
-					console.log(
-						`[sendWebPushNotification] Sending to endpoint: ${subscription.endpoint.substring(
-							0,
-							50
-						)}...`
-					);
 					await webpush.sendNotification(subscription, payload);
 					successCount++;
-					console.log(
-						`[sendWebPushNotification] ✅ Success for ${subscription.endpoint.substring(
-							0,
-							50
-						)}`
-					);
 				} catch (err) {
 					failureCount++;
 					error(

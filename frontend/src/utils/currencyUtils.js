@@ -2,16 +2,13 @@ import { DEFAULT_CURRENCY, CURRENCIES } from "../config/currencies";
 
 // Convertir le prix
 export const convertPrice = (price, fromCurrency, toCurrency) => {
-	console.log(
-		`convertPrice called with: price=${price}, from=${fromCurrency}, to=${toCurrency}`
-	);
 	if (!price) return 0;
 	if (fromCurrency === toCurrency) return price;
 
 	// Si l'une des devises est celle par défaut (FCFA), la conversion est directe
 	if (fromCurrency === "FCFA" || fromCurrency === "XOF") {
 		const config = CURRENCIES.find((c) => c.code === toCurrency);
-		console.log("Found config for toCurrency:", config);
+
 		if (config && config.exchangeRate) {
 			return price / config.exchangeRate;
 		}

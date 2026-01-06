@@ -141,6 +141,10 @@ const AdminOrders = () => {
 				{/* Header */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 animate-fade-in-down">
 					<div>
+						<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-3">
+							<div className="w-8 h-[2px] bg-emerald-600"></div>
+							<span>Transaction Flow</span>
+						</div>
 						<h1 className="text-5xl font-[1000] text-gray-900 tracking-tighter leading-none mb-4">
 							Gestion des <span className="text-green-600">Commandes</span>
 						</h1>
@@ -212,25 +216,136 @@ const AdminOrders = () => {
 							disabled={currentPage === 1}
 							className="flex items-center gap-2 px-6 py-3 bg-gray-50 text-gray-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50"
 						>
-							<ChevronLeft className="h-4 w-4" /> Précédent
+							<ChevronLeft className="h-4 w-4" />{" "}
+							<span className="hidden md:block">Précédent</span>
 						</button>
 						<div className="flex items-center gap-2">
-							{Array.from({ length: totalPages }).map((_, i) => (
+							{/* Page 1 & 2 - Toujours visibles */}
+							{[1, 2].map(
+								(p) =>
+									p <= totalPages && (
+										<button
+											key={p}
+											onClick={() => {
+												setCurrentPage(p);
+												setSearchParams({ page: p.toString() });
+											}}
+											className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all duration-300 ${
+												currentPage === p
+													? "bg-gray-900 text-white shadow-xl shadow-gray-200"
+													: "text-gray-400 hover:bg-gray-50"
+											}`}
+										>
+											{p}
+										</button>
+									)
+							)}
+
+							{/* Mobile: Ellipsis et Dernière page */}
+							{totalPages > 3 && (
+								<span className="md:hidden text-gray-400 font-black">...</span>
+							)}
+							{totalPages > 2 && (
 								<button
-									key={i}
 									onClick={() => {
-										setCurrentPage(i + 1);
-										setSearchParams({ page: (i + 1).toString() });
+										setCurrentPage(totalPages);
+										setSearchParams({ page: totalPages.toString() });
 									}}
-									className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all duration-300 ${
-										currentPage === i + 1
+									className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all duration-300 md:hidden ${
+										currentPage === totalPages
 											? "bg-gray-900 text-white shadow-xl shadow-gray-200"
 											: "text-gray-400 hover:bg-gray-50"
 									}`}
 								>
-									{i + 1}
+									{totalPages}
 								</button>
-							))}
+							)}
+
+							{/* Tablet: Pages 3 & 4 */}
+							{[3, 4].map(
+								(p) =>
+									p <= totalPages && (
+										<button
+											key={p}
+											onClick={() => {
+												setCurrentPage(p);
+												setSearchParams({ page: p.toString() });
+											}}
+											className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all duration-300 hidden md:flex items-center justify-center lg:hidden ${
+												currentPage === p
+													? "bg-gray-900 text-white shadow-xl shadow-gray-200"
+													: "text-gray-400 hover:bg-gray-50"
+											}`}
+										>
+											{p}
+										</button>
+									)
+							)}
+
+							{/* Tablet: Ellipsis et Dernière page */}
+							{totalPages > 5 && (
+								<span className="hidden md:block lg:hidden text-gray-400 font-black">
+									...
+								</span>
+							)}
+							{totalPages > 4 && (
+								<button
+									onClick={() => {
+										setCurrentPage(totalPages);
+										setSearchParams({ page: totalPages.toString() });
+									}}
+									className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all duration-300 hidden md:flex items-center justify-center lg:hidden ${
+										currentPage === totalPages
+											? "bg-gray-900 text-white shadow-xl shadow-gray-200"
+											: "text-gray-400 hover:bg-gray-50"
+									}`}
+								>
+									{totalPages}
+								</button>
+							)}
+
+							{/* Desktop: Pages 3 à 10 */}
+							{[3, 4, 5, 6, 7, 8, 9, 10].map(
+								(p) =>
+									p <= totalPages && (
+										<button
+											key={p}
+											onClick={() => {
+												setCurrentPage(p);
+												setSearchParams({ page: p.toString() });
+											}}
+											className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all duration-300 hidden lg:flex items-center justify-center ${
+												currentPage === p
+													? "bg-gray-900 text-white shadow-xl shadow-gray-200"
+													: "text-gray-400 hover:bg-gray-50"
+											}`}
+										>
+											{p}
+										</button>
+									)
+							)}
+
+							{/* Desktop: Ellipsis et Dernière page si > 10 */}
+							{totalPages > 11 && (
+								<span className="hidden lg:block text-gray-400 font-black">
+									...
+								</span>
+							)}
+							{totalPages > 10 && (
+								<button
+									onClick={() => {
+										setCurrentPage(totalPages);
+										setSearchParams({ page: totalPages.toString() });
+									}}
+									className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all duration-300 hidden lg:flex items-center justify-center ${
+										currentPage === totalPages
+											? "bg-gray-900 text-white shadow-xl shadow-gray-200"
+											: "text-gray-400 hover:bg-gray-50"
+									}`}
+								>
+									{totalPages}
+								</button>
+							)}
 						</div>
 						<button
 							onClick={() => {
@@ -241,7 +356,8 @@ const AdminOrders = () => {
 							disabled={currentPage === totalPages}
 							className="flex items-center gap-2 px-6 py-3 bg-gray-50 text-gray-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50"
 						>
-							Suivant <ChevronRight className="h-4 w-4" />
+							<span className="hidden md:block">Suivant</span>{" "}
+							<ChevronRight className="h-4 w-4" />
 						</button>
 					</div>
 				)}
