@@ -227,6 +227,11 @@ const productSchema = new mongoose.Schema(
 			min: [0, "Le prix de comparaison ne peut pas être négatif"],
 		},
 
+		currency: {
+			type: String,
+			default: "XOF",
+		},
+
 		// Variantes du produit
 		variants: [variantSchema],
 

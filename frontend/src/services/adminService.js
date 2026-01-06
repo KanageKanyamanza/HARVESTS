@@ -443,6 +443,14 @@ export const adminService = {
 	featureProduct,
 	unfeatureProduct,
 
+	// Dishes
+	getDishes,
+	getDishById,
+	updateDish,
+	deleteDish,
+	approveDish,
+	rejectDish,
+
 	// Orders
 	getOrders,
 	getOrderById,

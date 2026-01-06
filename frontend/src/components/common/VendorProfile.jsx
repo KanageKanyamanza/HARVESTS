@@ -68,46 +68,18 @@ const VendorProfile = ({
 						const vendorData =
 							vendorResponse.data.data[vendorType] ||
 							vendorResponse.data[vendorType];
-						console.log(
-							`[VendorProfile] ${vendorType} - Full vendor data:`,
-							vendorData
-						);
-						console.log(
-							`[VendorProfile] ${vendorType} - companyName:`,
-							vendorData?.companyName
-						);
-						console.log(
-							`[VendorProfile] ${vendorType} - shopBanner:`,
-							vendorData?.shopBanner
-						);
-						console.log(
-							`[VendorProfile] ${vendorType} - shopLogo:`,
-							vendorData?.shopLogo
-						);
-						console.log(
-							`[VendorProfile] ${vendorType} - avatar:`,
-							vendorData?.avatar
-						);
+
 						setVendor(vendorData);
 
 						// Pour les transporteurs et exportateurs, charger la flotte depuis les données du vendeur
 						if (vendorType === "transporter" || vendorType === "exporter") {
 							// Vérifier que fleet existe et est un tableau
 							const fleetData = vendorData?.fleet;
-							console.log(
-								`[VendorProfile] ${vendorType} - fleet data:`,
-								fleetData
-							);
+
 							if (Array.isArray(fleetData) && fleetData.length > 0) {
-								console.log(
-									`[VendorProfile] ${vendorType} - Setting ${fleetData.length} fleet items`
-								);
 								setItems(fleetData);
 							} else {
 								// Initialiser avec un tableau vide si pas de flotte
-								console.log(
-									`[VendorProfile] ${vendorType} - No fleet data, initializing empty array`
-								);
 								setItems([]);
 							}
 						}
@@ -212,7 +184,6 @@ const VendorProfile = ({
 						} catch (reviewError) {
 							// Si l'erreur est 404 ou que la route n'existe pas, c'est normal
 							if (reviewError.response?.status === 404) {
-								console.log(`Route reviews non disponible pour ${vendorType}`);
 								setReviews([]);
 							} else {
 								console.error(
@@ -223,9 +194,6 @@ const VendorProfile = ({
 							}
 						}
 					} else {
-						console.log(
-							`Méthode getReviews non disponible pour ${vendorType}, avis non chargés`
-						);
 						setReviews([]);
 					}
 				} catch (error) {

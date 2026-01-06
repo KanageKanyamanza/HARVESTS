@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { producerService } from "../services";
 import { toPlainText, deriveShortDescription } from "../utils/textHelpers";
+import { DEFAULT_CURRENCY } from "../config/currencies";
 
 /**
  * Hook personnalisé pour gérer l'édition d'un produit
@@ -23,6 +24,7 @@ export const useEditProduct = () => {
 		stock: "",
 		category: "",
 		unit: "kg",
+		currency: DEFAULT_CURRENCY,
 		status: "draft",
 	});
 
@@ -52,6 +54,7 @@ export const useEditProduct = () => {
 						stock: formattedProduct.inventory?.quantity || "",
 						category: formattedProduct.category || "",
 						unit: formattedProduct.unit || "kg",
+						currency: formattedProduct.currency || DEFAULT_CURRENCY,
 						status: formattedProduct.status || "draft",
 					});
 
@@ -173,6 +176,7 @@ export const useEditProduct = () => {
 				},
 				status: formData.status || "draft",
 				unit: formData.unit || "unité",
+				currency: formData.currency || DEFAULT_CURRENCY,
 				images: productImages,
 			};
 

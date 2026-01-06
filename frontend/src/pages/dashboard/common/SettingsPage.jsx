@@ -11,8 +11,6 @@ import {
 	FiMapPin,
 	FiUser,
 	FiEdit3,
-	FiSave,
-	FiX,
 	FiRefreshCw,
 } from "react-icons/fi";
 import commonService from "../../../services/commonService";

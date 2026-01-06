@@ -15,7 +15,7 @@ import { useNotifications } from "../../contexts/NotificationContext";
 import { useAuth } from "../../hooks/useAuth";
 import { getNotificationsRoute } from "../../utils/routeUtils";
 
-const NotificationDropdown = () => {
+const NotificationDropdown = ({ shouldBeTransparent }) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [isRefreshing, setIsRefreshing] = useState(false);
 	const dropdownRef = useRef(null);
@@ -123,7 +123,7 @@ const NotificationDropdown = () => {
 			// Nettoyer l'URL si elle contient une URL absolue (extraire le chemin)
 			let url = notification.actions[0].url;
 			// Si l'URL commence par http:// ou https://, extraire le chemin
-			if (url.startsWith('http://') || url.startsWith('https://')) {
+			if (url.startsWith("http://") || url.startsWith("https://")) {
 				try {
 					const urlObj = new URL(url);
 					url = urlObj.pathname;
@@ -145,7 +145,11 @@ const NotificationDropdown = () => {
 			{/* Bouton de notification */}
 			<button
 				onClick={() => setIsOpen(!isOpen)}
-				className="text-gray-400 hover:text-gray-500 relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
+				className={`relative p-2 rounded-lg transition-colors duration-500 ease-in-out ${
+					shouldBeTransparent
+						? "text-white hover:text-primary-200"
+						: "text-gray-700 hover:text-primary-600"
+				}`}
 			>
 				<FiBell className="h-6 w-6" />
 				{unreadCount > 0 && (
@@ -171,30 +175,30 @@ const NotificationDropdown = () => {
 							<FiX className="h-4 w-4" />
 						</button>
 					</div>
-						<div className="flex justify-around items-center py-2">
+					<div className="flex justify-around items-center py-2">
+						<button
+							onClick={async () => {
+								setIsRefreshing(true);
+								await refreshNotifications();
+								setTimeout(() => setIsRefreshing(false), 500);
+							}}
+							className={`text-gray-400 ml-2 hover:text-gray-500 p-1 ${
+								isRefreshing ? "animate-spin" : ""
+							}`}
+							title="Rafraîchir les notifications"
+							disabled={isRefreshing}
+						>
+							<FiRefreshCw className="h-4 w-4" />
+						</button>
+						{unreadCount > 0 && (
 							<button
-								onClick={async () => {
-									setIsRefreshing(true);
-									await refreshNotifications();
-									setTimeout(() => setIsRefreshing(false), 500);
-								}}
-								className={`text-gray-400 ml-2 hover:text-gray-500 p-1 ${
-									isRefreshing ? "animate-spin" : ""
-								}`}
-								title="Rafraîchir les notifications"
-								disabled={isRefreshing}
+								onClick={markAllAsRead}
+								className="text-xs text-blue-600 hover:text-blue-700 font-medium"
 							>
-								<FiRefreshCw className="h-4 w-4" />
+								Tout marquer comme lu
 							</button>
-							{unreadCount > 0 && (
-								<button
-									onClick={markAllAsRead}
-									className="text-xs text-blue-600 hover:text-blue-700 font-medium"
-								>
-									Tout marquer comme lu
-								</button>
-							)}
-						</div>
+						)}
+					</div>
 
 					{/* Liste des notifications */}
 					<div className="max-h-96 overflow-y-auto">

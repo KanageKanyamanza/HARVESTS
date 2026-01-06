@@ -435,8 +435,6 @@ const ProducerFields = ({ formData, editing, onInputChange, safeDisplay }) => {
 					))}
 				</div>
 			</div>
-
-			{/* Documents Section */}
 		</div>
 	);
 };

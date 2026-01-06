@@ -1,384 +1,618 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import {
-  BarChart3,
-  ArrowLeft,
-  Filter,
-  Download,
-  RefreshCw,
-  Calendar,
-  Globe,
-  Monitor,
-  Smartphone,
-  Tablet
-} from 'lucide-react';
-import { adminService } from '../../services/adminService';
-import { useNotifications } from '../../contexts/NotificationContext';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
+	BarChart3,
+	ArrowLeft,
+	Filter,
+	Download,
+	RefreshCw,
+	Calendar,
+	Globe,
+	Monitor,
+	Smartphone,
+	Tablet,
+	Eye,
+	Heart,
+	TrendingUp,
+	Layers,
+	ChevronRight,
+} from "lucide-react";
+import { adminService } from "../../services/adminService";
+import { useNotifications } from "../../contexts/NotificationContext";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 const AdminBlogAnalytics = () => {
-  const navigate = useNavigate();
-  const { showError, showSuccess } = useNotifications();
-  const [loading, setLoading] = useState(true);
-  const [visits, setVisits] = useState([]);
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pages: 1,
-    total: 0
-  });
-  const [filters, setFilters] = useState({
-    blogId: '',
-    country: '',
-    deviceType: '',
-    dateFrom: '',
-    dateTo: ''
-  });
-  const [blogs, setBlogs] = useState([]);
-  const [stats, setStats] = useState({
-    totalVisits: 0,
-    uniqueVisitors: 0,
-    totalLikes: 0,
-    deviceBreakdown: [],
-    topCountries: []
-  });
+	const navigate = useNavigate();
+	const { showError, showSuccess } = useNotifications();
+	const [loading, setLoading] = useState(true);
+	const [visits, setVisits] = useState([]);
+	const [pagination, setPagination] = useState({
+		current: 1,
+		pages: 1,
+		total: 0,
+	});
+	const [filters, setFilters] = useState({
+		blogId: "",
+		country: "",
+		deviceType: "",
+		dateFrom: "",
+		dateTo: "",
+	});
+	const [blogs, setBlogs] = useState([]);
+	const [stats, setStats] = useState({
+		totalVisits: 0,
+		uniqueVisitors: 0,
+		totalLikes: 0,
+		deviceBreakdown: [],
+		topCountries: [],
+	});
 
-  useEffect(() => {
-    loadBlogs();
-    loadVisits();
-  }, [pagination.current, filters]);
+	useEffect(() => {
+		loadBlogs();
+		loadVisits();
+	}, [pagination.current, filters]);
 
-  const loadBlogs = async () => {
-    try {
-      const response = await adminService.getBlogs({ limit: 1000 });
-      if (response.success && response.data) {
-        setBlogs(response.data);
-      }
-    } catch (error) {
-      console.error('Erreur lors du chargement des blogs:', error);
-    }
-  };
+	const loadBlogs = async () => {
+		try {
+			const response = await adminService.getBlogs({ limit: 1000 });
+			if (response.success && response.data) {
+				setBlogs(response.data);
+			}
+		} catch (error) {
+			console.error("Erreur lors du chargement des blogs:", error);
+		}
+	};
 
-  const loadVisits = async () => {
-    try {
-      setLoading(true);
-      const params = {
-        page: pagination.current,
-        limit: 50,
-        ...filters
-      };
-      
-      // Nettoyer les paramètres vides
-      Object.keys(params).forEach(key => {
-        if (params[key] === '') delete params[key];
-      });
+	const loadVisits = async () => {
+		try {
+			setLoading(true);
+			const params = {
+				page: pagination.current,
+				limit: 50,
+				...filters,
+			};
 
-      const response = await adminService.getAllBlogVisits(params);
-      
-      if (response.success) {
-        setVisits(response.data || []);
-        setPagination(response.pagination || {
-          current: 1,
-          pages: 1,
-          total: 0
-        });
-      }
-    } catch (error) {
-      console.error('Erreur lors du chargement des visites:', error);
-      showError('Erreur lors du chargement des visites');
-    } finally {
-      setLoading(false);
-    }
-  };
+			// Nettoyer les paramètres vides
+			Object.keys(params).forEach((key) => {
+				if (params[key] === "") delete params[key];
+			});
 
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-    setPagination(prev => ({ ...prev, current: 1 }));
-  };
+			const response = await adminService.getAllBlogVisits(params);
 
-  const resetFilters = () => {
-    setFilters({
-      blogId: '',
-      country: '',
-      deviceType: '',
-      dateFrom: '',
-      dateTo: ''
-    });
-    setPagination(prev => ({ ...prev, current: 1 }));
-  };
+			if (response.success) {
+				setVisits(response.data || []);
+				setPagination(
+					response.pagination || {
+						current: 1,
+						pages: 1,
+						total: 0,
+					}
+				);
+			}
+		} catch (error) {
+			console.error("Erreur lors du chargement des visites:", error);
+			showError("Erreur lors du chargement des visites");
+		} finally {
+			setLoading(false);
+		}
+	};
 
-  const exportToCSV = () => {
-    // Créer le CSV
-    const headers = ['Date', 'Article', 'Pays', 'Ville', 'Appareil', 'Navigateur', 'Durée (s)', 'Scroll (%)', 'Référent'];
-    const rows = visits.map(visit => [
-      new Date(visit.visitedAt).toLocaleString('fr-FR'),
-      visit.blog?.title?.fr || visit.blog?.title?.en || 'N/A',
-      visit.country || 'N/A',
-      visit.city || 'N/A',
-      visit.device?.type || 'N/A',
-      visit.device?.browser || 'N/A',
-      visit.timeOnPage || 0,
-      visit.scrollDepth || 0,
-      visit.referrerDomain || 'Direct'
-    ]);
+	const handleFilterChange = (key, value) => {
+		setFilters((prev) => ({ ...prev, [key]: value }));
+		setPagination((prev) => ({ ...prev, current: 1 }));
+	};
 
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
+	const resetFilters = () => {
+		setFilters({
+			blogId: "",
+			country: "",
+			deviceType: "",
+			dateFrom: "",
+			dateTo: "",
+		});
+		setPagination((prev) => ({ ...prev, current: 1 }));
+	};
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `blog-visits-${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    showSuccess('Export CSV réussi');
-  };
+	const exportToCSV = () => {
+		const headers = [
+			"Date",
+			"Visiteur",
+			"Email",
+			"Type",
+			"Article",
+			"Pays",
+			"Ville",
+			"Appareil",
+			"Navigateur",
+			"Durée (s)",
+			"Scroll (%)",
+			"Référent",
+		];
+		const rows = visits.map((visit) => [
+			new Date(visit.visitedAt).toLocaleString("fr-FR"),
+			visit.visitorInfo
+				? `${visit.visitorInfo.firstName || ""} ${
+						visit.visitorInfo.lastName || ""
+				  }`
+				: "Anonyme",
+			visit.visitorInfo?.email || "N/A",
+			visit.visitorInfo?.type === "user"
+				? "Membre"
+				: visit.visitorInfo?.type === "lead"
+				? "Prospect"
+				: "Inconnu",
+			visit.blog?.title?.fr || visit.blog?.title?.en || "N/A",
+			visit.country || "N/A",
+			visit.city || "N/A",
+			visit.device?.type || "N/A",
+			visit.device?.browser || "N/A",
+			visit.timeOnPage || 0,
+			visit.scrollDepth || 0,
+			visit.referrerDomain || "Direct",
+		]);
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleString('fr-FR');
-  };
+		const csvContent = [
+			headers.join(","),
+			...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+		].join("\n");
 
-  const getDeviceIcon = (type) => {
-    switch (type?.toLowerCase()) {
-      case 'desktop':
-        return <Monitor className="w-4 h-4" />;
-      case 'mobile':
-        return <Smartphone className="w-4 h-4" />;
-      case 'tablet':
-        return <Tablet className="w-4 h-4" />;
-      default:
-        return <Monitor className="w-4 h-4" />;
-    }
-  };
+		const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+		const link = document.createElement("a");
+		const url = URL.createObjectURL(blob);
+		link.setAttribute("href", url);
+		link.setAttribute(
+			"download",
+			`blog-visits-${new Date().toISOString().split("T")[0]}.csv`
+		);
+		link.style.visibility = "hidden";
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
 
-  return (
-    <div className="p-6 overflow-x-auto">
-      {/* En-tête */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <Link
-            to="/admin/blog/stats"
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-2"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Retour aux statistiques
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Analytics Détaillées</h1>
-          <p className="text-gray-600 mt-1">Analysez les visites et comportements des visiteurs</p>
-        </div>
-        <div className="flex gap-3">
-          <button
-            onClick={loadVisits}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-          >
-            <RefreshCw className="w-5 h-5" />
-            Actualiser
-          </button>
-          <button
-            onClick={exportToCSV}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-          >
-            <Download className="w-5 h-5" />
-            Exporter CSV
-          </button>
-        </div>
-      </div>
+		showSuccess("Export CSV réussi");
+	};
 
-      {/* Métriques */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div className="bg-white rounded-lg shadow-sm border p-6">
-          <p className="text-sm text-gray-600">Total des vues</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">{stats.totalVisits || 0}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border p-6">
-          <p className="text-sm text-gray-600">Visiteurs uniques</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">{stats.uniqueVisitors || 0}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border p-6">
-          <p className="text-sm text-gray-600">Total des visites</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">{pagination.total || 0}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border p-6">
-          <p className="text-sm text-gray-600">Total des likes</p>
-          <p className="text-3xl font-bold text-gray-900 mt-2">{stats.totalLikes || 0}</p>
-        </div>
-      </div>
+	const formatDate = (dateString) => {
+		if (!dateString) return "N/A";
+		const date = new Date(dateString);
+		return (
+			<div className="flex flex-col">
+				<span className="font-bold text-slate-900">
+					{date.toLocaleDateString("fr-FR")}
+				</span>
+				<span className="text-[10px] text-slate-400 font-black uppercase tracking-tighter">
+					{date.toLocaleTimeString("fr-FR", {
+						hour: "2-digit",
+						minute: "2-digit",
+					})}
+				</span>
+			</div>
+		);
+	};
 
-      {/* Filtres */}
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Filter className="w-5 h-5 text-gray-600" />
-          <h2 className="text-lg font-semibold text-gray-900">Filtres</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Blog</label>
-            <select
-              value={filters.blogId}
-              onChange={(e) => handleFilterChange('blogId', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            >
-              <option value="">Tous les blogs</option>
-              {blogs.map((blog) => (
-                <option key={blog._id} value={blog._id}>
-                  {blog.title?.fr || blog.title?.en || blog._id}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Date de début</label>
-            <input
-              type="date"
-              value={filters.dateFrom}
-              onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Date de fin</label>
-            <input
-              type="date"
-              value={filters.dateTo}
-              onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Pays</label>
-            <input
-              type="text"
-              value={filters.country}
-              onChange={(e) => handleFilterChange('country', e.target.value)}
-              placeholder="Ex: France"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Appareil</label>
-            <select
-              value={filters.deviceType}
-              onChange={(e) => handleFilterChange('deviceType', e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-            >
-              <option value="">Tous</option>
-              <option value="desktop">Desktop</option>
-              <option value="mobile">Mobile</option>
-              <option value="tablet">Tablet</option>
-            </select>
-          </div>
-        </div>
-        <div className="mt-4">
-          <button
-            onClick={resetFilters}
-            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-          >
-            Réinitialiser les filtres
-          </button>
-        </div>
-      </div>
+	const getDeviceIcon = (type) => {
+		switch (type?.toLowerCase()) {
+			case "desktop":
+				return <Monitor className="w-5 h-5 text-indigo-500" />;
+			case "mobile":
+				return <Smartphone className="w-5 h-5 text-emerald-500" />;
+			case "tablet":
+				return <Tablet className="w-5 h-5 text-amber-500" />;
+			default:
+				return <Monitor className="w-5 h-5 text-slate-400" />;
+		}
+	};
 
-      {/* Tableau des visites */}
-      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <LoadingSpinner />
-          </div>
-        ) : visits.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">Aucune visite trouvée</p>
-          </div>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Article</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Localisation</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Appareil</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Durée</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Scroll</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Référent</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {visits.map((visit) => (
-                    <tr key={visit._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(visit.visitedAt)}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {visit.blog?.title?.fr || visit.blog?.title?.en || 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Globe className="w-4 h-4" />
-                          {visit.country || 'N/A'}
-                          {visit.city && `, ${visit.city}`}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div className="flex items-center gap-2">
-                          {getDeviceIcon(visit.device?.type)}
-                          <span className="capitalize">{visit.device?.type || 'N/A'}</span>
-                          {visit.device?.browser && (
-                            <span className="text-gray-400">• {visit.device.browser}</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {visit.timeOnPage ? `${Math.round(visit.timeOnPage)}s` : 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {visit.scrollDepth ? `${Math.round(visit.scrollDepth)}%` : 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {visit.referrerDomain || 'Direct'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+	const MetricCard = ({ title, value, icon: Icon, color }) => (
+		<div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-2xl shadow-slate-100/50 hover:shadow-emerald-500/10 transition-all duration-500 overflow-hidden relative group">
+			<div
+				className={`absolute top-0 right-0 w-24 h-24 bg-${color}-500/5 rounded-full blur-2xl group-hover:bg-${color}-500/10 transition-colors pointer-events-none`}
+			></div>
+			<div className="relative z-10">
+				<div
+					className={`w-12 h-12 rounded-xl bg-${color}-50 flex items-center justify-center mb-6`}
+				>
+					<Icon className={`w-6 h-6 text-${color}-500`} />
+				</div>
+				<p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+					{title}
+				</p>
+				<h3 className="text-4xl font-black text-slate-900 tracking-tighter">
+					{value}
+				</h3>
+			</div>
+		</div>
+	);
 
-            {/* Pagination */}
-            {pagination.pages > 1 && (
-              <div className="px-6 py-4 border-t flex items-center justify-between">
-                <p className="text-sm text-gray-700">
-                  Affichage de {(pagination.current - 1) * 50 + 1} à {Math.min(pagination.current * 50, pagination.total)} sur {pagination.total} résultats
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setPagination(prev => ({ ...prev, current: Math.max(1, prev.current - 1) }))}
-                    disabled={pagination.current === 1}
-                    className="px-4 py-2 text-sm border border-gray-300 rounded-lg disabled:opacity-50"
-                  >
-                    Précédent
-                  </button>
-                  <button
-                    onClick={() => setPagination(prev => ({ ...prev, current: Math.min(prev.pages, prev.current + 1) }))}
-                    disabled={pagination.current === pagination.pages}
-                    className="px-4 py-2 text-sm border border-gray-300 rounded-lg disabled:opacity-50"
-                  >
-                    Suivant
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </div>
-  );
+	return (
+		<div className="min-h-screen bg-[#fafafa] relative overflow-hidden">
+			{/* Background Deco */}
+			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
+				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-100/30 rounded-full blur-[120px]"></div>
+				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-100/20 rounded-full blur-[100px]"></div>
+			</div>
+
+			<div className="max-w-[1400px] mx-auto px-4 py-12 relative z-10">
+				{/* Header Section */}
+				<div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+					<div className="flex items-center gap-6">
+						<button
+							onClick={() => navigate("/admin/blog/stats")}
+							className="group w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:border-emerald-200 transition-all shadow-sm hover:shadow-md mb-1"
+						>
+							<ArrowLeft className="h-6 w-6 group-hover:-translate-x-1 transition-transform" />
+						</button>
+						<div>
+							<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-1">
+								<div className="w-8 h-[2px] bg-emerald-600"></div>
+								<span>Visitor Intelligence</span>
+							</div>
+							<h1 className="text-5xl md:text-6xl font-black text-slate-900 tracking-tighter">
+								Global{" "}
+								<span className="text-emerald-500 text-stroke-thin">
+									Analytics
+								</span>
+							</h1>
+						</div>
+					</div>
+
+					<div className="flex items-center gap-3">
+						<button
+							onClick={loadVisits}
+							className="group flex items-center gap-2 px-6 py-4 bg-white border border-slate-200 rounded-2xl text-slate-600 font-bold text-sm hover:border-emerald-500 hover:text-emerald-600 transition-all duration-300 shadow-sm"
+						>
+							<RefreshCw
+								className={`w-5 h-5 transition-transform group-hover:rotate-180 ${
+									loading ? "animate-spin" : ""
+								}`}
+							/>
+							<span>Actualiser</span>
+						</button>
+						<button
+							onClick={exportToCSV}
+							className="group flex items-center gap-2 px-6 py-4 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-emerald-600 transition-all duration-300 shadow-xl shadow-slate-200"
+						>
+							<Download className="w-5 h-5 transition-transform group-hover:translate-y-1" />
+							<span>Exporter CSV</span>
+						</button>
+					</div>
+				</div>
+
+				{/* Quick Metrics */}
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+					<MetricCard
+						title="Total Page Views"
+						value={stats.totalVisits?.toLocaleString() || 0}
+						icon={Eye}
+						color="blue"
+					/>
+					<MetricCard
+						title="Unique Visitors"
+						value={stats.uniqueVisitors?.toLocaleString() || 0}
+						icon={Layers}
+						color="emerald"
+					/>
+					<MetricCard
+						title="Current Batch Sessions"
+						value={pagination.total || 0}
+						icon={TrendingUp}
+						color="indigo"
+					/>
+					<MetricCard
+						title="Cumulative Likes"
+						value={stats.totalLikes || 0}
+						icon={Heart}
+						color="rose"
+					/>
+				</div>
+
+				{/* Filters Glass Card */}
+				<div className="bg-white/70 backdrop-blur-xl border border-white rounded-[32px] p-8 mb-8 shadow-2xl shadow-slate-100">
+					<div className="flex items-center gap-2 mb-8">
+						<Filter className="w-5 h-5 text-emerald-500" />
+						<h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">
+							Filter Audience
+						</h2>
+					</div>
+					<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+						<div className="space-y-2">
+							<label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+								Publication
+							</label>
+							<div className="relative">
+								<select
+									value={filters.blogId}
+									onChange={(e) => handleFilterChange("blogId", e.target.value)}
+									className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
+								>
+									<option value="">Tous les blogs</option>
+									{blogs.map((blog) => (
+										<option key={blog._id} value={blog._id}>
+											{blog.title?.fr || blog.title?.en || blog._id}
+										</option>
+									))}
+								</select>
+								<ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 rotate-90 w-4 h-4 text-slate-300 pointer-events-none" />
+							</div>
+						</div>
+
+						<div className="space-y-2">
+							<label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+								Starting From
+							</label>
+							<input
+								type="date"
+								value={filters.dateFrom}
+								onChange={(e) => handleFilterChange("dateFrom", e.target.value)}
+								className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-inner"
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+								Ending At
+							</label>
+							<input
+								type="date"
+								value={filters.dateTo}
+								onChange={(e) => handleFilterChange("dateTo", e.target.value)}
+								className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-inner"
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+								Geo Location
+							</label>
+							<input
+								type="text"
+								value={filters.country}
+								onChange={(e) => handleFilterChange("country", e.target.value)}
+								placeholder="France, US..."
+								className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-inner placeholder:text-slate-300"
+							/>
+						</div>
+
+						<div className="space-y-2">
+							<label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+								Access Device
+							</label>
+							<div className="relative">
+								<select
+									value={filters.deviceType}
+									onChange={(e) =>
+										handleFilterChange("deviceType", e.target.value)
+									}
+									className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
+								>
+									<option value="">Tous les types</option>
+									<option value="desktop">Desktop</option>
+									<option value="mobile">Mobile</option>
+									<option value="tablet">Tablet</option>
+								</select>
+								<ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 rotate-90 w-4 h-4 text-slate-300 pointer-events-none" />
+							</div>
+						</div>
+					</div>
+					<div className="mt-8 flex justify-end">
+						<button
+							onClick={resetFilters}
+							className="px-6 py-3 bg-slate-50 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl font-bold text-xs uppercase tracking-widest transition-all"
+						>
+							Reset All Filters
+						</button>
+					</div>
+				</div>
+
+				{/* Analytics Table */}
+				<div className="bg-white rounded-[32px] border border-slate-100 shadow-2xl shadow-slate-100 overflow-hidden">
+					{loading && visits.length === 0 ? (
+						<div className="flex flex-col items-center justify-center py-32 space-y-6">
+							<LoadingSpinner size="lg" />
+							<p className="text-slate-400 font-bold uppercase tracking-widest text-xs animate-pulse">
+								Synchronising stream data...
+							</p>
+						</div>
+					) : visits.length === 0 ? (
+						<div className="py-32 flex flex-col items-center justify-center text-center">
+							<div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
+								<Layers className="w-8 h-8 text-slate-200" />
+							</div>
+							<h3 className="text-xl font-black text-slate-900 mb-2">
+								No analytics record
+							</h3>
+							<p className="text-slate-400 text-sm max-w-xs leading-relaxed">
+								Try adjusting your date range or publication filters to see
+								results.
+							</p>
+						</div>
+					) : (
+						<>
+							<div className="overflow-x-auto">
+								<table className="w-full border-collapse">
+									<thead>
+										<tr className="bg-slate-50/50">
+											<th className="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
+												Timestamp
+											</th>
+											<th className="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
+												Publication Article
+											</th>
+											<th className="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
+												Identity
+											</th>
+											<th className="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
+												Audience Origin
+											</th>
+											<th className="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
+												Tech Stack
+											</th>
+											<th className="px-8 py-6 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+												Retention
+											</th>
+											<th className="px-8 py-6 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">
+												Acquisition
+											</th>
+										</tr>
+									</thead>
+									<tbody className="divide-y divide-slate-50">
+										{visits.map((visit) => (
+											<tr
+												key={visit._id}
+												className="group hover:bg-slate-50/50 transition-colors duration-300"
+											>
+												<td className="px-8 py-6 whitespace-nowrap">
+													{formatDate(visit.visitedAt)}
+												</td>
+												<td className="px-8 py-6">
+													<p className="text-sm font-black text-slate-900 line-clamp-1 max-w-[200px]">
+														{visit.blog?.title?.fr ||
+															visit.blog?.title?.en ||
+															"Article Inconnu"}
+													</p>
+												</td>
+												<td className="px-8 py-6 whitespace-nowrap">
+													{visit.visitorInfo ? (
+														<div className="flex flex-col">
+															<span className="text-sm font-bold text-slate-900">
+																{visit.visitorInfo.email}
+															</span>
+															<span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter flex items-center gap-1">
+																{visit.visitorInfo.firstName}{" "}
+																{visit.visitorInfo.lastName}
+																{visit.visitorInfo.type === "user" && (
+																	<span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 ml-1">
+																		MBR
+																	</span>
+																)}
+																{visit.visitorInfo.type === "lead" && (
+																	<span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-600 ml-1">
+																		LEAD
+																	</span>
+																)}
+															</span>
+														</div>
+													) : (
+														<span className="text-sm font-bold text-slate-400 italic">
+															Anonymous
+														</span>
+													)}
+												</td>
+												<td className="px-8 py-6 whitespace-nowrap">
+													<div className="flex items-center gap-3">
+														<div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+															<Globe className="w-4 h-4 text-emerald-500" />
+														</div>
+														<div className="flex flex-col">
+															<span className="text-sm font-bold text-slate-700">
+																{visit.country || "Direct Access"}
+															</span>
+															<span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+																{visit.city || "Region unknown"}
+															</span>
+														</div>
+													</div>
+												</td>
+												<td className="px-8 py-6 whitespace-nowrap">
+													<div className="flex items-center gap-3">
+														<div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center">
+															{getDeviceIcon(visit.device?.type)}
+														</div>
+														<div className="flex flex-col">
+															<span className="text-sm font-bold text-slate-700 capitalize">
+																{visit.device?.type || "Standard"}
+															</span>
+															<span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+																{visit.device?.browser || "Webview"}
+															</span>
+														</div>
+													</div>
+												</td>
+												<td className="px-8 py-6 text-center whitespace-nowrap">
+													<div className="flex flex-col items-center gap-1">
+														<div className="flex items-center gap-2">
+															<span className="text-sm font-black text-slate-900">
+																{visit.timeOnPage
+																	? `${Math.round(visit.timeOnPage)}s`
+																	: "N/A"}
+															</span>
+															<div className="w-12 h-1 bg-slate-100 rounded-full overflow-hidden">
+																<div
+																	className="h-full bg-emerald-500 rounded-full"
+																	style={{
+																		width: `${Math.min(
+																			100,
+																			(visit.timeOnPage || 0) * 2
+																		)}%`,
+																	}}
+																></div>
+															</div>
+														</div>
+														<span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">
+															{visit.scrollDepth
+																? `${Math.round(visit.scrollDepth)}% scroll`
+																: "No interaction"}
+														</span>
+													</div>
+												</td>
+												<td className="px-8 py-6 text-right whitespace-nowrap">
+													<div className="flex flex-col items-end">
+														<span className="text-xs font-black text-slate-900 py-1 px-3 bg-slate-100 rounded-lg group-hover:bg-white transition-colors">
+															{visit.referrerDomain || "Direct traffic"}
+														</span>
+													</div>
+												</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+							</div>
+
+							{/* Premium Pagination */}
+							{pagination.pages > 1 && (
+								<div className="px-8 py-8 bg-slate-50/50 flex items-center justify-between border-t border-slate-100">
+									<p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+										Showing batch of{" "}
+										<span className="text-slate-900">
+											{(pagination.current - 1) * 50 + 1} -{" "}
+											{Math.min(pagination.current * 50, pagination.total)}
+										</span>{" "}
+										of {pagination.total} audience records
+									</p>
+									<div className="flex gap-4">
+										<button
+											onClick={() =>
+												setPagination((prev) => ({
+													...prev,
+													current: Math.max(1, prev.current - 1),
+												}))
+											}
+											disabled={pagination.current === 1}
+											className="px-8 py-4 bg-white border border-slate-100 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-400 hover:text-emerald-600 disabled:opacity-50 transition-all shadow-sm"
+										>
+											Précédent
+										</button>
+										<button
+											onClick={() =>
+												setPagination((prev) => ({
+													...prev,
+													current: Math.min(prev.pages, prev.current + 1),
+												}))
+											}
+											disabled={pagination.current === pagination.pages}
+											className="px-8 py-4 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-emerald-600 disabled:opacity-50 transition-all shadow-xl shadow-slate-200"
+										>
+											Suivant
+										</button>
+									</div>
+								</div>
+							)}
+						</>
+					)}
+				</div>
+			</div>
+		</div>
+	);
 };
 
 export default AdminBlogAnalytics;
-

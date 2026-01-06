@@ -300,6 +300,14 @@ const restaurateurSchema = new mongoose.Schema({
 				required: true,
 				min: [0, "Le prix ne peut pas être négatif"],
 			},
+			unit: {
+				type: String,
+				default: "portion",
+			},
+			currency: {
+				type: String,
+				default: "XOF",
+			},
 			image: {
 				type: String,
 				required: false,

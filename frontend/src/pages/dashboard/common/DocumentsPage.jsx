@@ -93,7 +93,7 @@ const DocumentsPage = () => {
 	const getDocTypes = () => {
 		switch (user?.userType) {
 			case "producer":
-				return ["nationalId", "businessLicense", "taxId"];
+				return [/*"nationalId",*/ "businessLicense", "taxId"];
 			case "restaurateur":
 				return ["businessLicense", "taxId", "healthPermit", "firePermit"];
 			case "transporter":
@@ -108,9 +108,12 @@ const DocumentsPage = () => {
 			case "exporter":
 				return ["businessLicense", "taxId"];
 			default:
-				return ["nationalId"];
+				// "nationalId" removed as per request
+				return [];
 		}
 	};
+
+	const activeDocTypes = getDocTypes();
 
 	if (!isAuthenticated || !user) {
 		return (
@@ -146,14 +149,16 @@ const DocumentsPage = () => {
 					</button>
 				</div>
 
-				<div className="bg-white shadow rounded-lg p-6 mb-6">
-					<DocumentsSection
-						documents={documents}
-						onInputChange={handleDocumentChange}
-						editing={true}
-						docTypes={getDocTypes()}
-					/>
-				</div>
+				{activeDocTypes.length > 0 && (
+					<div className="bg-white shadow rounded-lg p-6 mb-6">
+						<DocumentsSection
+							documents={documents}
+							onInputChange={handleDocumentChange}
+							editing={true}
+							docTypes={activeDocTypes}
+						/>
+					</div>
+				)}
 
 				<div className="bg-white shadow rounded-lg p-6">
 					<CertificationsSection

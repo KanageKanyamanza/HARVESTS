@@ -10,6 +10,9 @@ import {
 	FiArrowLeft,
 } from "react-icons/fi";
 import CloudinaryImage from "../components/common/CloudinaryImage";
+import { useCurrency } from "../contexts/CurrencyContext";
+import { convertPrice, formatPrice } from "../utils/currencyUtils";
+import { DEFAULT_CURRENCY } from "../config/currencies";
 
 const Cart = () => {
 	const {
@@ -21,6 +24,7 @@ const Cart = () => {
 		clearCart,
 	} = useCart();
 	const { user } = useAuth();
+	const { currency } = useCurrency();
 	const navigate = useNavigate();
 
 	if (items.length === 0) {
@@ -110,7 +114,14 @@ const Cart = () => {
 													"Fournisseur"}
 											</p>
 											<p className="text-lg font-semibold text-harvests-green">
-												{item.price.toLocaleString()} FCFA{" "}
+												{formatPrice(
+													convertPrice(
+														item.price,
+														item.currency || DEFAULT_CURRENCY,
+														currency
+													),
+													currency
+												)}{" "}
 												<span className="text-xs font-normal text-gray-500">
 													/ {item.unit || "unité"}
 												</span>
@@ -173,12 +184,22 @@ const Cart = () => {
 							<div className="space-y-3 mb-6">
 								<div className="flex justify-between text-sm">
 									<span>Sous-total ({totalItems} articles)</span>
-									<span>{totalPrice.toLocaleString()} FCFA</span>
+									<span>
+										{formatPrice(
+											convertPrice(totalPrice, DEFAULT_CURRENCY, currency),
+											currency
+										)}
+									</span>
 								</div>
 								<hr />
 								<div className="flex justify-between font-semibold text-lg">
 									<span>Total</span>
-									<span>{totalPrice.toLocaleString()} FCFA</span>
+									<span>
+										{formatPrice(
+											convertPrice(totalPrice, DEFAULT_CURRENCY, currency),
+											currency
+										)}
+									</span>
 								</div>
 							</div>
 

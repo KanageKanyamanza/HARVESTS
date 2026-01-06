@@ -32,5 +32,8 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/ZooM982/HARVESTS.git"
+  },
+  "devDependencies": {
+    "baseline-browser-mapping": "^2.9.11"
   }
 }

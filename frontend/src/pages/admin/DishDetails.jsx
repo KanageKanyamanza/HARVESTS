@@ -12,48 +12,48 @@ import {
 	CheckCircle,
 	XCircle,
 	Clock,
-	Eye,
-	EyeOff,
 	Tag,
 	MapPin,
 	Truck,
 	Shield,
 	AlertTriangle,
 	FileText,
+	UtensilsCrossed,
 } from "lucide-react";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { adminService } from "../../services/adminService";
-import { toPlainText } from "../../utils/textHelpers";
 
-const ProductDetails = () => {
+const DishDetails = () => {
 	const { id } = useParams();
 	const navigate = useNavigate();
-	const [product, setProduct] = useState(null);
+	const [dish, setDish] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [actionLoading, setActionLoading] = useState(false);
 
 	useEffect(() => {
-		loadProduct();
+		loadDish();
 	}, [id]);
 
-	const loadProduct = async () => {
+	const loadDish = async () => {
 		try {
 			setLoading(true);
-			const response = await adminService.getProductById(id);
-			setProduct(response.data.product);
+			const response = await adminService.getDishById(id);
+			// Extraire la donnée selon la structure de réponse (les plats utilisent souvent .data.dish ou .data.data.dish)
+			const data = response.data.data || response.data;
+			setDish(data.dish || data);
 		} catch (error) {
-			console.error("Erreur lors du chargement du produit:", error);
+			console.error("Erreur lors du chargement du plat:", error);
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	const handleApproveProduct = async () => {
-		if (window.confirm("Êtes-vous sûr de vouloir approuver ce produit ?")) {
+	const handleApproveDish = async () => {
+		if (window.confirm("Êtes-vous sûr de vouloir approuver ce plat ?")) {
 			try {
 				setActionLoading(true);
-				await adminService.approveProduct(id);
-				await loadProduct(); // Recharger les données
+				await adminService.approveDish(id);
+				await loadDish();
 			} catch (error) {
 				console.error("Erreur lors de l'approbation:", error);
 			} finally {
@@ -62,34 +62,18 @@ const ProductDetails = () => {
 		}
 	};
 
-	const handleRejectProduct = async () => {
+	const handleRejectDish = async () => {
 		const reason = window.prompt("Raison du rejet:");
 		if (reason) {
 			try {
 				setActionLoading(true);
-				await adminService.rejectProduct(id, reason);
-				await loadProduct(); // Recharger les données
+				await adminService.rejectDish(id, reason);
+				await loadDish();
 			} catch (error) {
 				console.error("Erreur lors du rejet:", error);
 			} finally {
 				setActionLoading(false);
 			}
-		}
-	};
-
-	const handleFeatureProduct = async () => {
-		try {
-			setActionLoading(true);
-			if (product.isFeatured) {
-				await adminService.unfeatureProduct(id);
-			} else {
-				await adminService.featureProduct(id);
-			}
-			await loadProduct(); // Recharger les données
-		} catch (error) {
-			console.error("Erreur lors de la mise en vedette:", error);
-		} finally {
-			setActionLoading(false);
 		}
 	};
 
@@ -99,7 +83,6 @@ const ProductDetails = () => {
 			"pending-review": "bg-amber-50 text-amber-600 border-amber-100",
 			draft: "bg-gray-50 text-gray-600 border-gray-100",
 			rejected: "bg-rose-50 text-rose-600 border-rose-100",
-			inactive: "bg-slate-50 text-slate-600 border-slate-100",
 		};
 		return colors[status] || "bg-gray-50 text-gray-600 border-gray-100";
 	};
@@ -113,7 +96,7 @@ const ProductDetails = () => {
 			case "rejected":
 				return <XCircle className="h-4 w-4" />;
 			default:
-				return <Package className="h-4 w-4" />;
+				return <UtensilsCrossed className="h-4 w-4" />;
 		}
 	};
 
@@ -123,7 +106,6 @@ const ProductDetails = () => {
 			"pending-review": "En attente",
 			draft: "Brouillon",
 			rejected: "Rejeté",
-			inactive: "Inactif",
 		};
 		return statusMap[status] || status;
 	};
@@ -141,12 +123,21 @@ const ProductDetails = () => {
 	const formatPrice = (price) => {
 		return new Intl.NumberFormat("fr-FR", {
 			style: "currency",
-			currency: product?.currency || "XOF",
+			currency: dish?.currency || "XOF",
 			minimumFractionDigits: 0,
 		}).format(price);
 	};
 
-	const getLocalizedText = (text) => toPlainText(text, "Texte non disponible");
+	const getCategoryText = (category) => {
+		const categoryMap = {
+			entree: "Entrée",
+			plat: "Plat principal",
+			dessert: "Dessert",
+			boisson: "Boisson",
+			accompagnement: "Accompagnement",
+		};
+		return categoryMap[category] || category;
+	};
 
 	if (loading) {
 		return (
@@ -156,23 +147,23 @@ const ProductDetails = () => {
 		);
 	}
 
-	if (!product) {
+	if (!dish) {
 		return (
 			<div className="max-w-[1200px] mx-auto px-4 py-20 text-center">
 				<div className="w-20 h-20 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-6">
 					<AlertTriangle className="h-10 w-10 text-rose-500" />
 				</div>
 				<h2 className="text-3xl font-[1000] text-gray-900 tracking-tight mb-4">
-					Produit non trouvé
+					Plat non trouvé
 				</h2>
 				<p className="text-gray-500 font-medium mb-10 max-w-md mx-auto">
-					L'article que vous recherchez semble avoir été déplacé ou supprimé.
+					Le plat que vous recherchez semble avoir été déplacé ou supprimé.
 				</p>
 				<button
 					onClick={() => navigate(-1)}
 					className="px-10 py-4 bg-gray-900 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-widest hover:bg-green-600 transition-all duration-500"
 				>
-					Retour au catalogue
+					Retour à la gestion
 				</button>
 			</div>
 		);
@@ -180,7 +171,7 @@ const ProductDetails = () => {
 
 	return (
 		<div className="min-h-screen pb-20 relative overflow-hidden">
-			{/* Background radial glows pour un effet "wow" */}
+			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-green-100/30 rounded-full blur-[120px]"></div>
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
@@ -200,33 +191,31 @@ const ProductDetails = () => {
 							<div className="flex items-center gap-3 mb-2">
 								<span
 									className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getStatusColor(
-										product.status
+										dish.status
 									)} shadow-sm`}
 								>
-									{getStatusIcon(product.status)}
-									<span className="ml-2">{getStatusText(product.status)}</span>
+									{getStatusIcon(dish.status)}
+									<span className="ml-2">{getStatusText(dish.status)}</span>
 								</span>
-								{product.isFeatured && (
-									<span className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-50 text-amber-600 border border-amber-100 shadow-sm">
-										<Star className="h-3 w-3 mr-2 fill-current" />
-										En vedette
-									</span>
-								)}
+								<span className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-blue-50 text-blue-600 border border-blue-100 shadow-sm">
+									<Tag className="h-3 w-3 mr-2" />
+									{getCategoryText(dish.category)}
+								</span>
 							</div>
 							<h1 className="text-4xl font-[1000] text-gray-900 tracking-tighter leading-tight">
-								{getLocalizedText(product.name)}
+								{dish.name}
 							</h1>
 							<p className="text-gray-500 font-medium">
-								ID: {product._id?.substring(0, 12)}...
+								ID: {dish._id?.substring(0, 12)}...
 							</p>
 						</div>
 					</div>
 
 					<div className="flex flex-wrap items-center gap-4">
-						{product.status === "pending-review" && (
+						{dish.status === "pending-review" && (
 							<>
 								<button
-									onClick={handleRejectProduct}
+									onClick={handleRejectDish}
 									disabled={actionLoading}
 									className="group flex items-center px-8 py-4 bg-rose-50 text-rose-600 border border-rose-100 rounded-[2rem] font-black text-[10px] uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all duration-500 shadow-lg hover:shadow-rose-200/50 disabled:opacity-50"
 								>
@@ -234,7 +223,7 @@ const ProductDetails = () => {
 									Rejeter
 								</button>
 								<button
-									onClick={handleApproveProduct}
+									onClick={handleApproveDish}
 									disabled={actionLoading}
 									className="group flex items-center px-10 py-4 bg-gray-900 text-white rounded-[2rem] font-black text-[10px] uppercase tracking-widest hover:bg-green-600 transition-all duration-500 shadow-xl hover:shadow-green-200/50 disabled:opacity-50"
 								>
@@ -243,137 +232,75 @@ const ProductDetails = () => {
 								</button>
 							</>
 						)}
-
-						{product.status === "approved" && (
-							<button
-								onClick={handleFeatureProduct}
-								disabled={actionLoading}
-								className={`flex items-center px-8 py-4 rounded-[2rem] font-black text-[10px] uppercase tracking-widest transition-all duration-500 shadow-xl disabled:opacity-50 ${
-									product.isFeatured
-										? "bg-amber-500 text-white hover:bg-gray-900"
-										: "bg-gray-900 text-white hover:bg-amber-500"
-								}`}
-							>
-								{product.isFeatured ? (
-									<>
-										<EyeOff className="h-4 w-4 mr-3" />
-										Retirer des vedettes
-									</>
-								) : (
-									<>
-										<Star className="h-4 w-4 mr-3" />
-										Mettre en vedette
-									</>
-								)}
-							</button>
-						)}
 					</div>
 				</div>
 
 				<div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
-					{/* Colonne Principale: Galerie & Description */}
+					{/* Colonne Principale */}
 					<div className="xl:col-span-2 space-y-10 animate-fade-in-up delay-150">
-						{/* Galerie Images Modernisée */}
-						{product.images && product.images.length > 0 && (
-							<div className="bg-white/70 backdrop-blur-xl rounded-2xl p-5 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.12)] border border-white/60">
-								<h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-8">
-									Galerie Visuelle
-								</h2>
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-									<div className="aspect-square rounded-[2rem] overflow-hidden border border-gray-100 shadow-2xl relative group">
-										<img
-											src={product.images[0].url}
-											alt="Principal"
-											className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-										/>
-										<div className="absolute top-6 left-6 bg-white/90 backdrop-blur-md px-4 py-2 rounded-xl border border-white/40">
-											<span className="text-[10px] font-black text-gray-900 uppercase tracking-widest">
-												Image Principale
-											</span>
-										</div>
+						{/* Image Principal */}
+						<div className="bg-white/70 backdrop-blur-xl rounded-2xl p-5 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.12)] border border-white/60">
+							<h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-8">
+								Visuel du Plat
+							</h2>
+							<div className="aspect-[16/9] md:aspect-[21/9] rounded-[2rem] overflow-hidden border border-gray-100 shadow-2xl relative group">
+								{dish.image ? (
+									<img
+										src={dish.image}
+										alt={dish.name}
+										className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+									/>
+								) : (
+									<div className="w-full h-full bg-gray-50 flex items-center justify-center">
+										<UtensilsCrossed className="h-20 w-20 text-gray-200" />
 									</div>
-									<div className="grid grid-cols-1 gap-6">
-										{product.images.slice(1, 3).map((img, idx) => (
-											<div
-												key={idx}
-												className="aspect-[16/9] rounded-[2rem] overflow-hidden border border-gray-100 shadow-xl relative group"
-											>
-												<img
-													src={img.url}
-													alt={`Detail ${idx}`}
-													className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-												/>
-											</div>
-										))}
-										{product.images.length === 1 && (
-											<div className="aspect-[16/9] rounded-[2rem] bg-gray-50 border-2 border-dashed border-gray-200 flex items-center justify-center text-gray-400">
-												<span className="text-[10px] font-black uppercase tracking-widest">
-													Pas d'images secondaires
-												</span>
-											</div>
-										)}
-									</div>
+								)}
+								<div className="absolute top-6 left-6 bg-white/90 backdrop-blur-md px-4 py-2 rounded-xl border border-white/40">
+									<span className="text-[10px] font-black text-gray-900 uppercase tracking-widest">
+										Image Officielle
+									</span>
 								</div>
 							</div>
-						)}
+						</div>
 
-						{/* Description & Contenu */}
-						<div className="bg-white/70 backdrop-blur-xl rounded-2xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white/60">
+						{/* Description */}
+						<div className="bg-white/70 backdrop-blur-xl rounded-2xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white/60">
 							<div className="flex items-center gap-4 mb-8">
 								<div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-green-600 border border-green-100">
 									<FileText className="h-6 w-6" />
 								</div>
 								<h2 className="text-2xl font-[1000] text-gray-900 tracking-tight">
-									Description de l'offre
+									Description culinaire
 								</h2>
 							</div>
-							<div className="prose prose-lg max-w-none text-gray-600 leading-relaxed font-medium">
-								{getLocalizedText(product.description)}
+							<div className="text-gray-600 leading-relaxed font-medium text-lg">
+								{dish.description || "Aucune description fournie pour ce plat."}
 							</div>
 						</div>
 					</div>
 
-					{/* Colonne Latérale: Détails & Stats */}
+					{/* Colonne Latérale */}
 					<div className="space-y-10 animate-fade-in-up delay-[300ms]">
-						{/* Prix & Stock */}
-						<div className="bg-green-500 rounded-2xl p-5 text-white shadow-2xl relative overflow-hidden group">
-							<div className="absolute top-0 right-0 w-32 h-32 bg-green-500/20 rounded-full blur-3xl group-hover:bg-green-500/30 transition-all duration-700"></div>
-							<h3 className="text-[10px] font-black text-green-950 uppercase tracking-[0.2em] mb-6">
-								Offre Commerciale
+						{/* Prix */}
+						<div className="bg-gray-900 rounded-2xl p-8 text-white shadow-2xl relative overflow-hidden group">
+							<div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-all duration-700"></div>
+							<h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6">
+								Tarification
 							</h3>
 							<div className="mb-8">
 								<p className="text-5xl font-[1000] tracking-tighter mb-2">
-									{formatPrice(product.price)}
+									{formatPrice(dish.price)}
 								</p>
-								<p className="text-green-950 text-xs font-bold font-mono">
-									PIÈCE / KG / UNITÉ
+								<p className="text-gray-500 text-xs font-bold uppercase tracking-widest">
+									Prix par portion
 								</p>
-							</div>
-							<div className="flex items-center gap-4 pt-8 border-t border-white/10">
-								<div className="flex-1">
-									<p className="text-[10px] font-black text-gray-950 uppercase tracking-widest mb-1">
-										Stock Disponible
-									</p>
-									<p className="text-xl font-black">
-										{product.inventory?.quantity || "Illimité"}
-									</p>
-								</div>
-								<div className="h-10 w-[1px] bg-white/10"></div>
-								<div className="flex-1">
-									<p className="text-[10px] font-black text-gray-950 uppercase tracking-widest mb-1">
-										Achat Min.
-									</p>
-									<p className="text-xl font-black">
-										{product.minimumOrderQuantity || 1}
-									</p>
-								</div>
 							</div>
 						</div>
 
-						{/* Infos Producteur */}
-						<div className="bg-white/70 backdrop-blur-xl rounded-2xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white/60">
+						{/* Restaurateur */}
+						<div className="bg-white/70 backdrop-blur-xl rounded-2xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white/60">
 							<h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-8">
-								Origine du Produit
+								Restaurateur
 							</h3>
 							<div className="flex items-center gap-6 mb-8 group cursor-pointer">
 								<div className="h-16 w-16 bg-blue-50 rounded-[1.5rem] flex items-center justify-center text-blue-600 border border-blue-100 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-sm">
@@ -381,11 +308,11 @@ const ProductDetails = () => {
 								</div>
 								<div>
 									<p className="text-xl font-[1000] text-gray-900 tracking-tight leading-tight mb-1">
-										{product.producer?.farmName ||
-											`${product.producer?.firstName} ${product.producer?.lastName}`}
+										{dish.restaurateur?.restaurantName ||
+											`${dish.restaurateur?.firstName} ${dish.restaurateur?.lastName}`}
 									</p>
 									<p className="text-xs font-bold text-gray-400 uppercase tracking-widest group-hover:text-blue-600 transition-colors">
-										Producteur vérifié
+										Établissement vérifié
 									</p>
 								</div>
 							</div>
@@ -393,36 +320,29 @@ const ProductDetails = () => {
 								<div className="flex items-center gap-4 text-gray-600">
 									<MapPin className="h-5 w-5 text-gray-400" />
 									<span className="text-sm font-bold tracking-tight">
-										{product.producer?.address?.city ||
-											"Localisation non définie"}
-									</span>
-								</div>
-								<div className="flex items-center gap-4 text-gray-600">
-									<Truck className="h-5 w-5 text-gray-400" />
-									<span className="text-sm font-bold tracking-tight">
-										Livraisons en {product.origin?.country || "Côte d'Ivoire"}
+										{dish.restaurateur?.address?.city || "Ville non définie"}
 									</span>
 								</div>
 								<div className="flex items-center gap-4 text-gray-600">
 									<Shield className="h-5 w-5 text-emerald-500" />
 									<span className="text-sm font-bold tracking-tight text-emerald-600">
-										Qualité Harvests Garantie
+										Certifié Harvests
 									</span>
 								</div>
 							</div>
 						</div>
 
 						{/* Chronologie */}
-						<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-2 shadow-sm border border-white/60">
+						<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-6 shadow-sm border border-white/60">
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-3">
 									<Calendar className="h-5 w-5 text-gray-400" />
 									<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-										Mis en ligne le
+										Ajouté le
 									</p>
 								</div>
 								<p className="text-xs font-black text-gray-900">
-									{formatDate(product.createdAt)}
+									{formatDate(dish.createdAt)}
 								</p>
 							</div>
 						</div>
@@ -433,4 +353,4 @@ const ProductDetails = () => {
 	);
 };
 
-export default ProductDetails;
+export default DishDetails;

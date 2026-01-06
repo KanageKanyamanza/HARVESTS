@@ -1,143 +1,383 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { adminService } from '../../services/adminService';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
-import AdminOrdersTable from '../../components/admin/AdminOrdersTable';
-import TransporterAssignModal from '../../components/admin/TransporterAssignModal';
+import React, { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
+import {
+	Search,
+	Filter,
+	ShoppingCart,
+	ChevronLeft,
+	ChevronRight,
+	Calendar,
+	MoreVertical,
+} from "lucide-react";
+import { adminService } from "../../services/adminService";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import AdminOrdersTable from "../../components/admin/AdminOrdersTable";
+import TransporterAssignModal from "../../components/admin/TransporterAssignModal";
 
 const AdminOrders = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalOrders, setTotalOrders] = useState(0);
-  const [confirmingPayment, setConfirmingPayment] = useState(null);
-  const [showAssignModal, setShowAssignModal] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [availableTransporters, setAvailableTransporters] = useState([]);
-  const [loadingTransporters, setLoadingTransporters] = useState(false);
-  const [assigning, setAssigning] = useState(false);
+	const [searchParams, setSearchParams] = useSearchParams();
+	const [orders, setOrders] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [searchTerm, setSearchTerm] = useState("");
+	const [statusFilter, setStatusFilter] = useState("");
+	const [currentPage, setCurrentPage] = useState(
+		parseInt(searchParams.get("page")) || 1
+	);
+	const [totalPages, setTotalPages] = useState(1);
+	const [totalOrders, setTotalOrders] = useState(0);
+	const [confirmingPayment, setConfirmingPayment] = useState(null);
+	const [showAssignModal, setShowAssignModal] = useState(false);
+	const [selectedOrder, setSelectedOrder] = useState(null);
+	const [availableTransporters, setAvailableTransporters] = useState([]);
+	const [loadingTransporters, setLoadingTransporters] = useState(false);
+	const [assigning, setAssigning] = useState(false);
 
-  const loadOrders = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await adminService.getOrders({ page: currentPage, limit: 10, status: statusFilter, search: searchTerm });
-      
-      if (response.status === 'success' && response.data?.orders) {
-        setOrders(response.data.orders);
-        setTotalPages(response.data.pagination?.totalPages || 1);
-        setTotalOrders(response.data.pagination?.totalOrders || response.data.orders.length);
-      } else if (response.data?.orders) {
-        setOrders(response.data.orders);
-        setTotalPages(response.data.pagination?.totalPages || 1);
-        setTotalOrders(response.data.pagination?.totalOrders || response.data.orders.length);
-      } else {
-        setOrders([]);
-      }
-    } catch (error) {
-      console.error('Erreur:', error);
-      setOrders([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [currentPage, statusFilter, searchTerm]);
+	const loadOrders = useCallback(async () => {
+		try {
+			setLoading(true);
+			const response = await adminService.getOrders({
+				page: currentPage,
+				limit: 10,
+				status: statusFilter,
+				search: searchTerm,
+			});
 
-  useEffect(() => { loadOrders(); }, [loadOrders]);
+			if (response.status === "success" && response.data?.orders) {
+				setOrders(response.data.orders);
+				setTotalPages(response.data.pagination?.totalPages || 1);
+				setTotalOrders(
+					response.data.pagination?.totalOrders || response.data.orders.length
+				);
+			} else if (response.data?.orders) {
+				setOrders(response.data.orders);
+				setTotalPages(response.data.pagination?.totalPages || 1);
+				setTotalOrders(
+					response.data.pagination?.totalOrders || response.data.orders.length
+				);
+			} else {
+				setOrders([]);
+			}
+		} catch (error) {
+			console.error("Erreur:", error);
+			setOrders([]);
+		} finally {
+			setLoading(false);
+		}
+	}, [currentPage, statusFilter, searchTerm]);
 
-  const handleConfirmPayment = async (orderId) => {
-    if (!window.confirm('Confirmer ce paiement ?')) return;
-    try {
-      setConfirmingPayment(orderId);
-      await adminService.updatePaymentStatus(orderId, { paymentStatus: 'completed', paidAt: new Date().toISOString() });
-      loadOrders();
-    } catch (error) {
-      console.error('Erreur:', error);
-      alert('Erreur lors de la confirmation');
-    } finally {
-      setConfirmingPayment(null);
-    }
-  };
+	useEffect(() => {
+		loadOrders();
+	}, [loadOrders]);
 
-  const handleOpenAssignModal = async (order) => {
-    setSelectedOrder(order);
-    setShowAssignModal(true);
-    setLoadingTransporters(true);
-    try {
-      const response = await adminService.getAvailableTransporters(order._id);
-      setAvailableTransporters(response.status === 'success' && response.data ? response.data.transporters || [] : []);
-    } catch { setAvailableTransporters([]); }
-    finally { setLoadingTransporters(false); }
-  };
+	const handleConfirmPayment = async (orderId) => {
+		if (!window.confirm("Confirmer ce paiement ?")) return;
+		try {
+			setConfirmingPayment(orderId);
+			await adminService.updatePaymentStatus(orderId, {
+				paymentStatus: "completed",
+				paidAt: new Date().toISOString(),
+			});
+			loadOrders();
+		} catch (error) {
+			console.error("Erreur:", error);
+			alert("Erreur lors de la confirmation");
+		} finally {
+			setConfirmingPayment(null);
+		}
+	};
 
-  const handleAssignTransporter = async (transporterId) => {
-    if (!selectedOrder) return;
-    setAssigning(true);
-    try {
-      await adminService.assignTransporterToOrder(selectedOrder._id, transporterId);
-      setShowAssignModal(false);
-      setSelectedOrder(null);
-      loadOrders();
-    } catch (error) {
-      alert(error.response?.data?.message || 'Erreur');
-    } finally {
-      setAssigning(false);
-    }
-  };
+	const handleOpenAssignModal = async (order) => {
+		setSelectedOrder(order);
+		setShowAssignModal(true);
+		setLoadingTransporters(true);
+		try {
+			const response = await adminService.getAvailableTransporters(order._id);
+			setAvailableTransporters(
+				response.status === "success" && response.data
+					? response.data.transporters || []
+					: []
+			);
+		} catch {
+			setAvailableTransporters([]);
+		} finally {
+			setLoadingTransporters(false);
+		}
+	};
 
-  if (loading) return <div className="flex items-center justify-center h-64"><LoadingSpinner size="lg" /></div>;
+	const handleAssignTransporter = async (transporterId) => {
+		if (!selectedOrder) return;
+		setAssigning(true);
+		try {
+			await adminService.assignTransporterToOrder(
+				selectedOrder._id,
+				transporterId
+			);
+			setShowAssignModal(false);
+			setSelectedOrder(null);
+			loadOrders();
+		} catch (error) {
+			alert(error.response?.data?.message || "Erreur");
+		} finally {
+			setAssigning(false);
+		}
+	};
 
-  return (
-      <div className="space-y-6 overflow-x-auto">
-        {/* Header */}
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Gestion des commandes</h1>
-        <p className="mt-1 text-sm text-gray-500">Gérez les commandes et résolvez les litiges</p>
-        </div>
+	if (loading)
+		return (
+			<div className="flex items-center justify-center min-h-[400px]">
+				<LoadingSpinner size="lg" text="Chargement des commandes..." />
+			</div>
+		);
 
-      {/* Filters */}
-        <div className="bg-white p-4 rounded-lg shadow">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-            <label className="block text-sm font-medium text-gray-700">Rechercher</label>
-            <input type="text" placeholder="Rechercher..." value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm" />
-            </div>
-            <div>
-            <label className="block text-sm font-medium text-gray-700">Statut</label>
-            <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm">
-                <option value="">Tous les statuts</option>
-                <option value="pending">En attente</option>
-              <option value="confirmed">Confirmée</option>
-                <option value="processing">En cours</option>
-              <option value="shipped">Expédiée</option>
-              <option value="delivered">Livrée</option>
-              <option value="cancelled">Annulée</option>
-              </select>
-            </div>
-          </div>
-        </div>
+	return (
+		<div className="min-h-screen pb-20 relative overflow-hidden">
+			{/* Background radial glows */}
+			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
+				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-green-100/30 rounded-full blur-[120px]"></div>
+				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
+			</div>
 
-      {/* Stats */}
-      <div className="text-sm text-gray-600">{totalOrders} commande(s) trouvée(s)</div>
+			<div className="max-w-[1400px] mx-auto px-4 py-12 relative z-10">
+				{/* Header */}
+				<div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 animate-fade-in-down">
+					<div>
+						<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-3">
+							<div className="w-8 h-[2px] bg-emerald-600"></div>
+							<span>Transaction Flow</span>
+						</div>
+						<h1 className="text-5xl font-[1000] text-gray-900 tracking-tighter leading-none mb-4">
+							Gestion des <span className="text-green-600">Commandes</span>
+						</h1>
+						<p className="text-gray-500 font-medium flex items-center gap-2">
+							<ShoppingCart className="h-4 w-4 text-green-500" />
+							Suivez et gérez les ventes de la plateforme en temps réel
+						</p>
+					</div>
 
-      {/* Table */}
-      <AdminOrdersTable orders={orders} onConfirmPayment={handleConfirmPayment} onOpenAssignModal={handleOpenAssignModal} confirmingPayment={confirmingPayment} />
+					{/* Search & Filter Bar */}
+					<div className="flex flex-wrap items-center gap-4 bg-white/70 backdrop-blur-xl p-3 rounded-[2rem] border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)]">
+						<div className="relative">
+							<Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+							<input
+								type="text"
+								placeholder="Rechercher par n° ou client..."
+								value={searchTerm}
+								onChange={(e) => {
+									setSearchTerm(e.target.value);
+									setCurrentPage(1);
+								}}
+								className="pl-11 pr-6 py-3 bg-gray-200/50 border border-transparent focus:border-green-100 focus:bg-white focus:ring-4 focus:ring-green-500/5 rounded-2xl text-sm font-medium transition-all w-full md:w-64"
+							/>
+						</div>
+						<div className="relative">
+							<Filter className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+							<select
+								value={statusFilter}
+								onChange={(e) => {
+									setStatusFilter(e.target.value);
+									setCurrentPage(1);
+								}}
+								className="pl-11 pr-10 py-3 bg-gray-200/50 border border-transparent focus:border-green-100 focus:bg-white focus:ring-4 focus:ring-green-500/5 rounded-2xl text-sm font-black uppercase tracking-widest transition-all appearance-none cursor-pointer"
+							>
+								<option value="">Tous les statuts</option>
+								<option value="pending">En attente</option>
+								<option value="confirmed">Confirmée</option>
+								<option value="processing">En cours</option>
+								<option value="shipped">Expédiée</option>
+								<option value="delivered">Livrée</option>
+								<option value="cancelled">Annulée</option>
+							</select>
+						</div>
+						<div className="px-6 py-3 bg-gray-900/5 text-gray-900 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-gray-900/5">
+							{totalOrders} Commande(s)
+						</div>
+					</div>
+				</div>
 
-        {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center space-x-2">
-          <button onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); setSearchParams({ page: Math.max(1, currentPage - 1).toString() }); }} disabled={currentPage === 1} className="px-4 py-2 border rounded-md disabled:opacity-50">Précédent</button>
-          <span className="px-4 py-2">Page {currentPage} / {totalPages}</span>
-          <button onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); setSearchParams({ page: Math.min(totalPages, currentPage + 1).toString() }); }} disabled={currentPage === totalPages} className="px-4 py-2 border rounded-md disabled:opacity-50">Suivant</button>
-        </div>
-      )}
+				{/* Table Container */}
+				<div className="animate-fade-in-up">
+					<AdminOrdersTable
+						orders={orders}
+						onConfirmPayment={handleConfirmPayment}
+						onOpenAssignModal={handleOpenAssignModal}
+						confirmingPayment={confirmingPayment}
+					/>
+				</div>
 
-      {/* Modal */}
-      <TransporterAssignModal show={showAssignModal} order={selectedOrder} transporters={availableTransporters} loading={loadingTransporters} assigning={assigning} onAssign={handleAssignTransporter} onClose={() => { setShowAssignModal(false); setSelectedOrder(null); }} />
-    </div>
-  );
+				{/* Pagination */}
+				{totalPages > 1 && (
+					<div className="mt-12 flex items-center justify-between bg-white/70 backdrop-blur-xl p-4 rounded-[2rem] border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)]">
+						<button
+							onClick={() => {
+								const newPage = Math.max(1, currentPage - 1);
+								setCurrentPage(newPage);
+								setSearchParams({ page: newPage.toString() });
+							}}
+							disabled={currentPage === 1}
+							className="flex items-center gap-2 px-6 py-3 bg-gray-50 text-gray-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50"
+						>
+							<ChevronLeft className="h-4 w-4" />{" "}
+							<span className="hidden md:block">Précédent</span>
+						</button>
+						<div className="flex items-center gap-2">
+							{/* Page 1 & 2 - Toujours visibles */}
+							{[1, 2].map(
+								(p) =>
+									p <= totalPages && (
+										<button
+											key={p}
+											onClick={() => {
+												setCurrentPage(p);
+												setSearchParams({ page: p.toString() });
+											}}
+											className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all duration-300 ${
+												currentPage === p
+													? "bg-gray-900 text-white shadow-xl shadow-gray-200"
+													: "text-gray-400 hover:bg-gray-50"
+											}`}
+										>
+											{p}
+										</button>
+									)
+							)}
+
+							{/* Mobile: Ellipsis et Dernière page */}
+							{totalPages > 3 && (
+								<span className="md:hidden text-gray-400 font-black">...</span>
+							)}
+							{totalPages > 2 && (
+								<button
+									onClick={() => {
+										setCurrentPage(totalPages);
+										setSearchParams({ page: totalPages.toString() });
+									}}
+									className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all duration-300 md:hidden ${
+										currentPage === totalPages
+											? "bg-gray-900 text-white shadow-xl shadow-gray-200"
+											: "text-gray-400 hover:bg-gray-50"
+									}`}
+								>
+									{totalPages}
+								</button>
+							)}
+
+							{/* Tablet: Pages 3 & 4 */}
+							{[3, 4].map(
+								(p) =>
+									p <= totalPages && (
+										<button
+											key={p}
+											onClick={() => {
+												setCurrentPage(p);
+												setSearchParams({ page: p.toString() });
+											}}
+											className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all duration-300 hidden md:flex items-center justify-center lg:hidden ${
+												currentPage === p
+													? "bg-gray-900 text-white shadow-xl shadow-gray-200"
+													: "text-gray-400 hover:bg-gray-50"
+											}`}
+										>
+											{p}
+										</button>
+									)
+							)}
+
+							{/* Tablet: Ellipsis et Dernière page */}
+							{totalPages > 5 && (
+								<span className="hidden md:block lg:hidden text-gray-400 font-black">
+									...
+								</span>
+							)}
+							{totalPages > 4 && (
+								<button
+									onClick={() => {
+										setCurrentPage(totalPages);
+										setSearchParams({ page: totalPages.toString() });
+									}}
+									className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all duration-300 hidden md:flex items-center justify-center lg:hidden ${
+										currentPage === totalPages
+											? "bg-gray-900 text-white shadow-xl shadow-gray-200"
+											: "text-gray-400 hover:bg-gray-50"
+									}`}
+								>
+									{totalPages}
+								</button>
+							)}
+
+							{/* Desktop: Pages 3 à 10 */}
+							{[3, 4, 5, 6, 7, 8, 9, 10].map(
+								(p) =>
+									p <= totalPages && (
+										<button
+											key={p}
+											onClick={() => {
+												setCurrentPage(p);
+												setSearchParams({ page: p.toString() });
+											}}
+											className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all duration-300 hidden lg:flex items-center justify-center ${
+												currentPage === p
+													? "bg-gray-900 text-white shadow-xl shadow-gray-200"
+													: "text-gray-400 hover:bg-gray-50"
+											}`}
+										>
+											{p}
+										</button>
+									)
+							)}
+
+							{/* Desktop: Ellipsis et Dernière page si > 10 */}
+							{totalPages > 11 && (
+								<span className="hidden lg:block text-gray-400 font-black">
+									...
+								</span>
+							)}
+							{totalPages > 10 && (
+								<button
+									onClick={() => {
+										setCurrentPage(totalPages);
+										setSearchParams({ page: totalPages.toString() });
+									}}
+									className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all duration-300 hidden lg:flex items-center justify-center ${
+										currentPage === totalPages
+											? "bg-gray-900 text-white shadow-xl shadow-gray-200"
+											: "text-gray-400 hover:bg-gray-50"
+									}`}
+								>
+									{totalPages}
+								</button>
+							)}
+						</div>
+						<button
+							onClick={() => {
+								const newPage = Math.min(totalPages, currentPage + 1);
+								setCurrentPage(newPage);
+								setSearchParams({ page: newPage.toString() });
+							}}
+							disabled={currentPage === totalPages}
+							className="flex items-center gap-2 px-6 py-3 bg-gray-50 text-gray-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50"
+						>
+							<span className="hidden md:block">Suivant</span>{" "}
+							<ChevronRight className="h-4 w-4" />
+						</button>
+					</div>
+				)}
+
+				{/* Assign Modal */}
+				<TransporterAssignModal
+					show={showAssignModal}
+					order={selectedOrder}
+					transporters={availableTransporters}
+					loading={loadingTransporters}
+					assigning={assigning}
+					onAssign={handleAssignTransporter}
+					onClose={() => {
+						setShowAssignModal(false);
+						setSelectedOrder(null);
+					}}
+				/>
+			</div>
+		</div>
+	);
 };
 
 export default AdminOrders;

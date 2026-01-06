@@ -1,5 +1,7 @@
 import React from "react";
 import { FiDollarSign } from "react-icons/fi";
+import { CURRENCIES } from "../../config/currencies";
+import { UNITS } from "../../config/units";
 
 const ProductPricingStock = ({ formData, errors, onInputChange }) => {
 	return (
@@ -9,7 +11,7 @@ const ProductPricingStock = ({ formData, errors, onInputChange }) => {
 				Prix et stock
 			</h2>
 
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+			<div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 				<div>
 					<label className="block text-sm font-medium text-gray-700 mb-2">
 						Prix (FCFA) *
@@ -29,6 +31,24 @@ const ProductPricingStock = ({ formData, errors, onInputChange }) => {
 					{errors.price && (
 						<p className="mt-1 text-sm text-red-600">{errors.price}</p>
 					)}
+				</div>
+
+				<div>
+					<label className="block text-sm font-medium text-gray-700 mb-2">
+						Devise
+					</label>
+					<select
+						name="currency"
+						value={formData.currency}
+						onChange={onInputChange}
+						className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
+					>
+						{CURRENCIES.map((currency) => (
+							<option key={currency.code} value={currency.code}>
+								{currency.code}
+							</option>
+						))}
+					</select>
 				</div>
 
 				<div>
@@ -61,16 +81,11 @@ const ProductPricingStock = ({ formData, errors, onInputChange }) => {
 						onChange={onInputChange}
 						className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-harvests-green"
 					>
-						<option value="kg">Kilogrammes (kg)</option>
-						<option value="g">Grammes (g)</option>
-						<option value="pièces">Pièces</option>
-						<option value="sachet">Sachet</option>
-						<option value="bunch">Botte/Bouquet</option>
-						<option value="bag">Sac</option>
-						<option value="box">Caisse/Boîte</option>
-						<option value="L">Litre (L)</option>
-						<option value="ml">Millilitre (ml)</option>
-						<option value="unité">Unité</option>
+						{UNITS.map((unit) => (
+							<option key={unit.value} value={unit.value}>
+								{unit.label}
+							</option>
+						))}
 					</select>
 				</div>
 			</div>

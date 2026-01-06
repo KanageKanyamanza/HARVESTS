@@ -47,8 +47,8 @@ const Vendeurs = () => {
 			hasLoadedRef.current = true;
 
 			try {
-				const cacheKey = 'vendeurs_list';
-				
+				const cacheKey = "vendeurs_list";
+
 				// Vérifier le cache
 				if (!forceRefresh) {
 					const cached = getCachedData(cacheKey);
@@ -63,13 +63,14 @@ const Vendeurs = () => {
 
 				setLoading(true);
 
-			// Charger producteurs, transformateurs et restaurateurs en parallèle
-			const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://harvests.onrender.com/api/v1';
-			console.log("🔗 URL API utilisée:", API_BASE_URL);
+				// Charger producteurs, transformateurs et restaurateurs en parallèle
+				const API_BASE_URL =
+					import.meta.env.VITE_API_URL ||
+					"https://harvests.onrender.com/api/v1";
 
 				const [producersResponse, transformersResponse, restaurateursResponse] =
 					await Promise.allSettled([
-						producerService.getAllPublic({ limit: 50, useLocation: 'true' }),
+						producerService.getAllPublic({ limit: 50, useLocation: "true" }),
 						transformerService.getAllPublic({ limit: 50 }),
 						restaurateurService.getAllPublic({ limit: 50 }),
 					]);
@@ -82,22 +83,12 @@ const Vendeurs = () => {
 					producersResponse.value.data.status === "success"
 				) {
 					const producers = producersResponse.value.data.data.producers || [];
-					
+
 					// Stocker les informations de localisation
 					if (producersResponse.value.data.data.location) {
 						setLocationInfo(producersResponse.value.data.data.location);
 					}
-					
-					// Debug: Afficher la structure des données d'un producteur
-					if (producers.length > 0) {
-						console.log("🔍 Structure producteur:", {
-							address: producers[0].address,
-							city: producers[0].city,
-							region: producers[0].region,
-							country: producers[0].country
-						});
-					}
-					
+
 					allVendeurs.push(
 						...producers.map((producer) => ({
 							...producer,
@@ -117,17 +108,7 @@ const Vendeurs = () => {
 				) {
 					const transformers =
 						transformersResponse.value.data.data.transformers || [];
-					
-					// Debug: Afficher la structure des données d'un transformateur
-					if (transformers.length > 0) {
-						console.log("🔍 Structure transformateur:", {
-							address: transformers[0].address,
-							city: transformers[0].city,
-							region: transformers[0].region,
-							country: transformers[0].country
-						});
-					}
-					
+
 					allVendeurs.push(
 						...transformers.map((transformer) => ({
 							...transformer,
@@ -141,19 +122,11 @@ const Vendeurs = () => {
 				}
 
 				// Ajouter les restaurateurs
-				console.log("🔍 Restaurateurs response:", restaurateursResponse);
+
 				if (
 					restaurateursResponse.status === "fulfilled" &&
 					restaurateursResponse.value.data.status === "success"
 				) {
-					console.log(
-						"📋 Structure de la réponse:",
-						restaurateursResponse.value.data
-					);
-					const restaurateurs =
-						restaurateursResponse.value.data.data.restaurateurs || [];
-					console.log("📊 Restaurateurs trouvés:", restaurateurs.length);
-					console.log("📋 Premier restaurateur:", restaurateurs[0]);
 					allVendeurs.push(
 						...restaurateurs.map((restaurateur) => ({
 							...restaurateur,
@@ -168,19 +141,22 @@ const Vendeurs = () => {
 				} else {
 					console.error("❌ Erreur restaurateurs:", restaurateursResponse);
 				}
-				console.log("📊 Total vendeurs chargés:", allVendeurs.length);
-				console.log(
-					"📋 Types de vendeurs:",
-					allVendeurs.map((v) => v.type)
-				);
+
 				const vendeursAvecNotes = await Promise.all(
 					allVendeurs.map(async (vendeur) => {
-					if (!vendeur?._id || !["producer", "transformer", "restaurateur"].includes(vendeur.type)) {
-						return vendeur;
-					}
+						if (
+							!vendeur?._id ||
+							!["producer", "transformer", "restaurateur"].includes(
+								vendeur.type
+							)
+						) {
+							return vendeur;
+						}
 
 						try {
-							const statsResponse = await reviewService.getProducerRatingStats(vendeur._id);
+							const statsResponse = await reviewService.getProducerRatingStats(
+								vendeur._id
+							);
 							const statsData = statsResponse?.data;
 							if (statsData) {
 								return {
@@ -199,7 +175,10 @@ const Vendeurs = () => {
 								};
 							}
 						} catch (statsError) {
-							console.error('Erreur lors du chargement des statistiques d\'avis du vendeur:', statsError);
+							console.error(
+								"Erreur lors du chargement des statistiques d'avis du vendeur:",
+								statsError
+							);
 						}
 
 						return vendeur;
@@ -207,11 +186,11 @@ const Vendeurs = () => {
 				);
 
 				setVendeurs(vendeursAvecNotes);
-				
+
 				// Mettre en cache
 				setCachedData(cacheKey, {
 					vendeurs: vendeursAvecNotes,
-					locationInfo: locationInfo
+					locationInfo: locationInfo,
 				});
 			} catch (error) {
 				console.error("Erreur lors du chargement des vendeurs:", error);
@@ -223,7 +202,6 @@ const Vendeurs = () => {
 
 		loadVendeurs();
 	}, [getCachedData, setCachedData]);
-
 
 	const getTypeBadge = (type) => {
 		switch (type) {
@@ -295,15 +273,26 @@ const Vendeurs = () => {
 						Découvrez les producteurs et transformateurs locaux qui proposent
 						des produits frais et de qualité
 					</p>
-					
+
 					{/* Message discret si pas de vendeurs dans la zone */}
 					{locationInfo?.detected && locationInfo?.noProducersInZone && (
 						<div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-700">
-							<svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+							<svg
+								className="w-4 h-4 flex-shrink-0"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={2}
+									d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+								/>
 							</svg>
 							<span>
-								Aucun vendeur disponible dans votre zone. Affichage de tous les vendeurs.
+								Aucun vendeur disponible dans votre zone. Affichage de tous les
+								vendeurs.
 							</span>
 						</div>
 					)}
@@ -357,8 +346,9 @@ const Vendeurs = () => {
 
 				{filteredVendeurs.length > 0 ? (
 					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-				{filteredVendeurs.map((vendeur) => {
-					const { averageDisplay, reviewCount } = buildVendorRating(vendeur);
+						{filteredVendeurs.map((vendeur) => {
+							const { averageDisplay, reviewCount } =
+								buildVendorRating(vendeur);
 							const typeBadge = getTypeBadge(vendeur.type);
 							const BadgeIcon = typeBadge.icon;
 
@@ -460,13 +450,13 @@ const Vendeurs = () => {
 
 										{/* Statistiques */}
 										<div className="flex items-center justify-between text-sm">
-								<div className="flex items-center text-yellow-600">
-									<FiStar className="mr-1" />
-									<span>{averageDisplay}</span>
-									<span className="ml-1 text-xs text-gray-500">
-										({reviewCount} avis)
-									</span>
-								</div>
+											<div className="flex items-center text-yellow-600">
+												<FiStar className="mr-1" />
+												<span>{averageDisplay}</span>
+												<span className="ml-1 text-xs text-gray-500">
+													({reviewCount} avis)
+												</span>
+											</div>
 											<div className="flex items-center text-gray-500">
 												<FiPackage className="mr-1" />
 												<span className="mr-1">

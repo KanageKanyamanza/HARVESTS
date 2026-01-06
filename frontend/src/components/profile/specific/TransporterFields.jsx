@@ -137,8 +137,6 @@ const TransporterFields = ({ formData, editing, onInputChange }) => {
 					)}
 				</div>
 			</div>
-
-			{/* Documents Section */}
 		</div>
 	);
 };
