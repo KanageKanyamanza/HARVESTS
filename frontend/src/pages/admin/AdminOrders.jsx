@@ -130,34 +130,34 @@ const AdminOrders = () => {
 		);
 
 	return (
-		<div className="min-h-screen pb-20 relative overflow-hidden">
+		<div className="min-h-screen md:pl-3 pb-20 relative overflow-hidden">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-green-100/30 rounded-full blur-[120px]"></div>
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="max-w-[1400px] mx-auto px-4 py-12 relative z-10">
+			<div className="max-w-full mx-auto px-4 py-6 relative z-10 pl-6">
 				{/* Header */}
-				<div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 animate-fade-in-down">
+				<div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5 animate-fade-in-down">
 					<div>
-						<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-3">
-							<div className="w-8 h-[2px] bg-emerald-600"></div>
-							<span>Transaction Flow</span>
+						<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-1.5">
+							<div className="w-5 h-[2px] bg-emerald-600"></div>
+							<span className="text-[9px]">Transaction Flow</span>
 						</div>
-						<h1 className="text-5xl font-[1000] text-gray-900 tracking-tighter leading-none mb-4">
+						<h1 className="text-2xl font-[1000] text-gray-900 tracking-tighter leading-none mb-1.5">
 							Gestion des <span className="text-green-600">Commandes</span>
 						</h1>
-						<p className="text-gray-500 font-medium flex items-center gap-2">
-							<ShoppingCart className="h-4 w-4 text-green-500" />
+						<p className="text-xs text-gray-500 font-medium flex items-center gap-1.5">
+							<ShoppingCart className="h-3.5 w-3.5 text-green-500" />
 							Suivez et gérez les ventes de la plateforme en temps réel
 						</p>
 					</div>
 
 					{/* Search & Filter Bar */}
-					<div className="flex flex-wrap items-center gap-4 bg-white/70 backdrop-blur-xl p-3 rounded-[2rem] border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)]">
+					<div className="flex flex-wrap items-center gap-3 bg-white/70 backdrop-blur-xl p-1.5 rounded-[1rem] border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)]">
 						<div className="relative">
-							<Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+							<Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
 							<input
 								type="text"
 								placeholder="Rechercher par n° ou client..."
@@ -166,18 +166,18 @@ const AdminOrders = () => {
 									setSearchTerm(e.target.value);
 									setCurrentPage(1);
 								}}
-								className="pl-11 pr-6 py-3 bg-gray-200/50 border border-transparent focus:border-green-100 focus:bg-white focus:ring-4 focus:ring-green-500/5 rounded-2xl text-sm font-medium transition-all w-full md:w-64"
+								className="pl-8 pr-4 py-1.5 bg-gray-200/50 border border-transparent focus:border-green-100 focus:bg-white focus:ring-4 focus:ring-green-500/5 rounded-lg text-xs font-medium transition-all w-full md:w-56"
 							/>
 						</div>
 						<div className="relative">
-							<Filter className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+							<Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
 							<select
 								value={statusFilter}
 								onChange={(e) => {
 									setStatusFilter(e.target.value);
 									setCurrentPage(1);
 								}}
-								className="pl-11 pr-10 py-3 bg-gray-200/50 border border-transparent focus:border-green-100 focus:bg-white focus:ring-4 focus:ring-green-500/5 rounded-2xl text-sm font-black uppercase tracking-widest transition-all appearance-none cursor-pointer"
+								className="pl-8 pr-5 py-1.5 bg-gray-200/50 border border-transparent focus:border-green-100 focus:bg-white focus:ring-4 focus:ring-green-500/5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all appearance-none cursor-pointer"
 							>
 								<option value="">Tous les statuts</option>
 								<option value="pending">En attente</option>
@@ -188,7 +188,7 @@ const AdminOrders = () => {
 								<option value="cancelled">Annulée</option>
 							</select>
 						</div>
-						<div className="px-6 py-3 bg-gray-900/5 text-gray-900 rounded-2xl text-[10px] font-black uppercase tracking-widest border border-gray-900/5">
+						<div className="px-3 py-1.5 bg-gray-900/5 text-gray-900 rounded-lg text-[8px] font-black uppercase tracking-widest border border-gray-900/5">
 							{totalOrders} Commande(s)
 						</div>
 					</div>
@@ -206,7 +206,7 @@ const AdminOrders = () => {
 
 				{/* Pagination */}
 				{totalPages > 1 && (
-					<div className="mt-12 flex items-center justify-between bg-white/70 backdrop-blur-xl p-4 rounded-[2rem] border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)]">
+					<div className="mt-6 flex items-center justify-between bg-white/70 backdrop-blur-xl p-3 rounded-[1.5rem] border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)]">
 						<button
 							onClick={() => {
 								const newPage = Math.max(1, currentPage - 1);
@@ -214,7 +214,7 @@ const AdminOrders = () => {
 								setSearchParams({ page: newPage.toString() });
 							}}
 							disabled={currentPage === 1}
-							className="flex items-center gap-2 px-6 py-3 bg-gray-50 text-gray-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50"
+							className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-400 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50"
 						>
 							<ChevronLeft className="h-4 w-4" />{" "}
 							<span className="hidden md:block">Précédent</span>
@@ -230,7 +230,7 @@ const AdminOrders = () => {
 												setCurrentPage(p);
 												setSearchParams({ page: p.toString() });
 											}}
-											className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all duration-300 ${
+											className={`w-8 h-8 rounded-lg text-[9px] font-black transition-all duration-300 ${
 												currentPage === p
 													? "bg-gray-900 text-white shadow-xl shadow-gray-200"
 													: "text-gray-400 hover:bg-gray-50"
@@ -251,7 +251,7 @@ const AdminOrders = () => {
 										setCurrentPage(totalPages);
 										setSearchParams({ page: totalPages.toString() });
 									}}
-									className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all duration-300 md:hidden ${
+									className={`w-8 h-8 rounded-lg text-[9px] font-black transition-all duration-300 md:hidden ${
 										currentPage === totalPages
 											? "bg-gray-900 text-white shadow-xl shadow-gray-200"
 											: "text-gray-400 hover:bg-gray-50"
@@ -271,7 +271,7 @@ const AdminOrders = () => {
 												setCurrentPage(p);
 												setSearchParams({ page: p.toString() });
 											}}
-											className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all duration-300 hidden md:flex items-center justify-center lg:hidden ${
+											className={`w-8 h-8 rounded-lg text-[9px] font-black transition-all duration-300 hidden md:flex items-center justify-center lg:hidden ${
 												currentPage === p
 													? "bg-gray-900 text-white shadow-xl shadow-gray-200"
 													: "text-gray-400 hover:bg-gray-50"
@@ -294,7 +294,7 @@ const AdminOrders = () => {
 										setCurrentPage(totalPages);
 										setSearchParams({ page: totalPages.toString() });
 									}}
-									className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all duration-300 hidden md:flex items-center justify-center lg:hidden ${
+									className={`w-8 h-8 rounded-lg text-[9px] font-black transition-all duration-300 hidden md:flex items-center justify-center lg:hidden ${
 										currentPage === totalPages
 											? "bg-gray-900 text-white shadow-xl shadow-gray-200"
 											: "text-gray-400 hover:bg-gray-50"
@@ -314,7 +314,7 @@ const AdminOrders = () => {
 												setCurrentPage(p);
 												setSearchParams({ page: p.toString() });
 											}}
-											className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all duration-300 hidden lg:flex items-center justify-center ${
+											className={`w-8 h-8 rounded-lg text-[9px] font-black transition-all duration-300 hidden lg:flex items-center justify-center ${
 												currentPage === p
 													? "bg-gray-900 text-white shadow-xl shadow-gray-200"
 													: "text-gray-400 hover:bg-gray-50"
@@ -337,7 +337,7 @@ const AdminOrders = () => {
 										setCurrentPage(totalPages);
 										setSearchParams({ page: totalPages.toString() });
 									}}
-									className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all duration-300 hidden lg:flex items-center justify-center ${
+									className={`w-8 h-8 rounded-lg text-[9px] font-black transition-all duration-300 hidden lg:flex items-center justify-center ${
 										currentPage === totalPages
 											? "bg-gray-900 text-white shadow-xl shadow-gray-200"
 											: "text-gray-400 hover:bg-gray-50"
@@ -354,7 +354,7 @@ const AdminOrders = () => {
 								setSearchParams({ page: newPage.toString() });
 							}}
 							disabled={currentPage === totalPages}
-							className="flex items-center gap-2 px-6 py-3 bg-gray-50 text-gray-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50"
+							className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-400 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50"
 						>
 							<span className="hidden md:block">Suivant</span>{" "}
 							<ChevronRight className="h-4 w-4" />

@@ -38,7 +38,7 @@ const AdminDashboard = () => {
 	const quickActions = createQuickActions(stats);
 
 	return (
-		<div className="min-h-screen pb-20 relative overflow-hidden">
+		<div className="min-h-screen md:pl-3 pb-20 relative overflow-hidden">
 			{/* Background radial glows for "wow" effect */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-green-100/30 rounded-full blur-[120px]"></div>
@@ -46,21 +46,21 @@ const AdminDashboard = () => {
 				<div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-purple-100/20 rounded-full blur-[120px]"></div>
 			</div>
 
-			<div className="max-w-[1700px] mx-auto px-4 py-12 space-y-8 relative z-10">
+			<div className="max-w-full mx-auto px-4 py-6 space-y-5 relative z-10 pl-6">
 				{/* En-tête avec message d'accueil */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-2 animate-fade-in-down">
 					<div>
-						<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-3">
-							<div className="w-8 h-[2px] bg-emerald-600"></div>
-							<span>Command Center</span>
+						<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-1.5">
+							<div className="w-5 h-[2px] bg-emerald-600"></div>
+							<span className="text-[9px]">Command Center</span>
 						</div>
-						<h1 className="text-5xl font-[1000] text-gray-900 tracking-tighter leading-[1] mb-6">
+						<h1 className="text-2xl font-[1000] text-gray-900 tracking-tighter leading-[1] mb-1.5">
 							Tableau de
-							<span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-500 italic">
+							<span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-500 italic ml-1.5">
 								Bord.
 							</span>
 						</h1>
-						<p className="text-xl text-gray-500 max-w-2xl font-medium leading-relaxed">
+						<p className="text-xs text-gray-500 max-w-2xl font-medium leading-relaxed">
 							Bienvenue sur l'interface de pilotage{" "}
 							<span className="text-harvests-green font-black">Harvests</span>.
 							Voici les indicateurs clés de votre écosystème aujourd'hui.
@@ -83,8 +83,8 @@ const AdminDashboard = () => {
 				</div>
 
 				{/* Commandes & Produits */}
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-fade-in-up delay-300">
-					<div className="">
+				<div className="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-fade-in-up delay-300">
+					<div>
 						<RecentOrders orders={recentOrders} />
 					</div>
 					<div>
@@ -93,7 +93,7 @@ const AdminDashboard = () => {
 				</div>
 
 				{/* Dashboard Power Grid: TopProducers, ProductStats */}
-				<div className="grid grid-cols-1 gap-10 animate-fade-in-up delay-[450ms]">
+				<div className="grid grid-cols-1 gap-5 animate-fade-in-up delay-[450ms]">
 					<div className="flex flex-col">
 						<TopProducers producers={topProducers} />
 					</div>
@@ -103,7 +103,7 @@ const AdminDashboard = () => {
 				</div>
 
 				{/* Navigation Centrée */}
-				<div className="pt-12 animate-fade-in-up delay-[600ms]">
+				<div className="pt-8 animate-fade-in-up delay-[600ms]">
 					<MainSections />
 				</div>
 			</div>

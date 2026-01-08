@@ -1,0 +1,18 @@
+extends baseEmail
+
+block content
+  .content
+    h2 Bonjour #{firstName},
+    p Votre abonnement au plan #{planName} a expiré le #{endDate}.
+    p Votre compte a été temporairement restreint aux fonctionnalités gratuites. Les avantages suivants sont désormais désactivés :
+    ul
+      li Visibilité accrue sur la plateforme
+      li Accès aux statistiques avancées
+      li Support prioritaire
+    
+    p Ne perdez pas votre historique et votre positionnement ! Renouvelez votre abonnement pour réactiver immédiatement tous vos services.
+    
+    .btn-container
+      a.btn(href=actionUrl) Réactiver mon abonnement
+    
+    p.security-tips Si vous pensez qu'il s'agit d'une erreur, veuillez contacter le support.

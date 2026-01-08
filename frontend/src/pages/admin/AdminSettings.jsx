@@ -43,33 +43,33 @@ const AdminSettings = () => {
 	}
 
 	return (
-		<div className="min-h-screen pb-20 relative overflow-hidden">
+		<div className="min-h-screen md:pl-3 pb-20 relative overflow-hidden">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-green-100/30 rounded-full blur-[120px]"></div>
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="max-w-[1400px] mx-auto px-4 py-12 relative z-10">
+			<div className="max-w-full mx-auto px-4 py-8 relative z-10 pl-6">
 				{/* Header */}
-				<div className="mb-12 animate-fade-in-down">
-					<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-3">
-						<div className="w-8 h-[2px] bg-emerald-600"></div>
+				<div className="mb-8 animate-fade-in-down">
+					<div className="flex items-center gap-2 text-emerald-600 font-black text-[9px] uppercase tracking-widest mb-2">
+						<div className="w-5 h-[2px] bg-emerald-600"></div>
 						<span>System Core</span>
 					</div>
-					<h1 className="text-5xl font-[1000] text-gray-900 tracking-tighter leading-none mb-4">
+					<h1 className="text-3xl font-[1000] text-gray-900 tracking-tighter leading-none mb-2">
 						Paramètres <span className="text-green-600">Système</span>
 					</h1>
-					<p className="text-gray-500 font-medium">
+					<p className="text-xs text-gray-500 font-medium">
 						Gérez vos informations personnelles et vos préférences Harvests
 					</p>
 				</div>
 
 				{/* Message de succès */}
 				{successMessage && (
-					<div className="mb-8 bg-emerald-50/80 backdrop-blur-md border border-emerald-100/50 text-emerald-700 px-6 py-4 rounded-[2rem] shadow-sm flex items-center animate-fade-in">
-						<div className="w-2 h-2 bg-emerald-500 rounded-full mr-3 animate-pulse"></div>
-						<span className="text-sm font-black uppercase tracking-widest">
+					<div className="mb-6 bg-emerald-50/80 backdrop-blur-md border border-emerald-100/50 text-emerald-700 px-4 py-3 rounded-2xl shadow-sm flex items-center animate-fade-in">
+						<div className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-2.5 animate-pulse"></div>
+						<span className="text-[10px] font-black uppercase tracking-widest">
 							{successMessage}
 						</span>
 					</div>
@@ -90,7 +90,7 @@ const AdminSettings = () => {
 
 					{/* Contenu principal */}
 					<div className="lg:col-span-3">
-						<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white/60 overflow-hidden relative">
+						<div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-sm border border-white/60 overflow-hidden relative">
 							{/* Onglet Profil */}
 							{activeTab === "profile" && (
 								<ProfileTab

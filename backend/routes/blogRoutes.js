@@ -1,6 +1,7 @@
-const express = require('express');
-const blogController = require('../controllers/blogController');
-const adminAuthController = require('../controllers/adminAuthController');
+const express = require("express");
+const blogController = require("../controllers/blogController");
+const adminAuthController = require("../controllers/adminAuthController");
+const authMiddleware = require("../controllers/auth/authMiddleware");
 
 /**
  * @swagger
@@ -32,16 +33,16 @@ const router = express.Router();
  *       200:
  *         description: Liste des articles
  */
-router.get('/', blogController.getBlogs);
+router.get("/", authMiddleware.isLoggedIn, blogController.getBlogs);
 
-// Détail d'un blog par slug
-router.get('/:slug', blogController.getBlogBySlug);
+// Détail d'un blog par slug (isLoggedIn pour vérifier si liké)
+router.get("/:slug", authMiddleware.isLoggedIn, blogController.getBlogBySlug);
 
-// Liker un blog
-router.post('/:id/like', blogController.likeBlog);
+// Liker un blog (Nécessite connexion)
+router.post("/:id/like", authMiddleware.protect, blogController.likeBlog);
 
 // Tracker une visite
-router.post('/track', blogController.trackVisit);
+router.post("/track", blogController.trackVisit);
 
 // ROUTES ADMIN
 
@@ -49,10 +50,10 @@ router.post('/track', blogController.trackVisit);
 router.use(adminAuthController.protect);
 
 // Liste tous les blogs (admin)
-router.get('/admin/blogs', blogController.getAllBlogsAdmin);
+router.get("/admin/blogs", blogController.getAllBlogsAdmin);
 
 // Détail d'un blog (admin)
-router.get('/admin/blogs/:id', blogController.getBlogAdmin);
+router.get("/admin/blogs/:id", blogController.getBlogAdmin);
 
 /**
  * @swagger
@@ -90,25 +91,24 @@ router.get('/admin/blogs/:id', blogController.getBlogAdmin);
  *       201:
  *         description: Article créé
  */
-router.post('/admin/blogs', blogController.createBlog);
+router.post("/admin/blogs", blogController.createBlog);
 
 // Mettre à jour un blog
-router.put('/admin/blogs/:id', blogController.updateBlog);
+router.put("/admin/blogs/:id", blogController.updateBlog);
 
 // Supprimer un blog
-router.delete('/admin/blogs/:id', blogController.deleteBlog);
+router.delete("/admin/blogs/:id", blogController.deleteBlog);
 
 // Statistiques globales
-router.get('/admin/stats', blogController.getStats);
+router.get("/admin/stats", blogController.getStats);
 
 // Visites d'un blog
-router.get('/admin/blogs/:id/visits', blogController.getBlogVisits);
+router.get("/admin/blogs/:id/visits", blogController.getBlogVisits);
 
 // Toutes les visites
-router.get('/admin/visits', blogController.getAllVisits);
+router.get("/admin/visits", blogController.getAllVisits);
 
 // Traduction automatique
-router.post('/translate', blogController.translateText);
+router.post("/translate", blogController.translateText);
 
 module.exports = router;
-

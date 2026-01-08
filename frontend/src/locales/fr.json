@@ -639,7 +639,17 @@
 			"operations": "Opérations",
 			"gouvernance": "Gouvernance"
 		},
-		"tags": {},
+		"tags": {
+			"agriculture": "Agriculture",
+			"durabilité": "Durabilité",
+			"sénégal": "Sénégal",
+			"transformation": "Transformation",
+			"alimentaire": "Alimentaire",
+			"développement": "Développement",
+			"circuits-courts": "Circuits courts",
+			"commerce": "Commerce",
+			"local": "Local"
+		},
 		"modal": {
 			"title": "Bienvenue !",
 			"description": "Remplissez ce formulaire pour continuer à lire nos articles et recevoir nos dernières actualités.",

@@ -204,20 +204,20 @@ const AdminBlogAnalytics = () => {
 	};
 
 	const MetricCard = ({ title, value, icon: Icon, color }) => (
-		<div className="bg-white rounded-[32px] p-8 border border-slate-100 shadow-2xl shadow-slate-100/50 hover:shadow-emerald-500/10 transition-all duration-500 overflow-hidden relative group">
+		<div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-2xl shadow-slate-100/50 hover:shadow-emerald-500/10 transition-all duration-500 overflow-hidden relative group">
 			<div
-				className={`absolute top-0 right-0 w-24 h-24 bg-${color}-500/5 rounded-full blur-2xl group-hover:bg-${color}-500/10 transition-colors pointer-events-none`}
+				className={`absolute top-0 right-0 w-16 h-16 bg-${color}-500/5 rounded-full blur-xl group-hover:bg-${color}-500/10 transition-colors pointer-events-none`}
 			></div>
 			<div className="relative z-10">
 				<div
-					className={`w-12 h-12 rounded-xl bg-${color}-50 flex items-center justify-center mb-6`}
+					className={`w-10 h-10 rounded-xl bg-${color}-50 flex items-center justify-center mb-4`}
 				>
-					<Icon className={`w-6 h-6 text-${color}-500`} />
+					<Icon className={`w-5 h-5 text-${color}-500`} />
 				</div>
-				<p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+				<p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">
 					{title}
 				</p>
-				<h3 className="text-4xl font-black text-slate-900 tracking-tighter">
+				<h3 className="text-2xl font-black text-slate-900 tracking-tighter">
 					{value}
 				</h3>
 			</div>
@@ -232,22 +232,22 @@ const AdminBlogAnalytics = () => {
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="max-w-[1400px] mx-auto px-4 py-12 relative z-10">
+			<div className="max-w-full mx-auto px-4 py-6 relative z-10 pl-6">
 				{/* Header Section */}
-				<div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-					<div className="flex items-center gap-6">
+				<div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+					<div className="flex items-center gap-4">
 						<button
 							onClick={() => navigate("/admin/blog/stats")}
-							className="group w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:border-emerald-200 transition-all shadow-sm hover:shadow-md mb-1"
+							className="group w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:border-emerald-200 transition-all shadow-sm hover:shadow-md mb-1"
 						>
-							<ArrowLeft className="h-6 w-6 group-hover:-translate-x-1 transition-transform" />
+							<ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
 						</button>
 						<div>
 							<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-1">
-								<div className="w-8 h-[2px] bg-emerald-600"></div>
+								<div className="w-6 h-[2px] bg-emerald-600"></div>
 								<span>Visitor Intelligence</span>
 							</div>
-							<h1 className="text-5xl md:text-6xl font-black text-slate-900 tracking-tighter">
+							<h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter">
 								Global{" "}
 								<span className="text-emerald-500 text-stroke-thin">
 									Analytics
@@ -256,13 +256,13 @@ const AdminBlogAnalytics = () => {
 						</div>
 					</div>
 
-					<div className="flex items-center gap-3">
+					<div className="flex items-center gap-2">
 						<button
 							onClick={loadVisits}
-							className="group flex items-center gap-2 px-6 py-4 bg-white border border-slate-200 rounded-2xl text-slate-600 font-bold text-sm hover:border-emerald-500 hover:text-emerald-600 transition-all duration-300 shadow-sm"
+							className="group flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-600 font-bold text-xs hover:border-emerald-500 hover:text-emerald-600 transition-all duration-300 shadow-sm"
 						>
 							<RefreshCw
-								className={`w-5 h-5 transition-transform group-hover:rotate-180 ${
+								className={`w-4 h-4 transition-transform group-hover:rotate-180 ${
 									loading ? "animate-spin" : ""
 								}`}
 							/>
@@ -270,9 +270,9 @@ const AdminBlogAnalytics = () => {
 						</button>
 						<button
 							onClick={exportToCSV}
-							className="group flex items-center gap-2 px-6 py-4 bg-slate-900 text-white rounded-2xl font-bold text-sm hover:bg-emerald-600 transition-all duration-300 shadow-xl shadow-slate-200"
+							className="group flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-emerald-600 transition-all duration-300 shadow-xl shadow-slate-200"
 						>
-							<Download className="w-5 h-5 transition-transform group-hover:translate-y-1" />
+							<Download className="w-4 h-4 transition-transform group-hover:translate-y-1" />
 							<span>Exporter CSV</span>
 						</button>
 					</div>
@@ -307,23 +307,23 @@ const AdminBlogAnalytics = () => {
 				</div>
 
 				{/* Filters Glass Card */}
-				<div className="bg-white/70 backdrop-blur-xl border border-white rounded-[32px] p-8 mb-8 shadow-2xl shadow-slate-100">
-					<div className="flex items-center gap-2 mb-8">
-						<Filter className="w-5 h-5 text-emerald-500" />
-						<h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">
+				<div className="bg-white/70 backdrop-blur-xl border border-white rounded-2xl p-5 mb-8 shadow-2xl shadow-slate-100">
+					<div className="flex items-center gap-2 mb-6">
+						<Filter className="w-4 h-4 text-emerald-500" />
+						<h2 className="text-xs font-black text-slate-900 uppercase tracking-widest">
 							Filter Audience
 						</h2>
 					</div>
-					<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-						<div className="space-y-2">
-							<label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+					<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+						<div className="space-y-1.5">
+							<label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
 								Publication
 							</label>
 							<div className="relative">
 								<select
 									value={filters.blogId}
 									onChange={(e) => handleFilterChange("blogId", e.target.value)}
-									className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
+									className="w-full px-4 py-2 bg-white border border-slate-100 rounded-xl font-bold text-xs text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
 								>
 									<option value="">Tous les blogs</option>
 									{blogs.map((blog) => (
@@ -332,36 +332,36 @@ const AdminBlogAnalytics = () => {
 										</option>
 									))}
 								</select>
-								<ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 rotate-90 w-4 h-4 text-slate-300 pointer-events-none" />
+								<ChevronRight className="absolute right-3.5 top-1/2 -translate-y-1/2 rotate-90 w-3.5 h-3.5 text-slate-300 pointer-events-none" />
 							</div>
 						</div>
 
-						<div className="space-y-2">
-							<label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+						<div className="space-y-1.5">
+							<label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
 								Starting From
 							</label>
 							<input
 								type="date"
 								value={filters.dateFrom}
 								onChange={(e) => handleFilterChange("dateFrom", e.target.value)}
-								className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-inner"
+								className="w-full px-4 py-2 bg-white border border-slate-100 rounded-xl font-bold text-xs text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-inner"
 							/>
 						</div>
 
-						<div className="space-y-2">
-							<label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+						<div className="space-y-1.5">
+							<label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
 								Ending At
 							</label>
 							<input
 								type="date"
 								value={filters.dateTo}
 								onChange={(e) => handleFilterChange("dateTo", e.target.value)}
-								className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-inner"
+								className="w-full px-4 py-2 bg-white border border-slate-100 rounded-xl font-bold text-xs text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-inner"
 							/>
 						</div>
 
-						<div className="space-y-2">
-							<label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+						<div className="space-y-1.5">
+							<label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
 								Geo Location
 							</label>
 							<input
@@ -369,12 +369,12 @@ const AdminBlogAnalytics = () => {
 								value={filters.country}
 								onChange={(e) => handleFilterChange("country", e.target.value)}
 								placeholder="France, US..."
-								className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-inner placeholder:text-slate-300"
+								className="w-full px-4 py-2 bg-white border border-slate-100 rounded-xl font-bold text-xs text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 transition-all shadow-inner placeholder:text-slate-300"
 							/>
 						</div>
 
-						<div className="space-y-2">
-							<label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+						<div className="space-y-1.5">
+							<label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
 								Access Device
 							</label>
 							<div className="relative">
@@ -383,14 +383,14 @@ const AdminBlogAnalytics = () => {
 									onChange={(e) =>
 										handleFilterChange("deviceType", e.target.value)
 									}
-									className="w-full px-5 py-4 bg-white border border-slate-100 rounded-2xl font-bold text-sm text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
+									className="w-full px-4 py-2 bg-white border border-slate-100 rounded-xl font-bold text-xs text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
 								>
 									<option value="">Tous les types</option>
 									<option value="desktop">Desktop</option>
 									<option value="mobile">Mobile</option>
 									<option value="tablet">Tablet</option>
 								</select>
-								<ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 rotate-90 w-4 h-4 text-slate-300 pointer-events-none" />
+								<ChevronRight className="absolute right-3.5 top-1/2 -translate-y-1/2 rotate-90 w-3.5 h-3.5 text-slate-300 pointer-events-none" />
 							</div>
 						</div>
 					</div>
@@ -432,25 +432,25 @@ const AdminBlogAnalytics = () => {
 								<table className="w-full border-collapse">
 									<thead>
 										<tr className="bg-slate-50/50">
-											<th className="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
+											<th className="px-5 py-3 text-left text-[9px] font-black text-slate-400 uppercase tracking-widest">
 												Timestamp
 											</th>
-											<th className="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
+											<th className="px-5 py-3 text-left text-[9px] font-black text-slate-400 uppercase tracking-widest">
 												Publication Article
 											</th>
-											<th className="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
+											<th className="px-5 py-3 text-left text-[9px] font-black text-slate-400 uppercase tracking-widest">
 												Identity
 											</th>
-											<th className="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
+											<th className="px-5 py-3 text-left text-[9px] font-black text-slate-400 uppercase tracking-widest">
 												Audience Origin
 											</th>
-											<th className="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
+											<th className="px-5 py-3 text-left text-[9px] font-black text-slate-400 uppercase tracking-widest">
 												Tech Stack
 											</th>
-											<th className="px-8 py-6 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+											<th className="px-5 py-3 text-center text-[9px] font-black text-slate-400 uppercase tracking-widest">
 												Retention
 											</th>
-											<th className="px-8 py-6 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">
+											<th className="px-5 py-3 text-right text-[9px] font-black text-slate-400 uppercase tracking-widest">
 												Acquisition
 											</th>
 										</tr>
@@ -461,82 +461,82 @@ const AdminBlogAnalytics = () => {
 												key={visit._id}
 												className="group hover:bg-slate-50/50 transition-colors duration-300"
 											>
-												<td className="px-8 py-6 whitespace-nowrap">
+												<td className="px-5 py-2.5 whitespace-nowrap">
 													{formatDate(visit.visitedAt)}
 												</td>
-												<td className="px-8 py-6">
-													<p className="text-sm font-black text-slate-900 line-clamp-1 max-w-[200px]">
+												<td className="px-5 py-2.5">
+													<p className="text-xs font-black text-slate-900 line-clamp-1 max-w-[200px]">
 														{visit.blog?.title?.fr ||
 															visit.blog?.title?.en ||
 															"Article Inconnu"}
 													</p>
 												</td>
-												<td className="px-8 py-6 whitespace-nowrap">
+												<td className="px-5 py-2.5 whitespace-nowrap">
 													{visit.visitorInfo ? (
 														<div className="flex flex-col">
-															<span className="text-sm font-bold text-slate-900">
+															<span className="text-xs font-bold text-slate-900">
 																{visit.visitorInfo.email}
 															</span>
-															<span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter flex items-center gap-1">
+															<span className="text-[9px] font-black text-slate-400 font-black uppercase tracking-tighter flex items-center gap-1">
 																{visit.visitorInfo.firstName}{" "}
 																{visit.visitorInfo.lastName}
 																{visit.visitorInfo.type === "user" && (
-																	<span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 ml-1">
+																	<span className="px-1 py-0.5 rounded bg-blue-50 text-blue-600 ml-1">
 																		MBR
 																	</span>
 																)}
 																{visit.visitorInfo.type === "lead" && (
-																	<span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-600 ml-1">
+																	<span className="px-1 py-0.5 rounded bg-amber-50 text-amber-600 ml-1">
 																		LEAD
 																	</span>
 																)}
 															</span>
 														</div>
 													) : (
-														<span className="text-sm font-bold text-slate-400 italic">
+														<span className="text-xs font-bold text-slate-400 italic">
 															Anonymous
 														</span>
 													)}
 												</td>
-												<td className="px-8 py-6 whitespace-nowrap">
-													<div className="flex items-center gap-3">
-														<div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-															<Globe className="w-4 h-4 text-emerald-500" />
+												<td className="px-5 py-2.5 whitespace-nowrap">
+													<div className="flex items-center gap-2">
+														<div className="w-7 h-7 rounded bg-emerald-50 flex items-center justify-center">
+															<Globe className="w-3.5 h-3.5 text-emerald-500" />
 														</div>
 														<div className="flex flex-col">
-															<span className="text-sm font-bold text-slate-700">
+															<span className="text-xs font-bold text-slate-700">
 																{visit.country || "Direct Access"}
 															</span>
-															<span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+															<span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
 																{visit.city || "Region unknown"}
 															</span>
 														</div>
 													</div>
 												</td>
-												<td className="px-8 py-6 whitespace-nowrap">
-													<div className="flex items-center gap-3">
-														<div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center">
+												<td className="px-5 py-2.5 whitespace-nowrap">
+													<div className="flex items-center gap-2">
+														<div className="w-7 h-7 rounded bg-slate-50 flex items-center justify-center">
 															{getDeviceIcon(visit.device?.type)}
 														</div>
 														<div className="flex flex-col">
-															<span className="text-sm font-bold text-slate-700 capitalize">
+															<span className="text-xs font-bold text-slate-700 capitalize">
 																{visit.device?.type || "Standard"}
 															</span>
-															<span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+															<span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
 																{visit.device?.browser || "Webview"}
 															</span>
 														</div>
 													</div>
 												</td>
-												<td className="px-8 py-6 text-center whitespace-nowrap">
-													<div className="flex flex-col items-center gap-1">
-														<div className="flex items-center gap-2">
-															<span className="text-sm font-black text-slate-900">
+												<td className="px-5 py-2.5 text-center whitespace-nowrap">
+													<div className="flex flex-col items-center gap-0.5">
+														<div className="flex items-center gap-1.5">
+															<span className="text-xs font-black text-slate-900">
 																{visit.timeOnPage
 																	? `${Math.round(visit.timeOnPage)}s`
 																	: "N/A"}
 															</span>
-															<div className="w-12 h-1 bg-slate-100 rounded-full overflow-hidden">
+															<div className="w-10 h-1 bg-slate-100 rounded-full overflow-hidden">
 																<div
 																	className="h-full bg-emerald-500 rounded-full"
 																	style={{
@@ -548,16 +548,16 @@ const AdminBlogAnalytics = () => {
 																></div>
 															</div>
 														</div>
-														<span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">
+														<span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">
 															{visit.scrollDepth
 																? `${Math.round(visit.scrollDepth)}% scroll`
 																: "No interaction"}
 														</span>
 													</div>
 												</td>
-												<td className="px-8 py-6 text-right whitespace-nowrap">
+												<td className="px-5 py-2.5 text-right whitespace-nowrap">
 													<div className="flex flex-col items-end">
-														<span className="text-xs font-black text-slate-900 py-1 px-3 bg-slate-100 rounded-lg group-hover:bg-white transition-colors">
+														<span className="text-[10px] font-black text-slate-900 py-0.5 px-2 bg-slate-50 rounded group-hover:bg-white transition-colors">
 															{visit.referrerDomain || "Direct traffic"}
 														</span>
 													</div>
@@ -570,16 +570,16 @@ const AdminBlogAnalytics = () => {
 
 							{/* Premium Pagination */}
 							{pagination.pages > 1 && (
-								<div className="px-8 py-8 bg-slate-50/50 flex items-center justify-between border-t border-slate-100">
-									<p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-										Showing batch of{" "}
+								<div className="px-5 py-4 bg-slate-50/50 flex items-center justify-between border-t border-slate-100">
+									<p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+										Batch:{" "}
 										<span className="text-slate-900">
-											{(pagination.current - 1) * 50 + 1} -{" "}
+											{(pagination.current - 1) * 50 + 1}-
 											{Math.min(pagination.current * 50, pagination.total)}
 										</span>{" "}
-										of {pagination.total} audience records
+										/ {pagination.total}
 									</p>
-									<div className="flex gap-4">
+									<div className="flex gap-2">
 										<button
 											onClick={() =>
 												setPagination((prev) => ({
@@ -588,7 +588,7 @@ const AdminBlogAnalytics = () => {
 												}))
 											}
 											disabled={pagination.current === 1}
-											className="px-8 py-4 bg-white border border-slate-100 rounded-2xl text-xs font-black uppercase tracking-widest text-slate-400 hover:text-emerald-600 disabled:opacity-50 transition-all shadow-sm"
+											className="px-4 py-2 bg-white border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-emerald-600 disabled:opacity-50 transition-all shadow-sm"
 										>
 											Précédent
 										</button>
@@ -600,7 +600,7 @@ const AdminBlogAnalytics = () => {
 												}))
 											}
 											disabled={pagination.current === pagination.pages}
-											className="px-8 py-4 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-emerald-600 disabled:opacity-50 transition-all shadow-xl shadow-slate-200"
+											className="px-4 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 disabled:opacity-50 transition-all shadow-md"
 										>
 											Suivant
 										</button>

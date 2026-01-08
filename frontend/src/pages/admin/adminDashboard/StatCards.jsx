@@ -2,32 +2,32 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 const StatCards = ({ statCards }) => {
-	// Helper to get nice gradients based on the base color class provided
+	// Helper to get vibrant gradients based on the base color class
 	const getGradient = (colorClass) => {
 		if (colorClass.includes("blue"))
-			return "bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700";
+			return "bg-gradient-to-tr from-blue-600 via-blue-500 to-blue-400";
 		if (colorClass.includes("green"))
-			return "bg-gradient-to-br from-emerald-500 via-green-500 to-green-600";
+			return "bg-gradient-to-tr from-emerald-500 via-emerald-400 to-green-400";
 		if (colorClass.includes("purple"))
-			return "bg-gradient-to-br from-violet-500 via-purple-500 to-purple-600";
+			return "bg-gradient-to-tr from-purple-600 via-purple-500 to-fuchsia-400";
 		if (colorClass.includes("yellow"))
-			return "bg-gradient-to-br from-amber-400 via-orange-400 to-orange-500";
+			return "bg-gradient-to-tr from-orange-500 via-orange-400 to-amber-300";
 		if (colorClass.includes("emerald"))
-			return "bg-gradient-to-br from-teal-400 via-emerald-500 to-emerald-600";
-		return "bg-gradient-to-br from-gray-700 to-gray-900";
+			return "bg-gradient-to-tr from-teal-500 via-teal-400 to-emerald-300";
+		return "bg-gradient-to-tr from-gray-700 to-gray-600";
 	};
 
 	const getShadow = (colorClass) => {
 		if (colorClass.includes("blue")) return "shadow-blue-200/50";
-		if (colorClass.includes("green")) return "shadow-green-200/50";
+		if (colorClass.includes("green")) return "shadow-emerald-200/50";
 		if (colorClass.includes("purple")) return "shadow-purple-200/50";
 		if (colorClass.includes("yellow")) return "shadow-orange-200/50";
-		if (colorClass.includes("emerald")) return "shadow-emerald-200/50";
+		if (colorClass.includes("emerald")) return "shadow-teal-200/50";
 		return "shadow-gray-200/50";
 	};
 
 	return (
-		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-10">
+		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 text-white font-sans">
 			{statCards.map((card, index) => {
 				const gradientClass = getGradient(card.color);
 				const shadowColor = getShadow(card.color);
@@ -36,38 +36,36 @@ const StatCards = ({ statCards }) => {
 					<Link
 						key={index}
 						to={card.link}
-						className={`relative overflow-hidden rounded-[2rem] p-6 ${gradientClass} text-white shadow-xl ${shadowColor} hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group ring-1 ring-white/20`}
+						className={`relative overflow-hidden rounded-[1.5rem] p-4 min-h-[120px] aspect-auto flex flex-col justify-between ${gradientClass} ${shadowColor} shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group`}
 					>
-						{/* Background Decor - Large Icon */}
-						<div className="absolute -right-6 -bottom-6 opacity-20 transform rotate-12 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 ease-out">
-							<card.icon className="w-40 h-40" />
+						{/* Top Badge/Pill */}
+						<div className="flex justify-start">
+							{card.change ? (
+								<div className="bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/10 shadow-sm">
+									<span className="text-[10px] font-bold tracking-wide">
+										{card.change.includes("+") ? "↑" : ""} {card.change}
+									</span>
+								</div>
+							) : (
+								<div className="bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/10 shadow-sm opacity-0"></div> // Spacer to keep layout
+							)}
 						</div>
 
-						{/* Background Decor - Shine Effect */}
-						<div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white/10 blur-3xl rounded-full pointer-events-none"></div>
+						{/* Background Icon (Large & Faded) */}
+						<div className="absolute -right-3 top-1/2 -translate-y-1/2 opacity-10 transform scale-125 rotate-0 group-hover:scale-[1.4] group-hover:rotate-6 transition-all duration-700 ease-out pointer-events-none">
+							<card.icon className="w-16 h-16" strokeWidth={1.5} />
+						</div>
 
-						<div className="relative z-10 flex flex-col h-full justify-between min-h-[140px]">
-							<div className="flex justify-between items-start">
-								{/* <div className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/10 shadow-inner">
-									<card.icon className="w-6 h-6 text-white drop-shadow-sm" />
-								</div> */}
-								{card.change && (
-									<div className="flex items-center space-x-1 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/10 shadow-sm">
-										<span className="text-xs font-bold text-white tracking-wide">
-											{card.change.includes("+") ? "↑" : ""} {card.change}
-										</span>
-									</div>
-								)}
-							</div>
+						{/* Decorative Background Shape */}
+						<div className="absolute -bottom-8 -right-8 w-24 h-24 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
 
-							<div className="">
-								<h3 className="text-4xl font-black tracking-tight text-white mb-1 drop-shadow-sm">
-									{card.value}
-								</h3>
-								<p className="text-sm font-bold text-blue-50/80 tracking-wide uppercase opacity-90">
-									{card.title}
-								</p>
-							</div>
+						<div className="relative z-10 mt-auto">
+							<h3 className="text-xl leading-none text-white font-black tracking-tighter mb-0.5 drop-shadow-sm">
+								{card.value}
+							</h3>
+							<p className="text-[8px] font-black text-white/90 tracking-widest uppercase">
+								{card.title}
+							</p>
 						</div>
 					</Link>
 				);

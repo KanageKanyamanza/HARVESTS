@@ -207,78 +207,109 @@ const DashboardSidebarFixed = ({
 
 	return (
 		<div
-			className={`h-full bg-white shadow-lg transition-all duration-300 ${
-				collapsed ? "w-16" : "w-64"
+			className={`h-full transition-all duration-300 z-50 fixed left-0 top-0 border-r border-white/60 ${
+				collapsed ? "w-20" : "w-64"
 			}`}
 		>
-			<div className="flex flex-col h-full">
-				{/* Logo et bouton collapse */}
-				<div className="h-16 px-4 border-b  border-gray-200 flex items-center justify-between flex-shrink-0">
+			{/* Glassmorphism Background Layer */}
+			<div className="absolute inset-0 bg-white/80 backdrop-blur-2xl" />
+
+			{/* Decorative Elements */}
+			<div className="absolute top-0 left-0 w-full h-[200px] bg-gradient-to-b from-primary-50/50 to-transparent pointer-events-none" />
+
+			<div className="relative flex flex-col h-full z-10">
+				{/* Header / Logo */}
+				<div
+					className={`h-20 flex items-center ${
+						collapsed ? "justify-center" : "px-6 justify-between"
+					}`}
+				>
+					<Link to="/" className="block">
+						<img
+							src={Logo}
+							alt="Harvests"
+							className={`transition-all duration-300 object-contain drop-shadow-sm ${
+								collapsed ? "h-8 w-8" : "h-10 w-auto"
+							}`}
+						/>
+					</Link>
 					{!collapsed && (
-						<Link to="/" className="flex items-center mx-auto space-x-1">
-							<img src={Logo} alt="Harvests" className="h-10 w-auto" />
-						</Link>
-					)}
-					{collapsed && (
-						<Link
-							to="/"
-							className=" md:hidden mx-auto flex items-center justify-center w-full"
+						<button
+							onClick={onToggleCollapse}
+							className="p-1.5 rounded-lg text-gray-400 hover:text-primary-600 hover:bg-primary-50 transition-all duration-300 group"
 						>
-							<img
-								src="/src/assets/logo.png"
-								alt="Harvests"
-								className="h-10 w-auto"
-							/>
-						</Link>
+							<FiChevronLeft className="h-4 w-4 transform group-hover:-translate-x-0.5 transition-transform" />
+						</button>
 					)}
-					<button
-						onClick={onToggleCollapse}
-						className="hidden md:block p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
-						title={collapsed ? "Étendre la sidebar" : "Réduire la sidebar"}
-					>
-						{collapsed ? (
-							<FiChevronRight className="h-5 w-5" />
-						) : (
-							<FiChevronLeft className="h-5 w-5" />
-						)}
-					</button>
 				</div>
 
-				{/* User info */}
-				<div className="px-2 py-3 border-b border-gray-200 flex-shrink-0">
+				{/* Collapsed Toggle Button (Centered if collapsed) */}
+				{collapsed && (
+					<button
+						onClick={onToggleCollapse}
+						className="mx-auto mb-3 p-1.5 rounded-lg text-gray-400 hover:text-primary-600 hover:bg-primary-50 transition-all duration-300"
+					>
+						<FiChevronRight className="h-4 w-4" />
+					</button>
+				)}
+
+				{/* User Profile Card */}
+				<div
+					className={`px-3 mb-4 transition-all duration-300 ${
+						collapsed ? "px-1.5" : ""
+					}`}
+				>
 					<div
-						className={`flex items-center ${
-							collapsed ? "justify-center " : "space-x-2"
+						className={`bg-white/50 border border-white rounded-[1rem] shadow-sm p-2.5 flex items-center gap-2.5 transition-all duration-300 ${
+							collapsed
+								? "flex-col justify-center p-1.5 bg-transparent border-none shadow-none"
+								: ""
 						}`}
 					>
-						<div className="h-10 w-10 bg-harvests-green rounded-full flex items-center justify-center">
-							{user?.avatar ? (
-								<CloudinaryImage
-									src={user.avatar}
-									alt="Avatar"
-									className="h-10 w-10 rounded-full object-cover"
-									width={50}
-									height={50}
-									crop="fill"
-									quality="auto"
-								/>
-							) : (
-								<div className="h-10 w-10 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 font-semibold text-sm">
-									{user?.firstName?.[0] || user?.email?.[0] || "U"}
-								</div>
-							)}
+						<div className="relative group">
+							<div
+								className={`absolute -inset-0.5 bg-gradient-to-r from-primary-500 to-primary-400 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500 ${
+									collapsed ? "w-10 h-10" : "w-10 h-10"
+								}`}
+							></div>
+							<div
+								className={`relative rounded-full p-0.5 bg-white ${
+									collapsed ? "w-10 h-10" : "w-10 h-10"
+								}`}
+							>
+								{user?.avatar ? (
+									<CloudinaryImage
+										src={user.avatar}
+										alt="Avatar"
+										className="h-full w-full rounded-full object-cover"
+										width={40}
+										height={40}
+										crop="fill"
+										quality="auto"
+									/>
+								) : (
+									<div className="h-full w-full bg-gray-100 rounded-full flex items-center justify-center text-gray-500 font-bold text-sm">
+										{user?.firstName?.[0] || user?.email?.[0] || "U"}
+									</div>
+								)}
+							</div>
+							{/* Status Indicator */}
+							<div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-primary-500 border-2 border-white rounded-full"></div>
 						</div>
+
 						{!collapsed && (
 							<div className="flex-1 min-w-0">
-								<p className="text-sm font-medium text-gray-900 truncate">
+								<h3 className="text-xs font-bold text-gray-900 truncate tracking-tight">
 									{userDisplayName ||
 										`${user?.firstName || ""} ${user?.lastName || ""}`.trim()}
-								</p>
-								<div className="flex items-center space-x-1">
-									<span className="text-sm">{displayIcon}</span>
-									<p className="text-sm text-gray-500 truncate">
+								</h3>
+								<div className="flex items-center gap-1 mt-0.5">
+									<span className="inline-flex items-center justify-center w-4 h-4 rounded-md bg-primary-100/50 text-primary-600 text-[10px]">
+										{displayIcon}
+									</span>
+									<span className="text-[10px] font-medium text-gray-500 truncate">
 										{displayLabel}
-									</p>
+									</span>
 								</div>
 							</div>
 						)}
@@ -286,67 +317,88 @@ const DashboardSidebarFixed = ({
 				</div>
 
 				{/* Navigation */}
-				<nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+				<nav className="flex-1 px-3 space-y-1.5 overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200">
 					{sidebarNavigationItems.map((item) => {
 						const Icon = item.icon;
+						const active = isActive(item.href);
 						return (
 							<Link
 								key={item.name}
 								to={item.href}
-								className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors ${
-									isActive(item.href)
-										? "bg-harvests-green text-white"
-										: "text-gray-600 hover:bg-harvests-light hover:text-gray-900"
-								} ${collapsed ? "justify-center" : ""}`}
+								className={`relative group flex items-center px-3.5 py-2.5 rounded-xl transition-all duration-300 ${
+									active
+										? "bg-primary-600 text-white shadow-lg shadow-primary-200"
+										: "text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-md hover:shadow-gray-100"
+								} ${collapsed ? "justify-center px-1.5 py-2.5" : ""}`}
 								title={collapsed ? item.name : ""}
 							>
-								{React.createElement(Icon, {
-									className: `h-5 w-5 flex-shrink-0 ${
-										isActive(item.href)
-											? "text-white"
-											: "text-gray-400 group-hover:text-gray-500"
-									} ${collapsed ? "" : "mr-3"}`,
-								})}
-								{!collapsed && item.name}
+								{/* Active Indicator Glow */}
+								{active && (
+									<div className="absolute inset-0 bg-gradient-to-tr from-primary-600 to-primary-500 rounded-xl opacity-100 -z-10" />
+								)}
+
+								<Icon
+									className={`h-4.5 w-4.5 transition-transform duration-300 ${
+										active
+											? "text-white scale-110"
+											: "text-gray-400 group-hover:text-primary-500 group-hover:scale-110"
+									} ${collapsed ? "" : "mr-3"}`}
+								/>
+
+								{!collapsed && (
+									<span
+										className={`font-semibold text-xs tracking-wide ${
+											active ? "text-white" : ""
+										}`}
+									>
+										{item.name}
+									</span>
+								)}
+
+								{/* Active Dot */}
+								{active && !collapsed && (
+									<div className="absolute right-3 w-1.5 h-1.5 bg-white rounded-full animate-pulse shadow-sm" />
+								)}
 							</Link>
 						);
 					})}
 				</nav>
 
-				{/* voir le site */}
-				<div className="p-4 border-t border-gray-200 flex-shrink-0">
+				{/* Footer Actions */}
+				<div className="p-3 mt-auto space-y-1.5">
+					{/* View Site */}
 					<Link
 						to="/"
-						className="group flex items-center w-full px-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-harvests-light hover:text-gray-900 transition-colors ${
-            collapsed ? 'justify-center' : ''
-          }"
+						className={`flex items-center w-full px-3 py-2.5 rounded-xl text-xs font-bold text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-md hover:shadow-gray-200 transition-all duration-300 group custom-dashed-border ${
+							collapsed ? "justify-center" : ""
+						}`}
 					>
 						<FiGlobe
-							className={`h-5 w-5 text-gray-400 group-hover:text-gray-500 ${
+							className={`h-4.5 w-4.5 transition-colors ${
 								collapsed ? "" : "mr-3"
-							}`}
+							} text-gray-400 group-hover:text-blue-500`}
 						/>
 						{!collapsed && "Voir le site"}
 					</Link>
-				</div>
 
-				{/* Logout */}
-				<div className="p-4 border-t border-gray-200 flex-shrink-0">
+					{/* Logout */}
 					<button
 						onClick={onLogout}
-						className={`group flex items-center w-full px-2 py-2 text-sm font-medium text-gray-600 rounded-md hover:bg-harvests-light hover:text-gray-900 transition-colors ${
+						className={`flex items-center w-full px-3 py-2.5 rounded-xl text-xs font-bold text-gray-500 hover:bg-rose-50 hover:text-rose-600 transition-all duration-300 group ${
 							collapsed ? "justify-center" : ""
 						}`}
-						title={collapsed ? "Déconnexion" : ""}
 					>
 						<FiLogOut
-							className={`h-5 w-5 text-gray-400 group-hover:text-gray-500 ${
+							className={`h-4.5 w-4.5 transition-colors ${
 								collapsed ? "" : "mr-3"
-							}`}
+							} text-gray-400 group-hover:text-rose-500`}
 						/>
 						{!collapsed && "Déconnexion"}
 					</button>
 				</div>
+
+				{/* Bottom Gradient Fade */}
+				<div className="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-white/80 to-transparent pointer-events-none" />
 			</div>
 		</div>
 	);
