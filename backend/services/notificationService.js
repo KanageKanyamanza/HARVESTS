@@ -539,6 +539,11 @@ class NotificationService {
 			await this.sendMonthlyPromotions();
 		});
 
+		// Vérification quotidienne des abonnements (8h00)
+		cron.schedule("0 8 * * *", async () => {
+			await this.sendSubscriptionReminders();
+		});
+
 		info("Notifications programmées configurées");
 	}
 
@@ -640,8 +645,118 @@ class NotificationService {
 			info(
 				`Promotions mensuelles envoyées à ${consumers.length} consommateurs`
 			);
+	// 📅 Rappels expiration abonnements
+	static async sendSubscriptionReminders() {
+		try {
+			const Subscription = require("../models/Subscription");
+			const Admin = require("../models/Admin");
+			const now = new Date();
+
+			// 1. Gérer les abonnements EXPIRÉS (au-delà de la date de fin et encore actifs)
+			const expiredSubscriptions = await Subscription.find({
+				status: "active",
+				endDate: { $lt: now },
+			}).populate("user");
+
+			for (const sub of expiredSubscriptions) {
+				// Mettre à jour le statut
+				sub.status = "expired";
+				await sub.save();
+
+				if (sub.user) {
+					// Notifier l'utilisateur
+					await this.sendMultiChannelNotification(
+						sub.user,
+						{
+							title: "⚠️ Votre abonnement a expiré",
+							body: `Votre plan ${sub.planName} est arrivé à échéance. Renouvelez-le pour conserver vos avantages.`,
+							clickAction: "/pricing",
+							actionText: "Renouveler maintenant",
+							emailTemplate: "subscriptionExpired",
+						},
+						{
+							subscriptionId: sub._id.toString(),
+							planName: sub.planName,
+							endDate: sub.endDate.toLocaleDateString("fr-FR"),
+						}
+					);
+
+					// Notifier les admins
+					const admins = await Admin.find({ role: "admin" }); // Simplification, ajuster selon rôles
+					for (const admin of admins) {
+						await this.sendMultiChannelNotification(
+							admin,
+							{
+								title: "🔴 Abonnement expiré",
+								body: `L'abonnement de ${sub.user.firstName} ${sub.user.lastName} (${sub.planName}) a expiré.`,
+								clickAction: `/admin/subscriptions`,
+								actionText: "Gérer les abonnements",
+							},
+							{
+								userId: sub.user._id.toString(),
+								subscriptionId: sub._id.toString(),
+							}
+						);
+					}
+				}
+			}
+
+			if (expiredSubscriptions.length > 0) {
+				info(`${expiredSubscriptions.length} abonnements marqués comme expirés`);
+			}
+
+			// 2. Rappels préventifs (7 jours, 3 jours, 1 jour avant)
+			const reminderDays = [7, 3, 1];
+
+			for (const days of reminderDays) {
+				const targetDateStart = new Date();
+				targetDateStart.setDate(targetDateStart.getDate() + days);
+				targetDateStart.setHours(0, 0, 0, 0);
+
+				const targetDateEnd = new Date(targetDateStart);
+				targetDateEnd.setHours(23, 59, 59, 999);
+
+				const expiringSubscriptions = await Subscription.find({
+					status: "active",
+					endDate: { $gte: targetDateStart, $lte: targetDateEnd },
+				}).populate("user");
+
+				for (const sub of expiringSubscriptions) {
+					if (!sub.user) continue;
+
+					// Personnaliser le message selon l'urgence
+					let title = `⏳ Expiration dans ${days} jours`;
+					let body = `Votre abonnement ${sub.planName} expire bientôt. Pensez à renouveler !`;
+
+					if (days === 1) {
+						title = "⚠️ Dernier jour !";
+						body = `Votre abonnement ${sub.planName} expire DEMAIN. Ne perdez pas vos avantages.`;
+					}
+
+					await this.sendMultiChannelNotification(
+						sub.user,
+						{
+							title: title,
+							body: body,
+							clickAction: "/pricing",
+							actionText: "Prolonger mon abonnement",
+							emailTemplate: "subscriptionExpiring",
+						},
+						{
+							daysLeft: days,
+							planName: sub.planName,
+							endDate: sub.endDate.toLocaleDateString("fr-FR"),
+						}
+					);
+				}
+				if (expiringSubscriptions.length > 0) {
+					info(
+						`${expiringSubscriptions.length} rappels d'expiration (J-${days}) envoyés`
+					);
+				}
+			}
 		} catch (err) {
-			error("Erreur promotions mensuelles:", err);
+			error("Erreur gestion rappels abonnements:", err);
 		}
 	}
 

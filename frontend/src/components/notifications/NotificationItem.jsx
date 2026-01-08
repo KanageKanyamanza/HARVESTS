@@ -1,97 +1,127 @@
-import React from 'react';
-import { Check, Trash2, Clock } from 'lucide-react';
-import { getNotificationIcon, getNotificationColor, formatNotificationDate } from '../../utils/notificationHelpers';
+import React from "react";
+import { Check, Trash2, Clock } from "lucide-react";
+import {
+	getNotificationIcon,
+	getNotificationColor,
+	formatNotificationDate,
+} from "../../utils/notificationHelpers";
 
-const NotificationItem = ({ 
-  notification, 
-  isSelected, 
-  onToggleSelect, 
-  onMarkAsRead, 
-  onDelete 
+const NotificationItem = ({
+	notification,
+	isSelected,
+	onToggleSelect,
+	onMarkAsRead,
+	onDelete,
 }) => {
-  return (
-    <tr
-      className={`hover:bg-gray-50 transition-colors ${
-        !notification.read ? 'bg-blue-50' : ''
-      }`}
-    >
-      <td className="px-6 py-4 whitespace-nowrap">
-        <input
-          type="checkbox"
-          checked={isSelected}
-          onChange={onToggleSelect}
-          className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-        />
-      </td>
-      <td className="px-6 py-4">
-        <div className="flex items-start">
-          <div className={`flex-shrink-0 h-10 w-10 rounded-full ${getNotificationColor(notification.type, notification.category)} flex items-center justify-center mr-4`}>
-            {getNotificationIcon(notification.type, notification.category)}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center">
-              <p className={`text-sm font-medium ${!notification.read ? 'text-gray-900 font-semibold' : 'text-gray-700'}`}>
-                {notification.title}
-              </p>
-              {!notification.read && (
-                <span className="ml-2 h-2 w-2 bg-green-600 rounded-full"></span>
-              )}
-            </div>
-            <p className="mt-1 text-sm text-gray-500 line-clamp-2">
-              {notification.message}
-            </p>
-            {notification.data && (
-              <div className="mt-2 text-xs text-gray-400">
-                {notification.data.orderId && (
-                  <span>Commande: #{notification.data.orderNumber || notification.data.orderId?.slice(-8)}</span>
-                )}
-                {notification.data.productId && (
-                  <span>Produit: {notification.data.productName || notification.data.productId}</span>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-          notification.category === 'success' ? 'bg-green-100 text-green-800' :
-          notification.category === 'warning' ? 'bg-yellow-100 text-yellow-800' :
-          notification.category === 'error' ? 'bg-red-100 text-red-800' :
-          'bg-gray-100 text-gray-800'
-        }`}>
-          {notification.category || notification.type || 'Général'}
-        </span>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="flex items-center text-sm text-gray-500">
-          <Clock className="h-4 w-4 mr-1" />
-          {formatNotificationDate(notification.timestamp)}
-        </div>
-      </td>
-      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-        <div className="flex items-center justify-end space-x-2">
-          {!notification.read && (
-            <button
-              onClick={onMarkAsRead}
-              className="text-green-600 hover:text-green-900 p-2 hover:bg-green-50 rounded-lg transition-colors"
-              title="Marquer comme lu"
-            >
-              <Check className="h-4 w-4" />
-            </button>
-          )}
-          <button
-            onClick={onDelete}
-            className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-lg transition-colors"
-            title="Supprimer"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        </div>
-      </td>
-    </tr>
-  );
+	const iconContainerClass = `
+    flex-shrink-0 h-10 w-10 rounded-xl flex items-center justify-center mr-3 transition-transform group-hover:scale-110 shadow-sm
+    ${
+			notification.category === "success"
+				? "bg-emerald-100 text-emerald-600"
+				: notification.category === "warning"
+				? "bg-amber-100 text-amber-600"
+				: notification.category === "error"
+				? "bg-rose-100 text-rose-600"
+				: "bg-blue-100 text-blue-600"
+		}
+  `;
+
+	return (
+		<tr
+			className={`
+        group transition-all duration-300 hover:bg-gray-50/80
+        ${!notification.read ? "bg-emerald-50/30" : ""}
+      `}
+		>
+			<td className="px-4 py-3 w-12">
+				<div className="relative flex items-center justify-center">
+					<input
+						type="checkbox"
+						checked={isSelected}
+						onChange={onToggleSelect}
+						className="peer h-4 w-4 cursor-pointer appearance-none rounded-md border-2 border-gray-200 transition-all checked:border-emerald-500 checked:bg-emerald-500 hover:border-emerald-400"
+					/>
+					<Check className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-3 w-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+				</div>
+			</td>
+
+			<td className="px-4 py-3">
+				<div className="flex items-center">
+					<div className={iconContainerClass}>
+						<div className="transform scale-75">
+							{getNotificationIcon(notification.type, notification.category)}
+						</div>
+					</div>
+					<div className="flex-1 min-w-0">
+						<div className="flex items-center gap-2 mb-0.5">
+							<p
+								className={`text-sm ${
+									!notification.read
+										? "font-black text-gray-900"
+										: "font-bold text-gray-600"
+								} truncate`}
+							>
+								{notification.title}
+							</p>
+							{!notification.read && (
+								<span className="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+							)}
+						</div>
+						<p className="text-gray-500 line-clamp-1 text-[11px] leading-tight max-w-xl">
+							{notification.message}
+						</p>
+					</div>
+				</div>
+			</td>
+
+			<td className="px-4 py-3">
+				<span
+					className={`
+            inline-flex items-center px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest
+            ${
+							notification.category === "success"
+								? "bg-emerald-100 text-emerald-700"
+								: notification.category === "warning"
+								? "bg-amber-100 text-amber-700"
+								: notification.category === "error"
+								? "bg-rose-100 text-rose-700"
+								: "bg-blue-100 text-blue-700"
+						}
+        `}
+				>
+					{notification.category || notification.type || "Général"}
+				</span>
+			</td>
+
+			<td className="px-4 py-3">
+				<div className="flex items-center text-[10px] font-bold text-gray-400 uppercase tracking-wide">
+					<Clock className="h-3 w-3 mr-1.5 text-gray-300" />
+					{formatNotificationDate(notification.timestamp)}
+				</div>
+			</td>
+
+			<td className="px-4 py-3 text-right">
+				<div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300">
+					{!notification.read && (
+						<button
+							onClick={onMarkAsRead}
+							className="group/btn p-1.5 rounded-lg hover:bg-emerald-50 text-gray-300 hover:text-emerald-600 transition-all"
+							title="Marquer comme lu"
+						>
+							<Check className="h-4 w-4" />
+						</button>
+					)}
+					<button
+						onClick={onDelete}
+						className="group/btn p-1.5 rounded-lg hover:bg-rose-50 text-gray-300 hover:text-rose-600 transition-all"
+						title="Supprimer"
+					>
+						<Trash2 className="h-4 w-4" />
+					</button>
+				</div>
+			</td>
+		</tr>
+	);
 };
 
 export default NotificationItem;
-

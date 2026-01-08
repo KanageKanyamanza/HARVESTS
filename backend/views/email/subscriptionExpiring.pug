@@ -1,0 +1,21 @@
+extends baseEmail
+
+block content
+  .content
+    h2 Bonjour #{firstName},
+    p Votre abonnement au plan #{planName} arrive bientôt à expiration.
+    p Il vous reste moins de #{daysLeft} jours pour profiter de vos avantages exclusifs sur Harvests.
+    .stats-container
+      .stat-item
+        span.stat-label Date d'expiration
+        span.stat-value #{endDate}
+      .stat-item
+        span.stat-label Statut actuel
+        span.stat-value Actif
+    
+    p Pour éviter toute interruption de service, nous vous invitons à renouveler votre abonnement dès maintenant.
+    
+    .btn-container
+      a.btn(href=actionUrl) Renouveler mon abonnement
+    
+    p.security-tips Si vous avez activé le renouvellement automatique, vous n'avez aucune action à entreprendre.

@@ -191,37 +191,40 @@ const ChatbotManagement = () => {
 	};
 
 	return (
-		<div className="min-h-screen pb-20 relative overflow-hidden">
+		<div className="min-h-screen md:pl-3 pb-20 relative overflow-hidden">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/30 rounded-full blur-[120px]"></div>
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="max-w-[1700px] mx-auto px-4 py-12 relative z-10">
+			<div className="max-w-full mx-auto px-4 py-8 relative z-10 pl-6">
 				{/* Header */}
-				<div className="mb-12 animate-fade-in-down">
-					<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-3">
-						<div className="w-8 h-[2px] bg-emerald-600"></div>
+				<div className="mb-8 animate-fade-in-down">
+					<div className="flex items-center gap-2 text-primary-600 font-black text-[9px] uppercase tracking-widest mb-2">
+						<div className="w-5 h-[2px] bg-primary-600"></div>
 						<span>AI Interface</span>
 					</div>
-					<h1 className="text-5xl font-[1000] text-gray-900 tracking-tighter leading-none mb-4">
-						Gestion du <span className="text-emerald-600">Chatbot</span>
+					<h1 className="text-3xl font-[1000] text-gray-900 tracking-tighter leading-none mb-2">
+						Gestion du <span className="text-primary-600">Chatbot</span>
 					</h1>
-					<p className="text-gray-500 font-medium">
+					<p className="text-xs text-gray-500 font-medium">
 						Analysez les interactions et formez l'intelligence artificielle
 						Harvests
 					</p>
 				</div>
 
 				{/* Header avec sélecteur de période */}
-				<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white/60 mb-6 p-4">
+				<div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-sm border border-white/60 mb-6 p-4">
 					<div className="flex items-center justify-between">
-						<div className="flex items-center space-x-4">
+						<div className="flex items-center space-x-3">
+							<span className="text-[9px] font-black uppercase text-gray-400">
+								Période d'analyse :
+							</span>
 							<select
 								value={timeRange}
 								onChange={(e) => setTimeRange(e.target.value)}
-								className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+								className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 text-[10px] font-bold focus:outline-none focus:ring-2 focus:ring-green-500"
 							>
 								<option value="7d">7 derniers jours</option>
 								<option value="30d">30 derniers jours</option>
@@ -233,57 +236,57 @@ const ChatbotManagement = () => {
 				</div>
 
 				{/* Tabs */}
-				<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white/60 mb-6 overflow-hidden">
-					<div className="border-b border-gray-200">
+				<div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-sm border border-white/60 mb-6 overflow-hidden">
+					<div className="border-b border-gray-100">
 						<nav className="flex -mb-px">
 							<button
 								onClick={() => setActiveTab("stats")}
-								className={`px-6 py-4 text-sm font-medium border-b-2 ${
+								className={`px-4 py-3 text-[10px] uppercase font-black tracking-widest border-b-2 transition-all duration-300 ${
 									activeTab === "stats"
-										? "border-green-500 text-green-600"
-										: "border-transparent text-gray-500 hover:text-gray-700"
+										? "border-green-500 text-green-600 bg-green-50/50"
+										: "border-transparent text-gray-400 hover:text-gray-600"
 								}`}
 							>
-								<TrendingUp className="h-4 w-4 inline mr-2" />
+								<TrendingUp className="h-3.5 w-3.5 inline mr-2" />
 								Vue d'ensemble
 							</button>
 							<button
 								onClick={() => setActiveTab("advanced")}
-								className={`px-6 py-4 text-sm font-medium border-b-2 ${
+								className={`px-4 py-3 text-[10px] uppercase font-black tracking-widest border-b-2 transition-all duration-300 ${
 									activeTab === "advanced"
-										? "border-green-500 text-green-600"
-										: "border-transparent text-gray-500 hover:text-gray-700"
+										? "border-green-500 text-green-600 bg-green-50/50"
+										: "border-transparent text-gray-400 hover:text-gray-600"
 								}`}
 							>
-								<BarChart3 className="h-4 w-4 inline mr-2" />
+								<BarChart3 className="h-3.5 w-3.5 inline mr-2" />
 								Analytics Avancées
 							</button>
 							<button
 								onClick={() => setActiveTab("questions")}
-								className={`px-6 py-4 text-sm font-medium border-b-2 ${
+								className={`px-4 py-3 text-[10px] uppercase font-black tracking-widest border-b-2 transition-all duration-300 ${
 									activeTab === "questions"
-										? "border-green-500 text-green-600"
-										: "border-transparent text-gray-500 hover:text-gray-700"
+										? "border-green-500 text-green-600 bg-green-50/50"
+										: "border-transparent text-gray-400 hover:text-gray-600"
 								}`}
 							>
-								<AlertCircle className="h-4 w-4 inline mr-2" />
+								<AlertCircle className="h-3.5 w-3.5 inline mr-2" />
 								Questions sans réponse
 								{stats?.overview?.pendingQuestions > 0 && (
-									<span className="ml-2 bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded-full">
+									<span className="ml-2 bg-red-500 text-white text-[8px] px-1.5 py-0.5 rounded-md">
 										{stats.overview.pendingQuestions}
 									</span>
 								)}
 							</button>
 							<button
 								onClick={() => setActiveTab("interactions")}
-								className={`px-6 py-4 text-sm font-medium border-b-2 ${
+								className={`px-4 py-3 text-[10px] uppercase font-black tracking-widest border-b-2 transition-all duration-300 ${
 									activeTab === "interactions"
-										? "border-green-500 text-green-600"
-										: "border-transparent text-gray-500 hover:text-gray-700"
+										? "border-green-500 text-green-600 bg-green-50/50"
+										: "border-transparent text-gray-400 hover:text-gray-600"
 								}`}
 							>
-								<MessageCircle className="h-4 w-4 inline mr-2" />
-								Toutes les interactions
+								<MessageCircle className="h-3.5 w-3.5 inline mr-2" />
+								Interactions
 							</button>
 						</nav>
 					</div>

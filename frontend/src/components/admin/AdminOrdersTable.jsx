@@ -89,14 +89,14 @@ const AdminOrdersTable = ({
 }) => {
 	if (!orders.length) {
 		return (
-			<div className="bg-white/70 backdrop-blur-xl rounded-[3rem] p-20 text-center border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)]">
-				<div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
-					<Package className="h-10 w-10 text-gray-200" />
+			<div className="bg-white/70 backdrop-blur-xl rounded-[1.5rem] p-10 text-center border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)]">
+				<div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+					<Package className="h-8 w-8 text-gray-200" />
 				</div>
-				<h3 className="text-2xl font-[1000] text-gray-900 tracking-tight">
+				<h3 className="text-xl font-[1000] text-gray-900 tracking-tight">
 					Aucune commande trouvée
 				</h3>
-				<p className="text-gray-500 mt-2">
+				<p className="text-xs text-gray-500 mt-1.5">
 					Ajustez vos filtres pour voir plus de résultats
 				</p>
 			</div>
@@ -104,27 +104,27 @@ const AdminOrdersTable = ({
 	}
 
 	return (
-		<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)] overflow-hidden">
+		<div className="bg-white/70 backdrop-blur-xl rounded-[1rem] border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)] overflow-hidden">
 			<div className="overflow-x-auto overflow-y-hidden">
 				<table className="min-w-full divide-y divide-gray-200/50 border-collapse">
 					<thead>
 						<tr className="bg-gray-50/50">
-							<th className="px-8 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">
+							<th className="px-5 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
 								Commande
 							</th>
-							<th className="px-6 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">
+							<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
 								Client
 							</th>
-							<th className="px-6 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">
+							<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
 								Articles
 							</th>
-							<th className="px-6 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">
+							<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
 								Total
 							</th>
-							<th className="px-6 py-5 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">
+							<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
 								Statuts
 							</th>
-							<th className="px-8 py-5 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">
+							<th className="px-5 py-3 text-right text-[9px] font-black text-gray-400 uppercase tracking-widest">
 								Actions
 							</th>
 						</tr>
@@ -163,45 +163,45 @@ const OrderRow = ({
 
 	return (
 		<tr className="group hover:bg-gray-50/50 transition-colors duration-300">
-			<td className="px-8 py-6 whitespace-nowrap">
-				<div className="text-sm font-[1000] text-gray-900 tracking-tight mb-1 group-hover:text-green-600 transition-colors">
+			<td className="px-5 py-3 whitespace-nowrap">
+				<div className="text-xs font-[1000] text-gray-900 tracking-tight mb-0.5 group-hover:text-green-600 transition-colors">
 					#{order.orderNumber || order._id.slice(-8).toUpperCase()}
 				</div>
-				<div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400">
-					<Clock className="h-3 w-3" />
+				<div className="flex items-center gap-1.5 text-[8px] font-bold text-gray-400 uppercase tracking-tight">
+					<Clock className="h-2.5 w-2.5" />
 					{formatDate(order.createdAt)}
 				</div>
 			</td>
-			<td className="px-6 py-6 whitespace-nowrap">
-				<div className="flex items-center gap-4">
-					<div className="h-10 w-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100 group-hover:bg-white transition-colors overflow-hidden">
+			<td className="px-4 py-3 whitespace-nowrap">
+				<div className="flex items-center gap-2.5">
+					<div className="h-8 w-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100 group-hover:bg-white transition-colors overflow-hidden">
 						{order.buyer?.avatar ? (
 							<CloudinaryImage
 								src={order.buyer.avatar}
 								className="h-full w-full object-cover"
 							/>
 						) : (
-							<User className="h-5 w-5" />
+							<User className="h-4 w-4" />
 						)}
 					</div>
 					<div>
-						<div className="text-sm font-black text-gray-900 leading-none mb-1">
+						<div className="text-xs font-black text-gray-900 leading-none mb-0.5">
 							{order.buyer?.firstName} {order.buyer?.lastName}
 						</div>
-						<div className="text-[10px] font-bold text-gray-400">
+						<div className="text-[8px] font-bold text-gray-400">
 							{order.buyer?.email}
 						</div>
 					</div>
 				</div>
 			</td>
-			<td className="px-6 py-6">
-				<div className="flex items-center gap-2 mb-1">
-					<div className="w-5 h-5 bg-gray-100 rounded-md flex items-center justify-center text-[10px] font-black text-gray-500">
+			<td className="px-4 py-3">
+				<div className="flex items-center gap-1.5 mb-0.5">
+					<div className="w-4 h-4 bg-gray-100 rounded flex items-center justify-center text-[8px] font-black text-gray-500">
 						{order.items?.length || 0}
 					</div>
-					<div className="text-xs font-bold text-gray-700">Article(s)</div>
+					<div className="text-[10px] font-bold text-gray-700">Article(s)</div>
 				</div>
-				<div className="text-[10px] font-bold text-gray-400 truncate max-w-[150px]">
+				<div className="text-[8px] font-bold text-gray-400 truncate max-w-[120px] uppercase">
 					{order.items
 						?.slice(0, 2)
 						.map((i) =>
@@ -211,22 +211,22 @@ const OrderRow = ({
 					{order.items?.length > 2 && "..."}
 				</div>
 			</td>
-			<td className="px-6 py-6 whitespace-nowrap">
-				<div className="text-base font-black text-gray-900 tracking-tighter">
+			<td className="px-4 py-3 whitespace-nowrap">
+				<div className="text-sm font-black text-gray-900 tracking-tighter">
 					{formatPrice(order.total || 0, order.currency)}
 				</div>
 			</td>
-			<td className="px-6 py-6 whitespace-nowrap">
-				<div className="flex flex-col gap-2">
+			<td className="px-4 py-3 whitespace-nowrap">
+				<div className="flex flex-col gap-1.5">
 					<span
-						className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${getStatusColor(
+						className={`inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest border ${getStatusColor(
 							order.status
 						)}`}
 					>
 						{getStatusText(order.status)}
 					</span>
 					<span
-						className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${getPaymentStatusColor(
+						className={`inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest border ${getPaymentStatusColor(
 							order.payment?.status
 						)}`}
 					>
@@ -234,36 +234,36 @@ const OrderRow = ({
 					</span>
 				</div>
 			</td>
-			<td className="px-8 py-6 whitespace-nowrap text-right">
-				<div className="flex items-center justify-end gap-2">
+			<td className="px-5 py-3 whitespace-nowrap text-right">
+				<div className="flex items-center justify-end gap-1.5">
 					<Link
 						to={`/admin/orders/${order._id}`}
-						className="p-2.5 bg-gray-50 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300 border border-transparent hover:border-blue-100"
+						className="p-1.5 bg-gray-50 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300 border border-transparent hover:border-blue-100"
 						title="Voir détails"
 					>
-						<Eye className="h-4 w-4" />
+						<Eye className="h-3.5 w-3.5" />
 					</Link>
 					{canConfirmPayment && (
 						<button
 							onClick={() => onConfirmPayment(order._id)}
 							disabled={confirmingPayment === order._id}
-							className="p-2.5 bg-gray-50 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all duration-300 border border-transparent hover:border-emerald-100 disabled:opacity-50"
+							className="p-1.5 bg-gray-50 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all duration-300 border border-transparent hover:border-emerald-100 disabled:opacity-50"
 							title="Confirmer paiement"
 						>
-							<CreditCard className="h-4 w-4" />
+							<CreditCard className="h-3.5 w-3.5" />
 						</button>
 					)}
 					{needsTransporter && (
 						<button
 							onClick={() => onOpenAssignModal(order)}
-							className="p-2.5 bg-gray-50 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all duration-300 border border-transparent hover:border-amber-100"
+							className="p-1.5 bg-gray-50 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all duration-300 border border-transparent hover:border-amber-100"
 							title="Assigner transporteur"
 						>
-							<Truck className="h-4 w-4" />
+							<Truck className="h-3.5 w-3.5" />
 						</button>
 					)}
-					<div className="p-2.5 bg-gray-50 text-gray-300 rounded-xl transition-all">
-						<ChevronRight className="h-4 w-4" />
+					<div className="p-1.5 bg-gray-50 text-gray-300 rounded-lg transition-all">
+						<ChevronRight className="h-3.5 w-3.5" />
 					</div>
 				</div>
 			</td>

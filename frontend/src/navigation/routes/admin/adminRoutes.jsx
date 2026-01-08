@@ -63,6 +63,9 @@ const UserDetails = React.lazy(() =>
 const OrderDetail = React.lazy(() =>
 	import("../../../pages/orders/OrderDetail")
 );
+const AdminNewsletter = React.lazy(() =>
+	import("../../../pages/admin/AdminNewsletter")
+);
 const NotificationsPage = React.lazy(() =>
 	import("../../../pages/dashboard/common/NotificationsPage")
 );
@@ -172,6 +175,11 @@ export const adminRoutes = [
 		path: "/admin/settings",
 		element: <AdminSettings />,
 		title: "Paramètres",
+	},
+	{
+		path: "/admin/newsletter",
+		element: <AdminNewsletter />,
+		title: "Gestion Newsletter",
 	},
 	{
 		path: "/admin/notifications",

@@ -247,24 +247,30 @@ const AdminManagement = () => {
 	}
 
 	return (
-		<div className="min-h-screen pb-20">
-			<div className="max-w-[1600px] mx-auto px-6 lg:px-10 py-10">
+		<div className="min-h-screen md:pl-3 pb-20 relative overflow-hidden">
+			{/* Background radial glows */}
+			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
+				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/30 rounded-full blur-[120px]"></div>
+				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
+			</div>
+
+			<div className="max-w-full mx-auto px-4 py-6 relative z-10 pl-6 space-y-4">
 				{/* Messages de succès/erreur */}
 				{success && (
-					<div className="mb-6 animate-fade-in">
-						<div className="bg-green-50/80 backdrop-blur-md border border-green-100 text-green-700 px-6 py-4 rounded-[2rem] shadow-sm flex items-center">
-							<div className="w-2 h-2 bg-green-500 rounded-full mr-3 animate-pulse"></div>
-							<span className="text-sm font-black uppercase tracking-widest">
+					<div className="mb-4 animate-fade-in">
+						<div className="bg-green-50/80 backdrop-blur-md border border-green-100 text-green-700 px-4 py-3 rounded-xl shadow-sm flex items-center">
+							<div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+							<span className="text-[10px] font-black uppercase tracking-widest">
 								{success}
 							</span>
 						</div>
 					</div>
 				)}
 				{error && (
-					<div className="mb-6 animate-fade-in">
-						<div className="bg-red-50/80 backdrop-blur-md border border-red-100 text-red-700 px-6 py-4 rounded-[2rem] shadow-sm flex items-center">
-							<div className="w-2 h-2 bg-red-500 rounded-full mr-3 animate-pulse"></div>
-							<span className="text-sm font-black uppercase tracking-widest">
+					<div className="mb-4 animate-fade-in">
+						<div className="bg-red-50/80 backdrop-blur-md border border-red-100 text-red-700 px-4 py-3 rounded-xl shadow-sm flex items-center">
+							<div className="w-1.5 h-1.5 bg-red-500 rounded-full mr-2 animate-pulse"></div>
+							<span className="text-[10px] font-black uppercase tracking-widest">
 								{error}
 							</span>
 						</div>
@@ -272,16 +278,16 @@ const AdminManagement = () => {
 				)}
 
 				{/* En-tête Premium */}
-				<div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+				<div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
 					<div>
-						<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-3">
-							<div className="w-8 h-[2px] bg-emerald-600"></div>
+						<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-1.5">
+							<div className="w-6 h-[2px] bg-emerald-600"></div>
 							<span>Operational Security</span>
 						</div>
-						<h1 className="text-4xl lg:text-5xl font-[1000] text-gray-900 tracking-tight leading-none mb-4">
+						<h1 className="text-2xl md:text-3xl font-[1000] text-gray-900 tracking-tighter leading-none mb-1.5">
 							Gestion <span className="text-green-600">Admin</span>
 						</h1>
-						<p className="text-sm font-bold text-gray-400 uppercase tracking-[0.2em]">
+						<p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
 							Contrôle des accès et privilèges plateforme
 						</p>
 					</div>
@@ -291,18 +297,17 @@ const AdminManagement = () => {
 							resetForm();
 							setShowCreateModal(true);
 						}}
-						className="group relative flex items-center px-8 py-4 bg-gray-900 text-white rounded-[2rem] font-black text-xs uppercase tracking-widest hover:bg-green-600 transition-all duration-500 shadow-xl hover:shadow-green-200/50 hover:-translate-y-1 overflow-hidden"
+						className="group relative flex items-center px-6 py-3 bg-gray-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-green-600 transition-all duration-500 shadow-lg hover:-translate-y-0.5 overflow-hidden"
 					>
-						<div className="absolute inset-0 bg-gradient-to-r from-green-600/0 via-white/10 to-green-600/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-						<Plus className="h-5 w-5 mr-3 transition-transform group-hover:rotate-90 duration-500" />
+						<Plus className="h-4 w-4 mr-2 transition-transform group-hover:rotate-90 duration-500" />
 						Nouveau Profil
 					</button>
 				</div>
 
 				{/* Section Principale en Glassmorphism */}
-				<div className="space-y-10">
+				<div className="space-y-4">
 					{/* Filtres Intégrés */}
-					<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white/60 p-6 transition-all duration-500">
+					<div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-sm border border-white/60 p-4">
 						<AdminFilters
 							searchTerm={searchTerm}
 							setSearchTerm={setSearchTerm}
@@ -314,13 +319,13 @@ const AdminManagement = () => {
 					</div>
 
 					{/* Liste des Administrateurs */}
-					<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white/60 overflow-hidden transition-all duration-500">
-						<div className="p-8 border-b border-gray-100/50 flex items-center justify-between">
+					<div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-sm border border-white/60 overflow-hidden">
+						<div className="p-4 border-b border-gray-100/50 flex items-center justify-between">
 							<div>
-								<h3 className="text-2xl font-[1000] text-gray-900 tracking-tight">
+								<h3 className="text-sm font-[1000] text-gray-900 tracking-tight">
 									Staff Autorisé
 								</h3>
-								<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">
+								<p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-0.5">
 									{totalItems} administrateurs trouvés
 								</p>
 							</div>
@@ -338,7 +343,7 @@ const AdminManagement = () => {
 							handleToggleStatus={handleToggleStatus}
 						/>
 
-						<div className="p-8 bg-gray-50/30 border-t border-gray-100/50">
+						<div className="px-4 py-3 bg-gray-50/30 border-t border-gray-100/50">
 							<AdminPagination
 								currentPage={currentPage}
 								totalPages={totalPages}
