@@ -220,10 +220,24 @@ exports.getBlogVisits = catchAsync(async (req, res, next) => {
 		visits.map(async (visit) => {
 			const visitObj = visit.toObject();
 
-			if (!visitObj.user && visitObj.sessionId) {
-				const visitor = await BlogVisitor.findOne({
-					sessionId: visitObj.sessionId,
-				}).select("email firstName lastName country city region");
+			if (!visitObj.user) {
+				// 1. Essayer par sessionId
+				let visitor = null;
+				if (visitObj.sessionId) {
+					visitor = await BlogVisitor.findOne({
+						sessionId: visitObj.sessionId,
+					}).select("email firstName lastName country city region");
+				}
+
+				// 2. Fallback par IP si pas trouvé
+				if (!visitor && visitObj.ipAddress) {
+					visitor = await BlogVisitor.findOne({
+						ipAddress: visitObj.ipAddress,
+					})
+						.sort({ lastVisitAt: -1 }) // Le plus récent
+						.select("email firstName lastName country city region");
+				}
+
 				if (visitor) {
 					visitObj.visitorInfo = {
 						email: visitor.email,
@@ -292,11 +306,25 @@ exports.getAllVisits = catchAsync(async (req, res, next) => {
 		visits.map(async (visit) => {
 			const visitObj = visit.toObject();
 
-			// Si pas d'utilisateur connecté mais sessionId présent, chercher dans BlogVisitor
-			if (!visitObj.user && visitObj.sessionId) {
-				const visitor = await BlogVisitor.findOne({
-					sessionId: visitObj.sessionId,
-				}).select("email firstName lastName country city region");
+			// Si pas d'utilisateur connecté
+			if (!visitObj.user) {
+				// 1. Essayer par sessionId
+				let visitor = null;
+				if (visitObj.sessionId) {
+					visitor = await BlogVisitor.findOne({
+						sessionId: visitObj.sessionId,
+					}).select("email firstName lastName country city region");
+				}
+
+				// 2. Fallback par IP si pas trouvé
+				if (!visitor && visitObj.ipAddress) {
+					visitor = await BlogVisitor.findOne({
+						ipAddress: visitObj.ipAddress,
+					})
+						.sort({ lastVisitAt: -1 }) // Le plus récent
+						.select("email firstName lastName country city region");
+				}
+
 				if (visitor) {
 					visitObj.visitorInfo = {
 						email: visitor.email,
