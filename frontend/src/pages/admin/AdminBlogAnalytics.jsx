@@ -50,7 +50,25 @@ const AdminBlogAnalytics = () => {
 	useEffect(() => {
 		loadBlogs();
 		loadVisits();
+		loadStats();
 	}, [pagination.current, filters]);
+
+	const loadStats = async () => {
+		try {
+			const response = await adminService.getBlogStats();
+			if (response.success && response.data) {
+				setStats({
+					totalVisits: response.data.tracking?.totalVisits || 0,
+					uniqueVisitors: response.data.tracking?.uniqueVisitors || 0,
+					totalLikes: response.data.totalLikes || 0,
+					deviceBreakdown: response.data.tracking?.deviceBreakdown || [],
+					topCountries: response.data.tracking?.topCountries || [],
+				});
+			}
+		} catch (error) {
+			console.error("Erreur lors du chargement des stats:", error);
+		}
+	};
 
 	const loadBlogs = async () => {
 		try {
@@ -116,11 +134,13 @@ const AdminBlogAnalytics = () => {
 	const exportToCSV = () => {
 		const headers = [
 			"Date",
-			"Visiteur",
+			"Prénom",
+			"Nom",
 			"Email",
 			"Type",
 			"Article",
 			"Pays",
+			"Région",
 			"Ville",
 			"Appareil",
 			"Navigateur",
@@ -130,11 +150,8 @@ const AdminBlogAnalytics = () => {
 		];
 		const rows = visits.map((visit) => [
 			new Date(visit.visitedAt).toLocaleString("fr-FR"),
-			visit.visitorInfo
-				? `${visit.visitorInfo.firstName || ""} ${
-						visit.visitorInfo.lastName || ""
-				  }`
-				: "Anonyme",
+			visit.visitorInfo?.firstName || "Anonyme",
+			visit.visitorInfo?.lastName || "",
 			visit.visitorInfo?.email || "N/A",
 			visit.visitorInfo?.type === "user"
 				? "Membre"
@@ -142,8 +159,9 @@ const AdminBlogAnalytics = () => {
 				? "Prospect"
 				: "Inconnu",
 			visit.blog?.title?.fr || visit.blog?.title?.en || "N/A",
-			visit.country || "N/A",
-			visit.city || "N/A",
+			visit.visitorInfo?.country || visit.country || "N/A",
+			visit.visitorInfo?.region || visit.region || "N/A",
+			visit.visitorInfo?.city || visit.city || "N/A",
 			visit.device?.type || "N/A",
 			visit.device?.browser || "N/A",
 			visit.timeOnPage || 0,
@@ -225,7 +243,7 @@ const AdminBlogAnalytics = () => {
 	);
 
 	return (
-		<div className="min-h-screen bg-[#fafafa] relative overflow-hidden">
+		<div className="min-h-screen md:pl-3 bg-[#fafafa] relative overflow-hidden">
 			{/* Background Deco */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-100/30 rounded-full blur-[120px]"></div>
@@ -505,10 +523,14 @@ const AdminBlogAnalytics = () => {
 														</div>
 														<div className="flex flex-col">
 															<span className="text-xs font-bold text-slate-700">
-																{visit.country || "Direct Access"}
+																{visit.visitorInfo?.country ||
+																	visit.country ||
+																	"Direct Access"}
 															</span>
 															<span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
-																{visit.city || "Region unknown"}
+																{visit.visitorInfo?.city ||
+																	visit.city ||
+																	"Region unknown"}
 															</span>
 														</div>
 													</div>

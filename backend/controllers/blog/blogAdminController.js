@@ -208,15 +208,49 @@ exports.getBlogVisits = catchAsync(async (req, res, next) => {
 	const skip = (page - 1) * limit;
 
 	const visits = await BlogVisit.find({ blog: req.params.id })
+		.populate("user", "email firstName lastName")
 		.sort("-visitedAt")
 		.skip(skip)
 		.limit(limit);
 
 	const total = await BlogVisit.countDocuments({ blog: req.params.id });
 
+	// Enrichir les visites
+	const enrichedVisits = await Promise.all(
+		visits.map(async (visit) => {
+			const visitObj = visit.toObject();
+
+			if (!visitObj.user && visitObj.sessionId) {
+				const visitor = await BlogVisitor.findOne({
+					sessionId: visitObj.sessionId,
+				}).select("email firstName lastName country city region");
+				if (visitor) {
+					visitObj.visitorInfo = {
+						email: visitor.email,
+						firstName: visitor.firstName,
+						lastName: visitor.lastName,
+						country: visitor.country,
+						city: visitor.city,
+						region: visitor.region,
+						type: "lead",
+					};
+				}
+			} else if (visitObj.user) {
+				visitObj.visitorInfo = {
+					email: visitObj.user.email,
+					firstName: visitObj.user.firstName,
+					lastName: visitObj.user.lastName,
+					type: "user",
+				};
+			}
+
+			return visitObj;
+		})
+	);
+
 	res.status(200).json({
 		success: true,
-		data: visits,
+		data: enrichedVisits,
 		pagination: {
 			current: page,
 			pages: Math.ceil(total / limit),
@@ -262,12 +296,15 @@ exports.getAllVisits = catchAsync(async (req, res, next) => {
 			if (!visitObj.user && visitObj.sessionId) {
 				const visitor = await BlogVisitor.findOne({
 					sessionId: visitObj.sessionId,
-				}).select("email firstName lastName");
+				}).select("email firstName lastName country city region");
 				if (visitor) {
 					visitObj.visitorInfo = {
 						email: visitor.email,
 						firstName: visitor.firstName,
 						lastName: visitor.lastName,
+						country: visitor.country,
+						city: visitor.city,
+						region: visitor.region,
 						type: "lead",
 					};
 				}
