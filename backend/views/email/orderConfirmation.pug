@@ -3,7 +3,7 @@ html(lang='fr')
   head
     meta(charset='UTF-8')
     meta(name='viewport', content='width=device-width, initial-scale=1.0')
-    title= subject
+    title Confiramtion de commande
     style.
       * {
         margin: 0;
@@ -93,77 +93,38 @@ html(lang='fr')
         box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.3);
         transition: all 0.2s ease;
       }
-      .cta-button:hover {
-        background-color: #15803d;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 8px -1px rgba(22, 163, 74, 0.4);
-      }
-      .features {
-        background-color: #f7fafc;
+      .order-summary {
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
         border-radius: 8px;
-        padding: 16px;
-        margin: 32px 0;
-      }
-      .features h3 {
-        color: #2d3748;
-        font-size: 18px;
-        font-weight: 600;
-        margin-bottom: 16px;
-        text-align: center;
-      }
-      .features ul {
-        list-style: none;
-        padding: 0;
-      }
-      .features li {
-        color: #4a5568;
-        font-size: 15px;
-        margin-bottom: 12px;
-        padding-left: 24px;
-        position: relative;
-      }
-      .features li:before {
-        content: '✓';
-        position: absolute;
-        left: 0;
-        color: #16a34a;
-        font-weight: bold;
-        font-size: 16px;
-      }
-      .warning {
-        background-color: #fff5cd;
-        border: 1px solid #f6e05e;
-        border-radius: 8px;
-        padding: 20px;
+        padding: 24px;
         margin: 24px 0;
-        border-left: 4px solid #d69e2e;
       }
-      .warning-title {
-        color: #744210;
+      .order-title {
+        color: #1e293b;
         font-weight: 600;
-        font-size: 16px;
-        margin-bottom: 8px;
-        display: flex;
-        align-items: center;
+        font-size: 18px;
+        margin-bottom: 16px;
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 8px;
       }
-      .warning-title:before {
-        content: '⚠️';
-        margin-right: 8px;
+      .order-details {
+        width: 100%;
+        border-collapse: collapse;
       }
-      .warning-text {
-        color: #744210;
-        font-size: 14px;
-        line-height: 1.5;
-      }
-      .link-fallback {
-        background-color: #edf2f7;
-        border-radius: 6px;
-        padding: 16px;
-        margin: 20px 0;
-        word-break: break-all;
-        font-size: 14px;
+      .order-details td {
+        padding: 8px 0;
+        border-bottom: 1px solid #e2e8f0;
         color: #4a5568;
-        font-family: monospace;
+      }
+      .order-details tr:last-child td {
+        border-bottom: none;
+      }
+      .total-row td {
+        font-weight: 700;
+        color: #16a34a;
+        font-size: 18px;
+        padding-top: 16px;
       }
       .footer {
         background-color: #1f2937;
@@ -213,43 +174,37 @@ html(lang='fr')
     .email-container
       .header
         .logo
-          img(src=logoUrl, alt='Harvests Logo', style='width: 100%; height: 100%; object-fit: contain;')
-        .title Bienvenue sur Harvests !
-        .subtitle La plateforme agricole africaine de référence
+          img(src=logoUrl, alt='Harvests Logo')
+        .title Commande Confirmée !
+        .subtitle Merci pour votre achat sur Harvests
       
       .content
         .greeting Bonjour #{firstName},
         
         .message
-          p Félicitations ! Votre compte Harvests a été créé avec succès. Vous rejoignez une communauté dynamique de producteurs, transformateurs et consommateurs qui transforment l'agriculture africaine.
+          p Nous avons bien reçu votre commande et nous vous en remercions. Voici un récapitulatif de vos achats.
         
-        .message
-          p Pour activer votre compte et commencer à explorer toutes les fonctionnalités de Harvests, veuillez vérifier votre adresse email en cliquant sur le bouton ci-dessous :
+        .order-summary
+          .order-title Détails de la commande
+          table.order-details
+            if order && order.products
+                each product in order.products
+                    tr
+                        td #{product.name || 'Produit'} x #{product.quantity}
+                        td(style="text-align: right;") #{product.price} FCFA
+            else
+                tr 
+                    td Détails non disponibles
+            
+            tr.total-row
+              td Total
+              td(style="text-align: right;") #{order ? order.totalAmount : 0} FCFA
         
         .cta-container
-          a.cta-button(href=url) Vérifier mon email
-        
-        .warning
-          .warning-title Important
-          .warning-text Ce lien de vérification expire dans 24 heures. Si vous ne l'utilisez pas à temps, vous devrez demander un nouveau lien de vérification depuis la page de connexion.
-        
-        .link-fallback
-          | Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :
-          br
-          | #{url}
-        
-        .features
-          h3 Une fois votre compte activé, vous pourrez :
-          ul
-            li Accéder à votre tableau de bord personnalisé
-            li Publier et gérer vos produits agricoles
-            li Connecter avec d'autres acteurs du secteur
-            li Bénéficier de nos outils de gestion avancés
-            li Recevoir des notifications personnalisées
-            li Accéder à notre marketplace premium
+          a.cta-button(href=url + '/dashboard/orders') Suivre ma commande
         
         .message
-          p Si vous n'avez pas créé de compte sur Harvests, vous pouvez ignorer cet email en toute sécurité. Aucune action n'est requise de votre part.
+          p Vous recevrez un nouvel email dès que votre commande sera expédiée.
       
       .footer
         .footer-brand 🌱 Harvests
