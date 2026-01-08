@@ -1,4 +1,5 @@
-import { X, Save, UserCheck } from "lucide-react";
+import React, { useState } from "react";
+import { X, Save, UserCheck, Eye, EyeOff } from "lucide-react";
 
 const AdminEditModal = ({
 	show,
@@ -10,6 +11,8 @@ const AdminEditModal = ({
 	saving,
 	resetForm,
 }) => {
+	const [showPassword, setShowPassword] = useState(false);
+
 	if (!show || !admin) return null;
 
 	return (
@@ -120,16 +123,29 @@ const AdminEditModal = ({
 							<label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
 								Sécurité (Nouveau MDP)
 							</label>
-							<input
-								type="password"
-								minLength={8}
-								value={formData.password}
-								onChange={(e) =>
-									setFormData({ ...formData, password: e.target.value })
-								}
-								className="w-full px-6 py-4 bg-gray-200/50 border border-transparent focus:border-indigo-100 focus:bg-white focus:ring-4 focus:ring-indigo-500/5 rounded-2xl transition-all duration-300 font-bold text-gray-900 placeholder:text-gray-300"
-								placeholder="Laisser vide pour conserver l'actuel"
-							/>
+							<div className="relative group/pass">
+								<input
+									type={showPassword ? "text" : "password"}
+									minLength={8}
+									value={formData.password}
+									onChange={(e) =>
+										setFormData({ ...formData, password: e.target.value })
+									}
+									className="w-full px-6 py-4 bg-gray-200/50 border border-transparent focus:border-indigo-100 focus:bg-white focus:ring-4 focus:ring-indigo-500/5 rounded-2xl transition-all duration-300 font-bold text-gray-900 placeholder:text-gray-300 pr-14"
+									placeholder="Laisser vide pour conserver l'actuel"
+								/>
+								<button
+									type="button"
+									onClick={() => setShowPassword(!showPassword)}
+									className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-indigo-600 transition-colors"
+								>
+									{showPassword ? (
+										<EyeOff className="h-5 w-5" />
+									) : (
+										<Eye className="h-5 w-5" />
+									)}
+								</button>
+							</div>
 						</div>
 
 						<div className="grid grid-cols-2 gap-6">

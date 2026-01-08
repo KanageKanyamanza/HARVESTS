@@ -49,9 +49,9 @@ exports.createAdmin = catchAsync(async (req, res, next) => {
 
 	// Log audit
 	await logAudit({
-		adminId: req.admin._id,
+		userId: req.admin._id,
 		action: AUDIT_ACTIONS.ADMIN_CREATED,
-		targetType: "admin",
+		targetType: "Admin",
 		targetId: admin._id,
 		details: { email: admin.email, role: admin.role },
 	});
@@ -223,9 +223,9 @@ exports.updateAdmin = catchAsync(async (req, res, next) => {
 
 	// Log audit
 	await logAudit({
-		adminId: req.admin._id,
+		userId: req.admin._id,
 		action: AUDIT_ACTIONS.ADMIN_UPDATED,
-		targetType: "admin",
+		targetType: "Admin",
 		targetId: updatedAdmin._id,
 		details: updateData,
 	});
@@ -272,9 +272,9 @@ exports.deleteAdmin = catchAsync(async (req, res, next) => {
 
 	// Log audit
 	await logAudit({
-		adminId: req.admin._id,
+		userId: req.admin._id,
 		action: AUDIT_ACTIONS.ADMIN_DELETED,
-		targetType: "admin",
+		targetType: "Admin",
 		targetId: admin._id,
 		details: { email: admin.email },
 	});
