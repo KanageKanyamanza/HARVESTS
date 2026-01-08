@@ -89,6 +89,7 @@ const ChatBot = () => {
 		addUserMessage,
 		logInteraction,
 		clearConversation,
+		updateMessageInteractionId,
 	} = state;
 
 	const handleGuestInfoCollection = (message) => {
@@ -172,7 +173,7 @@ const ChatBot = () => {
 		const customAnswer = findCustomAnswer(message, customAnswers);
 		if (customAnswer) {
 			const response = customAnswer.answer;
-			addBotMessage(response);
+			const localMsgId = addBotMessage(response);
 			addMessageToContext(response, true, {
 				type: "faq",
 				faqId: customAnswer._id,
@@ -184,7 +185,11 @@ const ChatBot = () => {
 				customAnswer._id,
 				null,
 				startTime
-			);
+			).then((interactionId) => {
+				if (interactionId && localMsgId) {
+					updateMessageInteractionId(localMsgId, interactionId);
+				}
+			});
 			return;
 		}
 
@@ -192,12 +197,23 @@ const ChatBot = () => {
 
 		if (result.type === "faq") {
 			const response = result.faq.answer;
-			addBotMessage(response);
+			const localMsgId = addBotMessage(response);
 			addMessageToContext(response, true, {
 				type: "faq",
 				faqId: result.faq.id,
 			});
-			logInteraction(message, response, "faq", result.faq.id, null, startTime);
+			logInteraction(
+				message,
+				response,
+				"faq",
+				result.faq.id,
+				null,
+				startTime
+			).then((interactionId) => {
+				if (interactionId && localMsgId) {
+					updateMessageInteractionId(localMsgId, interactionId);
+				}
+			});
 
 			// Ajouter des suggestions contextuelles améliorées
 			const contextSuggestions = getContextSuggestions();
@@ -257,8 +273,21 @@ const ChatBot = () => {
 				logInteraction,
 				cart,
 				clearCartAction,
+				updateMessageInteractionId,
+				startTime,
 			});
-			logInteraction(message, "", "intent", null, result.intent, startTime);
+			logInteraction(
+				message,
+				"",
+				"intent",
+				null,
+				result.intent,
+				startTime
+			).then((interactionId) => {
+				// Note: Intents might add their own messages via addBotMessage inside handleIntent.
+				// We might need to handle those if we want feedback on intent responses.
+				// For now, we log the intent detection itself.
+			});
 		} else {
 			const found = await tryProductSearch(message, {
 				addBotMessage,
@@ -274,8 +303,11 @@ const ChatBot = () => {
 					// Ajouter la recherche au contexte
 					addSearchToContext(searchTerm, results);
 				},
+				updateMessageInteractionId,
+				startTime,
 			});
 			if (!found) {
+				const localMsgId = addBotMessage(faqData.defaultMessages.notUnderstood);
 				logInteraction(
 					message,
 					faqData.defaultMessages.notUnderstood,
@@ -283,7 +315,11 @@ const ChatBot = () => {
 					null,
 					null,
 					startTime
-				);
+				).then((interactionId) => {
+					if (interactionId && localMsgId) {
+						updateMessageInteractionId(localMsgId, interactionId);
+					}
+				});
 				// Ajouter des suggestions contextuelles améliorées
 				const contextSuggestions = getContextSuggestions();
 				const basicSuggestions = generateContextualSuggestions({

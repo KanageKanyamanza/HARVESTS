@@ -17,7 +17,7 @@ import { formatDate, formatTime } from "./chatbotManagement/utils";
 const ChatbotManagement = () => {
 	const [activeTab, setActiveTab] = useState("stats");
 	const [stats, setStats] = useState(null);
-	const [timeRange, setTimeRange] = useState("30d");
+	const [timeRange, setTimeRange] = useState("all");
 	const [questions, setQuestions] = useState([]);
 	const [interactions, setInteractions] = useState([]);
 	const [loading, setLoading] = useState(true);
@@ -230,6 +230,7 @@ const ChatbotManagement = () => {
 								<option value="30d">30 derniers jours</option>
 								<option value="90d">90 derniers jours</option>
 								<option value="1y">Dernière année</option>
+								<option value="all">Tout l'historique</option>
 							</select>
 						</div>
 					</div>
