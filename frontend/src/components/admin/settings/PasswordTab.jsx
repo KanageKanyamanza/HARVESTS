@@ -1,5 +1,5 @@
-import React from "react";
-import { Lock, Save, X } from "lucide-react";
+import React, { useState } from "react";
+import { Lock, Save, X, Eye, EyeOff } from "lucide-react";
 
 const PasswordTab = ({
 	passwordData,
@@ -9,6 +9,16 @@ const PasswordTab = ({
 	onSubmit,
 	onReset,
 }) => {
+	const [showPasswords, setShowPasswords] = useState({
+		current: false,
+		new: false,
+		confirm: false,
+	});
+
+	const togglePassword = (field) => {
+		setShowPasswords((prev) => ({ ...prev, [field]: !prev[field] }));
+	};
+
 	return (
 		<form onSubmit={onSubmit} className="p-6">
 			<div className="flex items-center gap-3 mb-6">
@@ -51,16 +61,29 @@ const PasswordTab = ({
 								<label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
 									Mot de passe actuel <span className="text-rose-500">*</span>
 								</label>
-								<input
-									type="password"
-									value={passwordData.currentPassword}
-									onChange={(e) =>
-										onPasswordChange("currentPassword", e.target.value)
-									}
-									required
-									className="w-full bg-gray-50/50 border border-gray-100 rounded-xl px-4 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:bg-white focus:ring-2 focus:ring-rose-500/20 transition-all placeholder-gray-400"
-									placeholder="••••••••••••"
-								/>
+								<div className="relative">
+									<input
+										type={showPasswords.current ? "text" : "password"}
+										value={passwordData.currentPassword}
+										onChange={(e) =>
+											onPasswordChange("currentPassword", e.target.value)
+										}
+										required
+										className="w-full bg-gray-50/50 border border-gray-100 rounded-xl px-4 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:bg-white focus:ring-2 focus:ring-rose-500/20 transition-all placeholder-gray-400 pr-10"
+										placeholder="••••••••••••"
+									/>
+									<button
+										type="button"
+										onClick={() => togglePassword("current")}
+										className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-rose-600 transition-colors"
+									>
+										{showPasswords.current ? (
+											<EyeOff className="h-4 w-4" />
+										) : (
+											<Eye className="h-4 w-4" />
+										)}
+									</button>
+								</div>
 							</div>
 
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-50">
@@ -68,17 +91,30 @@ const PasswordTab = ({
 									<label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
 										Nouveau <span className="text-rose-500">*</span>
 									</label>
-									<input
-										type="password"
-										value={passwordData.newPassword}
-										onChange={(e) =>
-											onPasswordChange("newPassword", e.target.value)
-										}
-										required
-										minLength={6}
-										className="w-full bg-gray-50/50 border border-gray-100 rounded-xl px-4 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:bg-white focus:ring-2 focus:ring-rose-500/20 transition-all placeholder-gray-400"
-										placeholder="••••••••••••"
-									/>
+									<div className="relative">
+										<input
+											type={showPasswords.new ? "text" : "password"}
+											value={passwordData.newPassword}
+											onChange={(e) =>
+												onPasswordChange("newPassword", e.target.value)
+											}
+											required
+											minLength={6}
+											className="w-full bg-gray-50/50 border border-gray-100 rounded-xl px-4 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:bg-white focus:ring-2 focus:ring-rose-500/20 transition-all placeholder-gray-400 pr-10"
+											placeholder="••••••••••••"
+										/>
+										<button
+											type="button"
+											onClick={() => togglePassword("new")}
+											className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-rose-600 transition-colors"
+										>
+											{showPasswords.new ? (
+												<EyeOff className="h-4 w-4" />
+											) : (
+												<Eye className="h-4 w-4" />
+											)}
+										</button>
+									</div>
 									<p className="text-[9px] font-black text-gray-400 px-2 uppercase tracking-tight">
 										Min 6 caractères
 									</p>
@@ -87,17 +123,30 @@ const PasswordTab = ({
 									<label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
 										Confirmer <span className="text-rose-500">*</span>
 									</label>
-									<input
-										type="password"
-										value={passwordData.confirmPassword}
-										onChange={(e) =>
-											onPasswordChange("confirmPassword", e.target.value)
-										}
-										required
-										minLength={6}
-										className="w-full bg-gray-50/50 border border-gray-100 rounded-xl px-4 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:bg-white focus:ring-2 focus:ring-rose-500/20 transition-all placeholder-gray-400"
-										placeholder="••••••••••••"
-									/>
+									<div className="relative">
+										<input
+											type={showPasswords.confirm ? "text" : "password"}
+											value={passwordData.confirmPassword}
+											onChange={(e) =>
+												onPasswordChange("confirmPassword", e.target.value)
+											}
+											required
+											minLength={6}
+											className="w-full bg-gray-50/50 border border-gray-100 rounded-xl px-4 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:bg-white focus:ring-2 focus:ring-rose-500/20 transition-all placeholder-gray-400 pr-10"
+											placeholder="••••••••••••"
+										/>
+										<button
+											type="button"
+											onClick={() => togglePassword("confirm")}
+											className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-rose-600 transition-colors"
+										>
+											{showPasswords.confirm ? (
+												<EyeOff className="h-4 w-4" />
+											) : (
+												<Eye className="h-4 w-4" />
+											)}
+										</button>
+									</div>
 								</div>
 							</div>
 

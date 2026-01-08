@@ -104,6 +104,8 @@ module.exports = (err, req, res, next) => {
 	} else if (process.env.NODE_ENV === "production") {
 		let error = { ...err };
 		error.message = err.message;
+		error.name = err.name; // Assurer que le nom est copié
+		error.code = err.code; // Assurer que le code est copié
 
 		// Traitement des erreurs spécifiques MongoDB et JWT
 		if (error.name === "CastError") error = handleCastErrorDB(error);
