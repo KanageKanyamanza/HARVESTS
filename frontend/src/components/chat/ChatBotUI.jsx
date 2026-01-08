@@ -64,10 +64,12 @@ export const ChatBotHeader = ({
 				<MessageCircle className="w-6 h-6 text-white" />
 			</div>
 			<div>
-				<h3 className="font-bold text-lg tracking-tight">Assistant Harvests</h3>
+				<h3 className="font-bold text-white text-lg tracking-tight">
+					Assistant Harvests
+				</h3>
 				<div className="flex items-center gap-1.5">
 					<span className="w-2 h-2 bg-primary-300 rounded-full animate-pulse shadow-[0_0_8px_rgba(110,231,183,0.8)]"></span>
-					<p className="text-xs font-medium text-primary-50/90">En ligne</p>
+					<p className="text-xs font-medium text-white/90">En ligne</p>
 				</div>
 			</div>
 		</div>
@@ -410,7 +412,7 @@ export const ChatMessages = ({
 				message={msg.text}
 				isBot={msg.isBot}
 				timestamp={msg.timestamp}
-				messageId={msg.id}
+				messageId={msg.interactionId}
 				onFeedback={onFeedback}
 				feedbackGiven={feedbackGiven[msg.id]}
 				userAvatar={!msg.isBot ? getUserAvatar() : null}
