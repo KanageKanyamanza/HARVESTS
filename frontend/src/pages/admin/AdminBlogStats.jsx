@@ -98,7 +98,7 @@ const AdminBlogStats = () => {
 	);
 
 	return (
-		<div className="min-h-screen bg-[#fafafa] relative overflow-hidden">
+		<div className="min-h-screen md:pl-3 bg-[#fafafa] relative overflow-hidden">
 			{/* Background Decoration */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/30 rounded-full blur-[120px]"></div>
