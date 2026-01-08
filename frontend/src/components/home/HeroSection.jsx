@@ -101,7 +101,7 @@ const HeroSection = () => {
 					className={`flex w-full md:max-w-4xl flex-col gap-6 ${position.wrapper}`}
 				>
 					<h1
-						className={`text-3xl font-display font-bold text-balance ${position.title}`}
+						className={`text-3xl font-display font-bold text-white text-balance ${position.title}`}
 					>
 						{slide.subtitle}
 					</h1>
