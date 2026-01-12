@@ -13,6 +13,8 @@ import {
 	Sparkles,
 	ShoppingCart,
 	ArrowRight,
+	Minus,
+	Maximize2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import ChatMessage from "./ChatMessage";
@@ -47,12 +49,14 @@ export const ChatBotButton = ({ onClick, backToTopVisible }) => (
 export const ChatBotHeader = ({
 	isMinimized,
 	setIsMinimized,
+	isMaximized,
+	setIsMaximized,
 	setIsOpen,
 	clearConversation,
 	messagesCount,
 }) => (
 	<div
-		className="relative px-5 py-4 flex items-center justify-between cursor-pointer bg-gradient-to-r from-primary-600 to-primary-500 text-white overflow-hidden shrink-0"
+		className="relative px-5 py-3 flex items-center justify-between cursor-pointer bg-gradient-to-r from-primary-600 to-primary-500 text-white overflow-hidden shrink-0"
 		onClick={() => isMinimized && setIsMinimized(false)}
 	>
 		{/* Decorative circles */}
@@ -94,7 +98,21 @@ export const ChatBotHeader = ({
 				className="w-8 h-8 flex items-center justify-center hover:bg-white/20 rounded-xl transition-colors text-white/80 hover:text-white"
 				title="Réduire"
 			>
-				<Minimize2 className="w-5 h-5" />
+				<Minus className="w-5 h-5" />
+			</button>
+			<button
+				onClick={(e) => {
+					e.stopPropagation();
+					setIsMaximized(!isMaximized);
+				}}
+				className="w-8 h-8 flex items-center justify-center hover:bg-white/20 rounded-xl transition-colors text-white/80 hover:text-white"
+				title={isMaximized ? "Restaurer" : "Agrandir"}
+			>
+				{isMaximized ? (
+					<Minimize2 className="w-5 h-5" />
+				) : (
+					<Maximize2 className="w-5 h-5" />
+				)}
 			</button>
 			<button
 				onClick={(e) => {
@@ -162,10 +180,10 @@ export const ProductResults = ({
 						)}
 					</div>
 					<div className="flex-1 min-w-0 flex flex-col justify-center">
-						<p className="font-bold text-gray-900 truncate group-hover:text-primary-700 transition-colors">
+						<p className="font-bold text-gray-900 truncate group-hover:text-primary-700 transition-colors text-[13px]">
 							{getProductName(product)}
 						</p>
-						<p className="text-primary-600 font-bold mt-1 text-sm bg-primary-50 w-fit px-2 py-0.5 rounded-lg">
+						<p className="text-primary-600 font-bold mt-1 text-xs bg-primary-50 w-fit px-2 py-0.5 rounded-lg">
 							{product.price?.toLocaleString("fr-FR")} FCFA
 						</p>
 					</div>
@@ -176,7 +194,7 @@ export const ProductResults = ({
 			))}
 		<Link
 			to="/products"
-			className="flex items-center justify-center w-full py-3 text-sm font-bold text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-xl transition-all"
+			className="flex items-center justify-center w-full py-3 text-xs font-bold text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-xl transition-all"
 			onClick={onClose}
 		>
 			Voir tout le catalogue
@@ -213,7 +231,7 @@ export const SellerResults = ({
 					)}
 				</div>
 				<div className="flex-1 min-w-0">
-					<p className="font-bold text-gray-900 truncate group-hover:text-orange-600 transition-colors">
+					<p className="font-bold text-gray-900 truncate group-hover:text-orange-600 transition-colors text-[13px]">
 						{getSellerName(seller)}
 					</p>
 					<div className="flex items-center gap-2 mt-0.5">
@@ -221,7 +239,7 @@ export const SellerResults = ({
 							{getSellerType(seller.userType)}
 						</span>
 						{seller.address?.city && (
-							<span className="text-xs text-gray-400 truncate">
+							<span className="text-[10px] text-gray-400 truncate">
 								• {seller.address.city}
 							</span>
 						)}
@@ -257,7 +275,7 @@ export const TransporterResults = ({
 					)}
 				</div>
 				<div className="flex-1 min-w-0">
-					<p className="font-bold text-gray-900 truncate">
+					<p className="font-bold text-gray-900 truncate text-[13px]">
 						{getTransporterName(t)}
 					</p>
 					<div className="flex items-center gap-2 mt-0.5">
@@ -266,7 +284,7 @@ export const TransporterResults = ({
 						</span>
 					</div>
 					{t.serviceAreas?.length > 0 && (
-						<p className="text-xs text-gray-400 mt-1 truncate">
+						<p className="text-[10px] text-gray-400 mt-1 truncate">
 							{t.serviceAreas
 								.slice(0, 2)
 								.map((a) => a.region || a.city)
@@ -286,7 +304,7 @@ export const QuickLinks = ({ links, onAction, onClose }) => (
 				<button
 					key={idx}
 					onClick={() => onAction(link.action)}
-					className="w-full flex items-center justify-between px-4 py-3 bg-white border border-gray-100 rounded-xl text-sm font-bold text-gray-700 hover:bg-primary-50 hover:text-primary-700 hover:border-primary-200 transition-all shadow-sm group"
+					className="w-full flex items-center justify-between px-4 py-2.5 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-700 hover:bg-primary-50 hover:text-primary-700 hover:border-primary-200 transition-all shadow-sm group"
 				>
 					<span>{link.label}</span>
 					<ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
@@ -295,7 +313,7 @@ export const QuickLinks = ({ links, onAction, onClose }) => (
 				<Link
 					key={idx}
 					to={link.to}
-					className="w-full flex items-center justify-between px-4 py-3 bg-white border border-gray-100 rounded-xl text-sm font-bold text-gray-700 hover:bg-primary-50 hover:text-primary-700 hover:border-primary-200 transition-all shadow-sm group"
+					className="w-full flex items-center justify-between px-4 py-2.5 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-700 hover:bg-primary-50 hover:text-primary-700 hover:border-primary-200 transition-all shadow-sm group"
 					onClick={onClose}
 				>
 					<span>{link.label}</span>
@@ -308,7 +326,7 @@ export const QuickLinks = ({ links, onAction, onClose }) => (
 
 export const QuickActions = ({ onIntent }) => (
 	<div className="mt-4 px-1">
-		<p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 ml-1">
+		<p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">
 			Accès rapide
 		</p>
 		<div className="grid grid-cols-2 gap-2">
@@ -345,12 +363,12 @@ export const QuickActions = ({ onIntent }) => (
 				<button
 					key={intent}
 					onClick={() => onIntent(intent)}
-					className={`flex items-center gap-3 px-3 py-2.5 bg-white border border-gray-100 rounded-xl text-sm font-bold text-gray-700 hover:shadow-md transition-all hover:-translate-y-0.5`}
+					className={`flex items-center gap-2 px-3 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-700 hover:shadow-md transition-all hover:-translate-y-0.5`}
 				>
 					<div
-						className={`w-8 h-8 rounded-lg ${bg} ${color} flex items-center justify-center`}
+						className={`w-7 h-7 rounded-lg ${bg} ${color} flex items-center justify-center`}
 					>
-						<Icon className="w-4 h-4" />
+						<Icon className="w-3.5 h-3.5" />
 					</div>
 					<span>{label}</span>
 				</button>
@@ -365,7 +383,7 @@ export const QuickQuestions = ({ questions, onClick }) => (
 			<button
 				key={faq.id}
 				onClick={() => onClick(faq)}
-				className="w-full text-left p-3.5 bg-white border border-gray-100 rounded-2xl text-sm font-medium text-gray-700 hover:bg-primary-50 hover:text-primary-800 hover:border-primary-200 transition-all shadow-sm hover:shadow-md"
+				className="w-full text-left p-3 bg-white border border-gray-100 rounded-2xl text-[13px] font-medium text-gray-700 hover:bg-primary-50 hover:text-primary-800 hover:border-primary-200 transition-all shadow-sm hover:shadow-md"
 			>
 				{faq.question}
 			</button>
@@ -375,7 +393,7 @@ export const QuickQuestions = ({ questions, onClick }) => (
 
 export const Categories = ({ onCategoryClick }) => (
 	<div className="mt-5 px-1 pb-2">
-		<p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 ml-1">
+		<p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 ml-1">
 			Je peux vous aider avec :
 		</p>
 		<div className="flex flex-wrap gap-2">
@@ -385,9 +403,9 @@ export const Categories = ({ onCategoryClick }) => (
 					<button
 						key={cat.id}
 						onClick={() => onCategoryClick(cat.id)}
-						className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-100 rounded-xl text-sm font-bold text-gray-600 hover:bg-primary-500 hover:text-white hover:border-primary-500 hover:shadow-md hover:shadow-primary-200 transition-all duration-300"
+						className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-600 hover:bg-primary-500 hover:text-white hover:border-primary-500 hover:shadow-md hover:shadow-primary-200 transition-all duration-300"
 					>
-						<Icon className="w-4 h-4" />
+						<Icon className="w-3.5 h-3.5" />
 						<span>{cat.label.replace(/[^\w\s]/gi, "").trim()}</span>
 					</button>
 				);

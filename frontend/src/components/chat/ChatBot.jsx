@@ -92,6 +92,8 @@ const ChatBot = () => {
 		updateMessageInteractionId,
 	} = state;
 
+	const [isMaximized, setIsMaximized] = React.useState(false);
+
 	const handleGuestInfoCollection = (message) => {
 		if (infoStep === "name") {
 			setGuestInfo((prev) => ({ ...prev, name: message }));
@@ -115,7 +117,7 @@ const ChatBot = () => {
 				sessionStorage.removeItem("pending_chat_message");
 				// Traiter directement la question en attente sans message intermédiaire
 				setTimeout(() => {
-					handleSendMessage(pendingMessage);
+					processResponse(pendingMessage);
 				}, 300);
 			} else {
 				addBotMessage(
@@ -138,23 +140,8 @@ const ChatBot = () => {
 		return false;
 	};
 
-	const handleSendMessage = async (message) => {
-		const startTime = Date.now(); // Mesurer le temps de réponse
-		addUserMessage(message);
-
-		// Ajouter le message au contexte de conversation
-		addMessageToContext(message, false);
-
-		if (askingForInfo && infoStep) {
-			handleGuestInfoCollection(message);
-			return;
-		}
-		if (!isAuthenticated && !guestInfo?.name && messages.length <= 1) {
-			askForGuestInfo();
-			sessionStorage.setItem("pending_chat_message", message);
-			return;
-		}
-
+	const processResponse = async (message) => {
+		const startTime = Date.now();
 		setShowCategories(false);
 		setQuickLinks([]);
 		setFoundProducts([]);
@@ -275,6 +262,7 @@ const ChatBot = () => {
 				clearCartAction,
 				updateMessageInteractionId,
 				startTime,
+				user,
 			});
 			logInteraction(
 				message,
@@ -306,61 +294,28 @@ const ChatBot = () => {
 				updateMessageInteractionId,
 				startTime,
 			});
-			if (!found) {
-				const localMsgId = addBotMessage(faqData.defaultMessages.notUnderstood);
-				logInteraction(
-					message,
-					faqData.defaultMessages.notUnderstood,
-					"no_answer",
-					null,
-					null,
-					startTime
-				).then((interactionId) => {
-					if (interactionId && localMsgId) {
-						updateMessageInteractionId(localMsgId, interactionId);
-					}
-				});
-				// Ajouter des suggestions contextuelles améliorées
-				const contextSuggestions = getContextSuggestions();
-				const basicSuggestions = generateContextualSuggestions({
-					isAuthenticated,
-					cartItems: cart?.items || [],
-					recentSearches: [message],
-				});
-
-				const allSuggestions = [
-					...contextSuggestions,
-					...basicSuggestions,
-				].slice(0, 5);
-				if (allSuggestions.length > 0) {
-					setQuickLinks(
-						allSuggestions.map((s) => {
-							let to = "/products";
-							if (s.action === "MY_CART") to = "/cart";
-							else if (s.action === "MY_ORDERS") to = "/dashboard/orders";
-							else if (s.action?.startsWith("CATEGORY_"))
-								to = `/products?category=${s.action
-									.replace("CATEGORY_", "")
-									.toLowerCase()}`;
-							else if (
-								typeof s.action === "string" &&
-								s.action.length > 0 &&
-								!s.action.startsWith("CATEGORY_") &&
-								!s.action.startsWith("TOPIC_")
-							) {
-								to = `/products?q=${encodeURIComponent(s.action)}`;
-							}
-
-							return {
-								to,
-								label: s.text,
-								action: s.action,
-							};
-						})
-					);
-				}
-			}
+			// Si found est false, tryProductSearch a déjà envoyé un message d'erreur approprié.
+			// Pas besoin d'envoyer un message générique "notUnderstood" en plus.
 		}
+	};
+
+	const handleSendMessage = async (message) => {
+		addUserMessage(message);
+
+		// Ajouter le message au contexte de conversation
+		addMessageToContext(message, false);
+
+		if (askingForInfo && infoStep) {
+			handleGuestInfoCollection(message);
+			return;
+		}
+		if (!isAuthenticated && !guestInfo?.name && messages.length <= 1) {
+			askForGuestInfo();
+			sessionStorage.setItem("pending_chat_message", message);
+			return;
+		}
+
+		await processResponse(message);
 	};
 
 	const handleQuickAction = async (action) => {
@@ -414,6 +369,7 @@ const ChatBot = () => {
 			logInteraction,
 			cart,
 			clearCartAction,
+			user,
 		});
 		setShowQuickActions(false);
 	};
@@ -550,13 +506,21 @@ const ChatBot = () => {
 
 	return (
 		<div
-			className={`fixed right-6 w-96 max-w-[calc(100vw-3rem)] bg-white rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] z-40 flex flex-col overflow-hidden transition-all duration-500 ease-out border border-white/50 ring-1 ring-black/5 ${
-				isMinimized ? "h-[4.5rem]" : "h-[700px] max-h-[85vh]"
-			} ${backToTopVisible ? "bottom-[90px]" : "bottom-8"}`}
+			className={`fixed z-40 flex flex-col overflow-hidden transition-all duration-500 ease-out border border-white/50 ring-1 ring-black/5 bg-white rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] ${
+				isMinimized
+					? "right-6 w-96 max-w-[calc(100vw-3rem)] h-[4rem]"
+					: isMaximized
+					? "right-[5vw] left-[5vw] w-[90vw] bottom-[5vh] h-[90vh]"
+					: "right-6 w-96 max-w-[calc(100vw-3rem)] h-[700px] max-h-[85vh]"
+			} ${!isMaximized && (backToTopVisible ? "bottom-[90px]" : "bottom-8")} ${
+				isMinimized && (backToTopVisible ? "bottom-[90px]" : "bottom-8")
+			}`}
 		>
 			<ChatBotHeader
 				isMinimized={isMinimized}
 				setIsMinimized={setIsMinimized}
+				isMaximized={isMaximized}
+				setIsMaximized={setIsMaximized}
 				setIsOpen={setIsOpen}
 				clearConversation={clearConversation}
 				messagesCount={messages.length}
