@@ -2,6 +2,7 @@ const { NlpManager } = require("node-nlp");
 const Faq = require("../../models/Faq");
 const chatSearchController = require("./chatSearchController");
 const consumersController = require("../consumerController");
+const Product = require("../../models/Product");
 
 let manager = null;
 let isTraining = false;
@@ -133,7 +134,16 @@ const processMessage = async (req, res) => {
 				// (Simplifié pour ce POC)
 				const stopWords = [
 					"je",
+					"tu",
+					"il",
+					"elle",
+					"nous",
+					"vous",
+					"ils",
+					"elles",
 					"veux",
+					"voudrais",
+					"aimerais",
 					"cherche",
 					"besoin",
 					"de",
@@ -145,52 +155,77 @@ const processMessage = async (req, res) => {
 					"une",
 					"trouver",
 					"acheter",
+					"avez",
+					"avoir",
+					"est-ce",
+					"que",
 					"avez-vous",
 				];
-				const words = message.toLowerCase().split(" ");
-				const filtered = words.filter((w) => !stopWords.includes(w));
-				if (filtered.length > 0) query = filtered.join(" ");
+				// Enlever la ponctuation et découper
+				const words = message
+					.toLowerCase()
+					.replace(/[?.!,:;]/g, "")
+					.split(" ");
+				query = words.filter((w) => !stopWords.includes(w)).join(" ");
 			}
-
-			// Appel au contrôleur de recherche (simulation de req/res pour réutiliser le code existant ou appel direct s'il est refactorisé)
-			// Idéalement chatSearchController devrait avoir des méthodes de service séparées.
-			// Ici on va supposé que l'on peut appeler une méthode de service ou on fait une requête directe à la base.
-
-			// Note: Pour faire propre rapidement sans tout casser, on va importer le modèle Product ici ou créer un service de recherche rapide.
-			// Mais comme on a déjà `chatSearchController`, voyons si on peut l'utiliser.
-			// Le `chatSearchController` est conçu pour Express (req, res). C'est pas idéal pour un appel interne.
-
-			// Solution rapide et robuste : Importer Product directement ici pour la recherche fallback
-			// ou mieux, utiliser une méthode "searchProductsService" si elle existait.
-
-			// On va faire une recherche simple ici pour le fallback
-			const Product = require("../../models/Product"); // Assurez-vous que le chemin est bon
 
 			console.log(`🔎 Chatbot fallback search query: "${query}"`);
 
-			if (query && query.length > 2) {
-				const products = await Product.find({
-					$or: [
-						{ name: { $regex: query, $options: "i" } },
-						{ description: { $regex: query, $options: "i" } },
-						{ tags: { $in: [new RegExp(query, "i")] } },
-					],
-					isActive: true,
-					status: "approved",
-				})
-					.limit(5)
-					.select("name price images shopId"); // Optimisation
+			productResults = await Product.find({
+				$or: [
+					{ name: { $regex: query, $options: "i" } },
+					{ description: { $regex: query, $options: "i" } },
+					{ tags: { $regex: query, $options: "i" } },
+				],
+				isActive: true,
+				status: "approved",
+			}).limit(3);
 
-				console.log(
-					`✅ Found ${products.length} products for query "${query}"`
-				);
+			console.log(
+				`✅ Found ${productResults.length} products for query "${query}"`
+			);
 
-				if (products.length > 0) {
-					productResults = products;
-					reply.intent = "search.product"; // Force l'intent
-					reply.data = { products: products };
-					reply.text = `J'ai trouvé ${products.length} produits correspondant à "${query}" :`;
+			// GESTION 0 RÉSULTATS + LOGGING
+			if (productResults.length === 0 && query.length > 2) {
+				// Importer UnansweredQuestion si nécessaire (devrait être en haut du fichier, mais on le fait ici pour la démo si besoin, mieux vaut l'ajouter en haut)
+				const UnansweredQuestion = require("../../models/UnansweredQuestion");
+
+				// Log de la recherche manquée
+				try {
+					await UnansweredQuestion.findOneAndUpdate(
+						{ question: `Recherche produit : ${query}` },
+						{
+							$inc: { count: 1 },
+							$set: {
+								lastAskedBy: req.user ? req.user._id : null,
+								updatedAt: Date.now(),
+								category: "produits",
+								status: "pending",
+							},
+							$setOnInsert: {
+								firstAskedBy: req.user ? req.user._id : null,
+								createdAt: Date.now(),
+							},
+						},
+						{ upsert: true, new: true }
+					);
+					console.log(`📝 Missed search logged: "${query}"`);
+				} catch (err) {
+					console.error("Error logging missed search:", err);
 				}
+
+				reply.text = `Désolé, nous n'avons pas de "${query}" pour le moment. 😕\n\nCependant, vous pouvez consulter notre catalogue complet pour voir ce qui est disponible, ou découvrir nos produits similaires !`;
+				reply.actions = [
+					{
+						type: "link",
+						label: "Voir tout le catalogue",
+						to: "/products",
+					},
+				];
+				return res.status(200).json({
+					status: "success",
+					data: reply,
+				});
 			}
 		}
 

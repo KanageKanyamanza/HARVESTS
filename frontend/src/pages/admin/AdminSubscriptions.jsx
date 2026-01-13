@@ -56,7 +56,7 @@ const AdminSubscriptions = () => {
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="max-w-full mx-auto px-4 py-8 relative z-10 pl-6">
+			<div className="max-w-full mx-auto px-3 py-4 relative z-10 pl-1 md:pl-6 md:px-4 md:py-8">
 				{/* Header */}
 				<div className="mb-8 animate-fade-in-down">
 					<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-1.5">

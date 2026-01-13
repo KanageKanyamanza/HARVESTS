@@ -56,7 +56,7 @@ export const ChatBotHeader = ({
 	messagesCount,
 }) => (
 	<div
-		className="relative px-5 py-3 flex items-center justify-between cursor-pointer bg-gradient-to-r from-primary-600 to-primary-500 text-white overflow-hidden shrink-0"
+		className="relative px-5 py-1 flex items-center justify-between cursor-pointer bg-gradient-to-r from-primary-600 to-primary-500 text-white overflow-hidden shrink-0"
 		onClick={() => isMinimized && setIsMinimized(false)}
 	>
 		{/* Decorative circles */}
@@ -68,11 +68,12 @@ export const ChatBotHeader = ({
 				<MessageCircle className="w-6 h-6 text-white" />
 			</div>
 			<div>
+				
 				<h3 className="font-bold text-white text-lg tracking-tight">
 					Assistant Harvests
 				</h3>
-				<div className="flex items-center gap-1.5">
-					<span className="w-2 h-2 bg-primary-300 rounded-full animate-pulse shadow-[0_0_8px_rgba(110,231,183,0.8)]"></span>
+				<div className="flex items-center gap-1">
+					<span className="w-2 h-2 mb-2 bg-primary-100 rounded-full animate-pulse shadow-[0_0_8px_rgba(110,231,183,0.8)]"></span>
 					<p className="text-xs font-medium text-white/90">En ligne</p>
 				</div>
 			</div>

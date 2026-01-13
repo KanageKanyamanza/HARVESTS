@@ -203,7 +203,7 @@ const AdminProducts = () => {
 				<div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-purple-100/20 rounded-full blur-[120px]"></div>
 			</div>
 
-			<div className="max-w-full mx-auto px-4 py-6 space-y-5 relative z-10 pl-6">
+			<div className="max-w-full mx-auto px-3 py-4 space-y-4 relative z-10 pl-1 md:pl-6 md:px-4 md:py-6 md:space-y-5">
 				{/* Header avec typographie premium */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-2">
 					<div className="animate-fade-in-down">
