@@ -401,7 +401,7 @@ baseUserSchema.methods.incLoginAttempts = function () {
 		// 30 minutes en production, 2 minutes en développement
 		const lockoutDuration =
 			process.env.NODE_ENV === "production"
-				? 30 * 60 * 1000 // 30 minutes
+				? 2 * 60 * 1000 // 2 minutes (modifié sur demande)
 				: 2 * 60 * 1000; // 2 minutes
 
 		updates.$set = {
