@@ -127,6 +127,8 @@ const Vendeurs = () => {
 					restaurateursResponse.status === "fulfilled" &&
 					restaurateursResponse.value.data.status === "success"
 				) {
+					const restaurateurs =
+						restaurateursResponse.value.data.data.restaurateurs || [];
 					allVendeurs.push(
 						...restaurateurs.map((restaurateur) => ({
 							...restaurateur,

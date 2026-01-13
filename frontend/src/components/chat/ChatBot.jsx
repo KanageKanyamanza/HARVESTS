@@ -5,20 +5,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../contexts/CartContext";
 import useBackToTopVisible from "../../hooks/useBackToTopVisible";
 import { useChatBot } from "../../hooks/useChatBot";
-import { faqData, findBestAnswer } from "../../data/faqData";
 import { chatService } from "../../services/chatService";
-import {
-	generateContextualSuggestions,
-	understandQuestion,
-} from "../../utils/chatbotImprovements";
-import {
-	addMessageToContext,
-	addSearchToContext,
-	addTopicToContext,
-	addIntentToContext,
-	getContextualSuggestions as getContextSuggestions,
-	updatePreferencesFromQuestion,
-} from "../../utils/chatbotContext";
 import ChatInput from "./ChatInput";
 import {
 	ChatBotButton,
@@ -39,9 +26,6 @@ import {
 	getSellerType,
 	getTransporterName,
 	getProductName,
-	findCustomAnswer,
-	tryProductSearch,
-	handleIntent,
 } from "./chatHelpers";
 
 const ChatBot = () => {
@@ -49,6 +33,7 @@ const ChatBot = () => {
 	const { cart, clearCart: clearCartAction } = useCart();
 	const backToTopVisible = useBackToTopVisible();
 	const location = useLocation();
+	const isHomePage = location.pathname === "/";
 
 	const state = useChatBot(isAuthenticated, user, cart, clearCartAction);
 	const {
@@ -69,7 +54,6 @@ const ChatBot = () => {
 		setShowQuickActions,
 		feedbackGiven,
 		setFeedbackGiven,
-		customAnswers,
 		guestInfo,
 		setGuestInfo,
 		askingForInfo,
@@ -87,9 +71,7 @@ const ChatBot = () => {
 		getUserAvatar,
 		addBotMessage,
 		addUserMessage,
-		logInteraction,
 		clearConversation,
-		updateMessageInteractionId,
 	} = state;
 
 	const [isMaximized, setIsMaximized] = React.useState(false);
@@ -101,7 +83,7 @@ const ChatBot = () => {
 			addBotMessage(
 				`Enchanté ${
 					message.split(" ")[0]
-				} ! 😊\n\nPour mieux vous aider et pouvoir vous contacter ultérieurement si nécessaire, pourriez-vous me donner votre adresse email ?\n\nVotre email nous permet de vous envoyer des mises à jour importantes concernant vos commandes et nos services. (Vous pouvez taper "passer" si vous préférez ne pas le partager)`
+				} ! 😊\n\nPour mieux vous aider, pourriez-vous me donner votre adresse email ? (Tapez "passer" si vous préférez ne pas le partager)`
 			);
 			return true;
 		}
@@ -111,11 +93,9 @@ const ChatBot = () => {
 			setInfoStep(null);
 			setAskingForInfo(false);
 
-			// Récupérer la question en attente et y répondre directement
 			const pendingMessage = sessionStorage.getItem("pending_chat_message");
 			if (pendingMessage) {
 				sessionStorage.removeItem("pending_chat_message");
-				// Traiter directement la question en attente sans message intermédiaire
 				setTimeout(() => {
 					processResponse(pendingMessage);
 				}, 300);
@@ -141,169 +121,60 @@ const ChatBot = () => {
 	};
 
 	const processResponse = async (message) => {
-		const startTime = Date.now();
 		setShowCategories(false);
 		setQuickLinks([]);
 		setFoundProducts([]);
 		setFoundSellers([]);
 		setFoundTransporters([]);
+		setIsTyping(true);
 
-		// Analyser le type de question pour améliorer la réponse
-		const questionAnalysis = understandQuestion(message);
-		updatePreferencesFromQuestion(questionAnalysis.type);
-
-		// Ajouter le sujet au contexte si détecté
-		if (questionAnalysis.type !== "general") {
-			addTopicToContext(questionAnalysis.type);
-		}
-
-		const customAnswer = findCustomAnswer(message, customAnswers);
-		if (customAnswer) {
-			const response = customAnswer.answer;
-			const localMsgId = addBotMessage(response);
-			addMessageToContext(response, true, {
-				type: "faq",
-				faqId: customAnswer._id,
-			});
-			logInteraction(
-				message,
-				response,
-				"faq",
-				customAnswer._id,
-				null,
-				startTime
-			).then((interactionId) => {
-				if (interactionId && localMsgId) {
-					updateMessageInteractionId(localMsgId, interactionId);
-				}
-			});
-			return;
-		}
-
-		const result = findBestAnswer(message);
-
-		if (result.type === "faq") {
-			const response = result.faq.answer;
-			const localMsgId = addBotMessage(response);
-			addMessageToContext(response, true, {
-				type: "faq",
-				faqId: result.faq.id,
-			});
-			logInteraction(
-				message,
-				response,
-				"faq",
-				result.faq.id,
-				null,
-				startTime
-			).then((interactionId) => {
-				if (interactionId && localMsgId) {
-					updateMessageInteractionId(localMsgId, interactionId);
-				}
-			});
-
-			// Ajouter des suggestions contextuelles améliorées
-			const contextSuggestions = getContextSuggestions();
-			const basicSuggestions = generateContextualSuggestions({
+		try {
+			// Appel au backend NLP
+			const context = {
 				isAuthenticated,
+				userId: user?._id,
 				cartItems: cart?.items || [],
-				recentSearches: [message],
-			});
+				currentPage: location.pathname,
+			};
 
-			// Combiner les suggestions
-			const allSuggestions = [...contextSuggestions, ...basicSuggestions].slice(
-				0,
-				5
-			);
+			const response = await chatService.sendMessage(message, context);
 
-			if (allSuggestions.length > 0) {
-				setTimeout(() => {
-					setQuickLinks(
-						allSuggestions.map((s) => {
-							let to = "/products";
-							if (s.action === "MY_CART") to = "/cart";
-							else if (s.action === "MY_ORDERS") to = "/dashboard/orders";
-							else if (s.action?.startsWith("CATEGORY_"))
-								to = `/products?category=${s.action
-									.replace("CATEGORY_", "")
-									.toLowerCase()}`;
-							else if (
-								typeof s.action === "string" &&
-								s.action.length > 0 &&
-								!s.action.startsWith("CATEGORY_") &&
-								!s.action.startsWith("TOPIC_")
-							) {
-								// C'est une recherche
-								to = `/products?q=${encodeURIComponent(s.action)}`;
-							}
+			setIsTyping(false);
 
-							return {
-								to,
-								label: s.text,
-								action: s.action,
-							};
-						})
-					);
-				}, 500);
+			if (response) {
+				// 1. Afficher le texte de réponse
+				if (response.text) {
+					addBotMessage(response.text);
+				}
+
+				// 2. Gérer les données supplémentaires (produits, etc.)
+				if (response.data) {
+					// TODO: Adapter selon la structure retournée par le backend
+					// Pour l'instant on suppose que le backend renvoie data.products, etc.
+					if (response.data.products) setFoundProducts(response.data.products);
+					if (response.data.sellers) setFoundSellers(response.data.sellers);
+					if (response.data.transporters)
+						setFoundTransporters(response.data.transporters);
+				}
+
+				// 3. Gérer les actions rapides / liens
+				if (response.actions && response.actions.length > 0) {
+					setQuickLinks(response.actions);
+				}
+			} else {
+				addBotMessage(
+					"Désolé, je rencontre un problème technique. Veuillez réessayer plus tard."
+				);
 			}
-		} else if (result.type === "intent") {
-			addIntentToContext(result.intent, result.confidence || 1);
-
-			await handleIntent(result.intent, message, {
-				isAuthenticated,
-				getUserFirstName,
-				addBotMessage,
-				setIsTyping,
-				setQuickLinks,
-				setFoundProducts,
-				setShowCategories,
-				logInteraction,
-				cart,
-				clearCartAction,
-				updateMessageInteractionId,
-				startTime,
-				user,
-			});
-			logInteraction(
-				message,
-				"",
-				"intent",
-				null,
-				result.intent,
-				startTime
-			).then((interactionId) => {
-				// Note: Intents might add their own messages via addBotMessage inside handleIntent.
-				// We might need to handle those if we want feedback on intent responses.
-				// For now, we log the intent detection itself.
-			});
-		} else {
-			const found = await tryProductSearch(message, {
-				addBotMessage,
-				setIsTyping,
-				setFoundProducts,
-				setFoundSellers,
-				setFoundTransporters,
-				setQuickLinks,
-				setShowCategories,
-				logInteraction,
-				getUserFirstName,
-				onSearchComplete: (searchTerm, results) => {
-					// Ajouter la recherche au contexte
-					addSearchToContext(searchTerm, results);
-				},
-				updateMessageInteractionId,
-				startTime,
-			});
-			// Si found est false, tryProductSearch a déjà envoyé un message d'erreur approprié.
-			// Pas besoin d'envoyer un message générique "notUnderstood" en plus.
+		} catch (error) {
+			setIsTyping(false);
+			addBotMessage("Une erreur est survenue. Veuillez réessayer.");
+			console.error("Chat processing error:", error);
 		}
 	};
 
 	const handleSendMessage = async (message) => {
 		addUserMessage(message);
-
-		// Ajouter le message au contexte de conversation
-		addMessageToContext(message, false);
 
 		if (askingForInfo && infoStep) {
 			handleGuestInfoCollection(message);
@@ -319,6 +190,7 @@ const ChatBot = () => {
 	};
 
 	const handleQuickAction = async (action) => {
+		// Gérer les actions locales si nécessaire, sinon envoyer au backend
 		if (action === "confirmClearCart") {
 			try {
 				await clearCartAction();
@@ -330,6 +202,14 @@ const ChatBot = () => {
 		} else if (action === "cancel") {
 			addBotMessage("Action annulée.");
 			setQuickLinks([]);
+		} else {
+			// Si c'est une action de navigation ou autre, on peut rediriger ou envoyer un message
+			// Pour l'instant on rejoue l'action comme un message si ce n'est pas une url
+			if (action.startsWith("/")) {
+				// Navigation handled by QuickLinks component usually?
+				// Actually QuickLinks component handles navigation if 'to' is present.
+				// Here we handle 'action' string.
+			}
 		}
 	};
 
@@ -342,87 +222,66 @@ const ChatBot = () => {
 		}
 	};
 
-	const handleCategoryClick = (categoryId) => {
-		const categoryFaqs = faqData.faqs.filter((f) => f.category === categoryId);
-		if (categoryFaqs.length > 0) {
-			addBotMessage("Voici les questions fréquentes sur ce sujet :");
-			setQuickQuestions(categoryFaqs);
-		}
-		setShowCategories(false);
+	const handleCategoryClick = async (categoryId) => {
+		// Optionnel: demander au backend les questions pour cette catégorie
+		// Pour l'instant on peut envoyer un message "Questions sur [Catégorie]"
+		await processResponse(`Questions fréquentes sur ${categoryId}`);
 	};
 
 	const handleQuickQuestion = (faq) => {
 		addUserMessage(faq.question);
 		setQuickQuestions([]);
-		addBotMessage(faq.answer);
+		// On envoie la question au backend pour avoir la réponse (cohérence)
+		processResponse(faq.question);
 	};
 
 	const onIntentClick = (intent) => {
-		handleIntent(intent, "", {
-			isAuthenticated,
-			getUserFirstName,
-			addBotMessage,
-			setIsTyping,
-			setQuickLinks,
-			setFoundProducts,
-			setShowCategories,
-			logInteraction,
-			cart,
-			clearCartAction,
-			user,
-		});
+		// Mapper les intents rapides vers des messages naturels ou des appels backend
+		const intentMessages = {
+			TRACK_ORDER: "Où est ma commande ?",
+			MY_ORDERS: "Mes commandes",
+			CONTACT_SUPPORT: "Contacter le support",
+		};
+		const msg = intentMessages[intent] || intent;
+		handleSendMessage(msg);
 		setShowQuickActions(false);
 	};
 
+	// ... (Code tooltip existant conservé)
 	const [showTooltip, setShowTooltip] = React.useState(false);
-
-	const isHomePage = location.pathname === "/";
 	const TOOLTIP_STORAGE_KEY = "chatbot_tooltip_last_shown";
-	const TOOLTIP_DISPLAY_DURATION = 10000; // 10 secondes
-	const TOOLTIP_COOLDOWN = 5 * 60 * 1000; // 5 minutes
+	const TOOLTIP_DISPLAY_DURATION = 10000;
+	const TOOLTIP_COOLDOWN = 5 * 60 * 1000;
 
-	// Afficher la bulle sur la page d'accueil toutes les 5 minutes maximum
 	React.useEffect(() => {
 		if (!isHomePage || isOpen) {
-			// Ne jamais afficher en dehors de la home ou si le chat est ouvert
 			setShowTooltip(false);
 			return;
 		}
-
 		try {
 			const now = Date.now();
 			const lastShownRaw = localStorage.getItem(TOOLTIP_STORAGE_KEY);
 			const lastShown = lastShownRaw ? parseInt(lastShownRaw, 10) : 0;
-
 			if (!Number.isNaN(lastShown)) {
 				const elapsed = now - lastShown;
-				if (elapsed < TOOLTIP_COOLDOWN) {
-					// Trop tôt pour la réafficher
-					return;
-				}
+				if (elapsed < TOOLTIP_COOLDOWN) return;
 			}
-
-			// Conditions remplies : on affiche la bulle et on enregistre l'horodatage
 			setShowTooltip(true);
 			localStorage.setItem(TOOLTIP_STORAGE_KEY, String(now));
 		} catch {
-			// En cas de problème avec localStorage, on affiche quand même la bulle
 			setShowTooltip(true);
 		}
 	}, [isHomePage, isOpen, location.pathname]);
 
-	// Masquer la bulle après 10 secondes
 	React.useEffect(() => {
 		if (showTooltip && !isOpen) {
 			const timer = setTimeout(() => {
 				setShowTooltip(false);
-			}, TOOLTIP_DISPLAY_DURATION); // 10 secondes
-
+			}, TOOLTIP_DISPLAY_DURATION);
 			return () => clearTimeout(timer);
 		}
 	}, [showTooltip, isOpen]);
 
-	// Masquer la bulle si le chat est ouvert
 	React.useEffect(() => {
 		if (isOpen && showTooltip) {
 			setShowTooltip(false);
@@ -447,7 +306,6 @@ const ChatBot = () => {
 					/>
 				</div>
 
-				{/* Bulle d'information à côté du bouton */}
 				{showTooltip && !isOpen && (
 					<div
 						className="fixed right-24 z-[60] bg-white rounded-lg shadow-2xl p-4 border-2 border-green-200"
@@ -457,6 +315,7 @@ const ChatBot = () => {
 							maxWidth: "calc(100vw - 110px)",
 						}}
 					>
+						{/* Tooltip content preserved */}
 						<button
 							onClick={handleCloseTooltip}
 							className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors z-10"
@@ -491,7 +350,6 @@ const ChatBot = () => {
 								</p>
 							</div>
 						</div>
-						{/* Flèche pointant vers le bouton (en bas) */}
 						<div className="absolute right-0 bottom-0 translate-x-full">
 							<div className="w-0 h-0 border-t-8 border-t-transparent border-l-8 border-l-gray-200 border-b-8 border-b-transparent"></div>
 							<div className="absolute right-0 bottom-0 translate-x-full -ml-px">

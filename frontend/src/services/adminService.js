@@ -540,6 +540,24 @@ export const adminService = {
 		const response = await api.get("/chat/admin/interactions", { params });
 		return response.data;
 	},
+
+	// FAQ Management
+	getFaqs: async (params = {}) => {
+		const response = await api.get("/chat/admin/faqs", { params });
+		return response.data;
+	},
+	createFaq: async (faqData) => {
+		const response = await api.post("/chat/admin/faqs", faqData);
+		return response.data;
+	},
+	updateFaq: async (id, faqData) => {
+		const response = await api.patch(`/chat/admin/faqs/${id}`, faqData);
+		return response.data;
+	},
+	deleteFaq: async (id) => {
+		const response = await api.delete(`/chat/admin/faqs/${id}`);
+		return response.data;
+	},
 };
 
 // Export par défaut aussi

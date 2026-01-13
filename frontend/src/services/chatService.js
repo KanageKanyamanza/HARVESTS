@@ -274,6 +274,17 @@ export const chatService = {
 			return null;
 		}
 	},
+
+	// Envoyer un message au chatbot (NLP)
+	sendMessage: async (message, context = {}) => {
+		try {
+			const response = await api.post("/chat/message", { message, context });
+			return response.data?.data || null;
+		} catch (error) {
+			console.error("Erreur chatService.sendMessage:", error);
+			return null;
+		}
+	},
 };
 
 export default chatService;
