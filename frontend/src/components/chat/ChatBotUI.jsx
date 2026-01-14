@@ -32,8 +32,8 @@ const categoryIcons = {
 export const ChatBotButton = ({ onClick, backToTopVisible }) => (
 	<button
 		onClick={onClick}
-		className={`fixed right-6 w-14 h-14 bg-gradient-to-tr from-primary-600 to-primary-500 text-white rounded-[1.5rem] shadow-xl shadow-primary-200 hover:shadow-2xl hover:scale-110 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center z-40 group ${
-			backToTopVisible ? "bottom-[80px]" : "bottom-6"
+		className={`fixed right-6 w-12 h-12 bg-gradient-to-tr from-primary-600 to-primary-500 text-white rounded-[1.5rem] shadow-xl shadow-primary-200 hover:shadow-2xl hover:scale-110 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center z-40 group ${
+			backToTopVisible ? "bottom-[70px]" : "bottom-5"
 		}`}
 		aria-label="Ouvrir le chat"
 	>
@@ -68,7 +68,6 @@ export const ChatBotHeader = ({
 				<MessageCircle className="w-6 h-6 text-white" />
 			</div>
 			<div>
-				
 				<h3 className="font-bold text-white text-lg tracking-tight">
 					Assistant Harvests
 				</h3>

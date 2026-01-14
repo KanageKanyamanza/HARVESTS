@@ -42,6 +42,11 @@ const AdminNewsletter = () => {
 	const [activeTab, setActiveTab] = useState("overview");
 	const [imageUrl, setImageUrl] = useState("");
 	const [editingId, setEditingId] = useState(null);
+	const [sendModalOpen, setSendModalOpen] = useState(false);
+	const [newsletterToSend, setNewsletterToSend] = useState(null);
+	const [sendMode, setSendMode] = useState("all"); // 'all' or 'specific'
+	const [selectedSubscribers, setSelectedSubscribers] = useState(new Set());
+	const [searchTerm, setSearchTerm] = useState("");
 
 	// Stats state
 	const [stats, setStats] = useState({
@@ -229,34 +234,93 @@ const AdminNewsletter = () => {
 		setActiveTab("overview");
 	};
 
-	const handleSend = async (id) => {
+	const openSendModal = (newsletter) => {
+		setNewsletterToSend(newsletter);
+		setSendMode("all");
+		setSelectedSubscribers(new Set());
+		setSearchTerm("");
+		setSendModalOpen(true);
+	};
+
+	const closeSendModal = () => {
+		setSendModalOpen(false);
+		setNewsletterToSend(null);
+	};
+
+	const toggleSubscriber = (id) => {
+		const newSelected = new Set(selectedSubscribers);
+		if (newSelected.has(id)) {
+			newSelected.delete(id);
+		} else {
+			newSelected.add(id);
+		}
+		setSelectedSubscribers(newSelected);
+	};
+
+	const handleSelectAll = (subs) => {
+		if (selectedSubscribers.size === subs.length) {
+			setSelectedSubscribers(new Set());
+		} else {
+			setSelectedSubscribers(new Set(subs.map((s) => s._id)));
+		}
+	};
+
+	const confirmSend = async () => {
+		if (!newsletterToSend) return;
+
+		const recipients =
+			sendMode === "specific" ? Array.from(selectedSubscribers) : [];
+
+		if (sendMode === "specific" && recipients.length === 0) {
+			alert("Veuillez sélectionner au moins un abonné.");
+			return;
+		}
+
 		if (
 			!confirm(
-				"Êtes-vous sûr de vouloir envoyer cette newsletter à tous les abonnés ?"
+				`Confirmer l'envoi de "${newsletterToSend.subject}" à ${
+					sendMode === "all"
+						? "tous les abonnés"
+						: recipients.length + " abonnés"
+				} ?`
 			)
-		)
+		) {
 			return;
+		}
 
 		try {
 			const { API_BASE_URL } = getConfig();
 			const baseUrl = API_BASE_URL.replace(/\/api\/v1$/, "");
 
-			const response = await fetch(`${baseUrl}/api/v1/newsletter/${id}/send`, {
-				method: "POST",
-				headers: {
-					Authorization: `Bearer ${localStorage.getItem("harvests_token")}`,
-				},
-			});
+			const response = await fetch(
+				`${baseUrl}/api/v1/newsletter/${newsletterToSend._id}/send`,
+				{
+					method: "POST",
+					headers: {
+						Authorization: `Bearer ${localStorage.getItem("harvests_token")}`,
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						recipients: recipients.length > 0 ? recipients : undefined,
+					}),
+				}
+			);
 
 			if (response.ok) {
 				fetchData();
 				alert("Newsletter envoyée avec succès !");
+				closeSendModal();
+			} else {
+				const errorData = await response.json();
+				alert(errorData.message || "Erreur lors de l'envoi");
 			}
 		} catch (error) {
 			console.error("Error sending newsletter:", error);
 			alert("Erreur lors de l'envoi");
 		}
 	};
+
+	// handleSend removed/replaced
 
 	const handleDelete = async (id) => {
 		if (!confirm("Supprimer cette newsletter ?")) return;
@@ -676,16 +740,16 @@ const AdminNewsletter = () => {
 						<table className="w-full border-collapse min-w-[1000px]">
 							<thead className="bg-slate-50/50">
 								<tr>
-									<th className="px-5 py-3 text-left text-[9px] font-black text-slate-400 uppercase tracking-widest">
+									<th className="px-4 py-2 text-left text-[9px] font-black text-slate-400 uppercase tracking-widest">
 										Sujet & Date
 									</th>
-									<th className="px-5 py-3 text-left text-[9px] font-black text-slate-400 uppercase tracking-widest">
+									<th className="px-4 py-2 text-left text-[9px] font-black text-slate-400 uppercase tracking-widest">
 										Statut
 									</th>
-									<th className="px-5 py-3 text-left text-[9px] font-black text-slate-400 uppercase tracking-widest">
+									<th className="px-4 py-2 text-left text-[9px] font-black text-slate-400 uppercase tracking-widest">
 										Statistiques
 									</th>
-									<th className="px-5 py-3 text-right text-[9px] font-black text-slate-400 uppercase tracking-widest">
+									<th className="px-4 py-2 text-left text-[9px] font-black text-slate-400 uppercase tracking-widest">
 										Actions
 									</th>
 								</tr>
@@ -709,7 +773,7 @@ const AdminNewsletter = () => {
 											key={newsletter._id}
 											className="group hover:bg-slate-50/50 transition-colors duration-300"
 										>
-											<td className="px-5 py-3">
+											<td className="px-4 py-2">
 												<div className="flex items-center gap-4">
 													<div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center font-bold">
 														<Mail className="w-5 h-5" />
@@ -725,7 +789,7 @@ const AdminNewsletter = () => {
 													</div>
 												</div>
 											</td>
-											<td className="px-5 py-3">
+											<td className="px-4 py-2">
 												<span
 													className={`px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-lg ${
 														newsletter.status === "sent"
@@ -738,8 +802,8 @@ const AdminNewsletter = () => {
 														: "Brouillon"}
 												</span>
 											</td>
-											<td className="px-5 py-3">
-												<div className="flex items-center gap-5">
+											<td className="px-4 py-2">
+												<div className="flex items-center gap-3">
 													<div className="text-center">
 														<div className="text-sm font-black text-slate-900">
 															{newsletter.recipientCount || "-"}
@@ -759,24 +823,26 @@ const AdminNewsletter = () => {
 												</div>
 											</td>
 											<td className="px-5 py-3">
-												<div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+												<div className="flex items-center justify-start gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+													<button
+														onClick={() => openSendModal(newsletter)}
+														className="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:border-emerald-200 transition-all hover:shadow-lg"
+														title={
+															newsletter.status === "sent"
+																? "Renvoyer"
+																: "Envoyer"
+														}
+													>
+														<Send className="w-3.5 h-3.5" />
+													</button>
 													{newsletter.status !== "sent" && (
-														<>
-															<button
-																onClick={() => handleSend(newsletter._id)}
-																className="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:border-emerald-200 transition-all hover:shadow-lg"
-																title="Envoyer"
-															>
-																<Send className="w-3.5 h-3.5" />
-															</button>
-															<button
-																onClick={() => handleEdit(newsletter)}
-																className="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:border-blue-200 transition-all hover:shadow-lg"
-																title="Modifier"
-															>
-																<Edit className="w-3.5 h-3.5" />
-															</button>
-														</>
+														<button
+															onClick={() => handleEdit(newsletter)}
+															className="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:border-blue-200 transition-all hover:shadow-lg"
+															title="Modifier"
+														>
+															<Edit className="w-3.5 h-3.5" />
+														</button>
 													)}
 													<button
 														onClick={() => handleDelete(newsletter._id)}
@@ -800,13 +866,13 @@ const AdminNewsletter = () => {
 						<table className="w-full border-collapse min-w-[1000px]">
 							<thead className="bg-slate-50/50">
 								<tr>
-									<th className="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
+									<th className="px-5 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
 										Email
 									</th>
-									<th className="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
+									<th className="px-5 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
 										Date d'inscription
 									</th>
-									<th className="px-8 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
+									<th className="px-5 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">
 										Statut
 									</th>
 								</tr>
@@ -817,17 +883,17 @@ const AdminNewsletter = () => {
 										key={sub._id}
 										className="group hover:bg-slate-50/50 transition-colors duration-300"
 									>
-										<td className="px-8 py-6">
+										<td className="px-5 py-3">
 											<div className="font-bold text-slate-700">
 												{sub.email}
 											</div>
 										</td>
-										<td className="px-8 py-6">
+										<td className="px-5 py-3">
 											<div className="font-bold text-slate-500">
 												{new Date(sub.createdAt).toLocaleDateString()}
 											</div>
 										</td>
-										<td className="px-8 py-6">
+										<td className="px-5 py-3">
 											<span
 												className={`px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-full ${
 													sub.isActive
@@ -845,6 +911,165 @@ const AdminNewsletter = () => {
 					</div>
 				)}
 			</div>
+
+			{/* Send Modal */}
+			{sendModalOpen && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+					<div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+						<div className="p-4 border-b border-slate-100 flex justify-between items-center">
+							<h3 className="text-lg font-black text-slate-900">
+								Envoyer "{newsletterToSend?.subject}"
+							</h3>
+							<button
+								onClick={closeSendModal}
+								className="p-1 rounded-lg hover:bg-slate-100"
+							>
+								<X className="w-5 h-5 text-slate-500" />
+							</button>
+						</div>
+						<div className="p-6 overflow-y-auto">
+							<div className="mb-6">
+								<label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">
+									Destinataires
+								</label>
+								<div className="flex gap-4">
+									<label className="flex items-center gap-2 cursor-pointer p-3 border rounded-xl hover:bg-slate-50 transition-colors flex-1">
+										<input
+											type="radio"
+											name="sendMode"
+											value="all"
+											checked={sendMode === "all"}
+											onChange={() => setSendMode("all")}
+											className="text-emerald-600 focus:ring-emerald-500"
+										/>
+										<span className="font-bold text-slate-700 text-sm">
+											Tous les abonnés actifs
+										</span>
+									</label>
+									<label className="flex items-center gap-2 cursor-pointer p-3 border rounded-xl hover:bg-slate-50 transition-colors flex-1">
+										<input
+											type="radio"
+											name="sendMode"
+											value="specific"
+											checked={sendMode === "specific"}
+											onChange={() => setSendMode("specific")}
+											className="text-emerald-600 focus:ring-emerald-500"
+										/>
+										<span className="font-bold text-slate-700 text-sm">
+											Sélectionner manuellement
+										</span>
+									</label>
+								</div>
+							</div>
+
+							{sendMode === "specific" && (
+								<div className="animate-fadeIn">
+									<div className="flex justify-between items-center mb-2">
+										<input
+											type="text"
+											placeholder="Rechercher un abonné..."
+											value={searchTerm}
+											onChange={(e) => setSearchTerm(e.target.value)}
+											className="px-3 py-2 border rounded-lg text-sm w-1/2"
+										/>
+										<button
+											type="button"
+											onClick={() =>
+												handleSelectAll(
+													subscribers.filter(
+														(s) =>
+															s.isActive &&
+															s.email
+																.toLowerCase()
+																.includes(searchTerm.toLowerCase())
+													)
+												)
+											}
+											className="text-xs font-bold text-emerald-600 hover:text-emerald-700"
+										>
+											{selectedSubscribers.size === subscribers.length
+												? "Tout désélectionner"
+												: "Tout sélectionner"}
+										</button>
+									</div>
+									<div className="border rounded-xl overflow-hidden max-h-[300px] overflow-y-auto">
+										<table className="w-full">
+											<thead className="bg-slate-50 sticky top-0">
+												<tr>
+													<th className="w-10 px-4 py-2 text-left">
+														<CheckCircle className="w-4 h-4 text-slate-300" />
+													</th>
+													<th className="px-4 py-2 text-left text-xs font-bold text-slate-500">
+														Email
+													</th>
+													<th className="px-4 py-2 text-left text-xs font-bold text-slate-500">
+														Date
+													</th>
+												</tr>
+											</thead>
+											<tbody className="divide-y divide-slate-50">
+												{subscribers
+													.filter(
+														(sub) =>
+															sub.isActive &&
+															sub.email
+																.toLowerCase()
+																.includes(searchTerm.toLowerCase())
+													)
+													.map((sub) => (
+														<tr
+															key={sub._id}
+															className="hover:bg-slate-50 cursor-pointer"
+															onClick={() => toggleSubscriber(sub._id)}
+														>
+															<td className="px-4 py-3">
+																<div
+																	className={`w-4 h-4 rounded border flex items-center justify-center ${
+																		selectedSubscribers.has(sub._id)
+																			? "bg-emerald-500 border-emerald-500"
+																			: "border-slate-300"
+																	}`}
+																>
+																	{selectedSubscribers.has(sub._id) && (
+																		<CheckCircle className="w-3 h-3 text-white" />
+																	)}
+																</div>
+															</td>
+															<td className="px-4 py-3 text-sm font-medium text-slate-700">
+																{sub.email}
+															</td>
+															<td className="px-4 py-3 text-xs text-slate-500">
+																{new Date(sub.createdAt).toLocaleDateString()}
+															</td>
+														</tr>
+													))}
+											</tbody>
+										</table>
+									</div>
+									<p className="text-right text-xs text-slate-400 mt-2">
+										{selectedSubscribers.size} abonnés sélectionnés
+									</p>
+								</div>
+							)}
+						</div>
+						<div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+							<button
+								onClick={closeSendModal}
+								className="px-4 py-2 text-slate-600 font-bold text-xs uppercase tracking-wider hover:bg-slate-200 rounded-lg transition-colors"
+							>
+								Annuler
+							</button>
+							<button
+								onClick={confirmSend}
+								className="px-6 py-2 bg-slate-900 text-white font-bold text-xs uppercase tracking-wider rounded-lg hover:bg-emerald-600 transition-colors shadow-lg flex items-center gap-2"
+							>
+								<Send className="w-4 h-4" />
+								Envoyer
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 };
