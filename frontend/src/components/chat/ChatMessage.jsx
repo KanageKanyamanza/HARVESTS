@@ -51,7 +51,7 @@ const ChatMessage = ({
 				} max-w-[85%]`}
 			>
 				<div
-					className={`px-5 py-3 text-[14px] leading-relaxed shadow-sm ${
+					className={`px-4 py-2.5 text-[13px] leading-relaxed shadow-sm ${
 						isBot
 							? "bg-white border border-gray-100 text-gray-700 rounded-2xl rounded-bl-sm"
 							: "bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-2xl rounded-br-sm shadow-emerald-100"

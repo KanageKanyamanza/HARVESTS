@@ -1,7 +1,99 @@
 const ChatInteraction = require("../../models/ChatInteraction");
 const UnansweredQuestion = require("../../models/UnansweredQuestion");
+const Faq = require("../../models/Faq");
+const { trainBot } = require("./chatBotController");
 const catchAsync = require("../../utils/catchAsync");
 const AppError = require("../../utils/appError");
+
+// --- Gestion des FAQs ---
+
+// Obtenir toutes les FAQs (admin)
+exports.getFaqs = catchAsync(async (req, res, next) => {
+	const { page = 1, limit = 20, search, category } = req.query;
+	const skip = (parseInt(page) - 1) * parseInt(limit);
+
+	const filter = {};
+	if (search) {
+		filter.$or = [
+			{ question: { $regex: search, $options: "i" } },
+			{ answer: { $regex: search, $options: "i" } },
+			{ keywords: { $in: [new RegExp(search, "i")] } },
+		];
+	}
+	if (category && category !== "all") {
+		filter.category = category;
+	}
+
+	const [faqs, total] = await Promise.all([
+		Faq.find(filter).sort({ updatedAt: -1 }).skip(skip).limit(parseInt(limit)),
+		Faq.countDocuments(filter),
+	]);
+
+	res.status(200).json({
+		status: "success",
+		results: faqs.length,
+		data: {
+			faqs,
+			pagination: {
+				currentPage: parseInt(page),
+				totalPages: Math.ceil(total / parseInt(limit)),
+				total,
+			},
+		},
+	});
+});
+
+// Créer une FAQ
+exports.createFaq = catchAsync(async (req, res, next) => {
+	const newFaq = await Faq.create(req.body);
+
+	// Ré-entraîner le bot en arrière-plan
+	trainBot().catch((err) => console.error("Auto-training failed:", err));
+
+	res.status(201).json({
+		status: "success",
+		data: { faq: newFaq },
+	});
+});
+
+// Modifier une FAQ
+exports.updateFaq = catchAsync(async (req, res, next) => {
+	const faq = await Faq.findByIdAndUpdate(req.params.id, req.body, {
+		new: true,
+		runValidators: true,
+	});
+
+	if (!faq) {
+		return next(new AppError("FAQ non trouvée", 404));
+	}
+
+	// Ré-entraîner le bot
+	trainBot().catch((err) => console.error("Auto-training failed:", err));
+
+	res.status(200).json({
+		status: "success",
+		data: { faq },
+	});
+});
+
+// Supprimer une FAQ
+exports.deleteFaq = catchAsync(async (req, res, next) => {
+	const faq = await Faq.findByIdAndDelete(req.params.id);
+
+	if (!faq) {
+		return next(new AppError("FAQ non trouvée", 404));
+	}
+
+	// Ré-entraîner le bot
+	trainBot().catch((err) => console.error("Auto-training failed:", err));
+
+	res.status(204).json({
+		status: "success",
+		data: null,
+	});
+});
+
+// --- Fin Gestion des FAQs ---
 
 // Obtenir les questions sans réponse (admin)
 exports.getUnansweredQuestions = catchAsync(async (req, res, next) => {

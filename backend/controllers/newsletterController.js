@@ -13,28 +13,59 @@ exports.subscribe = catchAsync(async (req, res, next) => {
 	}
 
 	let subscriber = await NewsletterSubscriber.findOne({ email });
+	let isNewSubscription = false;
 
 	if (subscriber) {
 		if (!subscriber.isActive) {
 			subscriber.isActive = true;
 			subscriber.unsubscribedAt = undefined;
 			await subscriber.save();
-
-			return res.status(200).json({
-				status: "success",
-				message: "Re-bonjour ! Vous êtes à nouveau abonné à notre newsletter.",
-			});
+			isNewSubscription = true; // Treated as new sub for welcome email
 		} else {
 			return res.status(200).json({
 				status: "success",
 				message: "Vous êtes déjà abonné à notre newsletter.",
 			});
 		}
+	} else {
+		subscriber = await NewsletterSubscriber.create({ email });
+		isNewSubscription = true;
 	}
 
-	subscriber = await NewsletterSubscriber.create({ email });
+	if (isNewSubscription) {
+		// Send Welcome Email with Newsletter Design
+		// Standard Welcome Content
+		const welcomeContent = `
+      <div style="font-family: inherit; color: #4a5568;">
+        <h2 style="color: #2f855a; margin-top: 0;">Bienvenue dans la communauté Harvests ! 🌱</h2>
+        <p>Merci de vous être inscrit à notre newsletter. Nous sommes ravis de vous compter parmi nous.</p>
+        <p>Vous recevrez désormais nos actualités, conseils et mises à jour directement dans votre boîte de réception.</p>
+        <p>En attendant, n'hésitez pas à visiter notre plateforme pour découvrir les dernières offres.</p>
+        <br>
+        <p>À très bientôt,</p>
+        <p><strong>L'équipe Harvests</strong></p>
+      </div>
+    `;
 
-	res.status(201).json({
+		try {
+			emailQueue.addToQueue({
+				email: subscriber.email,
+				emailType: "newsletter", // Reusing newsletter type for same design
+				subject: "Bienvenue sur la newsletter Harvests !",
+				content: welcomeContent,
+				imageUrl:
+					"https://res.cloudinary.com/dmykbxyyy/image/upload/v1705000000/harvests/newsletter-welcome.jpg", // Optional: generic welcome image
+				user: { email: subscriber.email, firstName: "Abonné" },
+				verifyURL: process.env.FRONTEND_URL || "https://harvests.onrender.com",
+				// No newsletterId for welcome email to avoid tracking errors or confusion
+			});
+		} catch (error) {
+			console.error("Error queueing welcome email:", error);
+			// Do not fail the request if email fails
+		}
+	}
+
+	res.status(200).json({
 		status: "success",
 		message: "Merci de vous être abonné à notre newsletter !",
 	});
@@ -182,22 +213,36 @@ exports.trackOpen = catchAsync(async (req, res, next) => {
 // Admin: Send newsletter
 exports.sendNewsletter = catchAsync(async (req, res, next) => {
 	const { id } = req.params;
+	const { recipients } = req.body; // Optional: array of subscriber IDs
 
 	const newsletter = await Newsletter.findById(id);
 	if (!newsletter) {
 		return next(new AppError("Newsletter non trouvée", 404));
 	}
 
-	if (newsletter.status === "sent") {
-		return next(new AppError("Cette newsletter a déjà été envoyée.", 400));
+	// If no specific recipients are selected, enforce status check
+	if (!recipients || recipients.length === 0) {
+		if (newsletter.status === "sent") {
+			return next(new AppError("Cette newsletter a déjà été envoyée.", 400));
+		}
 	}
 
-	// Get active subscribers
-	const subscribers = await NewsletterSubscriber.find({ isActive: true });
+	let subscribers;
+
+	if (recipients && recipients.length > 0) {
+		// Send to specific recipients (Resend or Selective Send)
+		subscribers = await NewsletterSubscriber.find({
+			_id: { $in: recipients },
+			isActive: true, // Always check if active
+		});
+	} else {
+		// Send to all active subscribers
+		subscribers = await NewsletterSubscriber.find({ isActive: true });
+	}
 
 	if (subscribers.length === 0) {
 		return next(
-			new AppError("Aucun abonné actif trouvé pour envoyer la newsletter.", 400)
+			new AppError("Aucun abonné actif trouvé pour l'envoi sélectionné.", 400)
 		);
 	}
 
@@ -222,10 +267,27 @@ exports.sendNewsletter = catchAsync(async (req, res, next) => {
 		count++;
 	}
 
-	// Update newsletter status
-	newsletter.status = "sent";
-	newsletter.sentAt = Date.now();
-	newsletter.recipientCount = count;
+	// Only update status if sending to ALL (or significant batch), or maybe always update send date?
+	// For now, if it was draft, mark as sent. If sent, update recipient count (add logic).
+	// Simplification: Always mark as sent if not already. Update stats.
+
+	if (newsletter.status !== "sent") {
+		newsletter.status = "sent";
+		newsletter.sentAt = Date.now();
+		newsletter.recipientCount = count;
+	} else {
+		// If resending, maybe just increment recipientCount?
+		// Or keep it as is to reflect original "bulk" send.
+		// Let's just update recipient count to reflect total ever sent?
+		// Or maybe we don't update if it's a resend to avoid messing up "Open Rate" metrics (which uses recipientCount).
+		// If we resend to 1 person, open rate denominator shouldn't spike if we don't track them separately.
+		// Ideally we track unique recipients.
+		// For now, let's just leave recipientCount as the initial send count if it's already sent, unless we are "sending for the first time" to a subset.
+		if (!recipients) {
+			newsletter.recipientCount = count;
+		}
+	}
+
 	await newsletter.save();
 
 	res.status(200).json({

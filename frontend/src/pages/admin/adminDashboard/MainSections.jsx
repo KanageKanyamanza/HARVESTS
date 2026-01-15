@@ -77,15 +77,15 @@ const MainSections = () => {
 					</p>
 				</div>
 			</div>
-			<div className="p-8">
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+			<div className="p-2 md:p-8">
+				<div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-6">
 					{sections.map((section, index) => {
 						const colorClasses = getColorClasses(section.color);
 						return (
 							<Link
 								key={index}
 								to={section.to}
-								className={`group relative flex flex-col items-center justify-center p-8 rounded-[2rem] border transition-all duration-300 ${colorClasses
+								className={`group relative flex flex-col items-center justify-center p-4 md:p-8 rounded-[2rem] border transition-all duration-300 ${colorClasses
 									.split(" ")
 									.slice(3)
 									.join(

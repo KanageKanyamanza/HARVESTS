@@ -24,6 +24,7 @@ import {
 	Search,
 	ChevronLeft,
 	ChevronRight,
+	HelpCircle,
 } from "lucide-react";
 import NotificationDropdown from "../notifications/NotificationDropdown";
 import CloudinaryImage from "../common/CloudinaryImage";
@@ -130,7 +131,13 @@ const AdminLayout = ({ children }) => {
 			name: "Chatbot",
 			href: "/admin/chatbot",
 			icon: MessageCircle,
-			current: location.pathname.startsWith("/admin/chatbot"),
+			current: location.pathname === "/admin/chatbot",
+		},
+		{
+			name: "FAQs Chatbot",
+			href: "/admin/chatbot/faqs",
+			icon: HelpCircle,
+			current: location.pathname.startsWith("/admin/chatbot/faqs"),
 		},
 		{
 			name: "Notifications",
@@ -149,89 +156,128 @@ const AdminLayout = ({ children }) => {
 	return (
 		<div className="min-h-screen bg-gray-50/50">
 			{/* Mobile sidebar */}
+			{/* Mobile sidebar - Redesigned & Premium */}
 			<div
-				className={`fixed inset-0 z-50 lg:hidden ${
-					sidebarOpen ? "block" : "hidden"
+				className={`fixed inset-0 z-50 lg:hidden transition-opacity duration-300 ease-in-out ${
+					sidebarOpen
+						? "opacity-100 pointer-events-auto"
+						: "opacity-0 pointer-events-none"
 				}`}
 			>
+				{/* Backdrop */}
 				<div
-					className="fixed inset-0 bg-gray-600 bg-opacity-75"
+					className={`fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 ${
+						sidebarOpen ? "opacity-100" : "opacity-0"
+					}`}
 					onClick={() => setSidebarOpen(false)}
 				/>
-				<div className="relative flex flex-col h-full max-w-xs w-full bg-white">
-					<div className="absolute top-0 right-0 -mr-12 pt-2">
+
+				{/* Sidebar Panel */}
+				<div
+					className={`relative flex flex-col h-full w-[85%] max-w-[300px] bg-white/95 backdrop-blur-xl shadow-2xl transform transition-transform duration-300 ease-out border-r border-white/20 ${
+						sidebarOpen ? "translate-x-0" : "-translate-x-full"
+					}`}
+				>
+					{/* Close Button */}
+					<div className="absolute top-4 right-4 z-50">
 						<button
 							type="button"
-							className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+							className="p-2 rounded-full bg-gray-100/50 text-gray-500 hover:bg-gray-200 transition-colors"
 							onClick={() => setSidebarOpen(false)}
 						>
-							<X className="h-6 w-6 text-white" />
+							<X className="h-5 w-5" />
 						</button>
 					</div>
-					<div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-						<div className="flex-shrink-0 flex items-center px-4">
-							<Shield className="h-8 w-8 text-green-600" />
-							<span className="ml-2 text-xl font-bold text-gray-900">
-								Admin Panel
-							</span>
+
+					{/* Header Logo */}
+					<div className="flex-shrink-0 px-6 pt-10 pb-6 border-b border-gray-100">
+						<div className="flex items-center gap-3">
+							<div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-green-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-green-200">
+								<Shield className="h-6 w-6 text-white" />
+							</div>
+							<div>
+								<h2 className="text-xl font-[1000] text-gray-900 tracking-tighter leading-none">
+									Panel<span className="text-green-600">Admin</span>.
+								</h2>
+								<p className="text-[10px] uppercase font-bold text-gray-400 tracking-widest mt-0.5">
+									Harvests Manager
+								</p>
+							</div>
 						</div>
-						<nav className="mt-5 flex-1 px-2 space-y-1">
-							{menuItems.map((item) => {
-								const Icon = item.icon;
-								return (
-									<Link
-										key={item.name}
-										to={item.href}
-										onClick={() => setSidebarOpen(false)}
-										className={`${
+					</div>
+
+					{/* Navigation Items */}
+					<div className="flex-1 overflow-y-auto py-6 px-4 space-y-1 scrollbar-hide">
+						{menuItems.map((item) => {
+							const Icon = item.icon;
+							return (
+								<Link
+									key={item.name}
+									to={item.href}
+									onClick={() => setSidebarOpen(false)}
+									className={`group flex items-center px-4 py-3.5 text-sm font-bold rounded-2xl transition-all duration-300 ${
+										item.current
+											? "bg-green-50 text-green-700 shadow-sm shadow-green-100"
+											: "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+									}`}
+								>
+									<Icon
+										className={`mr-4 h-5 w-5 transition-transform duration-300 ${
 											item.current
-												? "bg-green-100 text-green-900"
-												: "text-gray-600 hover:bg-harvests-light hover:text-gray-900"
-										} group flex items-center px-2 py-2 text-base font-medium rounded-md`}
-									>
-										<Icon className="mr-4 h-6 w-6" />
-										{item.name}
-									</Link>
-								);
-							})}
-						</nav>
-						{/* User info en bas */}
-						<div className="flex-shrink-0 px-4 py-4 border-t border-gray-200">
-							<div className="flex items-center">
-								<div className="flex-shrink-0">
+												? "text-green-600 scale-110"
+												: "text-gray-400 group-hover:text-gray-600 group-hover:scale-105"
+										}`}
+									/>
+									<span className="tracking-tight">{item.name}</span>
+									{item.current && (
+										<div className="ml-auto w-1.5 h-1.5 rounded-full bg-green-500 shadow-sm shadow-green-300"></div>
+									)}
+								</Link>
+							);
+						})}
+					</div>
+
+					{/* Footer User & Logout */}
+					<div className="flex-shrink-0 p-4 border-t border-gray-100 bg-gray-50/50">
+						<div className="flex items-center justify-between mb-4 px-2">
+							<div className="flex items-center gap-3">
+								<div className="relative">
 									{user?.avatar ? (
 										<CloudinaryImage
 											src={user.avatar}
 											alt={`${user.firstName} ${user.lastName}`}
-											className="h-10 w-10 rounded-full object-cover border-2 border-gray-200"
-											fallback={
-												<div className="h-10 w-10 rounded-full bg-green-600 flex items-center justify-center">
-													<span className="text-white text-sm font-medium">
-														{user?.firstName?.charAt(0)}
-														{user?.lastName?.charAt(0)}
-													</span>
-												</div>
-											}
+											className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-md"
 										/>
 									) : (
-										<div className="h-10 w-10 rounded-full bg-green-600 flex items-center justify-center">
-											<span className="text-white text-sm font-medium">
+										<div className="h-10 w-10 rounded-full bg-gradient-to-br from-gray-800 to-gray-700 flex items-center justify-center border-2 border-white shadow-md">
+											<span className="text-white text-xs font-bold">
 												{user?.firstName?.charAt(0)}
 												{user?.lastName?.charAt(0)}
 											</span>
 										</div>
 									)}
+									<div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
 								</div>
-								<div className="ml-3">
-									<p className="text-sm font-medium text-gray-700">
+								<div>
+									<p className="text-sm font-black text-gray-900 leading-none">
 										{user?.firstName} {user?.lastName}
 									</p>
-									<p className="text-xs font-medium text-gray-500">
+									<p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">
 										Administrateur
 									</p>
 								</div>
 							</div>
 						</div>
+
+						<button
+							onClick={handleLogout}
+							className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-rose-100 text-rose-600 rounded-xl hover:bg-rose-50 hover:border-rose-200 hover:shadow-sm transition-all duration-300 group"
+						>
+							<LogOut className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+							<span className="text-xs font-black uppercase tracking-widest">
+								Déconnexion
+							</span>
+						</button>
 					</div>
 				</div>
 			</div>

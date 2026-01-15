@@ -254,7 +254,7 @@ const AdminManagement = () => {
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="max-w-full mx-auto px-4 py-6 relative z-10 pl-6 space-y-4">
+			<div className="max-w-full mx-auto px-3 py-4 relative z-10 pl-1 space-y-3 md:pl-6 md:px-4 md:py-6 md:space-y-4">
 				{/* Messages de succès/erreur */}
 				{success && (
 					<div className="mb-4 animate-fade-in">

@@ -54,6 +54,9 @@ const AdminSubscriptions = React.lazy(() =>
 const ChatbotManagement = React.lazy(() =>
 	import("../../../pages/admin/ChatbotManagement")
 );
+const AdminFaqManager = React.lazy(() =>
+	import("../../../pages/admin/AdminFaqManager")
+);
 const AdminSettings = React.lazy(() =>
 	import("../../../pages/admin/AdminSettings")
 );
@@ -170,6 +173,11 @@ export const adminRoutes = [
 		path: "/admin/chatbot",
 		element: <ChatbotManagement />,
 		title: "Gestion du Chatbot",
+	},
+	{
+		path: "/admin/chatbot/faqs",
+		element: <AdminFaqManager />,
+		title: "Gestion des FAQs",
 	},
 	{
 		path: "/admin/settings",

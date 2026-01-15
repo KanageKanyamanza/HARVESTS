@@ -1,0 +1,3917 @@
+{
+  "settings": {
+    "languages": [
+      "fr"
+    ],
+    "forceNER": true,
+    "nlu": {
+      "useNoneFeature": true
+    },
+    "tag": "nlp",
+    "threshold": 0.5,
+    "autoLoad": true,
+    "autoSave": true,
+    "modelFileName": "model.nlp",
+    "executeActionsBeforeAnswers": false,
+    "calculateSentiment": true
+  },
+  "nluManager": {
+    "settings": {
+      "tag": "nlu-manager",
+      "useNoneFeature": true
+    },
+    "locales": [
+      "fr"
+    ],
+    "languageNames": {},
+    "domainManagers": {
+      "fr": {
+        "settings": {
+          "locale": "fr",
+          "useNoneFeature": true,
+          "trainByDomain": false,
+          "tag": "domain-manager-fr",
+          "nluByDomain": {
+            "default": {
+              "className": "NeuralNlu",
+              "settings": {}
+            }
+          },
+          "useStemDict": true
+        },
+        "stemDict": {
+          "de,del,le,livraison,quel,sont": {
+            "intent": "livraison.delai",
+            "domain": "default"
+          },
+          "del": {
+            "intent": "livraison.delai",
+            "domain": "default"
+          },
+          "del,je,savoir,veux": {
+            "intent": "livraison.delai",
+            "domain": "default"
+          },
+          "de,del,moi,parl": {
+            "intent": "livraison.delai",
+            "domain": "default"
+          },
+          "temp": {
+            "intent": "livraison.delai",
+            "domain": "default"
+          },
+          "je,savoir,temp,veux": {
+            "intent": "livraison.delai",
+            "domain": "default"
+          },
+          "de,moi,parl,temp": {
+            "intent": "livraison.delai",
+            "domain": "default"
+          },
+          "jour": {
+            "intent": "livraison.delai",
+            "domain": "default"
+          },
+          "je,jour,savoir,veux": {
+            "intent": "livraison.delai",
+            "domain": "default"
+          },
+          "de,jour,moi,parl": {
+            "intent": "livraison.delai",
+            "domain": "default"
+          },
+          "quand": {
+            "intent": "livraison.delai",
+            "domain": "default"
+          },
+          "je,quand,savoir,veux": {
+            "intent": "livraison.delai",
+            "domain": "default"
+          },
+          "de,moi,parl,quand": {
+            "intent": "livraison.delai",
+            "domain": "default"
+          },
+          "arriv": {
+            "intent": "livraison.delai",
+            "domain": "default"
+          },
+          "arriv,je,savoir,veux": {
+            "intent": "livraison.delai",
+            "domain": "default"
+          },
+          "arriv,de,moi,parl": {
+            "intent": "livraison.delai",
+            "domain": "default"
+          },
+          "combien,de,temp": {
+            "intent": "livraison.delai",
+            "domain": "default"
+          },
+          "combien,de,je,savoir,temp,veux": {
+            "intent": "livraison.delai",
+            "domain": "default"
+          },
+          "combien,de,moi,parl,temp": {
+            "intent": "livraison.delai",
+            "domain": "default"
+          },
+          "combien,cout,la,livraison": {
+            "intent": "livraison.frais",
+            "domain": "default"
+          },
+          "frais": {
+            "intent": "produits.qualite",
+            "domain": "default"
+          },
+          "frais,je,savoir,veux": {
+            "intent": "produits.qualite",
+            "domain": "default"
+          },
+          "de,frais,moi,parl": {
+            "intent": "produits.qualite",
+            "domain": "default"
+          },
+          "cout": {
+            "intent": "livraison.frais",
+            "domain": "default"
+          },
+          "cout,je,savoir,veux": {
+            "intent": "livraison.frais",
+            "domain": "default"
+          },
+          "cout,de,moi,parl": {
+            "intent": "livraison.frais",
+            "domain": "default"
+          },
+          "prix": {
+            "intent": "livraison.frais",
+            "domain": "default"
+          },
+          "je,prix,savoir,veux": {
+            "intent": "livraison.frais",
+            "domain": "default"
+          },
+          "de,moi,parl,prix": {
+            "intent": "livraison.frais",
+            "domain": "default"
+          },
+          "tarif": {
+            "intent": "livraison.frais",
+            "domain": "default"
+          },
+          "je,savoir,tarif,veux": {
+            "intent": "livraison.frais",
+            "domain": "default"
+          },
+          "de,moi,parl,tarif": {
+            "intent": "livraison.frais",
+            "domain": "default"
+          },
+          "gratuit": {
+            "intent": "livraison.frais",
+            "domain": "default"
+          },
+          "gratuit,je,savoir,veux": {
+            "intent": "livraison.frais",
+            "domain": "default"
+          },
+          "de,gratuit,moi,parl": {
+            "intent": "livraison.frais",
+            "domain": "default"
+          },
+          "combien,cout": {
+            "intent": "livraison.frais",
+            "domain": "default"
+          },
+          "combien,cout,je,savoir,veux": {
+            "intent": "livraison.frais",
+            "domain": "default"
+          },
+          "combien,cout,de,moi,parl": {
+            "intent": "livraison.frais",
+            "domain": "default"
+          },
+          "cher": {
+            "intent": "livraison.frais",
+            "domain": "default"
+          },
+          "cher,je,savoir,veux": {
+            "intent": "livraison.frais",
+            "domain": "default"
+          },
+          "cher,de,moi,parl": {
+            "intent": "livraison.frais",
+            "domain": "default"
+          },
+          "command,comment,ma,suivr": {
+            "intent": "livraison.suivi",
+            "domain": "default"
+          },
+          "suivr": {
+            "intent": "livraison.suivi",
+            "domain": "default"
+          },
+          "je,savoir,suivr,veux": {
+            "intent": "livraison.suivi",
+            "domain": "default"
+          },
+          "de,moi,parl,suivr": {
+            "intent": "livraison.suivi",
+            "domain": "default"
+          },
+          "suiv": {
+            "intent": "livraison.suivi",
+            "domain": "default"
+          },
+          "je,savoir,suiv,veux": {
+            "intent": "livraison.suivi",
+            "domain": "default"
+          },
+          "de,moi,parl,suiv": {
+            "intent": "livraison.suivi",
+            "domain": "default"
+          },
+          "ou": {
+            "intent": "livraison.suivi",
+            "domain": "default"
+          },
+          "je,ou,savoir,veux": {
+            "intent": "livraison.suivi",
+            "domain": "default"
+          },
+          "de,moi,ou,parl": {
+            "intent": "livraison.suivi",
+            "domain": "default"
+          },
+          "command": {
+            "intent": "commande.annuler",
+            "domain": "default"
+          },
+          "command,je,savoir,veux": {
+            "intent": "commande.annuler",
+            "domain": "default"
+          },
+          "command,de,moi,parl": {
+            "intent": "commande.annuler",
+            "domain": "default"
+          },
+          "statut": {
+            "intent": "livraison.suivi",
+            "domain": "default"
+          },
+          "je,savoir,statut,veux": {
+            "intent": "livraison.suivi",
+            "domain": "default"
+          },
+          "de,moi,parl,statut": {
+            "intent": "livraison.suivi",
+            "domain": "default"
+          },
+          "tracking": {
+            "intent": "livraison.suivi",
+            "domain": "default"
+          },
+          "je,savoir,tracking,veux": {
+            "intent": "livraison.suivi",
+            "domain": "default"
+          },
+          "de,moi,parl,tracking": {
+            "intent": "livraison.suivi",
+            "domain": "default"
+          },
+          "accept,de,le,mod,pai,quel,sont": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "pai": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "je,pai,savoir,veux": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "de,moi,pai,parl": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "mod": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "je,mod,savoir,veux": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "de,mod,moi,parl": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "moyen": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "je,moyen,savoir,veux": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "de,moi,moyen,parl": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "cart": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "cart,je,savoir,veux": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "cart,de,moi,parl": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "mobil": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "je,mobil,savoir,veux": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "de,mobil,moi,parl": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "money": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "je,money,savoir,veux": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "de,moi,money,parl": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "wav": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "je,savoir,veux,wav": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "de,moi,parl,wav": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "orang": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "je,orang,savoir,veux": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "de,moi,orang,parl": {
+            "intent": "paiement.modes",
+            "domain": "default"
+          },
+          "est-il,le,pai,securis": {
+            "intent": "paiement.securite",
+            "domain": "default"
+          },
+          "securis": {
+            "intent": "paiement.securite",
+            "domain": "default"
+          },
+          "je,savoir,securis,veux": {
+            "intent": "paiement.securite",
+            "domain": "default"
+          },
+          "de,moi,parl,securis": {
+            "intent": "paiement.securite",
+            "domain": "default"
+          },
+          "securit": {
+            "intent": "paiement.securite",
+            "domain": "default"
+          },
+          "je,savoir,securit,veux": {
+            "intent": "paiement.securite",
+            "domain": "default"
+          },
+          "de,moi,parl,securit": {
+            "intent": "paiement.securite",
+            "domain": "default"
+          },
+          "confianc": {
+            "intent": "paiement.securite",
+            "domain": "default"
+          },
+          "confianc,je,savoir,veux": {
+            "intent": "paiement.securite",
+            "domain": "default"
+          },
+          "confianc,de,moi,parl": {
+            "intent": "paiement.securite",
+            "domain": "default"
+          },
+          "fiabl": {
+            "intent": "paiement.securite",
+            "domain": "default"
+          },
+          "fiabl,je,savoir,veux": {
+            "intent": "paiement.securite",
+            "domain": "default"
+          },
+          "de,fiabl,moi,parl": {
+            "intent": "paiement.securite",
+            "domain": "default"
+          },
+          "arnaqu": {
+            "intent": "paiement.securite",
+            "domain": "default"
+          },
+          "arnaqu,je,savoir,veux": {
+            "intent": "paiement.securite",
+            "domain": "default"
+          },
+          "arnaqu,de,moi,parl": {
+            "intent": "paiement.securite",
+            "domain": "default"
+          },
+          "annul,command,comment,ma": {
+            "intent": "commande.annuler",
+            "domain": "default"
+          },
+          "annul": {
+            "intent": "commande.annuler",
+            "domain": "default"
+          },
+          "annul,je,savoir,veux": {
+            "intent": "commande.annuler",
+            "domain": "default"
+          },
+          "annul,de,moi,parl": {
+            "intent": "commande.annuler",
+            "domain": "default"
+          },
+          "supprim": {
+            "intent": "commande.annuler",
+            "domain": "default"
+          },
+          "je,savoir,supprim,veux": {
+            "intent": "commande.annuler",
+            "domain": "default"
+          },
+          "de,moi,parl,supprim": {
+            "intent": "commande.annuler",
+            "domain": "default"
+          },
+          "comment,compt,cre,un": {
+            "intent": "compte.creer",
+            "domain": "default"
+          },
+          "cre": {
+            "intent": "compte.creer",
+            "domain": "default"
+          },
+          "cre,je,savoir,veux": {
+            "intent": "compte.creer",
+            "domain": "default"
+          },
+          "cre,de,moi,parl": {
+            "intent": "compte.creer",
+            "domain": "default"
+          },
+          "compt": {
+            "intent": "compte.creer",
+            "domain": "default"
+          },
+          "compt,je,savoir,veux": {
+            "intent": "compte.creer",
+            "domain": "default"
+          },
+          "compt,de,moi,parl": {
+            "intent": "compte.creer",
+            "domain": "default"
+          },
+          "inscript": {
+            "intent": "compte.creer",
+            "domain": "default"
+          },
+          "inscript,je,savoir,veux": {
+            "intent": "compte.creer",
+            "domain": "default"
+          },
+          "de,inscript,moi,parl": {
+            "intent": "compte.creer",
+            "domain": "default"
+          },
+          "inscrir": {
+            "intent": "compte.creer",
+            "domain": "default"
+          },
+          "inscrir,je,savoir,veux": {
+            "intent": "compte.creer",
+            "domain": "default"
+          },
+          "de,inscrir,moi,parl": {
+            "intent": "compte.creer",
+            "domain": "default"
+          },
+          "enregistr": {
+            "intent": "compte.creer",
+            "domain": "default"
+          },
+          "enregistr,je,savoir,veux": {
+            "intent": "compte.creer",
+            "domain": "default"
+          },
+          "de,enregistr,moi,parl": {
+            "intent": "compte.creer",
+            "domain": "default"
+          },
+          "comment,de,garantissez-vous,la,produit,qualit": {
+            "intent": "produits.qualite",
+            "domain": "default"
+          },
+          "qualit": {
+            "intent": "produits.qualite",
+            "domain": "default"
+          },
+          "je,qualit,savoir,veux": {
+            "intent": "produits.qualite",
+            "domain": "default"
+          },
+          "de,moi,parl,qualit": {
+            "intent": "produits.qualite",
+            "domain": "default"
+          },
+          "bio": {
+            "intent": "produits.qualite",
+            "domain": "default"
+          },
+          "bio,je,savoir,veux": {
+            "intent": "produits.qualite",
+            "domain": "default"
+          },
+          "bio,de,moi,parl": {
+            "intent": "produits.qualite",
+            "domain": "default"
+          },
+          "naturel": {
+            "intent": "produits.qualite",
+            "domain": "default"
+          },
+          "je,naturel,savoir,veux": {
+            "intent": "produits.qualite",
+            "domain": "default"
+          },
+          "de,moi,naturel,parl": {
+            "intent": "produits.qualite",
+            "domain": "default"
+          },
+          "origin": {
+            "intent": "produits.qualite",
+            "domain": "default"
+          },
+          "je,origin,savoir,veux": {
+            "intent": "produits.qualite",
+            "domain": "default"
+          },
+          "de,moi,origin,parl": {
+            "intent": "produits.qualite",
+            "domain": "default"
+          },
+          "bonjour": {
+            "intent": "greeting",
+            "domain": "default"
+          },
+          "salut": {
+            "intent": "greeting",
+            "domain": "default"
+          },
+          "hello": {
+            "intent": "greeting",
+            "domain": "default"
+          },
+          "au,revoir": {
+            "intent": "goodbye",
+            "domain": "default"
+          },
+          "bye": {
+            "intent": "goodbye",
+            "domain": "default"
+          },
+          "%product%,je,veux": {
+            "intent": "search.product",
+            "domain": "default"
+          },
+          "%product%,de,je,veux": {
+            "intent": "search.product",
+            "domain": "default"
+          },
+          "%product%,cherch,je": {
+            "intent": "search.product",
+            "domain": "default"
+          },
+          "%product%,cherch,de,je": {
+            "intent": "search.product",
+            "domain": "default"
+          },
+          "%product%,avez-vous": {
+            "intent": "search.product",
+            "domain": "default"
+          },
+          "%product%,avez-vous,de": {
+            "intent": "search.product",
+            "domain": "default"
+          },
+          "%product%,trouv": {
+            "intent": "search.product",
+            "domain": "default"
+          },
+          "%product%,de,trouv": {
+            "intent": "search.product",
+            "domain": "default"
+          },
+          "%product%,achet": {
+            "intent": "search.product",
+            "domain": "default"
+          },
+          "%product%,achet,de": {
+            "intent": "search.product",
+            "domain": "default"
+          },
+          "%product%,de,prix": {
+            "intent": "search.product",
+            "domain": "default"
+          },
+          "%product%,combien,cout": {
+            "intent": "search.product",
+            "domain": "default"
+          },
+          "%product%,combien,cout,de": {
+            "intent": "search.product",
+            "domain": "default"
+          },
+          "%product%,vendez-vous": {
+            "intent": "search.product",
+            "domain": "default"
+          },
+          "%product%,de,vendez-vous": {
+            "intent": "search.product",
+            "domain": "default"
+          }
+        },
+        "intentDict": {
+          "livraison.delai": "default",
+          "livraison.frais": "default",
+          "livraison.suivi": "default",
+          "paiement.modes": "default",
+          "paiement.securite": "default",
+          "commande.annuler": "default",
+          "compte.creer": "default",
+          "produits.qualite": "default",
+          "greeting": "default",
+          "goodbye": "default",
+          "search.product": "default"
+        },
+        "sentences": [
+          {
+            "domain": "default",
+            "utterance": "Quels sont les délais de livraison ?",
+            "intent": "livraison.delai"
+          },
+          {
+            "domain": "default",
+            "utterance": "délai",
+            "intent": "livraison.delai"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir délai",
+            "intent": "livraison.delai"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de délai",
+            "intent": "livraison.delai"
+          },
+          {
+            "domain": "default",
+            "utterance": "temps",
+            "intent": "livraison.delai"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir temps",
+            "intent": "livraison.delai"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de temps",
+            "intent": "livraison.delai"
+          },
+          {
+            "domain": "default",
+            "utterance": "jours",
+            "intent": "livraison.delai"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir jours",
+            "intent": "livraison.delai"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de jours",
+            "intent": "livraison.delai"
+          },
+          {
+            "domain": "default",
+            "utterance": "quand",
+            "intent": "livraison.delai"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir quand",
+            "intent": "livraison.delai"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de quand",
+            "intent": "livraison.delai"
+          },
+          {
+            "domain": "default",
+            "utterance": "arriver",
+            "intent": "livraison.delai"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir arriver",
+            "intent": "livraison.delai"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de arriver",
+            "intent": "livraison.delai"
+          },
+          {
+            "domain": "default",
+            "utterance": "combien de temps",
+            "intent": "livraison.delai"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir combien de temps",
+            "intent": "livraison.delai"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de combien de temps",
+            "intent": "livraison.delai"
+          },
+          {
+            "domain": "default",
+            "utterance": "Combien coûte la livraison ?",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "frais",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir frais",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de frais",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "coût",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir coût",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de coût",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "coute",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir coute",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de coute",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "prix",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir prix",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de prix",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "tarif",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir tarif",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de tarif",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "gratuit",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir gratuit",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de gratuit",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "combien coûte",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir combien coûte",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de combien coûte",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "combien coute",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir combien coute",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de combien coute",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "cher",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir cher",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de cher",
+            "intent": "livraison.frais"
+          },
+          {
+            "domain": "default",
+            "utterance": "Comment suivre ma commande ?",
+            "intent": "livraison.suivi"
+          },
+          {
+            "domain": "default",
+            "utterance": "suivre",
+            "intent": "livraison.suivi"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir suivre",
+            "intent": "livraison.suivi"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de suivre",
+            "intent": "livraison.suivi"
+          },
+          {
+            "domain": "default",
+            "utterance": "suivi",
+            "intent": "livraison.suivi"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir suivi",
+            "intent": "livraison.suivi"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de suivi",
+            "intent": "livraison.suivi"
+          },
+          {
+            "domain": "default",
+            "utterance": "où",
+            "intent": "livraison.suivi"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir où",
+            "intent": "livraison.suivi"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de où",
+            "intent": "livraison.suivi"
+          },
+          {
+            "domain": "default",
+            "utterance": "commande",
+            "intent": "livraison.suivi"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir commande",
+            "intent": "livraison.suivi"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de commande",
+            "intent": "livraison.suivi"
+          },
+          {
+            "domain": "default",
+            "utterance": "statut",
+            "intent": "livraison.suivi"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir statut",
+            "intent": "livraison.suivi"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de statut",
+            "intent": "livraison.suivi"
+          },
+          {
+            "domain": "default",
+            "utterance": "tracking",
+            "intent": "livraison.suivi"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir tracking",
+            "intent": "livraison.suivi"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de tracking",
+            "intent": "livraison.suivi"
+          },
+          {
+            "domain": "default",
+            "utterance": "Quels sont les modes de paiement acceptés ?",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "payer",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir payer",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de payer",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "paiement",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir paiement",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de paiement",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "mode",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir mode",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de mode",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "moyen",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir moyen",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de moyen",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "carte",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir carte",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de carte",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "mobile",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir mobile",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de mobile",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "money",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir money",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de money",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "wave",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir wave",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de wave",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "orange",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir orange",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de orange",
+            "intent": "paiement.modes"
+          },
+          {
+            "domain": "default",
+            "utterance": "Le paiement est-il sécurisé ?",
+            "intent": "paiement.securite"
+          },
+          {
+            "domain": "default",
+            "utterance": "sécurisé",
+            "intent": "paiement.securite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir sécurisé",
+            "intent": "paiement.securite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de sécurisé",
+            "intent": "paiement.securite"
+          },
+          {
+            "domain": "default",
+            "utterance": "sécurité",
+            "intent": "paiement.securite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir sécurité",
+            "intent": "paiement.securite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de sécurité",
+            "intent": "paiement.securite"
+          },
+          {
+            "domain": "default",
+            "utterance": "confiance",
+            "intent": "paiement.securite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir confiance",
+            "intent": "paiement.securite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de confiance",
+            "intent": "paiement.securite"
+          },
+          {
+            "domain": "default",
+            "utterance": "fiable",
+            "intent": "paiement.securite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir fiable",
+            "intent": "paiement.securite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de fiable",
+            "intent": "paiement.securite"
+          },
+          {
+            "domain": "default",
+            "utterance": "arnaque",
+            "intent": "paiement.securite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir arnaque",
+            "intent": "paiement.securite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de arnaque",
+            "intent": "paiement.securite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Comment annuler ma commande ?",
+            "intent": "commande.annuler"
+          },
+          {
+            "domain": "default",
+            "utterance": "annuler",
+            "intent": "commande.annuler"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir annuler",
+            "intent": "commande.annuler"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de annuler",
+            "intent": "commande.annuler"
+          },
+          {
+            "domain": "default",
+            "utterance": "annulation",
+            "intent": "commande.annuler"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir annulation",
+            "intent": "commande.annuler"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de annulation",
+            "intent": "commande.annuler"
+          },
+          {
+            "domain": "default",
+            "utterance": "supprimer",
+            "intent": "commande.annuler"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir supprimer",
+            "intent": "commande.annuler"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de supprimer",
+            "intent": "commande.annuler"
+          },
+          {
+            "domain": "default",
+            "utterance": "commande",
+            "intent": "commande.annuler"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir commande",
+            "intent": "commande.annuler"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de commande",
+            "intent": "commande.annuler"
+          },
+          {
+            "domain": "default",
+            "utterance": "Comment créer un compte ?",
+            "intent": "compte.creer"
+          },
+          {
+            "domain": "default",
+            "utterance": "créer",
+            "intent": "compte.creer"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir créer",
+            "intent": "compte.creer"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de créer",
+            "intent": "compte.creer"
+          },
+          {
+            "domain": "default",
+            "utterance": "compte",
+            "intent": "compte.creer"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir compte",
+            "intent": "compte.creer"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de compte",
+            "intent": "compte.creer"
+          },
+          {
+            "domain": "default",
+            "utterance": "inscription",
+            "intent": "compte.creer"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir inscription",
+            "intent": "compte.creer"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de inscription",
+            "intent": "compte.creer"
+          },
+          {
+            "domain": "default",
+            "utterance": "inscrire",
+            "intent": "compte.creer"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir inscrire",
+            "intent": "compte.creer"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de inscrire",
+            "intent": "compte.creer"
+          },
+          {
+            "domain": "default",
+            "utterance": "enregistrer",
+            "intent": "compte.creer"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir enregistrer",
+            "intent": "compte.creer"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de enregistrer",
+            "intent": "compte.creer"
+          },
+          {
+            "domain": "default",
+            "utterance": "Comment garantissez-vous la qualité des produits ?",
+            "intent": "produits.qualite"
+          },
+          {
+            "domain": "default",
+            "utterance": "qualité",
+            "intent": "produits.qualite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir qualité",
+            "intent": "produits.qualite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de qualité",
+            "intent": "produits.qualite"
+          },
+          {
+            "domain": "default",
+            "utterance": "frais",
+            "intent": "produits.qualite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir frais",
+            "intent": "produits.qualite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de frais",
+            "intent": "produits.qualite"
+          },
+          {
+            "domain": "default",
+            "utterance": "bio",
+            "intent": "produits.qualite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir bio",
+            "intent": "produits.qualite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de bio",
+            "intent": "produits.qualite"
+          },
+          {
+            "domain": "default",
+            "utterance": "naturel",
+            "intent": "produits.qualite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir naturel",
+            "intent": "produits.qualite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de naturel",
+            "intent": "produits.qualite"
+          },
+          {
+            "domain": "default",
+            "utterance": "origine",
+            "intent": "produits.qualite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Je veux savoir origine",
+            "intent": "produits.qualite"
+          },
+          {
+            "domain": "default",
+            "utterance": "Parle moi de origine",
+            "intent": "produits.qualite"
+          },
+          {
+            "domain": "default",
+            "utterance": "bonjour",
+            "intent": "greeting"
+          },
+          {
+            "domain": "default",
+            "utterance": "salut",
+            "intent": "greeting"
+          },
+          {
+            "domain": "default",
+            "utterance": "hello",
+            "intent": "greeting"
+          },
+          {
+            "domain": "default",
+            "utterance": "au revoir",
+            "intent": "goodbye"
+          },
+          {
+            "domain": "default",
+            "utterance": "bye",
+            "intent": "goodbye"
+          },
+          {
+            "domain": "default",
+            "utterance": "je veux %product%",
+            "intent": "search.product"
+          },
+          {
+            "domain": "default",
+            "utterance": "je veux des %product%",
+            "intent": "search.product"
+          },
+          {
+            "domain": "default",
+            "utterance": "je cherche %product%",
+            "intent": "search.product"
+          },
+          {
+            "domain": "default",
+            "utterance": "je cherche des %product%",
+            "intent": "search.product"
+          },
+          {
+            "domain": "default",
+            "utterance": "avez-vous %product%",
+            "intent": "search.product"
+          },
+          {
+            "domain": "default",
+            "utterance": "avez-vous des %product%",
+            "intent": "search.product"
+          },
+          {
+            "domain": "default",
+            "utterance": "trouver %product%",
+            "intent": "search.product"
+          },
+          {
+            "domain": "default",
+            "utterance": "trouver des %product%",
+            "intent": "search.product"
+          },
+          {
+            "domain": "default",
+            "utterance": "acheter %product%",
+            "intent": "search.product"
+          },
+          {
+            "domain": "default",
+            "utterance": "acheter des %product%",
+            "intent": "search.product"
+          },
+          {
+            "domain": "default",
+            "utterance": "prix de %product%",
+            "intent": "search.product"
+          },
+          {
+            "domain": "default",
+            "utterance": "prix de des %product%",
+            "intent": "search.product"
+          },
+          {
+            "domain": "default",
+            "utterance": "combien coute %product%",
+            "intent": "search.product"
+          },
+          {
+            "domain": "default",
+            "utterance": "combien coute des %product%",
+            "intent": "search.product"
+          },
+          {
+            "domain": "default",
+            "utterance": "vendez-vous %product%",
+            "intent": "search.product"
+          },
+          {
+            "domain": "default",
+            "utterance": "vendez-vous des %product%",
+            "intent": "search.product"
+          }
+        ],
+        "domains": {
+          "master_domain": {
+            "settings": {
+              "locale": "fr",
+              "tag": "nlu-fr",
+              "keepStopwords": true,
+              "nonefeatureValue": 1,
+              "nonedeltaMultiplier": 1.2,
+              "spellCheck": false,
+              "spellCheckDistance": 1,
+              "filterZeros": true,
+              "log": true
+            },
+            "features": {
+              "quel": 1,
+              "sont": 1,
+              "le": 1,
+              "del": 1,
+              "de": 1,
+              "livraison": 1,
+              "je": 1,
+              "veux": 1,
+              "savoir": 1,
+              "parl": 1,
+              "moi": 1,
+              "temp": 1,
+              "jour": 1,
+              "quand": 1,
+              "arriv": 1,
+              "combien": 1,
+              "cout": 1,
+              "la": 1,
+              "frais": 1,
+              "prix": 1,
+              "tarif": 1,
+              "gratuit": 1,
+              "cher": 1,
+              "comment": 1,
+              "suivr": 1,
+              "ma": 1,
+              "command": 1,
+              "suiv": 1,
+              "ou": 1,
+              "statut": 1,
+              "tracking": 1,
+              "mod": 1,
+              "pai": 1,
+              "accept": 1,
+              "moyen": 1,
+              "cart": 1,
+              "mobil": 1,
+              "money": 1,
+              "wav": 1,
+              "orang": 1,
+              "est-il": 1,
+              "securis": 1,
+              "securit": 1,
+              "confianc": 1,
+              "fiabl": 1,
+              "arnaqu": 1,
+              "annul": 1,
+              "supprim": 1,
+              "cre": 1,
+              "un": 1,
+              "compt": 1,
+              "inscript": 1,
+              "inscrir": 1,
+              "enregistr": 1,
+              "garantissez-vous": 1,
+              "qualit": 1,
+              "produit": 1,
+              "bio": 1,
+              "naturel": 1,
+              "origin": 1,
+              "bonjour": 1,
+              "salut": 1,
+              "hello": 1,
+              "au": 1,
+              "revoir": 1,
+              "bye": 1,
+              "%product%": 1,
+              "cherch": 1,
+              "avez-vous": 1,
+              "trouv": 1,
+              "achet": 1,
+              "vendez-vous": 1
+            },
+            "intents": {
+              "livraison.delai": 1,
+              "livraison.frais": 1,
+              "livraison.suivi": 1,
+              "paiement.modes": 1,
+              "paiement.securite": 1,
+              "commande.annuler": 1,
+              "compte.creer": 1,
+              "produits.qualite": 1,
+              "greeting": 1,
+              "goodbye": 1,
+              "search.product": 1
+            },
+            "intentFeatures": {
+              "livraison.delai": {
+                "quel": 1,
+                "sont": 1,
+                "le": 1,
+                "del": 1,
+                "de": 1,
+                "livraison": 1,
+                "je": 1,
+                "veux": 1,
+                "savoir": 1,
+                "parl": 1,
+                "moi": 1,
+                "temp": 1,
+                "jour": 1,
+                "quand": 1,
+                "arriv": 1,
+                "combien": 1
+              },
+              "livraison.frais": {
+                "combien": 1,
+                "cout": 1,
+                "la": 1,
+                "livraison": 1,
+                "frais": 1,
+                "je": 1,
+                "veux": 1,
+                "savoir": 1,
+                "parl": 1,
+                "moi": 1,
+                "de": 1,
+                "prix": 1,
+                "tarif": 1,
+                "gratuit": 1,
+                "cher": 1
+              },
+              "livraison.suivi": {
+                "comment": 1,
+                "suivr": 1,
+                "ma": 1,
+                "command": 1,
+                "je": 1,
+                "veux": 1,
+                "savoir": 1,
+                "parl": 1,
+                "moi": 1,
+                "de": 1,
+                "suiv": 1,
+                "ou": 1,
+                "statut": 1,
+                "tracking": 1
+              },
+              "paiement.modes": {
+                "quel": 1,
+                "sont": 1,
+                "le": 1,
+                "mod": 1,
+                "de": 1,
+                "pai": 1,
+                "accept": 1,
+                "je": 1,
+                "veux": 1,
+                "savoir": 1,
+                "parl": 1,
+                "moi": 1,
+                "moyen": 1,
+                "cart": 1,
+                "mobil": 1,
+                "money": 1,
+                "wav": 1,
+                "orang": 1
+              },
+              "paiement.securite": {
+                "le": 1,
+                "pai": 1,
+                "est-il": 1,
+                "securis": 1,
+                "je": 1,
+                "veux": 1,
+                "savoir": 1,
+                "parl": 1,
+                "moi": 1,
+                "de": 1,
+                "securit": 1,
+                "confianc": 1,
+                "fiabl": 1,
+                "arnaqu": 1
+              },
+              "commande.annuler": {
+                "comment": 1,
+                "annul": 1,
+                "ma": 1,
+                "command": 1,
+                "je": 1,
+                "veux": 1,
+                "savoir": 1,
+                "parl": 1,
+                "moi": 1,
+                "de": 1,
+                "supprim": 1
+              },
+              "compte.creer": {
+                "comment": 1,
+                "cre": 1,
+                "un": 1,
+                "compt": 1,
+                "je": 1,
+                "veux": 1,
+                "savoir": 1,
+                "parl": 1,
+                "moi": 1,
+                "de": 1,
+                "inscript": 1,
+                "inscrir": 1,
+                "enregistr": 1
+              },
+              "produits.qualite": {
+                "comment": 1,
+                "garantissez-vous": 1,
+                "la": 1,
+                "qualit": 1,
+                "de": 1,
+                "produit": 1,
+                "je": 1,
+                "veux": 1,
+                "savoir": 1,
+                "parl": 1,
+                "moi": 1,
+                "frais": 1,
+                "bio": 1,
+                "naturel": 1,
+                "origin": 1
+              },
+              "greeting": {
+                "bonjour": 1,
+                "salut": 1,
+                "hello": 1
+              },
+              "goodbye": {
+                "au": 1,
+                "revoir": 1,
+                "bye": 1
+              },
+              "search.product": {
+                "je": 1,
+                "veux": 1,
+                "%product%": 1,
+                "de": 1,
+                "cherch": 1,
+                "avez-vous": 1,
+                "trouv": 1,
+                "achet": 1,
+                "prix": 1,
+                "combien": 1,
+                "cout": 1,
+                "vendez-vous": 1
+              }
+            },
+            "featuresToIntent": {
+              "quel": [
+                "livraison.delai",
+                "paiement.modes"
+              ],
+              "sont": [
+                "livraison.delai",
+                "paiement.modes"
+              ],
+              "le": [
+                "livraison.delai",
+                "paiement.modes",
+                "paiement.securite"
+              ],
+              "del": [
+                "livraison.delai"
+              ],
+              "de": [
+                "livraison.delai",
+                "livraison.frais",
+                "livraison.suivi",
+                "paiement.modes",
+                "paiement.securite",
+                "commande.annuler",
+                "compte.creer",
+                "produits.qualite",
+                "search.product"
+              ],
+              "livraison": [
+                "livraison.delai",
+                "livraison.frais"
+              ],
+              "je": [
+                "livraison.delai",
+                "livraison.frais",
+                "livraison.suivi",
+                "paiement.modes",
+                "paiement.securite",
+                "commande.annuler",
+                "compte.creer",
+                "produits.qualite",
+                "search.product"
+              ],
+              "veux": [
+                "livraison.delai",
+                "livraison.frais",
+                "livraison.suivi",
+                "paiement.modes",
+                "paiement.securite",
+                "commande.annuler",
+                "compte.creer",
+                "produits.qualite",
+                "search.product"
+              ],
+              "savoir": [
+                "livraison.delai",
+                "livraison.frais",
+                "livraison.suivi",
+                "paiement.modes",
+                "paiement.securite",
+                "commande.annuler",
+                "compte.creer",
+                "produits.qualite"
+              ],
+              "parl": [
+                "livraison.delai",
+                "livraison.frais",
+                "livraison.suivi",
+                "paiement.modes",
+                "paiement.securite",
+                "commande.annuler",
+                "compte.creer",
+                "produits.qualite"
+              ],
+              "moi": [
+                "livraison.delai",
+                "livraison.frais",
+                "livraison.suivi",
+                "paiement.modes",
+                "paiement.securite",
+                "commande.annuler",
+                "compte.creer",
+                "produits.qualite"
+              ],
+              "temp": [
+                "livraison.delai"
+              ],
+              "jour": [
+                "livraison.delai"
+              ],
+              "quand": [
+                "livraison.delai"
+              ],
+              "arriv": [
+                "livraison.delai"
+              ],
+              "combien": [
+                "livraison.delai",
+                "livraison.frais",
+                "search.product"
+              ],
+              "cout": [
+                "livraison.frais",
+                "search.product"
+              ],
+              "la": [
+                "livraison.frais",
+                "produits.qualite"
+              ],
+              "frais": [
+                "livraison.frais",
+                "produits.qualite"
+              ],
+              "prix": [
+                "livraison.frais",
+                "search.product"
+              ],
+              "tarif": [
+                "livraison.frais"
+              ],
+              "gratuit": [
+                "livraison.frais"
+              ],
+              "cher": [
+                "livraison.frais"
+              ],
+              "comment": [
+                "livraison.suivi",
+                "commande.annuler",
+                "compte.creer",
+                "produits.qualite"
+              ],
+              "suivr": [
+                "livraison.suivi"
+              ],
+              "ma": [
+                "livraison.suivi",
+                "commande.annuler"
+              ],
+              "command": [
+                "livraison.suivi",
+                "commande.annuler"
+              ],
+              "suiv": [
+                "livraison.suivi"
+              ],
+              "ou": [
+                "livraison.suivi"
+              ],
+              "statut": [
+                "livraison.suivi"
+              ],
+              "tracking": [
+                "livraison.suivi"
+              ],
+              "mod": [
+                "paiement.modes"
+              ],
+              "pai": [
+                "paiement.modes",
+                "paiement.securite"
+              ],
+              "accept": [
+                "paiement.modes"
+              ],
+              "moyen": [
+                "paiement.modes"
+              ],
+              "cart": [
+                "paiement.modes"
+              ],
+              "mobil": [
+                "paiement.modes"
+              ],
+              "money": [
+                "paiement.modes"
+              ],
+              "wav": [
+                "paiement.modes"
+              ],
+              "orang": [
+                "paiement.modes"
+              ],
+              "est-il": [
+                "paiement.securite"
+              ],
+              "securis": [
+                "paiement.securite"
+              ],
+              "securit": [
+                "paiement.securite"
+              ],
+              "confianc": [
+                "paiement.securite"
+              ],
+              "fiabl": [
+                "paiement.securite"
+              ],
+              "arnaqu": [
+                "paiement.securite"
+              ],
+              "annul": [
+                "commande.annuler"
+              ],
+              "supprim": [
+                "commande.annuler"
+              ],
+              "cre": [
+                "compte.creer"
+              ],
+              "un": [
+                "compte.creer"
+              ],
+              "compt": [
+                "compte.creer"
+              ],
+              "inscript": [
+                "compte.creer"
+              ],
+              "inscrir": [
+                "compte.creer"
+              ],
+              "enregistr": [
+                "compte.creer"
+              ],
+              "garantissez-vous": [
+                "produits.qualite"
+              ],
+              "qualit": [
+                "produits.qualite"
+              ],
+              "produit": [
+                "produits.qualite"
+              ],
+              "bio": [
+                "produits.qualite"
+              ],
+              "naturel": [
+                "produits.qualite"
+              ],
+              "origin": [
+                "produits.qualite"
+              ],
+              "bonjour": [
+                "greeting"
+              ],
+              "salut": [
+                "greeting"
+              ],
+              "hello": [
+                "greeting"
+              ],
+              "au": [
+                "goodbye"
+              ],
+              "revoir": [
+                "goodbye"
+              ],
+              "bye": [
+                "goodbye"
+              ],
+              "%product%": [
+                "search.product"
+              ],
+              "cherch": [
+                "search.product"
+              ],
+              "avez-vous": [
+                "search.product"
+              ],
+              "trouv": [
+                "search.product"
+              ],
+              "achet": [
+                "search.product"
+              ],
+              "vendez-vous": [
+                "search.product"
+              ]
+            },
+            "neuralNetwork": {
+              "settings": {
+                "useNoneFeature": true,
+                "locale": "fr",
+                "tag": "nlu-fr",
+                "keepStopwords": true,
+                "nonefeatureValue": 1,
+                "nonedeltaMultiplier": 1.2,
+                "spellCheck": false,
+                "spellCheckDistance": 1,
+                "filterZeros": true,
+                "log": true
+              },
+              "features": [
+                "quel",
+                "sont",
+                "le",
+                "del",
+                "de",
+                "livraison",
+                "je",
+                "veux",
+                "savoir",
+                "parl",
+                "moi",
+                "temp",
+                "jour",
+                "quand",
+                "arriv",
+                "combien",
+                "cout",
+                "la",
+                "frais",
+                "prix",
+                "tarif",
+                "gratuit",
+                "cher",
+                "comment",
+                "suivr",
+                "ma",
+                "command",
+                "suiv",
+                "ou",
+                "statut",
+                "tracking",
+                "mod",
+                "pai",
+                "accept",
+                "moyen",
+                "cart",
+                "mobil",
+                "money",
+                "wav",
+                "orang",
+                "est-il",
+                "securis",
+                "securit",
+                "confianc",
+                "fiabl",
+                "arnaqu",
+                "annul",
+                "supprim",
+                "cre",
+                "un",
+                "compt",
+                "inscript",
+                "inscrir",
+                "enregistr",
+                "garantissez-vous",
+                "qualit",
+                "produit",
+                "bio",
+                "naturel",
+                "origin",
+                "bonjour",
+                "salut",
+                "hello",
+                "au",
+                "revoir",
+                "bye",
+                "%product%",
+                "cherch",
+                "avez-vous",
+                "trouv",
+                "achet",
+                "vendez-vous",
+                "nonefeature"
+              ],
+              "intents": [
+                "livraison.delai",
+                "livraison.frais",
+                "livraison.suivi",
+                "paiement.modes",
+                "paiement.securite",
+                "commande.annuler",
+                "compte.creer",
+                "produits.qualite",
+                "greeting",
+                "goodbye",
+                "search.product",
+                "None"
+              ],
+              "perceptrons": [
+                [
+                  -0.07081456482410431,
+                  -0.07081456482410431,
+                  -0.26635250449180603,
+                  13.708089828491211,
+                  0.10923352837562561,
+                  0.2965664863586426,
+                  -0.06730309873819351,
+                  -0.013701414689421654,
+                  0.07816600054502487,
+                  -0.047517888247966766,
+                  -0.047517888247966766,
+                  13.719343185424805,
+                  13.708826065063477,
+                  13.709587097167969,
+                  13.7100830078125,
+                  -0.08633404970169067,
+                  -6.510781764984131,
+                  -0.4062349796295166,
+                  -5.914091110229492,
+                  -4.533880710601807,
+                  -4.065390110015869,
+                  -3.6060922145843506,
+                  -3.163146734237671,
+                  -0.3899785578250885,
+                  -2.85723876953125,
+                  -0.28247684240341187,
+                  -2.091404914855957,
+                  -2.542954921722412,
+                  -2.2847061157226562,
+                  -1.8867638111114502,
+                  -1.7213894128799438,
+                  -1.5889769792556763,
+                  -1.841338038444519,
+                  -0.8599059581756592,
+                  -1.4349819421768188,
+                  -1.3351612091064453,
+                  -1.2564432621002197,
+                  -1.1699222326278687,
+                  -1.1068596839904785,
+                  -1.0452237129211426,
+                  -0.16063593327999115,
+                  -1.0018460750579834,
+                  -0.9482648372650146,
+                  -0.9058049321174622,
+                  -0.868287205696106,
+                  -0.83353191614151,
+                  -0.8620089292526245,
+                  -0.7832043766975403,
+                  -0.7629995942115784,
+                  -0.06814685463905334,
+                  -0.7440518140792847,
+                  -0.7229288220405579,
+                  -0.7063787579536438,
+                  -0.6921001076698303,
+                  0,
+                  -0.6768991351127625,
+                  0,
+                  -0.6642971038818359,
+                  -0.6533414125442505,
+                  -0.6431670188903809,
+                  -0.5878821611404419,
+                  -0.5831615924835205,
+                  -0.5792732238769531,
+                  -0.3154936134815216,
+                  -0.3154936134815216,
+                  -0.5752382874488831,
+                  -0.6528893709182739,
+                  -0.05214391648769379,
+                  -0.15159951150417328,
+                  -0.12888073921203613,
+                  -0.1155049204826355,
+                  -0.10899146646261215,
+                  -0.5727234482765198,
+                  0.5732613694244588
+                ],
+                [
+                  -0.14292578399181366,
+                  -0.14292578399181366,
+                  -0.26592519879341125,
+                  0,
+                  -3.262962818145752,
+                  0.6647491455078125,
+                  -0.2597039043903351,
+                  -0.2597039043903351,
+                  -0.2597039043903351,
+                  1.2802093029022217,
+                  1.2802093029022217,
+                  0,
+                  0,
+                  0,
+                  0,
+                  -0.28842565417289734,
+                  13.647449493408203,
+                  0.5100304484367371,
+                  6.5950093269348145,
+                  13.465126037597656,
+                  13.42823314666748,
+                  13.415101051330566,
+                  13.395893096923828,
+                  -0.9036579132080078,
+                  -6.480952262878418,
+                  -0.4510733485221863,
+                  -4.882385730743408,
+                  -5.822202205657959,
+                  -5.28911018371582,
+                  -4.377963542938232,
+                  -3.9936273097991943,
+                  -3.2691729068756104,
+                  -4.110728740692139,
+                  -0.14292578399181366,
+                  -3.052189588546753,
+                  -2.8259971141815186,
+                  -2.6224563121795654,
+                  -2.4361531734466553,
+                  -2.2746102809906006,
+                  -2.1237330436706543,
+                  -0.06743838638067245,
+                  -1.9921680688858032,
+                  -1.877582311630249,
+                  -1.7810611724853516,
+                  -1.6886926889419556,
+                  -1.6019396781921387,
+                  -1.6474767923355103,
+                  -1.4523321390151978,
+                  -1.4049205780029297,
+                  -0.08745719492435455,
+                  -1.36055588722229,
+                  -1.3150254487991333,
+                  -1.26771080493927,
+                  -1.2296972274780273,
+                  -0.13320884108543396,
+                  -1.198905110359192,
+                  -0.13320884108543396,
+                  -0.12813185155391693,
+                  -0.12494426965713501,
+                  -0.12181705236434937,
+                  -0.11875008046627045,
+                  -0.11574314534664154,
+                  -0.11420517414808273,
+                  -0.07539317011833191,
+                  -0.07539317011833191,
+                  -0.10986116528511047,
+                  -12.997529029846191,
+                  0,
+                  -0.011088499799370766,
+                  -0.010157995857298374,
+                  -0.009072951041162014,
+                  0,
+                  4.3358431867090985e-7,
+                  -0.200894032846613
+                ],
+                [
+                  -0.5416545271873474,
+                  -0.5416545271873474,
+                  -0.5416545271873474,
+                  -0.4558084011077881,
+                  -0.6011791229248047,
+                  -0.04135124012827873,
+                  -0.12479433417320251,
+                  -0.1203249990940094,
+                  -0.1203249990940094,
+                  0.13200466334819794,
+                  0.13200466334819794,
+                  -0.4551458954811096,
+                  -0.4544292390346527,
+                  -0.4536581039428711,
+                  -0.4528321325778961,
+                  -0.10673347115516663,
+                  -0.4568304419517517,
+                  -0.04135124012827873,
+                  -0.5007774233818054,
+                  -0.4514956772327423,
+                  -0.45051106810569763,
+                  -0.44947001338005066,
+                  -0.44836074113845825,
+                  -3.046977996826172,
+                  14.060941696166992,
+                  -2.832122564315796,
+                  5.667730331420898,
+                  14.213885307312012,
+                  14.270125389099121,
+                  12.622958183288574,
+                  12.295459747314453,
+                  -6.228288173675537,
+                  -8.462759971618652,
+                  -0.5416545271873474,
+                  -5.639228820800781,
+                  -5.127939701080322,
+                  -4.64829158782959,
+                  -4.198862075805664,
+                  -3.8300273418426514,
+                  -3.5133368968963623,
+                  0,
+                  -3.2481513023376465,
+                  -3.0336968898773193,
+                  -2.8743765354156494,
+                  -2.7501027584075928,
+                  -2.6607584953308105,
+                  -3.3290600776672363,
+                  -2.5986580848693848,
+                  -0.6753736734390259,
+                  -0.1803593933582306,
+                  -0.6070380806922913,
+                  -0.5745733380317688,
+                  -0.5544837117195129,
+                  -0.5021496415138245,
+                  0,
+                  -0.4869120419025421,
+                  0,
+                  -0.4766199588775635,
+                  -0.47089534997940063,
+                  -0.4647313952445984,
+                  -0.4602789580821991,
+                  -0.45835891366004944,
+                  -0.4577869474887848,
+                  -0.25704702734947205,
+                  -0.25704702734947205,
+                  -0.457282155752182,
+                  -0.4313361346721649,
+                  -0.002557330997660756,
+                  -0.1052030697464943,
+                  -0.10011850297451019,
+                  -0.09471835941076279,
+                  -0.08737710863351822,
+                  -0.4566155672073364,
+                  0.4584722209147499
+                ],
+                [
+                  -2.001615047454834,
+                  -2.001615047454834,
+                  -5.6381025314331055,
+                  -1.7663240432739258,
+                  -1.610227346420288,
+                  -0.17003554105758667,
+                  -0.14020627737045288,
+                  -0.03768296539783478,
+                  0.17785581946372986,
+                  0.8050979375839233,
+                  0.8050979375839233,
+                  -1.6828160285949707,
+                  -1.6078710556030273,
+                  -1.5372589826583862,
+                  -1.4718925952911377,
+                  -0.2931244969367981,
+                  -1.5107395648956299,
+                  -0.22087362408638,
+                  -2.4010121822357178,
+                  -1.3640590906143188,
+                  -1.3301196098327637,
+                  -1.2981888055801392,
+                  -1.266706109046936,
+                  -0.7816125750541687,
+                  -1.2368628978729248,
+                  -0.2635575234889984,
+                  -4.190915107727051,
+                  -1.2131375074386597,
+                  -1.1929842233657837,
+                  -1.1760655641555786,
+                  -1.1638895273208618,
+                  13.134906768798828,
+                  13.134936332702637,
+                  -1.8833495378494263,
+                  13.134854316711426,
+                  13.134876251220703,
+                  13.134925842285156,
+                  13.134988784790039,
+                  13.135009765625,
+                  13.134894371032715,
+                  -3.460716724395752,
+                  -9.564098358154297,
+                  -7.587705612182617,
+                  -6.923083782196045,
+                  -6.265650272369385,
+                  -5.668479919433594,
+                  -5.859524250030518,
+                  -4.514969825744629,
+                  -3.8455770015716553,
+                  -0.2687635123729706,
+                  -3.5421276092529297,
+                  -3.241683006286621,
+                  -2.9737045764923096,
+                  -2.758685827255249,
+                  -0.12196923792362213,
+                  -2.5695760250091553,
+                  -0.12196923792362213,
+                  -2.2480995655059814,
+                  -2.114300489425659,
+                  -1.9908099174499512,
+                  -1.3866990804672241,
+                  -1.3660207986831665,
+                  -1.3453205823898315,
+                  -0.7775958776473999,
+                  -0.7775958776473999,
+                  -1.322935938835144,
+                  -1.5323078632354736,
+                  -0.09649920463562012,
+                  -0.3265190124511719,
+                  -0.29035550355911255,
+                  -0.26555317640304565,
+                  -0.23301208019256592,
+                  -1.298066258430481,
+                  1.1508014083497862
+                ],
+                [
+                  -0.528469443321228,
+                  -0.528469443321228,
+                  0.23306316137313843,
+                  -1.293427586555481,
+                  -0.4854313135147095,
+                  -0.2703949511051178,
+                  -0.12208456546068192,
+                  -0.045830290764570236,
+                  0.1678403615951538,
+                  0.2426784187555313,
+                  0.2426784187555313,
+                  -1.1951875686645508,
+                  -1.1107454299926758,
+                  -1.0332196950912476,
+                  -0.9599637985229492,
+                  -0.21755774319171906,
+                  -1.0048818588256836,
+                  -0.14473143219947815,
+                  -2.0733320713043213,
+                  -0.8360726237297058,
+                  -0.8013534545898438,
+                  -0.7660762071609497,
+                  -0.7310054302215576,
+                  -0.7504154443740845,
+                  -0.6994941830635071,
+                  -0.22308586537837982,
+                  -4.760771751403809,
+                  -0.6715796589851379,
+                  -0.6472974419593811,
+                  -0.6286587715148926,
+                  -0.611388087272644,
+                  -0.6056318283081055,
+                  -1.0346521139144897,
+                  -0.2763776481151581,
+                  -0.5861107110977173,
+                  -0.5751563906669617,
+                  -0.5655991435050964,
+                  -0.5586425065994263,
+                  -0.5549634695053101,
+                  -0.5538498163223267,
+                  0.8013694882392883,
+                  13.732096672058105,
+                  13.732043266296387,
+                  13.732051849365234,
+                  13.732053756713867,
+                  13.732024192810059,
+                  -7.43949556350708,
+                  -5.1336445808410645,
+                  -4.186179161071777,
+                  -0.16537299752235413,
+                  -3.7236742973327637,
+                  -3.253817558288574,
+                  -2.875425100326538,
+                  -2.570096492767334,
+                  -0.0690382793545723,
+                  -2.2998316287994385,
+                  -0.0690382793545723,
+                  -1.8719358444213867,
+                  -1.6961747407913208,
+                  -1.5467449426651,
+                  -0.8300018906593323,
+                  -0.8190546631813049,
+                  -0.8024238348007202,
+                  -0.5052284002304077,
+                  -0.5052284002304077,
+                  -0.7772009968757629,
+                  -1.0988359451293945,
+                  -0.07365830987691879,
+                  -0.219643235206604,
+                  -0.18283571302890778,
+                  -0.16732531785964966,
+                  -0.14445091784000397,
+                  -0.7564027309417725,
+                  0.5537353349043157
+                ],
+                [
+                  -0.06113242357969284,
+                  -0.06113242357969284,
+                  -0.06308877468109131,
+                  -1.0886684656143188,
+                  -0.2052680253982544,
+                  -0.09920995682477951,
+                  0.0062422011978924274,
+                  0.0942024290561676,
+                  0.5032091736793518,
+                  0.3679993748664856,
+                  0.3679993748664856,
+                  -1.0788894891738892,
+                  -0.8955336809158325,
+                  -0.8371583819389343,
+                  -0.8055458068847656,
+                  -0.25734585523605347,
+                  -1.1436562538146973,
+                  -0.2701760232448578,
+                  -1.9555405378341675,
+                  -0.7027701139450073,
+                  -0.7052617073059082,
+                  -0.7315446734428406,
+                  -0.7920714616775513,
+                  -3.934255361557007,
+                  -2.2231757640838623,
+                  -3.221210479736328,
+                  8.020951271057129,
+                  -0.7569305300712585,
+                  -0.707868754863739,
+                  -0.0020542945712804794,
+                  -0.0019681863486766815,
+                  -0.0017342320643365383,
+                  -0.006861609406769276,
+                  0,
+                  -0.0016615396598353982,
+                  -0.0015918943099677563,
+                  -0.0015251681907102466,
+                  -0.0014612390659749508,
+                  -0.0013999894727021456,
+                  -0.0013413073029369116,
+                  -0.0009702475508674979,
+                  -0.0026591180358082056,
+                  -0.001193959265947342,
+                  -0.0011439131340011954,
+                  -0.0010959646897390485,
+                  -0.0010500260395929217,
+                  15.247086524963379,
+                  15.40655517578125,
+                  -3.860024929046631,
+                  -0.3125005066394806,
+                  -3.6985678672790527,
+                  -3.2686967849731445,
+                  -2.8974244594573975,
+                  -2.5392985343933105,
+                  -0.21176756918430328,
+                  -2.2643702030181885,
+                  -0.21176756918430328,
+                  -1.7260087728500366,
+                  -1.538160800933838,
+                  -1.3825418949127197,
+                  -0.5337733626365662,
+                  -0.5188142657279968,
+                  -0.5146089792251587,
+                  -0.35547345876693726,
+                  -0.35547345876693726,
+                  -0.49234628677368164,
+                  -1.0369932651519775,
+                  -0.08339384943246841,
+                  -0.13776066899299622,
+                  -0.10976780951023102,
+                  -0.10502015799283981,
+                  -0.08821571618318558,
+                  -0.4675714671611786,
+                  0.033294379219242144
+                ],
+                [
+                  -0.10855468362569809,
+                  -0.10855468362569809,
+                  -0.1563020646572113,
+                  -2.9940621852874756,
+                  -0.9992982745170593,
+                  -0.12775418162345886,
+                  -0.5354964137077332,
+                  -0.35222482681274414,
+                  0.9016344547271729,
+                  0.5065703988075256,
+                  0.5065703988075256,
+                  -2.735724449157715,
+                  -2.4902961254119873,
+                  -2.2670445442199707,
+                  -2.0715227127075195,
+                  -0.2396644800901413,
+                  -2.15216064453125,
+                  -0.7202118635177612,
+                  -5.3995747566223145,
+                  -1.6893798112869263,
+                  -1.572930932044983,
+                  -1.464511752128601,
+                  -1.3629915714263916,
+                  -7.28328800201416,
+                  -1.2770893573760986,
+                  -0.1320679783821106,
+                  -1.067659616470337,
+                  -1.1963138580322266,
+                  -1.1261922121047974,
+                  -1.0112483501434326,
+                  -0.9625253081321716,
+                  -0.8729833364486694,
+                  -0.9813602566719055,
+                  0,
+                  -0.8467252850532532,
+                  -0.8196085691452026,
+                  -0.7942313551902771,
+                  -0.7728018164634705,
+                  -0.7541167140007019,
+                  -0.7392721176147461,
+                  -0.029525455087423325,
+                  -0.7275263071060181,
+                  -0.7188770771026611,
+                  -0.7146561145782471,
+                  -0.7129877805709839,
+                  -0.7104414701461792,
+                  -0.7108831405639648,
+                  -0.7033671736717224,
+                  13.563969612121582,
+                  -6.2102370262146,
+                  13.558555603027344,
+                  13.576130867004395,
+                  13.575550079345703,
+                  13.57583999633789,
+                  -0.6235933303833008,
+                  -5.965850830078125,
+                  -0.6235933303833008,
+                  -4.881478786468506,
+                  -4.351597785949707,
+                  -3.8685879707336426,
+                  -1.2148903608322144,
+                  -1.1984866857528687,
+                  -1.1694555282592773,
+                  -0.7771462202072144,
+                  -0.7771462202072144,
+                  -1.1337981224060059,
+                  -2.1977508068084717,
+                  -0.1651761531829834,
+                  -0.21230795979499817,
+                  -0.15485571324825287,
+                  -0.1347275972366333,
+                  -0.11113262921571732,
+                  -1.082127571105957,
+                  0.7003060267865514
+                ],
+                [
+                  -0.4129493534564972,
+                  -0.4129493534564972,
+                  -0.4129493534564972,
+                  -5.283300876617432,
+                  -1.5552384853363037,
+                  -1.0871899127960205,
+                  -1.3001762628555298,
+                  -0.38152456283569336,
+                  2.2761642932891846,
+                  1.0709118843078613,
+                  1.0709118843078613,
+                  -4.918540954589844,
+                  -4.547817707061768,
+                  -4.1928229331970215,
+                  -3.8667869567871094,
+                  -0.6906424164772034,
+                  -1.6811505556106567,
+                  0.1452626734972,
+                  6.677438735961914,
+                  -1.2078354358673096,
+                  -0.8987422585487366,
+                  -0.6987848877906799,
+                  -0.5880252122879028,
+                  -0.14910799264907837,
+                  -0.5682623982429504,
+                  -0.5358506441116333,
+                  -0.6023837924003601,
+                  -0.5404692888259888,
+                  -0.5321566462516785,
+                  -0.530653178691864,
+                  -0.5299527645111084,
+                  -0.528679609298706,
+                  -0.5509713888168335,
+                  0,
+                  -0.5278557538986206,
+                  -0.5268540382385254,
+                  -0.525864839553833,
+                  -0.5246508717536926,
+                  -0.5235381722450256,
+                  -0.5221927762031555,
+                  0,
+                  -0.5209171175956726,
+                  -0.5194209218025208,
+                  -0.5179997086524963,
+                  -0.5164357423782349,
+                  -0.514800488948822,
+                  -0.5242913365364075,
+                  -0.512047290802002,
+                  -0.5145840048789978,
+                  -0.3563510477542877,
+                  -0.513602614402771,
+                  -0.5080608129501343,
+                  -0.5061508417129517,
+                  -0.5041168928146362,
+                  0.7919606566429138,
+                  14.033042907714844,
+                  0.7919606566429138,
+                  12.81722640991211,
+                  12.547510147094727,
+                  12.419584274291992,
+                  -1.9711494445800781,
+                  -1.9211673736572266,
+                  -1.8891456127166748,
+                  -1.2806990146636963,
+                  -1.2806990146636963,
+                  -1.8275257349014282,
+                  -4.5351104736328125,
+                  -0.7824987769126892,
+                  -0.26288843154907227,
+                  -0.16135960817337036,
+                  -0.10404501110315323,
+                  -0.031174207106232643,
+                  -1.7349096536636353,
+                  1.4931558343264666
+                ],
+                [
+                  -0.08824705332517624,
+                  -0.08824705332517624,
+                  -0.14429731667041779,
+                  -0.9970333576202393,
+                  -0.6285712718963623,
+                  -0.2244061678647995,
+                  -0.522369384765625,
+                  -0.36043864488601685,
+                  -0.1453457772731781,
+                  -0.18691998720169067,
+                  -0.18691998720169067,
+                  -0.9639196991920471,
+                  -0.9431431293487549,
+                  -0.9265150427818298,
+                  -0.9139400124549866,
+                  -0.3121799826622009,
+                  -1.034462332725525,
+                  -0.10815250128507614,
+                  -0.9052799344062805,
+                  -0.8948577642440796,
+                  -0.8841281533241272,
+                  -0.8767209649085999,
+                  -0.8693544864654541,
+                  -0.1964554488658905,
+                  -0.872745156288147,
+                  -0.14201444387435913,
+                  -0.8578812479972839,
+                  -0.8584557771682739,
+                  -0.8530170321464539,
+                  -0.8451979756355286,
+                  -0.8409762978553772,
+                  -0.8354451656341553,
+                  -0.8802886009216309,
+                  0,
+                  -0.832439661026001,
+                  -0.8298000693321228,
+                  -0.8276516795158386,
+                  -0.8257859349250793,
+                  -0.8242214918136597,
+                  -0.8226414918899536,
+                  -0.03148404508829117,
+                  -0.821196973323822,
+                  -0.8191651701927185,
+                  -0.81722491979599,
+                  -0.8151653409004211,
+                  -0.8129875659942627,
+                  -0.8232988715171814,
+                  -0.809444010257721,
+                  -0.8072350025177002,
+                  -0.03908568248152733,
+                  -0.8046750426292419,
+                  -0.8016352653503418,
+                  -0.7987730503082275,
+                  -0.7958006262779236,
+                  0,
+                  -0.7927197217941284,
+                  0,
+                  -0.7895177602767944,
+                  -0.7862226366996765,
+                  -0.7828245162963867,
+                  13.402620315551758,
+                  13.390548706054688,
+                  13.369495391845703,
+                  -0.6450715661048889,
+                  -0.6450715661048889,
+                  -0.9972937107086182,
+                  -1.2842828035354614,
+                  -0.1504659205675125,
+                  -0.2513149380683899,
+                  -0.2150696963071823,
+                  -0.17680788040161133,
+                  -0.136886864900589,
+                  -0.9741164445877075,
+                  0.8237430510362752
+                ],
+                [
+                  -0.06126701831817627,
+                  -0.06126701831817627,
+                  -0.10186256468296051,
+                  -0.5674297213554382,
+                  -0.461122989654541,
+                  -0.15797677636146545,
+                  -0.3816222846508026,
+                  -0.2608720362186432,
+                  -0.09765881299972534,
+                  -0.1331954449415207,
+                  -0.1331954449415207,
+                  -0.5279105305671692,
+                  -0.5068762302398682,
+                  -0.4909573197364807,
+                  -0.48063841462135315,
+                  -0.21920840442180634,
+                  -0.61379075050354,
+                  -0.07582113891839981,
+                  -0.4740194082260132,
+                  -0.46565333008766174,
+                  -0.45447710156440735,
+                  -0.448281854391098,
+                  -0.44167888164520264,
+                  -0.13534532487392426,
+                  -0.45123884081840515,
+                  -0.09799802303314209,
+                  -0.4402610957622528,
+                  -0.43106284737586975,
+                  -0.4263521432876587,
+                  -0.41953590512275696,
+                  -0.41567182540893555,
+                  -0.4101957678794861,
+                  -0.45973822474479675,
+                  0,
+                  -0.4071764349937439,
+                  -0.4047289490699768,
+                  -0.4025350511074066,
+                  -0.400606632232666,
+                  -0.398932546377182,
+                  -0.3975849747657776,
+                  -0.02210693620145321,
+                  -0.3968426585197449,
+                  -0.3954751193523407,
+                  -0.3947196900844574,
+                  -0.39409324526786804,
+                  -0.3934350907802582,
+                  -0.39910823106765747,
+                  -0.39236122369766235,
+                  -0.3917658030986786,
+                  -0.026764586567878723,
+                  -0.39094993472099304,
+                  -0.38982999324798584,
+                  -0.38885143399238586,
+                  -0.387818306684494,
+                  0,
+                  -0.38673093914985657,
+                  0,
+                  -0.3855799436569214,
+                  -0.384383887052536,
+                  -0.3831351101398468,
+                  -0.3818342387676239,
+                  -0.38048189878463745,
+                  -0.37907877564430237,
+                  6.948608875274658,
+                  6.948608875274658,
+                  13.809527397155762,
+                  -0.8794905543327332,
+                  -0.10890507698059082,
+                  -0.16107961535453796,
+                  -0.13901861011981964,
+                  -0.1113586574792862,
+                  -0.07603313028812408,
+                  -0.5326693058013916,
+                  0.3940991750590777
+                ],
+                [
+                  -0.653944194316864,
+                  -0.653944194316864,
+                  -0.653944194316864,
+                  -1.7186952829360962,
+                  0.028476912528276443,
+                  -0.680320143699646,
+                  0.6850292086601257,
+                  0.34204551577568054,
+                  -2.4588382244110107,
+                  -1.3684544563293457,
+                  -1.3684544563293457,
+                  -1.786949634552002,
+                  -0.9174677133560181,
+                  -0.6980658769607544,
+                  -0.5468841195106506,
+                  0.640996515750885,
+                  0.334399938583374,
+                  -0.39232540130615234,
+                  -0.2595096528530121,
+                  0.9887740015983582,
+                  -0.15720339119434357,
+                  -0.15116819739341736,
+                  -0.13342782855033875,
+                  -0.37435367703437805,
+                  -0.19391976296901703,
+                  -0.07231848686933517,
+                  -0.21056433022022247,
+                  -0.12118400633335114,
+                  -0.11652486771345139,
+                  -0.10858681052923203,
+                  -0.10440817475318909,
+                  -0.17262566089630127,
+                  -0.2365172654390335,
+                  -0.07020188868045807,
+                  -0.08900725096464157,
+                  -0.08557027578353882,
+                  -0.08226537704467773,
+                  -0.0790875032544136,
+                  -0.07603178918361664,
+                  -0.07309359312057495,
+                  0,
+                  -0.07026839256286621,
+                  -0.06755188852548599,
+                  -0.07171023637056351,
+                  -0.06908027082681656,
+                  -0.0665455013513565,
+                  -0.11596283316612244,
+                  -0.06003923341631889,
+                  -0.0698959231376648,
+                  -0.012660440057516098,
+                  -0.06800966709852219,
+                  -0.05278940126299858,
+                  -0.050839703530073166,
+                  -0.048961181193590164,
+                  -0.255871444940567,
+                  -0.27341341972351074,
+                  -0.255871444940567,
+                  -0.03681985288858414,
+                  -0.03544534742832184,
+                  -0.03412167355418205,
+                  -0.032846976071596146,
+                  -0.03161946311593056,
+                  -0.030437402427196503,
+                  -0.026306238025426865,
+                  -0.026306238025426865,
+                  -0.028323210775852203,
+                  14.168689727783203,
+                  0.3436645567417145,
+                  1.0400655269622803,
+                  1.045487403869629,
+                  1.052225947380066,
+                  1.0257811546325684,
+                  -0.4713612198829651,
+                  -0.9147939926846174
+                ],
+                [
+                  -0.04572895169258118,
+                  -0.04572895169258118,
+                  -0.07251498848199844,
+                  -0.377062052488327,
+                  -0.194491907954216,
+                  -0.10642363876104355,
+                  -0.13895057141780853,
+                  -0.13895057141780853,
+                  -0.13895057141780853,
+                  -0.1089944913983345,
+                  -0.1089944913983345,
+                  -0.3562546968460083,
+                  -0.3403743803501129,
+                  -0.33159029483795166,
+                  -0.3236682116985321,
+                  -0.12795878946781158,
+                  -0.38075903058052063,
+                  -0.04290929436683655,
+                  -0.31815481185913086,
+                  -0.3110305666923523,
+                  -0.30761027336120605,
+                  -0.30437445640563965,
+                  -0.30098384618759155,
+                  -0.07824768871068954,
+                  -0.3041653335094452,
+                  -0.055250633507966995,
+                  -0.29765018820762634,
+                  -0.2958065867424011,
+                  -0.2932932674884796,
+                  -0.2895576059818268,
+                  -0.28769370913505554,
+                  -0.28465723991394043,
+                  -0.30805909633636475,
+                  0,
+                  -0.2829880714416504,
+                  -0.2816101312637329,
+                  -0.2803511619567871,
+                  -0.27922311425209045,
+                  -0.27822545170783997,
+                  -0.27735263109207153,
+                  -0.01034554373472929,
+                  -0.2767687737941742,
+                  -0.2760072648525238,
+                  -0.27548620104789734,
+                  -0.2749391496181488,
+                  -0.27435100078582764,
+                  -0.2782646715641022,
+                  -0.27339285612106323,
+                  -0.27282264828681946,
+                  -0.014901661314070225,
+                  -0.2721087336540222,
+                  -0.2711997628211975,
+                  -0.27037397027015686,
+                  -0.26950886845588684,
+                  0,
+                  -0.26860496401786804,
+                  0,
+                  -0.2676568925380707,
+                  -0.26667603850364685,
+                  -0.26565805077552795,
+                  -0.26460352540016174,
+                  -0.26351311802864075,
+                  -0.2623874545097351,
+                  -0.135165736079216,
+                  -0.135165736079216,
+                  -0.2608563303947449,
+                  -0.2168201506137848,
+                  0,
+                  -0.05470244958996773,
+                  -0.0543549582362175,
+                  -0.05399397015571594,
+                  -0.053594160825014114,
+                  13.92281436920166,
+                  0.2753870407884855
+                ]
+              ]
+            }
+          }
+        }
+      }
+    },
+    "intentDomains": {},
+    "extraSentences": [
+      [
+        "fr",
+        "Quels sont les délais de livraison ?"
+      ],
+      [
+        "fr",
+        "délai"
+      ],
+      [
+        "fr",
+        "Je veux savoir délai"
+      ],
+      [
+        "fr",
+        "Parle moi de délai"
+      ],
+      [
+        "fr",
+        "temps"
+      ],
+      [
+        "fr",
+        "Je veux savoir temps"
+      ],
+      [
+        "fr",
+        "Parle moi de temps"
+      ],
+      [
+        "fr",
+        "jours"
+      ],
+      [
+        "fr",
+        "Je veux savoir jours"
+      ],
+      [
+        "fr",
+        "Parle moi de jours"
+      ],
+      [
+        "fr",
+        "quand"
+      ],
+      [
+        "fr",
+        "Je veux savoir quand"
+      ],
+      [
+        "fr",
+        "Parle moi de quand"
+      ],
+      [
+        "fr",
+        "arriver"
+      ],
+      [
+        "fr",
+        "Je veux savoir arriver"
+      ],
+      [
+        "fr",
+        "Parle moi de arriver"
+      ],
+      [
+        "fr",
+        "combien de temps"
+      ],
+      [
+        "fr",
+        "Je veux savoir combien de temps"
+      ],
+      [
+        "fr",
+        "Parle moi de combien de temps"
+      ],
+      [
+        "fr",
+        "Combien coûte la livraison ?"
+      ],
+      [
+        "fr",
+        "frais"
+      ],
+      [
+        "fr",
+        "Je veux savoir frais"
+      ],
+      [
+        "fr",
+        "Parle moi de frais"
+      ],
+      [
+        "fr",
+        "coût"
+      ],
+      [
+        "fr",
+        "Je veux savoir coût"
+      ],
+      [
+        "fr",
+        "Parle moi de coût"
+      ],
+      [
+        "fr",
+        "coute"
+      ],
+      [
+        "fr",
+        "Je veux savoir coute"
+      ],
+      [
+        "fr",
+        "Parle moi de coute"
+      ],
+      [
+        "fr",
+        "prix"
+      ],
+      [
+        "fr",
+        "Je veux savoir prix"
+      ],
+      [
+        "fr",
+        "Parle moi de prix"
+      ],
+      [
+        "fr",
+        "tarif"
+      ],
+      [
+        "fr",
+        "Je veux savoir tarif"
+      ],
+      [
+        "fr",
+        "Parle moi de tarif"
+      ],
+      [
+        "fr",
+        "gratuit"
+      ],
+      [
+        "fr",
+        "Je veux savoir gratuit"
+      ],
+      [
+        "fr",
+        "Parle moi de gratuit"
+      ],
+      [
+        "fr",
+        "combien coûte"
+      ],
+      [
+        "fr",
+        "Je veux savoir combien coûte"
+      ],
+      [
+        "fr",
+        "Parle moi de combien coûte"
+      ],
+      [
+        "fr",
+        "combien coute"
+      ],
+      [
+        "fr",
+        "Je veux savoir combien coute"
+      ],
+      [
+        "fr",
+        "Parle moi de combien coute"
+      ],
+      [
+        "fr",
+        "cher"
+      ],
+      [
+        "fr",
+        "Je veux savoir cher"
+      ],
+      [
+        "fr",
+        "Parle moi de cher"
+      ],
+      [
+        "fr",
+        "Comment suivre ma commande ?"
+      ],
+      [
+        "fr",
+        "suivre"
+      ],
+      [
+        "fr",
+        "Je veux savoir suivre"
+      ],
+      [
+        "fr",
+        "Parle moi de suivre"
+      ],
+      [
+        "fr",
+        "suivi"
+      ],
+      [
+        "fr",
+        "Je veux savoir suivi"
+      ],
+      [
+        "fr",
+        "Parle moi de suivi"
+      ],
+      [
+        "fr",
+        "où"
+      ],
+      [
+        "fr",
+        "Je veux savoir où"
+      ],
+      [
+        "fr",
+        "Parle moi de où"
+      ],
+      [
+        "fr",
+        "commande"
+      ],
+      [
+        "fr",
+        "Je veux savoir commande"
+      ],
+      [
+        "fr",
+        "Parle moi de commande"
+      ],
+      [
+        "fr",
+        "statut"
+      ],
+      [
+        "fr",
+        "Je veux savoir statut"
+      ],
+      [
+        "fr",
+        "Parle moi de statut"
+      ],
+      [
+        "fr",
+        "tracking"
+      ],
+      [
+        "fr",
+        "Je veux savoir tracking"
+      ],
+      [
+        "fr",
+        "Parle moi de tracking"
+      ],
+      [
+        "fr",
+        "Quels sont les modes de paiement acceptés ?"
+      ],
+      [
+        "fr",
+        "payer"
+      ],
+      [
+        "fr",
+        "Je veux savoir payer"
+      ],
+      [
+        "fr",
+        "Parle moi de payer"
+      ],
+      [
+        "fr",
+        "paiement"
+      ],
+      [
+        "fr",
+        "Je veux savoir paiement"
+      ],
+      [
+        "fr",
+        "Parle moi de paiement"
+      ],
+      [
+        "fr",
+        "mode"
+      ],
+      [
+        "fr",
+        "Je veux savoir mode"
+      ],
+      [
+        "fr",
+        "Parle moi de mode"
+      ],
+      [
+        "fr",
+        "moyen"
+      ],
+      [
+        "fr",
+        "Je veux savoir moyen"
+      ],
+      [
+        "fr",
+        "Parle moi de moyen"
+      ],
+      [
+        "fr",
+        "carte"
+      ],
+      [
+        "fr",
+        "Je veux savoir carte"
+      ],
+      [
+        "fr",
+        "Parle moi de carte"
+      ],
+      [
+        "fr",
+        "mobile"
+      ],
+      [
+        "fr",
+        "Je veux savoir mobile"
+      ],
+      [
+        "fr",
+        "Parle moi de mobile"
+      ],
+      [
+        "fr",
+        "money"
+      ],
+      [
+        "fr",
+        "Je veux savoir money"
+      ],
+      [
+        "fr",
+        "Parle moi de money"
+      ],
+      [
+        "fr",
+        "wave"
+      ],
+      [
+        "fr",
+        "Je veux savoir wave"
+      ],
+      [
+        "fr",
+        "Parle moi de wave"
+      ],
+      [
+        "fr",
+        "orange"
+      ],
+      [
+        "fr",
+        "Je veux savoir orange"
+      ],
+      [
+        "fr",
+        "Parle moi de orange"
+      ],
+      [
+        "fr",
+        "Le paiement est-il sécurisé ?"
+      ],
+      [
+        "fr",
+        "sécurisé"
+      ],
+      [
+        "fr",
+        "Je veux savoir sécurisé"
+      ],
+      [
+        "fr",
+        "Parle moi de sécurisé"
+      ],
+      [
+        "fr",
+        "sécurité"
+      ],
+      [
+        "fr",
+        "Je veux savoir sécurité"
+      ],
+      [
+        "fr",
+        "Parle moi de sécurité"
+      ],
+      [
+        "fr",
+        "confiance"
+      ],
+      [
+        "fr",
+        "Je veux savoir confiance"
+      ],
+      [
+        "fr",
+        "Parle moi de confiance"
+      ],
+      [
+        "fr",
+        "fiable"
+      ],
+      [
+        "fr",
+        "Je veux savoir fiable"
+      ],
+      [
+        "fr",
+        "Parle moi de fiable"
+      ],
+      [
+        "fr",
+        "arnaque"
+      ],
+      [
+        "fr",
+        "Je veux savoir arnaque"
+      ],
+      [
+        "fr",
+        "Parle moi de arnaque"
+      ],
+      [
+        "fr",
+        "Comment annuler ma commande ?"
+      ],
+      [
+        "fr",
+        "annuler"
+      ],
+      [
+        "fr",
+        "Je veux savoir annuler"
+      ],
+      [
+        "fr",
+        "Parle moi de annuler"
+      ],
+      [
+        "fr",
+        "annulation"
+      ],
+      [
+        "fr",
+        "Je veux savoir annulation"
+      ],
+      [
+        "fr",
+        "Parle moi de annulation"
+      ],
+      [
+        "fr",
+        "supprimer"
+      ],
+      [
+        "fr",
+        "Je veux savoir supprimer"
+      ],
+      [
+        "fr",
+        "Parle moi de supprimer"
+      ],
+      [
+        "fr",
+        "commande"
+      ],
+      [
+        "fr",
+        "Je veux savoir commande"
+      ],
+      [
+        "fr",
+        "Parle moi de commande"
+      ],
+      [
+        "fr",
+        "Comment créer un compte ?"
+      ],
+      [
+        "fr",
+        "créer"
+      ],
+      [
+        "fr",
+        "Je veux savoir créer"
+      ],
+      [
+        "fr",
+        "Parle moi de créer"
+      ],
+      [
+        "fr",
+        "compte"
+      ],
+      [
+        "fr",
+        "Je veux savoir compte"
+      ],
+      [
+        "fr",
+        "Parle moi de compte"
+      ],
+      [
+        "fr",
+        "inscription"
+      ],
+      [
+        "fr",
+        "Je veux savoir inscription"
+      ],
+      [
+        "fr",
+        "Parle moi de inscription"
+      ],
+      [
+        "fr",
+        "inscrire"
+      ],
+      [
+        "fr",
+        "Je veux savoir inscrire"
+      ],
+      [
+        "fr",
+        "Parle moi de inscrire"
+      ],
+      [
+        "fr",
+        "enregistrer"
+      ],
+      [
+        "fr",
+        "Je veux savoir enregistrer"
+      ],
+      [
+        "fr",
+        "Parle moi de enregistrer"
+      ],
+      [
+        "fr",
+        "Comment garantissez-vous la qualité des produits ?"
+      ],
+      [
+        "fr",
+        "qualité"
+      ],
+      [
+        "fr",
+        "Je veux savoir qualité"
+      ],
+      [
+        "fr",
+        "Parle moi de qualité"
+      ],
+      [
+        "fr",
+        "frais"
+      ],
+      [
+        "fr",
+        "Je veux savoir frais"
+      ],
+      [
+        "fr",
+        "Parle moi de frais"
+      ],
+      [
+        "fr",
+        "bio"
+      ],
+      [
+        "fr",
+        "Je veux savoir bio"
+      ],
+      [
+        "fr",
+        "Parle moi de bio"
+      ],
+      [
+        "fr",
+        "naturel"
+      ],
+      [
+        "fr",
+        "Je veux savoir naturel"
+      ],
+      [
+        "fr",
+        "Parle moi de naturel"
+      ],
+      [
+        "fr",
+        "origine"
+      ],
+      [
+        "fr",
+        "Je veux savoir origine"
+      ],
+      [
+        "fr",
+        "Parle moi de origine"
+      ],
+      [
+        "fr",
+        "bonjour"
+      ],
+      [
+        "fr",
+        "salut"
+      ],
+      [
+        "fr",
+        "hello"
+      ],
+      [
+        "fr",
+        "au revoir"
+      ],
+      [
+        "fr",
+        "bye"
+      ],
+      [
+        "fr",
+        "je veux %product%"
+      ],
+      [
+        "fr",
+        "je veux des %product%"
+      ],
+      [
+        "fr",
+        "je cherche %product%"
+      ],
+      [
+        "fr",
+        "je cherche des %product%"
+      ],
+      [
+        "fr",
+        "avez-vous %product%"
+      ],
+      [
+        "fr",
+        "avez-vous des %product%"
+      ],
+      [
+        "fr",
+        "trouver %product%"
+      ],
+      [
+        "fr",
+        "trouver des %product%"
+      ],
+      [
+        "fr",
+        "acheter %product%"
+      ],
+      [
+        "fr",
+        "acheter des %product%"
+      ],
+      [
+        "fr",
+        "prix de %product%"
+      ],
+      [
+        "fr",
+        "prix de des %product%"
+      ],
+      [
+        "fr",
+        "combien coute %product%"
+      ],
+      [
+        "fr",
+        "combien coute des %product%"
+      ],
+      [
+        "fr",
+        "vendez-vous %product%"
+      ],
+      [
+        "fr",
+        "vendez-vous des %product%"
+      ]
+    ]
+  },
+  "ner": {
+    "settings": {
+      "tag": "ner",
+      "entityPreffix": "%",
+      "entitySuffix": "%"
+    },
+    "rules": {}
+  },
+  "nlgManager": {
+    "settings": {
+      "tag": "nlg-manager"
+    },
+    "responses": {
+      "fr": {
+        "livraison.delai": [
+          {
+            "answer": "Les délais de livraison varient selon votre zone géographique :\n• Dakar : 24-48h\n• Régions : 2-5 jours\n\nVous recevrez un SMS/email dès que votre commande sera expédiée."
+          }
+        ],
+        "livraison.frais": [
+          {
+            "answer": "Les frais de livraison dépendent de votre localisation et du poids de la commande. Ils sont calculés automatiquement au moment du checkout. La livraison est gratuite pour les commandes supérieures à 50 000 FCFA."
+          }
+        ],
+        "livraison.suivi": [
+          {
+            "answer": "Pour suivre votre commande :\n1. Connectez-vous à votre compte\n2. Allez dans \"Mes commandes\"\n3. Cliquez sur la commande concernée\n\nVous pouvez aussi me demander directement \"Où est ma commande ?\" si vous êtes connecté."
+          }
+        ],
+        "paiement.modes": [
+          {
+            "answer": "Nous acceptons plusieurs modes de paiement :\n• Mobile Money (Orange Money, Wave, Free Money)\n• Cartes bancaires (Visa, Mastercard)\n• Paiement à la livraison (espèces)\n\nTous les paiements sont sécurisés."
+          }
+        ],
+        "paiement.securite": [
+          {
+            "answer": "Oui, tous nos paiements sont 100% sécurisés. Nous utilisons des protocoles de chiffrement SSL et travaillons avec des partenaires de paiement certifiés. Vos données bancaires ne sont jamais stockées sur nos serveurs."
+          }
+        ],
+        "commande.annuler": [
+          {
+            "answer": "Vous pouvez annuler votre commande tant qu'elle n'est pas encore en préparation :\n1. Allez dans \"Mes commandes\"\n2. Sélectionnez la commande\n3. Cliquez sur \"Annuler\"\n\nSi la commande est déjà en préparation, contactez-nous rapidement."
+          }
+        ],
+        "compte.creer": [
+          {
+            "answer": "Pour créer un compte :\n1. Cliquez sur \"S'inscrire\" en haut de la page\n2. Choisissez votre type de compte (Consommateur, Producteur, etc.)\n3. Remplissez vos informations\n4. Validez votre email\n\nC'est gratuit et rapide !"
+          }
+        ],
+        "produits.qualite": [
+          {
+            "answer": "Nous travaillons directement avec des producteurs locaux vérifiés. Chaque vendeur est validé avant de pouvoir vendre. Les produits sont contrôlés et les avis clients nous permettent de maintenir un haut niveau de qualité."
+          }
+        ],
+        "greeting": [
+          {
+            "answer": "Bonjour ! 👋 Comment puis-je vous aider aujourd'hui ?"
+          }
+        ],
+        "goodbye": [
+          {
+            "answer": "Au revoir ! À bientôt sur Harvests ! 👋"
+          }
+        ]
+      }
+    }
+  },
+  "actionManager": {
+    "settings": {
+      "tag": "action-manager"
+    },
+    "actions": {}
+  },
+  "slotManager": {
+    "search.product": {
+      "product": {
+        "intent": "search.product",
+        "entity": "product",
+        "mandatory": false,
+        "locales": {}
+      }
+    }
+  }
+}

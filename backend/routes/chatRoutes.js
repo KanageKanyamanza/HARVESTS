@@ -1,8 +1,8 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const chatController = require('../controllers/chatController');
-const { protect } = require('../controllers/auth/authMiddleware');
-const adminAuthController = require('../controllers/adminAuthController');
+const chatController = require("../controllers/chatController");
+const { protect } = require("../controllers/auth/authMiddleware");
+const adminAuthController = require("../controllers/adminAuthController");
 
 /**
  * @swagger
@@ -79,7 +79,32 @@ const adminAuthController = require('../controllers/adminAuthController');
  *       400:
  *         description: Terme de recherche trop court (minimum 2 caractères)
  */
-router.get('/search-products', chatController.searchProducts);
+router.get("/search-products", chatController.searchProducts);
+
+/**
+ * @swagger
+ * /api/v1/chat/message:
+ *   post:
+ *     summary: Envoyer un message au chatbot (NLP)
+ *     tags: [Chat]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - message
+ *             properties:
+ *               message:
+ *                 type: string
+ *               context:
+ *                 type: object
+ *     responses:
+ *       200:
+ *         description: Réponse du chatbot
+ */
+router.post("/message", chatController.processMessage);
 
 /**
  * @swagger
@@ -156,7 +181,7 @@ router.get('/search-products', chatController.searchProducts);
  *       400:
  *         description: Terme de recherche trop court (minimum 2 caractères)
  */
-router.get('/search-sellers', chatController.searchSellers);
+router.get("/search-sellers", chatController.searchSellers);
 
 /**
  * @swagger
@@ -233,7 +258,7 @@ router.get('/search-sellers', chatController.searchSellers);
  *       400:
  *         description: Terme de recherche trop court (minimum 2 caractères)
  */
-router.get('/search-transporters', chatController.searchTransporters);
+router.get("/search-transporters", chatController.searchTransporters);
 
 /**
  * @swagger
@@ -245,7 +270,7 @@ router.get('/search-transporters', chatController.searchTransporters);
  *       200:
  *         description: Liste des catégories
  */
-router.get('/categories', chatController.getCategories);
+router.get("/categories", chatController.getCategories);
 
 /**
  * @swagger
@@ -257,7 +282,7 @@ router.get('/categories', chatController.getCategories);
  *       200:
  *         description: Réponses personnalisées
  */
-router.get('/custom-answers', chatController.getCustomAnswers);
+router.get("/custom-answers", chatController.getCustomAnswers);
 
 /**
  * @swagger
@@ -278,7 +303,7 @@ router.get('/custom-answers', chatController.getCustomAnswers);
  *       404:
  *         description: Commande non trouvée
  */
-router.get('/track/:orderNumber', chatController.trackOrder);
+router.get("/track/:orderNumber", chatController.trackOrder);
 
 /**
  * @swagger
@@ -303,7 +328,7 @@ router.get('/track/:orderNumber', chatController.trackOrder);
  *       200:
  *         description: Interaction enregistrée
  */
-router.post('/log-interaction', chatController.logInteraction);
+router.post("/log-interaction", chatController.logInteraction);
 
 /**
  * @swagger
@@ -330,7 +355,7 @@ router.post('/log-interaction', chatController.logInteraction);
  *       200:
  *         description: Feedback enregistré
  */
-router.post('/log-feedback', chatController.logFeedback);
+router.post("/log-feedback", chatController.logFeedback);
 
 /**
  * @swagger
@@ -350,12 +375,12 @@ router.post('/log-feedback', chatController.logFeedback);
  *       200:
  *         description: Liste des commandes récentes
  */
-router.get('/my-orders', protect, chatController.getMyRecentOrders);
+router.get("/my-orders", protect, chatController.getMyRecentOrders);
 
 // ========================================
 // ROUTES ADMIN
 // ========================================
-router.use('/admin', adminAuthController.protect);
+router.use("/admin", adminAuthController.protect);
 
 /**
  * @swagger
@@ -369,7 +394,7 @@ router.use('/admin', adminAuthController.protect);
  *       200:
  *         description: Liste des questions sans réponse
  */
-router.get('/admin/unanswered', chatController.getUnansweredQuestions);
+router.get("/admin/unanswered", chatController.getUnansweredQuestions);
 
 /**
  * @swagger
@@ -401,7 +426,7 @@ router.get('/admin/unanswered', chatController.getUnansweredQuestions);
  *       200:
  *         description: Question répondue
  */
-router.patch('/admin/unanswered/:id/answer', chatController.answerQuestion);
+router.patch("/admin/unanswered/:id/answer", chatController.answerQuestion);
 
 /**
  * @swagger
@@ -422,7 +447,7 @@ router.patch('/admin/unanswered/:id/answer', chatController.answerQuestion);
  *       200:
  *         description: Question ignorée
  */
-router.patch('/admin/unanswered/:id/ignore', chatController.ignoreQuestion);
+router.patch("/admin/unanswered/:id/ignore", chatController.ignoreQuestion);
 
 /**
  * @swagger
@@ -436,7 +461,7 @@ router.patch('/admin/unanswered/:id/ignore', chatController.ignoreQuestion);
  *       200:
  *         description: Statistiques du chatbot
  */
-router.get('/admin/stats', chatController.getChatStats);
+router.get("/admin/stats", chatController.getChatStats);
 
 /**
  * @swagger
@@ -459,7 +484,7 @@ router.get('/admin/stats', chatController.getChatStats);
  *       200:
  *         description: Liste des interactions
  */
-router.get('/admin/interactions', chatController.getAllInteractions);
+router.get("/admin/interactions", chatController.getAllInteractions);
 
 /**
  * @swagger
@@ -480,7 +505,10 @@ router.get('/admin/interactions', chatController.getAllInteractions);
  *       200:
  *         description: Historique de chat
  */
-router.get('/admin/user/:userId/history', chatController.getUserChatHistory);
+// Routes Gestion FAQs
+router.get("/admin/faqs", chatController.getFaqs);
+router.post("/admin/faqs", chatController.createFaq);
+router.patch("/admin/faqs/:id", chatController.updateFaq);
+router.delete("/admin/faqs/:id", chatController.deleteFaq);
 
 module.exports = router;
-

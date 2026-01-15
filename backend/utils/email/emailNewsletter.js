@@ -210,9 +210,10 @@ function addEmailNewsletterMethod(EmailClass) {
 
             <div class="unsubscribe-link">
               Vous recevez cet email car vous êtes abonné à la newsletter de Harvests.<br>
+              <br>
               <a href="${this.url}/unsubscribe?email=${
 			this.to
-		}">Se désabonner</a>
+		}" style="display: inline-block; padding: 10px 20px; background-color: #ef4444; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; margin-top: 5px;">Se désabonner</a>
             </div>
             
             <div style="margin-top: 10px; color: #6b7280; font-size: 12px;">
