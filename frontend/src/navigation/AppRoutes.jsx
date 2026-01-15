@@ -63,6 +63,8 @@ const SubscriptionCheckout = React.lazy(() =>
 	import("../pages/payments/SubscriptionCheckout")
 );
 
+const Unsubscribe = React.lazy(() => import("../pages/Unsubscribe"));
+
 // Import des pages d'authentification
 const Login = React.lazy(() => import("../pages/auth/Login"));
 const Register = React.lazy(() => import("../pages/auth/Register"));
@@ -436,6 +438,12 @@ const AppRoutes = () => {
 						<SuspenseRoute element={<SubscriptionCheckout />} />
 					</Layout>
 				}
+			/>
+
+			{/* Route de désinscription newsletter */}
+			<Route
+				path="/unsubscribe"
+				element={<SuspenseRoute element={<Unsubscribe />} />}
 			/>
 
 			{/* Routes d'authentification */}
