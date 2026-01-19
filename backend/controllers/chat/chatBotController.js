@@ -47,18 +47,32 @@ const trainBot = async () => {
 		manager.addDocument("fr", "bonjour", "greeting");
 		manager.addDocument("fr", "salut", "greeting");
 		manager.addDocument("fr", "hello", "greeting");
+		manager.addDocument("fr", "bonsoir", "greeting");
 		manager.addAnswer(
 			"fr",
 			"greeting",
-			"Bonjour ! 👋 Comment puis-je vous aider aujourd'hui ?"
+			"Bonjour ! 👋 Comment puis-je vous aider aujourd'hui ?",
 		);
+
+		manager.addDocument("fr", "merci", "thanks");
+		manager.addDocument("fr", "merci beaucoup", "thanks");
+		manager.addDocument("fr", "thanks", "thanks");
+		manager.addDocument("fr", "c'est gentil", "thanks");
+		manager.addDocument("fr", "ok merci", "thanks");
+		manager.addAnswer(
+			"fr",
+			"thanks",
+			"Je vous en prie ! 😊 N'hésitez pas si vous avez d'autres questions.",
+		);
+		manager.addAnswer("fr", "thanks", "Avec plaisir ! Je suis là pour ça. 👋");
 
 		manager.addDocument("fr", "au revoir", "goodbye");
 		manager.addDocument("fr", "bye", "goodbye");
+		manager.addDocument("fr", "a bientot", "goodbye");
 		manager.addAnswer(
 			"fr",
 			"goodbye",
-			"Au revoir ! À bientôt sur Harvests ! 👋"
+			"Au revoir ! À bientôt sur Harvests ! 👋",
 		);
 
 		// 3. Intentions de recherche de produits
@@ -72,11 +86,13 @@ const trainBot = async () => {
 			"prix de",
 			"combien coute",
 			"vendez-vous",
+			"je voudrais",
 		];
 
 		searchPhrases.forEach((phrase) => {
 			manager.addDocument("fr", `${phrase} %product%`, "search.product");
 			manager.addDocument("fr", `${phrase} des %product%`, "search.product");
+			manager.addDocument("fr", `${phrase} du %product%`, "search.product");
 		});
 
 		// Entraînement
@@ -108,30 +124,29 @@ const processMessage = async (req, res) => {
 			score: response.score,
 			entities: response.entities,
 			actions: [], // Actions rapides pour l'UI
-			data: null, // Données supplémentaires (produits, etc.)
+			data: {}, // Données supplémentaires (produits, etc.)
 		};
 
 		// 2. Gestion des intentions spéciales
-		let productResults = null;
 
-		// Si l'intention est explicitement une recherche ou si le score est faible (fallback)
-		if (
+		// Si l'intent est explicitement une recherche ou si le score est faible (fallback)
+		const isSearchIntent =
 			response.intent === "search.product" ||
 			response.intent === "None" ||
-			response.score < 0.7
-		) {
+			response.score < 0.6;
+
+		if (isSearchIntent) {
 			// Extraire le terme de recherche
 			let query = message;
 
 			// Si NER a trouvé un produit, on l'utilise
 			const productEntity = response.entities.find(
-				(e) => e.entity === "product"
+				(e) => e.entity === "product",
 			);
 			if (productEntity) {
 				query = productEntity.option;
 			} else {
-				// Nettoyage basique si pas d'entité : retirer "je cherche", "je veux", etc.
-				// (Simplifié pour ce POC)
+				// Nettoyage basique si pas d'entité : retirer les stop words
 				const stopWords = [
 					"je",
 					"tu",
@@ -153,6 +168,8 @@ const processMessage = async (req, res) => {
 					"les",
 					"un",
 					"une",
+					"du",
+					"de la",
 					"trouver",
 					"acheter",
 					"avez",
@@ -160,84 +177,97 @@ const processMessage = async (req, res) => {
 					"est-ce",
 					"que",
 					"avez-vous",
+					"disponible",
+					"disponibles",
+					"prix",
 				];
 				// Enlever la ponctuation et découper
 				const words = message
 					.toLowerCase()
 					.replace(/[?.!,:;]/g, "")
-					.split(" ");
+					.split(/\s+/);
 				query = words.filter((w) => !stopWords.includes(w)).join(" ");
 			}
 
-			console.log(`🔎 Chatbot fallback search query: "${query}"`);
+			// Si après nettoyage on a un terme de recherche valable
+			if (query.trim().length >= 2) {
+				console.log(`🔎 Chatbot fallback search query: "${query}"`);
 
-			productResults = await Product.find({
-				$or: [
-					{ name: { $regex: query, $options: "i" } },
-					{ description: { $regex: query, $options: "i" } },
-					{ tags: { $regex: query, $options: "i" } },
-				],
-				isActive: true,
-				status: "approved",
-			}).limit(3);
+				const { buildFlexibleSearchQuery } = require("../../utils/searchUtils");
+				const mongoQuery = buildFlexibleSearchQuery(query, [
+					"name",
+					"description",
+					"tags",
+					"category",
+					"subcategory",
+				]);
 
-			console.log(
-				`✅ Found ${productResults.length} products for query "${query}"`
-			);
+				// S'assurer que le produit est actif et approuvé
+				mongoQuery.isActive = true;
+				mongoQuery.status = "approved";
 
-			// GESTION 0 RÉSULTATS + LOGGING
-			if (productResults.length === 0 && query.length > 2) {
-				// Importer UnansweredQuestion si nécessaire (devrait être en haut du fichier, mais on le fait ici pour la démo si besoin, mieux vaut l'ajouter en haut)
-				const UnansweredQuestion = require("../../models/UnansweredQuestion");
+				const productResults = await Product.find(mongoQuery).limit(3);
 
-				// Log de la recherche manquée
-				try {
-					await UnansweredQuestion.findOneAndUpdate(
-						{ question: `Recherche produit : ${query}` },
+				console.log(
+					`✅ Found ${productResults.length} products for query "${query}"`,
+				);
+
+				if (productResults.length > 0) {
+					reply.text = `Voici ce que j'ai trouvé pour "${query}" :`;
+					reply.data.products = productResults;
+					return res.status(200).json({
+						status: "success",
+						data: reply,
+					});
+				} else {
+					// Log de la recherche manquée
+					const UnansweredQuestion = require("../../models/UnansweredQuestion");
+					try {
+						await UnansweredQuestion.findOneAndUpdate(
+							{ question: `Recherche produit : ${query}` },
+							{
+								$inc: { count: 1 },
+								$set: {
+									lastAskedBy: req.user ? req.user._id : null,
+									updatedAt: Date.now(),
+									category: "produits",
+									status: "pending",
+								},
+								$setOnInsert: {
+									firstAskedBy: req.user ? req.user._id : null,
+									createdAt: Date.now(),
+								},
+							},
+							{ upsert: true, new: true },
+						);
+						console.log(`📝 Missed search logged: "${query}"`);
+					} catch (err) {
+						console.error("Error logging missed search:", err);
+					}
+
+					reply.text = `Désolé, nous n'avons pas de "${query}" pour le moment. 😕\n\nCependant, vous pouvez consulter notre catalogue complet pour voir ce qui est disponible, ou découvrir nos produits similaires !`;
+					reply.actions = [
 						{
-							$inc: { count: 1 },
-							$set: {
-								lastAskedBy: req.user ? req.user._id : null,
-								updatedAt: Date.now(),
-								category: "produits",
-								status: "pending",
-							},
-							$setOnInsert: {
-								firstAskedBy: req.user ? req.user._id : null,
-								createdAt: Date.now(),
-							},
+							type: "link",
+							label: "Voir tout le catalogue",
+							to: "/products",
 						},
-						{ upsert: true, new: true }
-					);
-					console.log(`📝 Missed search logged: "${query}"`);
-				} catch (err) {
-					console.error("Error logging missed search:", err);
+					];
+					return res.status(200).json({
+						status: "success",
+						data: reply,
+					});
 				}
-
-				reply.text = `Désolé, nous n'avons pas de "${query}" pour le moment. 😕\n\nCependant, vous pouvez consulter notre catalogue complet pour voir ce qui est disponible, ou découvrir nos produits similaires !`;
-				reply.actions = [
-					{
-						type: "link",
-						label: "Voir tout le catalogue",
-						to: "/products",
-					},
-				];
-				return res.status(200).json({
-					status: "success",
-					data: reply,
-				});
 			}
 		}
 
-		// 3. Construire la réponse finale
-		if (reply.text) {
-			// Déjà défini par le bloc de recherche ou autre
-		} else if (response.answer) {
+		// 3. Construire la réponse finale (si pas déjà envoyé par le bloc de recherche)
+		if (response.answer) {
 			reply.text = response.answer;
 		} else {
 			// Vrai fallback si rien trouvé
 			reply.text =
-				"Je n'ai pas bien compris. Pouvez-vous reformuler ? Vous pouvez chercher des produits comme 'tomates' ou poser des questions sur la livraison.";
+				"Je n'ai pas bien compris votre demande. 😕\n\nVous pouvez me poser des questions sur la livraison, les paiements, ou chercher des produits (ex: 'tomates', 'mangues').";
 			reply.intent = "None";
 		}
 

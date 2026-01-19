@@ -1,6 +1,6 @@
-const express = require('express');
-const orderController = require('../controllers/orderController');
-const authMiddleware = require('../controllers/auth/authMiddleware');
+const express = require("express");
+const orderController = require("../controllers/orderController");
+const authMiddleware = require("../controllers/auth/authMiddleware");
 
 /**
  * @swagger
@@ -37,7 +37,7 @@ router.use(authMiddleware.protect);
  *       200:
  *         description: Liste des commandes
  */
-router.get('/my', orderController.getMyOrders);
+router.get("/my", orderController.getMyOrders);
 
 /**
  * @swagger
@@ -58,7 +58,7 @@ router.get('/my', orderController.getMyOrders);
  *       200:
  *         description: Informations de suivi
  */
-router.get('/:id/tracking', orderController.trackOrder);
+router.get("/:id/tracking", orderController.trackOrder);
 
 /**
  * @swagger
@@ -88,7 +88,7 @@ router.get('/:id/tracking', orderController.trackOrder);
  *       404:
  *         description: Commande non trouvée
  */
-router.get('/:id/invoice', orderController.generateInvoice);
+router.get("/:id/invoice", orderController.generateInvoice);
 
 /**
  * @swagger
@@ -109,7 +109,7 @@ router.get('/:id/invoice', orderController.generateInvoice);
  *       200:
  *         description: Détails de la commande
  */
-router.get('/:id', orderController.getOrder);
+router.get("/:id", orderController.getOrder);
 
 /**
  * @swagger
@@ -134,7 +134,7 @@ router.get('/:id', orderController.getOrder);
  *       200:
  *         description: Estimation des coûts
  */
-router.post('/estimate', orderController.estimateOrderCosts);
+router.post("/estimate", orderController.estimateOrderCosts);
 
 // Routes d'écriture (nécessitent une vérification d'email)
 router.use(authMiddleware.requireVerification);
@@ -193,10 +193,7 @@ router.use(authMiddleware.requireVerification);
  *       400:
  *         $ref: '#/components/responses/ValidationError'
  */
-router.post('/', orderController.createOrder);
-
-// Route de test pour créer une commande (TEMPORAIRE)
-router.post('/test', orderController.createTestOrder);
+router.post("/", orderController.createOrder);
 
 // Ces routes sont maintenant définies avant requireVerification
 
@@ -229,21 +226,21 @@ router.post('/test', orderController.createTestOrder);
  *       200:
  *         description: Statut mis à jour
  */
-router.patch('/:id/status', orderController.updateOrderStatus);
+router.patch("/:id/status", orderController.updateOrderStatus);
 
 // Annuler une commande
-router.patch('/:id/cancel', orderController.cancelOrder);
+router.patch("/:id/cancel", orderController.cancelOrder);
 
 // Cette route est maintenant définie avant requireVerification
 
 // ROUTES ADMIN
 
-router.use(authMiddleware.restrictTo('admin'));
+router.use(authMiddleware.restrictTo("admin"));
 
 // Obtenir toutes les commandes
-router.get('/', orderController.getAllOrders);
+router.get("/", orderController.getAllOrders);
 
 // Statistiques des commandes
-router.get('/stats/overview', orderController.getOrderStats);
+router.get("/stats/overview", orderController.getOrderStats);
 
 module.exports = router;
