@@ -77,19 +77,28 @@ const ChatBot = () => {
 	const [isMaximized, setIsMaximized] = React.useState(false);
 
 	const handleGuestInfoCollection = (message) => {
+		const isSkip = ["passer", "skip", "non", "ignorer"].includes(
+			message.toLowerCase().trim(),
+		);
+
 		if (infoStep === "name") {
-			setGuestInfo((prev) => ({ ...prev, name: message }));
+			if (!isSkip) {
+				setGuestInfo((prev) => ({ ...prev, name: message }));
+				addBotMessage(
+					`Enchanté ${
+						message.split(" ")[0]
+					} ! 😊\n\nPour mieux vous aider, pourriez-vous me donner votre adresse email ? (Tapez "passer" si vous préférez ne pas le partager)`,
+				);
+			} else {
+				addBotMessage(
+					`Pas de souci ! 😊 Pouvez-vous me donner votre adresse email pour le suivi ? (Ou tapez "passer")`,
+				);
+			}
 			setInfoStep("email");
-			addBotMessage(
-				`Enchanté ${
-					message.split(" ")[0]
-				} ! 😊\n\nPour mieux vous aider, pourriez-vous me donner votre adresse email ? (Tapez "passer" si vous préférez ne pas le partager)`
-			);
 			return true;
 		}
 		if (infoStep === "email") {
-			if (message.toLowerCase() !== "passer")
-				setGuestInfo((prev) => ({ ...prev, email: message }));
+			if (!isSkip) setGuestInfo((prev) => ({ ...prev, email: message }));
 			setInfoStep(null);
 			setAskingForInfo(false);
 
@@ -101,7 +110,7 @@ const ChatBot = () => {
 				}, 300);
 			} else {
 				addBotMessage(
-					`Parfait ! Je suis prêt à vous aider. Que puis-je faire pour vous ?`
+					`Parfait ! Je suis prêt à vous aider. Que puis-je faire pour vous ?`,
 				);
 				setShowCategories(true);
 			}
@@ -163,7 +172,7 @@ const ChatBot = () => {
 				}
 			} else {
 				addBotMessage(
-					"Désolé, je rencontre un problème technique. Veuillez réessayer plus tard."
+					"Désolé, je rencontre un problème technique. Veuillez réessayer plus tard.",
 				);
 			}
 		} catch (error) {
@@ -365,11 +374,9 @@ const ChatBot = () => {
 	return (
 		<div
 			className={`fixed z-40 flex flex-col overflow-hidden transition-all duration-500 ease-out border border-white/50 ring-1 ring-black/5 bg-white rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] ${
-				isMinimized
-					? "right-6 w-96 max-w-[calc(100vw-3rem)] h-[4rem]"
-					: isMaximized
-					? "right-[5vw] left-[5vw] w-[90vw] bottom-[5vh] h-[90vh]"
-					: "right-6 w-96 max-w-[calc(100vw-3rem)] h-[700px] max-h-[85vh]"
+				isMinimized ? "right-6 w-96 max-w-[calc(100vw-3rem)] h-[4rem]"
+				: isMaximized ? "right-[5vw] left-[5vw] w-[90vw] bottom-[5vh] h-[90vh]"
+				: "right-6 w-96 max-w-[calc(100vw-3rem)] h-[700px] max-h-[85vh]"
 			} ${!isMaximized && (backToTopVisible ? "bottom-[90px]" : "bottom-8")} ${
 				isMinimized && (backToTopVisible ? "bottom-[90px]" : "bottom-8")
 			}`}
