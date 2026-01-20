@@ -61,13 +61,13 @@ const DashboardSidebarFixed = ({
 			} else {
 				// Ancien format : sections avec items
 				return navigationItems.flatMap((section) =>
-					section.items
-						? section.items.map((item) => ({
-								name: item.label,
-								href: item.link,
-								icon: item.icon || FiHome,
-						  }))
-						: []
+					section.items ?
+						section.items.map((item) => ({
+							name: item.label,
+							href: item.link,
+							icon: item.icon || FiHome,
+						}))
+					:	[],
 				);
 			}
 		}
@@ -208,7 +208,7 @@ const DashboardSidebarFixed = ({
 	return (
 		<div
 			className={`h-full transition-all duration-300 z-50 fixed left-0 top-0 border-r border-white/60 ${
-				collapsed ? "w-20" : "w-64"
+				collapsed ? "w-24" : "w-64"
 			}`}
 		>
 			{/* Glassmorphism Background Layer */}
@@ -261,9 +261,9 @@ const DashboardSidebarFixed = ({
 				>
 					<div
 						className={`bg-white/50 border border-white rounded-[1rem] shadow-sm p-2.5 flex items-center gap-2.5 transition-all duration-300 ${
-							collapsed
-								? "flex-col justify-center p-1.5 bg-transparent border-none shadow-none"
-								: ""
+							collapsed ?
+								"flex-col justify-center p-1.5 bg-transparent border-none shadow-none"
+							:	""
 						}`}
 					>
 						<div className="relative group">
@@ -277,7 +277,7 @@ const DashboardSidebarFixed = ({
 									collapsed ? "w-10 h-10" : "w-10 h-10"
 								}`}
 							>
-								{user?.avatar ? (
+								{user?.avatar ?
 									<CloudinaryImage
 										src={user.avatar}
 										alt="Avatar"
@@ -287,11 +287,10 @@ const DashboardSidebarFixed = ({
 										crop="fill"
 										quality="auto"
 									/>
-								) : (
-									<div className="h-full w-full bg-gray-100 rounded-full flex items-center justify-center text-gray-500 font-bold text-sm">
+								:	<div className="h-full w-full bg-gray-100 rounded-full flex items-center justify-center text-gray-500 font-bold text-sm">
 										{user?.firstName?.[0] || user?.email?.[0] || "U"}
 									</div>
-								)}
+								}
 							</div>
 							{/* Status Indicator */}
 							<div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-primary-500 border-2 border-white rounded-full"></div>
@@ -326,9 +325,9 @@ const DashboardSidebarFixed = ({
 								key={item.name}
 								to={item.href}
 								className={`relative group flex items-center px-3.5 py-2.5 rounded-xl transition-all duration-300 ${
-									active
-										? "bg-primary-600 text-white shadow-lg shadow-primary-200"
-										: "text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-md hover:shadow-gray-100"
+									active ?
+										"bg-primary-600 text-white shadow-lg shadow-primary-200"
+									:	"text-gray-500 hover:bg-white hover:text-gray-900 hover:shadow-md hover:shadow-gray-100"
 								} ${collapsed ? "justify-center px-1.5 py-2.5" : ""}`}
 								title={collapsed ? item.name : ""}
 							>
@@ -339,9 +338,9 @@ const DashboardSidebarFixed = ({
 
 								<Icon
 									className={`h-4.5 w-4.5 transition-transform duration-300 ${
-										active
-											? "text-white scale-110"
-											: "text-gray-400 group-hover:text-primary-500 group-hover:scale-110"
+										active ?
+											"text-white scale-110"
+										:	"text-gray-400 group-hover:text-primary-500 group-hover:scale-110"
 									} ${collapsed ? "" : "mr-3"}`}
 								/>
 
