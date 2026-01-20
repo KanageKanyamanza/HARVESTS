@@ -65,7 +65,7 @@ const OrderItemsList = ({
 
 	return (
 		<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-8 md:p-10 border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)]">
-			<div className="flex items-center justify-between mb-8">
+			<div className="flex flex-wrap gap-2 items-center justify-between mb-8">
 				<h3 className="text-xl font-[1000] text-gray-900 uppercase tracking-tight">
 					Articles commandés
 				</h3>
@@ -75,7 +75,7 @@ const OrderItemsList = ({
 				</div>
 			</div>
 
-			<div className="space-y-6">
+			<div className="space-y-3">
 				{items.map((item, index) => {
 					const productData =
 						item.product ||
@@ -153,7 +153,7 @@ const OrderItemsList = ({
 					return (
 						<div
 							key={itemId}
-							className="group relative p-6 bg-gray-50/40 rounded-[2rem] border border-gray-100/50 hover:bg-white hover:shadow-xl hover:shadow-gray-200/40 transition-all duration-500"
+							className="group relative bg-gray-50/40 rounded-[2rem] border border-gray-100/50 hover:bg-white hover:shadow-xl hover:shadow-gray-200/40 transition-all duration-500"
 						>
 							<div className="flex flex-col md:flex-row gap-8">
 								{/* Image Container */}

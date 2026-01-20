@@ -54,14 +54,14 @@ export const DeliveryAddressCard = ({ order, user }) => {
 	const showUserInfo = isProducerView || isAdmin;
 
 	return (
-		<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-8 md:p-10 border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)]">
+		<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-4 md:p-10 border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)]">
 			<h3 className="text-xl font-[1000] text-gray-900 mb-8 uppercase tracking-tight">
 				{showUserInfo ? "Informations client" : "Adresse de livraison"}
 			</h3>
 
-			<div className="space-y-8">
+			<div className="space-y-6">
 				{showUserInfo && (
-					<div className="flex items-center gap-6 p-6 bg-gray-50/50 rounded-3xl border border-gray-100/50">
+					<div className="flex items-center gap-6 p-3 bg-gray-50/50 rounded-3xl border border-gray-100/50">
 						<div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-white shadow-md bg-white p-1 flex-shrink-0">
 							{order.buyer?.avatar ? (
 								<CloudinaryImage

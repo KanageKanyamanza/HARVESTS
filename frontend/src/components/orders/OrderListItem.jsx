@@ -13,6 +13,8 @@ import {
 	FiMapPin,
 	FiChevronDown,
 	FiChevronUp,
+	FiCreditCard,
+	FiActivity,
 } from "react-icons/fi";
 import {
 	getStatusConfig,
@@ -34,7 +36,7 @@ const OrderListItem = ({
 }) => {
 	const { currency: userCurrency } = useCurrency();
 	const isSellerView = ["producer", "transformer", "restaurateur"].includes(
-		userType
+		userType,
 	);
 	const segmentStatus = order.segment?.status || order.status;
 	const statusConfig = getStatusConfig(segmentStatus);
@@ -44,161 +46,196 @@ const OrderListItem = ({
 		Boolean(clientInfo.name) ||
 		Boolean(clientInfo.email) ||
 		Boolean(clientInfo.phone);
-	const orderItems = isSellerView
-		? order.segment?.items || order.items || []
-		: order.items || [];
-	const displayedSubtotal = isSellerView
-		? order.segment?.subtotal ?? order.subtotal ?? 0
-		: order.subtotal ?? 0;
-	const displayedTotal = isSellerView
-		? order.segment?.total ?? displayedSubtotal ?? 0
-		: order.total ?? 0;
+	const orderItems =
+		isSellerView ?
+			order.segment?.items || order.items || []
+		:	order.items || [];
+	const displayedSubtotal =
+		isSellerView ?
+			(order.segment?.subtotal ?? order.subtotal ?? 0)
+		:	(order.subtotal ?? 0);
+	const displayedTotal =
+		isSellerView ?
+			(order.segment?.total ?? displayedSubtotal ?? 0)
+		:	(order.total ?? 0);
 	const segmentId = order.segment?.id || order.segment?._id;
 
-	// Helper pour formater les prix selon la devise utilisateur
 	const formatCurrency = (amount) => {
 		const converted = convertPrice(
 			amount,
 			order.currency || "XOF",
-			userCurrency
+			userCurrency,
 		);
 		return formatPrice(converted, userCurrency);
 	};
 
 	return (
-		<div className="bg-white rounded-lg shadow">
-			{/* Header */}
-			<div className="p-6 border-b border-gray-200">
-				<div className="flex flex-wrap gap-2 items-center justify-between">
-					<div className="flex-1">
-						<div className="flex items-center space-x-3">
-							<button
-								onClick={() => toggleCollapse(order._id)}
-								className="p-1 rounded-md hover:bg-gray-100 transition-colors"
-							>
-								{isCollapsed ? (
-									<FiChevronDown className="h-5 w-5 text-gray-400" />
-								) : (
-									<FiChevronUp className="h-5 w-5 text-gray-400" />
-								)}
-							</button>
-							<div>
-								<h3 className="text-lg font-semibold text-gray-900">
-									Commande #
-									{order.orderNumber || order._id.slice(-8).toUpperCase()}
-								</h3>
-								<p className="text-sm text-gray-600">
-									{isSellerView ? "Client" : "Vendeur"} •{" "}
+		<div
+			className={`group bg-white/70 backdrop-blur-md rounded-[2rem] border border-white/60 shadow-[0_10px_30px_rgba(0,0,0,0.02)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.05)] transition-all duration-500 overflow-hidden ${!isCollapsed ? "shadow-lg border-emerald-100/50" : ""}`}
+		>
+			{/* Main Header / Summary Row */}
+			<div className="p-5 md:p-6">
+				<div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+					{/* ID & Date */}
+					<div className="flex flex-1 items-center gap-4">
+						<button
+							onClick={() => toggleCollapse(order._id)}
+							className={`p-2 rounded-xl transition-all duration-300 ${isCollapsed ? "bg-gray-50 text-gray-400 group-hover:bg-emerald-50 group-hover:text-emerald-500" : "bg-emerald-600 text-white shadow-lg shadow-emerald-200"}`}
+						>
+							{isCollapsed ?
+								<FiChevronDown className="h-5 w-5" />
+							:	<FiChevronUp className="h-5 w-5" />}
+						</button>
+						<div className="">
+							<div className="flex items-center gap-2 mb-0.5">
+								<span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
+									Commande
+								</span>
+								<span className="text-gray-900 font-[1000] text-lg tracking-tight">
+									#{order.orderNumber || order._id.slice(-8).toUpperCase()}
+								</span>
+							</div>
+							<div className="flex items-center gap-3 text-[11px] font-bold text-gray-400">
+								<span className="flex items-center gap-1">
+									<FiCalendar className="w-3 h-3" />{" "}
 									{formatDate(order.createdAt)}
-								</p>
+								</span>
+								<span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+								<span className="flex items-center gap-1 text-gray-500">
+									<FiUser className="w-3 h-3" /> {clientInfo.name || "Client"}
+								</span>
 							</div>
 						</div>
-						{isCollapsed && (
-							<div className="mt-3 ml-8 flex items-center space-x-4 text-sm text-gray-600">
-								<span>
-									{orderItems.length} article{orderItems.length > 1 ? "s" : ""}
-								</span>
-								<span className="font-medium text-gray-900">
-									{formatCurrency(displayedTotal)}
-								</span>
-								<Link
-									to={`/${userType}/orders/${order._id}`}
-									className="inline-flex items-center text-harvests-green hover:text-harvests-green-dark ml-auto"
-								>
-									<FiEye className="h-4 w-4 mr-1" />
-									<span>Voir</span>
-								</Link>
-							</div>
-						)}
 					</div>
-					<div className="flex items-center space-x-3 flex-wrap gap-2">
-						<span
-							className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusConfig.color}`}
-						>
-							<StatusIcon className="h-4 w-4 mr-1" />
-							{statusConfig.text}
-						</span>
 
-						{/* Status update buttons */}
-						{(isSellerView ||
-							userType === "transporter" ||
-							userType === "exporter") &&
-							onUpdateStatus && (
-								<StatusButtons
-									order={order}
-									userType={userType}
-									segmentStatus={segmentStatus}
-									segmentId={segmentId}
-									onUpdateStatus={onUpdateStatus}
-									updatingOrders={updatingOrders}
-									isSellerView={isSellerView}
-								/>
-							)}
+					{/* Stats & Status */}
+					<div className="flex flex-wrap items-center gap-3 md:gap-6 w-full md:w-auto">
+						<div className="hidden sm:flex flex-col items-end">
+							<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+								Montant Total
+							</span>
+							<span className="text-gray-900 font-black text-lg -mt-1 tracking-tight">
+								{formatCurrency(displayedTotal)}
+							</span>
+						</div>
+
+						<div className="flex items-center gap-3 ml-auto md:ml-0">
+							<span
+								className={`inline-flex items-center px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-wider border transition-colors ${statusConfig.color} shadow-sm backdrop-blur-sm`}
+							>
+								<StatusIcon className="h-3.5 w-3.5 mr-2" />
+								{statusConfig.text}
+							</span>
+
+							{(isSellerView ||
+								userType === "transporter" ||
+								userType === "exporter") &&
+								onUpdateStatus && (
+									<StatusButtons
+										order={order}
+										userType={userType}
+										segmentStatus={segmentStatus}
+										segmentId={segmentId}
+										onUpdateStatus={onUpdateStatus}
+										updatingOrders={updatingOrders}
+										isSellerView={isSellerView}
+									/>
+								)}
+						</div>
 					</div>
 				</div>
 			</div>
 
-			{/* Content - visible when expanded */}
+			{/* Expandable Content */}
 			{!isCollapsed && (
-				<div className="p-6">
-					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-						{/* Client info */}
-						{hasClientInfo && (
-							<div className="space-y-3">
-								<h4 className="font-medium text-gray-900 flex items-center">
-									<FiUser className="h-4 w-4 mr-2" />
-									{isSellerView ? "Client" : "Vendeur"}
-								</h4>
-								<div className="text-sm text-gray-600 space-y-1">
-									{clientInfo.name && (
-										<p className="font-medium text-gray-900">
-											{clientInfo.name}
-										</p>
-									)}
-									{clientInfo.email && <p>{clientInfo.email}</p>}
-									{clientInfo.phone && <p>{clientInfo.phone}</p>}
+				<div className="px-5 md:px-6 pb-6 animate-fade-in-up">
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-gray-100">
+						{/* Info Sections */}
+						<div className="space-y-4">
+							<div className="flex items-center gap-3">
+								<div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shadow-sm border border-blue-100">
+									<FiUser className="w-4 h-4" />
 								</div>
-							</div>
-						)}
-
-						{/* Delivery info */}
-						{order.delivery?.deliveryAddress && (
-							<div className="space-y-3">
-								<h4 className="font-medium text-gray-900 flex items-center">
-									<FiMapPin className="h-4 w-4 mr-2" />
-									Livraison
-								</h4>
-								<div className="text-sm text-gray-600">
-									<p>{order.delivery.deliveryAddress.street}</p>
-									<p>
-										{order.delivery.deliveryAddress.city},{" "}
-										{order.delivery.deliveryAddress.region}
+								<div>
+									<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">
+										Coordonnées du client
 									</p>
+									<h4 className="font-black text-gray-900 mt-1">
+										{clientInfo.name || "N/A"}
+									</h4>
 								</div>
 							</div>
-						)}
+							<div className="pl-12 text-xs font-bold text-gray-500 space-y-1">
+								{clientInfo.email && (
+									<p className="truncate">{clientInfo.email}</p>
+								)}
+								{clientInfo.phone && <p>{clientInfo.phone}</p>}
+							</div>
+						</div>
 
-						{/* Order summary */}
-						<div className="space-y-3">
-							<h4 className="font-medium text-gray-900 flex items-center">
-								<FiCalendar className="h-4 w-4 mr-2" />
-								Résumé
-							</h4>
-							<div className="text-sm text-gray-600 space-y-1">
-								<p>
-									{orderItems.length} article{orderItems.length > 1 ? "s" : ""}
+						<div className="space-y-4">
+							<div className="flex items-center gap-3">
+								<div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shadow-sm border border-emerald-100">
+									<FiMapPin className="w-4 h-4" />
+								</div>
+								<div>
+									<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">
+										Adresse de livraison
+									</p>
+									<h4 className="font-black text-gray-900 mt-1">
+										{order.delivery?.deliveryAddress?.city || "N/A"}
+									</h4>
+								</div>
+							</div>
+							<div className="pl-12 text-xs font-bold text-gray-500 space-y-1">
+								{order.delivery?.deliveryAddress && (
+									<>
+										<p>{order.delivery.deliveryAddress.street}</p>
+										<p>{order.delivery.deliveryAddress.region}</p>
+									</>
+								)}
+							</div>
+						</div>
+
+						<div className="space-y-4">
+							<div className="flex items-center gap-3">
+								<div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shadow-sm border border-amber-100">
+									<FiActivity className="w-4 h-4" />
+								</div>
+								<div>
+									<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">
+										Résumé de commande
+									</p>
+									<h4 className="font-black text-gray-900 mt-1">
+										{orderItems.length} article
+										{orderItems.length > 1 ? "s" : ""}
+									</h4>
+								</div>
+							</div>
+							<div className="pl-12 text-xs font-bold text-gray-500">
+								<p className="mb-2">
+									Total partiel: {formatCurrency(displayedSubtotal)}
 								</p>
-								<p className="font-semibold text-gray-900">
-									{formatCurrency(displayedTotal)}
-								</p>
+								<Link
+									to={`/${userType}/orders/${order._id}`}
+									className="inline-flex items-center px-4 py-2 border border-gray-200 rounded-xl text-xs font-black uppercase tracking-wider text-gray-900 bg-white hover:bg-emerald-50 hover:text-emerald-700 transition-colors shadow-sm"
+								>
+									<FiEye className="h-3.5 w-3.5 mr-2" />
+									Voir Détails
+								</Link>
 							</div>
 						</div>
 					</div>
 
-					{/* Items list */}
-					<div className="mt-6">
-						<h4 className="font-medium text-gray-900 mb-3">Articles</h4>
-						<div className="space-y-3">
+					{/* Articles List Table Effect */}
+					<div className="mt-8">
+						<div className="flex items-center gap-2 mb-4">
+							<div className="w-1.5 h-4 bg-emerald-500 rounded-full"></div>
+							<h4 className="text-[11px] font-[1000] text-gray-900 uppercase tracking-widest">
+								Articles de la commande
+							</h4>
+						</div>
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 							{orderItems.slice(0, 3).map((item, index) => {
 								const itemStatusConfig = getItemStatusConfig(item.status);
 								const productImages =
@@ -217,34 +254,42 @@ const OrderListItem = ({
 								return (
 									<div
 										key={item._id || index}
-										className="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg"
+										className="group/item flex items-center gap-3 p-3 bg-white/40 border border-gray-100/50 rounded-2xl hover:bg-white transition-colors"
 									>
-										<div className="h-12 w-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-											{imageUrl ? (
+										<div className="h-14 w-14 bg-gray-50 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100 group-hover/item:border-emerald-100 transition-colors shadow-sm">
+											{imageUrl ?
 												<img
 													src={imageUrl}
 													alt=""
-													className="h-full w-full object-cover"
+													className="h-full w-full object-cover shadow-inner"
 												/>
-											) : (
-												<div className="h-full w-full flex items-center justify-center">
-													<FiPackage className="h-5 w-5 text-gray-400" />
+											:	<div className="h-full w-full flex items-center justify-center">
+													<FiPackage className="h-6 w-6 text-gray-300" />
 												</div>
-											)}
+											}
 										</div>
 										<div className="flex-1 min-w-0">
-											<p className="text-sm font-medium text-gray-900 truncate">
+											<p
+												className="text-xs font-black text-gray-900 truncate leading-tight mb-1"
+												title={parseProductName(
+													item.productSnapshot?.name || item.product?.name,
+												)}
+											>
 												{parseProductName(
-													item.productSnapshot?.name || item.product?.name
+													item.productSnapshot?.name || item.product?.name,
 												)}
 											</p>
-											<p className="text-xs text-gray-500">
-												Qté: {item.quantity} ×{" "}
-												{formatCurrency(item.unitPrice || item.price || 0)}
-											</p>
+											<div className="flex items-center gap-2">
+												<span className="text-[10px] font-bold text-gray-400">
+													×{item.quantity}
+												</span>
+												<span className="text-[10px] font-[1000] text-gray-900">
+													{formatCurrency(item.unitPrice || item.price || 0)}
+												</span>
+											</div>
 										</div>
 										<span
-											className={`text-xs px-2 py-1 rounded ${itemStatusConfig.color}`}
+											className={`text-[9px] font-black uppercase px-2 py-1 rounded-lg border ${itemStatusConfig.color}`}
 										>
 											{itemStatusConfig.text}
 										</span>
@@ -252,22 +297,14 @@ const OrderListItem = ({
 								);
 							})}
 							{orderItems.length > 3 && (
-								<p className="text-sm text-gray-500 text-center">
-									+ {orderItems.length - 3} autre(s) article(s)
-								</p>
+								<Link
+									to={`/${userType}/orders/${order._id}`}
+									className="flex items-center justify-center p-3 bg-gray-50/50 border border-dashed border-gray-200 rounded-2xl text-[10px] font-black text-gray-400 uppercase tracking-widest hover:border-emerald-300 hover:text-emerald-700 transition-all"
+								>
+									+ {orderItems.length - 3} autres ...
+								</Link>
 							)}
 						</div>
-					</div>
-
-					{/* View details link */}
-					<div className="mt-6 flex justify-end">
-						<Link
-							to={`/${userType}/orders/${order._id}`}
-							className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-harvests-light"
-						>
-							<FiEye className="h-4 w-4 mr-2" />
-							Voir les détails
-						</Link>
 					</div>
 				</div>
 			)}
@@ -293,9 +330,9 @@ const StatusButtons = ({
 					<button
 						onClick={() => onUpdateStatus(order, "ready-for-pickup", segmentId)}
 						disabled={isUpdating}
-						className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 disabled:opacity-50"
+						className="inline-flex items-center px-4 py-2 bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-amber-600 transition-all hover:scale-105 shadow-md shadow-amber-100 disabled:opacity-50"
 					>
-						<FiTruck className="h-4 w-4 mr-1" />
+						<FiTruck className="h-3.5 w-3.5 mr-2" />
 						{isUpdating ? "Collecte..." : "Collecter"}
 					</button>
 				)}
@@ -305,9 +342,9 @@ const StatusButtons = ({
 						<button
 							onClick={() => onUpdateStatus(order, "in-transit", segmentId)}
 							disabled={isUpdating}
-							className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+							className="inline-flex items-center px-4 py-2 bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 transition-all hover:scale-105 shadow-md shadow-blue-100 disabled:opacity-50"
 						>
-							<FiTruck className="h-4 w-4 mr-1" />
+							<FiTruck className="h-3.5 w-3.5 mr-2" />
 							{isUpdating ? "En cours..." : "En transit"}
 						</button>
 					)}
@@ -315,9 +352,9 @@ const StatusButtons = ({
 					<button
 						onClick={() => onUpdateStatus(order, "delivered", segmentId)}
 						disabled={isUpdating}
-						className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
+						className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition-all hover:scale-105 shadow-md shadow-emerald-100 disabled:opacity-50"
 					>
-						<FiCheckCircle className="h-4 w-4 mr-1" />
+						<FiCheckCircle className="h-3.5 w-3.5 mr-2" />
 						{isUpdating ? "Livraison..." : "Livrer"}
 					</button>
 				)}
@@ -327,14 +364,14 @@ const StatusButtons = ({
 
 	if (isSellerView) {
 		return (
-			<>
+			<div className="flex gap-2">
 				{segmentStatus === "pending" && (
 					<button
 						onClick={() => onUpdateStatus(order, "cancelled", segmentId)}
 						disabled={isUpdating}
-						className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light disabled:opacity-50"
+						className="inline-flex items-center px-4 py-2 bg-white border border-rose-200 text-rose-500 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-rose-50 transition-all disabled:opacity-50 shadow-sm"
 					>
-						<FiXCircle className="h-4 w-4 mr-1" />
+						<FiXCircle className="h-3.5 w-3.5 mr-2" />
 						Annuler
 					</button>
 				)}
@@ -342,23 +379,23 @@ const StatusButtons = ({
 					<button
 						onClick={() => onUpdateStatus(order, "preparing", segmentId)}
 						disabled={isUpdating}
-						className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+						className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all hover:scale-105 shadow-md shadow-blue-100 disabled:opacity-50"
 					>
-						<FiTruck className="h-4 w-4 mr-1" />
-						{isUpdating ? "Préparation..." : "Préparer"}
+						<FiClock className="h-3.5 w-3.5 mr-2" />
+						{isUpdating ? "Chargement..." : "Préparer"}
 					</button>
 				)}
 				{segmentStatus === "preparing" && (
 					<button
 						onClick={() => onUpdateStatus(order, "ready-for-pickup", segmentId)}
 						disabled={isUpdating}
-						className="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+						className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition-all hover:scale-105 shadow-md shadow-emerald-100 disabled:opacity-50"
 					>
-						<FiTruck className="h-4 w-4 mr-1" />
-						{isUpdating ? "Préparation..." : "Prête"}
+						<FiCheckCircle className="h-3.5 w-3.5 mr-2" />
+						{isUpdating ? "Chargement..." : "Prête"}
 					</button>
 				)}
-			</>
+			</div>
 		);
 	}
 

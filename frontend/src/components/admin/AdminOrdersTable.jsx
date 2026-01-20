@@ -108,28 +108,28 @@ const AdminOrdersTable = ({
 			<div className="overflow-x-auto overflow-y-hidden">
 				<table className="min-w-full divide-y divide-gray-200/50 border-collapse">
 					<thead>
-						<tr className="bg-gray-50/50">
-							<th className="px-5 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+						<tr className="bg-gray-50/80 backdrop-blur-sm">
+							<th className="px-6 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
 								Commande
 							</th>
-							<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+							<th className="px-5 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
 								Client
 							</th>
-							<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+							<th className="px-5 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
 								Articles
 							</th>
-							<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+							<th className="px-5 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
 								Total
 							</th>
-							<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+							<th className="px-5 py-4 text-left text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
 								Statuts
 							</th>
-							<th className="px-5 py-3 text-right text-[9px] font-black text-gray-400 uppercase tracking-widest">
+							<th className="px-6 py-4 text-right text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">
 								Actions
 							</th>
 						</tr>
 					</thead>
-					<tbody className="divide-y divide-gray-200/50">
+					<tbody className="divide-y divide-gray-100/50">
 						{orders.map((order) => (
 							<OrderRow
 								key={order._id}
@@ -162,74 +162,75 @@ const OrderRow = ({
 		["confirmed", "preparing", "ready-for-pickup"].includes(order.status);
 
 	return (
-		<tr className="group hover:bg-gray-50/50 transition-colors duration-300">
-			<td className="px-5 py-3 whitespace-nowrap">
-				<div className="text-xs font-[1000] text-gray-900 tracking-tight mb-0.5 group-hover:text-green-600 transition-colors">
+		<tr className="group hover:bg-emerald-50/30 transition-all duration-300">
+			<td className="px-6 py-5 whitespace-nowrap">
+				<div className="text-sm font-[1000] text-gray-900 tracking-tighter mb-1 transition-colors">
 					#{order.orderNumber || order._id.slice(-8).toUpperCase()}
 				</div>
-				<div className="flex items-center gap-1.5 text-[8px] font-bold text-gray-400 uppercase tracking-tight">
-					<Clock className="h-2.5 w-2.5" />
+				<div className="flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest">
+					<Clock className="h-3 w-3 text-emerald-500" />
 					{formatDate(order.createdAt)}
 				</div>
 			</td>
-			<td className="px-4 py-3 whitespace-nowrap">
-				<div className="flex items-center gap-2.5">
-					<div className="h-8 w-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100 group-hover:bg-white transition-colors overflow-hidden">
-						{order.buyer?.avatar ? (
+			<td className="px-5 py-5 whitespace-nowrap">
+				<div className="flex items-center gap-3.5">
+					<div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center text-gray-300 border border-gray-100 shadow-sm transition-all group-hover:border-emerald-200 overflow-hidden">
+						{order.buyer?.avatar ?
 							<CloudinaryImage
 								src={order.buyer.avatar}
 								className="h-full w-full object-cover"
 							/>
-						) : (
-							<User className="h-4 w-4" />
-						)}
+						:	<User className="h-5 w-5" />}
 					</div>
 					<div>
-						<div className="text-xs font-black text-gray-900 leading-none mb-0.5">
+						<div className="text-xs font-black text-gray-900 leading-none mb-1 group-hover:text-emerald-700">
 							{order.buyer?.firstName} {order.buyer?.lastName}
 						</div>
-						<div className="text-[8px] font-bold text-gray-400">
+						<div className="text-[9px] font-bold text-gray-400">
 							{order.buyer?.email}
 						</div>
 					</div>
 				</div>
 			</td>
-			<td className="px-4 py-3">
-				<div className="flex items-center gap-1.5 mb-0.5">
-					<div className="w-4 h-4 bg-gray-100 rounded flex items-center justify-center text-[8px] font-black text-gray-500">
+			<td className="px-5 py-5">
+				<div className="flex items-center gap-2 mb-1">
+					<div className="w-5 h-5 bg-gray-900 text-white rounded-lg flex items-center justify-center text-[9px] font-black shadow-lg">
 						{order.items?.length || 0}
 					</div>
-					<div className="text-[10px] font-bold text-gray-700">Article(s)</div>
+					<div className="text-[11px] font-[1000] text-gray-900 tracking-tight uppercase">
+						Articles
+					</div>
 				</div>
-				<div className="text-[8px] font-bold text-gray-400 truncate max-w-[120px] uppercase">
+				<div className="text-[9px] font-bold text-gray-400 truncate max-w-[150px] uppercase tracking-wide">
 					{order.items
 						?.slice(0, 2)
 						.map((i) =>
-							parseProductName(i.productSnapshot?.name || i.product?.name)
+							parseProductName(i.productSnapshot?.name || i.product?.name),
 						)
 						.join(", ")}
 					{order.items?.length > 2 && "..."}
 				</div>
 			</td>
-			<td className="px-4 py-3 whitespace-nowrap">
-				<div className="text-sm font-black text-gray-900 tracking-tighter">
+			<td className="px-5 py-5 whitespace-nowrap">
+				<div className="text-lg font-[1000] text-gray-900 tracking-tighter">
 					{formatPrice(order.total || 0, order.currency)}
 				</div>
 			</td>
-			<td className="px-4 py-3 whitespace-nowrap">
-				<div className="flex flex-col gap-1.5">
+			<td className="px-5 py-5 whitespace-nowrap">
+				<div className="flex flex-col gap-1.5 min-w-[120px]">
 					<span
-						className={`inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest border ${getStatusColor(
-							order.status
+						className={`inline-flex items-center justify-center px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-colors shadow-sm ${getStatusColor(
+							order.status,
 						)}`}
 					>
 						{getStatusText(order.status)}
 					</span>
 					<span
-						className={`inline-flex items-center justify-center px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest border ${getPaymentStatusColor(
-							order.payment?.status
+						className={`inline-flex items-center justify-center px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-colors shadow-sm ${getPaymentStatusColor(
+							order.payment?.status,
 						)}`}
 					>
+						<CreditCard className="w-2.5 h-2.5 mr-1.5 opacity-60" />
 						{getPaymentStatusText(order.payment?.status)}
 					</span>
 				</div>
