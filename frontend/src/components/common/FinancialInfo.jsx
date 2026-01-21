@@ -1,301 +1,354 @@
-import React, { useState } from 'react';
-import { FiEdit2, FiCheck, FiX, FiCreditCard, FiShield, FiAlertCircle } from 'react-icons/fi';
-import { commonService } from '../../services';
-import { useNotifications } from '../../contexts/NotificationContext';
+import React, { useState } from "react";
+import {
+	CreditCard,
+	ShieldCheck,
+	AlertCircle,
+	Edit3,
+	Check,
+	X,
+	Building2,
+	User,
+	Hash,
+	Info,
+	ChevronDown,
+	Save,
+	Wallet,
+} from "lucide-react";
+import { commonService } from "../../services";
+import { useNotifications } from "../../contexts/NotificationContext";
 
-// Composant pour gérer les informations financières communes
-const FinancialInfo = ({ bankAccount, paymentMethods, onUpdate, loading = false }) => {
-  const { showSuccess, showError } = useNotifications();
-  const [isEditing, setIsEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState({
-    accountName: bankAccount?.accountName || '',
-    accountNumber: bankAccount?.accountNumber || '',
-    bankName: bankAccount?.bankName || '',
-    bankCode: bankAccount?.bankCode || '',
-    swiftCode: bankAccount?.swiftCode || '',
-    paymentMethods: paymentMethods || ['cash', 'paypal']
-  });
+const FinancialInfo = ({
+	bankAccount,
+	paymentMethods,
+	onUpdate,
+	loading = false,
+}) => {
+	const { showSuccess, showError } = useNotifications();
+	const [isEditing, setIsEditing] = useState(false);
+	const [saving, setSaving] = useState(false);
+	const [formData, setFormData] = useState({
+		accountName: bankAccount?.accountName || "",
+		accountNumber: bankAccount?.accountNumber || "",
+		bankName: bankAccount?.bankName || "",
+		bankCode: bankAccount?.bankCode || "",
+		swiftCode: bankAccount?.swiftCode || "",
+		paymentMethods: paymentMethods || ["cash", "paypal"],
+	});
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+	const handleInputChange = (e) => {
+		const { name, value } = e.target;
+		setFormData((prev) => ({ ...prev, [name]: value }));
+	};
 
-  const handlePaymentMethodChange = (method) => {
-    setFormData(prev => ({
-      ...prev,
-      paymentMethods: prev.paymentMethods.includes(method)
-        ? prev.paymentMethods.filter(m => m !== method)
-        : [...prev.paymentMethods, method]
-    }));
-  };
+	const handlePaymentMethodChange = (method) => {
+		setFormData((prev) => ({
+			...prev,
+			paymentMethods:
+				prev.paymentMethods.includes(method) ?
+					prev.paymentMethods.filter((m) => m !== method)
+				:	[...prev.paymentMethods, method],
+		}));
+	};
 
-  const handleSave = async () => {
-    try {
-      setSaving(true);
-      
-      // Mettre à jour le compte bancaire
-      if (formData.accountName || formData.accountNumber) {
-        await commonService.updateBankAccount({
-          accountName: formData.accountName,
-          accountNumber: formData.accountNumber,
-          bankName: formData.bankName,
-          bankCode: formData.bankCode,
-          swiftCode: formData.swiftCode
-        });
-      }
+	const handleSave = async () => {
+		try {
+			setSaving(true);
+			if (formData.accountName || formData.accountNumber) {
+				await commonService.updateBankAccount({
+					accountName: formData.accountName,
+					accountNumber: formData.accountNumber,
+					bankName: formData.bankName,
+					bankCode: formData.bankCode,
+					swiftCode: formData.swiftCode,
+				});
+			}
+			await commonService.updatePaymentMethods(formData.paymentMethods);
+			showSuccess("Informations financières mises à jour avec succès");
+			setIsEditing(false);
+			onUpdate && onUpdate();
+		} catch (error) {
+			console.error("Erreur lors de la mise à jour:", error);
+			showError("Erreur lors de la mise à jour");
+		} finally {
+			setSaving(false);
+		}
+	};
 
-      // Mettre à jour les méthodes de paiement
-      await commonService.updatePaymentMethods(formData.paymentMethods);
+	const handleCancel = () => {
+		setFormData({
+			accountName: bankAccount?.accountName || "",
+			accountNumber: bankAccount?.accountNumber || "",
+			bankName: bankAccount?.bankName || "",
+			bankCode: bankAccount?.bankCode || "",
+			swiftCode: bankAccount?.swiftCode || "",
+			paymentMethods: paymentMethods || ["cash", "paypal"],
+		});
+		setIsEditing(false);
+	};
 
-      showSuccess('Informations financières mises à jour avec succès');
-      setIsEditing(false);
-      onUpdate && onUpdate();
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour:', error);
-      showError('Erreur lors de la mise à jour des informations financières');
-    } finally {
-      setSaving(false);
-    }
-  };
+	const paymentMethodOptions = [
+		{
+			value: "cash",
+			label: "Paiement Espèces (Livraison)",
+			icon: <Wallet className="h-4 w-4" />,
+		},
+		{
+			value: "paypal",
+			label: "Compte PayPal Pro",
+			icon: <CreditCard className="h-4 w-4" />,
+		},
+	];
 
-  const handleCancel = () => {
-    setFormData({
-      accountName: bankAccount?.accountName || '',
-      accountNumber: bankAccount?.accountNumber || '',
-      bankName: bankAccount?.bankName || '',
-      bankCode: bankAccount?.bankCode || '',
-      swiftCode: bankAccount?.swiftCode || '',
-      paymentMethods: paymentMethods || ['cash', 'paypal']
-    });
-    setIsEditing(false);
-  };
+	if (loading) {
+		return (
+			<div className="space-y-6 animate-pulse">
+				<div className="h-10 bg-gray-100 rounded-2xl w-1/3"></div>
+				<div className="h-64 bg-gray-100 rounded-[3rem]"></div>
+			</div>
+		);
+	}
 
-  const paymentMethodOptions = [
-    { value: 'cash', label: 'Paiement à la livraison' },
-    { value: 'paypal', label: 'PayPal' }
-  ];
+	const renderInputField = (label, name, icon, placeholder, type = "text") => (
+		<div className="space-y-2 group/field">
+			<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
+				{label}
+			</label>
+			<div className="relative">
+				<div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within/field:text-blue-500 transition-colors">
+					{icon}
+				</div>
+				<input
+					type={type}
+					name={name}
+					value={formData[name]}
+					onChange={handleInputChange}
+					className="w-full bg-gray-50/50 pl-12 pr-6 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 transition-all placeholder-gray-300 shadow-inner"
+					placeholder={placeholder}
+				/>
+			</div>
+		</div>
+	);
 
-  if (loading) {
-    return (
-      <div className="bg-white rounded-lg shadow p-6 animate-pulse">
-        <div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
-        <div className="space-y-3">
-          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-          <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-        </div>
-      </div>
-    );
-  }
+	return (
+		<div className="space-y-12">
+			<div className="flex items-center justify-between">
+				<div className="flex items-center gap-3 px-2">
+					<CreditCard className="h-5 w-5 text-blue-600/50" />
+					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
+						Informations Financières
+					</h3>
+				</div>
+				{!isEditing ?
+					<button
+						onClick={() => setIsEditing(true)}
+						className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-blue-600 transition-all active:scale-95"
+					>
+						<Edit3 className="h-4 w-4" />
+						Modifier
+					</button>
+				:	<div className="flex items-center gap-3">
+						<button
+							onClick={handleCancel}
+							className="px-6 py-3 text-gray-400 font-black text-[10px] uppercase tracking-widest hover:text-gray-900"
+						>
+							Annuler
+						</button>
+						<button
+							onClick={handleSave}
+							disabled={saving}
+							className="flex items-center gap-2 px-8 py-3 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-blue-700 transition-all active:scale-95 disabled:bg-gray-400"
+						>
+							{saving ?
+								<div className="h-4 w-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+							:	<Save className="h-4 w-4" />}
+							{saving ? "..." : "Enregistrer"}
+						</button>
+					</div>
+				}
+			</div>
 
-  return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-          <FiCreditCard className="mr-2" />
-          Informations financières
-        </h3>
-        {!isEditing ? (
-          <button
-            onClick={() => setIsEditing(true)}
-            className="flex items-center px-3 py-2 text-sm text-harvests-green hover:text-green-600 transition-colors"
-          >
-            <FiEdit2 className="mr-1" />
-            Modifier
-          </button>
-        ) : (
-          <div className="flex space-x-2">
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center px-3 py-2 text-sm text-white bg-harvests-green hover:bg-green-600 rounded-md transition-colors disabled:opacity-50"
-            >
-              <FiCheck className="mr-1" />
-              {saving ? 'Sauvegarde...' : 'Sauvegarder'}
-            </button>
-            <button
-              onClick={handleCancel}
-              className="flex items-center px-3 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              <FiX className="mr-1" />
-              Annuler
-            </button>
-          </div>
-        )}
-      </div>
+			{isEditing ?
+				<div className="space-y-12">
+					{/* Bank Info */}
+					<div className="space-y-8">
+						<div className="flex items-center gap-2 px-2">
+							<Building2 className="h-4 w-4 text-emerald-500" />
+							<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+								Compte Bancaire Principal
+							</span>
+						</div>
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+							{renderInputField(
+								"Titulaire du compte",
+								"accountName",
+								<User className="h-4 w-4" />,
+								"Nom complet",
+							)}
+							{renderInputField(
+								"Numéro de compte / IBAN",
+								"accountNumber",
+								<Hash className="h-4 w-4" />,
+								"Numéro de compte",
+							)}
+							{renderInputField(
+								"Institution bancaire",
+								"bankName",
+								<Building2 className="h-4 w-4" />,
+								"Ex: Ecobank, Société Générale...",
+							)}
+							{renderInputField(
+								"Code guichet / Banque",
+								"bankCode",
+								<Info className="h-4 w-4" />,
+								"Code banque",
+							)}
+							<div className="md:col-span-2">
+								{renderInputField(
+									"Code SWIFT / BIC (Optionnel)",
+									"swiftCode",
+									<Globe className="h-4 w-4" />,
+									"Code SWIFT",
+								)}
+							</div>
+						</div>
+					</div>
 
-      {isEditing ? (
-        <div className="space-y-6">
-          {/* Informations bancaires */}
-          <div>
-            <h4 className="text-md font-medium text-gray-900 mb-4">Compte bancaire</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nom du titulaire
-                </label>
-                <input
-                  type="text"
-                  name="accountName"
-                  value={formData.accountName}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-harvests-green focus:border-transparent"
-                  placeholder="Nom du titulaire du compte"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Numéro de compte
-                </label>
-                <input
-                  type="text"
-                  name="accountNumber"
-                  value={formData.accountNumber}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-harvests-green focus:border-transparent"
-                  placeholder="Numéro de compte"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nom de la banque
-                </label>
-                <input
-                  type="text"
-                  name="bankName"
-                  value={formData.bankName}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-harvests-green focus:border-transparent"
-                  placeholder="Nom de la banque"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Code banque
-                </label>
-                <input
-                  type="text"
-                  name="bankCode"
-                  value={formData.bankCode}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-harvests-green focus:border-transparent"
-                  placeholder="Code banque"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Code SWIFT (optionnel)
-                </label>
-                <input
-                  type="text"
-                  name="swiftCode"
-                  value={formData.swiftCode}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-harvests-green focus:border-transparent"
-                  placeholder="Code SWIFT"
-                />
-              </div>
-            </div>
-          </div>
+					{/* Payment Methods */}
+					<div className="space-y-6 pt-10 border-t border-gray-100">
+						<div className="flex items-center gap-2 px-2">
+							<CreditCard className="h-4 w-4 text-amber-500" />
+							<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+								Modalités de Paiement Accessibles
+							</span>
+						</div>
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+							{paymentMethodOptions.map((option) => (
+								<label
+									key={option.value}
+									className="relative flex items-center p-5 bg-gray-50/50 border border-gray-100 rounded-[2rem] cursor-pointer hover:bg-white hover:border-blue-200 transition-all gap-5 group/check"
+								>
+									<div className="relative flex items-center">
+										<input
+											type="checkbox"
+											checked={formData.paymentMethods.includes(option.value)}
+											onChange={() => handlePaymentMethodChange(option.value)}
+											className="peer h-6 w-6 cursor-pointer appearance-none rounded-xl border-2 border-gray-200 transition-all checked:border-blue-500 checked:bg-blue-500"
+										/>
+										<Check className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-4 w-4 text-white opacity-0 peer-checked:opacity-100" />
+									</div>
+									<div className="flex items-center gap-3">
+										<div className="p-2 bg-white rounded-xl shadow-sm border border-gray-50 text-gray-400 group-hover/check:text-blue-500 group-hover/check:border-blue-100 transition-all">
+											{option.icon}
+										</div>
+										<span className="text-xs font-black text-gray-700 uppercase tracking-widest">
+											{option.label}
+										</span>
+									</div>
+								</label>
+							))}
+						</div>
+					</div>
+				</div>
+			:	<div className="space-y-12 animate-fade-in">
+					{bankAccount?.accountName ?
+						<div className="space-y-6">
+							<div className="flex items-center gap-3 bg-emerald-50 text-emerald-700 px-5 py-3 rounded-2xl w-fit border border-emerald-100">
+								<ShieldCheck className="h-4 w-4" />
+								<span className="text-[10px] font-black uppercase tracking-widest">
+									{bankAccount.isVerified ?
+										"Compte Bancaire Vérifié"
+									:	"Compte en attente de vérification"}
+								</span>
+							</div>
 
-          {/* Méthodes de paiement */}
-          <div>
-            <h4 className="text-md font-medium text-gray-900 mb-4">Méthodes de paiement acceptées</h4>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {paymentMethodOptions.map((option) => (
-                <label key={option.value} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.paymentMethods.includes(option.value)}
-                    onChange={() => handlePaymentMethodChange(option.value)}
-                    className="h-4 w-4 text-harvests-green focus:ring-harvests-green border-gray-300 rounded"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">{option.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {/* Affichage des informations bancaires */}
-          {bankAccount?.accountName ? (
-            <div>
-              <h4 className="text-md font-medium text-gray-900 mb-3">Compte bancaire</h4>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-600">Titulaire</p>
-                    <p className="font-medium">{bankAccount.accountName}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Numéro de compte</p>
-                    <p className="font-medium">{bankAccount.accountNumber}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Banque</p>
-                    <p className="font-medium">{bankAccount.bankName}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Code banque</p>
-                    <p className="font-medium">{bankAccount.bankCode}</p>
-                  </div>
-                  {bankAccount.swiftCode && (
-                    <div>
-                      <p className="text-sm text-gray-600">Code SWIFT</p>
-                      <p className="font-medium">{bankAccount.swiftCode}</p>
-                    </div>
-                  )}
-                </div>
-                <div className="mt-3 flex items-center">
-                  {bankAccount.isVerified ? (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      <FiShield className="mr-1" />
-                      Vérifié
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                      <FiAlertCircle className="mr-1" />
-                      Non vérifié
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <FiCreditCard className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <p>Aucune information bancaire enregistrée</p>
-              <p className="text-sm">Cliquez sur "Modifier" pour ajouter vos informations bancaires</p>
-            </div>
-          )}
+							<div className="bg-gray-50/50 border border-gray-100 rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden group">
+								<div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:scale-110 transition-transform duration-1000">
+									<Building2 className="h-40 w-40" />
+								</div>
+								<div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
+									<div className="space-y-1">
+										<p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+											Titulaire du compte
+										</p>
+										<p className="text-lg font-[1000] text-gray-900 tracking-tight">
+											{bankAccount.accountName}
+										</p>
+									</div>
+									<div className="space-y-1">
+										<p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+											IBAN / Numéro
+										</p>
+										<p className="text-lg font-[1000] text-gray-900 tracking-tight">
+											{bankAccount.accountNumber}
+										</p>
+									</div>
+									<div className="space-y-1">
+										<p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+											Banque
+										</p>
+										<p className="text-sm font-black text-gray-700 tracking-widest uppercase">
+											{bankAccount.bankName}
+										</p>
+									</div>
+									<div className="space-y-1">
+										<p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+											Code SWIFT
+										</p>
+										<p className="text-sm font-black text-gray-700 tracking-widest uppercase">
+											{bankAccount.swiftCode || "N/A"}
+										</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					:	<div className="text-center py-20 bg-gray-50/30 rounded-[3rem] border-2 border-dashed border-gray-100">
+							<div className="w-20 h-20 bg-white rounded-[2rem] shadow-xl shadow-gray-100 flex items-center justify-center mx-auto mb-6 text-gray-300 border border-gray-50">
+								<CreditCard className="h-10 w-10" />
+							</div>
+							<p className="text-xs font-[1000] text-gray-900 uppercase tracking-widest mb-2">
+								Aucun compte bancaire
+							</p>
+							<p className="text-xs text-gray-400 max-w-xs mx-auto font-medium">
+								Configurez vos informations de virement pour recevoir vos
+								paiements directement sur votre compte.
+							</p>
+						</div>
+					}
 
-          {/* Affichage des méthodes de paiement */}
-          <div>
-            <h4 className="text-md font-medium text-gray-900 mb-3">Méthodes de paiement acceptées</h4>
-            <div className="flex flex-wrap gap-2">
-              {paymentMethods?.map((method) => {
-                const option = paymentMethodOptions.find(opt => opt.value === method);
-                return option ? (
-                  <span
-                    key={method}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-harvests-light text-harvests-green"
-                  >
-                    {option.label}
-                  </span>
-                ) : null;
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+					<div className="space-y-6 pt-10 border-t border-gray-100">
+						<h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
+							Méthodes de paiement actives
+						</h4>
+						<div className="flex flex-wrap gap-4">
+							{paymentMethods?.map((method) => {
+								const option = paymentMethodOptions.find(
+									(opt) => opt.value === method,
+								);
+								return option ?
+										<div
+											key={method}
+											className="flex items-center gap-3 px-6 py-4 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-all group"
+										>
+											<div className="text-blue-500 group-hover:scale-110 transition-transform">
+												{option.icon}
+											</div>
+											<span className="text-[10px] font-black text-gray-900 uppercase tracking-widest">
+												{option.label}
+											</span>
+										</div>
+									:	null;
+							})}
+							{(!paymentMethods || paymentMethods.length === 0) && (
+								<p className="text-xs font-medium text-gray-400 italic">
+									Aucune méthode sélectionnée
+								</p>
+							)}
+						</div>
+					</div>
+				</div>
+			}
+		</div>
+	);
 };
 
 export default FinancialInfo;

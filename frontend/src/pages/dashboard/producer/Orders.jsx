@@ -108,17 +108,17 @@ const Orders = () => {
 					{/* Header Section */}
 					<div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-in-down">
 						<div>
-							<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-2">
-								<div className="w-6 h-[2px] bg-emerald-600"></div>
+							<div className="flex items-center gap-2 text-emerald-600 font-black text-[9px] uppercase tracking-widest mb-2">
+								<div className="w-5 h-[2px] bg-emerald-600"></div>
 								<span>Gestion</span>
 							</div>
-							<h1 className="text-3xl md:text-4xl font-[1000] text-gray-900 tracking-tighter leading-tight mb-2">
+							<h1 className="text-3xl font-[1000] text-gray-900 tracking-tighter leading-none mb-2">
 								Mes{" "}
 								<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">
 									Commandes.
 								</span>
 							</h1>
-							<p className="text-sm font-medium text-gray-500 max-w-xl">
+							<p className="text-xs text-gray-500 font-medium max-w-xl">
 								Suivez vos ventes, préparez vos colis et gérez les interactions
 								avec vos clients.
 							</p>
@@ -126,7 +126,7 @@ const Orders = () => {
 
 						<button
 							onClick={() => loadOrders()}
-							className="group relative inline-flex items-center justify-center px-5 py-3 bg-white/70 backdrop-blur-xl border border-white/60 text-gray-900 font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all duration-300 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-100 hover:-translate-y-1 shadow-sm"
+							className="group relative inline-flex items-center justify-center px-6 py-3 bg-white/70 backdrop-blur-xl border border-white/60 text-gray-900 font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all duration-300 hover:bg-emerald-600 hover:text-white hover:-translate-y-1 shadow-sm active:scale-95"
 						>
 							<FiRefreshCw
 								className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}

@@ -1,8 +1,14 @@
 import React, { useState, useRef } from "react";
-import { FiUpload, FiX, FiCheck } from "react-icons/fi";
+import {
+	Upload,
+	X,
+	Check,
+	Image as ImageIcon,
+	Loader2,
+	Trash2,
+} from "lucide-react";
 import { profileService } from "../../services";
 import CloudinaryImage from "./CloudinaryImage";
-import LoadingSpinner from "./LoadingSpinner";
 
 const ProfileImageUpload = ({
 	currentImage,
@@ -19,39 +25,35 @@ const ProfileImageUpload = ({
 	const [error, setError] = useState("");
 	const fileInputRef = useRef(null);
 
-	// Configuration par type d'image
 	const config = profileService.getImageConfig(imageType);
 
-	// Tailles d'affichage
 	const sizeClasses = {
 		small: "w-16 h-16",
 		medium: "w-24 h-24",
-		large: "w-32 h-32",
+		large: "w-32 h-32 md:w-40 md:h-40",
 	};
 
+	// Use predefined class or the string itself if it looks like a Tailwind class
+	const finalSizeClass = sizeClasses[size] || size;
+
 	const aspectRatioClasses = {
-		square: "aspect-square",
-		banner: "aspect-[3/1]",
-		free: "",
+		square: "aspect-square rounded-full",
+		banner: "aspect-[3/1] rounded-[2rem]",
+		free: "rounded-2xl",
 	};
 
 	const handleFileSelect = async (file) => {
 		if (disabled) return;
-
 		setError("");
 
-		// Validation du type
 		if (!profileService.validateFileType(file, config.allowedTypes)) {
-			setError("Type de fichier non autorisé. Utilisez JPEG, PNG ou WebP.");
+			setError("Format non supporté (JPEG, PNG, WebP uniquement)");
 			return;
 		}
 
-		// Validation de la taille
 		if (!profileService.validateFileSize(file, config.maxSize)) {
 			setError(
-				`Fichier trop volumineux. Taille maximum: ${Math.round(
-					config.maxSize / 1024 / 1024
-				)}MB`
+				`Trop volumineux (Max ${Math.round(config.maxSize / 1024 / 1024)}MB)`,
 			);
 			return;
 		}
@@ -61,60 +63,22 @@ const ProfileImageUpload = ({
 			const formData = profileService.createFormData(file, config.fieldName);
 			const response = await profileService[config.uploadFunction](formData);
 
-			// Extraire l'URL de l'image de la réponse
-			let imageUrl = null;
-
-			// Structure 1: response.data.data.user.fieldName (structure avec data wrapper)
-			if (response.data?.data?.user) {
-				imageUrl =
-					response.data.data.user.avatar ||
-					response.data.data.user.shopBanner ||
-					response.data.data.user.shopLogo;
-			}
-
-			// Structure 2: response.data.user.fieldName (structure directe)
-			if (!imageUrl && response.data?.user) {
-				imageUrl =
-					response.data.user.avatar ||
-					response.data.user.shopBanner ||
-					response.data.user.shopLogo;
-			}
-
-			// Structure 3: response.data.profile.fieldName (fallback)
-			if (!imageUrl && response.data?.profile) {
-				imageUrl =
-					response.data.profile.avatar ||
-					response.data.profile.shopBanner ||
-					response.data.profile.shopLogo;
-			}
-
-			// Structure 4: response.data.fieldName (fallback)
-			if (!imageUrl) {
-				imageUrl =
-					response.data?.avatar ||
-					response.data?.shopBanner ||
-					response.data?.shopLogo;
-			}
-
-			// Structure 5: response.data.data.fieldName (fallback)
-			if (!imageUrl && response.data?.data) {
-				imageUrl =
-					response.data.data.avatar ||
-					response.data.data.shopBanner ||
-					response.data.data.shopLogo;
-			}
+			let imageUrl =
+				response.data?.data?.user?.[config.fieldName] ||
+				response.data?.user?.[config.fieldName] ||
+				response.data?.profile?.[config.fieldName] ||
+				response.data?.[config.fieldName] ||
+				response.data?.data?.[config.fieldName];
 
 			if (imageUrl) {
 				onImageChange(imageUrl);
 			} else {
-				console.error(
-					"❌ Aucune URL d'image trouvée dans la réponse:",
-					response.data
-				);
+				console.error("Aucune URL trouvée dans la réponse:", response.data);
+				setError("Erreur lors de la récupération de l'image");
 			}
 		} catch (error) {
-			console.error("Erreur lors de l'upload:", error);
-			setError("Erreur lors de l'upload de l'image");
+			console.error("Erreur upload:", error);
+			setError("Échec de l'upload");
 		} finally {
 			setUploading(false);
 		}
@@ -123,97 +87,92 @@ const ProfileImageUpload = ({
 	const handleDrop = (e) => {
 		e.preventDefault();
 		setDragOver(false);
-
 		const files = Array.from(e.dataTransfer.files);
-		if (files.length > 0) {
-			handleFileSelect(files[0]);
-		}
+		if (files.length > 0) handleFileSelect(files[0]);
 	};
 
 	const handleDragOver = (e) => {
 		e.preventDefault();
 		setDragOver(true);
 	};
-
 	const handleDragLeave = (e) => {
 		e.preventDefault();
 		setDragOver(false);
 	};
-
 	const handleClick = () => {
-		if (!disabled) {
-			fileInputRef.current?.click();
-		}
+		if (!disabled) fileInputRef.current?.click();
 	};
-
 	const handleRemove = (e) => {
 		e.stopPropagation();
 		onImageRemove();
 	};
 
 	return (
-		<div className={`relative ${className}`}>
+		<div className={`relative group/upload ${className}`}>
 			<div
 				className={`
-          ${sizeClasses[size]} 
-          ${aspectRatioClasses[aspectRatio]}
-          border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200
-          ${
-						dragOver
-							? "border-harvests-green bg-green-50"
-							: "border-gray-300 hover:border-gray-400"
-					}
+          relative overflow-hidden cursor-pointer transition-all duration-500
+          ${finalSizeClass || ""} 
+          ${aspectRatioClasses[aspectRatio] || "rounded-2xl"}
+          ${dragOver ? "border-emerald-500 bg-emerald-50/50 scale-[1.02]" : "border-gray-200 bg-gray-50/30 hover:bg-gray-50"}
+          ${currentImage ? "border-solid" : "border-2 border-dashed"}
           ${disabled ? "opacity-50 cursor-not-allowed" : ""}
-          ${currentImage ? "border-solid" : ""}
-          flex items-center justify-center overflow-hidden
+          flex items-center justify-center
         `}
 				onDrop={handleDrop}
 				onDragOver={handleDragOver}
 				onDragLeave={handleDragLeave}
 				onClick={handleClick}
 			>
-				{currentImage ? (
-					<div className="relative w-full h-full group">
+				{currentImage ?
+					<div className="relative w-full h-full group/img">
 						<CloudinaryImage
 							src={currentImage}
-							alt="Uploaded"
-							className="w-full h-full object-cover"
-							width={400}
-							height={400}
-							quality="auto"
-							crop="fill"
+							alt="Upload preview"
+							className="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-110"
 						/>
 						{!disabled && (
-							<div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-								<button
-									onClick={handleRemove}
-									className="text-white hover:text-red-400 transition-colors"
-									title="Supprimer l'image"
-								>
-									<FiX className="h-6 w-6" />
-								</button>
+							<div className="absolute inset-0 bg-gray-900/40 opacity-0 group-hover/img:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-[2px]">
+								<div className="flex flex-col items-center gap-2">
+									<div
+										className="p-3 bg-white/20 backdrop-blur-md rounded-full border border-white/30 text-white hover:bg-rose-500 hover:border-rose-400 transition-all transform translate-y-2 group-hover/img:translate-y-0"
+										onClick={handleRemove}
+									>
+										<Trash2 className="h-5 w-5" />
+									</div>
+									<span className="text-[10px] font-black text-white uppercase tracking-widest opacity-0 group-hover/img:opacity-100 transition-opacity">
+										Changer
+									</span>
+								</div>
 							</div>
 						)}
 					</div>
-				) : (
-					<div className="text-center ">
-						{uploading ? (
-							<LoadingSpinner size="sm" text="Upload..." />
-						) : (
-							<div className="flex flex-col items-center">
-								<FiUpload className="h-6 w-6 text-gray-400 mb-2" />
-								<span className="text-xs text-gray-500">
-									{imageType === "avatar" && "Photo de profil"}
-									{imageType === "banner" && "Bannière de boutique"}
-									{imageType === "logo" && "Logo de boutique"}
-								</span>
-								<span className="text-xs text-gray-400 mt-1">
-									Glisser-déposer ou cliquer
+				:	<div className="flex flex-col items-center p-6 text-center animate-fade-in">
+						{uploading ?
+							<div className="flex flex-col items-center gap-3">
+								<Loader2 className="h-8 w-8 text-emerald-500 animate-spin" />
+								<span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
+									Traitement...
 								</span>
 							</div>
-						)}
+						:	<div className="flex flex-col items-center gap-2">
+								<div className="w-12 h-12 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center text-gray-400 group-hover/upload:text-emerald-500 group-hover/upload:border-emerald-100 transition-all">
+									<Upload className="h-5 w-5" />
+								</div>
+								<div className="mt-2">
+									<p className="text-[10px] font-black text-gray-900 uppercase tracking-widest">
+										{imageType === "avatar" && "Photo Profil"}
+										{imageType === "banner" && "Bannière"}
+										{imageType === "logo" && "Logo"}
+									</p>
+									<p className="text-[9px] font-bold text-gray-400 uppercase tracking-tight mt-1">
+										PNG, JPG ou WebP
+									</p>
+								</div>
+							</div>
+						}
 					</div>
-				)}
+				}
 			</div>
 
 			<input
@@ -229,18 +188,11 @@ const ProfileImageUpload = ({
 			/>
 
 			{error && (
-				<div className="mt-2 text-sm text-red-600 flex items-center">
-					<FiX className="h-4 w-4 mr-1" />
+				<div className="absolute -bottom-10 left-0 right-0 py-2 px-4 bg-rose-50 text-rose-600 text-[10px] font-bold rounded-xl border border-rose-100 flex items-center gap-2 animate-fade-in-up">
+					<X className="h-3 w-3" />
 					{error}
 				</div>
 			)}
-
-			{/* {currentImage && !error && (
-        <div className="mt-2 text-sm text-green-600 flex items-center">
-          <FiCheck className="h-4 w-4 mr-1" />
-          Image uploadée avec succès
-        </div>
-      )} */}
 		</div>
 	);
 };

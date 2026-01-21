@@ -1,5 +1,5 @@
 import React from "react";
-import { FiTruck, FiMap, FiDollarSign } from "react-icons/fi";
+import { Truck, DollarSign, Map, Check, ChevronDown } from "lucide-react";
 
 const TransporterFields = ({ formData, editing, onInputChange }) => {
 	const TRANSPORT_TYPES = [
@@ -10,131 +10,153 @@ const TransporterFields = ({ formData, editing, onInputChange }) => {
 		{ value: "multimodal", label: "Multimodal" },
 	];
 
-	const VEHICLE_TYPES = [
-		{ value: "motorcycle", label: "Moto" },
-		{ value: "van", label: "Fourgonnette" },
-		{ value: "truck", label: "Camion" },
-		{ value: "refrigerated-truck", label: "Camion frigorifique" },
-	];
-
 	return (
-		<div className="space-y-6 mt-6 pt-6 border-t border-gray-100">
-			<h3 className="text-lg font-semibold text-gray-900 flex items-center">
-				<FiTruck className="mr-2" />
-				Services de transport
-			</h3>
+		<div className="space-y-12">
+			{/* Transport Services */}
+			<div className="space-y-8">
+				<div className="flex items-center gap-3 px-2">
+					<Truck className="h-5 w-5 text-indigo-600/50" />
+					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
+						Services de Transport
+					</h3>
+				</div>
 
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-				{/* Transport Type */}
-				<div className="col-span-1 md:col-span-2">
-					<label className="block text-sm font-medium text-gray-700 mb-2">
-						Types de transport
-					</label>
-					{editing ? (
-						<div className="flex flex-wrap gap-3">
-							{TRANSPORT_TYPES.map((type) => (
-								<label key={type.value} className="flex items-center space-x-2">
-									<input
-										type="checkbox"
-										value={type.value}
-										checked={(formData.transportType || []).includes(
-											type.value
-										)}
-										onChange={(e) => {
-											const val = e.target.value;
-											const current = formData.transportType || [];
-											const newVal = e.target.checked
-												? [...current, val]
-												: current.filter((x) => x !== val);
-											onInputChange({
-												target: {
-													name: "transportType",
-													value: newVal,
-													type: "custom",
-												},
-											});
-										}}
-										className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-									/>
-									<span className="text-sm text-gray-700">{type.label}</span>
-								</label>
-							))}
-						</div>
-					) : (
-						<div className="flex flex-wrap gap-2">
-							{(formData.transportType || []).length > 0 ? (
-								formData.transportType.map((t) => (
-									<span
-										key={t}
-										className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800"
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+					{/* Transport Types */}
+					<div className="col-span-1 md:col-span-2 space-y-4">
+						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
+							Modes de Transport Proposés
+						</label>
+						{editing ?
+							<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+								{TRANSPORT_TYPES.map((type) => (
+									<label
+										key={type.value}
+										className="relative flex items-center p-4 bg-gray-50/50 border border-gray-100 rounded-2xl cursor-pointer hover:bg-white hover:border-indigo-200 transition-all gap-4 group/check"
 									>
-										{TRANSPORT_TYPES.find((types) => types.value === t)
-											?.label || t}
-									</span>
-								))
-							) : (
-								<span className="text-gray-500 italic">Non renseigné</span>
-							)}
-						</div>
-					)}
-				</div>
+										<div className="relative flex items-center">
+											<input
+												type="checkbox"
+												value={type.value}
+												checked={(formData.transportType || []).includes(
+													type.value,
+												)}
+												onChange={(e) => {
+													const val = e.target.value;
+													const current = formData.transportType || [];
+													const newVal =
+														e.target.checked ?
+															[...current, val]
+														:	current.filter((x) => x !== val);
+													onInputChange({
+														target: {
+															name: "transportType",
+															value: newVal,
+															type: "custom",
+														},
+													});
+												}}
+												className="peer h-5 w-5 cursor-pointer appearance-none rounded-lg border-2 border-gray-200 transition-all checked:border-indigo-500 checked:bg-indigo-500"
+											/>
+											<Check className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white opacity-0 peer-checked:opacity-100" />
+										</div>
+										<span className="text-xs font-bold text-gray-700">
+											{type.label}
+										</span>
+									</label>
+								))}
+							</div>
+						:	<div className="flex flex-wrap gap-3">
+								{(formData.transportType || []).length > 0 ?
+									formData.transportType.map((t) => (
+										<div
+											key={t}
+											className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 border border-indigo-100 rounded-xl"
+										>
+											<div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+											<span className="text-[10px] font-black text-indigo-700 uppercase tracking-widest">
+												{TRANSPORT_TYPES.find((types) => types.value === t)
+													?.label || t}
+											</span>
+										</div>
+									))
+								:	<p className="text-xs font-medium text-gray-400 italic">
+										Non renseigné
+									</p>
+								}
+							</div>
+						}
+					</div>
 
-				{/* Pricing Model */}
-				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-2">
-						<FiDollarSign className="inline mr-1" />
-						Modèle de tarification
-					</label>
-					{editing ? (
-						<select
-							name="pricingStructure.model"
-							value={formData.pricingStructure?.model || "per-km"}
-							onChange={onInputChange}
-							className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-						>
-							<option value="per-km">Par kilomètre</option>
-							<option value="per-kg">Par kilogramme</option>
-							<option value="flat-rate">Forfait</option>
-							<option value="custom">Sur devis</option>
-						</select>
-					) : (
-						<p className="text-gray-900">
-							{{
-								"per-km": "Par kilomètre",
-								"per-kg": "Par kilogramme",
-								"flat-rate": "Forfait",
-								custom: "Sur devis",
-							}[formData.pricingStructure?.model] ||
-								formData.pricingStructure?.model ||
-								"Non renseigné"}
-						</p>
-					)}
-				</div>
+					{/* Pricing Model */}
+					<div className="space-y-2 group/field">
+						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
+							Modèle de Tarification
+						</label>
+						{editing ?
+							<div className="relative">
+								<select
+									name="pricingStructure.model"
+									value={formData.pricingStructure?.model || "per-km"}
+									onChange={onInputChange}
+									className="w-full bg-gray-50/50 pl-12 pr-10 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
+								>
+									<option value="per-km">Par kilomètre</option>
+									<option value="per-kg">Par kilogramme</option>
+									<option value="flat-rate">Forfait</option>
+									<option value="custom">Sur devis</option>
+								</select>
+								<DollarSign className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-600/50" />
+								<ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300 pointer-events-none" />
+							</div>
+						:	<div className="bg-gray-50/30 px-5 py-4 rounded-2xl border border-gray-100/50 flex items-center gap-3">
+								<DollarSign className="h-4 w-4 text-emerald-600/50" />
+								<p className="text-sm font-bold text-gray-900">
+									{{
+										"per-km": "Par kilomètre",
+										"per-kg": "Par kilogramme",
+										"flat-rate": "Forfait",
+										custom: "Sur devis",
+									}[formData.pricingStructure?.model] ||
+										formData.pricingStructure?.model ||
+										"Non renseigné"}
+								</p>
+							</div>
+						}
+					</div>
 
-				{/* Base Rate */}
-				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-2">
-						Tarif de base
-					</label>
-					{editing ? (
-						<div className="flex space-x-2">
-							<input
-								type="number"
-								name="pricingStructure.baseRate"
-								value={formData.pricingStructure?.baseRate || ""}
-								onChange={onInputChange}
-								className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-								min="0"
-							/>
-							<span className="self-center text-gray-500">XAF</span>
-						</div>
-					) : (
-						<p className="text-gray-900">
-							{formData.pricingStructure?.baseRate
-								? `${formData.pricingStructure.baseRate} XAF`
-								: "Non renseigné"}
-						</p>
-					)}
+					{/* Base Rate */}
+					<div className="space-y-2 group/field">
+						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
+							Tarif de Base
+						</label>
+						{editing ?
+							<div className="relative">
+								<input
+									type="number"
+									name="pricingStructure.baseRate"
+									value={formData.pricingStructure?.baseRate || ""}
+									onChange={onInputChange}
+									className="w-full bg-gray-50/50 px-5 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-inner"
+									min="0"
+									placeholder="0"
+								/>
+								<span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-300 uppercase tracking-widest">
+									XAF
+								</span>
+							</div>
+						:	<div className="bg-gray-50/30 px-5 py-4 rounded-2xl border border-gray-100/50 flex items-center gap-3">
+								<div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 font-black text-[10px]">
+									XAF
+								</div>
+								<p className="text-sm font-bold text-gray-900">
+									{formData.pricingStructure?.baseRate ?
+										`${formData.pricingStructure.baseRate} XAF`
+									:	"Non renseigné"}
+								</p>
+							</div>
+						}
+					</div>
 				</div>
 			</div>
 		</div>

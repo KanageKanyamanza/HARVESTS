@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from "react";
 import {
-	FiBell,
-	FiSave,
-	FiX,
-	FiMail,
-	FiSmartphone,
-	FiMonitor,
-} from "react-icons/fi";
+	Bell,
+	Mail,
+	Smartphone,
+	Monitor,
+	Check,
+	Save,
+	X,
+	Info,
+	ChevronRight,
+	ShieldCheck,
+	Zap,
+} from "lucide-react";
 import { commonService } from "../../services";
 import { useNotifications } from "../../contexts/NotificationContext";
 
-// Composant pour gérer les préférences de notification communes
 const NotificationSettings = ({ onUpdate, loading = false, data = null }) => {
 	const { showSuccess, showError } = useNotifications();
 	const [isEditing, setIsEditing] = useState(false);
@@ -24,48 +28,38 @@ const NotificationSettings = ({ onUpdate, loading = false, data = null }) => {
 		priceAlerts: false,
 	});
 
-	// Charger les préférences de notification
 	useEffect(() => {
 		const loadNotificationPreferences = async () => {
-			// Si des données sont fournies par le parent (SettingsPage), on les utilise directement
 			if (data) {
 				setNotifications((prev) => ({ ...prev, ...data }));
 				return;
 			}
-
 			try {
 				const response = await commonService.getNotificationPreferences();
-				// Le backend renvoie { status: 'success', data: { preferences: { ... } } }
 				const prefs =
 					response.data?.data?.preferences || response.data?.notifications;
-				if (prefs) {
-					setNotifications((prev) => ({ ...prev, ...prefs }));
-				}
+				if (prefs) setNotifications((prev) => ({ ...prev, ...prefs }));
 			} catch (error) {
 				console.error("Erreur lors du chargement des préférences:", error);
 			}
 		};
-
 		loadNotificationPreferences();
 	}, [data]);
 
 	const handleToggle = (key) => {
-		setNotifications((prev) => ({
-			...prev,
-			[key]: !prev[key],
-		}));
+		setNotifications((prev) => ({ ...prev, [key]: !prev[key] }));
 	};
 
 	const handleSave = async () => {
 		try {
 			setSaving(true);
 			await commonService.updateNotificationPreferences(notifications);
-			showSuccess("Préférences de notification mises à jour avec succès");
+			showSuccess("Préférences de notification mises à jour");
 			setIsEditing(false);
 			onUpdate && onUpdate();
 		} catch (error) {
 			console.error("Erreur lors de la mise à jour:", error);
-			showError("Erreur lors de la mise à jour des préférences");
+			showError("Échec de la mise à jour");
 		} finally {
 			setSaving(false);
 		}
@@ -73,83 +67,71 @@ const NotificationSettings = ({ onUpdate, loading = false, data = null }) => {
 
 	const handleCancel = () => {
 		setIsEditing(false);
-		// Recharger les préférences depuis le serveur
-		commonService
-			.getNotificationPreferences()
-			.then((response) => {
-				const prefs =
-					response.data?.data?.preferences || response.data?.notifications;
-				if (prefs) {
-					setNotifications((prev) => ({ ...prev, ...prefs }));
-				}
-			})
-			.catch((error) => {
-				console.error("Erreur lors du rechargement:", error);
-			});
+		commonService.getNotificationPreferences().then((response) => {
+			const prefs =
+				response.data?.data?.preferences || response.data?.notifications;
+			if (prefs) setNotifications((prev) => ({ ...prev, ...prefs }));
+		});
 	};
 
 	const notificationOptions = [
 		{
 			key: "email",
-			label: "Notifications par email",
-			description: "Recevoir des notifications importantes par email",
-			icon: FiMail,
+			label: "Canal Email Principal",
+			description: "Factures, rapports mensuels et alertes de compte.",
+			icon: <Mail className="h-5 w-5" />,
 			color: "text-blue-500",
-			bgColor: "bg-blue-50",
+			bgColor: "bg-blue-50/50",
 		},
 		{
 			key: "sms",
-			label: "Notifications SMS",
-			description: "Recevoir des notifications urgentes par SMS",
-			icon: FiSmartphone,
-			color: "text-green-500",
-			bgColor: "bg-green-50",
+			label: "Alertes par SMS",
+			description: "Notifications urgentes pour les livraisons en cours.",
+			icon: <Smartphone className="h-5 w-5" />,
+			color: "text-emerald-500",
+			bgColor: "bg-emerald-50/50",
 		},
 		{
 			key: "push",
-			label: "Notifications push",
-			description: "Recevoir des notifications dans le navigateur",
-			icon: FiMonitor,
-			color: "text-purple-500",
-			bgColor: "bg-purple-50",
+			label: "Notifications Temps-Réel",
+			description: "Popup instantanées sur vos appareils mobiles et bureau.",
+			icon: <Monitor className="h-5 w-5" />,
+			color: "text-indigo-500",
+			bgColor: "bg-indigo-50/50",
 		},
 		{
 			key: "orderUpdates",
-			label: "Mises à jour de commande",
-			description: "Notifications sur le statut de vos commandes",
-			icon: FiBell,
-			color: "text-orange-500",
-			bgColor: "bg-orange-50",
+			label: "Suivi Logistique",
+			description: "Chaque étape de vos commandes, du champ à l'assiette.",
+			icon: <Zap className="h-5 w-5" />,
+			color: "text-amber-500",
+			bgColor: "bg-amber-50/50",
 		},
 		{
 			key: "priceAlerts",
-			label: "Alertes de prix",
-			description:
-				"Notifications quand les prix de vos produits favoris changent",
-			icon: FiBell,
-			color: "text-red-500",
-			bgColor: "bg-red-50",
+			label: "Intelligence de Marché",
+			description: "Alertes sur les variations de prix des produits suivis.",
+			icon: <Bell className="h-5 w-5" />,
+			color: "text-rose-500",
+			bgColor: "bg-rose-50/50",
 		},
 		{
 			key: "marketing",
-			label: "Communications marketing",
-			description: "Recevoir des offres spéciales et des nouveautés",
-			icon: FiBell,
-			color: "text-indigo-500",
-			bgColor: "bg-indigo-50",
+			label: "Offres & Newsletter",
+			description: "Nouveaux producteurs, codes promo et actualités Harvests.",
+			icon: <Bell className="h-5 w-5" />,
+			color: "text-purple-500",
+			bgColor: "bg-purple-50/50",
 		},
 	];
 
 	if (loading) {
 		return (
-			<div className="bg-white rounded-lg shadow p-6 animate-pulse">
-				<div className="h-6 bg-gray-200 rounded w-1/4 mb-4"></div>
-				<div className="space-y-4">
-					{[...Array(6)].map((_, index) => (
-						<div key={index} className="flex items-center space-x-3">
-							<div className="h-4 w-4 bg-gray-200 rounded"></div>
-							<div className="h-4 bg-gray-200 rounded w-3/4"></div>
-						</div>
+			<div className="space-y-6 animate-pulse">
+				<div className="h-10 bg-gray-100 rounded-2xl w-1/3"></div>
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+					{[...Array(6)].map((_, i) => (
+						<div key={i} className="h-32 bg-gray-50 rounded-[2rem]"></div>
 					))}
 				</div>
 			</div>
@@ -157,89 +139,101 @@ const NotificationSettings = ({ onUpdate, loading = false, data = null }) => {
 	}
 
 	return (
-		<div className="bg-white rounded-lg shadow p-6">
-			<div className="flex items-center justify-between mb-6">
-				<h3 className="text-lg font-semibold text-gray-900 flex items-center">
-					<FiBell className="mr-2" />
-					Préférences de notification
-				</h3>
-				{!isEditing ? (
+		<div className="space-y-12">
+			<div className="flex items-center justify-between">
+				<div className="flex items-center gap-3 px-2">
+					<Bell className="h-5 w-5 text-amber-500/50" />
+					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
+						Préférences de Notification
+					</h3>
+				</div>
+				{!isEditing ?
 					<button
 						onClick={() => setIsEditing(true)}
-						className="flex items-center px-3 py-2 text-sm text-harvests-green hover:text-green-600 transition-colors"
+						className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-amber-500 transition-all active:scale-95"
 					>
-						<FiBell className="mr-1" />
-						Modifier
+						<Bell className="h-4 w-4" />
+						Configurer
 					</button>
-				) : (
-					<div className="flex space-x-2">
+				:	<div className="flex items-center gap-3">
+						<button
+							onClick={handleCancel}
+							className="px-6 py-3 text-gray-400 font-black text-[10px] uppercase tracking-widest hover:text-gray-900"
+						>
+							Annuler
+						</button>
 						<button
 							onClick={handleSave}
 							disabled={saving}
-							className="flex items-center px-3 py-2 text-sm text-white bg-harvests-green hover:bg-green-600 rounded-md transition-colors disabled:opacity-50"
+							className="flex items-center gap-2 px-8 py-3 bg-amber-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-amber-600 transition-all active:scale-95 disabled:bg-gray-400"
 						>
-							<FiSave className="mr-1" />
-							{saving ? "Sauvegarde..." : "Sauvegarder"}
-						</button>
-						<button
-							onClick={handleCancel}
-							className="flex items-center px-3 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-						>
-							<FiX className="mr-1" />
-							Annuler
+							{saving ?
+								<div className="h-4 w-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+							:	<Save className="h-4 w-4" />}
+							{saving ? "..." : "Sauvegarder"}
 						</button>
 					</div>
-				)}
+				}
 			</div>
 
-			<div className="space-y-4">
+			<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 				{notificationOptions.map((option) => {
-					const Icon = option.icon;
 					const isEnabled = notifications[option.key];
-
 					return (
 						<div
 							key={option.key}
-							className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
-								isEnabled
-									? "border-harvests-green bg-green-50"
-									: "border-gray-200 bg-gray-50"
+							className={`relative flex flex-col p-6 rounded-[2.5rem] border-2 transition-all duration-500 group ${
+								isEnabled ?
+									"border-amber-100 bg-white shadow-xl shadow-amber-50/50"
+								:	"border-gray-50 bg-gray-50/30 grayscale opacity-70"
 							}`}
 						>
-							<div className="flex items-center space-x-4">
-								<div className={`p-2 rounded-full ${option.bgColor}`}>
-									<Icon className={`h-5 w-5 ${option.color}`} />
-								</div>
-								<div>
-									<h4 className="font-medium text-gray-900">{option.label}</h4>
-									<p className="text-sm text-gray-600">{option.description}</p>
-								</div>
-							</div>
-
-							{isEditing ? (
-								<button
-									onClick={() => handleToggle(option.key)}
-									className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-										isEnabled ? "bg-harvests-green" : "bg-gray-300"
-									}`}
+							<div className="flex items-start justify-between mb-4">
+								<div
+									className={`p-4 rounded-2xl ${option.bgColor} ${option.color} group-hover:scale-110 transition-transform duration-500`}
 								>
-									<span
-										className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-											isEnabled ? "translate-x-6" : "translate-x-1"
-										}`}
-									/>
-								</button>
-							) : (
-								<div className="flex items-center">
-									<span
-										className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-											isEnabled
-												? "bg-green-100 text-green-800"
-												: "bg-gray-100 text-gray-800"
+									{option.icon}
+								</div>
+
+								{isEditing ?
+									<button
+										onClick={() => handleToggle(option.key)}
+										className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all ring-4 ${
+											isEnabled ?
+												"bg-amber-500 ring-amber-100"
+											:	"bg-gray-200 ring-gray-100"
 										}`}
 									>
-										{isEnabled ? "Activé" : "Désactivé"}
-									</span>
+										<span
+											className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${
+												isEnabled ? "translate-x-6.5" : "translate-x-1.5"
+											}`}
+										/>
+									</button>
+								:	<div
+										className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
+											isEnabled ?
+												"bg-amber-100 text-amber-700"
+											:	"bg-gray-200 text-gray-400"
+										}`}
+									>
+										{isEnabled ? "Actif" : "Muet"}
+									</div>
+								}
+							</div>
+
+							<div className="space-y-1">
+								<h4 className="text-sm font-[1000] text-gray-900 uppercase tracking-widest">
+									{option.label}
+								</h4>
+								<p className="text-xs text-gray-500 font-medium leading-relaxed">
+									{option.description}
+								</p>
+							</div>
+
+							{!isEditing && isEnabled && (
+								<div className="absolute right-6 bottom-6 opacity-0 group-hover:opacity-100 transition-opacity">
+									<ChevronRight className="h-4 w-4 text-amber-400" />
 								</div>
 							)}
 						</div>
@@ -248,12 +242,26 @@ const NotificationSettings = ({ onUpdate, loading = false, data = null }) => {
 			</div>
 
 			{!isEditing && (
-				<div className="mt-6 p-4 bg-blue-50 rounded-lg">
-					<p className="text-sm text-blue-800">
-						<strong>Note :</strong> Vous pouvez modifier ces préférences à tout
-						moment. Certaines notifications importantes (comme les mises à jour
-						de sécurité) ne peuvent pas être désactivées.
-					</p>
+				<div className="mt-12 bg-gray-900 rounded-[2rem] p-8 text-white relative overflow-hidden">
+					<div className="absolute top-0 right-0 p-8 opacity-10">
+						<ShieldCheck className="h-24 w-24" />
+					</div>
+					<div className="relative z-10 flex items-center gap-6">
+						<div className="p-3 bg-amber-500 text-white rounded-2xl">
+							<Info className="h-6 w-6" />
+						</div>
+						<div>
+							<h4 className="text-sm font-[1000] uppercase tracking-widest mb-1">
+								Protection des Données Personnelles
+							</h4>
+							<p className="text-xs text-gray-400 font-medium max-w-2xl leading-relaxed">
+								Harvests applique une politique de confidentialité stricte.
+								Certaines notifications critiques liées à la sécurité de votre
+								compte ou à vos transactions financières ne peuvent pas être
+								désactivées pour votre protection.
+							</p>
+						</div>
+					</div>
 				</div>
 			)}
 		</div>

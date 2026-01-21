@@ -1,5 +1,5 @@
 import React from "react";
-import { FiClock, FiUsers, FiShoppingBag, FiInfo } from "react-icons/fi";
+import { Info, Users, Clock, Utensils, ChevronDown, Check } from "lucide-react";
 
 const RESTAURANT_TYPES = [
 	{ value: "fine-dining", label: "Restaurant gastronomique" },
@@ -50,138 +50,174 @@ const RestaurateurFields = ({ formData, editing, onInputChange }) => {
 	};
 
 	return (
-		<div className="space-y-6 mt-6 pt-6 border-t border-gray-100">
-			<h3 className="text-lg font-semibold text-gray-900 flex items-center">
-				<FiInfo className="mr-2" />
-				Informations sur l'établissement
-			</h3>
-
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-				{/* Restaurant Type */}
-				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-2">
-						Type d'établissement
-					</label>
-					{editing ? (
-						<select
-							name="restaurantType"
-							value={formData.restaurantType || "casual"}
-							onChange={onInputChange}
-							className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-						>
-							{RESTAURANT_TYPES.map((type) => (
-								<option key={type.value} value={type.value}>
-									{type.label}
-								</option>
-							))}
-						</select>
-					) : (
-						<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-							{RESTAURANT_TYPES.find((t) => t.value === formData.restaurantType)
-								?.label || formData.restaurantType}
-						</span>
-					)}
+		<div className="space-y-12">
+			{/* Establishment Details */}
+			<div className="space-y-8">
+				<div className="flex items-center gap-3 px-2">
+					<Info className="h-5 w-5 text-emerald-600/50" />
+					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
+						Informations sur l'établissement
+					</h3>
 				</div>
 
-				{/* Cuisine Types */}
-				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-2">
-						Types de cuisine
-					</label>
-					{editing ? (
-						<div className="grid grid-cols-2 gap-2">
-							{CUISINE_OPTIONS.map((cuisine) => (
-								<label key={cuisine.value} className="flex items-center">
-									<input
-										type="checkbox"
-										value={cuisine.value}
-										checked={(formData.cuisineTypes || []).includes(
-											cuisine.value
-										)}
-										onChange={handleCuisineTypeChange}
-										className="mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-									/>
-									<span className="text-sm text-gray-700">{cuisine.label}</span>
-								</label>
-							))}
-						</div>
-					) : (
-						<div className="flex flex-wrap gap-2">
-							{(formData.cuisineTypes || []).length > 0 ? (
-								formData.cuisineTypes.map((type, idx) => (
-									<span
-										key={idx}
-										className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800"
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+					{/* Restaurant Type */}
+					<div className="space-y-2 group/field">
+						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
+							Type d'établissement
+						</label>
+						{editing ?
+							<div className="relative">
+								<select
+									name="restaurantType"
+									value={formData.restaurantType || "casual"}
+									onChange={onInputChange}
+									className="w-full bg-gray-50/50 px-5 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
+								>
+									{RESTAURANT_TYPES.map((type) => (
+										<option key={type.value} value={type.value}>
+											{type.label}
+										</option>
+									))}
+								</select>
+								<ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300 pointer-events-none" />
+							</div>
+						:	<div className="bg-gray-50/30 px-5 py-3 rounded-2xl border border-gray-100/50 inline-block">
+								<span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">
+									{RESTAURANT_TYPES.find(
+										(t) => t.value === formData.restaurantType,
+									)?.label || formData.restaurantType}
+								</span>
+							</div>
+						}
+					</div>
+
+					{/* Seating Capacity */}
+					<div className="space-y-2 group/field">
+						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
+							Capacité d'accueil
+						</label>
+						{editing ?
+							<div className="relative">
+								<input
+									type="number"
+									name="seatingCapacity"
+									value={formData.seatingCapacity || ""}
+									onChange={onInputChange}
+									className="w-full bg-gray-50/50 px-12 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-inner"
+									min="0"
+									placeholder="0"
+								/>
+								<Users className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-600/50" />
+								<span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-300 uppercase tracking-widest">
+									PLACES
+								</span>
+							</div>
+						:	<div className="bg-gray-50/30 px-5 py-4 rounded-2xl border border-gray-100/50 flex items-center gap-3">
+								<Users className="h-4 w-4 text-blue-600/50" />
+								<p className="text-sm font-bold text-gray-900">
+									{formData.seatingCapacity ?
+										`${formData.seatingCapacity} couverts`
+									:	"Non renseigné"}
+								</p>
+							</div>
+						}
+					</div>
+
+					{/* Cuisine Types */}
+					<div className="col-span-1 md:col-span-2 space-y-4">
+						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
+							Spécialités Culinaires
+						</label>
+						{editing ?
+							<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+								{CUISINE_OPTIONS.map((cuisine) => (
+									<label
+										key={cuisine.value}
+										className="relative flex items-center p-4 bg-gray-50/50 border border-gray-100 rounded-2xl cursor-pointer hover:bg-white hover:border-orange-200 transition-all gap-4 group/check"
 									>
-										{CUISINE_OPTIONS.find((c) => c.value === type)?.label ||
-											type}
-									</span>
-								))
-							) : (
-								<span className="text-gray-500 text-sm">Non renseigné</span>
-							)}
-						</div>
-					)}
-				</div>
-
-				{/* Seating Capacity */}
-				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-2">
-						<FiUsers className="inline mr-1" />
-						Capacité d'accueil
-					</label>
-					{editing ? (
-						<div className="flex items-center space-x-2">
-							<input
-								type="number"
-								name="seatingCapacity"
-								value={formData.seatingCapacity || ""}
-								onChange={onInputChange}
-								className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-								min="0"
-							/>
-							<span className="text-gray-500">places</span>
-						</div>
-					) : (
-						<p className="text-gray-900">
-							{formData.seatingCapacity
-								? `${formData.seatingCapacity} places`
-								: "Non renseigné"}
-						</p>
-					)}
+										<div className="relative flex items-center">
+											<input
+												type="checkbox"
+												value={cuisine.value}
+												checked={(formData.cuisineTypes || []).includes(
+													cuisine.value,
+												)}
+												onChange={handleCuisineTypeChange}
+												className="peer h-5 w-5 cursor-pointer appearance-none rounded-lg border-2 border-gray-200 transition-all checked:border-orange-500 checked:bg-orange-500"
+											/>
+											<Check className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white opacity-0 peer-checked:opacity-100" />
+										</div>
+										<span className="text-xs font-bold text-gray-700">
+											{cuisine.label}
+										</span>
+									</label>
+								))}
+							</div>
+						:	<div className="flex flex-wrap gap-3">
+								{(formData.cuisineTypes || []).length > 0 ?
+									formData.cuisineTypes.map((type, idx) => (
+										<div
+											key={idx}
+											className="inline-flex items-center gap-2 px-4 py-2 bg-orange-50 border border-orange-100 rounded-xl"
+										>
+											<Utensils className="h-3.5 w-3.5 text-orange-500" />
+											<span className="text-[10px] font-black text-orange-700 uppercase tracking-widest">
+												{CUISINE_OPTIONS.find((c) => c.value === type)?.label ||
+													type}
+											</span>
+										</div>
+									))
+								:	<p className="text-xs font-medium text-gray-400 italic">
+										Non renseigné
+									</p>
+								}
+							</div>
+						}
+					</div>
 				</div>
 			</div>
 
 			{/* Operating Hours */}
-			<div className="mt-6 border-t border-gray-100 pt-6">
-				<h4 className="text-md font-medium text-gray-800 mb-3 flex items-center">
-					<FiClock className="mr-2" />
-					Horaires d'ouverture
-				</h4>
+			<div className="space-y-8 pt-10 border-t border-gray-100">
+				<div className="flex items-center gap-3 px-2">
+					<Clock className="h-5 w-5 text-amber-600/50" />
+					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
+						Horaires d'Ouverture
+					</h3>
+				</div>
 
-				<div className="grid grid-cols-1 gap-2">
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 					{DAYS.map((day) => (
 						<div
 							key={day.key}
-							className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0"
+							className={`p-4 rounded-[1.5rem] border transition-all ${
+								editing ?
+									"bg-gray-50/50 border-gray-100 hover:bg-white hover:border-amber-200"
+								: (formData.operatingHours?.[day.key]?.isOpen ?? true) ?
+									"bg-amber-50/30 border-amber-100/50"
+								:	"bg-gray-50/30 border-gray-100 opacity-60"
+							}`}
 						>
-							<span className="w-24 font-medium text-sm text-gray-700">
-								{day.label}
-							</span>
-							{editing ? (
-								<div className="flex items-center space-x-2 flex-1">
-									{/* Checkbox for Open/Closed */}
+							<div className="flex items-center justify-between mb-3 px-1">
+								<span className="text-[10px] font-black text-gray-900 uppercase tracking-widest">
+									{day.label}
+								</span>
+								{editing && (
 									<input
 										type="checkbox"
 										name={`operatingHours.${day.key}.isOpen`}
 										checked={formData.operatingHours?.[day.key]?.isOpen ?? true}
 										onChange={onInputChange}
-										className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+										className="h-4 w-4 rounded-md border-gray-300 text-amber-500 focus:ring-amber-500"
 									/>
+								)}
+							</div>
 
-									{/* Hours inputs if open */}
-									{(formData.operatingHours?.[day.key]?.isOpen ?? true) && (
-										<>
+							{editing || (formData.operatingHours?.[day.key]?.isOpen ?? true) ?
+								<div className="space-y-2">
+									{editing ?
+										<div className="flex flex-col gap-2">
 											<input
 												type="time"
 												name={`operatingHours.${day.key}.open`}
@@ -189,9 +225,8 @@ const RestaurateurFields = ({ formData, editing, onInputChange }) => {
 													formData.operatingHours?.[day.key]?.open || "09:00"
 												}
 												onChange={onInputChange}
-												className="px-2 py-1 border border-gray-300 rounded text-sm w-24"
+												className="bg-white px-3 py-1.5 rounded-xl border border-gray-100 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/20"
 											/>
-											<span className="text-gray-500">-</span>
 											<input
 												type="time"
 												name={`operatingHours.${day.key}.close`}
@@ -199,34 +234,23 @@ const RestaurateurFields = ({ formData, editing, onInputChange }) => {
 													formData.operatingHours?.[day.key]?.close || "22:00"
 												}
 												onChange={onInputChange}
-												className="px-2 py-1 border border-gray-300 rounded text-sm w-24"
+												className="bg-white px-3 py-1.5 rounded-xl border border-gray-100 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/20"
 											/>
-										</>
-									)}
-									{!(formData.operatingHours?.[day.key]?.isOpen ?? true) && (
-										<span className="text-sm text-gray-400 italic ml-2">
-											Fermé
-										</span>
-									)}
-								</div>
-							) : (
-								<div className="flex-1 text-right">
-									{formData.operatingHours?.[day.key]?.isOpen === false ? (
-										<span className="text-gray-400 italic text-sm">Fermé</span>
-									) : (
-										<span className="text-gray-900 text-sm">
-											{formData.operatingHours?.[day.key]?.open || "09:00"} -{" "}
+										</div>
+									:	<div className="px-3 py-2 bg-white/50 rounded-xl text-xs font-black text-amber-700 text-center tracking-tight">
+											{formData.operatingHours?.[day.key]?.open || "09:00"} —{" "}
 											{formData.operatingHours?.[day.key]?.close || "22:00"}
-										</span>
-									)}
+										</div>
+									}
 								</div>
-							)}
+							:	<div className="px-3 py-2 bg-gray-100/50 rounded-xl text-[10px] font-black text-gray-400 text-center uppercase tracking-widest">
+									Fermé
+								</div>
+							}
 						</div>
 					))}
 				</div>
 			</div>
-
-			{/* Documents Section */}
 		</div>
 	);
 };
