@@ -4,41 +4,41 @@
 import React from "react";
 
 // Import des composants transformer (lazy loading)
-const TransformerDashboard = React.lazy(() =>
-	import("../../../pages/dashboard/transformer/TransformerDashboardNew")
+const TransformerDashboard = React.lazy(
+	() => import("../../../pages/dashboard/transformer/TransformerDashboardNew"),
 );
-const TransformerProducts = React.lazy(() =>
-	import("../../../pages/dashboard/transformer/products/MyProducts")
+const TransformerProducts = React.lazy(
+	() => import("../../../pages/dashboard/transformer/products/MyProducts"),
 );
-const TransformerAddProduct = React.lazy(() =>
-	import("../../../pages/dashboard/transformer/products/AddProduct")
+const TransformerAddProduct = React.lazy(
+	() => import("../../../pages/dashboard/transformer/products/AddProduct"),
 );
-const TransformerEditProduct = React.lazy(() =>
-	import("../../../pages/dashboard/transformer/products/EditProduct")
+const TransformerEditProduct = React.lazy(
+	() => import("../../../pages/dashboard/transformer/products/EditProduct"),
 );
-const OrdersList = React.lazy(() =>
-	import("../../../pages/dashboard/transformer/OrdersList")
+const OrdersList = React.lazy(
+	() => import("../../../pages/dashboard/transformer/OrdersList"),
 );
-const TransformerReviews = React.lazy(() =>
-	import("../../../pages/dashboard/transformer/TransformerReviews")
+const TransformerReviews = React.lazy(
+	() => import("../../../pages/dashboard/transformer/TransformerReviews"),
 );
-const TransformerStats = React.lazy(() =>
-	import("../../../pages/dashboard/transformer/TransformerStats")
+const TransformerStats = React.lazy(
+	() => import("../../../pages/dashboard/transformer/TransformerStats"),
 );
-const ProfilePage = React.lazy(() =>
-	import("../../../pages/dashboard/common/ProfilePage")
+const ProfilePage = React.lazy(
+	() => import("../../../pages/dashboard/common/ProfilePage"),
 );
-const SettingsPage = React.lazy(() =>
-	import("../../../pages/dashboard/common/SettingsPage")
+const SettingsPage = React.lazy(
+	() => import("../../../pages/dashboard/common/SettingsPage"),
 );
-const OrderDetail = React.lazy(() =>
-	import("../../../pages/orders/OrderDetail")
+const OrderDetail = React.lazy(
+	() => import("../../../pages/orders/OrderDetail"),
 );
-const NotificationsPage = React.lazy(() =>
-	import("../../../pages/dashboard/common/NotificationsPage")
+const NotificationsPage = React.lazy(
+	() => import("../../../pages/dashboard/common/NotificationsPage"),
 );
-const DocumentsPage = React.lazy(() =>
-	import("../../../pages/dashboard/common/DocumentsPage")
+const DocumentsPage = React.lazy(
+	() => import("../../../pages/dashboard/common/DocumentsPage"),
 );
 
 export const transformerRoutes = [
@@ -58,7 +58,7 @@ export const transformerRoutes = [
 		title: "Ajouter un produit",
 	},
 	{
-		path: "/transformer/products/:id/edit",
+		path: "/transformer/products/edit/:id",
 		element: <TransformerEditProduct />,
 		title: "Modifier un produit",
 	},
