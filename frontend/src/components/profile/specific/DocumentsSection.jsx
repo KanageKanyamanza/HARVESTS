@@ -1,5 +1,12 @@
 import React from "react";
-import { FiShield } from "react-icons/fi";
+import {
+	ShieldCheck,
+	FileText,
+	Info,
+	CheckCircle2,
+	Clock,
+	AlertCircle,
+} from "lucide-react";
 import DocumentUpload from "../../common/DocumentUpload";
 
 const LABELS = {
@@ -16,100 +23,100 @@ const LABELS = {
 const DocumentsSection = ({
 	documents = {},
 	onInputChange,
-	docTypes = ["businessLicense", "taxId", "nationalId"],
+	docTypes = ["businessLicense", "taxId"],
 	editing = true,
 }) => {
-	if (!editing) return null; // Or show read-only view? Backlogs usually want editing.
+	if (!editing) return null;
 
 	const handleDocChange = (type, field, value) => {
 		const currentDoc = documents[type] || {};
 		const updatedDoc = { ...currentDoc, [field]: value };
-
-		// Update the documents object
-		// Note: This relies on the parent form handling { target: { name: 'documents', value: ... } }
-		// which generic form handlers usually do.
 		const newDocuments = { ...documents, [type]: updatedDoc };
 
-		// Create a synthetic event
 		onInputChange({
 			target: { name: "documents", value: newDocuments, type: "custom" },
 		});
 	};
 
 	return (
-		<div className="space-y-6 mt-6 pt-6 border-t border-gray-100">
-			<h3 className="text-lg font-semibold text-gray-900 flex items-center">
-				<FiShield className="mr-2" />
-				Documents Légaux & Administratifs
-			</h3>
-			<div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
-				<div className="flex">
-					<div className="flex-shrink-0">
-						<FiShield className="h-5 w-5 text-blue-400" />
-					</div>
-					<div className="ml-3">
-						<p className="text-sm text-blue-700">
-							Ces documents sont nécessaires pour certifier votre activité. Ils
-							resteront confidentiels et ne seront utilisés que par l'équipe
-							administrative pour la vérification.
-						</p>
-					</div>
-				</div>
-			</div>
-
-			<div className="grid grid-cols-1 gap-6">
+		<div className="space-y-10">
+			<div className="grid grid-cols-1 gap-8">
 				{docTypes.map((type) => (
 					<div
 						key={type}
-						className="bg-gray-50 p-4 rounded-lg border border-gray-200"
+						className="group bg-gray-50/50 p-6 md:p-8 rounded-[2.5rem] border border-gray-100 hover:bg-white hover:border-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-500"
 					>
-						<h4 className="font-medium text-gray-800 mb-3 border-b pb-2">
-							{LABELS[type] || type}
-						</h4>
-
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-							{/* Number Input */}
-							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-1">
-									Numéro / Référence
-								</label>
-								<input
-									type="text"
-									className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-									placeholder="Ex: XYZ-123456"
-									value={documents[type]?.number || ""}
-									onChange={(e) =>
-										handleDocChange(type, "number", e.target.value)
-									}
-								/>
+						<div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+							<div className="flex items-center gap-4">
+								<div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-gray-400 group-hover:text-emerald-600 border border-gray-100 group-hover:border-emerald-100 transition-all shadow-sm">
+									<FileText className="h-6 w-6" />
+								</div>
+								<div>
+									<h4 className="text-lg font-[1000] text-gray-900 tracking-tight">
+										{LABELS[type] || type}
+									</h4>
+									<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+										Document Obligatoire
+									</p>
+								</div>
 							</div>
 
-							{/* File Upload */}
-							<div>
-								<DocumentUpload
-									label="Scan du document (PDF/Image)"
-									currentFile={documents[type]?.document}
-									onFileChange={(url) => handleDocChange(type, "document", url)}
-									onFileRemove={() => handleDocChange(type, "document", "")}
-								/>
+							<div className="flex justify-end">
+								{documents[type]?.isVerified ?
+									<div className="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100">
+										<CheckCircle2 className="h-3.5 w-3.5" />
+										Document Vérifié
+									</div>
+								: documents[type]?.document ?
+									<div className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-100">
+										<Clock className="h-3.5 w-3.5" />
+										En cours d'analyse
+									</div>
+								:	<div className="inline-flex items-center gap-2 px-4 py-1.5 bg-gray-100 text-gray-500 rounded-full text-[10px] font-black uppercase tracking-widest border border-gray-200">
+										<AlertCircle className="h-3.5 w-3.5" />À fournir
+									</div>
+								}
 							</div>
 						</div>
 
-						{/* Verification Status Badge */}
-						<div className="mt-3 flex justify-end">
-							{documents[type]?.isVerified ? (
-								<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-									Document Vérifié
-								</span>
-							) : documents[type]?.document ? (
-								<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-									En cours d'analyse
-								</span>
-							) : (
-								<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-									À fournir
-								</span>
-							)}
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+							{/* Number Input */}
+							<div className="space-y-2">
+								<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
+									Numéro / Référence
+								</label>
+								<div className="relative group/input">
+									<input
+										type="text"
+										className="w-full bg-white px-5 py-4 border-2 border-gray-50 rounded-2xl text-gray-900 font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all placeholder-gray-200"
+										placeholder="EX: RC-SN-DQR-2024-B-..."
+										value={documents[type]?.number || ""}
+										onChange={(e) =>
+											handleDocChange(type, "number", e.target.value)
+										}
+									/>
+									<div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-200 group-focus-within/input:text-emerald-500 transition-colors">
+										<Info className="h-4 w-4" />
+									</div>
+								</div>
+							</div>
+
+							{/* File Upload */}
+							<div className="space-y-2">
+								<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
+									Scan du document (PDF/Image)
+								</label>
+								<div className="rounded-2xl overflow-hidden border-2 border-dashed border-gray-100 hover:border-emerald-200 transition-colors">
+									<DocumentUpload
+										currentFile={documents[type]?.document}
+										onFileChange={(url) =>
+											handleDocChange(type, "document", url)
+										}
+										onFileRemove={() => handleDocChange(type, "document", "")}
+										label={null}
+									/>
+								</div>
+							</div>
 						</div>
 					</div>
 				))}

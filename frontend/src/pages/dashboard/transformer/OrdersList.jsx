@@ -1,211 +1,272 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../../../hooks/useAuth';
-import { transformerService } from '../../../services';
-import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
-import OrderList from '../../../components/orders/OrderList';
-import EmailVerificationRequired from '../../../components/common/EmailVerificationRequired';
-import { FiSearch, FiRefreshCw } from 'react-icons/fi';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from "react";
+import { useAuth } from "../../../hooks/useAuth";
+import { transformerService } from "../../../services";
+import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
+import OrderList from "../../../components/orders/OrderList";
+import EmailVerificationRequired from "../../../components/common/EmailVerificationRequired";
+import { FiSearch, FiRefreshCw, FiFilter, FiShoppingBag } from "react-icons/fi";
+import { useLocation } from "react-router-dom";
 
 const OrdersList = () => {
-  const { user } = useAuth();
-  const location = useLocation();
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [updatingOrders, setUpdatingOrders] = useState(new Set());
-  const [emailVerificationError, setEmailVerificationError] = useState(null);
+	const { user } = useAuth();
+	const location = useLocation();
+	const [orders, setOrders] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [searchTerm, setSearchTerm] = useState("");
+	const [statusFilter, setStatusFilter] = useState("all");
+	const [updatingOrders, setUpdatingOrders] = useState(new Set());
+	const [emailVerificationError, setEmailVerificationError] = useState(null);
 
-  // Initialiser le filtre basé sur les paramètres URL
-  useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
-    const statusParam = urlParams.get('status');
-    if (statusParam) {
-      setStatusFilter(statusParam);
-    }
-  }, [location.search]);
+	// Initialiser le filtre basé sur les paramètres URL
+	useEffect(() => {
+		const urlParams = new URLSearchParams(location.search);
+		const statusParam = urlParams.get("status");
+		if (statusParam) {
+			setStatusFilter(statusParam);
+		}
+	}, [location.search]);
 
+	const getOrderStatus = useCallback(
+		(order) => order?.segment?.status || order?.status || "pending",
+		[],
+	);
 
-  const getOrderStatus = useCallback(
-    (order) => order?.segment?.status || order?.status || 'pending',
-    []
-  );
+	const loadOrders = useCallback(async () => {
+		if (user?.userType !== "transformer") return;
 
-  const loadOrders = useCallback(async () => {
-    if (user?.userType !== 'transformer') return;
+		try {
+			setLoading(true);
+			setEmailVerificationError(null);
 
-    try {
-      setLoading(true);
-      setEmailVerificationError(null);
+			const response = await transformerService.getMyOrders();
+			const ordersData =
+				response.data.data?.orders || response.data.orders || [];
 
-      const response = await transformerService.getMyOrders();
-      const ordersData = response.data.data?.orders || response.data.orders || [];
+			if (Array.isArray(ordersData)) {
+				const missingSegments = ordersData.filter(
+					(order) => !order.segment && order.items?.length,
+				);
+				if (missingSegments.length > 0) {
+					console.warn(
+						`[Harvests] ${missingSegments.length} commande(s) Transformer sans segment détectée(s).`,
+					);
+				}
+			}
 
-      if (Array.isArray(ordersData)) {
-        const missingSegments = ordersData.filter(order => !order.segment && order.items?.length);
-        if (missingSegments.length > 0) {
-          console.warn(`[Harvests] ${missingSegments.length} commande(s) Transformer sans segment détectée(s).`);
-        }
-      }
+			setOrders(Array.isArray(ordersData) ? ordersData : []);
+		} catch (error) {
+			console.error("Erreur lors du chargement des commandes:", error);
 
-      setOrders(Array.isArray(ordersData) ? ordersData : []);
-    } catch (error) {
-      console.error('Erreur lors du chargement des commandes:', error);
+			if (
+				error.response?.status === 403 &&
+				error.response?.data?.code === "EMAIL_VERIFICATION_REQUIRED"
+			) {
+				setEmailVerificationError(error.response.data);
+			}
 
-      if (error.response?.status === 403 && error.response?.data?.code === 'EMAIL_VERIFICATION_REQUIRED') {
-        setEmailVerificationError(error.response.data);
-      }
+			setOrders([]);
+		} finally {
+			setLoading(false);
+		}
+	}, [user?.userType]);
 
-      setOrders([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.userType]);
+	useEffect(() => {
+		loadOrders();
+	}, [loadOrders]);
 
-  useEffect(() => {
-    loadOrders();
-  }, [loadOrders]);
+	const updateOrderStatus = async (
+		order,
+		newStatus,
+		segmentId,
+		options = {},
+	) => {
+		const orderId = order?._id;
+		if (!orderId) return;
 
-  const updateOrderStatus = async (order, newStatus, segmentId, options = {}) => {
-    const orderId = order?._id;
-    if (!orderId) return;
+		try {
+			console.log(
+				`🔄 Mise à jour du statut vers: ${newStatus} pour la commande: ${orderId}`,
+			);
 
-    try {
-      console.log(`🔄 Mise à jour du statut vers: ${newStatus} pour la commande: ${orderId}`);
+			setUpdatingOrders((prev) => new Set([...prev, orderId]));
 
-      setUpdatingOrders(prev => new Set([...prev, orderId]));
+			const payload = {
+				status: newStatus,
+				segmentId,
+				...(options.itemId ? { itemId: options.itemId } : {}),
+				...(options.itemIds ? { itemIds: options.itemIds } : {}),
+			};
 
-      const payload = {
-        status: newStatus,
-        segmentId,
-        ...(options.itemId ? { itemId: options.itemId } : {}),
-        ...(options.itemIds ? { itemIds: options.itemIds } : {})
-      };
+			const response = await transformerService.updateOrderStatus(
+				orderId,
+				payload,
+			);
 
-      const response = await transformerService.updateOrderStatus(orderId, payload);
+			console.log("📡 Réponse API:", response);
 
-      console.log('📡 Réponse API:', response);
+			if (response.data.status === "success") {
+				console.log(`✅ Commande ${orderId} ${newStatus} avec succès`);
+				await loadOrders();
+			} else {
+				console.error("❌ Erreur dans la réponse API:", response.data);
+			}
+		} catch (error) {
+			console.error("❌ Erreur lors de la mise à jour du statut:", error);
+			if (error.response) {
+				console.error("📡 Détails de l'erreur API:", error.response.data);
+			}
+		} finally {
+			// Retirer cette commande de la liste des commandes en cours de mise à jour
+			setUpdatingOrders((prev) => {
+				const newSet = new Set(prev);
+				newSet.delete(orderId);
+				return newSet;
+			});
+		}
+	};
 
-      if (response.data.status === 'success') {
-        console.log(`✅ Commande ${orderId} ${newStatus} avec succès`);
-        await loadOrders();
-      } else {
-        console.error('❌ Erreur dans la réponse API:', response.data);
-      }
-    } catch (error) {
-      console.error('❌ Erreur lors de la mise à jour du statut:', error);
-      if (error.response) {
-        console.error('📡 Détails de l\'erreur API:', error.response.data);
-      }
-    } finally {
-      // Retirer cette commande de la liste des commandes en cours de mise à jour
-      setUpdatingOrders(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(orderId);
-        return newSet;
-      });
-    }
-  };
+	const filteredOrders = orders.filter((order) => {
+		if (!order) return false;
 
-  const filteredOrders = orders.filter(order => {
-    if (!order) return false;
-    
-    const matchesSearch = searchTerm === '' || 
-      order.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order._id?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    let matchesStatus = true;
-    if (statusFilter === 'all') {
-      matchesStatus = true;
-    } else if (statusFilter === 'active') {
-      // Toutes les commandes non terminées
-      const status = getOrderStatus(order);
-      matchesStatus = !['completed', 'cancelled'].includes(status);
-    } else {
-      matchesStatus = getOrderStatus(order) === statusFilter;
-    }
-    
-    return matchesSearch && matchesStatus;
-  });
+		const matchesSearch =
+			searchTerm === "" ||
+			order.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			order._id?.toLowerCase().includes(searchTerm.toLowerCase());
 
-  return (
-    <ModularDashboardLayout userType="transformer">
-      <div className="p-6 max-w-7xl mx-auto">
-        {/* Message de vérification d'email */}
-        {emailVerificationError && (
-          <EmailVerificationRequired 
-            errorData={emailVerificationError} 
-            onResendEmail={() => {
-              setEmailVerificationError(null);
-              setTimeout(() => {
-                window.location.reload();
-              }, 2000);
-            }}
-          />
-        )}
+		let matchesStatus = true;
+		if (statusFilter === "all") {
+			matchesStatus = true;
+		} else if (statusFilter === "active") {
+			// Toutes les commandes non terminées
+			const status = getOrderStatus(order);
+			matchesStatus = !["completed", "cancelled"].includes(status);
+		} else {
+			matchesStatus = getOrderStatus(order) === statusFilter;
+		}
 
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Mes commandes</h1>
-          <p className="text-gray-600 mt-1">
-            Gérez et suivez toutes les commandes reçues
-          </p>
-        </div>
+		return matchesSearch && matchesStatus;
+	});
 
-        {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <FiSearch className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Rechercher par numéro de commande..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-harvests-green"
-                />
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-harvests-green"
-              >
-                <option value="all">Tous les statuts</option>
-                <option value="active">En cours</option>
-                <option value="pending">En attente</option>
-                <option value="confirmed">Confirmées</option>
-                <option value="preparing">En préparation</option>
-                <option value="ready-for-pickup">Prêtes pour collecte</option>
-                <option value="in-transit">En transit</option>
-                <option value="delivered">Livrées</option>
-                <option value="completed">Terminées</option>
-                <option value="cancelled">Annulées</option>
-              </select>
-              <button
-                onClick={() => window.location.reload()}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-harvests-light"
-              >
-                <FiRefreshCw className="h-4 w-4 mr-2" />
-                Actualiser
-              </button>
-            </div>
-          </div>
-        </div>
+	return (
+		<ModularDashboardLayout userType="transformer">
+			<div className="min-h-screen relative overflow-hidden">
+				{/* Background radial glows - Purple Theme for Transformer */}
+				<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
+					<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-100/30 rounded-full blur-[120px]"></div>
+					<div className="absolute top-[20%] right-[-10%] w-[40%] h-[40%] bg-fuchsia-100/20 rounded-full blur-[100px]"></div>
+					<div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-indigo-50/30 rounded-full blur-[120px]"></div>
+				</div>
 
-        <OrderList 
-          orders={filteredOrders}
-          userType="transformer"
-          onUpdateStatus={updateOrderStatus}
-          loading={loading}
-          updatingOrders={updatingOrders}
-        />
-      </div>
-    </ModularDashboardLayout>
-  );
+				<div className="relative z-10 p-4 md:p-6 max-w-[1600px] mx-auto space-y-6">
+					{/* Message de vérification d'email */}
+					{emailVerificationError && (
+						<EmailVerificationRequired
+							errorData={emailVerificationError}
+							onResendEmail={() => {
+								setEmailVerificationError(null);
+								setTimeout(() => {
+									window.location.reload();
+								}, 2000);
+							}}
+						/>
+					)}
+
+					{/* Header Section */}
+					<div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-in-down">
+						<div>
+							<div className="flex items-center gap-2 text-purple-600 font-black text-[9px] uppercase tracking-widest mb-2">
+								<div className="w-5 h-[2px] bg-purple-600"></div>
+								<span>Gestion</span>
+							</div>
+							<h1 className="text-3xl font-[1000] text-gray-900 tracking-tighter leading-none mb-2">
+								Mes{" "}
+								<span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-fuchsia-500">
+									Commandes.
+								</span>
+							</h1>
+							<p className="text-xs text-gray-500 font-medium max-w-xl">
+								Suivez vos commandes, gérez vos productions et les interactions
+								avec vos clients.
+							</p>
+						</div>
+
+						<button
+							onClick={() => loadOrders()}
+							className="group relative inline-flex items-center justify-center px-6 py-3 bg-white/70 backdrop-blur-xl border border-white/60 text-gray-900 font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all duration-300 hover:bg-purple-600 hover:text-white hover:-translate-y-1 shadow-sm active:scale-95"
+						>
+							<FiRefreshCw
+								className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
+							/>
+							Actualiser
+						</button>
+					</div>
+
+					{/* Filters & Search Bar */}
+					<div className="flex flex-col md:flex-row gap-4 animate-fade-in-up delay-100">
+						<div className="relative flex-grow md:max-w-md group">
+							<div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+								<FiSearch className="h-5 w-5 text-gray-400 group-focus-within:text-purple-500 transition-colors" />
+							</div>
+							<input
+								type="text"
+								placeholder="Rechercher par numéro de commande..."
+								value={searchTerm}
+								onChange={(e) => setSearchTerm(e.target.value)}
+								className="block w-full pl-11 pr-4 py-3 bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all shadow-sm group-hover:shadow-md"
+							/>
+						</div>
+
+						<div className="relative min-w-[200px]">
+							<div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+								<FiFilter className="h-4 w-4 text-gray-400" />
+							</div>
+							<select
+								value={statusFilter}
+								onChange={(e) => setStatusFilter(e.target.value)}
+								className="block w-full pl-10 pr-10 py-3 bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl text-xs font-bold uppercase tracking-wide text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all shadow-sm cursor-pointer appearance-none hover:bg-white"
+							>
+								<option value="all">Tous les statuts</option>
+								<option value="active">En cours</option>
+								<option value="pending">En attente</option>
+								<option value="confirmed">Confirmées</option>
+								<option value="preparing">En préparation</option>
+								<option value="ready-for-pickup">Prêtes pour collecte</option>
+								<option value="in-transit">En transit</option>
+								<option value="delivered">Livrées</option>
+								<option value="completed">Terminées</option>
+								<option value="cancelled">Annulées</option>
+							</select>
+							<div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+								<svg
+									className="h-4 w-4 text-gray-400"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={2}
+										d="M19 9l-7 7-7-7"
+									/>
+								</svg>
+							</div>
+						</div>
+					</div>
+
+					<div className="animate-fade-in-up delay-200">
+						<OrderList
+							orders={filteredOrders}
+							userType="transformer"
+							onUpdateStatus={updateOrderStatus}
+							loading={loading}
+							updatingOrders={updatingOrders}
+						/>
+					</div>
+				</div>
+			</div>
+		</ModularDashboardLayout>
+	);
 };
 
 export default OrdersList;

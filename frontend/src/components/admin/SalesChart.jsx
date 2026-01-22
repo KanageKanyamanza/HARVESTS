@@ -11,7 +11,28 @@ import {
 	Tooltip,
 } from "recharts";
 
-const SalesChart = ({ data, type = "line" }) => {
+const SalesChart = ({ data, type = "line", color = "green" }) => {
+	const themeColors = {
+		green: {
+			stroke: "#22C55E",
+			fill: "#22C55E",
+		},
+		purple: {
+			stroke: "#9333EA",
+			fill: "#9333EA",
+		},
+		blue: {
+			stroke: "#3B82F6",
+			fill: "#3B82F6",
+		},
+		orange: {
+			stroke: "#F97316",
+			fill: "#F97316",
+		},
+	};
+
+	const currentColor = themeColors[color] || themeColors.green;
+
 	if (!data || data.length === 0) {
 		return (
 			<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white/60 h-full flex flex-col relative overflow-hidden group">
@@ -62,7 +83,7 @@ const SalesChart = ({ data, type = "line" }) => {
 						]}
 						labelFormatter={(label) => formatMonth(label)}
 					/>
-					<Bar dataKey="sales" fill="#3B82F6" name="Ventes" />
+					<Bar dataKey="sales" fill={currentColor.fill} name="Ventes" />
 				</BarChart>
 			</ResponsiveContainer>
 		);
@@ -72,9 +93,15 @@ const SalesChart = ({ data, type = "line" }) => {
 		<ResponsiveContainer width="100%" height={350}>
 			<AreaChart data={data}>
 				<defs>
-					<linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-						<stop offset="5%" stopColor="#22C55E" stopOpacity={0.3} />
-						<stop offset="95%" stopColor="#22C55E" stopOpacity={0} />
+					<linearGradient
+						id={`colorSales-${color}`}
+						x1="0"
+						y1="0"
+						x2="0"
+						y2="1"
+					>
+						<stop offset="5%" stopColor={currentColor.fill} stopOpacity={0.3} />
+						<stop offset="95%" stopColor={currentColor.fill} stopOpacity={0} />
 					</linearGradient>
 				</defs>
 				<CartesianGrid
@@ -97,7 +124,7 @@ const SalesChart = ({ data, type = "line" }) => {
 					tickFormatter={(value) => `${value / 1000}k`}
 				/>
 				<Tooltip
-					cursor={{ stroke: "#22C55E", strokeWidth: 2 }}
+					cursor={{ stroke: currentColor.stroke, strokeWidth: 2 }}
 					contentStyle={{
 						borderRadius: "1rem",
 						border: "none",
@@ -114,10 +141,10 @@ const SalesChart = ({ data, type = "line" }) => {
 				<Area
 					type="monotone"
 					dataKey="sales"
-					stroke="#22C55E"
+					stroke={currentColor.stroke}
 					strokeWidth={4}
 					fillOpacity={1}
-					fill="url(#colorSales)"
+					fill={`url(#colorSales-${color})`}
 					name="sales"
 				/>
 			</AreaChart>

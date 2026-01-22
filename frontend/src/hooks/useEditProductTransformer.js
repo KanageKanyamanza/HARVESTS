@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { transformerService } from "../services";
 import { toPlainText, deriveShortDescription } from "../utils/textHelpers";
+import { DEFAULT_CURRENCY } from "../config/currencies";
+import { DEFAULT_UNIT } from "../config/units";
 
 /**
  * Hook personnalisé pour gérer l'édition d'un produit transformé
@@ -56,13 +58,13 @@ export const useEditProductTransformer = () => {
 					name: formattedProduct.name,
 					description: formattedProduct.description,
 					price: formattedProduct.price || "",
-					currency: formattedProduct.currency || "FCFA",
+					currency: formattedProduct.currency || DEFAULT_CURRENCY,
 					category: formattedProduct.category || "",
 					stock:
 						formattedProduct.inventory?.quantity ||
 						formattedProduct.stock ||
 						"",
-					unit: formattedProduct.unit || "pièces",
+					unit: formattedProduct.unit || DEFAULT_UNIT,
 					status: formattedProduct.status || "draft",
 				});
 

@@ -1,428 +1,520 @@
-import React, { useState, useEffect } from 'react';
-import { transformerService, reviewService } from '../../../services';
-import { useNotifications } from '../../../contexts/NotificationContext';
-import ModularDashboardLayout from '../../../components/layout/ModularDashboardLayout';
-import EmailVerificationRequired from '../../../components/common/EmailVerificationRequired';
-import LoadingSpinner from '../../../components/common/LoadingSpinner';
+import React, { useState, useEffect, useCallback } from "react";
+import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
+import { useAuth } from "../../../hooks/useAuth";
+import { useNotifications } from "../../../contexts/NotificationContext";
+import { transformerService, reviewService } from "../../../services";
+import StarRating from "../../../components/reviews/StarRating";
+import CloudinaryImage from "../../../components/common/CloudinaryImage";
 import {
-  FiStar,
-  FiUser,
-  FiCalendar,
-  FiMessageSquare,
-  FiCheckCircle,
-  FiAlertCircle,
-  FiRefreshCw,
-  FiFilter,
-  FiSearch
-} from 'react-icons/fi';
-import { toPlainText } from '../../../utils/textHelpers';
+	Star,
+	MessageSquare,
+	TrendingUp,
+	Users,
+	Filter,
+	Search,
+	Reply,
+	CheckCircle,
+	AlertCircle,
+	ArrowRight,
+	Send,
+	X,
+	Calendar,
+	Sparkles,
+} from "lucide-react";
 
 const TransformerReviews = () => {
-  const { showSuccess, showError } = useNotifications();
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [emailVerificationError, setEmailVerificationError] = useState(null);
-  const [stats, setStats] = useState({
-    totalReviews: 0,
-    averageRating: 0,
-    ratingDistribution: {},
-    unreadCount: 0
-  });
-  const [filters, setFilters] = useState({
-    status: 'all', // all, read, unread
-    rating: 'all', // all, 5, 4, 3, 2, 1
-    search: ''
-  });
+	const { user } = useAuth();
+	const { showSuccess, showError } = useNotifications();
 
-  // Charger les avis
-  useEffect(() => {
-    loadReviews();
-  }, [filters]);
+	const [reviews, setReviews] = useState([]);
+	const [stats, setStats] = useState(null);
+	const [loading, setLoading] = useState(true);
+	const [respondingTo, setRespondingTo] = useState(null);
+	const [responseText, setResponseText] = useState("");
+	const [submittingResponse, setSubmittingResponse] = useState(false);
+	const [filters, setFilters] = useState({
+		rating: "all",
+		hasResponse: "all",
+		sort: "newest",
+	});
 
-  const loadReviews = async () => {
-    try {
-      setLoading(true);
-      setEmailVerificationError(null);
-      setError(null);
-      const response = await reviewService.getReceivedReviews({
-        rating: filters.rating !== 'all' ? filters.rating : undefined,
-        hasResponse: filters.hasResponse !== 'all' ? filters.hasResponse : undefined,
-        sort: filters.sort || 'newest'
-      });
-      
-      if (response.status === 'success' || response.data?.status === 'success') {
-        const reviewsData = response.data?.reviews || response.data?.data?.reviews || response.reviews || [];
-        setReviews(reviewsData);
-        
-        // Calculer les stats à partir des avis
-        const totalReviews = reviewsData.length;
-        const averageRating = totalReviews > 0 
-          ? reviewsData.reduce((sum, r) => sum + (r.rating || 0), 0) / totalReviews 
-          : 0;
-        const ratingDistribution = reviewsData.reduce((acc, r) => {
-          const rating = r.rating || 0;
-          acc[rating] = (acc[rating] || 0) + 1;
-          return acc;
-        }, {});
-        const unreadCount = reviewsData.filter(r => !r.isRead).length;
-        
-        setStats({
-          totalReviews,
-          averageRating,
-          ratingDistribution,
-          unreadCount
-        });
-      }
-    } catch (error) {
-      console.error('Erreur lors du chargement des avis:', error);
-      
-      // Vérifier si c'est une erreur de vérification d'email
-      if (error.response?.status === 403 && error.response?.data?.code === 'EMAIL_VERIFICATION_REQUIRED') {
-        setEmailVerificationError(error.response.data);
-      } else {
-        setError('Erreur lors du chargement des avis');
-        showError('Erreur lors du chargement des avis');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+	const loadReviews = useCallback(async () => {
+		try {
+			setLoading(true);
+			const [reviewsResponse, statsResponse] = await Promise.all([
+				reviewService.getReceivedReviews(filters),
+				// Assuming transformerService or reviewService has a similar stats endpoint
+				// If reviewService.getProducerRatingStats is generic enough it might work,
+				// otherwise we might need a specific one for transformers.
+				// Based on previous file content, we'll try to calculate or fetch stats.
+				// reviewService.getProducerRatingStats might be backend agnostic or we might need to rely on what available.
+				// Let's assume we can fetch similar stats or calculate them from reviews for now if no endpoint exists,
+				// but preferably use an endpoint if available. The previous file calculated them manually.
+				// Let's try to fetch reviews and calculate stats locally if needed or reuse the previous logic slightly adapted.
+				reviewService.getReceivedReviews(filters), // Just fetching reviews for now
+			]);
 
-  // Marquer un avis comme lu
-  const handleMarkAsRead = async (reviewId) => {
-    try {
-      await transformerService.markReviewAsRead(reviewId);
-      setReviews(reviews.map(review => 
-        review._id === reviewId ? { ...review, isRead: true } : review
-      ));
-      showSuccess('Avis marqué comme lu');
-    } catch (error) {
-      console.error('Erreur lors du marquage:', error);
-      showError('Erreur lors du marquage de l\'avis');
-    }
-  };
+			// Recalculate stats from reviews manually to be safe as per previous implementation
+			const reviewsData =
+				reviewsResponse.data.reviews ||
+				reviewsResponse.data?.data?.reviews ||
+				[];
 
-  // Marquer tous les avis comme lus
-  const handleMarkAllAsRead = async () => {
-    try {
-      await transformerService.markAllReviewsAsRead();
-      setReviews(reviews.map(review => ({ ...review, isRead: true })));
-      showSuccess('Tous les avis ont été marqués comme lus');
-    } catch (error) {
-      console.error('Erreur lors du marquage:', error);
-      showError('Erreur lors du marquage des avis');
-    }
-  };
+			const totalReviews = reviewsData.length;
+			const averageRating =
+				totalReviews > 0 ?
+					reviewsData.reduce((sum, r) => sum + (r.rating || 0), 0) /
+					totalReviews
+				:	0;
 
-  // Répondre à un avis
-  const handleRespondToReview = async (reviewId, response) => {
-    try {
-      await transformerService.respondToReview(reviewId, { response });
-      setReviews(reviews.map(review => 
-        review._id === reviewId ? { ...review, response, respondedAt: new Date() } : review
-      ));
-      showSuccess('Réponse envoyée avec succès');
-    } catch (error) {
-      console.error('Erreur lors de la réponse:', error);
-      showError('Erreur lors de l\'envoi de la réponse');
-    }
-  };
+			setReviews(reviewsData);
+			setStats({
+				totalReviews,
+				averageRating,
+				reviews: reviewsData,
+			});
+		} catch (error) {
+			console.error("Erreur lors du chargement des avis:", error);
+			showError("Erreur lors du chargement des avis");
+		} finally {
+			setLoading(false);
+		}
+	}, [filters, showError]);
 
-  // Rendu des étoiles
-  const renderStars = (rating) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <FiStar
-        key={i}
-        className={`h-4 w-4 ${
-          i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-        }`}
-      />
-    ));
-  };
+	useEffect(() => {
+		loadReviews();
+	}, [loadReviews]);
 
-  // Rendu de la distribution des notes
-  const renderRatingDistribution = () => {
-    if (!stats.ratingDistribution) return null;
-    
-    return Object.entries(stats.ratingDistribution).map(([rating, count]) => (
-      <div key={rating} className="flex items-center justify-between py-1">
-        <div className="flex items-center">
-          {renderStars(parseInt(rating))}
-        </div>
-        <div className="flex items-center">
-          <div className="w-20 bg-gray-200 rounded-full h-2 mr-2">
-            <div
-              className="bg-yellow-400 h-2 rounded-full"
-              style={{
-                width: `${(count / stats.totalReviews) * 100}%`
-              }}
-            ></div>
-          </div>
-          <span className="text-sm text-gray-600 w-8">{count}</span>
-        </div>
-      </div>
-    ));
-  };
+	const handleRespondToReview = async (reviewId) => {
+		if (!responseText.trim()) {
+			showError("Veuillez saisir une réponse");
+			return;
+		}
 
-  if (loading) {
-    return (
-      <ModularDashboardLayout userType="transformer">
-        <div className="flex items-center justify-center h-64">
-          <LoadingSpinner size="lg" text="Chargement des avis..." />
-        </div>
-      </ModularDashboardLayout>
-    );
-  }
+		try {
+			setSubmittingResponse(true);
+			await transformerService.respondToReview(reviewId, {
+				response: responseText.trim(), // API expects 'response' key based on previous file
+			});
 
-  if (error) {
-    return (
-      <ModularDashboardLayout userType="transformer">
-        <div className="text-center py-12">
-          <FiAlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Erreur de chargement</h3>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={loadReviews}
-            className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
-          >
-            Réessayer
-          </button>
-        </div>
-      </ModularDashboardLayout>
-    );
-  }
+			showSuccess("Réponse publiée avec succès");
+			setResponseText("");
+			setRespondingTo(null);
+			loadReviews();
+		} catch (error) {
+			console.error("Erreur lors de la réponse:", error);
+			showError("Erreur lors de la publication de la réponse");
+		} finally {
+			setSubmittingResponse(false);
+		}
+	};
 
-  return (
-    <ModularDashboardLayout userType="transformer">
-      <div className="space-y-6 px-4 pb-20 pt-4">
-        {/* Message de vérification d'email */}
-        {emailVerificationError && (
-          <EmailVerificationRequired 
-            errorData={emailVerificationError} 
-            onResendEmail={() => {
-              setEmailVerificationError(null);
-              setTimeout(() => {
-                loadReviews();
-              }, 2000);
-            }}
-          />
-        )}
+	const handleFilterChange = (key, value) => {
+		setFilters((prev) => ({
+			...prev,
+			[key]: value,
+		}));
+	};
 
-        {/* En-tête */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Avis reçus</h1>
-            <p className="text-gray-600 mt-1">Gérez les avis de vos clients</p>
-          </div>
-          {stats.unreadCount > 0 && (
-            <button
-              onClick={handleMarkAllAsRead}
-              className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700"
-            >
-              Marquer tout comme lu ({stats.unreadCount})
-            </button>
-          )}
-        </div>
+	const getAverageRating = () => {
+		if (!stats?.averageRating) return "0.0";
+		return stats.averageRating.toFixed(1);
+	};
 
-        {/* Statistiques */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <FiStar className="h-8 w-8 text-yellow-400 mr-3" />
-              <div>
-                <p className="text-sm font-medium text-gray-600">Note moyenne</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stats.averageRating ? stats.averageRating.toFixed(1) : '0.0'}
-                </p>
-              </div>
-            </div>
-          </div>
+	const getTotalReviews = () => {
+		return stats?.totalReviews || 0;
+	};
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <FiMessageSquare className="h-8 w-8 text-blue-400 mr-3" />
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total avis</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalReviews}</p>
-              </div>
-            </div>
-          </div>
+	const markAsRead = async (reviewId) => {
+		try {
+			await transformerService.markReviewAsRead(reviewId);
+			setReviews((prev) =>
+				prev.map((r) => (r._id === reviewId ? { ...r, isRead: true } : r)),
+			);
+		} catch (error) {
+			console.error(error);
+		}
+	};
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <FiAlertCircle className="h-8 w-8 text-orange-400 mr-3" />
-              <div>
-                <p className="text-sm font-medium text-gray-600">Non lus</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.unreadCount}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+	return (
+		<ModularDashboardLayout userType="transformer">
+			<div className="min-h-screen relative overflow-hidden bg-harvests-light/20">
+				{/* Background Decorative Glows - Purple Theme for Transformer */}
+				<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
+					<div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-100/30 rounded-full blur-[120px]"></div>
+					<div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-100/20 rounded-full blur-[100px]"></div>
+				</div>
 
-        {/* Distribution des notes */}
-        {stats.ratingDistribution && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Distribution des notes</h3>
-            <div className="space-y-2">
-              {renderRatingDistribution()}
-            </div>
-          </div>
-        )}
+				<div className="relative z-10 max-w-6xl mx-auto px-4 py-8 md:py-12 space-y-10">
+					{/* Header */}
+					<div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-in-down">
+						<div className="space-y-3">
+							<div className="flex items-center gap-2 text-purple-600 font-black text-[9px] uppercase tracking-widest mb-2">
+								<div className="w-5 h-[2px] bg-purple-600 rounded-full"></div>
+								<span>Réputation</span>
+							</div>
+							<h1 className="text-3xl font-[1000] text-gray-900 tracking-tighter leading-none mb-2">
+								Avis{" "}
+								<span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-fuchsia-500">
+									Clients.
+								</span>
+							</h1>
+							<p className="text-xs text-gray-500 font-medium max-w-xl">
+								Suivez la satisfaction de vos clients et engagez la conversation
+								pour fidéliser votre audience.
+							</p>
+						</div>
 
-        {/* Filtres */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Statut
-              </label>
-              <select
-                value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="all">Tous</option>
-                <option value="read">Lus</option>
-                <option value="unread">Non lus</option>
-              </select>
-            </div>
+						<div className="bg-white/70 backdrop-blur-xl px-6 py-4 rounded-[2rem] border border-white/60 shadow-sm flex items-center gap-4">
+							<div className="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600 border border-purple-100">
+								<Sparkles className="h-6 w-6" />
+							</div>
+							<div>
+								<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+									Satisfaction
+								</p>
+								<div className="flex items-center gap-2">
+									<span className="text-2xl font-[1000] text-gray-900 tracking-tight">
+										{getAverageRating()}
+									</span>
+									<StarRating
+										rating={parseFloat(getAverageRating())}
+										size="sm"
+									/>
+								</div>
+							</div>
+						</div>
+					</div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Note
-              </label>
-              <select
-                value={filters.rating}
-                onChange={(e) => setFilters({ ...filters, rating: e.target.value })}
-                className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="all">Toutes</option>
-                <option value="5">5 étoiles</option>
-                <option value="4">4 étoiles</option>
-                <option value="3">3 étoiles</option>
-                <option value="2">2 étoiles</option>
-                <option value="1">1 étoile</option>
-              </select>
-            </div>
+					{/* Stats Bar */}
+					<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 animate-fade-in-up delay-100">
+						{[
+							{
+								label: "Total Avis",
+								value: getTotalReviews(),
+								icon: MessageSquare,
+								color: "blue",
+							},
+							{
+								label: "Taux de Réponse",
+								value: `${getTotalReviews() > 0 ? Math.round((reviews.filter((r) => r.response || r.producerResponse).length / getTotalReviews()) * 100) : 0}%`,
+								icon: Reply,
+								color: "purple",
+							},
+							{
+								label: "Non Lus",
+								value: reviews.filter((r) => !r.isRead).length,
+								icon: AlertCircle,
+								color: "amber",
+							},
+							{
+								label: "Clients satisfaits",
+								value: reviews.filter((r) => r.rating >= 4).length,
+								icon: CheckCircle,
+								color: "emerald",
+							},
+						].map((item, idx) => (
+							<div
+								key={idx}
+								className="bg-white/70 backdrop-blur-xl p-6 rounded-[2rem] border border-white/60 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500"
+							>
+								<div className="flex items-center justify-between mb-4">
+									<div
+										className={`w-10 h-10 rounded-xl flex items-center justify-center
+                        ${item.color === "blue" ? "bg-blue-50 text-blue-600 border border-blue-100" : ""}
+                        ${item.color === "emerald" ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : ""}
+                        ${item.color === "amber" ? "bg-amber-50 text-amber-600 border border-amber-100" : ""}
+                        ${item.color === "purple" ? "bg-purple-50 text-purple-600 border border-purple-100" : ""}
+                      `}
+									>
+										<item.icon className="w-5 h-5" />
+									</div>
+								</div>
+								<p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.1em] mb-1">
+									{item.label}
+								</p>
+								<p className="text-2xl font-[1000] text-gray-900 tracking-tighter">
+									{item.value}
+								</p>
+							</div>
+						))}
+					</div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Recherche
-              </label>
-              <div className="relative">
-                <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  value={filters.search}
-                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                  placeholder="Rechercher dans les avis..."
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+					{/* Filters Bar */}
+					<div className="bg-white/50 backdrop-blur-xl p-4 rounded-[2.5rem] border border-white/60 shadow-sm flex flex-col md:flex-row gap-4 items-center animate-fade-in-up delay-200">
+						<div className="flex items-center gap-3 px-4 border-r border-gray-100 hidden md:flex">
+							<Filter className="h-4 w-4 text-gray-400" />
+							<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+								Filtrer par
+							</span>
+						</div>
 
-        {/* Liste des avis */}
-        <div className="bg-white rounded-lg shadow">
-          {reviews.length === 0 ? (
-            <div className="text-center py-12">
-              <FiMessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun avis</h3>
-              <p className="text-gray-600">Vous n'avez pas encore reçu d'avis de vos clients.</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-200">
-              {reviews.map((review) => (
-                <div key={review._id} className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center mb-2">
-                        <div className="flex items-center mr-4">
-                          {renderStars(review.rating)}
-                        </div>
-                        <span className="text-sm text-gray-600">
-                          {review.rating}/5
-                        </span>
-                        {!review.isRead && (
-                          <span className="ml-2 bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">
-                            Non lu
-                          </span>
-                        )}
-                      </div>
+						<div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
+							<select
+								value={filters.rating}
+								onChange={(e) => handleFilterChange("rating", e.target.value)}
+								className="bg-white/70 border-none rounded-2xl px-5 py-3 text-xs font-black uppercase tracking-widest text-gray-700 focus:ring-4 focus:ring-purple-500/5 appearance-none cursor-pointer"
+							>
+								<option value="all">Toutes les notes</option>
+								{[5, 4, 3, 2, 1].map((n) => (
+									<option key={n} value={n.toString()}>
+										{n} Étoiles
+									</option>
+								))}
+							</select>
 
-                      <div className="flex items-center mb-3">
-                        <FiUser className="h-4 w-4 text-gray-400 mr-2" />
-                        <span className="font-medium text-gray-900">
-                          {review.reviewer?.firstName} {review.reviewer?.lastName}
-                        </span>
-                        <FiCalendar className="h-4 w-4 text-gray-400 ml-4 mr-2" />
-                        <span className="text-sm text-gray-600">
-                          {new Date(review.createdAt).toLocaleDateString('fr-FR')}
-                        </span>
-                      </div>
+							<select
+								value={filters.hasResponse}
+								onChange={(e) =>
+									handleFilterChange("hasResponse", e.target.value)
+								}
+								className="bg-white/70 border-none rounded-2xl px-5 py-3 text-xs font-black uppercase tracking-widest text-gray-700 focus:ring-4 focus:ring-purple-500/5 appearance-none cursor-pointer"
+							>
+								<option value="all">Toutes les réponses</option>
+								<option value="responded">Avec réponse</option>
+								<option value="not-responded">Sans réponse</option>
+							</select>
 
-                      <p className="text-gray-700 mb-3">{review.comment}</p>
+							<select
+								value={filters.sort}
+								onChange={(e) => handleFilterChange("sort", e.target.value)}
+								className="bg-white/70 border-none rounded-2xl px-5 py-3 text-xs font-black uppercase tracking-widest text-gray-700 focus:ring-4 focus:ring-purple-500/5 appearance-none cursor-pointer"
+							>
+								<option value="newest">Plus récents</option>
+								<option value="oldest">Plus anciens</option>
+								<option value="highest-rating">Meilleures notes</option>
+								<option value="lowest-rating">Moins bonnes notes</option>
+							</select>
+						</div>
+					</div>
 
-                      {review.product && (
-                        <div className="text-sm text-gray-600 mb-3">
-                          <span className="font-medium">Produit:</span> {toPlainText(review.product.name, 'Produit')}
-                        </div>
-                      )}
+					{/* Review List Section */}
+					<div className="space-y-6 animate-fade-in-up delay-300 pb-20">
+						{loading ?
+							<div className="space-y-6">
+								{[1, 2, 3].map((i) => (
+									<div
+										key={i}
+										className="bg-white/40 backdrop-blur-md border border-white/60 rounded-[2.5rem] p-8 animate-pulse"
+									>
+										<div className="flex gap-4 mb-6">
+											<div className="w-12 h-12 bg-gray-200 rounded-2xl"></div>
+											<div className="flex-1 space-y-2">
+												<div className="h-4 bg-gray-200 rounded w-1/4"></div>
+												<div className="h-3 bg-gray-200 rounded w-1/6"></div>
+											</div>
+										</div>
+										<div className="space-y-3">
+											<div className="h-4 bg-gray-200 rounded w-full"></div>
+											<div className="h-4 bg-gray-200 rounded w-5/6"></div>
+										</div>
+									</div>
+								))}
+							</div>
+						: reviews.length === 0 ?
+							<div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-[3rem] p-16 text-center shadow-sm">
+								<div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
+									<MessageSquare className="h-10 w-10" />
+								</div>
+								<h3 className="text-2xl font-[1000] text-gray-900 tracking-tight mb-2">
+									Aucun avis pour le moment
+								</h3>
+								<p className="text-gray-500 max-w-sm mx-auto font-medium">
+									Les avis de vos clients s'afficheront ici. Continuez à fournir
+									d'excellents produits pour récolter des retours positifs !
+								</p>
+							</div>
+						:	reviews.map((review) => (
+								<div
+									key={review._id}
+									onMouseEnter={() => !review.isRead && markAsRead(review._id)}
+									className={`group bg-white/70 backdrop-blur-xl border ${!review.isRead ? "border-purple-200 shadow-lg shadow-purple-500/5" : "border-white/60 shadow-sm"} rounded-[2.5rem] p-6 md:p-10 hover:shadow-xl transition-all duration-500 relative overflow-hidden`}
+								>
+									{!review.isRead && (
+										<div className="absolute top-0 right-0 bg-purple-500 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-bl-2xl">
+											Nouveau
+										</div>
+									)}
+									<div className="flex flex-col md:flex-row gap-8 relative z-10">
+										{/* User Profile Info */}
+										<div className="md:w-64 shrink-0">
+											<div className="flex items-center gap-4 mb-4">
+												<div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg border-4 border-white shrink-0 overflow-hidden">
+													{review.reviewer?.avatar ?
+														<CloudinaryImage
+															src={review.reviewer.avatar}
+															className="w-full h-full object-cover"
+														/>
+													:	<Users className="h-6 w-6" />}
+												</div>
+												<div className="min-w-0">
+													<h4 className="font-[1000] text-gray-900 tracking-tight truncate">
+														{review.reviewer?.firstName}{" "}
+														{review.reviewer?.lastName}
+													</h4>
+													<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate">
+														Acheteur Harvests
+													</p>
+												</div>
+											</div>
 
-                      {review.response ? (
-                        <div className="bg-gray-50 rounded-lg p-4 mt-3">
-                          <div className="flex items-center mb-2">
-                            <span className="font-medium text-gray-900">Votre réponse:</span>
-                            <span className="text-sm text-gray-600 ml-2">
-                              {new Date(review.respondedAt).toLocaleDateString('fr-FR')}
-                            </span>
-                          </div>
-                          <p className="text-gray-700">{review.response}</p>
-                        </div>
-                      ) : (
-                        <div className="mt-3">
-                          <textarea
-                            placeholder="Répondre à cet avis..."
-                            className="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            rows="3"
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' && e.ctrlKey) {
-                                const response = e.target.value.trim();
-                                if (response) {
-                                  handleRespondToReview(review._id, response);
-                                  e.target.value = '';
-                                }
-                              }
-                            }}
-                          />
-                          <p className="text-xs text-gray-500 mt-1">
-                            Appuyez sur Ctrl+Entrée pour envoyer votre réponse
-                          </p>
-                        </div>
-                      )}
-                    </div>
+											<div className="space-y-4">
+												<div className="flex items-center gap-2">
+													<StarRating rating={review.rating} size="sm" />
+												</div>
 
-                    <div className="flex flex-col space-y-2 ml-4">
-                      {!review.isRead && (
-                        <button
-                          onClick={() => handleMarkAsRead(review._id)}
-                          className="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full hover:bg-blue-200"
-                        >
-                          Marquer comme lu
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </ModularDashboardLayout>
-  );
+												{/* Product Info Mini-Card */}
+												{review.product && (
+													<div className="p-3 bg-gray-50/50 rounded-2xl border border-gray-100 flex items-center gap-3">
+														<div className="w-10 h-10 rounded-lg overflow-hidden shrink-0 border border-white shadow-sm">
+															{review.product.images?.[0] ?
+																<CloudinaryImage
+																	src={
+																		review.product.images[0].url ||
+																		review.product.images[0]
+																	}
+																	className="w-full h-full object-cover"
+																/>
+															:	<div className="w-full h-full bg-gray-200 flex items-center justify-center">
+																	<Sparkles className="h-4 w-4 text-gray-400" />
+																</div>
+															}
+														</div>
+														<div className="min-w-0">
+															<p className="text-[8px] font-black text-purple-600 uppercase tracking-widest mb-0.5">
+																Produit concerné
+															</p>
+															<p className="text-[10px] font-bold text-gray-900 truncate">
+																{review.product.name}
+															</p>
+														</div>
+													</div>
+												)}
+
+												<div className="flex flex-col gap-2">
+													<div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+														<Calendar className="h-3 w-3 text-purple-500" />
+														{new Date(review.createdAt).toLocaleDateString(
+															"fr-FR",
+															{
+																day: "numeric",
+																month: "long",
+																year: "numeric",
+															},
+														)}
+													</div>
+													{review.isVerifiedPurchase && (
+														<div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[9px] font-black uppercase tracking-widest border border-emerald-100 w-fit">
+															<CheckCircle className="h-3 w-3" />
+															Achat Vérifié
+														</div>
+													)}
+												</div>
+											</div>
+										</div>
+
+										{/* Review Content */}
+										<div className="flex-1 space-y-6">
+											<div className="bg-gray-50/50 rounded-[1.8rem] p-6 md:p-8 border border-gray-100/50 relative">
+												<div className="absolute top-0 right-0 p-6 opacity-[0.05]">
+													<MessageSquare className="w-24 h-24" />
+												</div>
+												<h3 className="text-xl font-[1000] text-gray-900 tracking-tight mb-3">
+													{review.title || "Avis Client"}
+												</h3>
+												<p className="text-gray-600 leading-relaxed font-medium">
+													{review.comment}
+												</p>
+											</div>
+
+											{/* Merchant Response Area */}
+											{review.response || review.producerResponse ?
+												<div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-[1.8rem] p-6 md:p-8 text-white shadow-lg relative overflow-hidden group/response">
+													<div className="absolute top-0 right-0 p-8 opacity-10 group-hover/response:scale-110 transition-transform duration-700">
+														<Reply className="w-20 h-20" />
+													</div>
+													<div className="relative z-10">
+														<div className="flex items-center justify-between mb-4">
+															<div className="flex items-center gap-2">
+																<div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-md flex items-center justify-center">
+																	<Reply className="h-4 w-4" />
+																</div>
+																<span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-100">
+																	Votre Réponse
+																</span>
+															</div>
+															<span className="text-[9px] font-black text-purple-200 uppercase tracking-widest">
+																{new Date(
+																	review.respondedAt ||
+																		review.producerResponse?.respondedAt ||
+																		new Date(),
+																).toLocaleDateString("fr-FR")}
+															</span>
+														</div>
+														<p className="text-white/90 font-bold leading-relaxed">
+															{review.response ||
+																review.producerResponse?.comment}
+														</p>
+													</div>
+												</div>
+											: respondingTo === review._id ?
+												<div className="bg-white/80 rounded-[1.8rem] p-6 border-2 border-purple-500/20 shadow-inner animate-fade-in">
+													<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 ml-2">
+														Rédiger votre réponse
+													</label>
+													<textarea
+														value={responseText}
+														onChange={(e) => setResponseText(e.target.value)}
+														rows={3}
+														className="w-full bg-transparent border-none focus:ring-0 text-gray-800 font-medium text-lg placeholder-gray-300 resize-none px-2"
+														placeholder="Remerciez votre client ou apportez des précisions..."
+														autoFocus
+													/>
+													<div className="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-gray-100">
+														<button
+															onClick={() => {
+																setRespondingTo(null);
+																setResponseText("");
+															}}
+															className="px-6 py-2.5 text-[9px] font-black text-gray-400 uppercase tracking-widest hover:text-gray-900 transition-colors"
+														>
+															Annuler
+														</button>
+														<button
+															onClick={() => handleRespondToReview(review._id)}
+															disabled={
+																submittingResponse || !responseText.trim()
+															}
+															className="px-8 py-3 bg-gray-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-purple-600 transition-all shadow-md active:scale-95 disabled:opacity-50 flex items-center gap-2"
+														>
+															{submittingResponse ?
+																<div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+															:	<Send className="h-3 w-3" />}
+															{submittingResponse ?
+																"Publication..."
+															:	"Envoyer la réponse"}
+														</button>
+													</div>
+												</div>
+											:	<button
+													onClick={() => setRespondingTo(review._id)}
+													className="w-full py-4 border-2 border-dashed border-gray-200 rounded-[1.8rem] text-gray-400 hover:border-purple-300 hover:text-purple-500 hover:bg-purple-50/50 transition-all font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 group"
+												>
+													<Reply className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+													Répondre à cet avis
+													<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+												</button>
+											}
+										</div>
+									</div>
+								</div>
+							))
+						}
+					</div>
+				</div>
+			</div>
+		</ModularDashboardLayout>
+	);
 };
 
 export default TransformerReviews;

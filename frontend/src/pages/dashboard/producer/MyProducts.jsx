@@ -185,17 +185,17 @@ const MyProducts = () => {
 					{/* Header Section */}
 					<div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-in-down">
 						<div>
-							<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-2">
-								<div className="w-6 h-[2px] bg-emerald-600"></div>
+							<div className="flex items-center gap-2 text-emerald-600 font-black text-[9px] uppercase tracking-widest mb-2">
+								<div className="w-5 h-[2px] bg-emerald-600"></div>
 								<span>Catalogue</span>
 							</div>
-							<h1 className="text-3xl md:text-4xl font-[1000] text-gray-900 tracking-tighter leading-tight mb-2">
+							<h1 className="text-3xl font-[1000] text-gray-900 tracking-tighter leading-none mb-2">
 								Mes{" "}
 								<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">
 									Produits.
 								</span>
 							</h1>
-							<p className="text-sm font-medium text-gray-500 max-w-xl">
+							<p className="text-xs text-gray-500 font-medium max-w-xl">
 								Gérez votre inventaire, suivez vos stocks et mettez en valeur
 								votre savoir-faire.
 							</p>
@@ -345,33 +345,33 @@ const MyProducts = () => {
 												</span>
 											</div>
 
-											<div className="mb-1">
-												<span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">
+											<div className="mb-2">
+												<span className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] bg-emerald-50 px-2.5 py-1.5 rounded-lg inline-block">
 													{product.category || "Produit"}
 												</span>
 											</div>
 
 											<h3
-												className="text-lg font-[900] text-gray-800 mb-2 group-hover:text-emerald-700 transition-colors line-clamp-1"
+												className="text-lg font-[1000] text-gray-900 mb-2 group-hover:text-emerald-700 transition-colors line-clamp-1 tracking-tight"
 												title={product.name}
 											>
 												{product.name}
 											</h3>
 
-											<p className="text-xs font-medium text-gray-500 line-clamp-2 mb-4 flex-grow leading-relaxed">
+											<p className="text-[11px] font-medium text-gray-500 line-clamp-2 mb-6 flex-grow leading-relaxed">
 												{product.description}
 											</p>
 
-											<div className="pt-4 border-t border-gray-100 flex items-center justify-between mt-auto">
-												<div className="flex items-center text-gray-400 text-xs font-bold">
-													<FiPackage className="w-3.5 h-3.5 mr-1.5" />
+											<div className="pt-5 border-t border-gray-100 flex items-center justify-between mt-auto">
+												<div className="flex items-center text-gray-400 text-[10px] font-black uppercase tracking-widest">
+													<FiPackage className="w-3.5 h-3.5 mr-1.5 text-emerald-500" />
 													<span>
 														Stock:{" "}
 														<span
 															className={
 																product.stock < 10 ?
 																	"text-red-500"
-																:	"text-gray-700"
+																:	"text-gray-900"
 															}
 														>
 															{product.stock}
@@ -384,15 +384,15 @@ const MyProducts = () => {
 														onClick={(e) =>
 															handlePublishProduct(product._id, e)
 														}
-														className="text-[10px] bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg font-black uppercase tracking-wide transition-colors"
+														className="text-[10px] bg-emerald-100 hover:bg-emerald-600 hover:text-white px-5 py-2.5 rounded-xl font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
 													>
 														Publier
 													</button>
 												:	<Link
 														to={`/products/${product._id}`}
-														className="text-[10px] text-gray-400 hover:text-emerald-600 font-black uppercase tracking-wide transition-colors flex items-center"
+														className="text-[10px] text-gray-400 hover:text-emerald-600 font-black uppercase tracking-widest transition-all flex items-center gap-1.5"
 													>
-														Voir Détails <FiEye className="ml-1 w-3 h-3" />
+														Détails <FiEye className="w-4 h-4" />
 													</Link>
 												}
 											</div>

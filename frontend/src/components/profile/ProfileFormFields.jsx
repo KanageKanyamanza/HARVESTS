@@ -1,12 +1,16 @@
 import React from "react";
 import {
-	FiUser,
-	FiMail,
-	FiPhone,
-	FiMapPin,
-	FiCheckCircle,
-	FiAlertCircle,
-} from "react-icons/fi";
+	User,
+	Mail,
+	Phone,
+	MapPin,
+	CheckCircle2,
+	AlertCircle,
+	Building2,
+	Globe,
+	Info,
+	ChevronDown,
+} from "lucide-react";
 
 const CUISINE_OPTIONS = [
 	{ value: "african", label: "Africaine" },
@@ -42,9 +46,6 @@ const COUNTRIES = [
 	{ code: "ST", name: "São Tomé-et-Príncipe" },
 ];
 
-const inputClass =
-	"w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500";
-
 import ProducerFields from "./specific/ProducerFields";
 import ConsumerFields from "./specific/ConsumerFields";
 import RestaurateurFields from "./specific/RestaurateurFields";
@@ -68,130 +69,159 @@ const ProfileFormFields = ({
 		icon,
 		value,
 		type = "text",
-		options = null
+		options = null,
 	) => (
-		<div>
-			<label className="block text-sm font-medium text-gray-700 mb-2">
-				{icon && React.cloneElement(icon, { className: "inline mr-1" })}
+		<div className="space-y-2 group/field">
+			<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
 				{label}
 			</label>
-			{editing ? (
-				options ? (
-					<select
-						name={name}
-						value={formData[name] || ""}
-						onChange={onInputChange}
-						className={inputClass}
-					>
-						<option value="">Sélectionner...</option>
-						{options.map((opt) => (
-							<option key={opt.code} value={opt.code}>
-								{opt.name}
-							</option>
-						))}
-					</select>
-				) : (
-					<input
-						type={type}
-						name={name}
-						value={formData[name] || ""}
-						onChange={onInputChange}
-						className={inputClass}
-					/>
-				)
-			) : (
-				<p className="text-gray-900">{safeDisplay(value)}</p>
-			)}
+			{editing ?
+				<div className="relative">
+					{icon && (
+						<div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within/field:text-emerald-500 transition-colors">
+							{React.cloneElement(icon, { size: 16 })}
+						</div>
+					)}
+					{options ?
+						<div className="relative">
+							<select
+								name={name}
+								value={formData[name] || ""}
+								onChange={onInputChange}
+								className="w-full bg-gray-50/50 pl-12 pr-10 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
+							>
+								<option value="">Sélectionner...</option>
+								{options.map((opt) => (
+									<option key={opt.code} value={opt.code}>
+										{opt.name}
+									</option>
+								))}
+							</select>
+							<ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300 pointer-events-none" />
+						</div>
+					:	<input
+							type={type}
+							name={name}
+							value={formData[name] || ""}
+							onChange={onInputChange}
+							className={`w-full bg-gray-50/50 ${icon ? "pl-12" : "px-5"} py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all placeholder-gray-300 shadow-inner`}
+						/>
+					}
+				</div>
+			:	<div className="bg-gray-50/30 px-5 py-4 rounded-2xl border border-gray-100/50 flex items-center justify-between">
+					<div className="flex items-center gap-3">
+						{icon && (
+							<div className="text-emerald-600/50 group-hover/field:text-emerald-600 transition-colors">
+								{React.cloneElement(icon, { size: 16 })}
+							</div>
+						)}
+						<p className="text-sm font-bold text-gray-900 tracking-tight">
+							{safeDisplay(value)}
+						</p>
+					</div>
+				</div>
+			}
 		</div>
 	);
 
 	return (
-		<div className="bg-white rounded-lg shadow">
-			<div className="p-6">
-				<h3 className="text-lg font-semibold text-gray-900 mb-6">
-					Informations personnelles & Contact
-				</h3>
+		<div className="space-y-10">
+			<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+				{renderField("Prénom", "firstName", <User />, user.firstName)}
+				{renderField("Nom", "lastName", <User />, user.lastName)}
 
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-					{renderField("Prénom", "firstName", <FiUser />, user.firstName)}
-					{renderField("Nom", "lastName", <FiUser />, user.lastName)}
-
-					{(user?.userType === "transformer" ||
-						user?.userType === "exporter" ||
-						user?.userType === "transporter") &&
-						renderField(
-							"Nom de l'entreprise",
-							"companyName",
-							<FiUser />,
-							user.companyName
-						)}
-
-					{user?.userType === "producer" &&
-						renderField(
-							"Nom de la ferme",
-							"farmName",
-							<FiUser />,
-							user.farmName
-						)}
-
-					{user?.userType === "restaurateur" &&
-						renderField(
-							"Nom du restaurant",
-							"restaurantName",
-							<FiUser />,
-							user.restaurantName
-						)}
-
-					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">
-							<FiMail className="inline mr-1" />
-							Email
-						</label>
-						<div className="flex items-center">
-							<p className="text-gray-900">{safeDisplay(user.email, "")}</p>
-							{verificationStatus?.email?.verified ? (
-								<FiCheckCircle className="ml-2 text-green-500" />
-							) : (
-								<FiAlertCircle className="ml-2 text-red-500" />
-							)}
-						</div>
-					</div>
-
-					{renderField("Téléphone", "phone", <FiPhone />, user.phone, "tel")}
-					{renderField("Adresse", "address", <FiMapPin />, user.address)}
-					{renderField("Ville", "city", <FiMapPin />, user.city)}
-					{renderField("Région", "region", <FiMapPin />, user.region)}
-					{renderField(
-						"Pays",
-						"country",
-						<FiMapPin />,
-						user.country,
-						"select",
-						COUNTRIES
+				{(user?.userType === "transformer" ||
+					user?.userType === "exporter" ||
+					user?.userType === "transporter") &&
+					renderField(
+						"Nom de l'entreprise",
+						"companyName",
+						<Building2 />,
+						user.companyName,
 					)}
-				</div>
 
-				<div className="mt-6">
-					<label className="block text-sm font-medium text-gray-700 mb-2">
-						Biographie
+				{user?.userType === "producer" &&
+					renderField(
+						"Nom de la ferme",
+						"farmName",
+						<Building2 />,
+						user.farmName,
+					)}
+
+				{user?.userType === "restaurateur" &&
+					renderField(
+						"Nom du restaurant",
+						"restaurantName",
+						<Building2 />,
+						user.restaurantName,
+					)}
+
+				<div className="space-y-2 group/field">
+					<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
+						Email académique / Pro
 					</label>
-					{editing ? (
-						<textarea
-							name="bio"
-							value={formData.bio || ""}
-							onChange={onInputChange}
-							rows={3}
-							className={inputClass}
-							placeholder="Parlez-nous de vous..."
-						/>
-					) : (
-						<p className="text-gray-900">
-							{safeDisplay(user.bio, "Aucune biographie renseignée")}
-						</p>
-					)}
+					<div className="bg-gray-50/30 px-5 py-4 rounded-2xl border border-gray-100/50 flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							<Mail className="h-4 w-4 text-emerald-600/50" />
+							<p className="text-sm font-bold text-gray-900">
+								{safeDisplay(user.email, "")}
+							</p>
+						</div>
+						{verificationStatus?.email?.verified ?
+							<CheckCircle2 className="h-4 w-4 text-emerald-500" />
+						:	<AlertCircle className="h-4 w-4 text-rose-500" />}
+					</div>
 				</div>
 
-				{/* Specific Fields Section */}
+				{renderField("Téléphone Mobile", "phone", <Phone />, user.phone, "tel")}
+				{renderField(
+					"Adresse de résidence",
+					"address",
+					<MapPin />,
+					user.address,
+				)}
+				{renderField("Ville / Commune", "city", <MapPin />, user.city)}
+				{renderField("Région / État", "region", <MapPin />, user.region)}
+				{renderField(
+					"Pays d'origine",
+					"country",
+					<Globe />,
+					user.country,
+					"select",
+					COUNTRIES,
+				)}
+			</div>
+
+			<div className="space-y-4">
+				<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
+					Biographie & Présentation
+				</label>
+				{editing ?
+					<textarea
+						name="bio"
+						value={formData.bio || ""}
+						onChange={onInputChange}
+						rows={4}
+						className="w-full bg-gray-50/50 px-5 py-4 border-2 border-transparent rounded-3xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all placeholder-gray-300 shadow-inner resize-none"
+						placeholder="Partagez votre histoire, vos valeurs et votre passion..."
+					/>
+				:	<div className="bg-gray-50/30 p-6 rounded-3xl border border-gray-100/50">
+						<p className="text-sm font-medium text-gray-600 leading-relaxed italic">
+							{safeDisplay(
+								user.bio,
+								"Aucune biographie renseignée pour le moment. Cliquez sur modifier pour ajouter une présentation.",
+							)}
+						</p>
+					</div>
+				}
+			</div>
+
+			{/* Sub-fields Section with separator */}
+			{user?.userType !== "consumer" && (
+				<div className="h-[2px] bg-gradient-to-r from-transparent via-gray-100 to-transparent"></div>
+			)}
+
+			<div className="space-y-8">
 				{user?.userType === "producer" && (
 					<ProducerFields
 						formData={editing ? formData : user}
