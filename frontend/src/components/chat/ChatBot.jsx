@@ -1,5 +1,6 @@
 import React from "react";
 import { MessageCircle } from "lucide-react";
+import { faqData } from "../../data/faqData";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../contexts/CartContext";
@@ -232,9 +233,31 @@ const ChatBot = () => {
 	};
 
 	const handleCategoryClick = async (categoryId) => {
-		// Optionnel: demander au backend les questions pour cette catégorie
-		// Pour l'instant on peut envoyer un message "Questions sur [Catégorie]"
-		await processResponse(`Questions fréquentes sur ${categoryId}`);
+		// Trouver l'objet catégorie pour récupérer le label
+		const category = faqData.categories.find((c) => c.id === categoryId);
+		const label =
+			category ? category.label.replace(/[^\w\s]/gi, "").trim() : categoryId;
+
+		// 1. Ajouter le message de l'utilisateur visuellement
+		addUserMessage(label);
+
+		// 2. Filtrer les questions pour cette catégorie
+		const questions = faqData.faqs.filter((f) => f.category === categoryId);
+
+		if (questions.length > 0) {
+			setIsTyping(true);
+			setTimeout(() => {
+				setQuickQuestions(questions);
+				addBotMessage(
+					`Bien sûr ! Voici les questions fréquentes concernant : **${label}**. Quelle information recherchez-vous ?`,
+				);
+				setShowCategories(false);
+				setIsTyping(false);
+			}, 500);
+		} else {
+			// Si pas de questions dans faqData, on tente le backend avec un message plus clair
+			await processResponse(label);
+		}
 	};
 
 	const handleQuickQuestion = (faq) => {

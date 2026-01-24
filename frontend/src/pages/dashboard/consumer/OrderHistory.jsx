@@ -80,38 +80,39 @@ const OrderHistory = () => {
 			<div className="min-h-screen relative overflow-hidden bg-harvests-light/30">
 				{/* Background radial glows */}
 				<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
-					<div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-emerald-100/40 rounded-full blur-[120px]"></div>
-					<div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-100/30 rounded-full blur-[100px]"></div>
+					<div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-100/40 rounded-full blur-[120px]"></div>
+					<div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-sky-100/30 rounded-full blur-[100px]"></div>
+					<div className="absolute top-[20%] left-[10%] w-[30%] h-[30%] bg-cyan-100/20 rounded-full blur-[120px]"></div>
 				</div>
 
 				<div className="relative z-10 p-4 md:p-8 max-w-[1600px] mx-auto space-y-10">
 					{/* Header Section */}
 					<div className="flex flex-col md:flex-row md:items-end justify-between gap-8 animate-fade-in-down">
 						<div className="space-y-3">
-							<div className="flex items-center gap-3 text-emerald-600 font-black text-[10px] uppercase tracking-[0.3em]">
-								<div className="w-8 h-[2px] bg-emerald-600 rounded-full"></div>
-								<span>Mes Achats</span>
+							<div className="flex items-center gap-3 text-blue-600 font-black text-[10px] uppercase tracking-[0.3em]">
+								<div className="w-8 h-[2px] bg-blue-600 rounded-full"></div>
+								<span>Journal d'Achat</span>
 							</div>
 							<h1 className="text-4xl md:text-5xl font-[1000] text-gray-900 tracking-tighter leading-[0.9] mb-2">
 								Historique des{" "}
-								<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">
-									Commandes.
+								<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-sky-500 italic">
+									Achats.
 								</span>
 							</h1>
 							<p className="text-gray-500 font-medium max-w-xl text-base">
-								Retrouvez tous vos achats, suivez vos livraisons et gérez vos
-								factures en un coup d'œil.
+								Gérez vos commandes, suivez vos livraisons et retrouvez vos
+								factures en quelques clics.
 							</p>
 						</div>
 
 						<button
 							onClick={() => loadOrders()}
-							className="group relative inline-flex items-center justify-center px-6 py-3.5 bg-white/70 backdrop-blur-xl border border-white/60 text-gray-900 font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all duration-300 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-100 hover:-translate-y-1 shadow-sm hover:shadow-emerald-200/50"
+							className="group relative inline-flex items-center justify-center px-6 py-3.5 bg-white/70 backdrop-blur-xl border border-white/60 text-gray-900 font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all duration-300 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-100 hover:-translate-y-1 shadow-sm hover:shadow-blue-200/50"
 						>
 							<FiRefreshCw
 								className={`w-4 h-4 mr-3 transition-transform group-hover:rotate-180 duration-500 ${loading ? "animate-spin" : ""}`}
 							/>
-							Actualiser la liste
+							Synchroniser
 						</button>
 					</div>
 
@@ -122,7 +123,7 @@ const OrderHistory = () => {
 								label: "Total Commandes",
 								value: stats.total,
 								icon: FiShoppingBag,
-								color: "emerald",
+								color: "blue",
 							},
 							{
 								label: "En attente",
@@ -134,7 +135,7 @@ const OrderHistory = () => {
 								label: "Livrées",
 								value: stats.delivered,
 								icon: FiCheckCircle,
-								color: "blue",
+								color: "cyan",
 							},
 							{
 								label: "Annulées",
@@ -155,9 +156,9 @@ const OrderHistory = () => {
 								<div className="flex flex-col h-full relative z-10">
 									<div
 										className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 shadow-sm border
-                        ${item.color === "emerald" ? "bg-emerald-50 text-emerald-600 border-emerald-100" : ""}
-                        ${item.color === "amber" ? "bg-amber-50 text-amber-600 border-amber-100" : ""}
                         ${item.color === "blue" ? "bg-blue-50 text-blue-600 border-blue-100" : ""}
+                        ${item.color === "amber" ? "bg-amber-50 text-amber-600 border-amber-100" : ""}
+                        ${item.color === "cyan" ? "bg-cyan-50 text-cyan-600 border-cyan-100" : ""}
                         ${item.color === "rose" ? "bg-rose-50 text-rose-600 border-rose-100" : ""}
                       `}
 									>
@@ -179,14 +180,14 @@ const OrderHistory = () => {
 						<div className="flex flex-col lg:flex-row gap-4">
 							<div className="relative flex-grow lg:max-w-2xl group">
 								<div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-									<FiSearch className="h-5 w-5 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
+									<FiSearch className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
 								</div>
 								<input
 									type="text"
 									placeholder="Rechercher par numéro de commande, produit..."
 									value={searchTerm}
 									onChange={(e) => setSearchTerm(e.target.value)}
-									className="block w-full pl-12 pr-6 py-4 bg-white/70 backdrop-blur-xl border border-white/60 rounded-[1.8rem] text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500/50 transition-all shadow-sm hover:bg-white"
+									className="block w-full pl-12 pr-6 py-4 bg-white/70 backdrop-blur-xl border border-white/60 rounded-[1.8rem] text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/50 transition-all shadow-sm hover:bg-white"
 								/>
 							</div>
 
@@ -197,7 +198,7 @@ const OrderHistory = () => {
 								<select
 									value={filter}
 									onChange={(e) => setFilter(e.target.value)}
-									className="block w-full pl-12 pr-12 py-4 bg-white/70 backdrop-blur-xl border border-white/60 rounded-[1.8rem] text-xs font-black uppercase tracking-widest text-gray-700 focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500/50 transition-all shadow-sm cursor-pointer appearance-none hover:bg-white"
+									className="block w-full pl-12 pr-12 py-4 bg-white/70 backdrop-blur-xl border border-white/60 rounded-[1.8rem] text-xs font-black uppercase tracking-widest text-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/50 transition-all shadow-sm cursor-pointer appearance-none hover:bg-white"
 								>
 									<option value="all">Tous les statuts</option>
 									<option value="pending">En attente</option>
