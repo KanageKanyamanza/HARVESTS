@@ -7,6 +7,32 @@ const { toPlainText } = require("../../utils/localization");
  */
 
 async function addDish(restaurateurId, dishData) {
+	// Vérifier les limites de produits selon le plan
+	const mongoose = require("mongoose");
+	const Subscription = mongoose.model("Subscription");
+	const activeSubscription = await Subscription.findOne({
+		user: restaurateurId,
+		status: "active",
+	});
+
+	const plans = Subscription.getAvailablePlans();
+	const currentPlan =
+		activeSubscription ? plans[activeSubscription.planId] : plans.gratuit;
+
+	const productCount = await Product.countDocuments({
+		restaurateur: restaurateurId,
+		status: { $ne: "inactive" },
+	});
+
+	if (
+		currentPlan.features.maxProducts !== -1 &&
+		productCount >= currentPlan.features.maxProducts
+	) {
+		throw new Error(
+			`Limite de produits atteinte pour votre plan ${currentPlan.name} (${currentPlan.features.maxProducts} produits max).`,
+		);
+	}
+
 	const {
 		name,
 		description,
@@ -31,9 +57,9 @@ async function addDish(restaurateurId, dishData) {
 
 	const normalizedName = toPlainText(name, name);
 	const normalizedDescriptionRaw =
-		description !== undefined && description !== null
-			? toPlainText(description, "")
-			: "";
+		description !== undefined && description !== null ?
+			toPlainText(description, "")
+		:	"";
 	const baseDescription =
 		normalizedDescriptionRaw || "Plat proposé par le restaurateur";
 	const shortDescriptionText =
@@ -51,9 +77,9 @@ async function addDish(restaurateurId, dishData) {
 	}
 
 	const initialStock =
-		stock !== undefined && stock !== null
-			? Math.max(0, parseInt(stock) || 10)
-			: 10;
+		stock !== undefined && stock !== null ?
+			Math.max(0, parseInt(stock) || 10)
+		:	10;
 
 	const productData = {
 		name: normalizedName,
@@ -113,7 +139,7 @@ async function updateDish(dishId, restaurateurId, updateData) {
 		"image",
 	];
 	let requiresReview = fieldsRequiringReview.some((field) =>
-		Object.prototype.hasOwnProperty.call(updateData, field)
+		Object.prototype.hasOwnProperty.call(updateData, field),
 	);
 
 	if (
@@ -139,7 +165,7 @@ async function updateDish(dishId, restaurateurId, updateData) {
 	if (Object.prototype.hasOwnProperty.call(updateData, "description")) {
 		const normalizedDescription = toPlainText(
 			updateData.description,
-			product.description
+			product.description,
 		);
 		updateData.description = normalizedDescription;
 		const derivedShort = (normalizedDescription || "").slice(0, 160);
@@ -151,15 +177,15 @@ async function updateDish(dishId, restaurateurId, updateData) {
 	if (Object.prototype.hasOwnProperty.call(updateData, "shortDescription")) {
 		updateData.shortDescription = toPlainText(
 			updateData.shortDescription,
-			product.shortDescription
+			product.shortDescription,
 		);
 	}
 
 	if (updateData.image) {
 		const imageUrl =
-			typeof updateData.image === "string"
-				? updateData.image
-				: updateData.image.url;
+			typeof updateData.image === "string" ?
+				updateData.image
+			:	updateData.image.url;
 		const altText = toPlainText(updateData.name, product.name) || "Plat";
 		updateData.images = [
 			{ url: imageUrl, alt: altText, isPrimary: true, order: 0 },
@@ -197,7 +223,7 @@ async function updateDish(dishId, restaurateurId, updateData) {
 			product.inventory.quantity = newStock;
 			product.inventory.lowStockThreshold = Math.max(
 				1,
-				Math.floor(newStock * 0.2)
+				Math.floor(newStock * 0.2),
 			);
 			product.inventory.trackQuantity = true;
 		}
@@ -233,7 +259,7 @@ async function getMyDishes(restaurateurId) {
 		originType: "dish",
 	})
 		.select(
-			"name description shortDescription price currency unit images primaryImage image dishInfo status isActive createdAt updatedAt slug restaurateur inventory"
+			"name description shortDescription price currency unit images primaryImage image dishInfo status isActive createdAt updatedAt slug restaurateur inventory",
 		)
 		.sort("-createdAt");
 
@@ -259,9 +285,9 @@ async function getMyDishes(restaurateurId) {
 				return Product.findByIdAndUpdate(
 					id,
 					{ inventory: dish.inventory },
-					{ new: true }
+					{ new: true },
 				);
-			})
+			}),
 		);
 	}
 
@@ -278,11 +304,11 @@ async function getDishDetail(dishId, currentUserId = null, jwtToken = null) {
 		_id: dishId,
 	})
 		.select(
-			"name description shortDescription price currency unit images primaryImage image dishInfo status isActive createdAt updatedAt slug restaurateur inventory"
+			"name description shortDescription price currency unit images primaryImage image dishInfo status isActive createdAt updatedAt slug restaurateur inventory",
 		)
 		.populate(
 			"restaurateur",
-			"restaurantName firstName lastName address city region phone email"
+			"restaurantName firstName lastName address city region phone email",
 		);
 
 	if (!product) {
@@ -298,7 +324,7 @@ async function getDishDetail(dishId, currentUserId = null, jwtToken = null) {
 			try {
 				const decoded = await promisify(jwt.verify)(
 					jwtToken,
-					process.env.JWT_SECRET
+					process.env.JWT_SECRET,
 				);
 				const user = await User.findById(decoded.id).select("userType");
 				if (user && user.userType === "restaurateur") {
@@ -383,9 +409,8 @@ async function getDishDetail(dishId, currentUserId = null, jwtToken = null) {
 }
 
 async function getRestaurateurDishes(restaurateurId) {
-	const restaurateur = await Restaurateur.findById(restaurateurId).select(
-		"restaurantName"
-	);
+	const restaurateur =
+		await Restaurateur.findById(restaurateurId).select("restaurantName");
 	if (!restaurateur) {
 		throw new Error("Restaurateur non trouvé");
 	}
@@ -401,7 +426,7 @@ async function getRestaurateurDishes(restaurateurId) {
 		],
 	})
 		.select(
-			"name description shortDescription price currency unit images primaryImage image dishInfo slug isActive inventory"
+			"name description shortDescription price currency unit images primaryImage image dishInfo slug isActive inventory",
 		)
 		.sort("-createdAt");
 
@@ -424,14 +449,14 @@ async function getRestaurateurDishes(restaurateurId) {
 		await Promise.all(
 			productsToUpdateStock.map((id) => {
 				const product = products.find(
-					(p) => p._id.toString() === id.toString()
+					(p) => p._id.toString() === id.toString(),
 				);
 				return Product.findByIdAndUpdate(
 					id,
 					{ inventory: product.inventory },
-					{ new: true }
+					{ new: true },
 				);
-			})
+			}),
 		);
 		const updatedProducts = await Product.find({
 			restaurateur: restaurateurId,
@@ -439,12 +464,12 @@ async function getRestaurateurDishes(restaurateurId) {
 			status: "approved",
 		})
 			.select(
-				"name description shortDescription price currency unit images primaryImage image dishInfo slug isActive inventory"
+				"name description shortDescription price currency unit images primaryImage image dishInfo slug isActive inventory",
 			)
 			.sort("-createdAt");
 		updatedProducts.forEach((updated, idx) => {
 			const original = products.find(
-				(p) => p._id.toString() === updated._id.toString()
+				(p) => p._id.toString() === updated._id.toString(),
 			);
 			if (original) {
 				products[idx] = updated;
@@ -456,7 +481,7 @@ async function getRestaurateurDishes(restaurateurId) {
 	if (productsToUpdate.length > 0) {
 		await Product.updateMany(
 			{ _id: { $in: productsToUpdate.map((p) => p._id) } },
-			{ $set: { isActive: true } }
+			{ $set: { isActive: true } },
 		);
 		productsToUpdate.forEach((p) => {
 			p.isActive = true;

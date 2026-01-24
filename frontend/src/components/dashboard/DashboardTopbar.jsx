@@ -8,9 +8,9 @@ import NotificationDropdown from "../notifications/NotificationDropdown";
 const DashboardTopbar = ({ onMenuClick }) => {
 	const { user, userInitials } = useAuth();
 	const { displayIcon } = useUserType();
-	
+
 	// Ne pas afficher le menu utilisateur pour l'admin
-	const isAdmin = user?.role === 'admin';
+	const isAdmin = user?.role === "admin";
 
 	return (
 		<div className="h-16 bg-white shadow-sm border-b border-gray-200 flex-shrink-0">
@@ -32,7 +32,7 @@ const DashboardTopbar = ({ onMenuClick }) => {
 						<div className="relative">
 							<button className="flex items-center space-x-2 text-gray-700 hover:text-gray-900">
 								<div className="h-8 w-8 bg-harvests-green rounded-full flex items-center justify-center">
-									{user?.avatar ? (
+									{user?.avatar ?
 										<CloudinaryImage
 											src={user?.avatar}
 											alt="Avatar"
@@ -42,13 +42,12 @@ const DashboardTopbar = ({ onMenuClick }) => {
 											crop="fill"
 											quality="auto"
 										/>
-									) : (
-										<span className="text-white text-sm font-medium">
+									:	<span className="text-white text-sm font-medium">
 											{userInitials ||
 												user?.firstName?.charAt(0)?.toUpperCase() ||
 												"?"}
 										</span>
-									)}
+									}
 								</div>
 								<div className="hidden md:block">
 									<div className="flex items-center space-x-1">
@@ -57,6 +56,21 @@ const DashboardTopbar = ({ onMenuClick }) => {
 											{user?.firstName || "Utilisateur"}
 										</span>
 									</div>
+									{user?.subscriptionFeatures?.planId && (
+										<div className="mt-0.5 text-right">
+											<span
+												className={`px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-tighter ${
+													user.subscriptionFeatures.planId === "premium" ?
+														"bg-amber-100 text-amber-700"
+													: user.subscriptionFeatures.planId === "standard" ?
+														"bg-blue-100 text-blue-700"
+													:	"bg-gray-100 text-gray-500"
+												}`}
+											>
+												{user.subscriptionFeatures.planId}
+											</span>
+										</div>
+									)}
 								</div>
 							</button>
 						</div>

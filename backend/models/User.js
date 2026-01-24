@@ -140,6 +140,36 @@ const baseUserSchema = new mongoose.Schema(
 				max: 180,
 			},
 		},
+		// Fonctionnalités liées aux souscriptions
+		subscriptionFeatures: {
+			planId: {
+				type: String,
+				enum: ["gratuit", "standard", "premium"],
+				default: "gratuit",
+			},
+			maxProducts: { type: Number, default: 5 },
+			trustBadge: { type: Boolean, default: false },
+			trustBadgeType: {
+				type: String,
+				enum: ["none", "certified", "label"],
+				default: "none",
+			},
+			b2bAccess: {
+				type: String,
+				enum: ["limited", "medium", "priority"],
+				default: "limited",
+			},
+			supportLevel: {
+				type: String,
+				enum: ["standard", "priority", "vip"],
+				default: "standard",
+			},
+			storeType: {
+				type: String,
+				enum: ["basique", "personnalisée", "premium_url"],
+				default: "basique",
+			},
+		},
 		isActive: {
 			type: Boolean,
 			default: true,
@@ -321,7 +351,7 @@ const baseUserSchema = new mongoose.Schema(
 		timestamps: true,
 		discriminatorKey: "userType",
 		collection: "users",
-	}
+	},
 );
 
 // Index pour performance
@@ -400,9 +430,9 @@ baseUserSchema.methods.incLoginAttempts = function () {
 	if (this.loginAttempts + 1 >= 5 && !this.isLocked()) {
 		// 30 minutes en production, 2 minutes en développement
 		const lockoutDuration =
-			process.env.NODE_ENV === "production"
-				? 2 * 60 * 1000 // 2 minutes (modifié sur demande)
-				: 2 * 60 * 1000; // 2 minutes
+			process.env.NODE_ENV === "production" ?
+				2 * 60 * 1000 // 2 minutes (modifié sur demande)
+			:	2 * 60 * 1000; // 2 minutes
 
 		updates.$set = {
 			accountLockedUntil: Date.now() + lockoutDuration,
@@ -427,7 +457,7 @@ baseUserSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
 	if (this.passwordChangedAt) {
 		const changedTimestamp = parseInt(
 			this.passwordChangedAt.getTime() / 1000,
-			10
+			10,
 		);
 		return JWTTimestamp < changedTimestamp;
 	}

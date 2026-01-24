@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Product = require("../../models/Product");
 const Producer = require("../../models/Producer");
 const User = require("../../models/User");
@@ -41,6 +42,31 @@ async function getProducerProducts(producerId, queryParams = {}) {
  * Créer un nouveau produit
  */
 async function createProduct(producerId, productData) {
+	// Vérifier les limites de produits selon le plan
+	const Subscription = mongoose.model("Subscription");
+	const activeSubscription = await Subscription.findOne({
+		user: producerId,
+		status: "active",
+	});
+
+	const plans = Subscription.getAvailablePlans();
+	const currentPlan =
+		activeSubscription ? plans[activeSubscription.planId] : plans.gratuit;
+
+	const productCount = await Product.countDocuments({
+		producer: producerId,
+		status: { $ne: "inactive" },
+	});
+
+	if (
+		currentPlan.features.maxProducts !== -1 &&
+		productCount >= currentPlan.features.maxProducts
+	) {
+		throw new Error(
+			`Limite de produits atteinte pour votre plan ${currentPlan.name} (${currentPlan.features.maxProducts} produits max).`,
+		);
+	}
+
 	productData.producer = producerId;
 
 	// S'assurer que subcategory a une valeur par défaut si non fournie
@@ -63,7 +89,7 @@ async function createProduct(producerId, productData) {
 	try {
 		// Récupérer l'utilisateur producteur
 		const producerUser = await User.findById(producerId).select(
-			"firstName lastName email"
+			"firstName lastName email",
 		);
 		if (producerUser) {
 			// Notifier les admins par email
@@ -76,7 +102,7 @@ async function createProduct(producerId, productData) {
 
 		// Notification système existante (garder pour compatibilité - notifications in-app)
 		const producer = await Producer.findById(producerId).select(
-			"firstName lastName farmName"
+			"firstName lastName farmName",
 		);
 		if (producer) {
 			const producerName =
@@ -86,7 +112,7 @@ async function createProduct(producerId, productData) {
 			await notificationSystemService.notifyProductPendingApproval(
 				product._id,
 				productName,
-				producerName
+				producerName,
 			);
 		}
 	} catch (error) {
@@ -151,7 +177,7 @@ async function updateProducerProduct(productId, producerId, updateData) {
 		"images",
 	];
 	const hasImportantChanges = Object.keys(filteredBody).some((key) =>
-		importantFields.includes(key)
+		importantFields.includes(key),
 	);
 
 	if (hasImportantChanges) {
@@ -161,7 +187,7 @@ async function updateProducerProduct(productId, producerId, updateData) {
 	const product = await Product.findOneAndUpdate(
 		{ _id: productId, producer: producerId },
 		filteredBody,
-		{ new: true, runValidators: true }
+		{ new: true, runValidators: true },
 	);
 
 	if (!product) {
