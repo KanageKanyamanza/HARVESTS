@@ -66,22 +66,30 @@ const uploadService = {
 		if (!imagePath) return null;
 
 		// Si c'est déjà une URL complète (Cloudinary ou autre), la retourner telle quelle
-		if (imagePath.startsWith("http")) return imagePath;
-		if (imagePath.startsWith("data:") || imagePath.startsWith("blob:"))
-			return imagePath;
+		const pathString = String(imagePath);
+		if (pathString.startsWith("http")) return pathString;
+		if (pathString.startsWith("data:") || pathString.startsWith("blob:"))
+			return pathString;
 
 		// Si c'est une URL Cloudinary (commence par res.cloudinary.com), la retourner
-		if (imagePath.includes("cloudinary.com")) return imagePath;
+		if (pathString.includes("cloudinary.com")) return pathString;
 
 		// Pour les anciennes images locales (migration), construire l'URL du serveur
-		const baseUrl = import.meta.env.VITE_API_URL.replace("/api/v1", "");
-		return `${baseUrl}${imagePath}`;
+		const envApiUrl =
+			import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
+		let baseUrl = envApiUrl.replace("/api/v1", "").replace(/\/$/, "");
+
+		// S'assurer que le chemin commence par un slash s'il n'en a pas
+		const normalizedPath =
+			pathString.startsWith("/") ? pathString : `/${pathString}`;
+
+		return `${baseUrl}${normalizedPath}`;
 	},
 
 	// Valider le type de fichier
 	validateFileType: (
 		file,
-		allowedTypes = ["image/jpeg", "image/png", "image/webp"]
+		allowedTypes = ["image/jpeg", "image/png", "image/webp"],
 	) => {
 		return allowedTypes.includes(file.type);
 	},
@@ -147,7 +155,6 @@ const uploadService = {
 		if (width) transformations.push(`w_${width}`);
 		if (height) transformations.push(`h_${height}`);
 		if (crop) transformations.push(`c_${crop}`);
-		if (quality) transformations.push(`q_${quality}`);
 		if (quality) transformations.push(`q_${quality}`);
 		if (format) transformations.push(`f_${format}`);
 
