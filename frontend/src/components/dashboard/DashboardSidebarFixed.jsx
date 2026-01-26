@@ -310,6 +310,21 @@ const DashboardSidebarFixed = ({
 										{displayLabel}
 									</span>
 								</div>
+								{user?.subscriptionFeatures?.planId && (
+									<div className="mt-1">
+										<span
+											className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm border ${
+												user.subscriptionFeatures.planId === "premium" ?
+													"bg-gradient-to-r from-amber-400 to-amber-600 text-white border-amber-300"
+												: user.subscriptionFeatures.planId === "standard" ?
+													"bg-blue-600 text-white border-blue-500"
+												:	"bg-gray-100 text-gray-600 border-gray-200"
+											}`}
+										>
+											{user.subscriptionFeatures.planId}
+										</span>
+									</div>
+								)}
 							</div>
 						)}
 					</div>

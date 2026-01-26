@@ -201,15 +201,53 @@ const MyProducts = () => {
 							</p>
 						</div>
 
-						<Link
-							to="/transformer/products/add"
-							className="group relative inline-flex items-center justify-center px-6 py-3 bg-gray-900 text-white font-black text-xs uppercase tracking-widest rounded-2xl overflow-hidden transition-all duration-300 hover:bg-purple-600 hover:shadow-lg hover:shadow-purple-200 hover:-translate-y-1"
-						>
-							<span className="relative z-10 flex items-center gap-2">
-								<FiPlus className="w-4 h-4" />
-								Nouveau Produit
-							</span>
-						</Link>
+						<div className="flex flex-col items-end gap-2">
+							{user?.subscriptionFeatures && (
+								<div className="flex items-center gap-2 px-3 py-1.5 bg-white/50 border border-white/60 rounded-xl shadow-sm">
+									<div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></div>
+									<span className="text-[10px] font-black text-gray-600 uppercase tracking-wider">
+										Quota: {products.length} /{" "}
+										{user.subscriptionFeatures.maxProducts === -1 ?
+											"∞"
+										:	user.subscriptionFeatures.maxProducts}
+									</span>
+								</div>
+							)}
+							<Link
+								to={
+									(
+										user?.subscriptionFeatures?.maxProducts !== -1 &&
+										products.length >= user?.subscriptionFeatures?.maxProducts
+									) ?
+										"#"
+									:	"/transformer/products/add"
+								}
+								onClick={(e) => {
+									if (
+										user?.subscriptionFeatures?.maxProducts !== -1 &&
+										products.length >= user?.subscriptionFeatures?.maxProducts
+									) {
+										e.preventDefault();
+										alert(
+											`Limite atteinte (${user.subscriptionFeatures.maxProducts} produits). Passez au plan Standard ou Premium pour en ajouter plus !`,
+										);
+									}
+								}}
+								className={`group relative inline-flex items-center justify-center px-6 py-3 font-black text-xs uppercase tracking-widest rounded-2xl overflow-hidden transition-all duration-300 shadow-sm ${
+									(
+										user?.subscriptionFeatures?.maxProducts !== -1 &&
+										products.length >= user?.subscriptionFeatures?.maxProducts
+									) ?
+										"bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-100"
+									:	"bg-gray-900 text-white hover:bg-purple-600 hover:shadow-purple-200 hover:-translate-y-1"
+								}`}
+							>
+								<span className="relative z-10 flex items-center gap-2">
+									<FiPlus className="w-4 h-4" />
+									Nouveau Produit
+								</span>
+							</Link>
+						</div>
 					</div>
 
 					{/* Filters & Search Bar */}

@@ -115,6 +115,7 @@ async function updateProfile(userId, userType, updateData, file = null) {
 		dietaryPreferences: updatedUser.dietaryPreferences,
 		shoppingPreferences: updatedUser.shoppingPreferences,
 		allergies: updatedUser.allergies,
+		subscriptionFeatures: updatedUser.subscriptionFeatures,
 		createdAt: updatedUser.createdAt,
 		updatedAt: updatedUser.updatedAt,
 	};
@@ -152,7 +153,7 @@ async function addAddress(userId, addressData) {
 
 	if (user.userType !== "consumer") {
 		throw new Error(
-			"Seuls les consommateurs peuvent ajouter plusieurs adresses"
+			"Seuls les consommateurs peuvent ajouter plusieurs adresses",
 		);
 	}
 
@@ -234,7 +235,7 @@ async function deleteAddress(userId, addressId) {
 	// Si c'était l'adresse par défaut, définir une autre comme par défaut
 	if (address.isDefault && consumer.deliveryAddresses.length > 1) {
 		const otherAddress = consumer.deliveryAddresses.find(
-			(addr) => addr.id !== addressId
+			(addr) => addr.id !== addressId,
 		);
 		if (otherAddress) otherAddress.isDefault = true;
 	}

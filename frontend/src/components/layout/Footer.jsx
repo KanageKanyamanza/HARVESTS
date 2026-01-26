@@ -37,6 +37,7 @@ const Footer = () => {
 		help: [
 			{ name: "À propos", href: "/about" },
 			{ name: "Contact", href: "/contact" },
+			{ name: "Tarifs", href: "/pricing" },
 			{ name: "FAQs", href: "/help" },
 			{ name: "Conditions d'utilisation", href: "/terms" },
 			{ name: "Politique de confidentialité", href: "/privacy" },
@@ -281,19 +282,17 @@ const Footer = () => {
 										disabled={subscribeStatus === "loading"}
 										className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 rounded-r-md transition-colors flex items-center justify-center min-w-[40px]"
 									>
-										{subscribeStatus === "loading" ? (
+										{subscribeStatus === "loading" ?
 											<Loader2 className="h-4 w-4 animate-spin" />
-										) : (
-											<ArrowRight className="h-4 w-4" />
-										)}
+										:	<ArrowRight className="h-4 w-4" />}
 									</button>
 								</div>
 								{subscribeMessage && (
 									<p
 										className={`text-xs mt-2 ${
-											subscribeStatus === "success"
-												? "text-green-400"
-												: "text-red-400"
+											subscribeStatus === "success" ? "text-green-400" : (
+												"text-red-400"
+											)
 										}`}
 									>
 										{subscribeMessage}
