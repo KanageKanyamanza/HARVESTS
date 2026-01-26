@@ -25,10 +25,10 @@ exports.getAllProducers = catchAsync(async (req, res, next) => {
 							prioritizeRegion: true,
 							prioritizeCity: true,
 						},
-						"producer"
+						"producer",
 					);
 					const baseQueryObj = producerSearchService.buildAllProducersQuery(
-						req.query
+						req.query,
 					);
 					const locationQueryObj = { ...baseQueryObj };
 					if (locationQuery.$or && locationQuery.$or.length > 0) {
@@ -50,7 +50,7 @@ exports.getAllProducers = catchAsync(async (req, res, next) => {
 		}
 		const result = await producerSearchService.getAllProducers(
 			req.query,
-			userLocation
+			userLocation,
 		);
 		res.status(200).json({
 			status: "success",
@@ -60,15 +60,17 @@ exports.getAllProducers = catchAsync(async (req, res, next) => {
 			totalPages: result.totalPages,
 			data: {
 				producers: result.producers,
-				location: result.userLocation
-					? {
+				location:
+					result.userLocation ?
+						{
 							detected: true,
 							country: result.userLocation.country,
 							region: result.userLocation.region,
 							city: result.userLocation.city,
 							source: result.userLocation.source,
-					  }
-					: { detected: false },
+							noProducersInZone: !req.query.locationQuery,
+						}
+					:	{ detected: false },
 			},
 		});
 	} catch (error) {
@@ -94,7 +96,7 @@ exports.searchProducers = catchAsync(async (req, res, next) => {
 exports.getProducersByRegion = catchAsync(async (req, res, next) => {
 	try {
 		const producers = await producerSearchService.getProducersByRegion(
-			req.params.region
+			req.params.region,
 		);
 		res.status(200).json({
 			status: "success",
@@ -110,7 +112,7 @@ exports.getProducersByRegion = catchAsync(async (req, res, next) => {
 exports.getProducersByCrop = catchAsync(async (req, res, next) => {
 	try {
 		const producers = await producerSearchService.getProducersByCrop(
-			req.params.crop
+			req.params.crop,
 		);
 		res.status(200).json({
 			status: "success",
@@ -132,9 +134,9 @@ exports.getProducer = catchAsync(async (req, res, next) => {
 		});
 		const totalReviews = reviews.length;
 		const averageRating =
-			totalReviews > 0
-				? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews
-				: 0;
+			totalReviews > 0 ?
+				reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews
+			:	0;
 		const producerWithStats = {
 			...producer.toObject(),
 			ratings: { average: averageRating, count: totalReviews },
@@ -153,7 +155,7 @@ exports.getProducer = catchAsync(async (req, res, next) => {
 exports.getProducerProducts = catchAsync(async (req, res, next) => {
 	try {
 		const products = await producerSearchService.getProducerProducts(
-			req.params.id
+			req.params.id,
 		);
 		res.status(200).json({
 			status: "success",
@@ -169,7 +171,7 @@ exports.getProducerProducts = catchAsync(async (req, res, next) => {
 exports.getProducerReviews = catchAsync(async (req, res, next) => {
 	try {
 		const result = await producerSearchService.getProducerReviews(
-			req.params.id
+			req.params.id,
 		);
 		res.status(200).json({
 			status: "success",
