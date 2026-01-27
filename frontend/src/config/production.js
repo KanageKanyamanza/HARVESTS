@@ -2,7 +2,7 @@
 export const PRODUCTION_CONFIG = {
 	// URLs de production
 	API_BASE_URL: "https://harvests-bp63.onrender.com/api/v1",
-	FRONTEND_URL: "https://harvests-khaki.vercel.app",
+	FRONTEND_URL: "https://harvests-six.vercel.app",
 
 	// Configuration de l'application
 	APP_NAME: "Harvests",
