@@ -242,11 +242,7 @@ const Cart = () => {
 		</div>
 	);
 
-	return (
-		<ModularDashboardLayout userType="consumer">
-			{content}
-		</ModularDashboardLayout>
-	);
+	return content;
 };
 
 export default Cart;

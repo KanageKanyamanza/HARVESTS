@@ -207,7 +207,7 @@ const DashboardSidebarFixed = ({
 
 	return (
 		<div
-			className={`h-full transition-all duration-300 z-50 fixed left-0 top-0 border-r border-white/60 ${
+			className={`h-full transition-all duration-300 z-50 fixed left-0 top-0 border-r border-white/60 overflow-hidden ${
 				collapsed ? "w-24" : "w-64"
 			}`}
 		>
@@ -260,7 +260,7 @@ const DashboardSidebarFixed = ({
 					}`}
 				>
 					<div
-						className={`bg-white/50 border border-white rounded-[1rem] shadow-sm p-2.5 flex items-center gap-2.5 transition-all duration-300 ${
+						className={`bg-white/50 border border-white rounded-[1rem] shadow-sm p-2.5 flex items-center gap-2.5 transition-all duration-300 whitespace-nowrap overflow-hidden ${
 							collapsed ?
 								"flex-col justify-center p-1.5 bg-transparent border-none shadow-none"
 							:	""
@@ -361,7 +361,7 @@ const DashboardSidebarFixed = ({
 
 								{!collapsed && (
 									<span
-										className={`font-semibold text-xs tracking-wide ${
+										className={`font-semibold text-xs tracking-wide whitespace-nowrap ${
 											active ? "text-white" : ""
 										}`}
 									>
@@ -392,7 +392,9 @@ const DashboardSidebarFixed = ({
 								collapsed ? "" : "mr-3"
 							} text-gray-400 group-hover:text-blue-500`}
 						/>
-						{!collapsed && "Voir le site"}
+						{!collapsed && (
+							<span className="whitespace-nowrap">Voir le site</span>
+						)}
 					</Link>
 
 					{/* Logout */}
@@ -407,7 +409,9 @@ const DashboardSidebarFixed = ({
 								collapsed ? "" : "mr-3"
 							} text-gray-400 group-hover:text-rose-500`}
 						/>
-						{!collapsed && "Déconnexion"}
+						{!collapsed && (
+							<span className="whitespace-nowrap">Déconnexion</span>
+						)}
 					</button>
 				</div>
 
