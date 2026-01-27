@@ -170,20 +170,17 @@ const Favorites = () => {
 
 	if (loading) {
 		return (
-			<ModularDashboardLayout userType="consumer">
-				<div className="min-h-screen flex items-center justify-center">
-					<LoadingSpinner
-						size="lg"
-						text="Chargement de vos coups de coeur..."
-					/>
-				</div>
-			</ModularDashboardLayout>
+			<div className="min-h-screen flex items-center justify-center">
+				<LoadingSpinner
+					size="lg"
+					text="Chargement de vos coups de coeur..."
+				/>
+			</div>
 		);
 	}
 
 	return (
-		<ModularDashboardLayout userType="consumer">
-			<div className="min-h-screen relative overflow-hidden bg-harvests-light/20 pb-20">
+		<div className="min-h-screen relative overflow-hidden bg-harvests-light/20 pb-20">
 				{/* Background radial glows - Blue/Sky theme */}
 				<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 					<div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-100/30 rounded-full blur-[120px]"></div>
@@ -274,7 +271,6 @@ const Favorites = () => {
 					</div>
 				</div>
 			</div>
-		</ModularDashboardLayout>
 	);
 };
 

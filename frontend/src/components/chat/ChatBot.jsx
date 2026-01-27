@@ -1,6 +1,6 @@
 import React from "react";
 import { MessageCircle } from "lucide-react";
-import { faqData } from "../../data/faqData";
+import { faqData, findBestAnswer } from "../../data/faqData";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../contexts/CartContext";
@@ -138,6 +138,125 @@ const ChatBot = () => {
 		setFoundTransporters([]);
 		setIsTyping(true);
 
+		// 1. Gérer les intentions locales et FAQ pour éviter les recherches produits inutiles
+		const localMatch = findBestAnswer(message);
+
+		if (localMatch.type === "intent") {
+			const intent = localMatch.intent;
+
+			if (intent === "MY_CART") {
+				setIsTyping(false);
+				if (!isAuthenticated) {
+					addBotMessage("Vous devez être connecté pour voir votre panier. 😊");
+					return;
+				}
+				const cartData = await chatService.getCart();
+				if (cartData && cartData.items?.length > 0) {
+					addBotMessage("Voici les produits dans votre panier :");
+					setFoundProducts(cartData.items.map((item) => item.product));
+				} else {
+					addBotMessage(
+						"Votre panier est vide. Découvrez nos produits pour commencer vos achats !",
+					);
+				}
+				return;
+			}
+
+			if (intent === "MY_FAVORITES") {
+				setIsTyping(false);
+				if (!isAuthenticated) {
+					addBotMessage("Vous devez être connecté pour voir vos favoris. ❤️");
+					return;
+				}
+				const favorites = await chatService.getFavorites();
+				if (favorites && favorites.length > 0) {
+					addBotMessage("Voici vos produits favoris :");
+					setFoundProducts(favorites.map((f) => f.product));
+				} else {
+					addBotMessage(
+						"Vous n'avez pas encore de favoris. Cliquez sur le ❤️ des produits qui vous plaisent !",
+					);
+				}
+				return;
+			}
+
+			if (intent === "MY_ORDERS") {
+				setIsTyping(false);
+				if (!isAuthenticated) {
+					addBotMessage("Vous devez être connecté pour voir vos commandes. 📦");
+					return;
+				}
+				const orders = await chatService.getRecentOrders();
+				if (orders && orders.length > 0) {
+					addBotMessage("Voici vos commandes récentes :");
+					setQuickLinks(
+						orders.map((o) => ({
+							label: `Commande #${o.orderNumber || o._id.substring(0, 8)} - ${
+								o.status
+							}`,
+							to: `/dashboard/orders/${o._id}`,
+						})),
+					);
+				} else {
+					addBotMessage("Vous n'avez pas encore passé de commande.");
+				}
+				return;
+			}
+
+			if (intent === "NEW_PRODUCTS") {
+				setIsTyping(false);
+				const products = await chatService.getNewProducts();
+				if (products && products.length > 0) {
+					addBotMessage("Découvrez nos dernières nouveautés :");
+					setFoundProducts(products);
+				} else {
+					addBotMessage("Pas de nouvelles arrivées pour le moment.");
+				}
+				return;
+			}
+
+			if (intent === "CONTACT_SUPPORT") {
+				setIsTyping(false);
+				addBotMessage(
+					"Pour toute assistance, vous pouvez nous contacter :\n• Email : **contact@harvests.site**\n• Téléphone : **+221 77 197 07 13**\n\nNotre équipe est à votre disposition ! 😊",
+				);
+				return;
+			}
+
+			if (intent === "TRACK_ORDER") {
+				setIsTyping(false);
+				if (!isAuthenticated) {
+					addBotMessage(
+						"Pour suivre votre commande, vous devez d'abord vous connecter à votre compte. 👤",
+					);
+					return;
+				}
+				const orders = await chatService.getRecentOrders();
+				if (orders && orders.length > 0) {
+					addBotMessage(
+						"Voici vos commandes récentes. Cliquez sur l'une d'elles pour voir son statut en temps réel :",
+					);
+					setQuickLinks(
+						orders.map((o) => ({
+							label: `Suivre la commande #${
+								o.orderNumber || o._id.substring(0, 8)
+							} (${o.status})`,
+							to: `/dashboard/orders/${o._id}`,
+						})),
+					);
+				} else {
+					addBotMessage(
+						"Je n'ai pas trouvé de commande récente associée à votre compte.",
+					);
+				}
+				return;
+			}
+		} else if (localMatch.type === "faq") {
+			setIsTyping(false);
+			addBotMessage(localMatch.faq.answer);
+			return;
+		}
+
 		try {
 			// Appel au backend NLP
 			const context = {
@@ -272,6 +391,9 @@ const ChatBot = () => {
 		const intentMessages = {
 			TRACK_ORDER: "Où est ma commande ?",
 			MY_ORDERS: "Mes commandes",
+			MY_CART: "Mon panier",
+			MY_FAVORITES: "Mes favoris",
+			NEW_PRODUCTS: "Nouveautés",
 			CONTACT_SUPPORT: "Contacter le support",
 		};
 		const msg = intentMessages[intent] || intent;
