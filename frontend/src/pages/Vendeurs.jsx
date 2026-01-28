@@ -93,11 +93,16 @@ const Vendeurs = () => {
 						...producers.map((producer) => ({
 							...producer,
 							type: "producer",
-							displayName: producer.farmName || "Producteur",
+							displayName:
+								producer.shopInfo?.shopName ||
+								(producer.farmName && producer.farmName !== "À compléter" ?
+									producer.farmName
+								:	null) ||
+								`${producer.firstName} ${producer.lastName !== "À compléter" ? producer.lastName : ""}`.trim(),
 							profileUrl: `/producers/${producer._id}`,
 							shopBanner: producer.shopBanner,
 							logo: producer.shopLogo,
-						}))
+						})),
 					);
 				}
 
@@ -113,11 +118,19 @@ const Vendeurs = () => {
 						...transformers.map((transformer) => ({
 							...transformer,
 							type: "transformer",
-							displayName: transformer.companyName || "Transformateur",
+							displayName:
+								transformer.shopInfo?.shopName ||
+								((
+									transformer.companyName &&
+									transformer.companyName !== "À compléter"
+								) ?
+									transformer.companyName
+								:	null) ||
+								`${transformer.firstName} ${transformer.lastName !== "À compléter" ? transformer.lastName : ""}`.trim(),
 							profileUrl: `/transformers/${transformer._id}`,
 							shopBanner: transformer.shopBanner,
 							logo: transformer.shopLogo,
-						}))
+						})),
 					);
 				}
 
@@ -133,12 +146,20 @@ const Vendeurs = () => {
 						...restaurateurs.map((restaurateur) => ({
 							...restaurateur,
 							type: "restaurateur",
-							displayName: restaurateur.restaurantName || "Restaurant",
+							displayName:
+								restaurateur.shopInfo?.shopName ||
+								((
+									restaurateur.restaurantName &&
+									restaurateur.restaurantName !== "À compléter"
+								) ?
+									restaurateur.restaurantName
+								:	null) ||
+								`${restaurateur.firstName} ${restaurateur.lastName !== "À compléter" ? restaurateur.lastName : ""}`.trim(),
 							profileUrl: `/restaurateurs/${restaurateur._id}`,
 							shopBanner:
 								restaurateur.restaurantBanner || restaurateur.shopBanner,
 							logo: restaurateur.shopLogo,
-						}))
+						})),
 					);
 				} else {
 					console.error("❌ Erreur restaurateurs:", restaurateursResponse);
@@ -149,7 +170,7 @@ const Vendeurs = () => {
 						if (
 							!vendeur?._id ||
 							!["producer", "transformer", "restaurateur"].includes(
-								vendeur.type
+								vendeur.type,
 							)
 						) {
 							return vendeur;
@@ -157,7 +178,7 @@ const Vendeurs = () => {
 
 						try {
 							const statsResponse = await reviewService.getProducerRatingStats(
-								vendeur._id
+								vendeur._id,
 							);
 							const statsData = statsResponse?.data;
 							if (statsData) {
@@ -179,12 +200,12 @@ const Vendeurs = () => {
 						} catch (statsError) {
 							console.error(
 								"Erreur lors du chargement des statistiques d'avis du vendeur:",
-								statsError
+								statsError,
 							);
 						}
 
 						return vendeur;
-					})
+					}),
 				);
 
 				setVendeurs(vendeursAvecNotes);
@@ -306,9 +327,9 @@ const Vendeurs = () => {
 						<button
 							onClick={() => setFilter("all")}
 							className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-								filter === "all"
-									? "bg-green-600 text-white"
-									: "text-gray-600 hover:text-gray-900"
+								filter === "all" ?
+									"bg-green-600 text-white"
+								:	"text-gray-600 hover:text-gray-900"
 							}`}
 						>
 							Tous
@@ -316,9 +337,9 @@ const Vendeurs = () => {
 						<button
 							onClick={() => setFilter("producer")}
 							className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-								filter === "producer"
-									? "bg-green-600 text-white"
-									: "text-gray-600 hover:text-gray-900"
+								filter === "producer" ?
+									"bg-green-600 text-white"
+								:	"text-gray-600 hover:text-gray-900"
 							}`}
 						>
 							Producteurs
@@ -326,9 +347,9 @@ const Vendeurs = () => {
 						<button
 							onClick={() => setFilter("transformer")}
 							className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-								filter === "transformer"
-									? "bg-purple-600 text-white"
-									: "text-gray-600 hover:text-gray-900"
+								filter === "transformer" ?
+									"bg-purple-600 text-white"
+								:	"text-gray-600 hover:text-gray-900"
 							}`}
 						>
 							Transformateurs
@@ -336,9 +357,9 @@ const Vendeurs = () => {
 						<button
 							onClick={() => setFilter("restaurateur")}
 							className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-								filter === "restaurateur"
-									? "bg-orange-600 text-white"
-									: "text-gray-600 hover:text-gray-900"
+								filter === "restaurateur" ?
+									"bg-orange-600 text-white"
+								:	"text-gray-600 hover:text-gray-900"
 							}`}
 						>
 							Restaurateurs
@@ -346,7 +367,7 @@ const Vendeurs = () => {
 					</div>
 				</div>
 
-				{filteredVendeurs.length > 0 ? (
+				{filteredVendeurs.length > 0 ?
 					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
 						{filteredVendeurs.map((vendeur) => {
 							const { averageDisplay, reviewCount } =
@@ -363,10 +384,10 @@ const Vendeurs = () => {
 									{/* Bannière en arrière-plan */}
 									<div
 										className={`relative h-[175px] bg-gradient-to-r ${getGradientColors(
-											vendeur.type
+											vendeur.type,
 										)}`}
 									>
-										{vendeur.shopBanner ? (
+										{vendeur.shopBanner ?
 											<img
 												src={vendeur.shopBanner}
 												alt="Bannière de la boutique"
@@ -379,15 +400,14 @@ const Vendeurs = () => {
 													// Image loaded successfully
 												}}
 											/>
-										) : (
-											<div
+										:	<div
 												className={`w-full h-full bg-gradient-to-r ${getGradientColors(
-													vendeur.type
+													vendeur.type,
 												)} flex items-center justify-center`}
 											>
 												<BadgeIcon className="w-12 h-12 text-white opacity-50" />
 											</div>
-										)}
+										}
 
 										{/* Overlay pour améliorer la lisibilité */}
 										<div className="absolute inset-0 bg-black bg-opacity-20"></div>
@@ -408,7 +428,7 @@ const Vendeurs = () => {
 										<div className="absolute bottom-5 left-5 transform -translate-x-2 translate-y-2">
 											<div className="w-16 h-16 rounded-full bg-white p-1 shadow-lg">
 												<div className="w-full h-full rounded-full bg-gray-200 overflow-hidden">
-													{vendeur.logo ? (
+													{vendeur.logo ?
 														<img
 															src={vendeur.logo}
 															alt={`${vendeur.displayName}`}
@@ -421,14 +441,13 @@ const Vendeurs = () => {
 																// Avatar loaded successfully
 															}}
 														/>
-													) : (
-														<div className="w-full h-full bg-purple-100 flex items-center justify-center">
+													:	<div className="w-full h-full bg-purple-100 flex items-center justify-center">
 															<span className="text-sm font-bold text-purple-600">
 																{vendeur.displayName?.[0] ||
 																	vendeur.firstName?.[0]}
 															</span>
 														</div>
-													)}
+													}
 												</div>
 											</div>
 										</div>
@@ -462,9 +481,9 @@ const Vendeurs = () => {
 											<div className="flex items-center text-gray-500">
 												<FiPackage className="mr-1" />
 												<span className="mr-1">
-													{vendeur.type === "producer"
-														? "Produits"
-														: "Services"}
+													{vendeur.type === "producer" ?
+														"Produits"
+													:	"Services"}
 												</span>
 												<FiArrowRight className="text-gray-400 group-hover:text-gray-600 transition-colors" />
 											</div>
@@ -474,8 +493,7 @@ const Vendeurs = () => {
 							);
 						})}
 					</div>
-				) : (
-					<div className="text-center py-12">
+				:	<div className="text-center py-12">
 						<FiPackage className="w-12 h-12 text-gray-400 mx-auto mb-4" />
 						<h3 className="text-lg font-medium text-gray-900 mb-2">
 							Aucun vendeur disponible
@@ -484,7 +502,7 @@ const Vendeurs = () => {
 							Revenez plus tard pour découvrir nos vendeurs.
 						</p>
 					</div>
-				)}
+				}
 			</div>
 		</div>
 	);

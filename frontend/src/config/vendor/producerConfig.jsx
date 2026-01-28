@@ -16,12 +16,39 @@ import CertificationsSection from "../../components/profile/specific/Certificati
 
 export const producerConfig = {
 	vendorType: "producer",
-	getVendorName: (producer) =>
-		producer.farmName || `${producer.firstName} ${producer.lastName}`,
-	getVendorSubtitle: (producer) =>
-		producer.farmName
-			? `${producer.firstName} ${producer.lastName}`
-			: "Producteur",
+	getVendorName: (producer) => {
+		const shopName = producer.shopInfo?.shopName;
+		const farmName =
+			producer.farmName && producer.farmName !== "À compléter" ?
+				producer.farmName
+			:	null;
+		const lastName =
+			producer.lastName && producer.lastName !== "À compléter" ?
+				producer.lastName
+			:	"";
+		const companyName = producer.companyName;
+		return (
+			shopName ||
+			farmName ||
+			companyName ||
+			`${producer.firstName} ${lastName}`.trim()
+		);
+	},
+	getVendorSubtitle: (producer) => {
+		const farmName =
+			producer.farmName && producer.farmName !== "À compléter" ?
+				producer.farmName
+			:	null;
+		const lastName =
+			producer.lastName && producer.lastName !== "À compléter" ?
+				producer.lastName
+			:	"";
+		return (
+			farmName ||
+			producer.companyName ||
+			`${producer.firstName} ${lastName}`.trim()
+		);
+	},
 
 	getVendorStats: (producer, products, reviews = []) => {
 		const averageRating = getVendorAverageRating(producer, reviews);
@@ -82,7 +109,7 @@ export const producerConfig = {
 			about: "À propos",
 			certifications: "Certifications",
 			reviews: "Avis",
-		}[tab] || tab),
+		})[tab] || tab,
 	getTabCount: (tab, items, reviews, vendor) => {
 		if (tab === "products") return items?.length || 0;
 		if (tab === "reviews") return reviews?.length || 0;
@@ -176,15 +203,15 @@ export const producerConfig = {
 						</h3>
 						<div
 							className={`p-4 rounded-xl  ${
-								vendor.deliveryOptions?.canDeliver
-									? "bg-blue-50 border-blue-500"
-									: "bg-gray-50 border-gray-300"
+								vendor.deliveryOptions?.canDeliver ?
+									"bg-blue-50 border-blue-500"
+								:	"bg-gray-50 border-gray-300"
 							}`}
 						>
 							<p className="font-bold text-gray-900 mb-1">
-								{vendor.deliveryOptions?.canDeliver
-									? "Service de livraison disponible"
-									: "Pas de service de livraison"}
+								{vendor.deliveryOptions?.canDeliver ?
+									"Service de livraison disponible"
+								:	"Pas de service de livraison"}
 							</p>
 							{vendor.deliveryOptions?.canDeliver && (
 								<div className="text-sm text-gray-700 space-y-1">

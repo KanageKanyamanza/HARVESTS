@@ -20,7 +20,7 @@ const createSendToken = (user, statusCode, req, res) => {
 	// Configuration du cookie
 	const cookieOptions = {
 		expires: new Date(
-			Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+			Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
 		),
 		httpOnly: true,
 		secure: req.secure || req.headers["x-forwarded-proto"] === "https",
@@ -83,13 +83,20 @@ exports.signup = catchAsync(async (req, res, next) => {
 		country: req.body.country || "Sénégal",
 	};
 
+	// Ajouter les champs d'identification spécifiques s'ils sont fournis
+	if (req.body.farmName) userData.farmName = req.body.farmName;
+	if (req.body.companyName) userData.companyName = req.body.companyName;
+	if (req.body.restaurantName)
+		userData.restaurantName = req.body.restaurantName;
+	if (req.body.businessName) userData.businessName = req.body.businessName;
+
 	// Gérer lastName selon le type d'utilisateur
 	if (userType === "consumer") {
 		// Pour les consommateurs : lastName requis
 		userData.lastName = req.body.lastName;
 		if (!userData.lastName) {
 			return next(
-				new AppError("Le nom est requis pour les consommateurs", 400)
+				new AppError("Le nom est requis pour les consommateurs", 400),
 			);
 		}
 	} else {
@@ -158,13 +165,13 @@ exports.login = catchAsync(async (req, res, next) => {
 	// 1) Vérifier si email et mot de passe sont fournis
 	if (!email || !password) {
 		return next(
-			new AppError("Veuillez fournir un email et un mot de passe", 400)
+			new AppError("Veuillez fournir un email et un mot de passe", 400),
 		);
 	}
 
 	// 2) Vérifier si l'utilisateur existe et le mot de passe est correct
 	const user = await User.findOne({ email }).select(
-		"+password +loginAttempts +accountLockedUntil"
+		"+password +loginAttempts +accountLockedUntil",
 	);
 
 	// Vérifier si le compte est verrouillé
@@ -172,8 +179,8 @@ exports.login = catchAsync(async (req, res, next) => {
 		return next(
 			new AppError(
 				"Compte temporairement verrouillé en raison de tentatives de connexion répétées",
-				423
-			)
+				423,
+			),
 		);
 	}
 
@@ -205,7 +212,7 @@ exports.login = catchAsync(async (req, res, next) => {
 	// 4) Vérifier si le compte est actif
 	if (!user.isActive) {
 		return next(
-			new AppError("Votre compte a été désactivé. Contactez le support.", 401)
+			new AppError("Votre compte a été désactivé. Contactez le support.", 401),
 		);
 	}
 
@@ -216,8 +223,8 @@ exports.login = catchAsync(async (req, res, next) => {
 		return next(
 			new AppError(
 				`Votre compte est suspendu jusqu'au ${user.suspendedUntil}. Raison: ${user.suspensionReason}`,
-				403
-			)
+				403,
+			),
 		);
 	}
 

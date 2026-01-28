@@ -51,7 +51,7 @@ class EmailQueueService {
 
 		this.isProcessing = true;
 		console.log(
-			`🔄 Début du traitement de la queue d'emails (${this.queue.length} emails en attente)`
+			`🔄 Début du traitement de la queue d'emails (${this.queue.length} emails en attente)`,
 		);
 
 		while (this.queue.length > 0) {
@@ -80,7 +80,7 @@ class EmailQueueService {
 						{
 							jobId: job.id,
 							error: err.message,
-						}
+						},
 					);
 				} else {
 					// Échec définitif
@@ -114,13 +114,16 @@ class EmailQueueService {
 			case "passwordReset":
 				await email.sendPasswordReset();
 				break;
+			case "incompleteProfile":
+				await email.sendIncompleteProfileReminder();
+				break;
 			case "newsletter":
 				await email.sendNewsletter(
 					job.content,
 					job.subject,
 					job.imageUrl,
 					job.newsletterId,
-					job.subscriberId
+					job.subscriberId,
 				);
 				break;
 			default:
@@ -151,7 +154,7 @@ class EmailQueueService {
 		const removed = initialLength - this.queue.length;
 		if (removed > 0) {
 			console.log(
-				`🧹 Nettoyage de la queue: ${removed} jobs anciens supprimés`
+				`🧹 Nettoyage de la queue: ${removed} jobs anciens supprimés`,
 			);
 		}
 	}
@@ -161,8 +164,11 @@ class EmailQueueService {
 const emailQueue = new EmailQueueService();
 
 // Nettoyer la queue toutes les heures
-setInterval(() => {
-	emailQueue.cleanupQueue();
-}, 60 * 60 * 1000);
+setInterval(
+	() => {
+		emailQueue.cleanupQueue();
+	},
+	60 * 60 * 1000,
+);
 
 module.exports = emailQueue;

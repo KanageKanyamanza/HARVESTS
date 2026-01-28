@@ -43,9 +43,8 @@ const ProductCard = ({ product }) => {
 			}
 
 			try {
-				const statsResponse = await reviewService.getProductRatingStats(
-					productId
-				);
+				const statsResponse =
+					await reviewService.getProductRatingStats(productId);
 				const statsData = statsResponse?.data;
 				if (!isMounted || !statsData) {
 					return;
@@ -58,7 +57,7 @@ const ProductCard = ({ product }) => {
 			} catch (error) {
 				console.error(
 					"Erreur lors du chargement des statistiques d'avis du produit:",
-					error
+					error,
 				);
 			}
 		};
@@ -87,7 +86,7 @@ const ProductCard = ({ product }) => {
 		const convertedPrice = convertPrice(
 			price,
 			product.currency || "FCFA",
-			currency
+			currency,
 		);
 		return new Intl.NumberFormat("fr-FR", {
 			style: "currency",
@@ -123,28 +122,40 @@ const ProductCard = ({ product }) => {
 	const getVendorName = (vendor) => {
 		if (!vendor) return "";
 
+		// Priorité 1 : Nom de la boutique (si profil complété)
+		if (vendor.shopInfo?.shopName) {
+			return vendor.shopInfo.shopName;
+		}
+
 		// Pour les producteurs
-		if (vendor.farmName) {
+		if (vendor.farmName && vendor.farmName !== "À compléter") {
 			return vendor.farmName;
 		}
 
 		// Pour les transformateurs
-		if (vendor.companyName) {
+		if (vendor.companyName && vendor.companyName !== "À compléter") {
 			return vendor.companyName;
 		}
 
 		// Pour les restaurateurs
-		if (vendor.restaurantName) {
+		if (vendor.restaurantName && vendor.restaurantName !== "À compléter") {
 			return vendor.restaurantName;
 		}
 
 		// Fallback : nom complet de la personne
-		if (vendor.firstName && vendor.lastName) {
-			return `${vendor.firstName} ${vendor.lastName}`;
+		if (vendor.firstName) {
+			const lastName =
+				vendor.lastName && vendor.lastName !== "À compléter" ?
+					vendor.lastName
+				:	"";
+			return `${vendor.firstName} ${lastName}`.trim();
 		}
 
 		// Dernier fallback
-		return vendor.user?.companyName || "Vendeur";
+		const companyName = vendor.user?.companyName;
+		return companyName && companyName !== "À compléter" ?
+				companyName
+			:	"Vendeur";
 	};
 
 	return (
@@ -152,7 +163,7 @@ const ProductCard = ({ product }) => {
 			<Link to={`/products/${product._id}`} className="block">
 				{/* Image */}
 				<div className="aspect-[4/3] relative overflow-hidden bg-gray-100">
-					{primaryImage ? (
+					{primaryImage ?
 						<CloudinaryImage
 							src={primaryImage.url}
 							alt={productName}
@@ -162,11 +173,10 @@ const ProductCard = ({ product }) => {
 							quality="auto"
 							crop="fit"
 						/>
-					) : (
-						<div className="w-full h-full flex items-center justify-center text-gray-400">
+					:	<div className="w-full h-full flex items-center justify-center text-gray-400">
 							<FiPackage className="h-12 w-12" />
 						</div>
-					)}
+					}
 
 					{/* Badge Featured */}
 					{product.isFeatured && (
@@ -245,18 +255,16 @@ const ProductCard = ({ product }) => {
 						<button
 							onClick={handleAddToCart}
 							className={`p-2 rounded-full shadow-sm transition-all duration-300 transform flex-shrink-0 ${
-								isAdded
-									? "bg-green-600 scale-110"
-									: "bg-green-500 hover:bg-green-600 hover:scale-105"
+								isAdded ?
+									"bg-green-600 scale-110"
+								:	"bg-green-500 hover:bg-green-600 hover:scale-105"
 							}`}
 							title="Ajouter au panier"
 							aria-label="Ajouter au panier"
 						>
-							{isAdded ? (
+							{isAdded ?
 								<FiCheck className="h-4 w-4 text-white" />
-							) : (
-								<FiShoppingCart className="h-4 w-4 text-white" />
-							)}
+							:	<FiShoppingCart className="h-4 w-4 text-white" />}
 						</button>
 					</div>
 				</div>

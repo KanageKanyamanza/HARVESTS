@@ -142,7 +142,10 @@ const ShopSection = ({
 
 								<div className="pt-2 md:pt-4">
 									<h5 className="text-xl md:text-2xl font-[1000] text-gray-900 tracking-tight">
-										{user?.farmName ||
+										{user?.shopInfo?.shopName ||
+											(user?.farmName && user?.farmName !== "À compléter" ?
+												user.farmName
+											:	null) ||
 											user?.companyName ||
 											user?.businessName ||
 											"Ma Boutique Harvests"}
@@ -150,7 +153,8 @@ const ShopSection = ({
 									<div className="flex items-center gap-2 mt-1">
 										<div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
 										<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-											Exploitée par {user?.firstName} {user?.lastName}
+											Exploitée par {user?.firstName}{" "}
+											{user?.lastName !== "À compléter" ? user?.lastName : ""}
 										</p>
 									</div>
 								</div>

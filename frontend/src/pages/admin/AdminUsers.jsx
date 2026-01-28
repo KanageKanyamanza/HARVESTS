@@ -89,15 +89,17 @@ const AdminUsers = () => {
 
 	const handleSelectUser = (userId) => {
 		setSelectedUsers((prev) =>
-			prev.includes(userId)
-				? prev.filter((id) => id !== userId)
-				: [...prev, userId]
+			prev.includes(userId) ?
+				prev.filter((id) => id !== userId)
+			:	[...prev, userId],
 		);
 	};
 
 	const handleSelectAll = () => {
 		setSelectedUsers(
-			selectedUsers.length === users.length ? [] : users.map((user) => user._id)
+			selectedUsers.length === users.length ?
+				[]
+			:	users.map((user) => user._id),
 		);
 	};
 
@@ -123,13 +125,12 @@ const AdminUsers = () => {
 
 	const handleDeleteUser = async (userId) => {
 		const user = users.find((u) => u._id === userId);
-		const userName = user
-			? `${user.firstName} ${user.lastName}`
-			: "cet utilisateur";
+		const userName =
+			user ? `${user.firstName} ${user.lastName}` : "cet utilisateur";
 
 		if (
 			window.confirm(
-				`⚠️ ATTENTION : Êtes-vous sûr de vouloir supprimer définitivement ${userName} ?\n\nCette action supprimera également tous les produits associés à cet utilisateur. Cette action est irréversible.`
+				`⚠️ ATTENTION : Êtes-vous sûr de vouloir supprimer définitivement ${userName} ?\n\nCette action supprimera également tous les produits associés à cet utilisateur. Cette action est irréversible.`,
 			)
 		) {
 			try {
@@ -146,12 +147,12 @@ const AdminUsers = () => {
 
 		if (
 			window.confirm(
-				`⚠️ ATTENTION : Êtes-vous sûr de vouloir supprimer définitivement ${selectedUsers.length} utilisateur(s) ?\n\nCette action supprimera également tous les produits associés à ces utilisateurs. Cette action est irréversible.`
+				`⚠️ ATTENTION : Êtes-vous sûr de vouloir supprimer définitivement ${selectedUsers.length} utilisateur(s) ?\n\nCette action supprimera également tous les produits associés à ces utilisateurs. Cette action est irréversible.`,
 			)
 		) {
 			try {
 				const deletePromises = selectedUsers.map((userId) =>
-					adminService.deleteUser(userId)
+					adminService.deleteUser(userId),
 				);
 				await Promise.all(deletePromises);
 				setSelectedUsers([]);
@@ -240,7 +241,32 @@ const AdminUsers = () => {
 						</p>
 					</div>
 					<div className="flex items-center gap-4 animate-fade-in-up">
-						{/* Boutons simplifiés/premium style optionnels */}
+						<button
+							onClick={async () => {
+								if (
+									window.confirm(
+										"Voulez-vous envoyer un rappel à tous les utilisateurs ayant un profil incomplet ?",
+									)
+								) {
+									try {
+										const res = await adminService.remindIncompleteProfiles();
+										alert(`Succès : ${res.message}`);
+									} catch (error) {
+										console.error("Erreur relay email:", error);
+										alert(
+											"Une erreur est survenue lors de l'envoi des rappels.",
+										);
+									}
+								}
+							}}
+							className="group relative inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-lg hover:border-emerald-100 transition-all duration-300"
+						>
+							<div className="absolute inset-0 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+							<Mail className="w-4 h-4 text-emerald-600 relative z-10" />
+							<span className="text-[10px] font-[1000] uppercase tracking-widest text-gray-900 relative z-10">
+								Relancer Profils
+							</span>
+						</button>
 					</div>
 				</div>
 
@@ -360,7 +386,7 @@ const AdminUsers = () => {
 								</tr>
 							</thead>
 							<tbody className="divide-y divide-gray-200/50">
-								{users.length === 0 ? (
+								{users.length === 0 ?
 									<tr>
 										<td colSpan="6" className="px-5 py-10 text-center">
 											<div className="flex flex-col items-center">
@@ -373,8 +399,7 @@ const AdminUsers = () => {
 											</div>
 										</td>
 									</tr>
-								) : (
-									users.map((user) => (
+								:	users.map((user) => (
 										<tr
 											key={user._id}
 											className="group hover:bg-gray-50/50 transition-colors duration-300"
@@ -390,20 +415,19 @@ const AdminUsers = () => {
 											<td className="px-4 py-2.5">
 												<div className="flex items-center gap-2.5">
 													<div className="h-8 w-8 rounded-lg overflow-hidden border border-gray-100 shadow-sm flex-shrink-0">
-														{user.avatar ? (
+														{user.avatar ?
 															<CloudinaryImage
 																src={user.avatar}
 																alt={`${user.firstName} ${user.lastName}`}
 																className="h-full w-full object-cover"
 															/>
-														) : (
-															<div className="h-full w-full bg-gray-200 flex items-center justify-center">
+														:	<div className="h-full w-full bg-gray-200 flex items-center justify-center">
 																<span className="text-[10px] font-black text-gray-500">
 																	{user.firstName?.charAt(0)}
 																	{user.lastName?.charAt(0)}
 																</span>
 															</div>
-														)}
+														}
 													</div>
 													<div>
 														<p className="text-xs font-black text-gray-900 tracking-tight leading-tight mb-0.5 group-hover:text-green-600 transition-colors">
@@ -418,7 +442,7 @@ const AdminUsers = () => {
 											<td className="px-4 py-2.5">
 												<span
 													className={`inline-flex px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest border ${getRoleColor(
-														user.userType
+														user.userType,
 													)}`}
 												>
 													{getRoleLabel(user.userType)}
@@ -427,7 +451,7 @@ const AdminUsers = () => {
 											<td className="px-4 py-2.5">
 												<span
 													className={`inline-flex px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest border ${getStatusColor(
-														user.status
+														user.status,
 													)}`}
 												>
 													{user.status}
@@ -477,7 +501,7 @@ const AdminUsers = () => {
 											</td>
 										</tr>
 									))
-								)}
+								}
 							</tbody>
 						</table>
 					</div>
