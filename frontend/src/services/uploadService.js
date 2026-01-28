@@ -76,7 +76,7 @@ const uploadService = {
 
 		// Pour les anciennes images locales (migration), construire l'URL du serveur
 		const envApiUrl =
-			import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
+			import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
 		let baseUrl = envApiUrl.replace("/api/v1", "").replace(/\/$/, "");
 
 		// S'assurer que le chemin commence par un slash s'il n'en a pas

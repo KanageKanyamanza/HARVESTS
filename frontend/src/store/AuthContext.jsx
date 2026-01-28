@@ -85,7 +85,7 @@ export const AuthProvider = ({ children }) => {
 			const isAdmin =
 				state.user.userType === "admin" ||
 				["super-admin", "admin", "moderator", "support"].includes(
-					state.user.role
+					state.user.role,
 				);
 		}
 	}, [state.user, state.isAuthenticated]);
@@ -94,28 +94,41 @@ export const AuthProvider = ({ children }) => {
 	useRestoreSession(restoreSessionWrapper);
 	useUserActivity(state, updateActivityWrapper, isTokenExpiredWrapper, logout);
 
-	// Valeur du contexte
-	const value = createContextValue(
-		state,
-		{
+	// Valeur du contexte mémoisée pour éviter les rendus inutiles
+	const value = React.useMemo(
+		() =>
+			createContextValue(
+				state,
+				{
+					login,
+					register,
+					logout,
+					updateProfile: updateProfileWrapper,
+					setUser: setUserWrapper,
+					clearError,
+					refreshUser: refreshUserWrapper,
+					verifyEmail,
+					forgotPassword,
+					resetPassword,
+					updatePassword,
+					updateActivity: updateActivityWrapper,
+				},
+				{
+					hasPermission,
+					canAccessRoute,
+					getDefaultRoute,
+				},
+			),
+		[
+			state,
 			login,
 			register,
 			logout,
-			updateProfile: updateProfileWrapper,
-			setUser: setUserWrapper,
-			clearError,
-			refreshUser: refreshUserWrapper,
-			verifyEmail,
-			forgotPassword,
-			resetPassword,
-			updatePassword,
-			updateActivity: updateActivityWrapper,
-		},
-		{
-			hasPermission,
-			canAccessRoute,
-			getDefaultRoute,
-		}
+			restoreSessionWrapper,
+			updateProfileWrapper,
+			refreshUserWrapper,
+			// Les autres helpers sont des fonctions statiques importées ou simples
+		],
 	);
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

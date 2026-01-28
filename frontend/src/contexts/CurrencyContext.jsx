@@ -21,11 +21,14 @@ export const CurrencyProvider = ({ children }) => {
 		localStorage.setItem("harvests_currency", currency);
 	}, [currency]);
 
-	const value = {
-		currency,
-		setCurrency,
-		currencies: CURRENCIES,
-	};
+	const value = React.useMemo(
+		() => ({
+			currency,
+			setCurrency,
+			currencies: CURRENCIES,
+		}),
+		[currency, setCurrency],
+	);
 
 	return (
 		<CurrencyContext.Provider value={value}>

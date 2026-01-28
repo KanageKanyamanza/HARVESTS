@@ -147,7 +147,7 @@ cp env.example .env
 
 ```bash
 # API Backend
-VITE_API_URL=http://localhost:8000/api/v1
+VITE_API_URL=http://localhost:5000/api/v1
 
 # Application
 VITE_APP_NAME=Harvests
@@ -344,10 +344,10 @@ npm start
 
 ```bash
 # Health check
-curl http://localhost:8000/api/v1/health
+curl http://localhost:5000/api/v1/health
 
 # Swagger UI
-# Ouvrir http://localhost:8000/api/docs
+# Ouvrir http://localhost:5000/api/docs
 ```
 
 ### Tester le Frontend

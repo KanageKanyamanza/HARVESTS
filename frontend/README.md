@@ -210,7 +210,7 @@ const newProduct = await productService.createProduct(data);
 ### Variables d'environnement
 ```bash
 # Développement
-VITE_API_URL=http://localhost:8000/api/v1
+VITE_API_URL=http://localhost:5000/api/v1
 
 # Production
 VITE_API_URL=https://api.harvests.africa/v1
