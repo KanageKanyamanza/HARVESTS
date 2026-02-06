@@ -1,3 +1,4 @@
+// Version: 1.0.1 - Corrected logging destructuring
 import React from "react";
 import { MessageCircle } from "lucide-react";
 import { faqData, findBestAnswer } from "../../data/faqData";
@@ -73,6 +74,8 @@ const ChatBot = () => {
 		addBotMessage,
 		addUserMessage,
 		clearConversation,
+		logChatBotInteraction,
+		updateMessageInteractionId,
 	} = state;
 
 	const [isMaximized, setIsMaximized] = React.useState(false);
@@ -131,6 +134,7 @@ const ChatBot = () => {
 	};
 
 	const processResponse = async (message) => {
+		const startTime = Date.now();
 		setShowCategories(false);
 		setQuickLinks([]);
 		setFoundProducts([]);
@@ -143,52 +147,104 @@ const ChatBot = () => {
 
 		if (localMatch.type === "intent") {
 			const intent = localMatch.intent;
+			let responseText = "";
 
 			if (intent === "MY_CART") {
 				setIsTyping(false);
 				if (!isAuthenticated) {
-					addBotMessage("Vous devez être connecté pour voir votre panier. 😊");
+					responseText = "Vous devez être connecté pour voir votre panier. 😊";
+					const botMsgId = addBotMessage(responseText);
+					const interactionId = await logChatBotInteraction(
+						message,
+						responseText,
+						"intent",
+						null,
+						intent,
+						startTime,
+					);
+					if (interactionId)
+						updateMessageInteractionId(botMsgId, interactionId);
 					return;
 				}
 				const cartData = await chatService.getCart();
 				if (cartData && cartData.items?.length > 0) {
-					addBotMessage("Voici les produits dans votre panier :");
+					responseText = "Voici les produits dans votre panier :";
 					setFoundProducts(cartData.items.map((item) => item.product));
 				} else {
-					addBotMessage(
-						"Votre panier est vide. Découvrez nos produits pour commencer vos achats !",
-					);
+					responseText =
+						"Votre panier est vide. Découvrez nos produits pour commencer vos achats !";
 				}
+				const botMsgId = addBotMessage(responseText);
+				const interactionId = await logChatBotInteraction(
+					message,
+					responseText,
+					"intent",
+					null,
+					intent,
+					startTime,
+				);
+				if (interactionId) updateMessageInteractionId(botMsgId, interactionId);
 				return;
 			}
 
 			if (intent === "MY_FAVORITES") {
 				setIsTyping(false);
 				if (!isAuthenticated) {
-					addBotMessage("Vous devez être connecté pour voir vos favoris. ❤️");
+					responseText = "Vous devez être connecté pour voir vos favoris. ❤️";
+					const botMsgId = addBotMessage(responseText);
+					const interactionId = await logChatBotInteraction(
+						message,
+						responseText,
+						"intent",
+						null,
+						intent,
+						startTime,
+					);
+					if (interactionId)
+						updateMessageInteractionId(botMsgId, interactionId);
 					return;
 				}
 				const favorites = await chatService.getFavorites();
 				if (favorites && favorites.length > 0) {
-					addBotMessage("Voici vos produits favoris :");
+					responseText = "Voici vos produits favoris :";
 					setFoundProducts(favorites.map((f) => f.product));
 				} else {
-					addBotMessage(
-						"Vous n'avez pas encore de favoris. Cliquez sur le ❤️ des produits qui vous plaisent !",
-					);
+					responseText =
+						"Vous n'avez pas encore de favoris. Cliquez sur le ❤️ des produits qui vous plaisent !";
 				}
+				const botMsgId = addBotMessage(responseText);
+				const interactionId = await logChatBotInteraction(
+					message,
+					responseText,
+					"intent",
+					null,
+					intent,
+					startTime,
+				);
+				if (interactionId) updateMessageInteractionId(botMsgId, interactionId);
 				return;
 			}
 
 			if (intent === "MY_ORDERS") {
 				setIsTyping(false);
 				if (!isAuthenticated) {
-					addBotMessage("Vous devez être connecté pour voir vos commandes. 📦");
+					responseText = "Vous devez être connecté pour voir vos commandes. 📦";
+					const botMsgId = addBotMessage(responseText);
+					const interactionId = await logChatBotInteraction(
+						message,
+						responseText,
+						"intent",
+						null,
+						intent,
+						startTime,
+					);
+					if (interactionId)
+						updateMessageInteractionId(botMsgId, interactionId);
 					return;
 				}
 				const orders = await chatService.getRecentOrders();
 				if (orders && orders.length > 0) {
-					addBotMessage("Voici vos commandes récentes :");
+					responseText = "Voici vos commandes récentes :";
 					setQuickLinks(
 						orders.map((o) => ({
 							label: `Commande #${o.orderNumber || o._id.substring(0, 8)} - ${
@@ -198,8 +254,18 @@ const ChatBot = () => {
 						})),
 					);
 				} else {
-					addBotMessage("Vous n'avez pas encore passé de commande.");
+					responseText = "Vous n'avez pas encore passé de commande.";
 				}
+				const botMsgId = addBotMessage(responseText);
+				const interactionId = await logChatBotInteraction(
+					message,
+					responseText,
+					"intent",
+					null,
+					intent,
+					startTime,
+				);
+				if (interactionId) updateMessageInteractionId(botMsgId, interactionId);
 				return;
 			}
 
@@ -207,35 +273,63 @@ const ChatBot = () => {
 				setIsTyping(false);
 				const products = await chatService.getNewProducts();
 				if (products && products.length > 0) {
-					addBotMessage("Découvrez nos dernières nouveautés :");
+					responseText = "Découvrez nos dernières nouveautés :";
 					setFoundProducts(products);
 				} else {
-					addBotMessage("Pas de nouvelles arrivées pour le moment.");
+					responseText = "Pas de nouvelles arrivées pour le moment.";
 				}
+				const botMsgId = addBotMessage(responseText);
+				const interactionId = await logChatBotInteraction(
+					message,
+					responseText,
+					"intent",
+					null,
+					intent,
+					startTime,
+				);
+				if (interactionId) updateMessageInteractionId(botMsgId, interactionId);
 				return;
 			}
 
 			if (intent === "CONTACT_SUPPORT") {
 				setIsTyping(false);
-				addBotMessage(
-					"Pour toute assistance, vous pouvez nous contacter :\n• Email : **contact@harvests.site**\n• Téléphone : **+221 77 197 07 13**\n\nNotre équipe est à votre disposition ! 😊",
+				responseText =
+					"Pour toute assistance, vous pouvez nous contacter :\n• Email : **contact@harvests.site**\n• Téléphone : **+221 77 197 07 13**\n\nNotre équipe est à votre disposition ! 😊";
+				const botMsgId = addBotMessage(responseText);
+				const interactionId = await logChatBotInteraction(
+					message,
+					responseText,
+					"intent",
+					null,
+					intent,
+					startTime,
 				);
+				if (interactionId) updateMessageInteractionId(botMsgId, interactionId);
 				return;
 			}
 
 			if (intent === "TRACK_ORDER") {
 				setIsTyping(false);
 				if (!isAuthenticated) {
-					addBotMessage(
-						"Pour suivre votre commande, vous devez d'abord vous connecter à votre compte. 👤",
+					responseText =
+						"Pour suivre votre commande, vous devez d'abord vous connecter à votre compte. 👤";
+					const botMsgId = addBotMessage(responseText);
+					const interactionId = await logChatBotInteraction(
+						message,
+						responseText,
+						"intent",
+						null,
+						intent,
+						startTime,
 					);
+					if (interactionId)
+						updateMessageInteractionId(botMsgId, interactionId);
 					return;
 				}
 				const orders = await chatService.getRecentOrders();
 				if (orders && orders.length > 0) {
-					addBotMessage(
-						"Voici vos commandes récentes. Cliquez sur l'une d'elles pour voir son statut en temps réel :",
-					);
+					responseText =
+						"Voici vos commandes récentes. Cliquez sur l'une d'elles pour voir son statut en temps réel :";
 					setQuickLinks(
 						orders.map((o) => ({
 							label: `Suivre la commande #${
@@ -245,15 +339,34 @@ const ChatBot = () => {
 						})),
 					);
 				} else {
-					addBotMessage(
-						"Je n'ai pas trouvé de commande récente associée à votre compte.",
-					);
+					responseText =
+						"Je n'ai pas trouvé de commande récente associée à votre compte.";
 				}
+				const botMsgId = addBotMessage(responseText);
+				const interactionId = await logChatBotInteraction(
+					message,
+					responseText,
+					"intent",
+					null,
+					intent,
+					startTime,
+				);
+				if (interactionId) updateMessageInteractionId(botMsgId, interactionId);
 				return;
 			}
 		} else if (localMatch.type === "faq") {
 			setIsTyping(false);
-			addBotMessage(localMatch.faq.answer);
+			const responseText = localMatch.faq.answer;
+			const botMsgId = addBotMessage(responseText);
+			const interactionId = await logChatBotInteraction(
+				message,
+				responseText,
+				"faq",
+				localMatch.faq.id,
+				null,
+				startTime,
+			);
+			if (interactionId) updateMessageInteractionId(botMsgId, interactionId);
 			return;
 		}
 
@@ -273,13 +386,24 @@ const ChatBot = () => {
 			if (response) {
 				// 1. Afficher le texte de réponse
 				if (response.text) {
-					addBotMessage(response.text);
+					const botMsgId = addBotMessage(response.text);
+
+					// Logger l'interaction avec les données du backend
+					const interactionId = await logChatBotInteraction(
+						message,
+						response.text,
+						response.responseType || "intent",
+						response.matchedFaqId,
+						response.intent,
+						startTime,
+					);
+
+					if (interactionId)
+						updateMessageInteractionId(botMsgId, interactionId);
 				}
 
 				// 2. Gérer les données supplémentaires (produits, etc.)
 				if (response.data) {
-					// TODO: Adapter selon la structure retournée par le backend
-					// Pour l'instant on suppose que le backend renvoie data.products, etc.
 					if (response.data.products) setFoundProducts(response.data.products);
 					if (response.data.sellers) setFoundSellers(response.data.sellers);
 					if (response.data.transporters)

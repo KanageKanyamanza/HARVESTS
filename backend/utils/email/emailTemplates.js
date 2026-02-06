@@ -33,9 +33,33 @@ function addEmailTemplateMethods(EmailClass) {
 		await this.send("deliveryNotification", "Votre commande est en route!");
 	};
 
-	EmailClass.prototype.sendIncompleteProfileReminder = async function () {
+	EmailClass.prototype.sendIncompleteProfileReminder = async function (
+		missingFields = [],
+	) {
 		const subject = "Action requise : Complétez votre profil Harvests";
-		await this.send("incompleteProfile", subject);
+
+		const fieldLabels = {
+			address: "Adresse complète",
+			farmInfo: "Informations de la ferme",
+			certifications: "Certifications",
+			businessInfo: "Informations sur l'entreprise",
+			equipment: "Équipements",
+			restaurantInfo: "Informations sur le restaurant",
+			menuCategories: "Catégories de menu",
+			exportCertifications: "Licences d'exportation",
+			fleet: "Flotte de véhicules",
+			bio: "Biographie",
+			city: "Ville",
+			avatar: "Photo de profil",
+		};
+
+		const formattedMissingFields = missingFields.map(
+			(field) => fieldLabels[field] || field,
+		);
+
+		await this.send("incompleteProfile", subject, {
+			missingFields: formattedMissingFields,
+		});
 	};
 }
 

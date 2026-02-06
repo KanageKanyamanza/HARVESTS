@@ -7,6 +7,7 @@ const AppError = require("../../utils/appError");
 const { logAudit, AUDIT_ACTIONS } = require("../../utils/auditLogger");
 const adminNotifications = require("../../utils/adminNotifications");
 const emailQueue = require("../../services/emailQueueService");
+const { getMissingFields } = require("../../middleware/profileCheck");
 
 // @desc    Obtenir tous les utilisateurs
 // @route   GET /api/v1/admin/users
@@ -418,7 +419,7 @@ exports.remindIncompleteProfiles = catchAsync(async (req, res, next) => {
 	const users = await User.find({
 		isActive: true,
 		$or: incompleteCriteria,
-	}).select("firstName email preferredLanguage");
+	});
 
 	let count = 0;
 	const frontendUrl = process.env.FRONTEND_URL || "https://www.harvests.site";
@@ -426,6 +427,19 @@ exports.remindIncompleteProfiles = catchAsync(async (req, res, next) => {
 	for (const user of users) {
 		// Vérification basique pour éviter le spam (optionnel: ajouter un champ lastReminderSentAt)
 		try {
+			const missingFields = getMissingFields(user);
+
+			const profilePaths = {
+				producer: "/producer/profile",
+				transformer: "/transformer/profile",
+				restaurateur: "/restaurateur/profile",
+				transporter: "/transporter/profile",
+				exporter: "/exporter/profile",
+				consumer: "/consumer/profile", // Fallback, though consumers might just have /dashboard/profile or similar? checking consistent with routeUtils
+			};
+
+			const profilePath = profilePaths[user.userType] || "/consumer/profile";
+
 			emailQueue.addToQueue({
 				email: user.email,
 				user: {
@@ -434,7 +448,8 @@ exports.remindIncompleteProfiles = catchAsync(async (req, res, next) => {
 					preferredLanguage: user.preferredLanguage,
 				},
 				emailType: "incompleteProfile",
-				url: `${frontendUrl}/dashboard/profile`,
+				url: `${frontendUrl}${profilePath}`,
+				missingFields,
 			});
 			count++;
 		} catch (error) {

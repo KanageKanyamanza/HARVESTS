@@ -171,3 +171,4 @@ process.on("SIGTERM", () => {
 		console.log("💥 Processus terminé!");
 	});
 });
+// Trigger restart for env update

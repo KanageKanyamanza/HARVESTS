@@ -87,8 +87,8 @@ const InteractionsTab = ({
 							className="w-full bg-white border-0 ring-1 ring-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium transition-all"
 						>
 							<option value="">Tous</option>
-							<option value="helpful">Utile</option>
-							<option value="not_helpful">Inutile</option>
+							<option value="true">Utile</option>
+							<option value="false">Inutile</option>
 						</select>
 					</div>
 					<div>
@@ -150,11 +150,11 @@ const InteractionsTab = ({
 			</div>
 
 			{/* Interactions List */}
-			{loading ? (
+			{loading ?
 				<div className="flex justify-center py-20">
 					<LoadingSpinner />
 				</div>
-			) : interactions.length === 0 ? (
+			: interactions.length === 0 ?
 				<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] shadow-sm border border-white/60 p-20 text-center flex flex-col items-center">
 					<div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6">
 						<MessageCircle className="h-10 w-10 text-gray-400" />
@@ -166,8 +166,7 @@ const InteractionsTab = ({
 						Essayez de modifier vos filtres de recherche.
 					</p>
 				</div>
-			) : (
-				<div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-sm border border-white/60 overflow-hidden">
+			:	<div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-sm border border-white/60 overflow-hidden">
 					<div className="overflow-x-auto">
 						<table className="min-w-full">
 							<thead>
@@ -205,7 +204,7 @@ const InteractionsTab = ({
 											{formatDate(interaction.createdAt)}
 										</td>
 										<td className="px-4 py-3 whitespace-nowrap text-[11px]">
-											{interaction.userId ? (
+											{interaction.userId ?
 												<div>
 													<div className="font-black text-gray-900 leading-none mb-1">
 														{interaction.userId.firstName}{" "}
@@ -215,11 +214,10 @@ const InteractionsTab = ({
 														{interaction.userId.email}
 													</div>
 												</div>
-											) : (
-												<span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-md text-[9px] font-black uppercase tracking-widest">
+											:	<span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-md text-[9px] font-black uppercase tracking-widest">
 													Visiteur
 												</span>
-											)}
+											}
 										</td>
 										<td
 											className="px-4 py-3 text-[11px] font-bold text-gray-900 max-w-xs truncate"
@@ -236,32 +234,30 @@ const InteractionsTab = ({
 										<td className="px-4 py-3 whitespace-nowrap">
 											<span
 												className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest inline-flex items-center gap-1 ${
-													interaction.responseType === "faq"
-														? "bg-green-100/50 text-green-700"
-														: interaction.responseType === "product_search"
-														? "bg-blue-100/50 text-blue-700"
-														: interaction.responseType === "no_answer"
-														? "bg-red-100/50 text-red-700"
-														: interaction.responseType === "intent"
-														? "bg-purple-100/50 text-purple-700"
-														: "bg-gray-100/50 text-gray-700"
+													interaction.responseType === "faq" ?
+														"bg-green-100/50 text-green-700"
+													: interaction.responseType === "product_search" ?
+														"bg-blue-100/50 text-blue-700"
+													: interaction.responseType === "no_answer" ?
+														"bg-red-100/50 text-red-700"
+													: interaction.responseType === "intent" ?
+														"bg-purple-100/50 text-purple-700"
+													:	"bg-gray-100/50 text-gray-700"
 												}`}
 											>
 												{interaction.responseType || "N/A"}
 											</span>
 										</td>
 										<td className="px-4 py-3 whitespace-nowrap">
-											{interaction.feedback === "helpful" ? (
+											{interaction.feedback === true ?
 												<div className="bg-green-50 text-green-600 p-1.5 rounded-lg w-fit">
 													<ThumbsUp className="h-3.5 w-3.5" />
 												</div>
-											) : interaction.feedback === "not_helpful" ? (
+											: interaction.feedback === false ?
 												<div className="bg-red-50 text-red-600 p-1.5 rounded-lg w-fit">
 													<ThumbsDown className="h-3.5 w-3.5" />
 												</div>
-											) : (
-												<span className="text-gray-200 font-bold">-</span>
-											)}
+											:	<span className="text-gray-200 font-bold">-</span>}
 										</td>
 										<td className="px-4 py-3 whitespace-nowrap">
 											{interaction.userId && (
@@ -281,7 +277,7 @@ const InteractionsTab = ({
 						</table>
 					</div>
 				</div>
-			)}
+			}
 
 			{/* Pagination */}
 			{interactionsPagination.totalPages > 1 && (

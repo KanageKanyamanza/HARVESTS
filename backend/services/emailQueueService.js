@@ -100,9 +100,11 @@ class EmailQueueService {
 
 	// Envoyer un email individuel
 	async sendEmail(job) {
-		const { user, verifyURL, language, emailType = "welcome" } = job;
+		const { user, verifyURL, url, language, emailType = "welcome" } = job;
+		// Support both url and verifyURL properties from the job
+		const targetUrl = url || verifyURL;
 
-		const email = new Email(user, verifyURL, language);
+		const email = new Email(user, targetUrl, language);
 
 		switch (emailType) {
 			case "welcome":
@@ -115,7 +117,7 @@ class EmailQueueService {
 				await email.sendPasswordReset();
 				break;
 			case "incompleteProfile":
-				await email.sendIncompleteProfileReminder();
+				await email.sendIncompleteProfileReminder(job.missingFields);
 				break;
 			case "newsletter":
 				await email.sendNewsletter(

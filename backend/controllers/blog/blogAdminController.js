@@ -42,7 +42,7 @@ exports.getAllBlogsAdmin = catchAsync(async (req, res, next) => {
 exports.getBlogAdmin = catchAsync(async (req, res, next) => {
 	const blog = await Blog.findById(req.params.id).populate(
 		"author",
-		"firstName lastName email"
+		"firstName lastName email",
 	);
 
 	if (!blog) {
@@ -91,9 +91,21 @@ exports.updateBlog = catchAsync(async (req, res, next) => {
 		return next(new AppError("Blog non trouvé", 404));
 	}
 
+	// Champs à exclure de la mise à jour directe
+	const excludedFields = [
+		"_id",
+		"author",
+		"createdAt",
+		"updatedAt",
+		"views",
+		"likes",
+		"likedBy",
+		"visitStats",
+	];
+
 	// Mettre à jour
 	Object.keys(req.body).forEach((key) => {
-		if (req.body[key] !== undefined) {
+		if (req.body[key] !== undefined && !excludedFields.includes(key)) {
 			blog[key] = req.body[key];
 		}
 	});
@@ -159,7 +171,7 @@ exports.getStats = catchAsync(async (req, res, next) => {
 	// Statistiques de tracking
 	const totalVisits = await BlogVisit.countDocuments();
 	const uniqueVisitors = await BlogVisit.distinct("sessionId").then(
-		(ids) => ids.length
+		(ids) => ids.length,
 	);
 
 	const deviceBreakdown = await BlogVisit.aggregate([
@@ -259,7 +271,7 @@ exports.getBlogVisits = catchAsync(async (req, res, next) => {
 			}
 
 			return visitObj;
-		})
+		}),
 	);
 
 	res.status(200).json({
@@ -346,7 +358,7 @@ exports.getAllVisits = catchAsync(async (req, res, next) => {
 			}
 
 			return visitObj;
-		})
+		}),
 	);
 
 	res.status(200).json({
@@ -366,7 +378,7 @@ exports.translateText = catchAsync(async (req, res, next) => {
 
 	if (!text || !fromLang || !toLang) {
 		return next(
-			new AppError("Texte, langue source et langue cible requis", 400)
+			new AppError("Texte, langue source et langue cible requis", 400),
 		);
 	}
 
@@ -390,7 +402,7 @@ exports.translateText = catchAsync(async (req, res, next) => {
 						langpair: `${fromLang}|${toLang}`,
 					},
 					timeout: 5000,
-				}
+				},
 			);
 
 			if (
@@ -424,7 +436,7 @@ exports.translateText = catchAsync(async (req, res, next) => {
 						"Content-Type": "application/json",
 					},
 					timeout: 5000,
-				}
+				},
 			);
 
 			if (response.data && response.data.translatedText) {

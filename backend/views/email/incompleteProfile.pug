@@ -197,6 +197,13 @@ html(lang='fr')
             li ✨ Accès à des fonctionnalités exclusives
             li 🚀 Plus d'opportunités d'affaires
         
+        if missingFields && missingFields.length > 0
+          .features
+            h3(style="color: #c2410c; margin-bottom: 12px;") Ce qu'il manque à votre profil :
+            ul
+              each field in missingFields
+                li(style="color: #9a3412;")= field
+
         .message
           p Cela ne prend que quelques minutes et peut faire toute la différence pour votre activité.
         

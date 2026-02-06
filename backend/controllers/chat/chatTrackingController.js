@@ -1,5 +1,6 @@
 const ChatInteraction = require("../../models/ChatInteraction");
 const UnansweredQuestion = require("../../models/UnansweredQuestion");
+const mongoose = require("mongoose");
 const catchAsync = require("../../utils/catchAsync");
 const AppError = require("../../utils/appError");
 
@@ -48,7 +49,7 @@ exports.logInteraction = catchAsync(async (req, res, next) => {
 
 			// Ajouter comme question similaire si différente
 			const alreadyExists = existing.similarQuestions.some(
-				(sq) => sq.text.toLowerCase() === normalizedQuestion
+				(sq) => sq.text.toLowerCase() === normalizedQuestion,
 			);
 			if (
 				!alreadyExists &&

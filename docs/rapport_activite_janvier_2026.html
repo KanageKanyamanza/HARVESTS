@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="fr">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Rapport d'Activité HARVESTS - Janvier 2026</title>
+		<style>
+			body {
+				font-family: "Calibri", "Arial", sans-serif;
+				line-height: 1.6;
+				color: #333;
+				background-color: #f0f0f0;
+				margin: 0;
+				padding: 20px;
+			}
+			.page {
+				max-width: 210mm;
+				min-height: 297mm;
+				margin: 0 auto;
+				background-color: white;
+				box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+				padding: 15mm 20mm;
+				box-sizing: border-box;
+				position: relative;
+			}
+			h1 {
+				color: #2c3e50;
+				border-bottom: 2px solid #5b21b6; /* Premium Purple from Harvests theme */
+				padding-bottom: 10px;
+				text-align: center;
+				font-size: 24pt;
+				margin-bottom: 30px;
+			}
+			h2 {
+				color: #4c1d95;
+				font-size: 16pt;
+				margin-top: 25px;
+				margin-bottom: 15px;
+				border-left: 5px solid #5b21b6;
+				padding-left: 10px;
+			}
+			h3 {
+				color: #34495e;
+				font-size: 13pt;
+				margin-top: 20px;
+				margin-bottom: 10px;
+			}
+			p {
+				margin-bottom: 10px;
+				text-align: justify;
+			}
+			ul {
+				list-style-type: disc;
+				margin-left: 20px;
+				margin-bottom: 15px;
+			}
+			li {
+				margin-bottom: 5px;
+			}
+			.meta-info {
+				text-align: right;
+				font-style: italic;
+				color: #7f8c8d;
+				margin-bottom: 40px;
+				font-size: 10pt;
+			}
+			.status-success {
+				color: #27ae60;
+				font-weight: bold;
+			}
+			.status-challenge {
+				color: #e67e22;
+				font-weight: bold;
+			}
+			.status-future {
+				color: #8e44ad;
+				font-weight: bold;
+			}
+			.footer {
+				position: absolute;
+				bottom: 10mm;
+				left: 20mm;
+				right: 20mm;
+				text-align: center;
+				font-size: 9pt;
+				color: #bdc3c7;
+				border-top: 1px solid #ecf0f1;
+				padding-top: 0px;
+			}
+			@media print {
+				body {
+					background-color: white;
+					margin: 0;
+					padding: 0;
+				}
+				.page {
+					box-shadow: none;
+					margin: 0;
+					width: 100%;
+					height: auto;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="page">
+			<h1>Rapport Mensuel : Projet HARVESTS</h1>
+
+			<div class="meta-info">
+				<p><strong>Période :</strong> Janvier 2026</p>
+				<p><strong>Date du rapport :</strong> 31 Janvier 2026</p>
+			</div>
+
+			<p>
+				Ce rapport synthétise les évolutions majeures apportées à la plateforme
+				<strong>HARVESTS</strong> durant le mois de janvier 2026, mettant en
+				avant la refonte globale de l'expérience utilisateur et les
+				consolidations techniques.
+			</p>
+
+			<h2>1. Réalisations et Succès (Réussites)</h2>
+			<p>
+				Janvier a marqué un tournant dans l'identité visuelle et l'ergonomie de
+				la plateforme, touchant l'ensemble des acteurs (Administrateurs,
+				Producteurs, Transformateurs, Acheteurs).
+			</p>
+
+			<h3>🎨 Refonte UI/UX "Premium Harvests" Globale</h3>
+			<ul>
+				<li>
+					<strong>Harmonisation Visuelle Complète :</strong> Déploiement d'une
+					nouvelle charte graphique "Premium" (Glassmorphism, design épuré) sur
+					<strong>tous les tableaux de bord</strong> (Admin, Vendeurs, Clients),
+					ne se limitant pas uniquement aux Transformateurs.
+				</li>
+				<li>
+					<strong>Expérience Utilisateur Unifiée :</strong> Redesign des pages
+					critiques pour tous les utilisateurs : Profils, Paramètres, Gestion
+					des Commandes et Édition de Produits.
+				</li>
+				<li>
+					<strong>Standardisation :</strong> Mise en cohérence des composants
+					visuels (modales, boutons, champs de recherche) et des templates
+					d'emails transactionnels.
+				</li>
+			</ul>
+
+			<h3>🤖 Intelligence Artificielle & Chatbot</h3>
+			<ul>
+				<li>
+					<strong>Migration Backend :</strong> Refonte structurelle du chatbot
+					vers une architecture serveur (Node.js + NLP) pour une meilleure
+					analyse des intentions utilisateurs.
+				</li>
+				<li>
+					<strong>Fonctionnalités Admin :</strong> Ajout d'outils de gestion des
+					FAQ et analyse des feedbacks pour améliorer continuellement les
+					réponses du bot.
+				</li>
+			</ul>
+
+			<h3>💰 Fonctionnalités Business & Marketing</h3>
+			<ul>
+				<li>
+					<strong>Gestion Financière :</strong> Intégration d'un système robuste
+					de conversion de devises (<code>currencyUtils.js</code>) pour les
+					factures et l'affichage des prix.
+				</li>
+				<li>
+					<strong>Abonnements & Quotas :</strong> Affichage clair des plans
+					d'abonnement et des limites de produits dans les dashboards vendeurs.
+				</li>
+				<li>
+					<strong>Engagement :</strong> Lancement complet du système de
+					Newsletter (inscription, gestion désinscription) et analytics
+					améliorés pour le Blog.
+				</li>
+			</ul>
+
+			<h2 style="margin-top: 20px">2. Défis Techniques (Challenges)</h2>
+			<p>
+				La montée en gamme de la plateforme a nécessité de surmonter plusieurs
+				obstacles techniques :
+			</p>
+
+			<ul>
+				<li>
+					<span class="status-challenge">Refactoring Structurel :</span> La
+					standardisation du code (notamment les imports de devises et les
+					routes API) a demandé une réécriture massive et minutieuse pour éviter
+					les régressions.
+				</li>
+				<li>
+					<span class="status-challenge">Hydratation & Performance UI :</span>
+					Résolution de problèmes complexes de rendu (erreurs d'hydratation
+					HTML) liés à la complexité croissante des nouveaux composants UI.
+				</li>
+				<li>
+					<span class="status-challenge">Stabilité en Production :</span>
+					Ajustements itératifs nécessaires sur les configurations de
+					déploiement (CORS, URLs, variables d'environnement) pour assurer la
+					stabilité des services live.
+				</li>
+			</ul>
+
+			<h2>3. Roadmap & Corrections Futures</h2>
+			<p>
+				Février sera consacré à l'interactivité communautaire et à la
+				consolidation des acquis.
+			</p>
+
+			<h3>🚀 Priorité Stratégique : Messagerie Interne</h3>
+			<p>
+				Le chantier prioritaire identifié pour le mois prochain est la
+				<span class="status-future">Mise en place de la Messagerie Interne</span
+				>.
+			</p>
+			<ul>
+				<li>
+					<strong>Objectif :</strong> Créer un canal de communication direct et
+					sécurisé intégré à la plateforme.
+				</li>
+				<li>
+					<strong>Cible :</strong> Faciliter les échanges entre tous les acteurs
+					(Admin ↔ Vendeurs ↔ Acheteurs) sans quitter l'application, augmentant
+					ainsi la rétention et la confiance.
+				</li>
+			</ul>
+
+			<h3>🔧 Maintenance & Optimisation</h3>
+			<ul>
+				<li>
+					Poursuite de l'optimisation des performances (chargement images,
+					requêtes données).
+				</li>
+				<li>
+					Raffinage continu de l'interface basé sur les retours utilisateurs
+					post-redesign.
+				</li>
+			</ul>
+
+			<div class="footer">Revhieno Roll Haurly - HARVESTS Dev Team</div>
+		</div>
+	</body>
+</html>
