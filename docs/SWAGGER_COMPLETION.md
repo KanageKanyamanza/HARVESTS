@@ -212,9 +212,9 @@ Toutes les routes de l'API Harvests ont été documentées avec des annotations 
 
 ## 🚀 Accès
 
-- **Swagger UI** : http://localhost:8000/api/docs
-- **OpenAPI JSON** : http://localhost:8000/api/docs.json
-- **Alternative** : http://localhost:8000/api-docs (redirection)
+- **Swagger UI** : http://localhost:5000/api/docs
+- **OpenAPI JSON** : http://localhost:5000/api/docs.json
+- **Alternative** : http://localhost:5000/api-docs (redirection)
 
 ## 📝 Fichiers Modifiés
 

@@ -2,7 +2,7 @@
 export const PRODUCTION_CONFIG = {
 	// URLs de production
 	API_BASE_URL: "https://harvests-bp63.onrender.com/api/v1",
-	FRONTEND_URL: "https://harvests-khaki.vercel.app",
+	FRONTEND_URL: "https://harvests-six.vercel.app",
 
 	// Configuration de l'application
 	APP_NAME: "Harvests",
@@ -47,7 +47,7 @@ export const getConfig = () => {
 
 	// Configuration de développement
 	return {
-		API_BASE_URL: "http://localhost:8000/api/v1", // Forcé pour le debug
+		API_BASE_URL: "http://localhost:5000/api/v1", // Forcé pour le debug
 		FRONTEND_URL: "http://localhost:5173",
 		DEBUG: true,
 		LOG_LEVEL: "debug",

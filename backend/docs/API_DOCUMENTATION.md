@@ -13,7 +13,7 @@
 
 ### **🌐 Swagger UI Interactif**
 ```
-URL: http://localhost:8000/api/docs
+URL: http://localhost:5000/api/docs
 Description: Interface graphique pour tester l'API
 Fonctionnalités:
 ├── Tests en temps réel
@@ -25,7 +25,7 @@ Fonctionnalités:
 
 ### **📄 Spécification OpenAPI 3.0**
 ```
-URL: http://localhost:8000/api/docs.json
+URL: http://localhost:5000/api/docs.json
 Format: JSON
 Utilisation:
 ├── Import Postman
@@ -286,7 +286,7 @@ GET /api/v1/chat/search-sellers?query=transporteurs Douala
 
 ### **1. 📝 Inscription Producteur Sénégalais**
 ```bash
-curl -X POST http://localhost:8000/api/v1/auth/signup \
+curl -X POST http://localhost:5000/api/v1/auth/signup \
   -H "Content-Type: application/json" \
   -d '{
     "firstName": "Amadou",
@@ -306,7 +306,7 @@ curl -X POST http://localhost:8000/api/v1/auth/signup \
 
 ### **2. 🔐 Connexion**
 ```bash
-curl -X POST http://localhost:8000/api/v1/auth/login \
+curl -X POST http://localhost:5000/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "amadou.diop@test.sn",
@@ -316,7 +316,7 @@ curl -X POST http://localhost:8000/api/v1/auth/login \
 
 ### **3. 🌾 Créer Produit**
 ```bash
-curl -X POST http://localhost:8000/api/v1/products \
+curl -X POST http://localhost:5000/api/v1/products \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -337,18 +337,18 @@ curl -X POST http://localhost:8000/api/v1/products \
 ### **4. 🔍 Recherche Intelligente**
 ```bash
 # Recherche simple (gère pluriel/singulier)
-curl -X GET "http://localhost:8000/api/v1/products/search?q=tomates"
+curl -X GET "http://localhost:5000/api/v1/products/search?q=tomates"
 
 # Recherche avec localisation
-curl -X GET "http://localhost:8000/api/v1/products/search?q=tomates à Dakar"
+curl -X GET "http://localhost:5000/api/v1/products/search?q=tomates à Dakar"
 
 # Recherche via chatbot
-curl -X GET "http://localhost:8000/api/v1/chat/search-products?query=producteurs Yaoundé&limit=5"
+curl -X GET "http://localhost:5000/api/v1/chat/search-products?query=producteurs Yaoundé&limit=5"
 ```
 
 ### **5. 🛒 Passer Commande**
 ```bash
-curl -X POST http://localhost:8000/api/v1/orders \
+curl -X POST http://localhost:5000/api/v1/orders \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -368,7 +368,7 @@ curl -X POST http://localhost:8000/api/v1/orders \
 
 ### **6. 🌊 Paiement Wave**
 ```bash
-curl -X POST http://localhost:8000/api/v1/payments/wave \
+curl -X POST http://localhost:5000/api/v1/payments/wave \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -421,7 +421,7 @@ Events:
 
 ### **🔐 Configuration Webhook**
 ```bash
-curl -X POST http://localhost:8000/api/v1/webhooks \
+curl -X POST http://localhost:5000/api/v1/webhooks \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -437,7 +437,7 @@ curl -X POST http://localhost:8000/api/v1/webhooks \
 
 ### **🔧 Développement**
 ```
-Base URL: http://localhost:8000/api/v1
+Base URL: http://localhost:5000/api/v1
 Database: MongoDB local
 Email: Gmail (500/jour)
 Payments: Mode test (Stripe, Wave sandbox)
@@ -457,9 +457,9 @@ CDN: Cloudinary + Cloudflare
 ## 📚 **RESSOURCES DÉVELOPPEUR**
 
 ### **🔗 Liens Utiles**
-- **Swagger UI** : http://localhost:8000/api/docs
-- **Health Check** : http://localhost:8000/api/v1/health
-- **OpenAPI JSON** : http://localhost:8000/api/docs.json
+- **Swagger UI** : http://localhost:5000/api/docs
+- **Health Check** : http://localhost:5000/api/v1/health
+- **OpenAPI JSON** : http://localhost:5000/api/docs.json
 - **Frontend** : http://localhost:3000
 - **Admin** : http://localhost:3001
 
@@ -467,7 +467,7 @@ CDN: Cloudinary + Cloudflare
 ```javascript
 // Import depuis Swagger
 1. Ouvrir Postman
-2. Import → Link → http://localhost:8000/api/docs.json
+2. Import → Link → http://localhost:5000/api/docs.json
 3. Collection "Harvests API" créée automatiquement
 4. Configurer variables d'environnement
 5. Tester tous les endpoints
@@ -476,7 +476,7 @@ CDN: Cloudinary + Cloudflare
 ### **🔑 Variables d'Environnement Postman**
 ```json
 {
-  "baseUrl": "http://localhost:8000/api/v1",
+  "baseUrl": "http://localhost:5000/api/v1",
   "authToken": "{{jwt_token}}",
   "testEmail": "test@harvests.sn",
   "testPhone": "+221771234567",
@@ -494,21 +494,21 @@ CDN: Cloudinary + Cloudflare
 npm run dev
 
 # 2. Ouvrir Swagger UI
-http://localhost:8000/api/docs
+http://localhost:5000/api/docs
 
 # 3. Tester l'API
-curl http://localhost:8000/api/v1/health
+curl http://localhost:5000/api/v1/health
 
 # 4. S'inscrire
-curl -X POST http://localhost:8000/api/v1/auth/signup -d '{...}'
+curl -X POST http://localhost:5000/api/v1/auth/signup -d '{...}'
 
 # 5. Se connecter
-curl -X POST http://localhost:8000/api/v1/auth/login -d '{...}'
+curl -X POST http://localhost:5000/api/v1/auth/login -d '{...}'
 ```
 
 ### **🔐 Authentification dans Swagger**
 ```
-1. Aller sur http://localhost:8000/api/docs
+1. Aller sur http://localhost:5000/api/docs
 2. Cliquer "Authorize" (🔒)
 3. Entrer: Bearer YOUR_JWT_TOKEN
 4. Tous les endpoints protégés sont maintenant accessibles

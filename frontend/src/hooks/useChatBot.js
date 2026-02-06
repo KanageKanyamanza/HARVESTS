@@ -64,22 +64,30 @@ export const useChatBot = (isAuthenticated, user, cart, clearCartAction) => {
 		return null;
 	}, [isAuthenticated, user]);
 
-	const addBotMessage = useCallback((text, delay = 500) => {
+	const addBotMessage = useCallback((text, delay = 0) => {
 		const tempId = Date.now() + Math.random();
-		setIsTyping(true);
-		setTimeout(() => {
+		if (delay > 0) {
+			setIsTyping(true);
+			setTimeout(() => {
+				setMessages((prev) => [
+					...prev,
+					{ id: tempId, text, isBot: true, timestamp: new Date() },
+				]);
+				setIsTyping(false);
+			}, delay);
+		} else {
 			setMessages((prev) => [
 				...prev,
 				{ id: tempId, text, isBot: true, timestamp: new Date() },
 			]);
 			setIsTyping(false);
-		}, delay);
+		}
 		return tempId;
 	}, []);
 
 	const updateMessageInteractionId = useCallback((localId, interactionId) => {
 		setMessages((prev) =>
-			prev.map((msg) => (msg.id === localId ? { ...msg, interactionId } : msg))
+			prev.map((msg) => (msg.id === localId ? { ...msg, interactionId } : msg)),
 		);
 	}, []);
 
@@ -90,14 +98,14 @@ export const useChatBot = (isAuthenticated, user, cart, clearCartAction) => {
 		]);
 	}, []);
 
-	const logInteraction = useCallback(
+	const logChatBotInteraction = useCallback(
 		async (
 			question,
 			response,
 			responseType,
 			matchedFaqId = null,
 			matchedIntent = null,
-			startTime = null
+			startTime = null,
 		) => {
 			try {
 				const responseTime = startTime ? Date.now() - startTime : null;
@@ -115,7 +123,7 @@ export const useChatBot = (isAuthenticated, user, cart, clearCartAction) => {
 				return null;
 			}
 		},
-		[sessionId]
+		[sessionId],
 	);
 
 	const clearConversation = useCallback(() => {
@@ -175,7 +183,7 @@ export const useChatBot = (isAuthenticated, user, cart, clearCartAction) => {
 		if (isOpen && !isMinimized) {
 			setTimeout(
 				() => messagesEndRef.current?.scrollIntoView({ behavior: "auto" }),
-				100
+				100,
 			);
 		}
 	}, [isOpen, isMinimized]);
@@ -186,14 +194,14 @@ export const useChatBot = (isAuthenticated, user, cart, clearCartAction) => {
 			const firstName = getUserFirstName();
 			if (isAuthenticated && firstName) {
 				addBotMessage(
-					`Bonjour ${firstName} ! 👋 Comment puis-je vous aider aujourd'hui ?`
+					`Bonjour ${firstName} ! 👋 Comment puis-je vous aider aujourd'hui ?`,
 				);
 				setShowQuickActions(true);
 			} else if (guestInfo?.name) {
 				addBotMessage(
 					`Re-bonjour ${
 						guestInfo.name.split(" ")[0]
-					} ! 👋 Comment puis-je vous aider ?`
+					} ! 👋 Comment puis-je vous aider ?`,
 				);
 			} else {
 				addBotMessage(faqData.defaultMessages.welcome);
@@ -246,7 +254,7 @@ export const useChatBot = (isAuthenticated, user, cart, clearCartAction) => {
 		getUserAvatar,
 		addBotMessage,
 		addUserMessage,
-		logInteraction,
+		logChatBotInteraction,
 		clearConversation,
 		cart,
 		clearCartAction,

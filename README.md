@@ -18,8 +18,8 @@ npm run dev
 
 **🎯 Accès rapide :**
 - 🌐 **Frontend:** http://localhost:5173
-- 📡 **Backend API:** http://localhost:8000
-- 📚 **Documentation API:** http://localhost:8000/api-docs
+- 📡 **Backend API:** http://localhost:5000
+- 📚 **Documentation API:** http://localhost:5000/api-docs
 
 ## 🏗️ Architecture
 
@@ -165,7 +165,7 @@ CLOUDINARY_API_SECRET=your-api-secret
 ### Variables d'environnement Frontend
 ```bash
 # API Backend
-VITE_API_URL=http://localhost:8000/api/v1
+VITE_API_URL=http://localhost:5000/api/v1
 
 # Services
 VITE_STRIPE_PUBLIC_KEY=pk_test_...
@@ -211,7 +211,7 @@ node test-bilingual.js       # Test système bilingue
 
 ## 📚 Documentation
 
-- 📖 **API Docs:** http://localhost:8000/api-docs (Swagger)
+- 📖 **API Docs:** http://localhost:5000/api-docs (Swagger)
 - 🏗️ **Architecture:** `backend/docs/ARCHITECTURE.md`
 - 🌐 **API Bilingue:** `backend/docs/BILINGUAL_API_GUIDE.md`
 - 🎨 **Frontend:** `frontend/README.md`

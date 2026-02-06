@@ -48,21 +48,21 @@ router.get("/dashboard/stats", adminDashboardController.getDashboardStats);
 // Données détaillées pour le dashboard
 router.get(
 	"/dashboard/recent-orders",
-	adminDashboardController.getRecentOrders
+	adminDashboardController.getRecentOrders,
 );
 router.get(
 	"/dashboard/pending-products",
-	adminDashboardController.getPendingProducts
+	adminDashboardController.getPendingProducts,
 );
 router.get("/dashboard/sales-chart", adminDashboardController.getSalesChart);
 router.get("/dashboard/user-stats", adminDashboardController.getUserStats);
 router.get(
 	"/dashboard/top-producers",
-	adminDashboardController.getTopProducers
+	adminDashboardController.getTopProducers,
 );
 router.get(
 	"/dashboard/product-stats",
-	adminDashboardController.getProductStats
+	adminDashboardController.getProductStats,
 );
 
 // ========================================
@@ -97,10 +97,16 @@ router.get(
 // Obtenir tous les utilisateurs
 router.get("/users", adminUserController.getAllUsers);
 
+// Relancer les profils incomplets
+router.post(
+	"/users/remind-incomplete",
+	adminUserController.remindIncompleteProfiles,
+);
+
 // Proxy pour le téléchargement de documents Cloudinary
 router.get(
 	"/users/download-document",
-	adminUserController.proxyDownloadDocument
+	adminUserController.proxyDownloadDocument,
 );
 
 // Obtenir un utilisateur spécifique
@@ -112,7 +118,7 @@ router.patch("/users/:id", adminUserController.updateUser);
 // Vérifier un document spécifique
 router.patch(
 	"/users/:id/verify-document",
-	adminUserController.verifyUserDocument
+	adminUserController.verifyUserDocument,
 );
 
 // Supprimer un utilisateur
@@ -234,7 +240,7 @@ router.patch("/orders/:id/status", adminOrderController.updateOrderStatus);
 // Mettre à jour le statut de paiement d'une commande
 router.patch(
 	"/orders/:id/payment-status",
-	adminOrderController.updateOrderPaymentStatus
+	adminOrderController.updateOrderPaymentStatus,
 );
 
 // Annuler une commande
@@ -243,13 +249,13 @@ router.post("/orders/:id/cancel", adminOrderController.cancelOrder);
 // Obtenir les transporteurs disponibles pour une commande
 router.get(
 	"/orders/:id/available-transporters",
-	adminTransporterController.getAvailableTransporters
+	adminTransporterController.getAvailableTransporters,
 );
 
 // Assigner un transporteur à une commande
 router.post(
 	"/orders/:id/assign-transporter",
-	adminTransporterController.assignTransporterToOrder
+	adminTransporterController.assignTransporterToOrder,
 );
 
 // ========================================
@@ -306,7 +312,7 @@ router.get("/payments/:id", adminPaymentController.getPaymentById);
 // Mettre à jour le statut d'un paiement
 router.patch(
 	"/payments/:id/status",
-	adminPaymentController.updatePaymentStatus
+	adminPaymentController.updatePaymentStatus,
 );
 
 // Rembourser un paiement
@@ -325,13 +331,13 @@ router.get("/deliveries/:id", adminDeliveryController.getDeliveryById);
 // Mettre à jour le statut d'une livraison
 router.patch(
 	"/deliveries/:id/status",
-	adminDeliveryController.updateDeliveryStatus
+	adminDeliveryController.updateDeliveryStatus,
 );
 
 // Assigner un transporteur
 router.post(
 	"/deliveries/:id/assign",
-	adminDeliveryController.assignTransporter
+	adminDeliveryController.assignTransporter,
 );
 
 // ========================================

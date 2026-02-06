@@ -46,7 +46,7 @@ exports.updateMyProfile = catchAsync(async (req, res, next) => {
 // Gestion des licences d'exportation
 exports.getExportLicenses = catchAsync(async (req, res, next) => {
 	const exporter = await Exporter.findById(req.user.id).select(
-		"exportLicenses"
+		"exportLicenses",
 	);
 	res.status(200).json({
 		status: "success",
@@ -95,15 +95,26 @@ exports.removeExportLicense = catchAsync(async (req, res, next) => {
 // Gestion de la flotte d'export
 exports.getMyFleet = catchAsync(async (req, res, next) => {
 	const exporter = await Exporter.findById(req.user.id).select("fleet");
+
+	if (!exporter) {
+		return res.status(200).json({
+			status: "success",
+			results: 0,
+			data: { fleet: [] },
+		});
+	}
+
 	res.status(200).json({
 		status: "success",
-		results: exporter.fleet.length,
-		data: { fleet: exporter.fleet },
+		results: exporter.fleet?.length || 0,
+		data: { fleet: exporter.fleet || [] },
 	});
 });
 
 exports.addVehicle = catchAsync(async (req, res, next) => {
 	const exporter = await Exporter.findById(req.user.id);
+	if (!exporter) return next(new AppError("Exportateur non trouvé", 404));
+
 	exporter.fleet.push(req.body);
 	await exporter.save();
 
@@ -141,9 +152,9 @@ exports.updateVehicleAvailability = catchAsync(async (req, res, next) => {
 	if (!vehicle) return next(new AppError("Véhicule non trouvé", 404));
 
 	vehicle.isAvailable =
-		req.body.isAvailable !== undefined
-			? req.body.isAvailable
-			: vehicle.isAvailable;
+		req.body.isAvailable !== undefined ?
+			req.body.isAvailable
+		:	vehicle.isAvailable;
 	await exporter.save();
 
 	res.status(200).json({

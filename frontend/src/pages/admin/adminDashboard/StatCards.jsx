@@ -26,8 +26,13 @@ const StatCards = ({ statCards }) => {
 		return "shadow-gray-200/50";
 	};
 
+	// Calculate grid columns based on number of cards (max 4 or 5)
+	const gridCols = statCards.length === 5 ? "lg:grid-cols-5" : "lg:grid-cols-4";
+
 	return (
-		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 text-white font-sans">
+		<div
+			className={`grid grid-cols-1 md:grid-cols-2 ${gridCols} gap-4 mb-6 text-white font-sans`}
+		>
 			{statCards.map((card, index) => {
 				const gradientClass = getGradient(card.color);
 				const shadowColor = getShadow(card.color);
@@ -40,15 +45,14 @@ const StatCards = ({ statCards }) => {
 					>
 						{/* Top Badge/Pill */}
 						<div className="flex justify-start">
-							{card.change ? (
+							{card.change ?
 								<div className="bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/10 shadow-sm">
 									<span className="text-[10px] font-bold tracking-wide">
 										{card.change.includes("+") ? "↑" : ""} {card.change}
 									</span>
 								</div>
-							) : (
-								<div className="bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/10 shadow-sm opacity-0"></div> // Spacer to keep layout
-							)}
+							:	<div className="bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/10 shadow-sm opacity-0"></div> // Spacer to keep layout
+							}
 						</div>
 
 						{/* Background Icon (Large & Faded) */}

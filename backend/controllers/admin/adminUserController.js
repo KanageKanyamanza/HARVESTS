@@ -6,6 +6,8 @@ const catchAsync = require("../../utils/catchAsync");
 const AppError = require("../../utils/appError");
 const { logAudit, AUDIT_ACTIONS } = require("../../utils/auditLogger");
 const adminNotifications = require("../../utils/adminNotifications");
+const emailQueue = require("../../services/emailQueueService");
+const { getMissingFields } = require("../../middleware/profileCheck");
 
 // @desc    Obtenir tous les utilisateurs
 // @route   GET /api/v1/admin/users
@@ -95,7 +97,7 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 // @desc    Obtenir un utilisateur par ID
 exports.getUserById = catchAsync(async (req, res, next) => {
 	const user = await User.findById(req.params.id).select(
-		"-password -passwordResetToken -passwordResetExpires"
+		"-password -passwordResetToken -passwordResetExpires",
 	);
 
 	if (!user) {
@@ -170,7 +172,7 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
 				email: user.email,
 				userType: user.userType,
 			},
-			req.admin
+			req.admin,
 		)
 		.catch((err) => console.error("Erreur notification:", err));
 
@@ -195,7 +197,7 @@ exports.banUser = catchAsync(async (req, res, next) => {
 	const user = await User.findByIdAndUpdate(
 		req.params.id,
 		{ isActive: false, bannedAt: new Date() },
-		{ new: true }
+		{ new: true },
 	).select("-password");
 
 	if (!user) return next(new AppError("Utilisateur non trouvé", 404));
@@ -220,7 +222,7 @@ exports.unbanUser = catchAsync(async (req, res, next) => {
 	const user = await User.findByIdAndUpdate(
 		req.params.id,
 		{ isActive: true, $unset: { bannedAt: 1 } },
-		{ new: true }
+		{ new: true },
 	).select("-password");
 	if (!user) return next(new AppError("Utilisateur non trouvé", 404));
 	res.status(200).json({ status: "success", data: { user } });
@@ -231,7 +233,7 @@ exports.verifyUser = catchAsync(async (req, res, next) => {
 	const user = await User.findByIdAndUpdate(
 		req.params.id,
 		{ isEmailVerified: true, emailVerified: true, isApproved: true },
-		{ new: true }
+		{ new: true },
 	).select("-password");
 	if (!user) return next(new AppError("Utilisateur non trouvé", 404));
 	res.status(200).json({ status: "success", data: { user } });
@@ -281,7 +283,7 @@ exports.verifyUserDocument = catchAsync(async (req, res, next) => {
 	) {
 		// Fallback par type si pas de docId
 		const doc = user.verificationStatus.verificationDocuments.find(
-			(d) => d.type === docType
+			(d) => d.type === docType,
 		);
 		if (doc) {
 			doc.status = status;
@@ -358,11 +360,11 @@ exports.proxyDownloadDocument = catchAsync(async (req, res, next) => {
 
 		res.setHeader(
 			"Content-Type",
-			response.headers["content-type"] || "application/pdf"
+			response.headers["content-type"] || "application/pdf",
 		);
 		res.setHeader(
 			"Content-Disposition",
-			`attachment; filename="${encodeURIComponent(filename || "document.pdf")}"`
+			`attachment; filename="${encodeURIComponent(filename || "document.pdf")}"`,
 		);
 
 		response.data.pipe(res);
@@ -399,3 +401,78 @@ function extractPublicIdAndVersion(url) {
 	}
 	return { publicId: pathSegments.join("/").split(".")[0], version };
 }
+
+// @desc    Relancer les utilisateurs avec un profil incomplet
+exports.remindIncompleteProfiles = catchAsync(async (req, res, next) => {
+	// Critères d'un profil incomplet (champs optionnels mais importants manquants)
+	const incompleteCriteria = [
+		{ address: null },
+		{ address: "" },
+		{ city: null },
+		{ city: "" },
+		{ avatar: null },
+		{ bio: null },
+		{ bio: "" },
+	];
+
+	// Trouver les utilisateurs actifs mais incomplets
+	const users = await User.find({
+		isActive: true,
+		$or: incompleteCriteria,
+	});
+
+	let count = 0;
+	const frontendUrl = process.env.FRONTEND_URL || "https://www.harvests.site";
+
+	for (const user of users) {
+		// Vérification basique pour éviter le spam (optionnel: ajouter un champ lastReminderSentAt)
+		try {
+			const missingFields = getMissingFields(user);
+
+			const profilePaths = {
+				producer: "/producer/profile",
+				transformer: "/transformer/profile",
+				restaurateur: "/restaurateur/profile",
+				transporter: "/transporter/profile",
+				exporter: "/exporter/profile",
+				consumer: "/consumer/profile", // Fallback, though consumers might just have /dashboard/profile or similar? checking consistent with routeUtils
+			};
+
+			const profilePath = profilePaths[user.userType] || "/consumer/profile";
+
+			emailQueue.addToQueue({
+				email: user.email,
+				user: {
+					firstName: user.firstName,
+					email: user.email,
+					preferredLanguage: user.preferredLanguage,
+				},
+				emailType: "incompleteProfile",
+				url: `${frontendUrl}${profilePath}`,
+				missingFields,
+			});
+			count++;
+		} catch (error) {
+			console.error(
+				`Erreur lors de l'ajout à la queue pour ${user.email}:`,
+				error,
+			);
+		}
+	}
+
+	await logAudit({
+		userId: req.admin._id,
+		action: AUDIT_ACTIONS.BATCH_UPDATE, // Ou créer une nouvelle action EMAIL_BATCH
+		targetType: "User",
+		details: {
+			action: "remind_incomplete_profiles",
+			count,
+		},
+	});
+
+	res.status(200).json({
+		status: "success",
+		message: `${count} rappels de profil envoyés avec succès`,
+		data: { count },
+	});
+});

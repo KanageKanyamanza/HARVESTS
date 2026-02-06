@@ -19,7 +19,7 @@ const corsOptions = {
 			"http://localhost:5175", // Vite dev
 			"http://localhost:5176", // Vite dev
 			"http://localhost:5177", // Vite dev
-			"https://harvests-khaki.vercel.app", // Frontend Vercel
+			"https://harvests-six.vercel.app", // Frontend Vercel
 			"https://www.harvests.site", // Production
 			"https://harvests.site", // Production (sans www)
 		];
@@ -336,7 +336,7 @@ const xssMiddleware = (req, res, next) => {
 	const cleanObject = (
 		obj,
 		visited = new WeakSet(),
-		skipTokenParams = false
+		skipTokenParams = false,
 	) => {
 		if (obj === null || obj === undefined) {
 			return obj;

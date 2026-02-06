@@ -3,12 +3,12 @@
 **Version**: 1.0.0  
 **Date**: 2025  
 **Statut**: ✅ Production Ready  
-**Base URL**: `http://localhost:8000/api/v1` (dev) | `https://api.harvests.sn/v1` (prod)
+**Base URL**: `http://localhost:5000/api/v1` (dev) | `https://api.harvests.sn/v1` (prod)
 
 ## 📡 Accès à la Documentation
 
 ### Swagger UI Interactif
-- **URL**: http://localhost:8000/api/docs
+- **URL**: http://localhost:5000/api/docs
 - **Description**: Interface graphique pour tester l'API en temps réel
 - **Fonctionnalités**:
   - Tests interactifs
@@ -18,7 +18,7 @@
   - Codes de réponse
 
 ### Spécification OpenAPI 3.0
-- **URL**: http://localhost:8000/api/docs.json
+- **URL**: http://localhost:5000/api/docs.json
 - **Format**: JSON
 - **Utilisation**:
   - Import Postman
@@ -387,14 +387,14 @@ GET /api/v1/products?page=1&limit=20&sort=-createdAt
 ## 📚 Ressources Développeur
 
 ### Liens Utiles
-- **Swagger UI**: http://localhost:8000/api/docs
-- **Health Check**: http://localhost:8000/api/v1/health
-- **OpenAPI JSON**: http://localhost:8000/api/docs.json
+- **Swagger UI**: http://localhost:5000/api/docs
+- **Health Check**: http://localhost:5000/api/v1/health
+- **OpenAPI JSON**: http://localhost:5000/api/docs.json
 
 ### Import Postman
 
 1. Ouvrir Postman
-2. Import → Link → `http://localhost:8000/api/docs.json`
+2. Import → Link → `http://localhost:5000/api/docs.json`
 3. Collection "Harvests API" créée automatiquement
 4. Configurer variables d'environnement
 5. Tester tous les endpoints
@@ -410,15 +410,15 @@ GET /api/v1/products?page=1&limit=20&sort=-createdAt
 npm run dev
 
 # 2. Ouvrir Swagger UI
-http://localhost:8000/api/docs
+http://localhost:5000/api/docs
 
 # 3. Tester l'API
-curl http://localhost:8000/api/v1/health
+curl http://localhost:5000/api/v1/health
 ```
 
 ### Authentification dans Swagger
 
-1. Aller sur http://localhost:8000/api/docs
+1. Aller sur http://localhost:5000/api/docs
 2. Cliquer "Authorize" (🔒)
 3. Entrer: `Bearer YOUR_JWT_TOKEN`
 4. Tous les endpoints protégés sont maintenant accessibles
@@ -441,5 +441,5 @@ curl http://localhost:8000/api/v1/health
 
 ---
 
-*Pour plus de détails, consultez [Swagger UI](http://localhost:8000/api/docs) ou [Guide Swagger](./SWAGGER_GUIDE.md)*
+*Pour plus de détails, consultez [Swagger UI](http://localhost:5000/api/docs) ou [Guide Swagger](./SWAGGER_GUIDE.md)*
 

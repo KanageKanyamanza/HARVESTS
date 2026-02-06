@@ -19,7 +19,7 @@ const TransporterAssignModal = ({
 				onClick={onClose}
 			></div>
 
-			<div className="relative w-full max-w-lg bg-white rounded-[3rem] overflow-hidden shadow-2xl animate-scale-in">
+			<div className="relative w-full max-w-lg bg-white rounded-[3rem] shadow-2xl animate-scale-in flex flex-col max-h-[85vh] overflow-hidden">
 				{/* Modal Header */}
 				<div className="p-10 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
 					<div>
@@ -43,7 +43,7 @@ const TransporterAssignModal = ({
 					</button>
 				</div>
 
-				<div className="p-10">
+				<div className="p-10 flex flex-col flex-1 min-h-0 overflow-hidden">
 					{order && (
 						<div className="mb-10 bg-gray-900 rounded-[2rem] p-8 text-white relative overflow-hidden group">
 							<div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-amber-500/10 transition-all duration-700"></div>
@@ -64,14 +64,14 @@ const TransporterAssignModal = ({
 						</div>
 					)}
 
-					{loading ? (
+					{loading ?
 						<div className="flex flex-col items-center justify-center py-20 bg-gray-50/50 rounded-[2.5rem] border border-dashed border-gray-200">
 							<Loader className="h-10 w-10 text-amber-500 animate-spin mb-4" />
 							<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
 								Recherche de transporteurs...
 							</p>
 						</div>
-					) : transporters.length === 0 ? (
+					: transporters.length === 0 ?
 						<div className="text-center py-20 bg-gray-50/50 rounded-[2.5rem] border border-dashed border-gray-200">
 							<div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
 								<AlertCircle className="h-8 w-8 text-rose-300" />
@@ -83,8 +83,7 @@ const TransporterAssignModal = ({
 								Vérifiez la zone de livraison ou réessayez plus tard
 							</p>
 						</div>
-					) : (
-						<div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+					:	<div className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
 							{transporters.map((transporter) => (
 								<button
 									key={transporter._id}
@@ -112,16 +111,14 @@ const TransporterAssignModal = ({
 										</div>
 									</div>
 									<div className="p-3 bg-gray-50 rounded-xl group-hover:bg-amber-500 group-hover:text-white transition-all">
-										{assigning ? (
+										{assigning ?
 											<Loader className="h-4 w-4 animate-spin" />
-										) : (
-											<ChevronRight className="h-5 w-5" />
-										)}
+										:	<ChevronRight className="h-5 w-5" />}
 									</div>
 								</button>
 							))}
 						</div>
-					)}
+					}
 				</div>
 			</div>
 		</div>

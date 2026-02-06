@@ -1,80 +1,98 @@
-import React, { createContext, useContext, useReducer, useEffect, useState, useCallback } from 'react';
-import { useAuth } from '../hooks/useAuth';
-import { cartReducer, initialCartState, CART_ACTIONS } from '../utils/cartReducer';
-import { buildCartItem } from '../utils/cartItemBuilder';
-import { useCartActions } from '../hooks/useCartActions';
-import { useCartCalculations } from '../hooks/useCartCalculations';
-import { useCartSync } from '../hooks/useCartSync';
+import React, {
+	createContext,
+	useContext,
+	useReducer,
+	useEffect,
+	useState,
+	useCallback,
+} from "react";
+import { useAuth } from "../hooks/useAuth";
+import {
+	cartReducer,
+	initialCartState,
+	CART_ACTIONS,
+} from "../utils/cartReducer";
+import { buildCartItem } from "../utils/cartItemBuilder";
+import { useCartActions } from "../hooks/useCartActions";
+import { useCartCalculations } from "../hooks/useCartCalculations";
+import { useCartSync } from "../hooks/useCartSync";
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(cartReducer, initialCartState);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const { isAuthenticated, user } = useAuth();
+	const [state, dispatch] = useReducer(cartReducer, initialCartState);
+	const [isInitialized, setIsInitialized] = useState(false);
+	const { isAuthenticated, user } = useAuth();
 
-  // Hooks personnalisés
-  const { addToCart, removeFromCart, updateQuantity, clearCart } = useCartActions(
-    dispatch,
-    state,
-    buildCartItem
-  );
-  
-  const { totalItems, totalPrice, getItemCount, isInCart } = useCartCalculations(state.items);
+	// Hooks personnalisés
+	const { addToCart, removeFromCart, updateQuantity, clearCart } =
+		useCartActions(dispatch, state, buildCartItem);
 
-  // Synchronisation avec localStorage et serveur
-  useCartSync(
-    state,
-    dispatch,
-    isInitialized,
-    setIsInitialized,
-    isAuthenticated,
-    user
-  );
+	const { totalItems, totalPrice, getItemCount, isInCart } =
+		useCartCalculations(state.items);
 
-  // Gérer les événements externes (cart:add-item)
-  useEffect(() => {
-    const handleExternalAdd = (event) => {
-      const product = event.detail;
-      const cartItem = buildCartItem(product);
-      if (cartItem) {
-        dispatch({
-          type: CART_ACTIONS.ADD_ITEM,
-          payload: cartItem,
-        });
-      }
-    };
+	// Synchronisation avec localStorage et serveur
+	useCartSync(
+		state,
+		dispatch,
+		isInitialized,
+		setIsInitialized,
+		isAuthenticated,
+		user,
+	);
 
-    window.addEventListener('cart:add-item', handleExternalAdd);
+	// Gérer les événements externes (cart:add-item)
+	useEffect(() => {
+		const handleExternalAdd = (event) => {
+			const product = event.detail;
+			const cartItem = buildCartItem(product);
+			if (cartItem) {
+				dispatch({
+					type: CART_ACTIONS.ADD_ITEM,
+					payload: cartItem,
+				});
+			}
+		};
 
-    return () => {
-      window.removeEventListener('cart:add-item', handleExternalAdd);
-    };
-  }, []);
+		window.addEventListener("cart:add-item", handleExternalAdd);
 
-  const value = {
-    items: state.items,
-    totalItems,
-    totalPrice,
-    addToCart,
-    removeFromCart,
-    updateQuantity,
-    clearCart,
-    getItemCount,
-    isInCart
-  };
+		return () => {
+			window.removeEventListener("cart:add-item", handleExternalAdd);
+		};
+	}, []);
 
-  return (
-    <CartContext.Provider value={value}>
-      {children}
-    </CartContext.Provider>
-  );
+	const value = React.useMemo(
+		() => ({
+			items: state.items,
+			totalItems,
+			totalPrice,
+			addToCart,
+			removeFromCart,
+			updateQuantity,
+			clearCart,
+			getItemCount,
+			isInCart,
+		}),
+		[
+			state.items,
+			totalItems,
+			totalPrice,
+			addToCart,
+			removeFromCart,
+			updateQuantity,
+			clearCart,
+			getItemCount,
+			isInCart,
+		],
+	);
+
+	return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
 
 export const useCart = () => {
-  const context = useContext(CartContext);
-  if (!context) {
-    throw new Error('useCart doit être utilisé dans un CartProvider');
-  }
-  return context;
+	const context = useContext(CartContext);
+	if (!context) {
+		throw new Error("useCart doit être utilisé dans un CartProvider");
+	}
+	return context;
 };

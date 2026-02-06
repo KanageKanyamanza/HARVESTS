@@ -147,7 +147,7 @@ exports.answerQuestion = catchAsync(async (req, res, next) => {
 			answeredBy: req.user._id,
 			answeredAt: new Date(),
 		},
-		{ new: true }
+		{ new: true },
 	);
 
 	if (!question) {
@@ -166,7 +166,7 @@ exports.ignoreQuestion = catchAsync(async (req, res, next) => {
 	const question = await UnansweredQuestion.findByIdAndUpdate(
 		req.params.id,
 		{ status: "ignored" },
-		{ new: true }
+		{ new: true },
 	);
 
 	if (!question) {
@@ -211,9 +211,9 @@ exports.getChatStats = catchAsync(async (req, res, next) => {
 		const previousPeriodStart = new Date(dateFilter.$gte);
 		previousPeriodStart.setTime(
 			previousPeriodStart.getTime() -
-				(dateFilter.$lte
-					? new Date(dateFilter.$lte) - new Date(dateFilter.$gte)
-					: now - dateFilter.$gte)
+				(dateFilter.$lte ?
+					new Date(dateFilter.$lte) - new Date(dateFilter.$gte)
+				:	now - dateFilter.$gte),
 		);
 		const previousPeriodEnd = new Date(dateFilter.$gte);
 
@@ -267,7 +267,13 @@ exports.getChatStats = catchAsync(async (req, res, next) => {
 			{ $match: matchStage },
 			{
 				$group: {
-					_id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+					_id: {
+						$dateToString: {
+							format: "%Y-%m-%d",
+							date: "$createdAt",
+							timezone: "UTC",
+						},
+					},
 					count: { $sum: 1 },
 					noAnswer: {
 						$sum: { $cond: [{ $eq: ["$responseType", "no_answer"] }, 1, 0] },
@@ -437,28 +443,28 @@ exports.getChatStats = catchAsync(async (req, res, next) => {
 		.filter((t) => t._id !== "no_answer")
 		.reduce((sum, t) => sum + t.count, 0);
 	const responseRate =
-		totalInteractions > 0
-			? ((totalWithResponse / totalInteractions) * 100).toFixed(1)
-			: 0;
+		totalInteractions > 0 ?
+			((totalWithResponse / totalInteractions) * 100).toFixed(1)
+		:	0;
 
 	// Calculer la croissance
 	const growth =
-		previousTotalInteractions > 0
-			? (
-					((totalInteractions - previousTotalInteractions) /
-						previousTotalInteractions) *
-					100
-			  ).toFixed(1)
-			: 0;
+		previousTotalInteractions > 0 ?
+			(
+				((totalInteractions - previousTotalInteractions) /
+					previousTotalInteractions) *
+				100
+			).toFixed(1)
+		:	0;
 
 	// Calculer le taux de satisfaction
 	const satisfaction =
-		satisfactionRate.length > 0 && satisfactionRate[0].total > 0
-			? (
-					(satisfactionRate[0].positive / satisfactionRate[0].total) *
-					100
-			  ).toFixed(1)
-			: 0;
+		satisfactionRate.length > 0 && satisfactionRate[0].total > 0 ?
+			(
+				(satisfactionRate[0].positive / satisfactionRate[0].total) *
+				100
+			).toFixed(1)
+		:	0;
 
 	// Temps de réponse moyen
 	const avgResponse = avgResponseTime.length > 0 ? avgResponseTime[0] : null;
@@ -474,13 +480,14 @@ exports.getChatStats = catchAsync(async (req, res, next) => {
 				responseRate: `${responseRate}%`,
 				satisfactionRate: `${satisfaction}%`,
 				pendingQuestions: topUnanswered.length,
-				avgResponseTime: avgResponse
-					? {
+				avgResponseTime:
+					avgResponse ?
+						{
 							avg: Math.round(avgResponse.avgTime || 0),
 							min: Math.round(avgResponse.minTime || 0),
 							max: Math.round(avgResponse.maxTime || 0),
-					  }
-					: null,
+						}
+					:	null,
 			},
 			interactionsByType: interactionsByType.reduce((acc, t) => {
 				acc[t._id || "unknown"] = t.count;
@@ -490,9 +497,9 @@ exports.getChatStats = catchAsync(async (req, res, next) => {
 				acc[i._id] = {
 					count: i.count,
 					percentage:
-						totalInteractions > 0
-							? ((i.count / totalInteractions) * 100).toFixed(1)
-							: 0,
+						totalInteractions > 0 ?
+							((i.count / totalInteractions) * 100).toFixed(1)
+						:	0,
 				};
 				return acc;
 			}, {}),
@@ -522,17 +529,17 @@ exports.getChatStats = catchAsync(async (req, res, next) => {
 				count: i.count,
 				avgConfidence: i.avgConfidence ? i.avgConfidence.toFixed(2) : null,
 				percentage:
-					totalInteractions > 0
-						? ((i.count / totalInteractions) * 100).toFixed(1)
-						: 0,
+					totalInteractions > 0 ?
+						((i.count / totalInteractions) * 100).toFixed(1)
+					:	0,
 			})),
 			questionTypeDistribution: questionTypeDistribution.reduce((acc, q) => {
 				acc[q._id] = {
 					count: q.count,
 					percentage:
-						totalInteractions > 0
-							? ((q.count / totalInteractions) * 100).toFixed(1)
-							: 0,
+						totalInteractions > 0 ?
+							((q.count / totalInteractions) * 100).toFixed(1)
+						:	0,
 				};
 				return acc;
 			}, {}),

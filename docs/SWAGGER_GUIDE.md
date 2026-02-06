@@ -7,8 +7,8 @@ Guide complet pour utiliser Swagger UI et la documentation OpenAPI de Harvests.
 ### URLs
 
 **Développement**:
-- Swagger UI: http://localhost:8000/api/docs
-- OpenAPI JSON: http://localhost:8000/api/docs.json
+- Swagger UI: http://localhost:5000/api/docs
+- OpenAPI JSON: http://localhost:5000/api/docs.json
 
 **Production**:
 - Swagger UI: https://api.harvests.sn/api/docs
@@ -86,7 +86,7 @@ Après un login via l'API, le cookie JWT est automatiquement utilisé par Swagge
 
 **Via cURL**:
 ```bash
-curl -X POST http://localhost:8000/api/v1/auth/login \
+curl -X POST http://localhost:5000/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -141,7 +141,7 @@ curl -X POST http://localhost:8000/api/v1/auth/login \
 
 La spécification OpenAPI 3.0 est disponible en JSON:
 ```
-http://localhost:8000/api/docs.json
+http://localhost:5000/api/docs.json
 ```
 
 ### Utilisation
@@ -151,7 +151,7 @@ http://localhost:8000/api/docs.json
 1. Ouvrir Postman
 2. Cliquer sur **"Import"**
 3. Sélectionner **"Link"**
-4. Entrer: `http://localhost:8000/api/docs.json`
+4. Entrer: `http://localhost:5000/api/docs.json`
 5. Cliquer **"Continue"**
 6. Collection créée automatiquement avec tous les endpoints
 
@@ -160,7 +160,7 @@ http://localhost:8000/api/docs.json
 **JavaScript/TypeScript**:
 ```bash
 npx @openapitools/openapi-generator-cli generate \
-  -i http://localhost:8000/api/docs.json \
+  -i http://localhost:5000/api/docs.json \
   -g typescript-axios \
   -o ./generated-sdk
 ```
@@ -168,7 +168,7 @@ npx @openapitools/openapi-generator-cli generate \
 **Python**:
 ```bash
 npx @openapitools/openapi-generator-cli generate \
-  -i http://localhost:8000/api/docs.json \
+  -i http://localhost:5000/api/docs.json \
   -g python \
   -o ./generated-sdk
 ```
@@ -176,7 +176,7 @@ npx @openapitools/openapi-generator-cli generate \
 **Java**:
 ```bash
 npx @openapitools/openapi-generator-cli generate \
-  -i http://localhost:8000/api/docs.json \
+  -i http://localhost:5000/api/docs.json \
   -g java \
   -o ./generated-sdk
 ```
@@ -191,7 +191,7 @@ const spec = require('./api-docs.json');
 
 describe('API Tests', () => {
   it('should get health check', async () => {
-    const response = await axios.get('http://localhost:8000/api/v1/health');
+    const response = await axios.get('http://localhost:5000/api/v1/health');
     expect(response.status).toBe(200);
   });
 });
@@ -356,7 +356,7 @@ Chaque endpoint est documenté avec des annotations JSDoc:
 ### Swagger ne s'affiche pas
 
 1. Vérifier que le serveur est démarré
-2. Vérifier l'URL: `http://localhost:8000/api/docs`
+2. Vérifier l'URL: `http://localhost:5000/api/docs`
 3. Vérifier les logs du serveur
 4. Vérifier la configuration dans `backend/config/swagger.js`
 

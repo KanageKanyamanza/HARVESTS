@@ -105,6 +105,11 @@ export const downloadDocumentProxy = async (url, filename) => {
 	return response.data;
 };
 
+export const remindIncompleteProfiles = async () => {
+	const response = await api.post("/admin/users/remind-incomplete");
+	return response.data;
+};
+
 // Service pour la gestion des produits
 export const getProducts = async (params = {}) => {
 	const response = await api.get("/admin/products", { params });
@@ -186,7 +191,7 @@ export const cancelOrder = async (id, reason) => {
 
 export const getAvailableTransporters = async (orderId) => {
 	const response = await api.get(
-		`/admin/orders/${orderId}/available-transporters`
+		`/admin/orders/${orderId}/available-transporters`,
 	);
 	return response.data;
 };
@@ -194,7 +199,7 @@ export const getAvailableTransporters = async (orderId) => {
 export const assignTransporterToOrder = async (orderId, transporterId) => {
 	const response = await api.post(
 		`/admin/orders/${orderId}/assign-transporter`,
-		{ transporterId }
+		{ transporterId },
 	);
 	return response.data;
 };
@@ -315,14 +320,14 @@ export const deleteAdmin = async (id) => {
 export const changeAdminPassword = async (id, passwordData) => {
 	const response = await api.put(
 		`/admin-management/admins/${id}/password`,
-		passwordData
+		passwordData,
 	);
 	return response.data;
 };
 
 export const toggleAdminStatus = async (id) => {
 	const response = await api.put(
-		`/admin-management/admins/${id}/toggle-status`
+		`/admin-management/admins/${id}/toggle-status`,
 	);
 	return response.data;
 };
@@ -432,6 +437,7 @@ export const adminService = {
 	verifyUser,
 	verifyUserDocument,
 	downloadDocumentProxy,
+	remindIncompleteProfiles,
 
 	// Products
 	getProducts,
@@ -522,7 +528,7 @@ export const adminService = {
 	answerQuestion: async (id, data) => {
 		const response = await api.patch(
 			`/chat/admin/unanswered/${id}/answer`,
-			data
+			data,
 		);
 		return response.data;
 	},

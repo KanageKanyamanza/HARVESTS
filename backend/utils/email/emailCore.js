@@ -5,7 +5,7 @@ const addEmailTransportMethods = require("./emailTransport");
 // Méthode principale d'envoi d'email
 function addEmailCoreMethods(EmailClass) {
 	// Envoyer l'email avec fallback EmailJS (si configuré)
-	EmailClass.prototype.send = async function (template, subject) {
+	EmailClass.prototype.send = async function (template, subject, data = {}) {
 		const isProduction = process.env.NODE_ENV === "production";
 		const isTest = process.env.NODE_ENV === "test";
 
@@ -29,7 +29,8 @@ function addEmailCoreMethods(EmailClass) {
 				url: this.url,
 				subject,
 				logoUrl,
-			}
+				...data,
+			},
 		);
 
 		const text = htmlToText.convert(html);
@@ -40,7 +41,7 @@ function addEmailCoreMethods(EmailClass) {
 			try {
 				const envLabel = isProduction ? "PRODUCTION" : "TEST";
 				console.log(
-					`📧 Tentative d'envoi email à ${this.to} via SendGrid API (${envLabel})`
+					`📧 Tentative d'envoi email à ${this.to} via SendGrid API (${envLabel})`,
 				);
 				const result = await this.sendWithSendGrid(subject, html, text);
 				return result;
@@ -57,12 +58,12 @@ function addEmailCoreMethods(EmailClass) {
 					} catch (emailjsError) {
 						console.error("❌ Erreur EmailJS également:", emailjsError.message);
 						throw new Error(
-							`Échec envoi email: SendGrid (${error.message}) et EmailJS (${emailjsError.message})`
+							`Échec envoi email: SendGrid (${error.message}) et EmailJS (${emailjsError.message})`,
 						);
 					}
 				} else {
 					throw new Error(
-						`Échec envoi email: SendGrid (${error.message}) - EmailJS non configuré`
+						`Échec envoi email: SendGrid (${error.message}) - EmailJS non configuré`,
 					);
 				}
 			}
@@ -76,7 +77,7 @@ function addEmailCoreMethods(EmailClass) {
 			}
 
 			console.log(
-				`📧 Tentative d'envoi email à ${this.to} via Gmail (DÉVELOPPEMENT)`
+				`📧 Tentative d'envoi email à ${this.to} via Gmail (DÉVELOPPEMENT)`,
 			);
 
 			const mailOptions = {
@@ -101,7 +102,7 @@ function addEmailCoreMethods(EmailClass) {
 				console.error("🔐 ERREUR D'AUTHENTIFICATION:");
 				console.error("   - Vérifiez GMAIL_USER et GMAIL_APP_PASSWORD");
 				console.error(
-					"   - Pour Gmail: Activez l'authentification 2FA et créez un mot de passe d'application"
+					"   - Pour Gmail: Activez l'authentification 2FA et créez un mot de passe d'application",
 				);
 			} else if (error.code === "ECONNECTION" || error.code === "ETIMEDOUT") {
 				console.error("🔌 ERREUR DE CONNEXION/TIMEOUT:");
@@ -119,12 +120,12 @@ function addEmailCoreMethods(EmailClass) {
 				} catch (emailjsError) {
 					console.error("❌ Erreur EmailJS également:", emailjsError.message);
 					throw new Error(
-						`Échec envoi email: Nodemailer (${error.message}) et EmailJS (${emailjsError.message})`
+						`Échec envoi email: Nodemailer (${error.message}) et EmailJS (${emailjsError.message})`,
 					);
 				}
 			} else {
 				throw new Error(
-					`Échec envoi email: Nodemailer (${error.message}) - EmailJS non configuré`
+					`Échec envoi email: Nodemailer (${error.message}) - EmailJS non configuré`,
 				);
 			}
 		}
@@ -303,18 +304,18 @@ function addEmailCoreMethods(EmailClass) {
 					try {
 						const emailjsResult = await this.sendWithEmailJS(subject, testHtml);
 						console.log(
-							"✅ Email de test envoyé avec succès via EmailJS (fallback) !"
+							"✅ Email de test envoyé avec succès via EmailJS (fallback) !",
 						);
 						return emailjsResult;
 					} catch (emailjsError) {
 						console.error("❌ Erreur EmailJS également:", emailjsError.message);
 						throw new Error(
-							`Échec test email: SendGrid (${error.message}) et EmailJS (${emailjsError.message})`
+							`Échec test email: SendGrid (${error.message}) et EmailJS (${emailjsError.message})`,
 						);
 					}
 				} else {
 					throw new Error(
-						`Échec test email: SendGrid (${error.message}) - EmailJS non configuré`
+						`Échec test email: SendGrid (${error.message}) - EmailJS non configuré`,
 					);
 				}
 			}
@@ -345,18 +346,18 @@ function addEmailCoreMethods(EmailClass) {
 				try {
 					const emailjsResult = await this.sendWithEmailJS(subject, testHtml);
 					console.log(
-						"✅ Email de test envoyé avec succès via EmailJS (fallback) !"
+						"✅ Email de test envoyé avec succès via EmailJS (fallback) !",
 					);
 					return emailjsResult;
 				} catch (emailjsError) {
 					console.error("❌ Erreur EmailJS également:", emailjsError.message);
 					throw new Error(
-						`Échec test email: Nodemailer (${error.message}) et EmailJS (${emailjsError.message})`
+						`Échec test email: Nodemailer (${error.message}) et EmailJS (${emailjsError.message})`,
 					);
 				}
 			} else {
 				throw new Error(
-					`Échec test email: Nodemailer (${error.message}) - EmailJS non configuré`
+					`Échec test email: Nodemailer (${error.message}) - EmailJS non configuré`,
 				);
 			}
 		}

@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+	createContext,
+	useContext,
+	useState,
+	useEffect,
+	useCallback,
+	useMemo,
+} from "react";
 import { useAuth } from "../hooks/useAuth";
 import { generateUniqueId } from "../utils/uuid";
 import { notificationService } from "../services/notificationService";
@@ -35,7 +42,7 @@ export const NotificationProvider = ({ children }) => {
 				if (filtered.length > 0) {
 					localStorage.setItem(
 						"harvests_notifications",
-						JSON.stringify(filtered)
+						JSON.stringify(filtered),
 					);
 				} else {
 					localStorage.removeItem("harvests_notifications");
@@ -47,7 +54,7 @@ export const NotificationProvider = ({ children }) => {
 
 		// Recalculer le nombre de notifications non lues
 		const currentNotifications = JSON.parse(
-			localStorage.getItem("harvests_notifications") || "[]"
+			localStorage.getItem("harvests_notifications") || "[]",
 		);
 		setUnreadCount(currentNotifications.filter((n) => !n.read).length);
 	};
@@ -71,7 +78,7 @@ export const NotificationProvider = ({ children }) => {
 					if (error.response?.status !== 401) {
 						console.error(
 							"[NotificationContext] Erreur lors du chargement des notifications du backend:",
-							error
+							error,
 						);
 					}
 					// Fallback sur localStorage en cas d'erreur
@@ -146,7 +153,7 @@ export const NotificationProvider = ({ children }) => {
 			} catch (error) {
 				console.warn(
 					"⚠️ [NotificationContext] Erreur lors de la mise à jour du badge:",
-					error
+					error,
 				);
 			}
 		};
@@ -159,13 +166,13 @@ export const NotificationProvider = ({ children }) => {
 		if (!isAuthenticated && notifications.length > 0) {
 			localStorage.setItem(
 				"harvests_notifications",
-				JSON.stringify(notifications)
+				JSON.stringify(notifications),
 			);
 		}
 	}, [notifications, isAuthenticated]);
 
 	// Ajouter une notification
-	const addNotification = (notification) => {
+	const addNotification = useCallback((notification) => {
 		const newNotification = {
 			id: generateUniqueId(),
 			...notification,
@@ -183,47 +190,48 @@ export const NotificationProvider = ({ children }) => {
 				removeNotification(newNotification.id);
 			}, 5000);
 		}
-	};
+	}, []);
 
 	// Marquer une notification comme lue
-	const markAsRead = async (notificationId) => {
-		// Synchroniser avec le backend d'abord si l'utilisateur est connecté
-		if (isAuthenticated) {
-			try {
-				await notificationService.markAsRead(notificationId);
-				// Après succès, recharger les notifications depuis le backend pour s'assurer de la cohérence
-				const backendNotifications = await notificationService.getNotifications(
-					1,
-					50
-				);
-				setNotifications(backendNotifications.notifications || []);
-				setUnreadCount(backendNotifications.unreadCount || 0);
-			} catch (error) {
-				console.error(
-					"Erreur lors de la synchronisation avec le backend:",
-					error
-				);
-				// En cas d'erreur, mettre à jour l'état local quand même
+	const markAsRead = useCallback(
+		async (notificationId) => {
+			// Synchroniser avec le backend d'abord si l'utilisateur est connecté
+			if (isAuthenticated) {
+				try {
+					await notificationService.markAsRead(notificationId);
+					// Après succès, recharger les notifications depuis le backend pour s'assurer de la cohérence
+					const backendNotifications =
+						await notificationService.getNotifications(1, 50);
+					setNotifications(backendNotifications.notifications || []);
+					setUnreadCount(backendNotifications.unreadCount || 0);
+				} catch (error) {
+					console.error(
+						"Erreur lors de la synchronisation avec le backend:",
+						error,
+					);
+					// En cas d'erreur, mettre à jour l'état local quand même
+					setNotifications((prev) =>
+						prev.map((notif) =>
+							notif.id === notificationId ? { ...notif, read: true } : notif,
+						),
+					);
+					setUnreadCount((prev) => Math.max(0, prev - 1));
+				}
+			} else {
+				// Mode local : mettre à jour l'état local uniquement
 				setNotifications((prev) =>
 					prev.map((notif) =>
-						notif.id === notificationId ? { ...notif, read: true } : notif
-					)
+						notif.id === notificationId ? { ...notif, read: true } : notif,
+					),
 				);
 				setUnreadCount((prev) => Math.max(0, prev - 1));
 			}
-		} else {
-			// Mode local : mettre à jour l'état local uniquement
-			setNotifications((prev) =>
-				prev.map((notif) =>
-					notif.id === notificationId ? { ...notif, read: true } : notif
-				)
-			);
-			setUnreadCount((prev) => Math.max(0, prev - 1));
-		}
-	};
+		},
+		[isAuthenticated],
+	);
 
 	// Marquer toutes les notifications comme lues
-	const markAllAsRead = async () => {
+	const markAllAsRead = useCallback(async () => {
 		// Synchroniser avec le backend d'abord si l'utilisateur est connecté
 		if (isAuthenticated) {
 			try {
@@ -231,57 +239,60 @@ export const NotificationProvider = ({ children }) => {
 				// Après succès, recharger les notifications depuis le backend pour s'assurer de la cohérence
 				const backendNotifications = await notificationService.getNotifications(
 					1,
-					50
+					50,
 				);
 				setNotifications(backendNotifications.notifications || []);
 				setUnreadCount(backendNotifications.unreadCount || 0);
 			} catch (error) {
 				console.error(
 					"Erreur lors de la synchronisation avec le backend:",
-					error
+					error,
 				);
 				// En cas d'erreur, mettre à jour l'état local quand même
 				setNotifications((prev) =>
-					prev.map((notif) => ({ ...notif, read: true }))
+					prev.map((notif) => ({ ...notif, read: true })),
 				);
 				setUnreadCount(0);
 			}
 		} else {
 			// Mode local : mettre à jour l'état local uniquement
 			setNotifications((prev) =>
-				prev.map((notif) => ({ ...notif, read: true }))
+				prev.map((notif) => ({ ...notif, read: true })),
 			);
 			setUnreadCount(0);
 		}
-	};
+	}, [isAuthenticated]);
 
 	// Supprimer une notification
-	const removeNotification = async (notificationId) => {
-		// Mettre à jour l'état local immédiatement
-		setNotifications((prev) => {
-			const notification = prev.find((n) => n.id === notificationId);
-			if (notification && !notification.read) {
-				setUnreadCount((prev) => Math.max(0, prev - 1));
-			}
-			return prev.filter((n) => n.id !== notificationId);
-		});
+	const removeNotification = useCallback(
+		async (notificationId) => {
+			// Mettre à jour l'état local immédiatement
+			setNotifications((prev) => {
+				const notification = prev.find((n) => n.id === notificationId);
+				if (notification && !notification.read) {
+					setUnreadCount((prev) => Math.max(0, prev - 1));
+				}
+				return prev.filter((n) => n.id !== notificationId);
+			});
 
-		// Synchroniser avec le backend si l'utilisateur est connecté ET que c'est un ID MongoDB valide
-		if (
-			isAuthenticated &&
-			notificationId &&
-			notificationId.match(/^[0-9a-fA-F]{24}$/)
-		) {
-			try {
-				await notificationService.deleteNotification(notificationId);
-			} catch (error) {
-				console.error(
-					"Erreur lors de la synchronisation avec le backend:",
-					error
-				);
+			// Synchroniser avec le backend si l'utilisateur est connecté ET que c'est un ID MongoDB valide
+			if (
+				isAuthenticated &&
+				notificationId &&
+				notificationId.match(/^[0-9a-fA-F]{24}$/)
+			) {
+				try {
+					await notificationService.deleteNotification(notificationId);
+				} catch (error) {
+					console.error(
+						"Erreur lors de la synchronisation avec le backend:",
+						error,
+					);
+				}
 			}
-		}
-	};
+		},
+		[isAuthenticated],
+	);
 
 	// Supprimer toutes les notifications
 	const clearAllNotifications = async () => {
@@ -297,67 +308,79 @@ export const NotificationProvider = ({ children }) => {
 			} catch (error) {
 				console.error(
 					"Erreur lors de la synchronisation avec le backend:",
-					error
+					error,
 				);
 			}
 		}
 	};
 
 	// Fonctions utilitaires pour différents types de notifications
-	const showSuccess = (message, title = "Succès", showAsToast = true) => {
-		addNotification({
-			type: "success",
-			title,
-			message,
-			icon: "✅",
-			showAsToast,
-		});
-	};
+	const showSuccess = useCallback(
+		(message, title = "Succès", showAsToast = true) => {
+			addNotification({
+				type: "success",
+				title,
+				message,
+				icon: "✅",
+				showAsToast,
+			});
+		},
+		[addNotification],
+	);
 
-	const showError = (message, title = "Erreur", showAsToast = true) => {
-		addNotification({
-			type: "error",
-			title,
-			message,
-			icon: "❌",
-			showAsToast,
-		});
-	};
+	const showError = useCallback(
+		(message, title = "Erreur", showAsToast = true) => {
+			addNotification({
+				type: "error",
+				title,
+				message,
+				icon: "❌",
+				showAsToast,
+			});
+		},
+		[addNotification],
+	);
 
-	const showInfo = (message, title = "Information", showAsToast = true) => {
-		addNotification({
-			type: "info",
-			title,
-			message,
-			icon: "ℹ️",
-			showAsToast,
-		});
-	};
+	const showInfo = useCallback(
+		(message, title = "Information", showAsToast = true) => {
+			addNotification({
+				type: "info",
+				title,
+				message,
+				icon: "ℹ️",
+				showAsToast,
+			});
+		},
+		[addNotification],
+	);
 
-	const showWarning = (message, title = "Attention", showAsToast = true) => {
-		addNotification({
-			type: "warning",
-			title,
-			message,
-			icon: "⚠️",
-			showAsToast,
-		});
-	};
+	const showWarning = useCallback(
+		(message, title = "Attention", showAsToast = true) => {
+			addNotification({
+				type: "warning",
+				title,
+				message,
+				icon: "⚠️",
+				showAsToast,
+			});
+		},
+		[addNotification],
+	);
 
 	// Rafraîchir les notifications depuis le backend
-	const refreshNotifications = async () => {
+	const refreshNotifications = useCallback(async () => {
 		if (isAuthenticated) {
 			try {
 				const backendNotifications = await notificationService.getNotifications(
 					1,
-					50
+					50,
 				);
 				setNotifications(backendNotifications.notifications || []);
 				setUnreadCount(backendNotifications.unreadCount || 0);
 			} catch (error) {
 				console.error(
 					"Erreur lors du rafraîchissement des notifications:",
-					error
+					error,
 				);
 			}
 		} else {
@@ -371,28 +394,45 @@ export const NotificationProvider = ({ children }) => {
 				} catch (error) {
 					console.error(
 						"Erreur lors du rafraîchissement des notifications:",
-						error
+						error,
 					);
 				}
 			}
 		}
-	};
+	}, [isAuthenticated]);
 
-	const value = {
-		notifications,
-		unreadCount,
-		addNotification,
-		markAsRead,
-		markAllAsRead,
-		removeNotification,
-		clearAllNotifications,
-		refreshNotifications,
-		cleanupOldNotifications,
-		showSuccess,
-		showError,
-		showInfo,
-		showWarning,
-	};
+	const value = useMemo(
+		() => ({
+			notifications,
+			unreadCount,
+			addNotification,
+			markAsRead,
+			markAllAsRead,
+			removeNotification,
+			clearAllNotifications,
+			refreshNotifications,
+			cleanupOldNotifications,
+			showSuccess,
+			showError,
+			showInfo,
+			showWarning,
+		}),
+		[
+			notifications,
+			unreadCount,
+			addNotification,
+			markAsRead,
+			markAllAsRead,
+			removeNotification,
+			clearAllNotifications,
+			refreshNotifications,
+			cleanupOldNotifications,
+			showSuccess,
+			showError,
+			showInfo,
+			showWarning,
+		],
+	);
 
 	return (
 		<NotificationContext.Provider value={value}>
@@ -405,7 +445,7 @@ const useNotifications = () => {
 	const context = useContext(NotificationContext);
 	if (!context) {
 		throw new Error(
-			"useNotifications doit être utilisé dans un NotificationProvider"
+			"useNotifications doit être utilisé dans un NotificationProvider",
 		);
 	}
 	return context;

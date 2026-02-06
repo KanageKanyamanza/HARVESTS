@@ -20,8 +20,8 @@
 
 ### **📖 API Documentation (NOUVEAU)**
 - **`docs/API_DOCUMENTATION.md`** → Guide développeur complet
-- **Swagger UI** : http://localhost:8000/api/docs
-- **OpenAPI 3.0** : http://localhost:8000/api/docs.json
+- **Swagger UI** : http://localhost:5000/api/docs
+- **OpenAPI 3.0** : http://localhost:5000/api/docs.json
 - **300+ endpoints** documentés
 
 ### **🇸🇳 Adaptation Sénégal (NOUVEAU)**
@@ -48,7 +48,7 @@
 ### **🎯 Test Swagger Validé**
 ```
 ✅ API Health Check réussi (v1.0.0)
-✅ Swagger UI accessible (http://localhost:8000/api/docs)
+✅ Swagger UI accessible (http://localhost:5000/api/docs)
 ✅ Spécification OpenAPI 3.0 générée
 📡 Endpoints documentés: 300+
 📋 Schémas définis: 6 (User, Producer, Product, Order, etc.)
@@ -149,21 +149,21 @@ cp env.example .env
 npm run dev
 
 # 4. Documentation
-http://localhost:8000/api/docs
+http://localhost:5000/api/docs
 ```
 
 ### **🔧 Développement Frontend**
 ```javascript
 // Configuration API client
-const API_BASE = 'http://localhost:8000/api/v1';
-const API_DOCS = 'http://localhost:8000/api/docs.json';
+const API_BASE = 'http://localhost:5000/api/v1';
+const API_DOCS = 'http://localhost:5000/api/docs.json';
 
 // Import spécification OpenAPI
 import swaggerSpec from './api/harvests-openapi.json';
 
 // Génération client automatique
 npx swagger-codegen-cli generate \
-  -i http://localhost:8000/api/docs.json \
+  -i http://localhost:5000/api/docs.json \
   -l typescript-axios \
   -o ./src/api/
 ```
@@ -174,7 +174,7 @@ npx swagger-codegen-cli generate \
 import { HarvestsAPI } from './api/harvests-client';
 
 const api = new HarvestsAPI({
-  baseURL: 'http://localhost:8000/api/v1',
+  baseURL: 'http://localhost:5000/api/v1',
   timeout: 60000 // 1 minute minimum
 });
 

@@ -231,6 +231,7 @@ const processMessage = async (req, res) => {
 				if (productResults.length > 0) {
 					reply.text = `Voici ce que j'ai trouvé pour "${query}" :`;
 					reply.data.products = productResults;
+					reply.responseType = "product_search";
 					return res.status(200).json({
 						status: "success",
 						data: reply,

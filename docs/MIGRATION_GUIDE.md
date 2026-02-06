@@ -187,8 +187,8 @@ const ProfileRestaurateur = () => {
 ### 1. Test des Services Backend
 ```bash
 # Tester les routes centralisées
-curl -X GET http://localhost:8000/api/v1/profiles/me
-curl -X PATCH http://localhost:8000/api/v1/profiles/me/avatar
+curl -X GET http://localhost:5000/api/v1/profiles/me
+curl -X PATCH http://localhost:5000/api/v1/profiles/me/avatar
 ```
 
 ### 2. Test des Services Frontend

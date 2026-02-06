@@ -32,13 +32,13 @@ Bienvenue dans la documentation complète de la plateforme **Harvests** - L'Amaz
 ## 🌐 Accès Rapide
 
 ### Documentation Interactive
-- **Swagger UI**: http://localhost:8000/api/docs
-- **OpenAPI JSON**: http://localhost:8000/api/docs.json
+- **Swagger UI**: http://localhost:5000/api/docs
+- **OpenAPI JSON**: http://localhost:5000/api/docs.json
 
 ### Applications
 - **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:8000
-- **Health Check**: http://localhost:8000/api/v1/health
+- **Backend API**: http://localhost:5000
+- **Health Check**: http://localhost:5000/api/v1/health
 
 ## 📋 Vue d'Ensemble
 
@@ -115,8 +115,8 @@ npm run dev
 
 ### Accès
 - 🌐 **Frontend**: http://localhost:5173
-- 📡 **Backend**: http://localhost:8000
-- 📚 **Swagger**: http://localhost:8000/api/docs
+- 📡 **Backend**: http://localhost:5000
+- 📚 **Swagger**: http://localhost:5000/api/docs
 
 ## 📖 Documentation par Catégorie
 
