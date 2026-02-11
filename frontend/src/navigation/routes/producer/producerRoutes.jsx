@@ -4,48 +4,54 @@
 import React from "react";
 
 // Import des composants producer (lazy loading)
-const ProducerDashboard = React.lazy(() =>
-	import("../../../pages/dashboard/producer/ProducerDashboardNew")
+const ProducerDashboard = React.lazy(
+	() => import("../../../pages/dashboard/producer/ProducerDashboardNew"),
 );
-const MyProducts = React.lazy(() =>
-	import("../../../pages/dashboard/producer/MyProducts")
+const MyProducts = React.lazy(
+	() => import("../../../pages/dashboard/producer/MyProducts"),
 );
-const AddProduct = React.lazy(() =>
-	import("../../../pages/dashboard/producer/AddProduct")
+const AddProduct = React.lazy(
+	() => import("../../../pages/dashboard/producer/AddProduct"),
 );
-const EditProduct = React.lazy(() =>
-	import("../../../pages/dashboard/producer/EditProduct")
+const EditProduct = React.lazy(
+	() => import("../../../pages/dashboard/producer/EditProduct"),
 );
-const Orders = React.lazy(() =>
-	import("../../../pages/dashboard/producer/Orders")
+const Orders = React.lazy(
+	() => import("../../../pages/dashboard/producer/Orders"),
 );
-const Stats = React.lazy(() =>
-	import("../../../pages/dashboard/producer/Stats")
+const Stats = React.lazy(
+	() => import("../../../pages/dashboard/producer/Stats"),
 );
-const ProducerReviews = React.lazy(() =>
-	import("../../../pages/dashboard/producer/ProducerReviews")
+const ProducerReviews = React.lazy(
+	() => import("../../../pages/dashboard/producer/ProducerReviews"),
 );
-const ProfilePage = React.lazy(() =>
-	import("../../../pages/dashboard/common/ProfilePage")
+const ProfilePage = React.lazy(
+	() => import("../../../pages/dashboard/common/ProfilePage"),
 );
-const SettingsPage = React.lazy(() =>
-	import("../../../pages/dashboard/common/SettingsPage")
+const SettingsPage = React.lazy(
+	() => import("../../../pages/dashboard/common/SettingsPage"),
 );
-const OrderDetail = React.lazy(() =>
-	import("../../../pages/orders/OrderDetail")
+const OrderDetail = React.lazy(
+	() => import("../../../pages/orders/OrderDetail"),
 );
-const NotificationsPage = React.lazy(() =>
-	import("../../../pages/dashboard/common/NotificationsPage")
+const NotificationsPage = React.lazy(
+	() => import("../../../pages/dashboard/common/NotificationsPage"),
 );
-const DocumentsPage = React.lazy(() =>
-	import("../../../pages/dashboard/common/DocumentsPage")
+const DocumentsPage = React.lazy(
+	() => import("../../../pages/dashboard/common/DocumentsPage"),
 );
+const Messages = React.lazy(() => import("../../../pages/Messages"));
 
 export const producerRoutes = [
 	{
 		path: "/producer/dashboard",
 		element: <ProducerDashboard />,
 		title: "Tableau de bord",
+	},
+	{
+		path: "/producer/messages",
+		element: <Messages />,
+		title: "Messages",
 	},
 	{
 		path: "/producer/products",
@@ -101,6 +107,11 @@ export const producerRoutes = [
 		path: "/producer/documents",
 		element: <DocumentsPage />,
 		title: "Documents & Certifications",
+	},
+	{
+		path: "/producer/messages/:id",
+		element: <Messages />,
+		title: "Messages",
 	},
 ];
 

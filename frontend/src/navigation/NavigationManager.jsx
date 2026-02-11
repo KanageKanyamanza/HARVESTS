@@ -32,6 +32,7 @@ import {
 	FiSearch,
 	FiBell,
 	FiFileText,
+	FiMessageCircle,
 } from "react-icons/fi";
 import { FaChartBar } from "react-icons/fa";
 
@@ -101,7 +102,7 @@ export const generateSidebarNavigation = (user, icons = {}) => {
 				name: item.name,
 				href: item.href,
 				icon: item.icon || HomeIcon,
-			}))
+			})),
 		);
 	}
 
@@ -112,6 +113,11 @@ export const generateSidebarNavigation = (user, icons = {}) => {
 				name: "Tableau de bord",
 				href: getDashboardRoute(user),
 				icon: HomeIcon,
+			},
+			{
+				name: "Messages",
+				href: getMessagesRoute(user),
+				icon: FiMessageCircle,
 			},
 			{ name: "Panier", href: "/consumer/cart", icon: ShoppingCartIcon },
 			{ name: "Mes favoris", href: "/consumer/favorites", icon: HeartIcon },
@@ -143,6 +149,11 @@ export const generateSidebarNavigation = (user, icons = {}) => {
 				href: getDashboardRoute(user),
 				icon: HomeIcon,
 			},
+			{
+				name: "Messages",
+				href: getMessagesRoute(user),
+				icon: FiMessageCircle,
+			},
 			{ name: "Explorer", href: "/explorer/discover", icon: FiCompass },
 			{ name: "Mes favoris", href: "/explorer/favorites", icon: HeartIcon },
 			{
@@ -173,6 +184,11 @@ export const generateSidebarNavigation = (user, icons = {}) => {
 				href: getDashboardRoute(user),
 				icon: HomeIcon,
 			},
+			{
+				name: "Messages",
+				href: getMessagesRoute(user),
+				icon: FiMessageCircle,
+			},
 			{ name: "Mes produits", href: getProductsRoute(user), icon: PackageIcon },
 			{
 				name: "Ajouter produit",
@@ -200,6 +216,11 @@ export const generateSidebarNavigation = (user, icons = {}) => {
 				href: getDashboardRoute(user),
 				icon: HomeIcon,
 			},
+			{
+				name: "Messages",
+				href: getMessagesRoute(user),
+				icon: FiMessageCircle,
+			},
 			{ name: "Commandes", href: getOrdersRoute(user), icon: ShoppingBagIcon },
 			{ name: "Mes Produits", href: getProductsRoute(user), icon: PackageIcon },
 			{ name: "Avis reçus", href: "/transformer/reviews", icon: StarIcon },
@@ -221,6 +242,11 @@ export const generateSidebarNavigation = (user, icons = {}) => {
 				name: "Tableau de bord",
 				href: getDashboardRoute(user),
 				icon: HomeIcon,
+			},
+			{
+				name: "Messages",
+				href: getMessagesRoute(user),
+				icon: FiMessageCircle,
 			},
 			{
 				name: "Mon panier",
@@ -258,6 +284,11 @@ export const generateSidebarNavigation = (user, icons = {}) => {
 				icon: HomeIcon,
 			},
 			{
+				name: "Messages",
+				href: getMessagesRoute(user),
+				icon: FiMessageCircle,
+			},
+			{
 				name: "Commandes d'export",
 				href: getOrdersRoute(user),
 				icon: ShoppingBagIcon,
@@ -286,6 +317,11 @@ export const generateSidebarNavigation = (user, icons = {}) => {
 				href: getDashboardRoute(user),
 				icon: HomeIcon,
 			},
+			{
+				name: "Messages",
+				href: getMessagesRoute(user),
+				icon: FiMessageCircle,
+			},
 			{ name: "Commandes", href: getOrdersRoute(user), icon: ShoppingBagIcon },
 			{ name: "Ma flotte", href: getProductsRoute(user), icon: PackageIcon },
 			{
@@ -306,6 +342,7 @@ export const generateSidebarNavigation = (user, icons = {}) => {
 
 	return [
 		{ name: "Tableau de bord", href: getDashboardRoute(user), icon: HomeIcon },
+		{ name: "Messages", href: getMessagesRoute(user), icon: FiMessageCircle },
 	];
 };
 
@@ -329,17 +366,17 @@ export const generateQuickActions = (userType, icons = {}) => {
 	} = icons;
 
 	const baseActions = [
-		...(userType !== "exporter"
-			? [
-					{
-						icon: <PlusIcon className="h-5 w-5" />,
-						title: "Ajouter un produit",
-						description: "Créer un nouveau produit",
-						href: getAddProductRoute({ userType }),
-						color: "bg-blue-500 hover:bg-blue-600",
-					},
-			  ]
-			: []),
+		...(userType !== "exporter" ?
+			[
+				{
+					icon: <PlusIcon className="h-5 w-5" />,
+					title: "Ajouter un produit",
+					description: "Créer un nouveau produit",
+					href: getAddProductRoute({ userType }),
+					color: "bg-blue-500 hover:bg-blue-600",
+				},
+			]
+		:	[]),
 		{
 			icon: <EditIcon className="h-5 w-5" />,
 			title: "Modifier le profil",

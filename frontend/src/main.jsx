@@ -17,5 +17,5 @@ if (import.meta.env.MODE === "production") {
 ReactDOM.createRoot(document.getElementById("root")).render(
 	<HelmetProvider>
 		<App />
-	</HelmetProvider>
+	</HelmetProvider>,
 );

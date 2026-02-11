@@ -40,12 +40,18 @@ const NotificationsPage = React.lazy(
 const DocumentsPage = React.lazy(
 	() => import("../../../pages/dashboard/common/DocumentsPage"),
 );
+const Messages = React.lazy(() => import("../../../pages/Messages"));
 
 export const transformerRoutes = [
 	{
 		path: "/transformer/dashboard",
 		element: <TransformerDashboard />,
 		title: "Tableau de bord",
+	},
+	{
+		path: "/transformer/messages",
+		element: <Messages />,
+		title: "Messages",
 	},
 	{
 		path: "/transformer/products",
@@ -101,6 +107,11 @@ export const transformerRoutes = [
 		path: "/transformer/documents",
 		element: <DocumentsPage />,
 		title: "Documents & Certifications",
+	},
+	{
+		path: "/transformer/messages/:id",
+		element: <Messages />,
+		title: "Messages",
 	},
 ];
 

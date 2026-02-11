@@ -3,7 +3,7 @@ try {
 	admin = require("firebase-admin");
 } catch (e) {
 	console.warn(
-		"⚠️ Firebase Admin SDK non installé - Les notifications mobiles ne fonctionneront pas."
+		"⚠️ Firebase Admin SDK non installé - Les notifications mobiles ne fonctionneront pas.",
 	);
 	admin = {
 		apps: [],
@@ -49,7 +49,7 @@ if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
 	webpush.setVapidDetails(
 		process.env.VAPID_SUBJECT || "mailto:admin@harvests.cm",
 		process.env.VAPID_PUBLIC_KEY,
-		process.env.VAPID_PRIVATE_KEY
+		process.env.VAPID_PRIVATE_KEY,
 	);
 }
 
@@ -90,7 +90,7 @@ class NotificationService {
 				{
 					successCount: response.successCount,
 					failureCount: response.failureCount,
-				}
+				},
 			);
 
 			// Nettoyer les tokens invalides
@@ -113,9 +113,8 @@ class NotificationService {
 		}
 
 		try {
-			const subs = Array.isArray(subscriptions)
-				? subscriptions
-				: [subscriptions];
+			const subs =
+				Array.isArray(subscriptions) ? subscriptions : [subscriptions];
 			// ⚠️ Nettoyage drastique pour Web Push (< 4KB)
 			// On utilise une approche whitelist plutôt que blacklist pour être sûr
 			const safeData = {
@@ -164,7 +163,7 @@ class NotificationService {
 			if (payloadSize > 3000) {
 				// Garder cet avertissement car il est important
 				console.warn(
-					`⚠️ Attention: Charge utile Web Push volumineuse (${payloadSize} bytes). Limite ~4000 bytes.`
+					`⚠️ Attention: Charge utile Web Push volumineuse (${payloadSize} bytes). Limite ~4000 bytes.`,
 				);
 			}
 
@@ -189,18 +188,18 @@ class NotificationService {
 					error(
 						`[sendWebPushNotification] ❌ Erreur pour ${sub.endpoint.substring(
 							0,
-							50
+							50,
 						)}:`,
-						err.message
+						err.message,
 					);
 
 					// Gérer les souscriptions expirées/invalides
 					if (err.statusCode === 410 || err.statusCode === 404) {
 						info(
-							`[sendWebPushNotification] Souscription expirée (410/404), suppression...`
+							`[sendWebPushNotification] Souscription expirée (410/404), suppression...`,
 						);
 						this.removeExpiredSubscription(sub.endpoint).catch((e) =>
-							error("Erreur suppression souscription expirée:", e.message)
+							error("Erreur suppression souscription expirée:", e.message),
 						);
 					}
 				}
@@ -273,7 +272,7 @@ class NotificationService {
 		// FCM (Mobile)
 		if (isPushEnabled && user.fcmTokens?.length > 0) {
 			promises.push(
-				this.sendFCMNotification(user.fcmTokens, notification, data)
+				this.sendFCMNotification(user.fcmTokens, notification, data),
 			);
 		}
 
@@ -284,8 +283,8 @@ class NotificationService {
 				this.sendWebPushNotification(
 					user.webPushSubscriptions,
 					notification,
-					data
-				)
+					data,
+				),
 			);
 		}
 
@@ -307,7 +306,7 @@ class NotificationService {
 		const successCount = results.filter((r) => r.status === "fulfilled").length;
 
 		info(
-			`Notifications multi-canal envoyées: ${successCount}/${promises.length} canaux`
+			`Notifications multi-canal envoyées: ${successCount}/${promises.length} canaux`,
 		);
 
 		return results;
@@ -330,13 +329,13 @@ class NotificationService {
 					(err) => {
 						error(`Erreur notification utilisateur ${user._id}:`, err);
 						return null;
-					}
-				)
+					},
+				),
 			);
 
 			const results = await Promise.allSettled(promises);
 			const batchSuccess = results.filter(
-				(r) => r.status === "fulfilled" && r.value
+				(r) => r.status === "fulfilled" && r.value,
 			).length;
 			totalSent += batchSuccess;
 
@@ -347,7 +346,7 @@ class NotificationService {
 		}
 
 		info(
-			`Notifications bulk envoyées: ${totalSent}/${users.length} utilisateurs`
+			`Notifications bulk envoyées: ${totalSent}/${users.length} utilisateurs`,
 		);
 
 		return { sent: totalSent, total: users.length };
@@ -398,7 +397,7 @@ class NotificationService {
 					orderId: order._id.toString(),
 					orderNumber: order.orderNumber,
 					amount: order.total,
-				}
+				},
 			);
 		}
 
@@ -416,7 +415,7 @@ class NotificationService {
 				{
 					orderId: order._id.toString(),
 					orderNumber: order.orderNumber,
-				}
+				},
 			);
 		}
 	}
@@ -449,7 +448,7 @@ class NotificationService {
 				orderId: order._id.toString(),
 				orderNumber: order.orderNumber,
 				status: newStatus,
-			}
+			},
 		);
 	}
 
@@ -472,7 +471,7 @@ class NotificationService {
 				reviewId: review._id.toString(),
 				rating: review.rating,
 				title: review.title,
-			}
+			},
 		);
 	}
 
@@ -517,7 +516,7 @@ class NotificationService {
 					orderId: order._id.toString(),
 					paymentId: payment._id?.toString(),
 					amount: payment.amount,
-				}
+				},
 			);
 		}
 	}
@@ -618,7 +617,7 @@ class NotificationService {
 			}
 
 			info(
-				`Rappels envoyés à ${inactiveProducers.length} producteurs inactifs`
+				`Rappels envoyés à ${inactiveProducers.length} producteurs inactifs`,
 			);
 		} catch (err) {
 			error("Erreur rappels producteurs inactifs:", err);
@@ -643,8 +642,12 @@ class NotificationService {
 			});
 
 			info(
-				`Promotions mensuelles envoyées à ${consumers.length} consommateurs`
+				`Promotions mensuelles envoyées à ${consumers.length} consommateurs`,
 			);
+		} catch (err) {
+			error("Erreur promotions mensuelles:", err);
+		}
+	}
 	// 📅 Rappels expiration abonnements
 	static async sendSubscriptionReminders() {
 		try {
@@ -678,7 +681,7 @@ class NotificationService {
 							subscriptionId: sub._id.toString(),
 							planName: sub.planName,
 							endDate: sub.endDate.toLocaleDateString("fr-FR"),
-						}
+						},
 					);
 
 					// Notifier les admins
@@ -695,14 +698,16 @@ class NotificationService {
 							{
 								userId: sub.user._id.toString(),
 								subscriptionId: sub._id.toString(),
-							}
+							},
 						);
 					}
 				}
 			}
 
 			if (expiredSubscriptions.length > 0) {
-				info(`${expiredSubscriptions.length} abonnements marqués comme expirés`);
+				info(
+					`${expiredSubscriptions.length} abonnements marqués comme expirés`,
+				);
 			}
 
 			// 2. Rappels préventifs (7 jours, 3 jours, 1 jour avant)
@@ -746,12 +751,12 @@ class NotificationService {
 							daysLeft: days,
 							planName: sub.planName,
 							endDate: sub.endDate.toLocaleDateString("fr-FR"),
-						}
+						},
 					);
 				}
 				if (expiringSubscriptions.length > 0) {
 					info(
-						`${expiringSubscriptions.length} rappels d'expiration (J-${days}) envoyés`
+						`${expiringSubscriptions.length} rappels d'expiration (J-${days}) envoyés`,
 					);
 				}
 			}
@@ -779,7 +784,7 @@ class NotificationService {
 		if (invalidTokens.length > 0) {
 			await User.updateMany(
 				{ fcmTokens: { $in: invalidTokens } },
-				{ $pullAll: { fcmTokens: invalidTokens } }
+				{ $pullAll: { fcmTokens: invalidTokens } },
 			);
 
 			info(`${invalidTokens.length} tokens FCM invalides supprimés`);
@@ -794,13 +799,13 @@ class NotificationService {
 		// Supprimer des utilisateurs
 		await User.updateMany(
 			{ "webPushSubscriptions.endpoint": subscription.endpoint },
-			{ $pull: { webPushSubscriptions: { endpoint: subscription.endpoint } } }
+			{ $pull: { webPushSubscriptions: { endpoint: subscription.endpoint } } },
 		);
 
 		// Supprimer des admins
 		await Admin.updateMany(
 			{ "webPushSubscriptions.endpoint": subscription.endpoint },
-			{ $pull: { webPushSubscriptions: { endpoint: subscription.endpoint } } }
+			{ $pull: { webPushSubscriptions: { endpoint: subscription.endpoint } } },
 		);
 
 		info("Subscription Web Push expirée supprimée (User/Admin)");
@@ -814,13 +819,13 @@ class NotificationService {
 
 			// Essayer d'abord dans User
 			let person = await User.findById(userId).select(
-				"+preferences +notificationSettings +fcmTokens +webPushSubscriptions"
+				"+preferences +notificationSettings +fcmTokens +webPushSubscriptions",
 			);
 
 			// Si non trouvé, essayer dans Admin
 			if (!person) {
 				person = await Admin.findById(userId).select(
-					"+preferences +fcmTokens +webPushSubscriptions"
+					"+preferences +fcmTokens +webPushSubscriptions",
 				);
 			}
 

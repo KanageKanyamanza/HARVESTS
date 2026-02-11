@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../contexts/CartContext";
+import { useChat } from "../../contexts/ChatContext";
 import {
 	FiMapPin,
 	FiStar,
@@ -13,6 +14,7 @@ import {
 	FiClock,
 	FiPhone,
 	FiMail,
+	FiMessageCircle,
 } from "react-icons/fi";
 import { reviewService } from "../../services";
 import { getCountryName } from "../../utils/countryMapper";
@@ -46,12 +48,19 @@ const VendorProfile = ({
 	const { id } = useParams();
 	const { user } = useAuth();
 	const { addToCart } = useCart();
+	const { startConversation } = useChat();
 	const navigate = useNavigate();
 	const [vendor, setVendor] = useState(null);
 	const [items, setItems] = useState([]);
 	const [reviews, setReviews] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [activeTab, setActiveTab] = useState(tabs[0]);
+
+	const handleContact = async () => {
+		if (vendor?._id) {
+			await startConversation(vendor._id);
+		}
+	};
 
 	useEffect(() => {
 		const loadVendorData = async () => {
@@ -146,7 +155,7 @@ const VendorProfile = ({
 									} catch (statsError) {
 										console.error(
 											`Erreur lors du chargement des statistiques d'avis du produit ${item._id}:`,
-											statsError
+											statsError,
 										);
 									}
 
@@ -157,7 +166,7 @@ const VendorProfile = ({
 											totalReviews: 0,
 										},
 									};
-								})
+								}),
 							);
 
 							setItems(itemsWithRatings);
@@ -178,7 +187,7 @@ const VendorProfile = ({
 								setReviews(
 									reviewsResponse.data.data?.reviews ||
 										reviewsResponse.data.data ||
-										[]
+										[],
 								);
 							}
 						} catch (reviewError) {
@@ -188,7 +197,7 @@ const VendorProfile = ({
 							} else {
 								console.error(
 									`Erreur lors du chargement des avis:`,
-									reviewError
+									reviewError,
 								);
 								setReviews([]);
 							}
@@ -224,7 +233,7 @@ const VendorProfile = ({
 		const loadVendorRatingStats = async () => {
 			try {
 				const statsResponse = await reviewService.getProducerRatingStats(
-					vendor._id
+					vendor._id,
 				);
 				const statsData = statsResponse?.data;
 
@@ -255,7 +264,7 @@ const VendorProfile = ({
 			} catch (error) {
 				console.error(
 					"Erreur lors du chargement des statistiques d'avis du vendeur:",
-					error
+					error,
 				);
 			}
 		};
@@ -326,31 +335,29 @@ const VendorProfile = ({
 							let bannerUrl = null;
 							if (vendor.restaurantBanner) {
 								bannerUrl =
-									typeof vendor.restaurantBanner === "string"
-										? vendor.restaurantBanner
-										: vendor.restaurantBanner.url;
+									typeof vendor.restaurantBanner === "string" ?
+										vendor.restaurantBanner
+									:	vendor.restaurantBanner.url;
 							} else if (vendor.shopBanner) {
 								bannerUrl =
-									typeof vendor.shopBanner === "string"
-										? vendor.shopBanner
-										: vendor.shopBanner.url;
+									typeof vendor.shopBanner === "string" ?
+										vendor.shopBanner
+									:	vendor.shopBanner.url;
 							} else if (vendor.shopLogo) {
 								bannerUrl =
-									typeof vendor.shopLogo === "string"
-										? vendor.shopLogo
-										: vendor.shopLogo.url;
+									typeof vendor.shopLogo === "string" ?
+										vendor.shopLogo
+									:	vendor.shopLogo.url;
 							}
-							return bannerUrl ? (
-								<img
-									src={bannerUrl}
-									alt={`Bannière de ${getVendorName(vendor)}`}
-									className="w-full h-full object-cover"
-								/>
-							) : (
-								<div className="w-full h-full bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
-									<FiPackage className="w-16 h-16 text-white opacity-50" />
-								</div>
-							);
+							return bannerUrl ?
+									<img
+										src={bannerUrl}
+										alt={`Bannière de ${getVendorName(vendor)}`}
+										className="w-full h-full object-cover"
+									/>
+								:	<div className="w-full h-full bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
+										<FiPackage className="w-16 h-16 text-white opacity-50" />
+									</div>;
 						})()}
 
 						{/* Overlay pour améliorer la lisibilité */}
@@ -364,30 +371,28 @@ const VendorProfile = ({
 										let logoUrl = null;
 										if (vendor.logo) {
 											logoUrl =
-												typeof vendor.logo === "string"
-													? vendor.logo
-													: vendor.logo.url;
+												typeof vendor.logo === "string" ?
+													vendor.logo
+												:	vendor.logo.url;
 										} else if (vendor.shopLogo) {
 											logoUrl =
-												typeof vendor.shopLogo === "string"
-													? vendor.shopLogo
-													: vendor.shopLogo.url;
+												typeof vendor.shopLogo === "string" ?
+													vendor.shopLogo
+												:	vendor.shopLogo.url;
 										}
-										return logoUrl ? (
-											<img
-												src={logoUrl}
-												alt={getVendorName(vendor)}
-												className="w-full h-full object-cover"
-											/>
-										) : (
-											<div className="w-full h-full bg-green-100 flex items-center justify-center">
-												<span className="text-lg font-bold text-green-600">
-													{getVendorName(vendor)?.[0] ||
-														vendor.firstName?.[0] ||
-														"U"}
-												</span>
-											</div>
-										);
+										return logoUrl ?
+												<img
+													src={logoUrl}
+													alt={getVendorName(vendor)}
+													className="w-full h-full object-cover"
+												/>
+											:	<div className="w-full h-full bg-green-100 flex items-center justify-center">
+													<span className="text-lg font-bold text-green-600">
+														{getVendorName(vendor)?.[0] ||
+															vendor.firstName?.[0] ||
+															"U"}
+													</span>
+												</div>;
 									})()}
 								</div>
 							</div>
@@ -400,6 +405,16 @@ const VendorProfile = ({
 							{getVendorName(vendor)}
 						</h1>
 						<p className="text-gray-600 mb-2">{getVendorSubtitle(vendor)}</p>
+						<div className="flex flex-wrap gap-3 mb-4">
+							<button
+								onClick={handleContact}
+								className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-harvests-green hover:bg-green-700 focus:outline-none transition-colors"
+							>
+								<FiMessageCircle className="mr-2 -ml-1 h-5 w-5" />
+								Envoyer un message
+							</button>
+						</div>
+
 						<div className="flex items-center text-gray-500 mb-6">
 							<FiMapPin className="mr-1" />
 							<span>{getCountryName(vendor.country)}</span>
@@ -431,16 +446,14 @@ const VendorProfile = ({
 								{contact.map((item, index) => (
 									<div key={index} className="flex items-center">
 										{item.icon}
-										{item.href ? (
+										{item.href ?
 											<a
 												href={item.href}
 												className="text-sm text-gray-900 hover:text-green-600"
 											>
 												{item.text}
 											</a>
-										) : (
-											<span className="text-sm text-gray-900">{item.text}</span>
-										)}
+										:	<span className="text-sm text-gray-900">{item.text}</span>}
 									</div>
 								))}
 							</div>
@@ -476,9 +489,9 @@ const VendorProfile = ({
 									key={tab}
 									onClick={() => setActiveTab(tab)}
 									className={`py-4 px-1 border-b-2 font-medium text-sm ${
-										activeTab === tab
-											? "border-green-500 text-green-600"
-											: "border-transparent text-gray-500 hover:text-gray-700"
+										activeTab === tab ?
+											"border-green-500 text-green-600"
+										:	"border-transparent text-gray-500 hover:text-gray-700"
 									}`}
 								>
 									{getTabLabel(tab)} ({getTabCount(tab, items, reviews, vendor)}
@@ -509,7 +522,7 @@ const VendorProfile = ({
 								addToCart,
 								navigate,
 							},
-							reviews
+							reviews,
 						)}
 					</div>
 				</div>

@@ -13,7 +13,9 @@ import { AuthProvider } from "./store/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
 import { CurrencyProvider } from "./contexts/CurrencyContext.jsx";
 import { NotificationProvider } from "./contexts/NotificationContext";
+import { SocketProvider } from "./contexts/SocketContext";
 import { ModalProvider } from "./components/modals/ModalManager";
+import { ChatProvider } from "./contexts/ChatContext";
 import ErrorBoundary from "./components/common/ErrorBoundary";
 
 // Layout Components
@@ -80,99 +82,111 @@ function App() {
 		<ErrorBoundary>
 			<AuthProvider>
 				<NotificationProvider>
-					<CurrencyProvider>
-						<CartProvider>
-							<ModalProvider>
-								<Router>
-									<Helmet>
-										<title>Harvests | Produits frais, logistique fiable</title>
-										<meta
-											name="description"
-											content="Marketplace Harvests : produits frais, circuits courts, logistique fiable et rapide pour restaurateurs, consommateurs et transporteurs."
-										/>
-										<link
-											rel="canonical"
-											href={baseUrl || "https://www.harvests.site"}
-										/>
-										<meta property="og:type" content="website" />
-										<meta
-											property="og:title"
-											content="Harvests | Produits frais, logistique fiable"
-										/>
-										<meta
-											property="og:description"
-											content="Découvrez Harvests, la plateforme qui connecte producteurs, restaurateurs et transporteurs pour des livraisons rapides et fiables."
-										/>
-										<meta
-											property="og:url"
-											content={baseUrl || "https://www.harvests.site"}
-										/>
-										<meta
-											property="og:image"
-											content={`${
-												baseUrl || "https://www.harvests.site"
-											}/logo.png`}
-										/>
-										<meta name="twitter:card" content="summary_large_image" />
-										<meta
-											name="twitter:title"
-											content="Harvests | Produits frais, logistique fiable"
-										/>
-										<meta
-											name="twitter:description"
-											content="Produits frais, circuits courts, logistique rapide pour tous les acteurs de la chaîne alimentaire."
-										/>
-										<meta
-											name="twitter:image"
-											content={`${
-												baseUrl || "https://www.harvests.site"
-											}/logo.png`}
-										/>
-										{/* Préchargement des ressources critiques */}
-										<link
-											rel="preconnect"
-											href="https://fonts.googleapis.com"
-											crossOrigin="anonymous"
-										/>
-										<link
-											rel="preconnect"
-											href="https://fonts.gstatic.com"
-											crossOrigin="anonymous"
-										/>
-										<link
-											rel="preconnect"
-											href="https://res.cloudinary.com"
-											crossOrigin="anonymous"
-										/>
-										<link
-											rel="dns-prefetch"
-											href="https://fonts.googleapis.com"
-										/>
-										<link rel="dns-prefetch" href="https://fonts.gstatic.com" />
-										<link
-											rel="dns-prefetch"
-											href="https://res.cloudinary.com"
-										/>
-									</Helmet>
-									<ResourcePreloader />
-									<ScrollToTop />
-									<div className="App bg-[#f3f9e5]">
-										<UserTypeRedirect>
-											<Suspense fallback={<RouteFallback />}>
-												<AppRoutes />
-											</Suspense>
+					<SocketProvider>
+						<CurrencyProvider>
+							<CartProvider>
+								<ModalProvider>
+									<ChatProvider>
+										<Router>
+											<Helmet>
+												<title>
+													Harvests | Produits frais, logistique fiable
+												</title>
+												<meta
+													name="description"
+													content="Marketplace Harvests : produits frais, circuits courts, logistique fiable et rapide pour restaurateurs, consommateurs et transporteurs."
+												/>
+												<link
+													rel="canonical"
+													href={baseUrl || "https://www.harvests.site"}
+												/>
+												<meta property="og:type" content="website" />
+												<meta
+													property="og:title"
+													content="Harvests | Produits frais, logistique fiable"
+												/>
+												<meta
+													property="og:description"
+													content="Découvrez Harvests, la plateforme qui connecte producteurs, restaurateurs et transporteurs pour des livraisons rapides et fiables."
+												/>
+												<meta
+													property="og:url"
+													content={baseUrl || "https://www.harvests.site"}
+												/>
+												<meta
+													property="og:image"
+													content={`${
+														baseUrl || "https://www.harvests.site"
+													}/logo.png`}
+												/>
+												<meta
+													name="twitter:card"
+													content="summary_large_image"
+												/>
+												<meta
+													name="twitter:title"
+													content="Harvests | Produits frais, logistique fiable"
+												/>
+												<meta
+													name="twitter:description"
+													content="Produits frais, circuits courts, logistique rapide pour tous les acteurs de la chaîne alimentaire."
+												/>
+												<meta
+													name="twitter:image"
+													content={`${
+														baseUrl || "https://www.harvests.site"
+													}/logo.png`}
+												/>
+												{/* Préchargement des ressources critiques */}
+												<link
+													rel="preconnect"
+													href="https://fonts.googleapis.com"
+													crossOrigin="anonymous"
+												/>
+												<link
+													rel="preconnect"
+													href="https://fonts.gstatic.com"
+													crossOrigin="anonymous"
+												/>
+												<link
+													rel="preconnect"
+													href="https://res.cloudinary.com"
+													crossOrigin="anonymous"
+												/>
+												<link
+													rel="dns-prefetch"
+													href="https://fonts.googleapis.com"
+												/>
+												<link
+													rel="dns-prefetch"
+													href="https://fonts.gstatic.com"
+												/>
+												<link
+													rel="dns-prefetch"
+													href="https://res.cloudinary.com"
+												/>
+											</Helmet>
+											<ResourcePreloader />
+											<ScrollToTop />
+											<div className="App bg-[#f3f9e5]">
+												<UserTypeRedirect>
+													<Suspense fallback={<RouteFallback />}>
+														<AppRoutes />
+													</Suspense>
 
-											{/* Container des notifications */}
-											<NotificationContainer />
+													{/* Container des notifications */}
+													<NotificationContainer />
 
-											{/* Modal d'installation PWA */}
-											<PWAInstallModal />
-										</UserTypeRedirect>
-									</div>
-								</Router>
-							</ModalProvider>
-						</CartProvider>
-					</CurrencyProvider>
+													{/* Modal d'installation PWA */}
+													<PWAInstallModal />
+												</UserTypeRedirect>
+											</div>
+										</Router>
+									</ChatProvider>
+								</ModalProvider>
+							</CartProvider>
+						</CurrencyProvider>
+					</SocketProvider>
 				</NotificationProvider>
 			</AuthProvider>
 		</ErrorBoundary>
