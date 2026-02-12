@@ -149,6 +149,16 @@ const server = app.listen(port, () => {
 	console.log(`📅 Démarré le: ${new Date().toLocaleString("fr-FR")}`);
 });
 
+// Initialisation de Socket.io
+try {
+	const initSocket = require("./socket");
+	const io = initSocket(server);
+	app.set("io", io);
+	console.log("🔌 Socket.io initialisé avec succès");
+} catch (error) {
+	console.error("❌ Erreur lors de l'initialisation de Socket.io:", error);
+}
+
 /**
  * Gestion des rejets de promesses non gérées
  * Arrête le serveur gracieusement en cas d'erreur asynchrone non gérée

@@ -134,5 +134,14 @@ export const AuthProvider = ({ children }) => {
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Exporter le contexte pour le hook
+// Exporter le contexte
 export { AuthContext };
+
+// Hook personnalisé pour utiliser le contexte d'authentification
+export const useAuth = () => {
+	const context = React.useContext(AuthContext);
+	if (!context) {
+		throw new Error("useAuth must be used within an AuthProvider");
+	}
+	return context;
+};

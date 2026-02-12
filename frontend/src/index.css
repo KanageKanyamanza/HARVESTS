@@ -227,7 +227,7 @@
 	}
 
 	.animate-slide-up {
-		@apply animate-slide-up;
+		animation: slide-up 0.3s ease-out;
 	}
 
 	.animate-slide-down {

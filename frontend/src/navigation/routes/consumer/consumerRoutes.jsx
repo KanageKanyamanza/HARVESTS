@@ -40,6 +40,7 @@ const SettingsPage = React.lazy(
 const NotificationsPage = React.lazy(
 	() => import("../../../pages/dashboard/common/NotificationsPage"),
 );
+const Messages = React.lazy(() => import("../../../pages/Messages"));
 
 export const consumerRoutes = [
 	{
@@ -101,6 +102,16 @@ export const consumerRoutes = [
 		path: "/consumer/notifications",
 		element: <NotificationsPage />,
 		title: "Notifications",
+	},
+	{
+		path: "/consumer/messages",
+		element: <Messages />,
+		title: "Messages",
+	},
+	{
+		path: "/consumer/messages/:id",
+		element: <Messages />,
+		title: "Messages",
 	},
 ];
 

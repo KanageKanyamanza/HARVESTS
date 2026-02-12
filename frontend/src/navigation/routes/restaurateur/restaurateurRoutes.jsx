@@ -4,57 +4,64 @@
 import React from "react";
 
 // Import des composants restaurateur (lazy loading)
-const RestaurateurDashboard = React.lazy(() =>
-	import("../../../pages/dashboard/restaurateur/RestaurateurDashboardNew")
+const RestaurateurDashboard = React.lazy(
+	() =>
+		import("../../../pages/dashboard/restaurateur/RestaurateurDashboardNew"),
 );
-const RestaurateurOrders = React.lazy(() =>
-	import("../../../pages/dashboard/restaurateur/OrdersList")
+const RestaurateurOrders = React.lazy(
+	() => import("../../../pages/dashboard/restaurateur/OrdersList"),
 );
-const RestaurateurCart = React.lazy(() =>
-	import("../../../pages/dashboard/consumer/Cart")
+const RestaurateurCart = React.lazy(
+	() => import("../../../pages/dashboard/consumer/Cart"),
 );
-const Checkout = React.lazy(() =>
-	import("../../../pages/dashboard/consumer/Checkout")
+const Checkout = React.lazy(
+	() => import("../../../pages/dashboard/consumer/Checkout"),
 );
-const DishesManagement = React.lazy(() =>
-	import("../../../pages/dashboard/restaurateur/DishesManagement")
+const DishesManagement = React.lazy(
+	() => import("../../../pages/dashboard/restaurateur/DishesManagement"),
 );
-const AddDish = React.lazy(() =>
-	import("../../../pages/dashboard/restaurateur/AddDish")
+const AddDish = React.lazy(
+	() => import("../../../pages/dashboard/restaurateur/AddDish"),
 );
-const DishDetail = React.lazy(() =>
-	import("../../../pages/dashboard/restaurateur/DishDetail")
+const DishDetail = React.lazy(
+	() => import("../../../pages/dashboard/restaurateur/DishDetail"),
 );
-const RestaurateurStats = React.lazy(() =>
-	import("../../../pages/dashboard/restaurateur/Stats")
+const RestaurateurStats = React.lazy(
+	() => import("../../../pages/dashboard/restaurateur/Stats"),
 );
-const RestaurateurReviews = React.lazy(() =>
-	import("../../../pages/dashboard/restaurateur/RestaurateurReviews")
+const RestaurateurReviews = React.lazy(
+	() => import("../../../pages/dashboard/restaurateur/RestaurateurReviews"),
 );
-const ProfilePage = React.lazy(() =>
-	import("../../../pages/dashboard/common/ProfilePage")
+const ProfilePage = React.lazy(
+	() => import("../../../pages/dashboard/common/ProfilePage"),
 );
-const SettingsPage = React.lazy(() =>
-	import("../../../pages/dashboard/common/SettingsPage")
+const SettingsPage = React.lazy(
+	() => import("../../../pages/dashboard/common/SettingsPage"),
 );
-const OrderDetail = React.lazy(() =>
-	import("../../../pages/orders/OrderDetail")
+const OrderDetail = React.lazy(
+	() => import("../../../pages/orders/OrderDetail"),
 );
-const OrderConfirmation = React.lazy(() =>
-	import("../../../pages/dashboard/consumer/OrderConfirmation")
+const OrderConfirmation = React.lazy(
+	() => import("../../../pages/dashboard/consumer/OrderConfirmation"),
 );
-const NotificationsPage = React.lazy(() =>
-	import("../../../pages/dashboard/common/NotificationsPage")
+const NotificationsPage = React.lazy(
+	() => import("../../../pages/dashboard/common/NotificationsPage"),
 );
-const DocumentsPage = React.lazy(() =>
-	import("../../../pages/dashboard/common/DocumentsPage")
+const DocumentsPage = React.lazy(
+	() => import("../../../pages/dashboard/common/DocumentsPage"),
 );
+const Messages = React.lazy(() => import("../../../pages/Messages"));
 
 export const restaurateurRoutes = [
 	{
 		path: "/restaurateur/dashboard",
 		element: <RestaurateurDashboard />,
 		title: "Tableau de bord",
+	},
+	{
+		path: "/restaurateur/messages",
+		element: <Messages />,
+		title: "Messages",
 	},
 	{
 		path: "/restaurateur/dishes",
@@ -125,6 +132,11 @@ export const restaurateurRoutes = [
 		path: "/restaurateur/documents",
 		element: <DocumentsPage />,
 		title: "Documents & Certifications",
+	},
+	{
+		path: "/restaurateur/messages/:id",
+		element: <Messages />,
+		title: "Messages",
 	},
 ];
 

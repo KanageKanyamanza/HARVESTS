@@ -4,45 +4,51 @@
 import React from "react";
 
 // Import des composants transporter (lazy loading)
-const TransporterDashboard = React.lazy(() =>
-	import("../../../pages/dashboard/transporter/TransporterDashboardNew")
+const TransporterDashboard = React.lazy(
+	() => import("../../../pages/dashboard/transporter/TransporterDashboardNew"),
 );
-const Fleet = React.lazy(() =>
-	import("../../../pages/dashboard/transporter/Fleet")
+const Fleet = React.lazy(
+	() => import("../../../pages/dashboard/transporter/Fleet"),
 );
-const AddVehicle = React.lazy(() =>
-	import("../../../pages/dashboard/transporter/AddVehicle")
+const AddVehicle = React.lazy(
+	() => import("../../../pages/dashboard/transporter/AddVehicle"),
 );
-const EditVehicle = React.lazy(() =>
-	import("../../../pages/dashboard/transporter/EditVehicle")
+const EditVehicle = React.lazy(
+	() => import("../../../pages/dashboard/transporter/EditVehicle"),
 );
-const Orders = React.lazy(() =>
-	import("../../../pages/dashboard/transporter/Orders")
+const Orders = React.lazy(
+	() => import("../../../pages/dashboard/transporter/Orders"),
 );
-const Statistics = React.lazy(() =>
-	import("../../../pages/dashboard/transporter/Statistics")
+const Statistics = React.lazy(
+	() => import("../../../pages/dashboard/transporter/Statistics"),
 );
-const ProfilePage = React.lazy(() =>
-	import("../../../pages/dashboard/common/ProfilePage")
+const ProfilePage = React.lazy(
+	() => import("../../../pages/dashboard/common/ProfilePage"),
 );
-const SettingsPage = React.lazy(() =>
-	import("../../../pages/dashboard/common/SettingsPage")
+const SettingsPage = React.lazy(
+	() => import("../../../pages/dashboard/common/SettingsPage"),
 );
-const OrderDetail = React.lazy(() =>
-	import("../../../pages/orders/OrderDetail")
+const OrderDetail = React.lazy(
+	() => import("../../../pages/orders/OrderDetail"),
 );
-const NotificationsPage = React.lazy(() =>
-	import("../../../pages/dashboard/common/NotificationsPage")
+const NotificationsPage = React.lazy(
+	() => import("../../../pages/dashboard/common/NotificationsPage"),
 );
-const DocumentsPage = React.lazy(() =>
-	import("../../../pages/dashboard/common/DocumentsPage")
+const DocumentsPage = React.lazy(
+	() => import("../../../pages/dashboard/common/DocumentsPage"),
 );
+const Messages = React.lazy(() => import("../../../pages/Messages"));
 
 export const transporterRoutes = [
 	{
 		path: "/transporter/dashboard",
 		element: <TransporterDashboard />,
 		title: "Tableau de bord",
+	},
+	{
+		path: "/transporter/messages",
+		element: <Messages />,
+		title: "Messages",
 	},
 	{
 		path: "/transporter/fleet",
@@ -93,6 +99,11 @@ export const transporterRoutes = [
 		path: "/transporter/documents",
 		element: <DocumentsPage />,
 		title: "Documents & Certifications",
+	},
+	{
+		path: "/transporter/messages/:id",
+		element: <Messages />,
+		title: "Messages",
 	},
 ];
 

@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useUserType } from "../../hooks/useUserType";
+import { useChat } from "../../contexts/ChatContext";
 import CloudinaryImage from "../common/CloudinaryImage";
 import {
 	getDashboardRoute,
@@ -46,6 +47,7 @@ const DashboardSidebarFixed = ({
 }) => {
 	const { user: authUser, userDisplayName } = useAuth();
 	const { displayLabel, displayIcon } = useUserType();
+	const { unreadCount } = useChat();
 	const location = useLocation();
 
 	// Utiliser l'utilisateur passé en prop ou celui du contexte d'auth
@@ -372,6 +374,15 @@ const DashboardSidebarFixed = ({
 								{/* Active Dot */}
 								{active && !collapsed && (
 									<div className="absolute right-3 w-1.5 h-1.5 bg-white rounded-full animate-pulse shadow-sm" />
+								)}
+
+								{/* Notification Badge for Messages */}
+								{item.name === "Messages" && unreadCount > 0 && (
+									<span
+										className={`absolute ${collapsed ? "-top-1 -right-1" : "right-2"} bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center border-2 border-white`}
+									>
+										{unreadCount > 99 ? "99+" : unreadCount}
+									</span>
 								)}
 							</Link>
 						);

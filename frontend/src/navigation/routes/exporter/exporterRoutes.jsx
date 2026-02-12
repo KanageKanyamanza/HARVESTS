@@ -4,45 +4,51 @@
 import React from "react";
 
 // Import des composants exporter (lazy loading)
-const ExporterDashboard = React.lazy(() =>
-	import("../../../pages/dashboard/exporter/ExporterDashboardNew")
+const ExporterDashboard = React.lazy(
+	() => import("../../../pages/dashboard/exporter/ExporterDashboardNew"),
 );
-const Orders = React.lazy(() =>
-	import("../../../pages/dashboard/exporter/Orders")
+const Orders = React.lazy(
+	() => import("../../../pages/dashboard/exporter/Orders"),
 );
-const Fleet = React.lazy(() =>
-	import("../../../pages/dashboard/exporter/Fleet")
+const Fleet = React.lazy(
+	() => import("../../../pages/dashboard/exporter/Fleet"),
 );
-const AddVehicle = React.lazy(() =>
-	import("../../../pages/dashboard/exporter/AddVehicle")
+const AddVehicle = React.lazy(
+	() => import("../../../pages/dashboard/exporter/AddVehicle"),
 );
-const EditVehicle = React.lazy(() =>
-	import("../../../pages/dashboard/exporter/EditVehicle")
+const EditVehicle = React.lazy(
+	() => import("../../../pages/dashboard/exporter/EditVehicle"),
 );
-const Statistics = React.lazy(() =>
-	import("../../../pages/dashboard/exporter/Statistics")
+const Statistics = React.lazy(
+	() => import("../../../pages/dashboard/exporter/Statistics"),
 );
-const ProfilePage = React.lazy(() =>
-	import("../../../pages/dashboard/common/ProfilePage")
+const ProfilePage = React.lazy(
+	() => import("../../../pages/dashboard/common/ProfilePage"),
 );
-const SettingsPage = React.lazy(() =>
-	import("../../../pages/dashboard/common/SettingsPage")
+const SettingsPage = React.lazy(
+	() => import("../../../pages/dashboard/common/SettingsPage"),
 );
-const OrderDetail = React.lazy(() =>
-	import("../../../pages/orders/OrderDetail")
+const OrderDetail = React.lazy(
+	() => import("../../../pages/orders/OrderDetail"),
 );
-const NotificationsPage = React.lazy(() =>
-	import("../../../pages/dashboard/common/NotificationsPage")
+const NotificationsPage = React.lazy(
+	() => import("../../../pages/dashboard/common/NotificationsPage"),
 );
-const DocumentsPage = React.lazy(() =>
-	import("../../../pages/dashboard/common/DocumentsPage")
+const DocumentsPage = React.lazy(
+	() => import("../../../pages/dashboard/common/DocumentsPage"),
 );
+const Messages = React.lazy(() => import("../../../pages/Messages"));
 
 export const exporterRoutes = [
 	{
 		path: "/exporter/dashboard",
 		element: <ExporterDashboard />,
 		title: "Tableau de bord",
+	},
+	{
+		path: "/exporter/messages",
+		element: <Messages />,
+		title: "Messages",
 	},
 	{
 		path: "/exporter/orders",
@@ -93,6 +99,11 @@ export const exporterRoutes = [
 		path: "/exporter/documents",
 		element: <DocumentsPage />,
 		title: "Documents & Certifications",
+	},
+	{
+		path: "/exporter/messages/:id",
+		element: <Messages />,
+		title: "Messages",
 	},
 ];
 
