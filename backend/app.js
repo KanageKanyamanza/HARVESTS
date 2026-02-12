@@ -219,21 +219,14 @@ app.use("/", seoRoutes);
 // app.use('/api/v1/analytics', analyticsRoutes);
 // app.use('/api/v1/admin', adminRoutes);
 
-// Route racine
+// Route racine pour vérifier que l'API est en ligne
 app.get("/", (req, res) => {
 	res.status(200).json({
 		status: "success",
-		message: "Bienvenue sur l'API HARVESTS",
-		description: "Plateforme de commerce agricole",
+		message: "API Harvests opérationnelle",
+		timestamp: new Date().toISOString(),
 		version: process.env.API_VERSION || "1.0.0",
 		environment: process.env.NODE_ENV || "development",
-		timestamp: new Date().toISOString(),
-		endpoints: {
-			health: "/api/v1/health",
-			documentation: "/api/docs",
-			auth: "/api/v1/auth",
-			api: "/api/v1",
-		},
 	});
 });
 
