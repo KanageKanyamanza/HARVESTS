@@ -185,10 +185,18 @@ const Footer = () => {
 						</p>
 
 						<div className="space-y-2 text-sm text-gray-400">
+							<p className="font-semibold text-white/90">
+								UBUNTU BUSINESS BUILDERS (UBB) – SARL
+							</p>
 							<div className="flex items-center space-x-2">
 								<MapPin className="h-4 w-4 flex-shrink-0" />
 								<span>{contactInfo.address}</span>
 							</div>
+							<div className="text-xs space-y-1 opacity-80 mb-2">
+								<p>RCCM : SN.DKR.2026.B.1650</p>
+								<p>NINEA : 012753069</p>
+							</div>
+
 							{contactInfo.phones.map((phone, index) => (
 								<a
 									key={index}
