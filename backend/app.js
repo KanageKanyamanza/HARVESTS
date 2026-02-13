@@ -55,7 +55,10 @@ app.set("views", path.join(__dirname, "views"));
 // MIDDLEWARES GLOBAUX
 // ============================================
 
-// Sécurité - Headers HTTP
+// Compression des réponses (doit être l'un des premiers pour tout compresser)
+app.use(compression);
+
+// Sécurité - Headers HTTP (Helmet)
 app.use(helmet);
 
 // CORS - Cross Origin Resource Sharing
@@ -96,8 +99,8 @@ app.use(xss);
 // Prévention de la pollution des paramètres HTTP
 app.use(hpp);
 
-// Compression des réponses
-app.use(compression);
+// Nettoyage des données contre les attaques NoSQL injection
+app.use(mongoSanitize);
 
 // Logging des activités suspectes
 app.use(suspiciousActivityLogger);

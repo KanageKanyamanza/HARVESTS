@@ -105,6 +105,16 @@ const CloudinaryImage = ({
 		setImageLoaded(false);
 	}, [src]);
 
+	// Délai de sécurité pour forcer l'affichage si l'événement load tarde trop
+	useEffect(() => {
+		const timer = setTimeout(() => {
+			if (!imageLoaded) {
+				setImageLoaded(true);
+			}
+		}, 2000); // 2 secondes max d'attente pour le fondu
+		return () => clearTimeout(timer);
+	}, [imageLoaded]);
+
 	return (
 		<img
 			ref={imgRef}
@@ -116,7 +126,7 @@ const CloudinaryImage = ({
 				:	"(max-width: 400px) 400px, (max-width: 800px) 800px, (max-width: 1200px) 1200px, 1600px"
 			}
 			alt={alt}
-			className={`${className} ${!imageLoaded ? "opacity-0" : "opacity-100"} transition-opacity duration-300`}
+			className={`${className} transition-opacity duration-300 ${!imageLoaded ? "opacity-30" : "opacity-100"}`}
 			loading={loading}
 			width={width}
 			height={height}
