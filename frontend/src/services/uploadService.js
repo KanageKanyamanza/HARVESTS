@@ -1,4 +1,4 @@
-import { apiRequest } from "./api";
+import { apiRequest, API_BASE_URL } from "./api";
 
 const uploadService = {
 	// Upload d'avatar utilisateur
@@ -75,13 +75,14 @@ const uploadService = {
 		if (pathString.includes("cloudinary.com")) return pathString;
 
 		// Pour les anciennes images locales (migration), construire l'URL du serveur
-		const envApiUrl =
-			import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
-		let baseUrl = envApiUrl.replace("/api/v1", "").replace(/\/$/, "");
+		let baseUrl = API_BASE_URL.replace("/api/v1", "").replace(/\/$/, "");
 
 		// S'assurer que le chemin commence par un slash s'il n'en a pas
-		const normalizedPath =
+		let normalizedPath =
 			pathString.startsWith("/") ? pathString : `/${pathString}`;
+
+		// Retirer les préfixes redondants (public/ ou backend/public/)
+		normalizedPath = normalizedPath.replace(/^\/(backend\/)?public\//, "/");
 
 		return `${baseUrl}${normalizedPath}`;
 	},

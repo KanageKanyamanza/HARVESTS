@@ -20,7 +20,7 @@ const DEFAULT_CATEGORIES = [
 const CategoriesSection = () => {
 	const [allCategories, setAllCategories] = useState(DEFAULT_CATEGORIES);
 	const [displayedCategories, setDisplayedCategories] = useState(
-		DEFAULT_CATEGORIES.slice(0, 4)
+		DEFAULT_CATEGORIES.slice(0, 4),
 	);
 	const [categoryProducts, setCategoryProducts] = useState({});
 	const [loading, setLoading] = useState(true);
@@ -88,7 +88,7 @@ const CategoriesSection = () => {
 		} catch (error) {
 			console.error(
 				`Erreur lors du chargement du produit pour ${category}:`,
-				error
+				error,
 			);
 		}
 	};
@@ -113,19 +113,19 @@ const CategoriesSection = () => {
 
 				// Charger un produit pour chaque catégorie affichée
 				await Promise.all(
-					initialCats.map((category) => loadCategoryProduct(category))
+					initialCats.map((category) => loadCategoryProduct(category)),
 				);
 			} else {
 				// Utiliser les catégories par défaut
 				await Promise.all(
-					displayedCategories.map((category) => loadCategoryProduct(category))
+					displayedCategories.map((category) => loadCategoryProduct(category)),
 				);
 			}
 		} catch (err) {
 			console.error("Erreur lors du chargement des catégories:", err);
 			// Utiliser les catégories par défaut en cas d'erreur
 			await Promise.all(
-				displayedCategories.map((category) => loadCategoryProduct(category))
+				displayedCategories.map((category) => loadCategoryProduct(category)),
 			);
 		} finally {
 			setLoading(false);
@@ -187,11 +187,11 @@ const CategoriesSection = () => {
 				</div>
 
 				{/* Contenu */}
-				{loading ? (
+				{loading ?
 					<div className="flex justify-center items-center py-10">
 						<LoadingSpinner />
 					</div>
-				) : error ? (
+				: error ?
 					<div className="text-center py-12">
 						<div className="text-red-600 mb-4">{error}</div>
 						<button
@@ -201,8 +201,7 @@ const CategoriesSection = () => {
 							Réessayer
 						</button>
 					</div>
-				) : (
-					<div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+				:	<div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
 						{displayedCategories.map((category) => {
 							const product = categoryProducts[category];
 							const primaryImage =
@@ -216,8 +215,8 @@ const CategoriesSection = () => {
 									className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
 								>
 									{/* Image du produit */}
-									<div className="aspect-[4/3] relative overflow-hidden bg-harvests-light">
-										{primaryImage ? (
+									<div className="aspect-[4/3] relative overflow-hidden bg-gray-100 flex items-center justify-center">
+										{primaryImage ?
 											<CloudinaryImage
 												src={primaryImage.url}
 												alt={getCategoryLabel(category)}
@@ -227,11 +226,17 @@ const CategoriesSection = () => {
 												quality="auto"
 												crop="fill"
 											/>
-										) : (
-											<div className="w-full h-full flex items-center justify-center text-6xl">
-												{getCategoryIcon(category)}
-											</div>
-										)}
+										:	<>
+												<CloudinaryImage
+													src="/images/placeholder.svg"
+													alt={getCategoryLabel(category)}
+													className="absolute inset-0 w-full h-full object-cover opacity-20 grayscale"
+												/>
+												<div className="relative z-10 text-6xl transform group-hover:scale-125 transition-transform duration-500">
+													{getCategoryIcon(category)}
+												</div>
+											</>
+										}
 										{/* Overlay avec icône */}
 										<div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent">
 											<div className="absolute bottom-0 left-0 right-0 p-4">
@@ -253,7 +258,7 @@ const CategoriesSection = () => {
 							);
 						})}
 					</div>
-				)}
+				}
 			</div>
 		</section>
 	);

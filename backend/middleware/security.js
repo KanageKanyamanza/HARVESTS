@@ -139,8 +139,6 @@ const helmetConfig = helmet({
 	contentSecurityPolicy: {
 		directives: {
 			defaultSrc: ["'self'"],
-			// Utiliser nonce ou hash serait idéal, mais pour compatibilité avec les libs CSS
-			// on utilise unsafe-inline uniquement pour les styles (moins risqué que pour scripts)
 			styleSrc: [
 				"'self'",
 				"'unsafe-inline'",
@@ -152,27 +150,30 @@ const helmetConfig = helmet({
 				"'self'",
 				"data:",
 				"blob:",
+				"http:",
 				"https:",
 				"https://res.cloudinary.com",
+				"*.cloudinary.com",
 			],
-			scriptSrc: ["'self'"],
+			scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
 			connectSrc: [
 				"'self'",
+				"http:",
+				"https:",
 				"https://api.cloudinary.com",
-				"https://res.cloudinary.com",
+				"*.cloudinary.com",
 			],
-			frameSrc: ["'none'"],
+			frameSrc: ["'self'"],
 			objectSrc: ["'none'"],
 			baseUri: ["'self'"],
 			formAction: ["'self'"],
-			upgradeInsecureRequests:
-				process.env.NODE_ENV === "production" ? [] : null,
+			upgradeInsecureRequests: null, // Désactivé car pose problème en dev/prod mixte
 		},
 	},
-	crossOriginEmbedderPolicy: false, // Désactivé pour les uploads Cloudinary
-	crossOriginResourcePolicy: { policy: "cross-origin" }, // Pour Cloudinary
+	crossOriginEmbedderPolicy: false,
+	crossOriginResourcePolicy: { policy: "cross-origin" },
 	hsts: {
-		maxAge: 31536000, // 1 an
+		maxAge: 31536000,
 		includeSubDomains: true,
 		preload: true,
 	},
@@ -381,16 +382,6 @@ const xssMiddleware = (req, res, next) => {
 	// Nettoyer les données de req.body
 	if (req.body && typeof req.body === "object") {
 		req.body = cleanObject(req.body, new WeakSet(), isTokenRoute);
-	}
-
-	// Nettoyer les données de req.query
-	if (req.query && typeof req.query === "object") {
-		req.query = cleanObject(req.query, new WeakSet(), isTokenRoute);
-	}
-
-	// Nettoyer les données de req.params (mais préserver les tokens)
-	if (req.params && typeof req.params === "object") {
-		req.params = cleanObject(req.params, new WeakSet(), isTokenRoute);
 	}
 
 	next();
