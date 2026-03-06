@@ -132,6 +132,7 @@ subscriptionSchema.post("save", async function (doc) {
 				$set: {
 					"subscriptionFeatures.planId": doc.planId,
 					"subscriptionFeatures.maxProducts": plan.features.maxProducts,
+					"subscriptionFeatures.maxWeeklyOrders": plan.features.maxWeeklyOrders,
 					"subscriptionFeatures.trustBadge": plan.features.trustBadge,
 					"subscriptionFeatures.trustBadgeType":
 						plan.features.trustBadgeType || "none",
@@ -154,6 +155,7 @@ subscriptionSchema.statics.getAvailablePlans = function () {
 			annualPrice: 0,
 			features: {
 				maxProducts: 5,
+				maxWeeklyOrders: 5,
 				storePage: "basique",
 				trustBadge: false,
 				featured: false,
@@ -168,7 +170,8 @@ subscriptionSchema.statics.getAvailablePlans = function () {
 			monthlyPrice: 3000,
 			annualPrice: 25000,
 			features: {
-				maxProducts: 30,
+				maxProducts: 15,
+				maxWeeklyOrders: 15,
 				storePage: "personnalisée",
 				trustBadge: true,
 				trustBadgeType: "certified",
@@ -185,6 +188,7 @@ subscriptionSchema.statics.getAvailablePlans = function () {
 			annualPrice: 75000,
 			features: {
 				maxProducts: -1, // Illimité
+				maxWeeklyOrders: -1, // Illimité
 				storePage: "premium_url",
 				trustBadge: true,
 				trustBadgeType: "label",

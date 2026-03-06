@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
+import SEOHead from "../components/seo/SEOHead";
 import { useAuth } from "../hooks/useAuth";
 import { useCart } from "../contexts/CartContext";
 import { useNotifications } from "../contexts/NotificationContext";
@@ -73,7 +73,7 @@ const ProductDetail = () => {
 				`${quantity} article${quantity > 1 ? "s" : ""} ajouté${
 					quantity > 1 ? "s" : ""
 				} au panier`,
-				"Produit ajouté"
+				"Produit ajouté",
 			);
 			setShowAddedToCart(true);
 			setTimeout(() => setShowAddedToCart(false), 3000);
@@ -83,7 +83,7 @@ const ProductDetail = () => {
 	const handleToggleFavorite = async () => {
 		if (!user || user.userType !== "consumer" || !product?._id) {
 			showError(
-				"Vous devez être connecté en tant que consommateur pour gérer vos favoris"
+				"Vous devez être connecté en tant que consommateur pour gérer vos favoris",
 			);
 			return;
 		}
@@ -129,7 +129,7 @@ const ProductDetail = () => {
 						} catch (error) {
 							console.error(
 								"Erreur lors du rechargement du statut favori:",
-								error
+								error,
 							);
 						}
 					};
@@ -265,41 +265,24 @@ const ProductDetail = () => {
 	const canLeaveReview = user?.userType === "consumer";
 	const rawImage = Array.isArray(product?.images) ? product.images[0] : null;
 	const imageUrl =
-		typeof rawImage === "string"
-			? rawImage
-			: rawImage?.url || `${baseUrl || "https://www.harvests.site"}/logo.png`;
+		typeof rawImage === "string" ? rawImage : (
+			rawImage?.url || `${baseUrl || "https://www.harvests.site"}/logo.png`
+		);
 	const canonicalUrl = `${baseUrl || "https://www.harvests.site"}/products/${
 		product?.slug || product?._id || id
 	}`;
 
 	return (
 		<div className="min-h-screen bg-harvests-light">
-			<Helmet>
-				<title>{`${productName} | Harvests`}</title>
-				<meta
-					name="description"
-					content={
-						productDescription ||
-						"Découvrez ce produit disponible sur Harvests."
-					}
-				/>
-				<link rel="canonical" href={canonicalUrl} />
-				<meta property="og:type" content="product" />
-				<meta property="og:title" content={`${productName} | Harvests`} />
-				<meta
-					property="og:description"
-					content={productDescription || "Produit disponible sur Harvests."}
-				/>
-				<meta property="og:url" content={canonicalUrl} />
-				<meta property="og:image" content={imageUrl} />
-				<meta name="twitter:card" content="summary_large_image" />
-				<meta name="twitter:title" content={`${productName} | Harvests`} />
-				<meta
-					name="twitter:description"
-					content={productDescription || "Produit disponible sur Harvests."}
-				/>
-				<meta name="twitter:image" content={imageUrl} />
-			</Helmet>
+			<SEOHead
+				title={productName}
+				description={
+					productDescription || "Découvrez ce produit disponible sur Harvests."
+				}
+				image={imageUrl}
+				type="product"
+				canonical={canonicalUrl}
+			/>
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				<div className="mb-6">
 					<button
@@ -419,16 +402,16 @@ const ProductDetail = () => {
 									key={tab}
 									onClick={() => setActiveTab(tab)}
 									className={`py-2 px-1 border-b-2 font-medium text-sm ${
-										activeTab === tab
-											? "border-harvests-green text-harvests-green"
-											: "border-transparent text-gray-500 hover:text-gray-700"
+										activeTab === tab ?
+											"border-harvests-green text-harvests-green"
+										:	"border-transparent text-gray-500 hover:text-gray-700"
 									}`}
 								>
-									{tab === "description"
-										? "Description"
-										: tab === "specifications"
-										? "Spécifications"
-										: `Avis (${reviews.length})`}
+									{tab === "description" ?
+										"Description"
+									: tab === "specifications" ?
+										"Spécifications"
+									:	`Avis (${reviews.length})`}
 								</button>
 							))}
 						</nav>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
+import SEOHead from "../components/seo/SEOHead";
 import ProductCard from "../components/products/ProductCard";
 import ProductFilters from "../components/products/ProductFilters";
 import ProductPagination from "../components/products/ProductPagination";
@@ -13,8 +13,12 @@ import { FiPackage } from "react-icons/fi";
 const Products = () => {
 	const navigate = useNavigate();
 	const [showFilters, setShowFilters] = useState(false);
-	const baseUrl = (import.meta.env.VITE_FRONTEND_URL || (typeof window !== 'undefined' ? window.location.origin : '') || '').replace(/\/$/, '');
-	
+	const baseUrl = (
+		import.meta.env.VITE_FRONTEND_URL ||
+		(typeof window !== "undefined" ? window.location.origin : "") ||
+		""
+	).replace(/\/$/, "");
+
 	const {
 		products,
 		categories,
@@ -33,7 +37,7 @@ const Products = () => {
 		totalProducts,
 		handleFilterChange,
 		clearFilters,
-		loadProducts
+		loadProducts,
 	} = useProducts();
 
 	// Synchronisation URL (utilise les valeurs debouncées internes)
@@ -43,7 +47,7 @@ const Products = () => {
 		sortBy,
 		isFeatured,
 		priceRange,
-		currentPage
+		currentPage,
 	);
 
 	const handleClearFilters = () => {
@@ -51,19 +55,19 @@ const Products = () => {
 		navigate("/products");
 	};
 
-	const pageTitle = selectedCategory
-		? `Produits : ${getCategoryLabel(selectedCategory)} | Harvests`
-		: isFeatured
-		? "Produits mis en avant | Harvests"
-		: "Nos produits | Harvests";
+	const pageTitle =
+		selectedCategory ? `Produits : ${getCategoryLabel(selectedCategory)}`
+		: isFeatured ? "Produits mis en avant"
+		: "Nos produits";
 
-	const pageDescription = selectedCategory
-		? `Découvrez notre sélection de ${getCategoryLabel(selectedCategory).toLowerCase()} : produits frais, circuits courts et logistique fiable.`
-		: isFeatured
-		? "Nos produits mis en avant : qualité, fraîcheur et livraison rapide avec Harvests."
-		: "Parcourez tous les produits Harvests : qualité, fraîcheur et livraison assurée.";
+	const pageDescription =
+		selectedCategory ?
+			`Découvrez notre sélection de ${getCategoryLabel(selectedCategory).toLowerCase()} : produits frais, circuits courts et logistique fiable.`
+		: isFeatured ?
+			"Nos produits mis en avant : qualité, fraîcheur et livraison rapide avec Harvests."
+		:	"Parcourez tous les produits Harvests : qualité, fraîcheur et livraison assurée.";
 
-	const canonicalUrl = `${baseUrl || 'https://www.harvests.site'}/products`;
+	const canonicalUrl = `${baseUrl || "https://www.harvests.site"}/products`;
 
 	if (loading && products.length === 0) {
 		return (
@@ -75,41 +79,27 @@ const Products = () => {
 
 	return (
 		<div className="min-h-screen bg-harvests-light">
-			<Helmet>
-				<title>{pageTitle}</title>
-				<meta name="description" content={pageDescription} />
-				<link rel="canonical" href={canonicalUrl} />
-				<meta property="og:type" content="website" />
-				<meta property="og:title" content={pageTitle} />
-				<meta property="og:description" content={pageDescription} />
-				<meta property="og:url" content={canonicalUrl} />
-				<meta property="og:image" content={`${baseUrl || 'https://www.harvests.site'}/logo.png`} />
-				<meta name="twitter:card" content="summary_large_image" />
-				<meta name="twitter:title" content={pageTitle} />
-				<meta name="twitter:description" content={pageDescription} />
-				<meta name="twitter:image" content={`${baseUrl || 'https://www.harvests.site'}/logo.png`} />
-			</Helmet>
+			<SEOHead title={pageTitle} description={pageDescription} />
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				{/* En-tête */}
 				<div className="mb-8">
 					<h1 className="text-3xl font-bold text-gray-900 mb-2">
-						{selectedCategory
-							? getCategoryLabel(selectedCategory)
-							: isFeatured
-							? "Produits Mis en Avant"
-							: "Nos Produits"}
+						{selectedCategory ?
+							getCategoryLabel(selectedCategory)
+						: isFeatured ?
+							"Produits Mis en Avant"
+						:	"Nos Produits"}
 					</h1>
 					<p className="text-gray-600">
-						{selectedCategory
-							? `Découvrez notre sélection de ${getCategoryLabel(
-									selectedCategory
-							  ).toLowerCase()}`
-							: isFeatured
-							? "Découvrez notre sélection de produits mis en avant"
-							: "Découvrez nos produits frais et de qualité"}
+						{selectedCategory ?
+							`Découvrez notre sélection de ${getCategoryLabel(
+								selectedCategory,
+							).toLowerCase()}`
+						: isFeatured ?
+							"Découvrez notre sélection de produits mis en avant"
+						:	"Découvrez nos produits frais et de qualité"}
 						{totalProducts > 0 && ` (${totalProducts} produits)`}
 					</p>
-					
 				</div>
 
 				{/* Barre de recherche et filtres */}
@@ -143,7 +133,7 @@ const Products = () => {
 				</div>
 
 				{/* Liste des produits */}
-				{error ? (
+				{error ?
 					<div className="text-center py-12">
 						<div className="text-red-600 mb-4">{error}</div>
 						<button
@@ -153,7 +143,7 @@ const Products = () => {
 							Réessayer
 						</button>
 					</div>
-				) : products.length > 0 ? (
+				: products.length > 0 ?
 					<>
 						<div className="grid gap-3 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 							{products.map((product) => (
@@ -168,20 +158,21 @@ const Products = () => {
 							onPageChange={setCurrentPage}
 						/>
 					</>
-				) : (
-					<div className="text-center py-12">
+				:	<div className="text-center py-12">
 						<FiPackage className="mx-auto h-12 w-12 text-gray-400 mb-4" />
 						<h3 className="text-lg font-medium text-gray-900 mb-2">
 							Aucun produit trouvé
 						</h3>
 						<p className="text-gray-500 mb-4">
-							{searchQuery ||
-							selectedCategory ||
-							isFeatured ||
-							priceRange.min ||
-							priceRange.max
-								? "Essayez de modifier vos critères de recherche"
-								: "Aucun produit disponible pour le moment"}
+							{(
+								searchQuery ||
+								selectedCategory ||
+								isFeatured ||
+								priceRange.min ||
+								priceRange.max
+							) ?
+								"Essayez de modifier vos critères de recherche"
+							:	"Aucun produit disponible pour le moment"}
 						</p>
 						{(searchQuery ||
 							selectedCategory ||
@@ -196,7 +187,7 @@ const Products = () => {
 							</button>
 						)}
 					</div>
-				)}
+				}
 			</div>
 		</div>
 	);

@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import SEOHead from "../components/seo/SEOHead";
 import {
 	Check,
 	Heart,
@@ -90,6 +91,7 @@ const About = () => {
 
 	return (
 		<div className="min-h-screen bg-gradient-to-b from-harvests-light to-white">
+			<SEOHead />
 			{/* Hero Section */}
 			<section className="bg-gradient-to-r from-primary-600 to-primary-800 text-white py-20">
 				<div className="container-xl px-4">

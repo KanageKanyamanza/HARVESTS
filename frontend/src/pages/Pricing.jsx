@@ -1,13 +1,8 @@
 import React from "react";
-import {
-	FiCheck,
-	FiX,
-	FiStar,
-	FiTrendingUp,
-	FiZap,
-} from "react-icons/fi";
+import { FiCheck, FiX, FiStar, FiTrendingUp, FiZap } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import SEOHead from "../components/seo/SEOHead";
 
 const Pricing = () => {
 	const { isAuthenticated } = useAuth();
@@ -25,7 +20,8 @@ const Pricing = () => {
 				"Idéal pour les producteurs débutants souhaitant tester la plateforme sans engagement.",
 			features: [
 				{ text: "Création de compte vendeur simple", included: true },
-				{ text: "Mise en ligne de 2 à 5 produits maximum", included: true },
+				{ text: "Mise en ligne de 5 produits maximum", included: true },
+				{ text: "Limite de 5 commandes reçues / semaine", included: true },
 				{ text: "Profil vendeur (nom, localisation, contact)", included: true },
 				{ text: "Accès aux messages entrants de clients", included: true },
 				{ text: "Visibilité standard (pas de mise en avant)", included: true },
@@ -52,7 +48,8 @@ const Pricing = () => {
 			description:
 				"Idéal pour les petits producteurs, coopératives ou transformateurs souhaitant développer leur visibilité et leurs ventes.",
 			features: [
-				{ text: "Mise en ligne de 20 à 30 produits", included: true },
+				{ text: "Mise en ligne de 15 produits maximum", included: true },
+				{ text: "Limite de 15 commandes reçues / semaine", included: true },
 				{
 					text: "Fiche boutique personnalisée avec logo et galerie photos",
 					included: true,
@@ -63,7 +60,6 @@ const Pricing = () => {
 					included: true,
 				},
 				{ text: 'Badge "Producteur certifié"', included: true },
-				{ text: "Accès illimité aux commandes et messages", included: true },
 				{ text: "Support prioritaire via WhatsApp", included: true },
 				{ text: "Produits illimités", included: false },
 				{ text: "Mise en avant sur page d'accueil", included: false },
@@ -88,6 +84,7 @@ const Pricing = () => {
 				"Idéal pour les producteurs structurés, coopératives sérieuses, distributeurs et exportateurs.",
 			features: [
 				{ text: "Produits illimités sur la boutique", included: true },
+				{ text: "Commandes hebdomadaires illimitées", included: true },
 				{
 					text: "Badge de confiance et certification officielle",
 					included: true,
@@ -122,8 +119,14 @@ const Pricing = () => {
 	const comparisonTable = [
 		{
 			feature: "Produits publiables",
-			gratuit: "2–5",
-			standard: "20–30",
+			gratuit: "5 max",
+			standard: "15 max",
+			premium: "Illimité",
+		},
+		{
+			feature: "Commandes Hebdo.",
+			gratuit: "5 max",
+			standard: "15 max",
 			premium: "Illimité",
 		},
 		{
@@ -181,6 +184,7 @@ const Pricing = () => {
 
 	return (
 		<div className="min-h-screen bg-gray-50">
+			<SEOHead />
 			{/* Hero Section */}
 			<div className="bg-gradient-to-br from-green-600 to-emerald-700 text-white py-16">
 				<div className="container mx-auto px-4">
@@ -218,40 +222,38 @@ const Pricing = () => {
 
 							<div
 								className={`p-4 bg-gradient-to-br ${
-									plan.color === "gray"
-										? "from-gray-100 to-gray-200"
-										: plan.color === "green"
-										? "from-green-50 to-green-100"
-										: "from-emerald-50 to-emerald-100"
+									plan.color === "gray" ? "from-gray-100 to-gray-200"
+									: plan.color === "green" ? "from-green-50 to-green-100"
+									: "from-emerald-50 to-emerald-100"
 								}`}
 							>
 								<div className="flex items-center gap-4">
-                <div
-									className={`inline-flex p-4 rounded-full ${
-										plan.color === "gray"
-											? "bg-gray-300"
-											: plan.color === "green"
-											? "bg-green-200"
+									<div
+										className={`inline-flex p-4 rounded-full ${
+											plan.color === "gray" ? "bg-gray-300"
+											: plan.color === "green" ? "bg-green-200"
 											: "bg-emerald-200"
-									} text-${
-										plan.color === "gray" ? "gray" : plan.color
-									}-700 mb-4`}
-								>
-									{plan.icon}
-								</div>
+										} text-${
+											plan.color === "gray" ? "gray" : plan.color
+										}-700 mb-4`}
+									>
+										{plan.icon}
+									</div>
 
-								<div>
-                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-								<p className="text-sm text-gray-600 mb-4">{plan.subtitle}</p>
-                </div>
-                </div>
+									<div>
+										<h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+										<p className="text-sm text-gray-600 mb-4">
+											{plan.subtitle}
+										</p>
+									</div>
+								</div>
 
 								<div className="mb-6">
 									<div className="flex items-baseline">
 										<span className="text-4xl font-bold">
-											{plan.monthlyPrice === 0
-												? "0"
-												: formatPrice(plan.monthlyPrice)}
+											{plan.monthlyPrice === 0 ?
+												"0"
+											:	formatPrice(plan.monthlyPrice)}
 										</span>
 										<span className="text-gray-600 ml-2">FCFA</span>
 										<span className="text-gray-500 ml-2 text-sm">/mois</span>
@@ -265,7 +267,7 @@ const Pricing = () => {
 													(remise{" "}
 													{Math.round(
 														(1 - plan.annualPrice / (plan.monthlyPrice * 12)) *
-															100
+															100,
 													)}
 													%)
 												</span>
@@ -285,16 +287,16 @@ const Pricing = () => {
 										}
 									}}
 									className={`block w-full text-center py-3 px-6 rounded-lg font-semibold transition-colors ${
-										plan.color === "gray"
-											? "bg-gray-600 text-white hover:bg-gray-700"
-											: plan.color === "green"
-											? "bg-green-600 text-white hover:bg-green-700"
-											: "bg-emerald-600 text-white hover:bg-emerald-700"
+										plan.color === "gray" ?
+											"bg-gray-600 text-white hover:bg-gray-700"
+										: plan.color === "green" ?
+											"bg-green-600 text-white hover:bg-green-700"
+										:	"bg-emerald-600 text-white hover:bg-emerald-700"
 									}`}
 								>
-									{isAuthenticated && plan.paymentLink
-										? "Procéder au paiement"
-										: plan.cta}
+									{isAuthenticated && plan.paymentLink ?
+										"Procéder au paiement"
+									:	plan.cta}
 								</button>
 							</div>
 
@@ -305,16 +307,15 @@ const Pricing = () => {
 								<ul className="space-y-3">
 									{plan.features.map((feature, index) => (
 										<li key={index} className="flex items-start">
-											{feature.included ? (
+											{feature.included ?
 												<FiCheck className="text-green-500 mr-2 mt-1 flex-shrink-0" />
-											) : (
-												<FiX className="text-gray-400 mr-2 mt-1 flex-shrink-0" />
-											)}
+											:	<FiX className="text-gray-400 mr-2 mt-1 flex-shrink-0" />
+											}
 											<span
 												className={
-													feature.included
-														? "text-gray-700"
-														: "text-gray-400 line-through"
+													feature.included ? "text-gray-700" : (
+														"text-gray-400 line-through"
+													)
 												}
 											>
 												{feature.text}

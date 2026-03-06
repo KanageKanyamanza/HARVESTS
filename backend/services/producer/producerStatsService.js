@@ -93,6 +93,20 @@ async function getMyStats(producerId) {
 			Math.round((repeatCustomers / uniqueCustomers) * 100)
 		:	0;
 
+	// Calculer les commandes de la semaine en cours (Lundi à Dimanche)
+	const now = new Date();
+	const day = now.getDay();
+	const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+	const startOfWeek = new Date(now.setDate(diff));
+	startOfWeek.setHours(0, 0, 0, 0);
+
+	const weeklyOrders = orders.filter(
+		(o) => new Date(o.createdAt) >= startOfWeek && o.status !== "cancelled",
+	).length;
+
+	const producer = await Producer.findById(producerId);
+	const maxWeeklyOrders = producer?.subscriptionFeatures?.maxWeeklyOrders || 5;
+
 	return {
 		totalRevenue,
 		totalOrders: orders.length,
@@ -105,6 +119,8 @@ async function getMyStats(producerId) {
 		customerRetentionRate,
 		totalProducts: products.length,
 		activeProducts,
+		weeklyOrders,
+		maxWeeklyOrders,
 	};
 }
 

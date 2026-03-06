@@ -133,6 +133,21 @@ exports.getExportStats = catchAsync(async (req, res, next) => {
 			)
 		:	exporter.exportStats?.successfulDeliveryRate || 0;
 
+	// Calculer le quota hebdomadaire
+	const nowWeekly = new Date();
+	const day = nowWeekly.getDay();
+	const diff = nowWeekly.getDate() - day + (day === 0 ? -6 : 1);
+	const startOfWeek = new Date(nowWeekly.setDate(diff));
+	startOfWeek.setHours(0, 0, 0, 0);
+
+	const weeklyOrders = await Order.countDocuments({
+		"delivery.transporter": exporter._id,
+		createdAt: { $gte: startOfWeek },
+		status: { $ne: "cancelled" },
+	});
+
+	const maxWeeklyOrders = exporter.subscriptionFeatures?.maxWeeklyOrders || 5;
+
 	const stats = {
 		profileViews: profileViews,
 		ratings: {
@@ -163,6 +178,8 @@ exports.getExportStats = catchAsync(async (req, res, next) => {
 		totalProducts: exportProductsCount,
 		activeProducts: exportProductsCount,
 		totalOrders: deliveryData.totalExports || 0,
+		weeklyOrders,
+		maxWeeklyOrders,
 	};
 
 	res.status(200).json({

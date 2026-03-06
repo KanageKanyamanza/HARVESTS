@@ -148,6 +148,7 @@ const baseUserSchema = new mongoose.Schema(
 				default: "gratuit",
 			},
 			maxProducts: { type: Number, default: 5 },
+			maxWeeklyOrders: { type: Number, default: 5 },
 			trustBadge: { type: Boolean, default: false },
 			trustBadgeType: {
 				type: String,

@@ -49,7 +49,7 @@ function addNotificationCreators(notificationSchema) {
 		if (order.buyer) {
 			const buyerId = order.buyer._id || order.buyer;
 			const buyer = await User.findById(buyerId).select(
-				"firstName lastName email phone"
+				"firstName lastName email phone",
 			);
 			if (buyer) {
 				buyerInfo = {
@@ -74,7 +74,7 @@ function addNotificationCreators(notificationSchema) {
 			}
 
 			const seller = await User.findById(sellerId).select(
-				"firstName lastName companyName farmName restaurantName businessName name userType"
+				"firstName lastName companyName farmName restaurantName businessName name userType",
 			);
 			if (!seller) {
 				sellerInfoCache.set(sellerId, null);
@@ -130,21 +130,23 @@ function addNotificationCreators(notificationSchema) {
 					unitPrice: item.unitPrice || 0,
 					totalPrice: item.totalPrice || 0,
 					status: productStatus,
-					seller: sellerId
-						? {
+					seller:
+						sellerId ?
+							{
 								id: sellerId,
 								name: sellerInfo?.name || null,
 								type: sellerInfo?.userType || null,
-						  }
-						: null,
-					segment: segmentInfo
-						? {
+							}
+						:	null,
+					segment:
+						segmentInfo ?
+							{
 								id: segmentInfo.segmentId || null,
 								status: segmentInfo.status || null,
 								sellerId,
 								sellerName: segmentInfo.sellerName || sellerInfo?.name || null,
-						  }
-						: null,
+							}
+						:	null,
 				});
 			}
 		}
@@ -182,13 +184,13 @@ function addNotificationCreators(notificationSchema) {
 					const sellerInfo = await getSellerInfo(sellerId);
 					const segmentInfo = segmentInfoMap.get(sellerId) || null;
 					const sellerProducts = productsDetails.filter(
-						(product) => product.seller?.id === sellerId
+						(product) => product.seller?.id === sellerId,
 					);
 					const productsForSeller =
 						sellerProducts.length > 0 ? sellerProducts : productsDetails;
 					const sellerAmount = productsForSeller.reduce(
 						(sum, product) => sum + (Number(product.totalPrice) || 0),
-						0
+						0,
 					);
 					return this.createNotification({
 						recipient: sellerId,
@@ -207,8 +209,9 @@ function addNotificationCreators(notificationSchema) {
 							currency: order.currency,
 							buyer: buyerInfo,
 							status: segmentInfo?.status || order.status,
-							segment: segmentInfo
-								? {
+							segment:
+								segmentInfo ?
+									{
 										id: segmentInfo.segmentId || null,
 										status: segmentInfo.status || null,
 										sellerId,
@@ -217,8 +220,8 @@ function addNotificationCreators(notificationSchema) {
 											sellerProducts[0]?.seller?.name ||
 											sellerInfo?.name ||
 											null,
-								  }
-								: null,
+									}
+								:	null,
 							products: productsForSeller,
 						},
 						actions: [
@@ -234,10 +237,10 @@ function addNotificationCreators(notificationSchema) {
 							push: { enabled: true },
 						},
 					});
-				}
+				},
 			);
 			const sellerNotifications = await Promise.all(
-				sellerNotificationsPromises
+				sellerNotificationsPromises,
 			);
 			notifications.push(...sellerNotifications);
 		}
@@ -284,13 +287,13 @@ function addNotificationCreators(notificationSchema) {
 
 			const User = mongoose.model("User");
 			const transporter = await User.findById(transporterId).select(
-				"firstName lastName companyName userType"
+				"firstName lastName companyName userType",
 			);
 			const transporterName =
 				transporter?.companyName ||
-				(transporter?.firstName && transporter?.lastName
-					? `${transporter.firstName} ${transporter.lastName}`
-					: "Livreur");
+				(transporter?.firstName && transporter?.lastName ?
+					`${transporter.firstName} ${transporter.lastName}`
+				:	"Livreur");
 
 			const transporterNotification = this.createNotification({
 				recipient: transporterId,
@@ -332,7 +335,7 @@ function addNotificationCreators(notificationSchema) {
 
 	notificationSchema.statics.notifyProductApproved = function (
 		product,
-		explicitOwner = null
+		explicitOwner = null,
 	) {
 		const ownersMap = new Map();
 
@@ -363,7 +366,7 @@ function addNotificationCreators(notificationSchema) {
 				"Notification produit approuvé : aucun propriétaire identifié",
 				{
 					productId: product?._id?.toString(),
-				}
+				},
 			);
 			return Promise.resolve([]);
 		}
@@ -393,10 +396,41 @@ function addNotificationCreators(notificationSchema) {
 					email: { enabled: true },
 					push: { enabled: true },
 				},
-			})
+			}),
 		);
 
 		return Promise.all(notifications);
+	};
+
+	notificationSchema.statics.notifyQuotaReached = async function (
+		sellerId,
+		planName,
+		limit,
+	) {
+		return this.createNotification({
+			recipient: sellerId,
+			type: "quota_reached",
+			category: "account",
+			title: "Quota hebdomadaire atteint",
+			message: `Une tentative de commande a été bloquée car vous avez atteint votre quota de ${limit} commandes cette semaine avec votre plan ${planName}. Pensez à passer au plan supérieur.`,
+			data: {
+				sellerId,
+				planName,
+				limit,
+			},
+			actions: [
+				{
+					type: "view",
+					label: "Changer de plan",
+					url: buildFrontendUrl("/pricing"),
+				},
+			],
+			channels: {
+				inApp: { enabled: true },
+				email: { enabled: true },
+				push: { enabled: true },
+			},
+		});
 	};
 }
 
