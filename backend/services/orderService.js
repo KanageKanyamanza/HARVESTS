@@ -391,14 +391,29 @@ async function createOrder(orderData, user) {
 	}
 
 	// Vérifier les limites de commandes hebdomadaires pour les vendeurs
+	const User = mongoose.model("User");
 	const { checkWeeklyOrderLimit } = require("../utils/subscriptionLimits");
 	for (const sellerId of uniqueSellerIds) {
 		try {
 			await checkWeeklyOrderLimit(sellerId);
 		} catch (error) {
-			// On wrap l'erreur pour la rendre plus claire pour le client
+			// On récupère les détails du vendeur pour un message plus clair
+			const sellerUser = await User.findById(sellerId);
+			const sellerName =
+				sellerUser?.farmName ||
+				sellerUser?.companyName ||
+				`${sellerUser?.firstName || ""} ${sellerUser?.lastName || ""}`.trim() ||
+				"un vendeur";
+
+			// Identifier les produits concernés dans le panier
+			const affectedProducts = processedItems
+				.filter((item) => item.seller.toString() === sellerId.toString())
+				.map((item) => item.productSnapshot.name);
+
+			const productsList = affectedProducts.join(", ");
+
 			throw new Error(
-				`Un ou plusieurs vendeurs dans votre panier ont atteint leur limite de commandes hebdomadaire (Plan Gratuit ou Standard).`,
+				`Erreur : Le vendeur "${sellerName}" a atteint sa limite de commandes hebdomadaire. Produits concernés : ${productsList}. Veuillez les retirer pour continuer.`,
 			);
 		}
 	}

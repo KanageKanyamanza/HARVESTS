@@ -89,6 +89,12 @@ exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
 		);
 	}
 
+	// Assigner le transporteur à la commande
+	const transporterName =
+		transporter.companyName ||
+		`${transporter.firstName || ""} ${transporter.lastName || ""}`.trim() ||
+		"Le transporteur";
+
 	// Vérifier la limite hebdomadaire de commandes pour le transporteur
 	const {
 		checkWeeklyOrderLimit,
@@ -98,7 +104,7 @@ exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
 	} catch (error) {
 		return next(
 			new AppError(
-				`${transporterName} a atteint sa limite hebdomadaire de commandes pour son plan actuel.`,
+				`Erreur : ${transporterName} a atteint sa limite hebdomadaire de commandes. Veuillez choisir un autre transporteur ou demander au transporteur de mettre à jour son plan.`,
 				400,
 			),
 		);
@@ -156,10 +162,6 @@ exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
 	}
 
 	// Assigner le transporteur à la commande
-	const transporterName =
-		transporter.companyName ||
-		`${transporter.firstName} ${transporter.lastName}`;
-
 	if (isReassignment && previousTransporterId) {
 		const previousTransporter = await User.findById(
 			previousTransporterId,
