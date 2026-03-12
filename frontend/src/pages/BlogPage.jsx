@@ -9,6 +9,7 @@ import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
 import { blogApiService } from "../services/blogService";
+import SEOHead from "../components/seo/SEOHead";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import CloudinaryImage from "../components/common/CloudinaryImage";
 import { FiSearch, FiCalendar, FiEye, FiHeart, FiTag } from "react-icons/fi";
@@ -23,7 +24,7 @@ const formatDate = (dateString, language = "fr") => {
 	};
 	return date.toLocaleDateString(
 		language === "fr" ? "fr-FR" : "en-US",
-		options
+		options,
 	);
 };
 
@@ -39,19 +40,19 @@ const BlogPage = () => {
 
 	// Filtres
 	const [searchTerm, setSearchTerm] = useState(
-		searchParams.get("search") || ""
+		searchParams.get("search") || "",
 	);
 	const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(
-		searchParams.get("search") || ""
+		searchParams.get("search") || "",
 	);
 	const [selectedType, setSelectedType] = useState(
-		searchParams.get("type") || ""
+		searchParams.get("type") || "",
 	);
 	const [selectedCategory, setSelectedCategory] = useState(
-		searchParams.get("category") || ""
+		searchParams.get("category") || "",
 	);
 	const [currentPage, setCurrentPage] = useState(
-		parseInt(searchParams.get("page")) || 1
+		parseInt(searchParams.get("page")) || 1,
 	);
 	const [totalPages, setTotalPages] = useState(1);
 	const language = i18n.language || "fr";
@@ -77,11 +78,11 @@ const BlogPage = () => {
 		const title = t("seo.blog.title", "Blog | Harvests");
 		const description = t(
 			"seo.blog.description",
-			"Découvrez nos articles, actualités et ressources sur l'agriculture, la logistique et les circuits courts au Sénégal."
+			"Découvrez nos articles, actualités et ressources sur l'agriculture, la logistique et les circuits courts au Sénégal.",
 		);
 		const keywords = t(
 			"seo.blog.keywords",
-			"blog, articles, actualités, agriculture, logistique, circuits courts, Sénégal"
+			"blog, articles, actualités, agriculture, logistique, circuits courts, Sénégal",
 		);
 
 		return {
@@ -153,7 +154,13 @@ const BlogPage = () => {
 			}
 			// eslint-disable-next-line react-hooks/exhaustive-deps
 		},
-		[currentPage, debouncedSearchTerm, selectedType, selectedCategory, language]
+		[
+			currentPage,
+			debouncedSearchTerm,
+			selectedType,
+			selectedCategory,
+			language,
+		],
 	);
 
 	// Debounce pour la recherche (500ms)
@@ -207,7 +214,7 @@ const BlogPage = () => {
 						return { ...b, likes, isLiked };
 					}
 					return b;
-				})
+				}),
 			);
 		} catch (error) {
 			console.error("Erreur lors du like:", error);
@@ -216,8 +223,8 @@ const BlogPage = () => {
 				alert(
 					t(
 						"blog.loginRequired",
-						"Vous devez être connecté pour aimer cet article"
-					)
+						"Vous devez être connecté pour aimer cet article",
+					),
 				);
 			}
 		}
@@ -250,21 +257,7 @@ const BlogPage = () => {
 
 	return (
 		<div className="min-h-screen bg-harvests-light">
-			<Helmet>
-				<title>{seoConfig.title}</title>
-				<meta name="description" content={seoConfig.description} />
-				<meta name="keywords" content={seoConfig.keywords} />
-				<link rel="canonical" href={seoConfig.canonical} />
-				<meta property="og:type" content={seoConfig.type} />
-				<meta property="og:title" content={seoConfig.title} />
-				<meta property="og:description" content={seoConfig.description} />
-				<meta property="og:url" content={seoConfig.canonical} />
-				<meta property="og:image" content={seoConfig.image} />
-				<meta name="twitter:card" content="summary_large_image" />
-				<meta name="twitter:title" content={seoConfig.title} />
-				<meta name="twitter:description" content={seoConfig.description} />
-				<meta name="twitter:image" content={seoConfig.image} />
-			</Helmet>
+			<SEOHead {...seoConfig} />
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				{/* En-tête */}
 				<header className="mb-8">
@@ -274,7 +267,7 @@ const BlogPage = () => {
 					<p className="text-gray-600 text-lg">
 						{t(
 							"blog.subtitle",
-							"Découvrez nos articles, actualités et ressources"
+							"Découvrez nos articles, actualités et ressources",
 						)}
 					</p>
 				</header>
@@ -339,7 +332,7 @@ const BlogPage = () => {
 							<option value="ressources-humaines">
 								{t(
 									"blog.categories.ressources-humaines",
-									"Ressources Humaines"
+									"Ressources Humaines",
 								)}
 							</option>
 							<option value="marketing">
@@ -356,7 +349,7 @@ const BlogPage = () => {
 				</div>
 
 				{/* Liste des blogs */}
-				{error ? (
+				{error ?
 					<section
 						className="text-center py-12"
 						aria-label="Erreur de chargement"
@@ -369,7 +362,7 @@ const BlogPage = () => {
 							{t("blog.retry", "Réessayer")}
 						</button>
 					</section>
-				) : blogs.length > 0 ? (
+				: blogs.length > 0 ?
 					<>
 						<section
 							className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
@@ -418,7 +411,7 @@ const BlogPage = () => {
 										<p className="text-gray-600 text-sm mb-4 line-clamp-3">
 											{getLocalizedContent(
 												blog.excerpt,
-												"Aucun extrait disponible"
+												"Aucun extrait disponible",
 											)}
 										</p>
 
@@ -452,9 +445,9 @@ const BlogPage = () => {
 											<button
 												onClick={(e) => handleLike(e, blog._id)}
 												className={`flex items-center gap-1 transition-colors ${
-													blog.isLiked
-														? "text-red-500 hover:text-red-600"
-														: "hover:text-red-500"
+													blog.isLiked ?
+														"text-red-500 hover:text-red-600"
+													:	"hover:text-red-500"
 												}`}
 											>
 												<FiHeart
@@ -507,9 +500,9 @@ const BlogPage = () => {
 												key={page}
 												onClick={() => setCurrentPage(page)}
 												className={`px-3 py-2 text-sm font-medium rounded-md ${
-													isCurrentPage
-														? "bg-green-600 text-white"
-														: "text-gray-700 bg-white border border-gray-300 hover:bg-harvests-light"
+													isCurrentPage ?
+														"bg-green-600 text-white"
+													:	"text-gray-700 bg-white border border-gray-300 hover:bg-harvests-light"
 												}`}
 											>
 												{page}
@@ -530,19 +523,18 @@ const BlogPage = () => {
 							</div>
 						)}
 					</>
-				) : (
-					<section className="text-center py-12" aria-label="Aucun résultat">
+				:	<section className="text-center py-12" aria-label="Aucun résultat">
 						<h2 className="text-lg font-medium text-gray-900 mb-2">
 							{t("blog.noBlogs", "Aucun blog trouvé")}
 						</h2>
 						<p className="text-gray-500">
 							{t(
 								"blog.noBlogsDescription",
-								"Essayez de modifier vos critères de recherche"
+								"Essayez de modifier vos critères de recherche",
 							)}
 						</p>
 					</section>
-				)}
+				}
 			</div>
 		</div>
 	);

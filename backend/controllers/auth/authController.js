@@ -131,7 +131,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 	const backendUrl =
 		process.env.BACKEND_URL ||
 		process.env.API_URL ||
-		"https://harvests.onrender.com";
+		"https://harvests-bp63.onrender.com";
 	const verifyURL = `${backendUrl}/api/v1/auth/verify-email/${verifyToken}`;
 
 	emailQueue.addToQueue({

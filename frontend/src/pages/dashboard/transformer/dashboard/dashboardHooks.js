@@ -31,6 +31,8 @@ export const useTransformerDashboardStats = () => {
 		averageRating: 0,
 		pendingOrders: 0,
 		monthlyGrowth: 0,
+		weeklyOrders: 0,
+		maxWeeklyOrders: 0,
 	});
 	const [recentOrders, setRecentOrders] = useState([]);
 	const [salesChartData, setSalesChartData] = useState([]);
@@ -69,6 +71,8 @@ export const useTransformerDashboardStats = () => {
 				averageRating: statsData.averageRating || 0,
 				pendingOrders: statsData.pendingOrders || 0,
 				monthlyGrowth: statsData.monthlyGrowth || 0,
+				weeklyOrders: statsData.weeklyOrders || 0,
+				maxWeeklyOrders: statsData.maxWeeklyOrders || 0,
 			});
 
 			// Traitement des commandes
