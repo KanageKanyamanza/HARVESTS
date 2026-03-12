@@ -18,14 +18,14 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
   // Vérifier si le token est présent
   if (!token || token.trim() === '') {
     console.error('❌ Token manquant ou vide');
-    const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://www.harvests.site';
     return res.redirect(`${frontendUrl}/verify-email?error=missing_token`);
   }
   
   // Vérifier la longueur du token (devrait être 64 caractères hex)
   if (token.length !== 64) {
     console.error(`❌ Token de longueur invalide: ${token.length} (attendu: 64)`);
-    const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://www.harvests.site';
     return res.redirect(`${frontendUrl}/verify-email?error=invalid_token_length`);
   }
   
@@ -41,7 +41,7 @@ exports.verifyEmail = catchAsync(async (req, res, next) => {
   });
 
   // Frontend URL pour redirection
-  const frontendUrl = process.env.FRONTEND_URL || 'https://harvests-khaki.vercel.app';
+  const frontendUrl = process.env.FRONTEND_URL || 'https://www.harvests.site';
 
   // 2) Si le token n'a pas expiré et qu'il y a un utilisateur, définir l'email comme vérifié
   if (!user) {
@@ -98,7 +98,7 @@ exports.resendVerificationEmail = catchAsync(async (req, res, next) => {
 
   try {
     // Le lien pointe vers le backend qui redirigera vers la page de vérification du frontend
-    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'https://harvests.onrender.com';
+    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'https://harvests-bp63.onrender.com';
     const verifyURL = `${backendUrl}/api/v1/auth/verify-email/${verifyToken}`;
     
     await new Email(user, verifyURL, req.language).sendWelcome();
@@ -146,7 +146,7 @@ exports.retryEmailVerification = catchAsync(async (req, res, next) => {
 
   // Ajouter à la queue d'envoi
   // Le lien pointe vers le backend qui redirigera vers la page de vérification du frontend
-  const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'https://harvests.onrender.com';
+  const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'https://harvests-bp63.onrender.com';
   const verifyURL = `${backendUrl}/api/v1/auth/verify-email/${verifyToken}`;
   
   emailQueue.addToQueue({

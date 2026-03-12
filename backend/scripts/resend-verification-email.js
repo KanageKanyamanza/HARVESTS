@@ -69,7 +69,7 @@ const resendVerificationEmail = async (email) => {
     await user.save({ validateBeforeSave: false });
 
     // Construire l'URL de vérification
-    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'https://harvests.onrender.com';
+    const backendUrl = process.env.BACKEND_URL || process.env.API_URL || 'https://harvests-bp63.onrender.com';
     const verifyURL = `${backendUrl}/api/v1/auth/verify-email/${verifyToken}`;
 
     // Envoyer l'email

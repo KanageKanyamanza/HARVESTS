@@ -56,7 +56,7 @@ exports.subscribe = catchAsync(async (req, res, next) => {
 				imageUrl:
 					"https://res.cloudinary.com/dmykbxyyy/image/upload/v1705000000/harvests/newsletter-welcome.jpg", // Optional: generic welcome image
 				user: { email: subscriber.email, firstName: "Abonné" },
-				verifyURL: process.env.FRONTEND_URL || "https://harvests.onrender.com",
+				verifyURL: process.env.FRONTEND_URL || "https://harvests-bp63.onrender.com",
 				// No newsletterId for welcome email to avoid tracking errors or confusion
 			});
 		} catch (error) {
@@ -248,7 +248,7 @@ exports.sendNewsletter = catchAsync(async (req, res, next) => {
 
 	// Get frontend URL for links
 	const frontendUrl =
-		process.env.FRONTEND_URL || "https://harvests.onrender.com";
+		process.env.FRONTEND_URL || "https://harvests-bp63.onrender.com";
 
 	// Queue emails
 	let count = 0;

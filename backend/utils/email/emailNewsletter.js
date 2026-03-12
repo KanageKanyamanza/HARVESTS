@@ -33,7 +33,7 @@ function addEmailNewsletterMethod(EmailClass) {
 				// Fallback based on environment
 				const port = process.env.PORT || 5000;
 				apiBase = isProduction
-					? "https://harvests.onrender.com/api/v1"
+					? "https://harvests-bp63.onrender.com/api/v1"
 					: `http://localhost:${port}/api/v1`;
 			}
 
