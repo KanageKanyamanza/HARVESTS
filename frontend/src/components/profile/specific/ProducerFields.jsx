@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
 	Layers,
 	Box,
@@ -45,7 +45,7 @@ const ProducerFields = ({ formData, editing, onInputChange, safeDisplay }) => {
 									name="farmingType"
 									value={formData.farmingType || "conventional"}
 									onChange={onInputChange}
-									className="w-full bg-gray-50/50 px-5 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
+									className="w-full bg-gray-50/50 px-2 py-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
 								>
 									{FARMING_TYPES.map((type) => (
 										<option key={type.value} value={type.value}>
@@ -55,7 +55,7 @@ const ProducerFields = ({ formData, editing, onInputChange, safeDisplay }) => {
 								</select>
 								<ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300 pointer-events-none" />
 							</div>
-						:	<div className="bg-gray-50/30 px-5 py-3 rounded-2xl border border-gray-100/50 inline-block">
+						:	<div className="bg-gray-50/30 px-2 py-3 rounded-2xl border border-gray-100/50 inline-block">
 								<span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
 									{FARMING_TYPES.find((t) => t.value === formData.farmingType)
 										?.label ||
@@ -78,7 +78,7 @@ const ProducerFields = ({ formData, editing, onInputChange, safeDisplay }) => {
 									name="farmSize.value"
 									value={formData.farmSize?.value || ""}
 									onChange={onInputChange}
-									className="flex-1 bg-gray-50/50 px-5 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-inner"
+									className="flex-1 bg-gray-50/50 px-2 py-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-inner"
 									placeholder="0"
 								/>
 								<div className="relative w-1/3">
@@ -86,7 +86,7 @@ const ProducerFields = ({ formData, editing, onInputChange, safeDisplay }) => {
 										name="farmSize.unit"
 										value={formData.farmSize?.unit || "hectares"}
 										onChange={onInputChange}
-										className="w-full bg-gray-50/50 px-4 py-4 border-2 border-transparent rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-900 focus:bg-white focus:outline-none appearance-none cursor-pointer shadow-inner"
+										className="w-full bg-gray-50/50 px-2 py-2 border-2 border-transparent rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-900 focus:bg-white focus:outline-none appearance-none cursor-pointer shadow-inner"
 									>
 										{AREA_UNITS.map((unit) => (
 											<option key={unit} value={unit}>
@@ -97,7 +97,7 @@ const ProducerFields = ({ formData, editing, onInputChange, safeDisplay }) => {
 									<ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300 pointer-events-none" />
 								</div>
 							</div>
-						:	<div className="bg-gray-50/30 px-5 py-4 rounded-2xl border border-gray-100/50 flex items-center gap-3">
+						:	<div className="bg-gray-50/30 px-2 py-2 rounded-2xl border border-gray-100/50 flex items-center gap-3">
 								<Target className="h-4 w-4 text-emerald-600/50" />
 								<p className="text-sm font-bold text-gray-900">
 									{formData.farmSize?.value ?
@@ -120,7 +120,7 @@ const ProducerFields = ({ formData, editing, onInputChange, safeDisplay }) => {
 									name="storageCapacity.value"
 									value={formData.storageCapacity?.value || ""}
 									onChange={onInputChange}
-									className="flex-1 bg-gray-50/50 px-5 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-inner"
+									className="flex-1 bg-gray-50/50 px-2 py-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-inner"
 									placeholder="0"
 								/>
 								<div className="relative w-1/3">
@@ -128,7 +128,7 @@ const ProducerFields = ({ formData, editing, onInputChange, safeDisplay }) => {
 										name="storageCapacity.unit"
 										value={formData.storageCapacity?.unit || "tons"}
 										onChange={onInputChange}
-										className="w-full bg-gray-50/50 px-4 py-4 border-2 border-transparent rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-900 focus:bg-white focus:outline-none appearance-none cursor-pointer shadow-inner"
+										className="w-full bg-gray-50/50 px-2 py-2 border-2 border-transparent rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-900 focus:bg-white focus:outline-none appearance-none cursor-pointer shadow-inner"
 									>
 										{STORAGE_UNITS.map((unit) => (
 											<option key={unit} value={unit}>
@@ -139,7 +139,7 @@ const ProducerFields = ({ formData, editing, onInputChange, safeDisplay }) => {
 									<ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300 pointer-events-none" />
 								</div>
 							</div>
-						:	<div className="bg-gray-50/30 px-5 py-4 rounded-2xl border border-gray-100/50 flex items-center gap-3">
+						:	<div className="bg-gray-50/30 px-2 py-2 rounded-2xl border border-gray-100/50 flex items-center gap-3">
 								<Box className="h-4 w-4 text-emerald-600/50" />
 								<p className="text-sm font-bold text-gray-900">
 									{formData.storageCapacity?.value ?
@@ -162,7 +162,7 @@ const ProducerFields = ({ formData, editing, onInputChange, safeDisplay }) => {
 									name="minimumOrderQuantity.value"
 									value={formData.minimumOrderQuantity?.value || ""}
 									onChange={onInputChange}
-									className="flex-1 bg-gray-50/50 px-5 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-inner"
+									className="flex-1 bg-gray-50/50 px-2 py-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-inner"
 									placeholder="1"
 								/>
 								<input
@@ -170,11 +170,11 @@ const ProducerFields = ({ formData, editing, onInputChange, safeDisplay }) => {
 									name="minimumOrderQuantity.unit"
 									value={formData.minimumOrderQuantity?.unit || ""}
 									onChange={onInputChange}
-									className="w-1/3 bg-gray-50/50 px-4 py-4 border-2 border-transparent rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-900 focus:bg-white focus:outline-none shadow-inner"
+									className="w-1/3 bg-gray-50/50 px-2 py-2 border-2 border-transparent rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-900 focus:bg-white focus:outline-none shadow-inner"
 									placeholder="UNITÉ (KG)"
 								/>
 							</div>
-						:	<div className="bg-gray-50/30 px-5 py-4 rounded-2xl border border-gray-100/50 flex items-center gap-3">
+						:	<div className="bg-gray-50/30 px-2 py-2 rounded-2xl border border-gray-100/50 flex items-center gap-3">
 								<Package className="h-4 w-4 text-emerald-600/50" />
 								<p className="text-sm font-bold text-gray-900">
 									{formData.minimumOrderQuantity?.value ?
@@ -344,7 +344,7 @@ const ProducerFields = ({ formData, editing, onInputChange, safeDisplay }) => {
 								</span>
 							</label>
 						:	<div
-								className={`flex items-center gap-3 px-5 py-3 rounded-2xl border ${formData.deliveryOptions?.canDeliver ? "bg-blue-50 border-blue-100 text-blue-700" : "bg-gray-50 border-gray-100 text-gray-400"} transition-all`}
+								className={`flex items-center gap-3 px-2 py-3 rounded-2xl border ${formData.deliveryOptions?.canDeliver ? "bg-blue-50 border-blue-100 text-blue-700" : "bg-gray-50 border-gray-100 text-gray-400"} transition-all`}
 							>
 								<Truck className="h-4 w-4" />
 								<span className="text-[10px] font-black uppercase tracking-widest">
@@ -368,7 +368,7 @@ const ProducerFields = ({ formData, editing, onInputChange, safeDisplay }) => {
 										name="deliveryOptions.deliveryRadius"
 										value={formData.deliveryOptions?.deliveryRadius || 0}
 										onChange={onInputChange}
-										className="w-full bg-gray-50/50 px-5 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none shadow-inner"
+										className="w-full bg-gray-50/50 px-2 py-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none shadow-inner"
 										min="0"
 									/>
 									<span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-300 uppercase tracking-widest">
@@ -458,7 +458,7 @@ const ProducerFields = ({ formData, editing, onInputChange, safeDisplay }) => {
 												className="bg-white px-3 py-1.5 rounded-xl border border-gray-100 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-amber-500/20"
 											/>
 										</div>
-									:	<div className="px-3 py-2 bg-white/50 rounded-xl text-xs font-black text-amber-700 text-center tracking-tight">
+									:	<div className="p-2 bg-white/50 rounded-xl text-xs font-black text-amber-700 text-center tracking-tight">
 											{formData.shopInfo?.openingHours?.[day.key]?.open ||
 												"08:00"}{" "}
 											—{" "}

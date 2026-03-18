@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
 	Heart,
 	ShoppingCart,
@@ -130,7 +130,7 @@ const ConsumerFields = ({ formData, editing, onInputChange }) => {
 										"flexible"
 									}
 									onChange={onInputChange}
-									className="w-full bg-gray-50/50 pl-12 pr-10 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
+									className="w-full bg-gray-50/50 pl-12 pr-10 py-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
 								>
 									{DELIVERY_TIMES.map((time) => (
 										<option key={time.value} value={time.value}>
@@ -141,7 +141,7 @@ const ConsumerFields = ({ formData, editing, onInputChange }) => {
 								<Clock className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-600/50" />
 								<ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300 pointer-events-none" />
 							</div>
-						:	<div className="bg-gray-50/30 px-5 py-4 rounded-2xl border border-gray-100/50 flex items-center gap-3">
+						:	<div className="bg-gray-50/30 px-2 py-2 rounded-2xl border border-gray-100/50 flex items-center gap-3">
 								<Clock className="h-4 w-4 text-emerald-600/50" />
 								<p className="text-sm font-bold text-gray-900">
 									{DELIVERY_TIMES.find(
@@ -168,7 +168,7 @@ const ConsumerFields = ({ formData, editing, onInputChange }) => {
 										formData.shoppingPreferences?.maxDeliveryDistance || 25
 									}
 									onChange={onInputChange}
-									className="w-full bg-gray-50/50 px-12 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-inner"
+									className="w-full bg-gray-50/50 px-12 py-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-inner"
 									min="1"
 									max="100"
 								/>
@@ -177,7 +177,7 @@ const ConsumerFields = ({ formData, editing, onInputChange }) => {
 									KMS
 								</span>
 							</div>
-						:	<div className="bg-gray-50/30 px-5 py-4 rounded-2xl border border-gray-100/50 flex items-center gap-3">
+						:	<div className="bg-gray-50/30 px-2 py-2 rounded-2xl border border-gray-100/50 flex items-center gap-3">
 								<MapPin className="h-4 w-4 text-blue-600/50" />
 								<p className="text-sm font-bold text-gray-900">
 									{formData.shoppingPreferences?.maxDeliveryDistance || 25}{" "}
@@ -199,7 +199,7 @@ const ConsumerFields = ({ formData, editing, onInputChange }) => {
 									name="shoppingPreferences.budgetRange.max"
 									value={formData.shoppingPreferences?.budgetRange?.max || ""}
 									onChange={onInputChange}
-									className="w-full bg-gray-50/50 px-12 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-inner"
+									className="w-full bg-gray-50/50 px-12 py-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-inner"
 									min="0"
 									placeholder="0"
 								/>
@@ -208,7 +208,7 @@ const ConsumerFields = ({ formData, editing, onInputChange }) => {
 									XAF
 								</span>
 							</div>
-						:	<div className="bg-gray-50/30 px-5 py-4 rounded-2xl border border-gray-100/50 flex items-center gap-3">
+						:	<div className="bg-gray-50/30 px-2 py-2 rounded-2xl border border-gray-100/50 flex items-center gap-3">
 								<Wallet className="h-4 w-4 text-amber-600/50" />
 								<p className="text-sm font-bold text-gray-900">
 									{formData.shoppingPreferences?.budgetRange?.max ?

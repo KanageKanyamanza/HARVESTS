@@ -7,6 +7,9 @@ export const useRegisterForm = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    farmName: '',
+    restaurantName: '',
+    companyName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -15,6 +18,7 @@ export const useRegisterForm = () => {
     country: 'Sénégal',
     preferredLanguage: 'fr'
   });
+
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -57,6 +61,9 @@ export const useRegisterForm = () => {
     setFormData({
       firstName: '',
       lastName: '',
+      farmName: '',
+      restaurantName: '',
+      companyName: '',
       email: '',
       password: '',
       confirmPassword: '',
@@ -65,6 +72,7 @@ export const useRegisterForm = () => {
       country: 'Sénégal',
       preferredLanguage: 'fr'
     });
+
     setErrors({});
   };
 

@@ -6,20 +6,31 @@ export const validateRegisterForm = (formData) => {
   
   // Pour les consommateurs : prénom et nom séparés
   if (formData.userType === 'consumer') {
-    if (!formData.firstName.trim()) {
+    if (!formData.firstName?.trim()) {
       newErrors.firstName = 'Le prénom est requis';
     }
-    if (!formData.lastName.trim()) {
+    if (!formData.lastName?.trim()) {
       newErrors.lastName = 'Le nom est requis';
     }
+  } else if (formData.userType === 'producer') {
+    if (!formData.farmName?.trim()) {
+      newErrors.firstName = 'Le nom de la ferme est requis';
+    }
+  } else if (formData.userType === 'restaurateur') {
+    if (!formData.restaurantName?.trim()) {
+      newErrors.firstName = 'Le nom du restaurant est requis';
+    }
+  } else if (['transformer', 'exporter', 'transporter'].includes(formData.userType)) {
+    if (!formData.companyName?.trim()) {
+      newErrors.firstName = "Le nom de l'entreprise est requis";
+    }
   } else {
-    // Pour les autres : juste le nom (firstName sera utilisé comme nom complet)
-    if (!formData.firstName.trim()) {
+    if (!formData.firstName?.trim()) {
       newErrors.firstName = 'Le nom est requis';
     }
   }
   
-  if (!formData.email.trim()) {
+  if (!formData.email?.trim()) {
     newErrors.email = 'L\'email est requis';
   } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
     newErrors.email = 'Format d\'email invalide';
@@ -37,10 +48,9 @@ export const validateRegisterForm = (formData) => {
     newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
   }
   
-  if (!formData.phone.trim()) {
+  if (!formData.phone?.trim()) {
     newErrors.phone = 'Le téléphone est requis';
   } else {
-    // Validation flexible pour tous les numéros internationaux
     const cleaned = formData.phone.replace(/\D/g, '');
     if (cleaned.length < 7 || cleaned.length > 15) {
       newErrors.phone = 'Le numéro doit contenir entre 7 et 15 chiffres';
@@ -51,7 +61,7 @@ export const validateRegisterForm = (formData) => {
     newErrors.userType = 'Le type d\'utilisateur est requis';
   }
   
-  if (!formData.country.trim()) {
+  if (!formData.country?.trim()) {
     newErrors.country = 'Le pays est requis';
   }
   
@@ -62,29 +72,26 @@ export const validateRegisterForm = (formData) => {
  * Préparer les données d'inscription selon le type d'utilisateur
  */
 export const prepareRegistrationData = (formData) => {
+  const addressBase = {
+    street: 'À compléter',
+    city: 'À compléter', 
+    region: 'À compléter',
+    country: formData.country
+  };
+
   if (formData.userType === 'consumer') {
-    // Consommateur : prénom et nom séparés
     return {
       ...formData,
-      address: {
-        street: 'À compléter',
-        city: 'À compléter', 
-        region: 'À compléter',
-        country: formData.country
-      }
-    };
-  } else {
-    // Autres : nom complet dans firstName, lastName vide
-    return {
-      ...formData,
-      lastName: formData.lastName || 'À compléter',
-      address: {
-        street: 'À compléter',
-        city: 'À compléter', 
-        region: 'À compléter',
-        country: formData.country
-      }
+      address: addressBase
     };
   }
-};
 
+  // Vendeurs : les champs métier (farmName/restaurantName/companyName) sont passés tels quels
+  // firstName/lastName seront "À compléter" s'ils ne sont pas renseignés
+  return {
+    ...formData,
+    firstName: formData.firstName || 'À compléter',
+    lastName: formData.lastName || 'À compléter',
+    address: addressBase
+  };
+};

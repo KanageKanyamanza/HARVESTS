@@ -39,27 +39,26 @@ const NameFields = ({
     );
   }
 
-  // Nom complet pour les autres types d'utilisateurs
-  const placeholder = 
-    userType === 'producer' ? 'Nom de votre ferme/exploitation' :
-    userType === 'transformer' ? 'Nom de votre entreprise' :
-    userType === 'restaurateur' ? 'Nom de votre restaurant' :
-    userType === 'exporter' ? 'Nom de votre entreprise' :
-    userType === 'transporter' ? 'Nom de votre entreprise' :
-    'Votre nom';
+  // Chaque type de vendeur a son propre champ et placeholder
+  const fieldConfig = 
+    userType === 'producer'     ? { name: 'farmName',       placeholder: 'Nom de votre ferme / exploitation' } :
+    userType === 'restaurateur' ? { name: 'restaurantName', placeholder: 'Nom de votre restaurant' } :
+    userType === 'transformer'  ? { name: 'companyName',    placeholder: 'Nom de votre entreprise de transformation' } :
+    userType === 'exporter'     ? { name: 'companyName',    placeholder: "Nom de votre entreprise d'exportation" } :
+    userType === 'transporter'  ? { name: 'companyName',    placeholder: 'Nom de votre entreprise de transport' } :
+                                  { name: 'firstName',      placeholder: 'Votre nom' };
 
   return (
     <FormField
       icon={User}
       type="text"
-      name="firstName"
+      name={fieldConfig.name}
       value={firstName}
       onChange={onFirstNameChange}
-      placeholder={placeholder}
+      placeholder={fieldConfig.placeholder}
       error={firstNameError}
     />
   );
 };
 
 export default NameFields;
-

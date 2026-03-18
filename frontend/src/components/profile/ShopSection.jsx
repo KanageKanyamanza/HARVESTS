@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
 	ShoppingBag,
 	Image as ImageIcon,
@@ -30,7 +30,7 @@ const ShopSection = ({
 	if (!VENDOR_TYPES.includes(user?.userType)) return null;
 
 	return (
-		<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-6 md:p-8 border border-white/60 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden relative group">
+		<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-3 border border-white/60 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden relative group">
 			{/* Background Element */}
 			<div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:scale-110 transition-transform duration-700 pointer-events-none">
 				<ShoppingBag className="h-48 w-48" />
@@ -122,7 +122,7 @@ const ShopSection = ({
 						</div>
 
 						{/* Shop Info Bar */}
-						<div className="bg-white p-6 md:p-8 flex items-center justify-between gap-6">
+						<div className="bg-white p-2 md:p-4 flex items-center justify-between gap-6">
 							<div className="flex items-center gap-6">
 								{/* Logo Preview */}
 								<div className="relative -mt-16 md:-mt-20">

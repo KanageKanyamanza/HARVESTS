@@ -325,7 +325,7 @@ const VendorProfile = ({
 			</div>
 
 			{/* Contenu principal */}
-			<div className="container mx-auto px-4 pb-8">
+			<div className="container mx-auto px-2 pb-8">
 				{/* En-tête avec bannière et photo de profil */}
 				<div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
 					{/* Bannière en arrière-plan */}
@@ -400,7 +400,7 @@ const VendorProfile = ({
 					</div>
 
 					{/* Informations en bas */}
-					<div className="p-6 pt-8">
+					<div className="p-3 pt-8">
 						<h1 className="text-3xl font-bold text-gray-900 mb-2">
 							{getVendorName(vendor)}
 						</h1>

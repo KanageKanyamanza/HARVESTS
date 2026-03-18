@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import {
 	User,
 	Sparkles,
@@ -222,7 +222,7 @@ const ProfilePage = () => {
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="relative z-10 max-w-5xl mx-auto px-4 py-8 md:py-12 space-y-12">
+			<div className="relative z-10 max-w-5xl mx-auto px-4 py-4 md:py-6 space-y-12">
 				{/* Header Section */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-8 animate-fade-in-down">
 					<div className="space-y-4">
@@ -271,16 +271,16 @@ const ProfilePage = () => {
 						/>
 					</div>
 
-					<div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+					<div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 						<div className="lg:col-span-2 space-y-10">
 							<div className="animate-fade-in-up delay-200">
-								<div className="flex items-center gap-3 px-2 mb-6">
+								<div className="flex items-center gap-3 px-1 mb-6">
 									<div className="w-1.5 h-6 bg-emerald-600 rounded-full"></div>
 									<h2 className="text-xl font-[1000] text-gray-900 tracking-tight uppercase tracking-[0.1em]">
 										Informations Générales
 									</h2>
 								</div>
-								<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-6 md:p-10 border border-white/60 shadow-sm">
+								<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-3 md:p-6  border border-white/60 shadow-sm">
 									<ProfileFormFields
 										user={user}
 										editing={editing}

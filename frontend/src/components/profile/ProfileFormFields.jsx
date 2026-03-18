@@ -78,7 +78,7 @@ const ProfileFormFields = ({
 			{editing ?
 				<div className="relative">
 					{icon && (
-						<div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within/field:text-emerald-500 transition-colors">
+						<div className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within/field:text-emerald-500 transition-colors">
 							{React.cloneElement(icon, { size: 16 })}
 						</div>
 					)}
@@ -88,7 +88,7 @@ const ProfileFormFields = ({
 								name={name}
 								value={formData[name] || ""}
 								onChange={onInputChange}
-								className="w-full bg-gray-50/50 pl-12 pr-10 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
+								className="w-full bg-gray-50/50 pl-8 pr-8 p-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
 							>
 								<option value="">Sélectionner...</option>
 								{options.map((opt) => (
@@ -104,11 +104,11 @@ const ProfileFormFields = ({
 							name={name}
 							value={formData[name] || ""}
 							onChange={onInputChange}
-							className={`w-full bg-gray-50/50 ${icon ? "pl-12" : "px-5"} py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all placeholder-gray-300 shadow-inner`}
+							className={`w-full bg-gray-50/50 ${icon ? "pl-8" : "px-2"} p-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all placeholder-gray-300 shadow-inner`}
 						/>
 					}
 				</div>
-			:	<div className="bg-gray-50/30 px-5 py-4 rounded-2xl border border-gray-100/50 flex items-center justify-between">
+			:	<div className="bg-gray-50/30 p-2 rounded-2xl border border-gray-100/50 flex items-center justify-between">
 					<div className="flex items-center gap-3">
 						{icon && (
 							<div className="text-emerald-600/50 group-hover/field:text-emerald-600 transition-colors">
@@ -158,10 +158,10 @@ const ProfileFormFields = ({
 
 				<div className="space-y-2 group/field">
 					<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-						Email académique / Pro
+						Email personnel / Pro
 					</label>
-					<div className="bg-gray-50/30 px-5 py-4 rounded-2xl border border-gray-100/50 flex items-center justify-between">
-						<div className="flex items-center gap-3">
+					<div className="bg-gray-50/30 p-2 rounded-2xl border border-gray-100/50 flex items-center justify-between">
+						<div className="flex items-center gap-2">
 							<Mail className="h-4 w-4 text-emerald-600/50" />
 							<p className="text-sm font-bold text-gray-900">
 								{safeDisplay(user.email, "")}
@@ -202,10 +202,10 @@ const ProfileFormFields = ({
 						value={formData.bio || ""}
 						onChange={onInputChange}
 						rows={4}
-						className="w-full bg-gray-50/50 px-5 py-4 border-2 border-transparent rounded-3xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all placeholder-gray-300 shadow-inner resize-none"
+						className="w-full bg-gray-50/50 px-2 py-2 border-2 border-transparent rounded-3xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all placeholder-gray-300 shadow-inner resize-none"
 						placeholder="Partagez votre histoire, vos valeurs et votre passion..."
 					/>
-				:	<div className="bg-gray-50/30 p-6 rounded-3xl border border-gray-100/50">
+				:	<div className="bg-gray-50/30 p-2 rounded-3xl border border-gray-100/50">
 						<p className="text-sm font-medium text-gray-600 leading-relaxed italic">
 							{safeDisplay(
 								user.bio,

@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
 	Activity,
 	Settings,
@@ -61,7 +61,7 @@ const TransformerFields = ({ formData, editing, onInputChange }) => {
 									name="transformationType"
 									value={formData.transformationType || "processing"}
 									onChange={onInputChange}
-									className="w-full bg-gray-50/50 px-5 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
+									className="w-full bg-gray-50/50 px-2 py-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
 								>
 									{TRANSFORMATION_TYPES.map((type) => (
 										<option key={type.value} value={type.value}>
@@ -71,7 +71,7 @@ const TransformerFields = ({ formData, editing, onInputChange }) => {
 								</select>
 								<ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300 pointer-events-none" />
 							</div>
-						:	<div className="bg-gray-50/30 px-5 py-3 rounded-2xl border border-gray-100/50 inline-block">
+						:	<div className="bg-gray-50/30 px-2 py-3 rounded-2xl border border-gray-100/50 inline-block">
 								<span className="text-[10px] font-black text-purple-600 uppercase tracking-widest">
 									{TRANSFORMATION_TYPES.find(
 										(t) => t.value === formData.transformationType,
@@ -92,7 +92,7 @@ const TransformerFields = ({ formData, editing, onInputChange }) => {
 									name="pricing.model"
 									value={formData.pricing?.model || "per-unit"}
 									onChange={onInputChange}
-									className="w-full bg-gray-50/50 px-5 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
+									className="w-full bg-gray-50/50 px-2 py-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
 								>
 									{PRICING_MODELS.map((model) => (
 										<option key={model.value} value={model.value}>
@@ -102,7 +102,7 @@ const TransformerFields = ({ formData, editing, onInputChange }) => {
 								</select>
 								<ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300 pointer-events-none" />
 							</div>
-						:	<div className="bg-gray-50/30 px-5 py-4 rounded-2xl border border-gray-100/50 flex items-center gap-3">
+						:	<div className="bg-gray-50/30 px-2 py-2 rounded-2xl border border-gray-100/50 flex items-center gap-3">
 								<Tag className="h-4 w-4 text-emerald-600/50" />
 								<p className="text-sm font-bold text-gray-900 text-sm">
 									{PRICING_MODELS.find(

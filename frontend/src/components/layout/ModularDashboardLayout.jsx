@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import DashboardSidebarFixed from "../dashboard/DashboardSidebarFixed";
 import DashboardTopbar from "../dashboard/DashboardTopbar";
+import ProfileCompletionModal from "../dashboard/ProfileCompletionModal";
+import EmailVerificationBanner from "../dashboard/EmailVerificationBanner";
 
 const ModularDashboardLayout = ({ children, navigationItems, user }) => {
 	const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -47,6 +49,13 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
 
 	return (
 		<div className="h-screen bg-harvests-light overflow-hidden">
+			{/* Profil Completion Modal */}
+			<ProfileCompletionModal user={user} />
+
+			{/* Bannière vérification email - FIXED top 0 */}
+			<div className="fixed top-0 left-0 right-0 z-40">
+				<EmailVerificationBanner user={user} />
+			</div>
 			{/* Sidebar - FIXED position, 100vh */}
 			<div
 				className={`fixed top-0 left-0 h-screen z-30 hidden lg:block transition-all duration-300 ${
@@ -81,10 +90,12 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
 				</>
 			)}
 
-			{/* Topbar - FIXED position */}
+			{/* Topbar - FIXED, sous la bannière si présente */}
 			<div
-				className={`fixed top-0 right-0 h-16 z-20 transition-all duration-300 ${
+				className={`fixed right-0 h-16 z-20 transition-all duration-300 ${
 					sidebarCollapsed ? "left-[90px]" : "left-0 lg:left-[250px]"
+				} ${
+					user && !user.isEmailVerified ? "top-[40px]" : "top-0"
 				}`}
 			>
 				<DashboardTopbar onMenuClick={() => setSidebarOpen(true)} />
@@ -92,10 +103,11 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
 
 			{/* Contenu - SEULE zone scrollable */}
 			<div
-				className={`fixed top-16 right-0 bottom-0 overflow-y-auto bg-harvests-light transition-all duration-300 ${
+				className={`fixed right-0 bottom-0 overflow-y-auto bg-harvests-light transition-all duration-300 ${
 					sidebarCollapsed ? "left-[85px]" : "left-0 lg:left-[250px]"
+				} ${
+					user && !user.isEmailVerified ? "top-[104px]" : "top-16"
 				}`}
-				style={{ height: "calc(100vh - 64px)" }}
 			>
 				{children}
 			</div>
@@ -104,3 +116,4 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
 };
 
 export default ModularDashboardLayout;
+

@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
 	ShieldCheck,
 	FileText,
@@ -44,7 +44,7 @@ const DocumentsSection = ({
 				{docTypes.map((type) => (
 					<div
 						key={type}
-						className="group bg-gray-50/50 p-6 md:p-8 rounded-[2.5rem] border border-gray-100 hover:bg-white hover:border-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-500"
+						className="group bg-gray-50/50 p-2 md:p-4 rounded-[2.5rem] border border-gray-100 hover:bg-white hover:border-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-500"
 					>
 						<div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
 							<div className="flex items-center gap-4">
@@ -88,7 +88,7 @@ const DocumentsSection = ({
 								<div className="relative group/input">
 									<input
 										type="text"
-										className="w-full bg-white px-5 py-4 border-2 border-gray-50 rounded-2xl text-gray-900 font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all placeholder-gray-200"
+										className="w-full bg-white px-2 py-2 border-2 border-gray-50 rounded-2xl text-gray-900 font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all placeholder-gray-200"
 										placeholder="EX: RC-SN-DQR-2024-B-..."
 										value={documents[type]?.number || ""}
 										onChange={(e) =>

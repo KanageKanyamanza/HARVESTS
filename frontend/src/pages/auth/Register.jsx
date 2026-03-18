@@ -102,7 +102,12 @@ const Register = () => {
 								{/* Nom - Conditionnel selon le type d'utilisateur */}
 								<NameFields
 									userType={formData.userType}
-									firstName={formData.firstName}
+									firstName={
+										formData.userType === 'producer'     ? formData.farmName :
+										formData.userType === 'restaurateur' ? formData.restaurantName :
+										['transformer','exporter','transporter'].includes(formData.userType) ? formData.companyName :
+										formData.firstName
+									}
 									lastName={formData.lastName}
 									onFirstNameChange={handleChange}
 									onLastNameChange={handleChange}
