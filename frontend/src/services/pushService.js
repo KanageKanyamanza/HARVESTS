@@ -74,16 +74,43 @@ const pushService = {
 			// Adapter l'URL selon le type d'utilisateur
 			// Pour les utilisateurs: /notifications/subscribe
 			// Pour les admins: /notifications/admin/subscribe (selon notificationRoutes.js)
-			const endpoint = isAdmin
+			const subscribeEndpoint = isAdmin
 				? "/notifications/admin/subscribe"
 				: "/notifications/subscribe";
 
-			const response = await api.post(endpoint, {
+			await api.post(subscribeEndpoint, {
 				subscription,
 			});
 		} catch (error) {
 			console.error(
 				"[pushService] Error sending subscription to backend:",
+				error.response?.data || error.message
+			);
+		}
+	},
+
+	// Désinscrire côté navigateur (PushManager) et backend
+	async unsubscribeLocally(subscription) {
+		try {
+			if (subscription) {
+				await subscription.unsubscribe();
+			}
+		} catch (error) {
+			console.error("[pushService] Erreur lors de la désinscription locale:", error);
+		}
+	},
+
+	// Envoyer la désinscription au backend
+	async sendUnsubscribeToBackend(endpoint, isAdmin = false) {
+		try {
+			const unsubscribeEndpoint = isAdmin
+				? "/notifications/admin/unsubscribe"
+				: "/notifications/unsubscribe";
+
+			await api.post(unsubscribeEndpoint, { endpoint });
+		} catch (error) {
+			console.error(
+				"[pushService] Error sending unsubscription to backend:",
 				error.response?.data || error.message
 			);
 		}

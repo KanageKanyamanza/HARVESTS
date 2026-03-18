@@ -1,5 +1,7 @@
-import React from "react";
-import { Mail, Save, X } from "lucide-react";
+import React, { useState } from "react";
+import { Mail, Save, X, Smartphone, BellRing } from "lucide-react";
+import PushNotificationToggle from "../../common/PushNotificationToggle";
+import { notificationService } from "../../../services/notificationService";
 
 const NotificationsTab = ({
 	user,
@@ -11,6 +13,7 @@ const NotificationsTab = ({
 }) => {
 	return (
 		<div className="p-6">
+			{/* ── Section Email ─────────────────────────────────────────── */}
 			<div className="flex items-center gap-3 mb-6">
 				<div className="w-10 h-10 rounded-xl bg-indigo-100/50 flex items-center justify-center text-indigo-600">
 					<Mail className="h-5 w-5" />
@@ -141,6 +144,47 @@ const NotificationsTab = ({
 								</li>
 							))}
 						</ul>
+					</div>
+				</div>
+			</div>
+
+			{/* ── Section Push Notifications ─────────────────────────────── */}
+			<div className="mt-8 pt-8 border-t border-gray-100">
+				<div className="flex items-center gap-3 mb-5">
+					<div className="w-10 h-10 rounded-xl bg-violet-100/50 flex items-center justify-center text-violet-600">
+						<Smartphone className="h-5 w-5" />
+					</div>
+					<div>
+						<h2 className="text-xl font-black text-gray-900 tracking-tight leading-none mb-1">
+							Notifications Push Mobile
+						</h2>
+						<p className="text-gray-500 font-medium text-xs">
+							Recevez des alertes push sur cet appareil, même lorsque l'app est
+							fermée
+						</p>
+					</div>
+				</div>
+				<div className="flex flex-col md:flex-row md:items-center gap-6">
+					<PushNotificationToggle isAdmin={true} />
+
+					<div className="flex-1 flex justify-end">
+						<button
+							onClick={async () => {
+								try {
+									await notificationService.sendTestNotification();
+									window.alert("✅ Notification de test envoyée avec succès !");
+								} catch (err) {
+									console.error(err);
+									window.alert(
+										"❌ Erreur lors de l'envoi du test. Vérifiez la console."
+									);
+								}
+							}}
+							className="group flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-violet-100 rounded-xl text-[11px] font-black uppercase tracking-widest text-violet-600 hover:bg-violet-50 hover:border-violet-200 transition-all shadow-sm active:scale-95"
+						>
+							<BellRing className="h-4 w-4 group-hover:animate-bounce" />
+							Tester les notifications
+						</button>
 					</div>
 				</div>
 			</div>
