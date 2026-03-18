@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Info, Users, Clock, Utensils, ChevronDown, Check } from "lucide-react";
 
 const RESTAURANT_TYPES = [
@@ -72,7 +72,7 @@ const RestaurateurFields = ({ formData, editing, onInputChange }) => {
 									name="restaurantType"
 									value={formData.restaurantType || "casual"}
 									onChange={onInputChange}
-									className="w-full bg-gray-50/50 px-5 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
+									className="w-full bg-gray-50/50 px-2 py-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
 								>
 									{RESTAURANT_TYPES.map((type) => (
 										<option key={type.value} value={type.value}>
@@ -82,7 +82,7 @@ const RestaurateurFields = ({ formData, editing, onInputChange }) => {
 								</select>
 								<ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300 pointer-events-none" />
 							</div>
-						:	<div className="bg-gray-50/30 px-5 py-3 rounded-2xl border border-gray-100/50 inline-block">
+						:	<div className="bg-gray-50/30 px-2 py-3 rounded-2xl border border-gray-100/50 inline-block">
 								<span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">
 									{RESTAURANT_TYPES.find(
 										(t) => t.value === formData.restaurantType,
@@ -104,7 +104,7 @@ const RestaurateurFields = ({ formData, editing, onInputChange }) => {
 									name="seatingCapacity"
 									value={formData.seatingCapacity || ""}
 									onChange={onInputChange}
-									className="w-full bg-gray-50/50 px-12 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-inner"
+									className="w-full bg-gray-50/50 px-12 py-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-inner"
 									min="0"
 									placeholder="0"
 								/>
@@ -113,7 +113,7 @@ const RestaurateurFields = ({ formData, editing, onInputChange }) => {
 									PLACES
 								</span>
 							</div>
-						:	<div className="bg-gray-50/30 px-5 py-4 rounded-2xl border border-gray-100/50 flex items-center gap-3">
+						:	<div className="bg-gray-50/30 px-2 py-2 rounded-2xl border border-gray-100/50 flex items-center gap-3">
 								<Users className="h-4 w-4 text-blue-600/50" />
 								<p className="text-sm font-bold text-gray-900">
 									{formData.seatingCapacity ?

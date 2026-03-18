@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
 	ShieldCheck,
 	CheckCircle2,
@@ -13,9 +13,9 @@ const VerificationStatus = ({ verificationStatus, onRefresh }) => {
 	if (!verificationStatus) return null;
 
 	return (
-		<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-6 md:p-8 border border-white/60 shadow-sm hover:shadow-xl transition-all duration-500">
+		<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-2 md:p-3 border border-white/60 shadow-sm hover:shadow-xl transition-all duration-500">
 			<div className="flex items-center justify-between mb-8">
-				<h3 className="text-lg font-[1000] text-gray-900 tracking-tight flex items-center gap-3">
+				<h3 className="text-lg font-[1000] text-gray-900 tracking-tight flex items-center gap-3 whitespace-nowrap">
 					<ShieldCheck className="h-6 w-6 text-emerald-600" />
 					Niveau de Vérification
 				</h3>

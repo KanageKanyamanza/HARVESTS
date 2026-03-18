@@ -278,7 +278,7 @@ const UniversalProfile = ({ userType, service, profileFields, tabs }) => {
   if (loading) {
     return (
       <ModularDashboardLayout>
-        <div className="p-6 max-w-7xl mx-auto pb-20">
+        <div className="p-3 max-w-7xl mx-auto pb-20">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
             <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>

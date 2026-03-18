@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
 	Star,
 	MapPin,
@@ -38,7 +38,7 @@ const ProfileHeader = ({
 	return (
 		<div className="relative group">
 			{/* Main Glass Card */}
-			<div className="bg-white/70 backdrop-blur-xl rounded-[3rem] p-6 md:p-10 border border-white/60 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden">
+			<div className="bg-white/70 backdrop-blur-xl rounded-[3rem] p-2 md:p-3 border border-white/60 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden">
 				{/* Background Sparkles */}
 				<div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover:scale-110 transition-transform duration-700 pointer-events-none">
 					<Sparkles className="h-48 w-48" />

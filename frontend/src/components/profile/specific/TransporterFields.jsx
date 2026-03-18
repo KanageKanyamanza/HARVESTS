@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Truck, DollarSign, Map, Check, ChevronDown } from "lucide-react";
 
 const TransporterFields = ({ formData, editing, onInputChange }) => {
@@ -99,7 +99,7 @@ const TransporterFields = ({ formData, editing, onInputChange }) => {
 									name="pricingStructure.model"
 									value={formData.pricingStructure?.model || "per-km"}
 									onChange={onInputChange}
-									className="w-full bg-gray-50/50 pl-12 pr-10 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
+									className="w-full bg-gray-50/50 pl-12 pr-10 py-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
 								>
 									<option value="per-km">Par kilomètre</option>
 									<option value="per-kg">Par kilogramme</option>
@@ -109,7 +109,7 @@ const TransporterFields = ({ formData, editing, onInputChange }) => {
 								<DollarSign className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-600/50" />
 								<ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300 pointer-events-none" />
 							</div>
-						:	<div className="bg-gray-50/30 px-5 py-4 rounded-2xl border border-gray-100/50 flex items-center gap-3">
+						:	<div className="bg-gray-50/30 px-2 py-2 rounded-2xl border border-gray-100/50 flex items-center gap-3">
 								<DollarSign className="h-4 w-4 text-emerald-600/50" />
 								<p className="text-sm font-bold text-gray-900">
 									{{
@@ -137,7 +137,7 @@ const TransporterFields = ({ formData, editing, onInputChange }) => {
 									name="pricingStructure.baseRate"
 									value={formData.pricingStructure?.baseRate || ""}
 									onChange={onInputChange}
-									className="w-full bg-gray-50/50 px-5 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-inner"
+									className="w-full bg-gray-50/50 px-2 py-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-inner"
 									min="0"
 									placeholder="0"
 								/>
@@ -145,7 +145,7 @@ const TransporterFields = ({ formData, editing, onInputChange }) => {
 									XAF
 								</span>
 							</div>
-						:	<div className="bg-gray-50/30 px-5 py-4 rounded-2xl border border-gray-100/50 flex items-center gap-3">
+						:	<div className="bg-gray-50/30 px-2 py-2 rounded-2xl border border-gray-100/50 flex items-center gap-3">
 								<div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 font-black text-[10px]">
 									XAF
 								</div>

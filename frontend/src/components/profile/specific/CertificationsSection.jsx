@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import {
 	Award,
 	Plus,
@@ -65,7 +65,7 @@ const CertificationsSection = ({
 					<button
 						type="button"
 						onClick={handleAdd}
-						className="group inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 hover:-translate-y-1 transition-all shadow-lg active:scale-95"
+						className="group inline-flex items-center gap-2 px-2 py-3 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 hover:-translate-y-1 transition-all shadow-lg active:scale-95"
 					>
 						<Plus className="h-4 w-4" />
 						Ajouter un Label
@@ -89,7 +89,7 @@ const CertificationsSection = ({
 						className="group bg-white rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-2xl hover:border-emerald-500/20 transition-all duration-700 relative overflow-hidden"
 					>
 						{/* Design Element */}
-						<div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-110 transition-transform duration-700">
+						<div className="absolute top-0 right-0 p-3 opacity-[0.03] group-hover:scale-110 transition-transform duration-700">
 							<Sparkles className="h-24 w-24" />
 						</div>
 
@@ -118,7 +118,7 @@ const CertificationsSection = ({
 											handleChange(index, "name", e.target.value)
 										}
 										placeholder="Agriculture Biologique, ISO 9001..."
-										className="w-full bg-gray-50/50 px-5 py-4 border-2 border-transparent rounded-2xl text-gray-900 font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all placeholder-gray-300 shadow-inner"
+										className="w-full bg-gray-50/50 px-2 py-2 border-2 border-transparent rounded-2xl text-gray-900 font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all placeholder-gray-300 shadow-inner"
 									/>
 								:	<div className="flex items-center gap-3">
 										<div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
@@ -145,7 +145,7 @@ const CertificationsSection = ({
 												handleChange(index, "issuedBy", e.target.value)
 											}
 											placeholder="Organisme certificateur"
-											className="w-full bg-gray-50/50 px-5 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all placeholder-gray-300 shadow-inner"
+											className="w-full bg-gray-50/50 px-2 py-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all placeholder-gray-300 shadow-inner"
 										/>
 									:	<p className="text-sm font-bold text-gray-600 ml-2">
 											{cert.issuedBy}
@@ -172,7 +172,7 @@ const CertificationsSection = ({
 												onChange={(e) =>
 													handleChange(index, "validUntil", e.target.value)
 												}
-												className="w-full bg-gray-50/50 px-5 py-4 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all placeholder-gray-300 shadow-inner appearance-none"
+												className="w-full bg-gray-50/50 px-2 py-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all placeholder-gray-300 shadow-inner appearance-none"
 											/>
 											<Calendar className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300 pointer-events-none" />
 										</div>
@@ -207,7 +207,7 @@ const CertificationsSection = ({
 										href={cert.document}
 										target="_blank"
 										rel="noopener noreferrer"
-										className="inline-flex items-center gap-3 px-6 py-3 bg-emerald-50 text-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-100 hover:shadow-md transition-all group"
+										className="inline-flex items-center gap-3 px-2 py-3 bg-emerald-50 text-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-100 hover:shadow-md transition-all group"
 									>
 										<FileText className="h-4 w-4 transition-transform group-hover:scale-110" />
 										Consulter le document
