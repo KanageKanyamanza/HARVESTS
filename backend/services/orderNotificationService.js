@@ -111,6 +111,18 @@ async function sendStatusNotifications(order, newStatus) {
 			title: "Commande annulée",
 			message: `La commande ${order.orderNumber} a été annulée`,
 		},
+		refunded: {
+			type: "order_refunded_seller",
+			category: "order",
+			title: "Commande remboursée",
+			message: `La commande ${order.orderNumber} a été remboursée au client`,
+		},
+		disputed: {
+			type: "order_disputed_seller",
+			category: "order",
+			title: "Litige ouvert",
+			message: `Un litige a été ouvert pour la commande ${order.orderNumber}`,
+		},
 	};
 
 	// Notifications pour le transporteur
@@ -441,9 +453,11 @@ async function sendStatusNotifications(order, newStatus) {
 	// Notifier les administrateurs
 	try {
 		const adminNotificationUtils = require("../utils/adminNotifications");
-		const adminNotificationData = {
+		await adminNotificationUtils.createNotificationsForAdmins({
+			type: "order_status_update",
+			category: "order",
 			title: `Mise à jour commande ${order.orderNumber}`,
-			message: `Le statut de la commande ${order.orderNumber} est passé à : ${newStatus}`,
+			message: `La commande ${order.orderNumber} est passée au statut : ${newStatus}`,
 			data: {
 				orderId: order._id,
 				orderNumber: order.orderNumber,
@@ -457,16 +471,12 @@ async function sendStatusNotifications(order, newStatus) {
 					url: `/admin/orders/${order._id}`,
 				},
 			],
-		};
-
-		await adminNotificationUtils.createNotificationsForAdmins({
-			...adminNotificationData,
-			type: "order_status_update",
-			category: "order",
+			priority: "low",
 		});
 	} catch (error) {
 		console.error("Erreur lors de la notification des administrateurs:", error);
 	}
+
 }
 
 module.exports = {

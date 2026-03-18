@@ -22,32 +22,15 @@ async function createNotificationsForAdmins({
 	category = "system",
 	data = {},
 	actions = [],
+	priority = "high",
 }) {
 	try {
-		console.log(
-			"🔔 [createNotificationsForAdmins] Début de la création de notifications pour les admins"
-		);
-		console.log("🔔 [createNotificationsForAdmins] Données:", {
-			title,
-			message,
-			type,
-			category,
-		});
-
 		// Récupérer tous les admins actifs
 		const activeAdmins = await Admin.find({ isActive: true })
 			.select("_id")
 			.lean();
-		console.log(
-			`🔔 [createNotificationsForAdmins] ${activeAdmins.length} admin(s) actif(s) trouvé(s)`
-		);
 
-		if (activeAdmins.length === 0) {
-			console.log(
-				"⚠️ [createNotificationsForAdmins] Aucun admin actif trouvé pour créer des notifications"
-			);
-			return;
-		}
+		if (activeAdmins.length === 0) return;
 
 		// Transformer les actions au format attendu par le schéma
 		const formattedActions = (actions || []).map((action) => ({
@@ -62,73 +45,29 @@ async function createNotificationsForAdmins({
 		const notifications = [];
 		for (const admin of activeAdmins) {
 			try {
-				console.log(
-					`🔔 [createNotificationsForAdmins] Création notification pour admin ${admin._id}`
-				);
-				const notificationData = {
+				const notification = await Notification.createNotification({
 					recipient: admin._id,
-					recipientModel: "Admin", // Indiquer que le destinataire est un Admin
+					recipientModel: "Admin",
 					type,
 					category,
 					title,
 					message,
-					data: data, // Les données sans les actions
-					actions: formattedActions, // Les actions formatées
+					data,
+					actions: formattedActions,
 					channels: {
 						inApp: { enabled: true },
-						email: { enabled: false }, // Email géré séparément par sendNotificationToAdmins
+						email: { enabled: false },
 						push: { enabled: true },
 					},
-					priority: "high",
-				};
-				console.log(
-					`🔔 [createNotificationsForAdmins] Données de notification:`,
-					{
-						recipient: notificationData.recipient,
-						recipientModel: notificationData.recipientModel,
-						type: notificationData.type,
-						category: notificationData.category,
-						title: notificationData.title,
-					}
-				);
-
-				const notification = await Notification.createNotification(
-					notificationData
-				);
-				console.log(
-					`✅ [createNotificationsForAdmins] Notification créée avec succès:`,
-					{
-						id: notification._id,
-						recipient: notification.recipient,
-						recipientModel: notification.recipientModel,
-					}
-				);
+					priority,
+				});
 				notifications.push(notification);
-			} catch (error) {
+			} catch (err) {
 				console.error(
-					`❌ [createNotificationsForAdmins] Erreur lors de la création de la notification pour l'admin ${admin._id}:`,
-					error
+					`❌ [createNotificationsForAdmins] Erreur admin ${admin._id}:`,
+					err.message
 				);
-				console.error(
-					"❌ [createNotificationsForAdmins] Détails de l'erreur:",
-					error.message
-				);
-				console.error("❌ [createNotificationsForAdmins] Stack:", error.stack);
-				// Continuer avec les autres admins même en cas d'erreur
 			}
-		}
-
-		console.log(
-			`✅ ${notifications.length} notification(s) créée(s) pour ${activeAdmins.length} admin(s) actif(s)`
-		);
-		if (notifications.length > 0) {
-			console.log("📋 Exemple de notification créée:", {
-				id: notifications[0]._id,
-				recipient: notifications[0].recipient,
-				recipientModel: notifications[0].recipientModel,
-				type: notifications[0].type,
-				title: notifications[0].title,
-			});
 		}
 		return notifications;
 	} catch (error) {
@@ -139,60 +78,60 @@ async function createNotificationsForAdmins({
 	}
 }
 
+// Exporter pour usage depuis orderNotificationService et autres
+exports.createNotificationsForAdmins = createNotificationsForAdmins;
+
 /**
  * Notifie les admins d'un nouveau compte utilisateur créé
  */
 exports.notifyNewUserAccount = async (newUser) => {
 	try {
-		console.log(
-			"📧 [notifyNewUserAccount] Notification d'un nouveau compte utilisateur:",
-			newUser.email
-		);
 		const userName = `${newUser.firstName} ${newUser.lastName || ""}`.trim();
+		const userTypeLabels = {
+			producer: "Producteur",
+			transformer: "Transformateur",
+			consumer: "Consommateur",
+			restaurateur: "Restaurateur",
+			exporter: "Exportateur",
+			transporter: "Transporteur",
+		};
+		const userTypeLabel = userTypeLabels[newUser.userType] || newUser.userType;
+
 		const notificationData = {
-			title: "Nouveau compte utilisateur créé",
-			message: `Un nouveau compte ${newUser.userType} a été créé sur la plateforme Harvests.`,
+			title: `👤 Nouvel utilisateur inscrit — ${userTypeLabel}`,
+			message: `${userName} (${newUser.email}) vient de créer un compte ${userTypeLabel} sur Harvests.`,
 			data: {
-				"Type d'utilisateur": newUser.userType,
-				Prénom: newUser.firstName,
-				Nom: newUser.lastName || "N/A",
-				Email: newUser.email,
-				Téléphone: newUser.phone || "N/A",
-				Pays: newUser.country || "N/A",
-				"Date de création": new Date().toLocaleString("fr-FR"),
 				userId: newUser._id?.toString(),
+				userName,
+				email: newUser.email,
+				userType: newUser.userType,
+				country: newUser.country || "N/A",
+				phone: newUser.phone || "N/A",
 			},
 			actions: [
 				{
-					label: "Voir le profil utilisateur",
-					url: `/admin/users/${newUser._id}`, // Chemin relatif au lieu d'URL absolue
+					type: "view",
+					label: "Voir le profil",
+					url: `/admin/users/${newUser._id}`,
 				},
 			],
 		};
 
-		// Créer des notifications en base de données pour tous les admins
-		console.log(
-			"📧 [notifyNewUserAccount] Création des notifications en base de données..."
-		);
+		// Notification push + in-app pour tous les admins
 		await createNotificationsForAdmins({
 			...notificationData,
-			type: "announcement", // Type système pour les notifications admin
-			category: "system",
+			type: "new_user_registered",
+			category: "account",
+			priority: "medium",
 		});
-		console.log(
-			"📧 [notifyNewUserAccount] Notifications créées en base de données"
-		);
 
-		// Envoyer les emails (fonction existante)
-		console.log("📧 [notifyNewUserAccount] Envoi des emails aux admins...");
+		// Email aux admins (canal séparé)
 		await sendNotificationToAdmins(notificationData);
-		console.log("📧 [notifyNewUserAccount] Emails envoyés aux admins");
 	} catch (error) {
 		console.error(
 			"❌ [notifyNewUserAccount] Erreur notification nouveau compte utilisateur:",
 			error
 		);
-		console.error("❌ [notifyNewUserAccount] Stack:", error.stack);
 	}
 };
 

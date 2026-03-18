@@ -111,7 +111,14 @@ exports.processScheduledNotifications = catchAsync(async (req, res, next) => {
 exports.sendTestNotification = catchAsync(async (req, res, next) => {
   try {
     const { recipient, channels } = req.body;
-    const result = await notificationAdminService.sendTestNotification(req.user.id, {
+    // On utilise req.admin car on passe par adminAuthController.protect
+    const adminId = req.admin ? req.admin.id || req.admin._id : (req.user ? req.user.id : null);
+    
+    if (!adminId) {
+      return next(new AppError('Non autorisé ou admin non trouvé', 401));
+    }
+
+    const result = await notificationAdminService.sendTestNotification(adminId, {
       recipientId: recipient,
       channels
     });

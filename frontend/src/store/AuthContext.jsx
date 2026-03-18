@@ -79,16 +79,33 @@ export const AuthProvider = ({ children }) => {
 		dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
 	};
 
-	// S'abonner aux notifications push quand l'utilisateur est connecté
+	// Demander la permission push + s'abonner automatiquement à la connexion
 	React.useEffect(() => {
-		if (state.user && state.isAuthenticated) {
-			const isAdmin =
-				state.user.userType === "admin" ||
-				["super-admin", "admin", "moderator", "support"].includes(
-					state.user.role,
-				);
-		}
-	}, [state.user, state.isAuthenticated]);
+		if (!state.user || !state.isAuthenticated) return;
+
+		// Ne rien faire si déjà autorisé ou explicitement refusé
+		if (
+			typeof Notification === "undefined" ||
+			Notification.permission !== "default"
+		)
+			return;
+
+		// Délai de 2s : laisser l'UI se stabiliser avant de demander
+		const timer = setTimeout(async () => {
+			try {
+				const isAdmin =
+					state.user.userType === "admin" ||
+					["super-admin", "admin", "moderator", "support"].includes(
+						state.user.role,
+					);
+				await pushService.registerAndSubscribe(isAdmin);
+			} catch {
+				// Silencieux : l'utilisateur peut toujours activer ça dans les paramètres
+			}
+		}, 2000);
+
+		return () => clearTimeout(timer);
+	}, [state.user?.id, state.isAuthenticated]); // Déclenché uniquement au changement d'utilisateur
 
 	// Hooks
 	useRestoreSession(restoreSessionWrapper);

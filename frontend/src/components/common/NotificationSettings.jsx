@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { commonService } from "../../services";
 import { useNotifications } from "../../contexts/NotificationContext";
+import PushNotificationToggle from "./PushNotificationToggle";
 
 const NotificationSettings = ({ onUpdate, loading = false, data = null }) => {
 	const { showSuccess, showError } = useNotifications();
@@ -264,6 +265,17 @@ const NotificationSettings = ({ onUpdate, loading = false, data = null }) => {
 					</div>
 				</div>
 			)}
+
+			{/* ── Section Push Notifications ───────────────────────────── */}
+			<div className="mt-12 pt-8 border-t border-gray-100">
+				<div className="flex items-center gap-3 px-2 mb-6">
+					<Smartphone className="h-5 w-5 text-violet-500/50" />
+					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
+						Notifications Push Mobile
+					</h3>
+				</div>
+				<PushNotificationToggle isAdmin={false} />
+			</div>
 		</div>
 	);
 };

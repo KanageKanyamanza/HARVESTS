@@ -99,6 +99,8 @@ const notificationSchema = new mongoose.Schema({
       // Commandes
       'order_created',
       'order_created_buyer',
+      'order_created_transporter',
+      'order_status_update',
       'order_confirmed',
       'order_confirmed_seller',
       'order_confirmed_transporter',
@@ -135,6 +137,7 @@ const notificationSchema = new mongoose.Schema({
       'product_back_in_stock',
       'product_price_changed',
       'wishlist_item_available',
+      'product_pending_approval',
       
       // Avis et évaluations
       'review_received',
@@ -152,6 +155,7 @@ const notificationSchema = new mongoose.Schema({
       'profile_updated',
       'document_verified',
       'document_rejected',
+      'new_user_registered',
       
       // Livraisons
       'delivery_assigned',
@@ -179,16 +183,22 @@ const notificationSchema = new mongoose.Schema({
       'system_update',
       'security_alert',
       'backup_completed',
+      'high_value_order',
+      'payment_issue',
+      'dispute_created',
+      'user_reported',
       
       // Abonnements
       'subscription_renewed',
       'subscription_cancelled',
       'subscription_payment_failed',
+      'quota_reached',
       
       // Général
       'welcome',
       'reminder',
       'announcement',
+      'test',
       'custom'
     ]
   },

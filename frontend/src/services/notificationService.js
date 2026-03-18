@@ -264,6 +264,25 @@ class NotificationService {
 			}
 		);
 	}
+
+	// Envoyer une notification de test (Admin uniquement)
+	async sendTestNotification(channels = { inApp: true, email: true, push: true }) {
+		try {
+			if (!this.isAdmin()) return null;
+
+			const response = await api.post("/notifications/admin/test", {
+				channels: {
+					inApp: { enabled: !!channels.inApp },
+					email: { enabled: !!channels.email },
+					push: { enabled: !!channels.push },
+				},
+			});
+			return response.data;
+		} catch (error) {
+			console.error("Erreur lors de l'envoi de la notification de test:", error);
+			throw error;
+		}
+	}
 }
 
 export const notificationService = new NotificationService();
