@@ -119,37 +119,43 @@ api.interceptors.response.use(
 			console.error("API Error:", error);
 		}
 
-		// Gérer les erreurs d'authentification
+		// Gérer les erreurs d'authentification (401)
 		if (error.response?.status === 401) {
-			const errorMessage = error.response?.data?.message || "Non autorisé";
+			const errorMessage = error.response?.data?.message || "";
+			const currentPath = window.location.pathname;
 
-			// Ignorer les erreurs 401 sur les routes admin de connexion car c'est normal
-			// quand un utilisateur non-admin essaie de se connecter
-			const isAdminLoginAttempt =
+			// Identifier s'il s'agit d'une tentative de connexion
+			const isLoginAttempt =
+				error.config?.url?.includes("/auth/login") ||
 				error.config?.url?.includes("/admin/auth/login");
 
-			if (!isAdminLoginAttempt) {
-				// Vérifier si c'est une erreur de token spécifique
-				if (
-					errorMessage.includes("jwt malformed") ||
-					errorMessage.includes("jwt expired") ||
+			// Ne pas rediriger si on essaie de se connecter ou si on est déjà sur la page login
+			if (!isLoginAttempt && currentPath !== "/login") {
+				// Liste des messages qui indiquent une session expirée ou invalide
+				const isSessionError =
+					errorMessage.includes("jwt") ||
+					errorMessage.includes("expiré") ||
 					errorMessage.includes("n'existe plus") ||
-					errorMessage.includes("User not found")
-				) {
+					errorMessage.includes("User not found") ||
+					errorMessage.includes("pas connecté") ||
+					errorMessage.includes("authentifié");
+
+				if (isSessionError) {
 					console.warn(
-						"Token JWT invalide, expiré ou utilisateur inexistant, déconnexion...",
-						errorMessage,
+						"🔐 Session invalide ou expirée détectée, nettoyage et redirection...",
+						{ url: error.config?.url, message: errorMessage },
 					);
+
+					// Nettoyage complet
 					localStorage.removeItem("harvests_token");
 					localStorage.removeItem("harvests_user");
 					localStorage.removeItem("harvests_auth_data");
 
-					// Rediriger vers la page de connexion seulement si ce n'est pas une vérification en arrière-plan
+					// Rediriger vers la page de connexion
+					// Utiliser replace pour ne pas polluer l'historique
 					if (!error.config?.skipRedirect) {
-						window.location.href = "/login";
+						window.location.replace("/login");
 					}
-				} else {
-					console.warn("Token invalide ou expiré:", errorMessage);
 				}
 			}
 		}

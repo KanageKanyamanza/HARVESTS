@@ -18,13 +18,16 @@ export const NotificationProvider = ({ children }) => {
 
 	// Vérifier si useAuth est disponible
 	let isAuthenticated = false;
+	let user = null;
 	try {
 		const auth = useAuth();
 		isAuthenticated = auth?.isAuthenticated || false;
+		user = auth?.user || null;
 	} catch (error) {
 		console.warn("useAuth non disponible dans NotificationProvider:", error);
-		isAuthenticated = false;
 	}
+
+	const isAdmin = user?.role === "admin" || user?.userType === "admin";
 
 	// Nettoyer les notifications anciennes (plus de 30 jours)
 	const cleanupOldNotifications = () => {
@@ -62,7 +65,7 @@ export const NotificationProvider = ({ children }) => {
 	// Charger les notifications (backend + localStorage pour les non-connectés)
 	useEffect(() => {
 		const loadNotifications = async () => {
-			if (isAuthenticated) {
+			if (isAuthenticated && !isAdmin) {
 				// Délai pour éviter le rate limiting
 				await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -112,7 +115,7 @@ export const NotificationProvider = ({ children }) => {
 
 		// 🔄 Polling automatique toutes les 30 secondes pour actualiser les notifications
 		let pollingInterval;
-		if (isAuthenticated) {
+		if (isAuthenticated && !isAdmin) {
 			pollingInterval = setInterval(async () => {
 				// Ne pas poller si l'onglet n'est pas visible
 				if (document.hidden) return;

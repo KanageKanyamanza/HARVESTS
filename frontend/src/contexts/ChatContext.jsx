@@ -27,7 +27,7 @@ export const ChatProvider = ({ children }) => {
 
 	// Charger les conversations
 	const fetchConversations = useCallback(async () => {
-		if (!isAuthenticated || !user) return;
+		if (!isAuthenticated || !user || user.role === 'admin' || user.userType === 'admin') return;
 
 		try {
 			setIsLoading(true);
