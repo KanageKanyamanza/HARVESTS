@@ -16,11 +16,11 @@ const Home = () => {
 			<HeroSection />
 			<TrustBadgesSection />
 			<CategoriesSection />
+			<FeaturedProductsSection />
 			<ProductsSection />
 			<BannersSection />
 			<DiscountBannerSection />
 			<LoyaltyProgramSection />
-			<FeaturedProductsSection />
 			<LogisticsPartnersSection />
 		</div>
 	);
