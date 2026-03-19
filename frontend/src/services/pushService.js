@@ -26,8 +26,9 @@ const pushService = {
 			return;
 		}
 
-		if (!VAPID_PUBLIC_KEY) {
-			console.warn("VAPID Public Key key not found in environment");
+		if (!VAPID_PUBLIC_KEY || VAPID_PUBLIC_KEY === "undefined" || VAPID_PUBLIC_KEY === "") {
+			console.error("❌ ERREUR CRITIQUE: VAPID_PUBLIC_KEY introuvable dans import.meta.env !");
+			alert("Erreur Serveur (Prod) : La clé VITE_VAPID_PUBLIC_KEY manque dans les variables d'environnement du Frontend (Vercel/Render).");
 			return;
 		}
 
@@ -64,7 +65,8 @@ const pushService = {
 			// 4. Send subscription to backend
 			await this.sendSubscriptionToBackend(subscription, isAdmin);
 		} catch (error) {
-			console.error("[pushService] Web Push Subscription Error:", error);
+			console.error("❌ [pushService] Web Push Subscription Error:", error);
+			alert("Échec de l'abonnement Web Push en Prod : " + (error.message || "Erreur inconnue") + "\n(Vérifiez que vous êtes sur HTTPS ou vos clés Backend)");
 		}
 	},
 

@@ -21,7 +21,8 @@ export default defineConfig({
     minify: 'esbuild',
     // Esbuild supprime automatiquement les console.log en production
     esbuild: {
-      drop: ['console', 'debugger'], // Supprimer console et debugger en production
+      // Désactivé temporairement pour pouvoir déboguer les Web Push en PROD
+      // drop: ['console', 'debugger'], // Supprimer console et debugger en production
     },
     rollupOptions: {
       output: {
