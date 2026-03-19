@@ -2,10 +2,10 @@
 const CACHE_NAME = "harvests-v1.0.0";
 const urlsToCache = [
 	"/",
+	"/index.html",
 	"/manifest.json",
 	"/logo.png",
-	"/static/js/bundle.js",
-	"/static/css/main.css",
+	"/favicon.ico",
 ];
 
 // Installation du Service Worker

@@ -296,7 +296,7 @@ const AdminLayout = ({ children }) => {
 			{/* Main content */}
 			<div
 				className={`flex flex-col flex-1 transition-all duration-300 ${
-					sidebarCollapsed ? "lg:pl-[55px]" : "lg:pl-[240px]"
+					sidebarCollapsed ? "lg:pl-[70px]" : "lg:pl-[240px]"
 				}`}
 			>
 				{/* Top navigation - Only visible on Mobile since Sidebar covers Desktop top */}
