@@ -12,8 +12,13 @@ const Message = require("./models/Message");
 module.exports = (server) => {
 	const io = socketIO(server, {
 		cors: {
-			origin: process.env.FRONTEND_URL || "http://localhost:5173",
-			methods: ["GET", "POST"],
+			origin: [
+				"http://localhost:5173",
+				"https://harvests.site",
+				"https://www.harvests.site",
+				process.env.FRONTEND_URL
+			].filter(Boolean),
+			methods: ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
 			credentials: true,
 		},
 		pingTimeout: 60000,
