@@ -11,8 +11,19 @@ export const isValidToken = (token) => {
   }
   
   try {
-    // Vérifier que les parties sont en base64 valide
-    const payload = JSON.parse(atob(tokenParts[1]));
+    // Remplacer les caractères base64url par du base64 standard pour atob()
+    const base64Url = tokenParts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    
+    // Décoder le payload
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+
+    const payload = JSON.parse(jsonPayload);
     
     // Vérifier l'expiration si présente
     if (payload.exp) {
@@ -24,6 +35,7 @@ export const isValidToken = (token) => {
     
     return true;
   } catch (error) {
+    console.error('Erreur décodage token:', error);
     return false;
   }
 };
