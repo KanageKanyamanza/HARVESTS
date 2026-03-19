@@ -4,6 +4,17 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  server: {
+    host: '127.0.0.1',
+    port: 5173,
+    hmr: {
+      host: '127.0.0.1',
+      clientPort: 5173,
+    },
+    watch: {
+      usePolling: true,
+    },
+  },
   build: {
     // Optimisations de build pour réduire la taille
     // Utiliser esbuild (inclus par défaut, plus rapide que terser)

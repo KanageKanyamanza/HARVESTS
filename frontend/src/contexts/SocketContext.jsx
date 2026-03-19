@@ -14,10 +14,9 @@ export const SocketProvider = ({ children }) => {
 	const [isConnected, setIsConnected] = useState(false);
 	const [activeUsers, setActiveUsers] = useState([]);
 
-	// URL du backend
-	// Si on est en dev, utiliser localhost:8000 (ou la variable d'env)
-	// En prod, utiliser l'URL relative ou l'URL de l'API
-	const SOCKET_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+	// URL du serveur (sans le chemin /api/v1)
+	const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+	const SOCKET_URL = new URL(API_URL).origin;
 
 	useEffect(() => {
 		let newSocket;

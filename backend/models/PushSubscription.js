@@ -4,8 +4,14 @@ const pushSubscriptionSchema = new mongoose.Schema(
 	{
 		user: {
 			type: mongoose.Schema.Types.ObjectId,
-			ref: "User",
+			refPath: "userModel",
 			required: true,
+		},
+		userModel: {
+			type: String,
+			required: true,
+			enum: ["User", "Admin"],
+			default: "User",
 		},
 		endpoint: {
 			type: String,

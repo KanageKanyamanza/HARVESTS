@@ -161,9 +161,8 @@ class NotificationService {
 			// Logger la taille pour debug
 			const payloadSize = Buffer.byteLength(payload, "utf8");
 			if (payloadSize > 3000) {
-				// Garder cet avertissement car il est important
 				console.warn(
-					`⚠️ Attention: Charge utile Web Push volumineuse (${payloadSize} bytes). Limite ~4000 bytes.`,
+					`⚠️ Attention: Charge utile Web Push volumineuse (${payloadSize} bytes). Limite ~4000 bytes.`
 				);
 			}
 

@@ -132,9 +132,14 @@ api.interceptors.response.use(
 				// Vérifier si c'est une erreur de token spécifique
 				if (
 					errorMessage.includes("jwt malformed") ||
-					errorMessage.includes("jwt expired")
+					errorMessage.includes("jwt expired") ||
+					errorMessage.includes("n'existe plus") ||
+					errorMessage.includes("User not found")
 				) {
-					console.warn("Token JWT invalide ou expiré, déconnexion...");
+					console.warn(
+						"Token JWT invalide, expiré ou utilisateur inexistant, déconnexion...",
+						errorMessage,
+					);
 					localStorage.removeItem("harvests_token");
 					localStorage.removeItem("harvests_user");
 					localStorage.removeItem("harvests_auth_data");

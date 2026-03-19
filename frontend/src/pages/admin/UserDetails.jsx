@@ -23,6 +23,7 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	User,
+	Leaf,
 } from "lucide-react";
 import { adminService } from "../../services/adminService";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
@@ -130,6 +131,19 @@ const UserDetails = () => {
 		}
 	};
 
+	const handleToggleBio = async () => {
+		try {
+			setActionLoading(true);
+			await adminService.updateUser(id, { isBio: !user.isBio });
+			await loadUser();
+		} catch (error) {
+			console.error("Erreur lors de la mise à jour du statut Bio:", error);
+		} finally {
+			setActionLoading(false);
+		}
+	};
+
+
 	const isPdf = (url) => url?.toLowerCase().includes(".pdf");
 	const isImage = (url) =>
 		/\.(jpg|jpeg|png|webp|gif|svg)$/i.test(url) ||
@@ -208,7 +222,7 @@ const UserDetails = () => {
 			: "Non vérifié";
 
 		return (
-			<div className="bg-white/70 backdrop-blur-xl rounded-[2rem] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white/60 flex flex-col justify-between group overflow-hidden relative">
+			<div className="bg-white/70 backdrop-blur-xl rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white/60 flex flex-col justify-between group overflow-hidden relative">
 				<div className="absolute top-0 right-0 w-24 h-24 bg-gray-100/50 rounded-full blur-2xl -mr-12 -mt-12 group-hover:bg-blue-100/30 transition-all duration-500"></div>
 
 				<div className="relative z-10">
@@ -335,7 +349,7 @@ const UserDetails = () => {
 	}
 
 	return (
-		<div className="min-h-screen pb-20 relative overflow-hidden">
+		<div className="min-h-screen p-4 pb-20 relative overflow-hidden">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-green-100/30 rounded-full blur-[120px]"></div>
@@ -521,7 +535,31 @@ const UserDetails = () => {
 										<XCircle className="h-5 w-5 text-rose-500" />
 									)}
 								</div>
+								{(user.userType === "producer" || user.userType === "transformer") && (
+									<div className="flex items-center justify-between p-4 bg-emerald-50/30 rounded-2xl border border-emerald-100">
+										<div className="flex items-center gap-2">
+											<Leaf className="h-4 w-4 text-emerald-600" />
+											<span className="text-sm font-bold text-emerald-900 font-black uppercase tracking-widest">
+												Badge Bio
+											</span>
+										</div>
+										<button
+											onClick={handleToggleBio}
+											disabled={actionLoading}
+											className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${
+												user.isBio ? "bg-emerald-600" : "bg-gray-200"
+											}`}
+										>
+											<span
+												className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${
+													user.isBio ? "translate-x-6" : "translate-x-1"
+												}`}
+											/>
+										</button>
+									</div>
+								)}
 							</div>
+
 						</div>
 					</div>
 

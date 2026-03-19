@@ -112,27 +112,35 @@ self.addEventListener("push", (event) => {
 			data = event.data.json();
 			console.log("[Service Worker] Push Data parsed:", data);
 		} catch (e) {
-			console.log("[Service Worker] Push Data parse error, using text:", e);
-			data = { title: "HARVESTS", body: event.data.text() };
+			console.warn("[Service Worker] Push Data parse error, try text:", e);
+			const text = event.data.text();
+			data = { title: "HARVESTS", body: text };
 		}
 	} else {
-		data = { title: "HARVESTS", body: "Nouvelle notification" };
+		data = { title: "HARVESTS", body: "Nouvelle notification en attente" };
 	}
 
+	// Préparer les options pour la notification
+	// On s'assure que title et body existent
+	const title = data.title || "HARVESTS";
+	const body = data.body || "Vous avez une nouvelle notification";
+
 	const options = {
-		body: data.body,
-		icon: "/logo.png", // Force logo.png pour test
+		body: body,
+		icon: data.icon || "/logo.png",
 		badge: "/logo.png",
 		vibrate: [100, 50, 100],
 		data: data.data || { url: "/" },
-		tag: "harvests-notification-" + Date.now(), // Unique tag pour forcer l'affichage
+		timestamp: Date.now(),
+		tag: data.tag || "harvests-general",
 		renotify: true,
-		requireInteraction: true, // Garder la notification visible
+		requireInteraction: true,
+		actions: data.actions || [],
 	};
 
 	event.waitUntil(
 		Promise.all([
-			self.registration.showNotification(data.title, options),
+			self.registration.showNotification(title, options),
 			// Mise à jour du badge
 			"setAppBadge" in navigator
 				? navigator.setAppBadge(data.unreadCount || 1).catch(() => {})

@@ -89,7 +89,7 @@ const HeroSection = () => {
 					className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-out ${
 						index === currentSlide ? "opacity-100" : "opacity-0"
 					}`}
-					fetchPriority={index === 0 ? "high" : "auto"} // Priorité haute pour la première image (LCP)
+					fetchpriority={index === 0 ? "high" : "auto"} // Priorité haute pour la première image (LCP)
 					loading={index === 0 ? "eager" : "lazy"} // Charger immédiatement la première image
 					decoding="async"
 				/>

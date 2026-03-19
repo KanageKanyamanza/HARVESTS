@@ -75,8 +75,8 @@ async function searchProducts(searchTerm, filters = {}) {
   }
   
   const searchResults = await Product.find(queryObj)
-    .populate('producer', 'farmName firstName lastName address city region country')
-    .populate('transformer', 'companyName firstName lastName address city region country')
+    .populate('producer', 'farmName firstName lastName address city region country isBio')
+    .populate('transformer', 'companyName firstName lastName address city region country isBio')
     .sort('-createdAt')
     .limit(100);
   
@@ -189,8 +189,8 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
 
   // Construction de la requête
   let query = Product.find(queryObj)
-    .populate('producer', 'farmName firstName lastName address salesStats createdAt country')
-    .populate('transformer', 'companyName firstName lastName address salesStats createdAt country')
+    .populate('producer', 'farmName firstName lastName address salesStats createdAt country isBio')
+    .populate('transformer', 'companyName firstName lastName address salesStats createdAt country isBio')
     .select('-__v');
 
   // Tri
@@ -249,8 +249,8 @@ async function getProductsByLocation(queryParams = {}) {
   // Si pas de localisation détectée
   if (!userLocation || (!userLocation.city && !userLocation.region && !userLocation.country)) {
     const products = await Product.find(baseQueryObj)
-      .populate('producer', 'farmName firstName lastName address city region country salesStats createdAt')
-      .populate('transformer', 'companyName firstName lastName address city region country salesStats createdAt')
+      .populate('producer', 'farmName firstName lastName address city region country salesStats createdAt isBio')
+      .populate('transformer', 'companyName firstName lastName address city region country salesStats createdAt isBio')
       .select('-__v')
       .sort('-createdAt')
       .skip(skip)
@@ -283,8 +283,8 @@ async function getProductsByLocation(queryParams = {}) {
   }
 
   let query = Product.find(locationQueryObj)
-    .populate('producer', 'farmName firstName lastName address city region country salesStats createdAt')
-    .populate('transformer', 'companyName firstName lastName address city region country salesStats createdAt')
+    .populate('producer', 'farmName firstName lastName address city region country salesStats createdAt isBio')
+    .populate('transformer', 'companyName firstName lastName address city region country salesStats createdAt isBio')
     .select('-__v')
     .sort('-createdAt')
     .skip(skip)
@@ -296,8 +296,8 @@ async function getProductsByLocation(queryParams = {}) {
   // Si aucun produit trouvé dans la zone
   if (totalInLocation === 0) {
     const allProducts = await Product.find(baseQueryObj)
-      .populate('producer', 'farmName firstName lastName address city region country salesStats createdAt')
-      .populate('transformer', 'companyName firstName lastName address city region country salesStats createdAt')
+      .populate('producer', 'farmName firstName lastName address city region country salesStats createdAt isBio')
+      .populate('transformer', 'companyName firstName lastName address city region country salesStats createdAt isBio')
       .select('-__v')
       .sort('-createdAt')
       .skip(skip)
@@ -421,8 +421,8 @@ async function getProductsByCategory(category, queryParams = {}) {
   const skip = (page - 1) * limit;
 
   let query = Product.find(queryObj)
-    .populate('producer', 'farmName firstName lastName address salesStats createdAt country')
-    .populate('transformer', 'companyName firstName lastName address salesStats createdAt country')
+    .populate('producer', 'farmName firstName lastName address salesStats createdAt country isBio')
+    .populate('transformer', 'companyName firstName lastName address salesStats createdAt country isBio')
     .select('-__v');
 
   // Tri
@@ -459,8 +459,8 @@ async function getProductById(productId) {
     isActive: true,
     isPublic: { $ne: false }
   })
-  .populate('producer', 'farmName firstName lastName address salesStats certifications createdAt country region userType shopLogo shopBanner avatar')
-  .populate('transformer', 'companyName firstName lastName address salesStats certifications createdAt country region userType shopLogo shopBanner avatar');
+  .populate('producer', 'farmName firstName lastName address salesStats certifications createdAt country region userType shopLogo shopBanner avatar isBio')
+  .populate('transformer', 'companyName firstName lastName address salesStats certifications createdAt country region userType shopLogo shopBanner avatar isBio');
 
   if (!product) {
     throw new Error('Produit non trouvé');
@@ -480,8 +480,8 @@ async function getProductById(productId) {
     isActive: true,
     isPublic: { $ne: false }
   })
-  .populate('producer', 'farmName firstName lastName createdAt country')
-  .populate('transformer', 'companyName firstName lastName createdAt country')
+  .populate('producer', 'farmName firstName lastName createdAt country isBio')
+  .populate('transformer', 'companyName firstName lastName createdAt country isBio')
   .limit(6)
   .sort('-createdAt');
 
@@ -501,8 +501,8 @@ async function getFeaturedProducts() {
     status: 'approved',
     isActive: true
   })
-  .populate('producer', 'farmName firstName lastName address createdAt country')
-  .populate('transformer', 'companyName firstName lastName address createdAt country')
+  .populate('producer', 'farmName firstName lastName address createdAt country isBio')
+  .populate('transformer', 'companyName firstName lastName address createdAt country isBio')
   .sort('-createdAt')
   .limit(12);
 
@@ -521,8 +521,8 @@ async function getNewProducts() {
     status: 'approved',
     isActive: true
   })
-  .populate('producer', 'farmName firstName lastName createdAt country')
-  .populate('transformer', 'companyName firstName lastName createdAt country')
+  .populate('producer', 'farmName firstName lastName createdAt country isBio')
+  .populate('transformer', 'companyName firstName lastName createdAt country isBio')
   .sort('-createdAt')
   .limit(20);
 
