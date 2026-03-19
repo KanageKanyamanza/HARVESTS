@@ -261,11 +261,13 @@ const createAdminIfNeeded = async () => {
 		}
 
 		await mongoose.connection.close();
+		process.exit(0);
 	} catch (error) {
 		console.error(
 			"❌ Erreur lors de la création automatique de l'admin:",
 			error.message,
 		);
+		process.exit(1);
 	}
 };
 

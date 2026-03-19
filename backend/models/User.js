@@ -199,6 +199,10 @@ const baseUserSchema = new mongoose.Schema(
 			type: Boolean,
 			default: false,
 		},
+		isBio: {
+			type: Boolean,
+			default: false,
+		},
 
 		// Dates de vérification
 		emailVerifiedAt: Date,

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { producerService } from "../services";
 import { FiMapPin, FiStar, FiPackage, FiArrowRight } from "react-icons/fi";
+import { Leaf } from "lucide-react";
 import { getCountryName } from "../utils/countryMapper";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import { useApiCache } from "../hooks/useApiCache";
@@ -156,18 +157,29 @@ const Producers = () => {
 
 								{/* Informations en bas */}
 								<div className="p-4 pt-6">
-									<h3 className="font-semibold text-gray-900 mb-1 text-lg">
-										{producer.shopInfo?.shopName ||
-											((
-												producer.farmName && producer.farmName !== "À compléter"
-											) ?
-												producer.farmName
-											:	null) ||
-											`${producer.firstName} ${
-												producer.lastName !== "À compléter" ?
-													producer.lastName
-												:	""
-											}`.trim()}
+									<h3 className="font-semibold text-gray-900 mb-1 text-lg flex items-center justify-between">
+										<span className="truncate">
+											{producer.shopInfo?.shopName ||
+												((
+													producer.farmName && producer.farmName !== "À compléter"
+												) ?
+													producer.farmName
+												:	null) ||
+												`${producer.firstName} ${
+													producer.lastName !== "À compléter" ?
+														producer.lastName
+													:	""
+												}`.trim()}
+										</span>
+										{producer.isBio && (
+											<span
+												className="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200"
+												title="Producteur Bio Certifié"
+											>
+												<Leaf className="w-2.5 h-2.5 mr-1" />
+												BIO
+											</span>
+										)}
 									</h3>
 									<p className="text-sm text-gray-600 mb-2">
 										{producer.firstName}{" "}

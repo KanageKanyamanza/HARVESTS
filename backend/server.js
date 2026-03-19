@@ -109,30 +109,55 @@ mongoose
 		}
 
 		// Créer automatiquement le premier admin si nécessaire (production et développement)
-		try {
-			const { exec } = require("child_process");
-			const path = require("path");
-
-			// Exécuter le script de création d'admin en mode automatique
-			exec(
-				`node ${path.join(__dirname, "scripts", "quick-admin-setup.js")} --auto-create`,
-				(error, stdout, stderr) => {
-					if (error) {
-						console.log(
-							"⚠️ Erreur lors de la vérification/création de l'admin:",
-							error.message,
-						);
+		const createAdminIfNeeded = async () => {
+			try {
+				const Admin = require("./models/Admin");
+				const adminCount = await Admin.countDocuments();
+				if (adminCount === 0) {
+					const isProduction = process.env.NODE_ENV === "production";
+					let adminData;
+					if (isProduction) {
+						adminData = {
+							firstName: process.env.ADMIN_FIRST_NAME || "Admin",
+							lastName: process.env.ADMIN_LAST_NAME || "Harvests",
+							email: process.env.ADMIN_EMAIL || "admin@harvests.sn",
+							password:
+								process.env.ADMIN_PASSWORD || "Admin@Harvests2025!",
+							role: "super-admin",
+							department: "technical",
+							permissions: ["all"],
+							isEmailVerified: true,
+							isActive: true,
+						};
 					} else {
-						console.log(stdout);
+						adminData = {
+							firstName: "Roll Revhieno",
+							lastName: "Haurly",
+							email: "contact@harvests.site",
+							password: "Admin@harvests123!",
+							role: "super-admin",
+							department: "technical",
+							permissions: ["all"],
+							isEmailVerified: true,
+							isActive: true,
+						};
 					}
-				},
-			);
-		} catch (error) {
-			console.log(
-				"⚠️ Impossible de vérifier/créer l'admin automatiquement:",
-				error.message,
-			);
-		}
+					await Admin.create(adminData);
+					console.log("✅ Premier administrateur créé avec succès!");
+				} else {
+					console.log(
+						`ℹ️ ${adminCount} administrateur(s) existent déjà dans le système`,
+					);
+				}
+			} catch (error) {
+				console.log(
+					"⚠️ Erreur lors de la vérification/création de l'admin:",
+					error.message,
+				);
+			}
+		};
+
+		await createAdminIfNeeded();
 	})
 	.catch((err) => {
 		console.error("❌ Erreur de connexion à la base de données:", err);
@@ -147,6 +172,20 @@ const server = app.listen(port, () => {
 	console.log(`🚀 Serveur Harvests démarré sur le port ${port}`);
 	console.log(`🌍 Environnement: ${process.env.NODE_ENV}`);
 	console.log(`📅 Démarré le: ${new Date().toLocaleString("fr-FR")}`);
+});
+
+server.on("error", (err) => {
+	if (err.code === "EADDRINUSE") {
+		console.error(
+			`❌ Erreur: Le port ${port} est déjà utilisé par un autre processus.`,
+		);
+		console.error(
+			"💡 Essayez de tuer les processus node existants ou changez le port dans le fichier .env",
+		);
+		process.exit(1);
+	} else {
+		console.error("❌ Erreur du serveur:", err);
+	}
 });
 
 // Initialisation de Socket.io
@@ -175,10 +214,38 @@ process.on("unhandledRejection", (err) => {
  * Gestion gracieuse de l'arrêt du serveur
  * Permet de fermer proprement les connexions avant l'arrêt
  */
-process.on("SIGTERM", () => {
-	console.log("👋 SIGTERM reçu. Arrêt gracieux du serveur...");
-	server.close(() => {
-		console.log("💥 Processus terminé!");
+const gracefulShutdown = (signal) => {
+	console.log(`👋 ${signal} reçu. Arrêt gracieux du serveur...`);
+	server.close(async () => {
+		try {
+			await mongoose.connection.close();
+			console.log("✅ Connexion MongoDB fermée.");
+			console.log("💥 Processus terminé!");
+			process.exit(0);
+		} catch (err) {
+			console.error("❌ Erreur lors de la fermeture de MongoDB:", err);
+			process.exit(1);
+		}
+	});
+
+	// Forcer l'arrêt après 10 secondes si server.close() prend trop de temps
+	setTimeout(() => {
+		console.error(
+			"⚠️ Échec de l'arrêt gracieux, forçage de l'arrêt du processus.",
+		);
+		process.exit(1);
+	}, 10000);
+};
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+
+// Handler spécifique pour nodemon (principalement sur Linux/Mac, mais utile pour la clarté)
+process.once("SIGUSR2", () => {
+	console.log("🔄 Redémarrage par nodemon...");
+	server.close(async () => {
+		await mongoose.connection.close();
+		process.kill(process.pid, "SIGUSR2");
 	});
 });
 // Trigger restart for env update

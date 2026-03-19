@@ -25,9 +25,11 @@
   "env": {
     "NODE_ENV": "development"
   },
-  "delay": 500,
-  "verbose": false,
+  "delay": 2000,
+  "verbose": true,
   "colours": true,
-  "restartable": "rs"
+  "restartable": "rs",
+  "legacyWatch": true,
+  "signal": "SIGTERM"
 }
 

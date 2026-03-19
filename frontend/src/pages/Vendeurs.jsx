@@ -14,6 +14,7 @@ import {
 	FiTool,
 	FiSun,
 } from "react-icons/fi";
+import { Leaf } from "lucide-react";
 import {
 	getVendorAverageRating,
 	getVendorReviewCount,
@@ -455,8 +456,17 @@ const Vendeurs = () => {
 
 									{/* Informations en bas */}
 									<div className="p-4 pt-6">
-										<h3 className="font-semibold text-gray-900 mb-1 text-lg">
-											{vendeur.displayName}
+										<h3 className="font-semibold text-gray-900 mb-1 text-lg flex items-center justify-between">
+											<span className="truncate">{vendeur.displayName}</span>
+											{vendeur.isBio && (
+												<span
+													className="flex-shrink-0 inline-flex items-center px-2 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200"
+													title="Certifié Bio"
+												>
+													<Leaf className="w-3 h-3 mr-1" />
+													BIO
+												</span>
+											)}
 										</h3>
 										<div className="flex items-center text-gray-500 text-sm mb-3">
 											<FiMapPin className="mr-1" />

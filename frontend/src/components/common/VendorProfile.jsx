@@ -16,6 +16,7 @@ import {
 	FiMail,
 	FiMessageCircle,
 } from "react-icons/fi";
+import { Leaf } from "lucide-react";
 import { reviewService } from "../../services";
 import { getCountryName } from "../../utils/countryMapper";
 import LoadingSpinner from "./LoadingSpinner";
@@ -401,8 +402,14 @@ const VendorProfile = ({
 
 					{/* Informations en bas */}
 					<div className="p-3 pt-8">
-						<h1 className="text-3xl font-bold text-gray-900 mb-2">
+						<h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
 							{getVendorName(vendor)}
+							{vendor.isBio && (
+								<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+									<Leaf className="mr-1 h-3 w-3" />
+									BIO
+								</span>
+							)}
 						</h1>
 						<p className="text-gray-600 mb-2">{getVendorSubtitle(vendor)}</p>
 						<div className="flex flex-wrap gap-3 mb-4">

@@ -131,8 +131,17 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 		address,
 		isActive,
 		isEmailVerified,
+		isBio,
 	} = req.body;
-	const updateData = { firstName, lastName, email, phone, address, isActive };
+	const updateData = {
+		firstName,
+		lastName,
+		email,
+		phone,
+		address,
+		isActive,
+		isBio,
+	};
 	if (isEmailVerified !== undefined)
 		updateData.isEmailVerified = isEmailVerified;
 

@@ -8,6 +8,7 @@ import {
 	FiShoppingCart,
 	FiCheck,
 } from "react-icons/fi";
+import { Leaf } from "lucide-react";
 import { useCart } from "../../contexts/CartContext";
 import { reviewService } from "../../services";
 import {
@@ -159,10 +160,10 @@ const ProductCard = ({ product }) => {
 	};
 
 	return (
-		<div className="bg-white border rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
+		<div className="bg-white border rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
 			<Link to={`/products/${product._id}`} className="block">
 				{/* Image */}
-				<div className="aspect-[4/3] relative overflow-hidden bg-gray-100">
+				<div className="aspect-[4/3] relative overflow-hidden bg-gray-100 rounded-b-xl">
 					{primaryImage ?
 						<CloudinaryImage
 							src={primaryImage.url}
@@ -213,8 +214,17 @@ const ProductCard = ({ product }) => {
 						</div>
 					</div>
 
-					<h3 className="font-semibold text-gray-900 line-clamp-2 min-h-[1rem]">
-						{productName}
+					<h3 className="font-semibold text-gray-900 line-clamp-2 min-h-[1rem] flex items-center justify-between">
+						<span className="truncate">{productName}</span>
+						{(product.producer?.isBio || product.transformer?.isBio) && (
+							<span
+								className="flex-shrink-0 ml-2 inline-flex items-center px-2 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200"
+								title="Certifié Bio"
+							>
+								<Leaf className="w-3 h-3 mr-1" />
+								BIO
+							</span>
+						)}
 					</h3>
 
 					<div className="flex items-center justify-between pt-2 border-t border-gray-100">
@@ -224,7 +234,7 @@ const ProductCard = ({ product }) => {
 								/ {product.unit || "unité"}
 							</span>
 						</span>
-						<div className="hidden sm:flex items-center text-sm text-gray-500">
+						<div className="hidden whitespace-nowrap sm:flex items-center text-sm text-gray-500">
 							<FiPackage className="h-4 w-4 mr-1" />
 							{product.inventory?.quantity || 0} en stock
 						</div>

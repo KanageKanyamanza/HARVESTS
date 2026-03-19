@@ -32,7 +32,7 @@ function startProcess(name, command, args, cwd) {
 
 // Démarrer le backend sur le port 8001 avec nodemon
 const backend = startProcess(
-	"Backend (Port 8001)",
+	"Backend (Port 5000)",
 	"npx",
 	["nodemon", "server.js"],
 	"backend",
@@ -53,11 +53,29 @@ setTimeout(() => {
 // Gestion de l'arrêt propre
 process.on("SIGINT", () => {
 	console.log("\n🛑 Arrêt des serveurs...");
-	backend.kill();
-	if (frontend && typeof frontend.kill === "function") {
-		frontend.kill();
-	}
-	process.exit(0);
+
+	const killProcess = (proc) => {
+		if (proc) {
+			if (process.platform === "win32") {
+				const { exec } = require("child_process");
+				exec(`taskkill /pid ${proc.pid} /T /F`, (err) => {
+					if (err) {
+						// Fallback si taskkill échoue
+						proc.kill();
+					}
+				});
+			} else {
+				proc.kill();
+			}
+		}
+	};
+
+	killProcess(backend);
+	killProcess(frontend);
+
+	setTimeout(() => {
+		process.exit(0);
+	}, 1000);
 });
 
 console.log(`

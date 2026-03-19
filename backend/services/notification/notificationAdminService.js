@@ -234,6 +234,7 @@ async function processScheduledNotifications() {
 async function sendTestNotification(adminId, { recipientId, channels }) {
 	const notification = await Notification.createNotification({
 		recipient: recipientId || adminId,
+		recipientModel: "Admin", // On spécifie explicitement que c'est un Admin
 		sender: adminId,
 		type: "test",
 		category: "system",

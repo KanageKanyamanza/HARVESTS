@@ -19,6 +19,7 @@ const corsOptions = {
 			"http://localhost:5175", // Vite dev
 			"http://localhost:5176", // Vite dev
 			"http://localhost:5177", // Vite dev
+			"http://192.168.80.1:5173", // Vite dev
 			"https://harvests-six.vercel.app", // Frontend Vercel
 			"https://www.harvests.site", // Production
 			"https://harvests.site", // Production (sans www)

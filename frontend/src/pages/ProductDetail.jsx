@@ -32,6 +32,7 @@ import {
 	FiEye,
 	FiX,
 } from "react-icons/fi";
+import { Leaf } from "lucide-react";
 
 const ProductDetail = () => {
 	const { id } = useParams();
@@ -326,6 +327,12 @@ const ProductDetail = () => {
 							</div>
 							<h1 className="text-3xl font-bold text-gray-900 mb-2">
 								{productName}
+								{(producer?.isBio || product.transformer?.isBio) && (
+									<span className="ml-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-sm transition-all hover:bg-emerald-200">
+										<Leaf className="mr-1.5 h-3.5 w-3.5" />
+										CERTIFIE BIO
+									</span>
+								)}
 							</h1>
 							<div className="flex flex-wrap gap-2 items-center">
 								<StarRating
