@@ -83,10 +83,10 @@ export const AuthProvider = ({ children }) => {
 	React.useEffect(() => {
 		if (!state.user || !state.isAuthenticated) return;
 
-		// Ne rien faire si déjà autorisé ou explicitement refusé
+		// Ne rien faire si explicitement refusé ou non supporté
 		if (
 			typeof Notification === "undefined" ||
-			Notification.permission !== "default"
+			Notification.permission === "denied"
 		)
 			return;
 
