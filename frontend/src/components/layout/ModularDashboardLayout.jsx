@@ -5,6 +5,8 @@ import DashboardSidebarFixed from "../dashboard/DashboardSidebarFixed";
 import DashboardTopbar from "../dashboard/DashboardTopbar";
 import ProfileCompletionModal from "../dashboard/ProfileCompletionModal";
 import EmailVerificationBanner from "../dashboard/EmailVerificationBanner";
+import PushNotificationBanner from "../dashboard/PushNotificationBanner";
+import pushService from "../../services/pushService";
 
 const ModularDashboardLayout = ({ children, navigationItems, user }) => {
 	const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -16,6 +18,25 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
 	});
 	const { logout } = useAuth();
 	const navigate = useNavigate();
+	const [showPushBanner, setShowPushBanner] = useState(false);
+
+	// Vérifier si on doit montrer la bannière push
+	useEffect(() => {
+		const checkPush = async () => {
+			if (!user) return;
+			const status = await pushService.checkSubscriptionStatus();
+			const dismissed = localStorage.getItem("push-banner-dismissed");
+			let isDismissed = false;
+			if (dismissed) {
+				const date = new Date(dismissed);
+				const diff = (new Date() - date) / (1000 * 60 * 60 * 24);
+				isDismissed = diff < 3;
+			}
+			
+			setShowPushBanner(status.supported && !status.subscribed && !isDismissed && status.permission !== 'denied');
+		};
+		checkPush();
+	}, [user]);
 
 	// Sauvegarder l'état collapsed dans localStorage
 	useEffect(() => {
@@ -55,6 +76,7 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
 			{/* Bannière vérification email - FIXED top 0 */}
 			<div className="fixed top-0 left-0 right-0 z-40">
 				<EmailVerificationBanner user={user} />
+				<PushNotificationBanner user={user} />
 			</div>
 			{/* Sidebar - FIXED position, 100vh */}
 			<div
@@ -95,7 +117,8 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
 				className={`fixed right-0 h-16 z-20 transition-all duration-300 ${
 					sidebarCollapsed ? "left-[90px]" : "left-0 lg:left-[250px]"
 				} ${
-					user && !user.isEmailVerified ? "top-[40px]" : "top-0"
+					(user && !user.isEmailVerified) && showPushBanner ? "top-[90px]" : 
+					(user && !user.isEmailVerified) || showPushBanner ? "top-[40px]" : "top-0"
 				}`}
 			>
 				<DashboardTopbar onMenuClick={() => setSidebarOpen(true)} />
@@ -106,7 +129,8 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
 				className={`fixed right-0 bottom-0 overflow-y-auto bg-harvests-light transition-all duration-300 ${
 					sidebarCollapsed ? "left-[85px]" : "left-0 lg:left-[250px]"
 				} ${
-					user && !user.isEmailVerified ? "top-[104px]" : "top-16"
+					(user && !user.isEmailVerified) && showPushBanner ? "top-[154px]" : 
+					(user && !user.isEmailVerified) || showPushBanner ? "top-[104px]" : "top-16"
 				}`}
 			>
 				{children}

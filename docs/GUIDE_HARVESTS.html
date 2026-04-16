@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide Pas à Pas Harvests - Plateforme Agricole</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2E7D32;
+            --primary-light: #4CAF50;
+            --secondary: #FF9800;
+            --bg: #F9FBFA;
+            --text: #2D3436;
+            --gray: #636E72;
+            --white: #FFFFFF;
+            --border: #E0E0E0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text); line-height: 1.6; }
+        h1, h2, h3 { font-family: 'Outfit', sans-serif; margin-bottom: 1rem; }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+        
+        .hero { text-align: center; padding: 50px 20px; background: linear-gradient(135deg, var(--primary) 0%, #1B5E20 100%); color: white; border-radius: 24px; margin-bottom: 50px; }
+        .hero h1 { font-size: 3rem; margin-bottom: 10px; }
+        .hero p { opacity: 0.9; font-size: 1.2rem; }
+
+        .tip { background: #FFF9C4; border-left: 4px solid var(--secondary); padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 0.9rem; }
+
+        .profile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; border-bottom: 2px solid var(--bg); padding-bottom: 15px; }
+        .profile-header .icon { font-size: 2.5rem; }
+        .profile-header h2 { font-size: 2rem; color: var(--primary); margin-bottom: 0; }
+
+        .step-container { margin-top: 30px; }
+        .step { position: relative; padding-left: 50px; margin-bottom: 30px; }
+        .step::before { content: attr(data-step); position: absolute; left: 0; top: 0; width: 35px; height: 35px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
+        .step::after { content: ''; position: absolute; left: 17px; top: 40px; width: 2px; height: calc(100% - 10px); background: var(--border); }
+        .step:last-child::after { display: none; }
+
+        .step h3 { font-size: 1.3rem; color: var(--text); }
+        .step-content { margin-top: 10px; }
+        .step-content ul { margin-left: 20px; list-style-type: square; }
+        .step-content li { margin-bottom: 5px; }
+
+        .code-path { font-family: 'Courier New', Courier, monospace; background: #eee; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+
+        @media screen {
+            .profile-section { 
+                background: var(--white); 
+                border-radius: 20px; 
+                padding: 40px; 
+                margin-bottom: 40px; 
+                border: 1px solid var(--border); 
+                box-shadow: 0 4px 6px rgba(0,0,0,0.02); 
+            }
+            .step-content { 
+                background: var(--bg); 
+                padding: 20px; 
+                border-radius: 12px; 
+                margin-top: 10px; 
+            }
+        }
+
+        @media print {
+            .hero { 
+                background: white !important; 
+                color: black !important; 
+                border: 2px solid var(--primary); 
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                page-break-after: always;
+                margin-bottom: 0;
+            }
+            .profile-section { 
+                padding: 0;
+                margin-bottom: 0;
+                break-before: page;
+                page-break-before: always; 
+            }
+            .profile-section:first-of-type {
+                break-before: auto;
+                page-break-before: auto;
+            }
+            .profile-section::after {
+                content: "";
+                display: block;
+                height: 1px;
+                margin-bottom: 20px;
+            }
+            .profile-header {
+                border-bottom: 2px solid var(--primary) !important;
+                break-after: avoid;
+                page-break-after: avoid;
+            }
+            .step {
+                break-inside: avoid;
+                page-break-inside: avoid;
+                margin-bottom: 20px;
+            }
+            .step-content {
+                padding: 15px;
+                border: 1px solid #eee;
+                border-radius: 8px;
+            }
+            .step::before { border: 1px solid black; color: black; background: #eee; }
+        }
+
+        .footer { text-align: center; color: var(--gray); margin-top: 50px; border-top: 1px solid var(--border); padding-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="hero">
+            <h1>Guide Pas à Pas Harvests</h1>
+            <p>Maîtrisez la plateforme étape par étape selon votre profil.</p>
+        </header>
+
+        <!-- Producteur -->
+        <section class="profile-section">
+            <div class="profile-header">
+                <span class="icon">🌾</span>
+                <h2>Producteur (Fermier)</h2>
+            </div>
+            <p>Vendez vos récoltes directement aux consommateurs et restaurateurs.</p>
+
+            <div class="step-container">
+                <div class="step" data-step="1">
+                    <h3>Création du compte Ferme</h3>
+                    <div class="step-content">
+                        <p>Allez sur la page d'inscription et remplissez le formulaire spécifique :</p>
+                        <ul>
+                            <li>Sélectionnez <strong>"Producteur"</strong> dans le menu déroulant.</li>
+                            <li>Saisissez le <strong>Nom de votre Ferme</strong> (obligatoire pour ce profil).</li>
+                            <li>Indiquez votre localisation précise (Pays/Région).</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step" data-step="2">
+                    <h3>Accès au Tableau de Bord</h3>
+                    <div class="step-content">
+                        <p>Une fois connecté, vous arrivez sur votre espace privé. Menu latéral :</p>
+                        <ul>
+                            <li><strong>Dashboard</strong> : Vue d'ensemble de vos revenus.</li>
+                            <li><strong>Mes Produits</strong> : Liste de votre catalogue actuel.</li>
+                            <li><strong>Statistiques</strong> : Graphiques de vos meilleures ventes.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step" data-step="3">
+                    <h3>Ajouter votre premier produit</h3>
+                    <div class="step-content">
+                        <p>Cliquez sur "Ajouter un produit" et suivez le formulaire :</p>
+                        <ul>
+                            <li><strong>Général</strong> : Nom du produit (ex: Oignons de Gandiol) et description.</li>
+                            <li><strong>Photos</strong> : Téléchargez jusqu'à 5 images de haute qualité.</li>
+                            <li><strong>Prix & Stock</strong> : Indiquez le prix unitaire, la devise et le stock disponible (en kg, tonnes, etc.).</li>
+                            <li><strong>Finition</strong> : Enregistrez. Le produit sera en statut "Brouillon" avant validation.</li>
+                        </ul>
+                        <div class="tip">💡 Conseil : Une description détaillée et des photos lumineuses augmentent vos ventes de 40%.</div>
+                    </div>
+                </div>
+
+                <div class="step" data-step="4">
+                    <h3>Gérer vos Commandes</h3>
+                    <div class="step-content">
+                        <p>Lorsqu'un client achète un produit :</p>
+                        <ul>
+                            <li>Vous recevez une notification par email et/ou push.</li>
+                            <li>Allez dans l'onglet <strong>"Commandes"</strong> de votre dashboard.</li>
+                            <li>Préparez le colis et mettez à jour le statut (En cours -> Expédié).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Consommateur -->
+        <section class="profile-section">
+            <div class="profile-header">
+                <span class="icon">🛒</span>
+                <h2>Consommateur (Acheteur)</h2>
+            </div>
+            <p>Trouvez et achetez des produits frais au meilleur prix.</p>
+
+            <div class="step-container">
+                <div class="step" data-step="1">
+                    <h3>Trouver des produits</h3>
+                    <div class="step-content">
+                        <p>Sur la page d'accueil ou via le catalogue :</p>
+                        <ul>
+                            <li>Utilisez la barre de <strong>recherche</strong> ou les <strong>filtres par catégorie</strong> (Fruits, Légumes, etc.).</li>
+                            <li>Consultez les fiches produits pour voir l'origine et les avis d'autres acheteurs.</li>
+                            <li>Cliquez sur <strong>"Ajouter au panier"</strong>.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step" data-step="2">
+                    <h3>Le Panier & Checkout</h3>
+                    <div class="step-content">
+                        <p>Quand vous êtes prêt à commander :</p>
+                        <ul>
+                            <li>Allez sur l'icônePanier en haut à droite.</li>
+                            <li>Vérifiez les quantités choisies.</li>
+                            <li>Cliquez sur <strong>"Finaliser la commande"</strong>.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step" data-step="3">
+                    <h3>Validation de la commande en 3 étapes</h3>
+                    <div class="step-content">
+                        <ol style="margin-left: 20px;">
+                            <li><strong>Adresse</strong> : Confirmez votre adresse de livraison et contact.</li>
+                            <li><strong>Logistique</strong> : Choisissez le mode de livraison disponible.</li>
+                            <li><strong>Confirmation</strong> : Récapitulatif final et validation par SMS/Email.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="step" data-step="4">
+                    <h3>Suivi et Fidélité</h3>
+                    <div class="step-content">
+                        <p>Suivez votre colis depuis <strong>"Mon Historique"</strong> et gagnez des points de fidélité pour vos prochains achats.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Restaurateur -->
+        <section class="profile-section">
+            <div class="profile-header">
+                <span class="icon">🍽️</span>
+                <h2>Restaurateur (B2B)</h2>
+            </div>
+            <p>Gérez vos approvisionnements en gros volume.</p>
+
+            <div class="step-container">
+                <div class="step" data-step="1">
+                    <h3>Inscription Professionnelle</h3>
+                    <div class="step-content">
+                        <ul>
+                            <li>Choisissez <strong>"Restaurateur"</strong>.</li>
+                            <li>Indiquez le <strong>Nom du Restaurant</strong>.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="step" data-step="2">
+                    <h3>Commande B2B</h3>
+                    <div class="step-content">
+                        <p>Accédez aux tarifs dégressifs. Vous pouvez commander des volumes importants (Grossistes certifiés).</p>
+                    </div>
+                </div>
+
+                <div class="step" data-step="3">
+                    <h3>Gestion de Menu</h3>
+                    <div class="step-content">
+                        <p>Utilisez votre dashboard pour identifier les produits de saison et ajuster votre carte en temps réel.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Transporteur -->
+        <section class="profile-section">
+            <div class="profile-header">
+                <span class="icon">🚛</span>
+                <h2>Transporteur (Logistique)</h2>
+            </div>
+            <p>Livrez des produits et rentabilisez vos trajets.</p>
+
+            <div class="step-container">
+                <div class="step" data-step="1">
+                    <h3>Configuration de Flotte</h3>
+                    <div class="step-content">
+                        <p>Dans votre profil, déclarez vos types de véhicules (Motos, Camions, etc.).</p>
+                    </div>
+                </div>
+
+                <div class="step" data-step="2">
+                    <h3>Réception de Courses</h3>
+                    <div class="step-content">
+                        <p>Acceptez les demandes de livraison générées par les commandes des clients proches de votre position.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p>© 2026 Harvests - Excellence Agricole Africaine</p>
+            <p>Document généré pour export PDF - contact@harvests.site</p>
+        </footer>
+    </div>
+
+    <script>
+        document.title = "Harvests_Guide_Etape_Par_Etape";
+    </script>
+</body>
+</html>

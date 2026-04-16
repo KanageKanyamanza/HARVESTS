@@ -1,7 +1,11 @@
 {
   "name": "harvests-backend",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Backend API for Harvests platform",
+  "author": {
+    "name": "Revhieno Roll Haurly",
+    "email": "haurlyroll@gmail.com"
+  },
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -77,6 +81,5 @@
     "agriculture",
     "marketplace"
   ],
-  "author": "Harvests Team",
   "license": "MIT"
 }

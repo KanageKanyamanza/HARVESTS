@@ -66,6 +66,12 @@ HARVESTS/
 - 🔐 **Authentification** avec Context API
 - 📡 **TanStack Query** pour gestion d'état serveur
 - 🎭 **Lazy loading** et optimisations performance
+- 🛡️ **Hooks Robustes** : Architecture React stabilisée (useCallback/useEffect) pour éviter les re-rendus inutiles
+
+### ✅ **Logique Business Avancée**
+- 👁️ **Visibilité Garantie** : Système d'approbation admin qui réactive automatiquement les produits approuvés (`isActive: true`).
+- 📍 **Géo-Search Hybride** : Moteur de recherche capable d'extraire la localisation des requêtes textuelles et de filtrer les produits en fonction de l'adresse réelle des vendeurs (plus fiable que le filtrage par champ plat).
+- 🏭 **Support spécifique Transformateur** : Flux de publication optimisé pour les entreprises de transformation agro-alimentaires.
 
 ## 🌍 Support Mondial
 
@@ -264,13 +270,16 @@ MIT License - voir [LICENSE](LICENSE)
 - [x] Authentification et sécurité
 - [x] Système de paiements dual
 - [x] Documentation complète
+- [x] **Visibilité intelligente** : Approbation admin couplée à l'activation automatique
+- [x] **Recherche hybride** : Filtrage géographique par vendeurs (Producteurs/Transformateurs)
 
 ### Phase 2 - 🚧 En cours
-- [ ] Formulaires d'authentification complets
-- [ ] Pages produits avec recherche/filtres
-- [ ] Dashboards utilisateurs par type
+- [x] Formulaires d'authentification complets
+- [x] Pages produits avec recherche/filtres avancés
+- [ ] Dashboards utilisateurs par type (Restaurateur, Transformateur)
 - [ ] Système de panier et checkout
 - [ ] Notifications temps réel
+- [x] **Stabilité React** : Correction des boucles de re-rendu et dépendances Hooks
 
 ### Phase 3 - 📋 Planifiée
 - [ ] Application mobile (React Native)

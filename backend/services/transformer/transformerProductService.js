@@ -145,7 +145,7 @@ async function deleteProduct(productId, transformerId) {
 async function submitProductForReview(productId, transformerId) {
 	const product = await Product.findOneAndUpdate(
 		{ _id: productId, transformer: transformerId },
-		{ status: "pending-review", isActive: false },
+		{ status: "pending-review" },
 		{ new: true },
 	);
 

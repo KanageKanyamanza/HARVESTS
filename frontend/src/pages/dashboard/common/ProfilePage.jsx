@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
 	User,
 	Sparkles,
@@ -33,7 +33,6 @@ import {
 const ProfilePage = () => {
 	const { user, isAuthenticated, refreshUser, updateProfile, setUser } =
 		useAuth();
-	const [loading, setLoading] = useState(false);
 	const [saving, setSaving] = useState(false);
 	const [editing, setEditing] = useState(false);
 	const [formData, setFormData] = useState({});

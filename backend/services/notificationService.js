@@ -45,12 +45,23 @@ if (process.env.FCM_SERVER_KEY && admin) {
 }
 
 // Configuration Web Push
-if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
-	webpush.setVapidDetails(
-		process.env.VAPID_SUBJECT || "mailto:admin@harvests.cm",
-		process.env.VAPID_PUBLIC_KEY,
-		process.env.VAPID_PRIVATE_KEY,
-	);
+const vapidPublicKey = process.env.VAPID_PUBLIC_KEY?.trim();
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY?.trim();
+const vapidSubject = process.env.VAPID_SUBJECT?.trim() || "mailto:contact@harvests.site";
+
+if (vapidPublicKey && vapidPrivateKey && vapidPublicKey !== 'undefined' && vapidPrivateKey !== 'undefined') {
+	try {
+		webpush.setVapidDetails(
+			vapidSubject,
+			vapidPublicKey,
+			vapidPrivateKey
+		);
+		console.log("✅ [NotificationService] Web Push VAPID configuré avec succès.");
+	} catch (err) {
+		console.error("❌ [NotificationService] Erreur configuration VAPID:", err.message);
+	}
+} else {
+	console.warn("⚠️ [NotificationService] Web Push VAPID non configuré (Clés manquantes).");
 }
 
 class NotificationService {
@@ -107,7 +118,7 @@ class NotificationService {
 
 	// 🌐 Envoyer notification push Web
 	static async sendWebPushNotification(subscriptions, notification, data = {}) {
-		if (!process.env.VAPID_PUBLIC_KEY) {
+		if (!process.env.VAPID_PUBLIC_KEY || process.env.VAPID_PUBLIC_KEY.trim() === '' || process.env.VAPID_PUBLIC_KEY === 'undefined') {
 			info("Web Push non configuré, notification ignorée");
 			return;
 		}
