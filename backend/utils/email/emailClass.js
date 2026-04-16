@@ -4,6 +4,7 @@ const addEmailCoreMethods = require("./emailCore");
 const addEmailTemplateMethods = require("./emailTemplates");
 const addEmailNotificationMethod = require("./emailNotification");
 const addEmailNewsletterMethod = require("./emailNewsletter");
+const addEmailMailingMethod = require("./emailMailing");
 
 // Classe Email principale
 class Email {
@@ -23,5 +24,6 @@ addEmailCoreMethods(Email);
 addEmailTemplateMethods(Email);
 addEmailNotificationMethod(Email);
 addEmailNewsletterMethod(Email);
+addEmailMailingMethod(Email);
 
 module.exports = Email;

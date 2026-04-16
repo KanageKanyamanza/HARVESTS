@@ -3,10 +3,25 @@
 ## ✅ **DOCUMENTATION COMPLÈTE TERMINÉE**
 
 **Date :** 20 septembre 2025  
-**Version :** v2.0 Enterprise  
+**Version :** v2.1 Enterprise (Updated 2026-04-16)  
 **Pays :** 🇸🇳 Sénégal  
 **Mobile Money :** 🌊 Wave + 🟠 Orange Money  
 **Statut :** ✅ **PRODUCTION READY**
+
+---
+
+## 👁️ **GESTION DE LA VISIBILITÉ (v2.1)**
+
+### **✅ Approbation Intelligente**
+- **Trigger** : L'approbation d'un produit par l'admin (`adminProductController.js`) déclenche désormais AUTOMATIQUEMENT l'activation du produit (`isActive: true`).
+- **Garantie** : Plus aucun produit approuvé ne reste "invisible" pour les clients.
+
+### **📍 Recherche Géo-Localisée (Hybride)**
+- **Correction** : Le moteur de recherche effectue désormais un **Lookup** sur l'adresse réelle rattachée au vendeur (User) au lieu de filtrer sur des champs vides.
+- **Compatibilité** : Fonctionne de manière homogène pour Producteurs, Transformateurs et Restaurateurs.
+
+### **🛡️ Stabilité Frontend (React Hooks)**
+- **Mise à jour** : Stabilisation des fonctions de récupération de données (`useCallback`) pour éliminer les boucles de re-rendu infinies.
 
 ---
 

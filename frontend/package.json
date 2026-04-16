@@ -1,7 +1,11 @@
 {
   "name": "frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.0.0",
+  "author": {
+    "name": "Revhieno Roll Haurly",
+    "email": "haurlyroll@gmail.com"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite --host",
@@ -27,6 +31,7 @@
     "react-router-dom": "^7.9.1",
     "recharts": "^3.2.1",
     "socket.io-client": "^4.8.3",
+    "xlsx": "^0.18.5",
     "yup": "^1.7.0"
   },
   "devDependencies": {

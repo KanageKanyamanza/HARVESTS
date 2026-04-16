@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import api from "./api";
 
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY?.trim();
 
 function urlBase64ToUint8Array(base64String) {
 	if (!base64String) return new Uint8Array(0);
@@ -115,6 +115,26 @@ const pushService = {
 				"[pushService] Error sending unsubscription to backend:",
 				error.response?.data || error.message
 			);
+		}
+	},
+	
+	// Vérifier si l'utilisateur est déjà abonné
+	async checkSubscriptionStatus() {
+		if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+			return { supported: false, subscribed: false };
+		}
+		
+		try {
+			const registration = await navigator.serviceWorker.ready;
+			const subscription = await registration.pushManager.getSubscription();
+			return { 
+				supported: true, 
+				subscribed: !!subscription,
+				permission: Notification.permission 
+			};
+		} catch (error) {
+			console.error("[pushService] Error checking subscription status:", error);
+			return { supported: true, subscribed: false, error: error.message };
 		}
 	},
 };

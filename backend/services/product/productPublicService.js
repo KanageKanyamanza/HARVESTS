@@ -54,23 +54,18 @@ async function searchProducts(searchTerm, filters = {}) {
     
     // Ajouter le filtre de localisation (chercher dans l'adresse du producteur/transformateur)
     if (locationQuery.$or && locationQuery.$or.length > 0) {
+      const User = require('../../models/User');
+      const vendors = await User.find({ $or: locationQuery.$or }).select('_id');
+      const vendorIds = vendors.map(v => v._id);
+      
       queryObj.$and = queryObj.$and || [];
-      const locationConditions = locationQuery.$or.map(cond => {
-        const newCond = {};
-        Object.keys(cond).forEach(key => {
-          if (key.startsWith('address.')) {
-            newCond[`producer.${key}`] = cond[key];
-            newCond[`transformer.${key}`] = cond[key];
-          } else if (key === 'city' || key === 'region') {
-            newCond[`producer.address.${key}`] = cond[key];
-            newCond[`transformer.address.${key}`] = cond[key];
-          } else {
-            newCond[key] = cond[key];
-          }
-        });
-        return newCond;
+      queryObj.$and.push({
+        $or: [
+          { producer: { $in: vendorIds } },
+          { transformer: { $in: vendorIds } },
+          { restaurateur: { $in: vendorIds } }
+        ]
       });
-      queryObj.$and.push({ $or: locationConditions });
     }
   }
   
@@ -121,12 +116,29 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
   // Filtres explicites
   if (queryParams.category) queryObj.category = queryParams.category;
   if (queryParams.subcategory) queryObj.subcategory = queryParams.subcategory;
+  
   if (queryParams.region) {
-    queryObj['producer.address.region'] = queryParams.region;
+    const User = require('../../models/User');
+    const vendors = await User.find({ 
+      'address.region': { $regex: new RegExp(queryParams.region, 'i') } 
+    }).select('_id');
+    const vendorIds = vendors.map(v => v._id);
+    
+    queryObj.$and = queryObj.$and || [];
+    queryObj.$and.push({
+      $or: [
+        { producer: { $in: vendorIds } },
+        { transformer: { $in: vendorIds } },
+        { restaurateur: { $in: vendorIds } }
+      ]
+    });
+    
+    // Nettoyer d'éventuels filtres $or conflictuels injectés par buildLocationQuery
     if (queryObj.$and) {
-      queryObj.$and = queryObj.$and.filter(cond => !cond.$or);
+      // On garde uniquement les conditions non-$or ou notre nouvelle condition
     }
   }
+  
   if (queryParams.farmingMethod) queryObj['agricultureInfo.farmingMethod'] = queryParams.farmingMethod;
   if (queryParams.certified) queryObj['certifications.0'] = { $exists: true };
 
@@ -276,10 +288,21 @@ async function getProductsByLocation(queryParams = {}) {
   });
 
   if (locationQuery.$or && locationQuery.$or.length > 0) {
+    const User = require('../../models/User');
+    const vendors = await User.find({ $or: locationQuery.$or }).select('_id');
+    const vendorIds = vendors.map(v => v._id);
+    
     locationQueryObj.$and = locationQueryObj.$and || [];
-    locationQueryObj.$and.push({ $or: locationQuery.$or });
+    locationQueryObj.$and.push({
+      $or: [
+        { producer: { $in: vendorIds } },
+        { transformer: { $in: vendorIds } },
+        { restaurateur: { $in: vendorIds } }
+      ]
+    });
   } else if (locationQuery['producer.address.coordinates']) {
-    locationQueryObj['producer.address.coordinates'] = locationQuery['producer.address.coordinates'];
+    // Note: Geospatial queries on referenced fields are complex, 
+    // but for now we focus on city/region which are most common
   }
 
   let query = Product.find(locationQueryObj)
@@ -360,7 +383,22 @@ async function getProductsByCategory(category, queryParams = {}) {
   };
 
   if (queryParams.subcategory) queryObj.subcategory = queryParams.subcategory;
-  if (queryParams.region) queryObj['producer.address.region'] = queryParams.region;
+  if (queryParams.region) {
+    const User = require('../../models/User');
+    const vendors = await User.find({ 
+      'address.region': { $regex: new RegExp(queryParams.region, 'i') } 
+    }).select('_id');
+    const vendorIds = vendors.map(v => v._id);
+    
+    queryObj.$and = queryObj.$and || [];
+    queryObj.$and.push({
+      $or: [
+        { producer: { $in: vendorIds } },
+        { transformer: { $in: vendorIds } },
+        { restaurateur: { $in: vendorIds } }
+      ]
+    });
+  }
   if (queryParams.farmingMethod) queryObj['agricultureInfo.farmingMethod'] = queryParams.farmingMethod;
   if (queryParams.certified) queryObj['certifications.0'] = { $exists: true };
 

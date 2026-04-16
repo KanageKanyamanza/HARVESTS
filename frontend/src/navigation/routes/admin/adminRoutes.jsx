@@ -72,6 +72,15 @@ const AdminNewsletter = React.lazy(() =>
 const NotificationsPage = React.lazy(() =>
 	import("../../../pages/dashboard/common/NotificationsPage")
 );
+const AdminContacts = React.lazy(() =>
+	import("../../../pages/admin/AdminContacts")
+);
+const AdminEmailComposer = React.lazy(() =>
+	import("../../../pages/admin/AdminEmailComposer")
+);
+const AdminEmailImport = React.lazy(() =>
+	import("../../../pages/admin/AdminEmailImport")
+);
 
 export const adminRoutes = [
 	{
@@ -193,6 +202,21 @@ export const adminRoutes = [
 		path: "/admin/notifications",
 		element: <NotificationsPage />,
 		title: "Notifications",
+	},
+	{
+		path: "/admin/contacts",
+		element: <AdminContacts />,
+		title: "Mes Contacts Mailing",
+	},
+	{
+		path: "/admin/email-composer",
+		element: <AdminEmailComposer />,
+		title: "Compositeur d'Emails",
+	},
+	{
+		path: "/admin/email-import",
+		element: <AdminEmailImport />,
+		title: "Importation de Contacts",
 	},
 ];
 

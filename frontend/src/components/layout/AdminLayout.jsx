@@ -29,12 +29,33 @@ import {
 import NotificationDropdown from "../notifications/NotificationDropdown";
 import CloudinaryImage from "../common/CloudinaryImage";
 import DashboardSidebarFixed from "../dashboard/DashboardSidebarFixed";
+import PushNotificationBanner from "../dashboard/PushNotificationBanner";
+import pushService from "../../services/pushService";
 
 const AdminLayout = ({ children }) => {
 	const { user, logout } = useAuth();
 	const location = useLocation();
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+	const [showPushBanner, setShowPushBanner] = useState(false);
+
+	// Vérifier si on doit montrer la bannière push
+	useEffect(() => {
+		const checkPush = async () => {
+			if (!user) return;
+			const status = await pushService.checkSubscriptionStatus();
+			const dismissed = localStorage.getItem("push-banner-dismissed");
+			let isDismissed = false;
+			if (dismissed) {
+				const date = new Date(dismissed);
+				const diff = (new Date() - date) / (1000 * 60 * 60 * 24);
+				isDismissed = diff < 3;
+			}
+			
+			setShowPushBanner(status.supported && !status.subscribed && !isDismissed && status.permission !== 'denied');
+		};
+		checkPush();
+	}, [user]);
 
 	// Fermer le sidebar mobile lors d'un changement de route
 	useEffect(() => {
@@ -146,6 +167,15 @@ const AdminLayout = ({ children }) => {
 			current: location.pathname.startsWith("/admin/notifications"),
 		},
 		{
+			name: "Gestion des Emails",
+			href: "/admin/contacts",
+			icon: Mail,
+			current:
+				location.pathname.startsWith("/admin/contacts") ||
+				location.pathname.startsWith("/admin/email-composer") ||
+				location.pathname.startsWith("/admin/email-import"),
+		},
+		{
 			name: "Paramètres",
 			href: "/admin/settings",
 			icon: Settings,
@@ -155,6 +185,11 @@ const AdminLayout = ({ children }) => {
 
 	return (
 		<div className="min-h-screen bg-gray-50/50">
+			{/* Banner Section */}
+			<div className="fixed top-0 left-0 right-0 z-[60]">
+				<PushNotificationBanner user={user} />
+			</div>
+
 			{/* Mobile sidebar */}
 			{/* Mobile sidebar - Redesigned & Premium */}
 			<div
@@ -290,6 +325,7 @@ const AdminLayout = ({ children }) => {
 					onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
 					navigationItems={menuItems}
 					user={user}
+					className={showPushBanner ? "mt-[40px]" : ""}
 				/>
 			</div>
 
@@ -297,7 +333,7 @@ const AdminLayout = ({ children }) => {
 			<div
 				className={`flex flex-col flex-1 transition-all duration-300 ${
 					sidebarCollapsed ? "lg:pl-[70px]" : "lg:pl-[240px]"
-				}`}
+				} ${showPushBanner ? "pt-[40px]" : ""}`}
 			>
 				{/* Top navigation - Only visible on Mobile since Sidebar covers Desktop top */}
 				<div className="sticky top-0 z-40 flex-shrink-0 flex h-16 bg-white shadow lg:hidden">
@@ -380,3 +416,5 @@ const AdminLayout = ({ children }) => {
 };
 
 export default AdminLayout;
+
+// Force rebuild 2026-04-15

@@ -138,7 +138,7 @@ exports.deleteProduct = catchAsync(async (req, res, next) => {
 exports.approveProduct = catchAsync(async (req, res, next) => {
   const product = await Product.findByIdAndUpdate(
     req.params.id,
-    { status: 'approved', approvedAt: new Date() },
+    { status: 'approved', approvedAt: new Date(), isActive: true },
     { new: true }
   ).populate('producer', 'firstName lastName email');
 

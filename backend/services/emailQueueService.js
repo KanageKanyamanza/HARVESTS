@@ -128,6 +128,9 @@ class EmailQueueService {
 					job.subscriberId,
 				);
 				break;
+			case "mailing":
+				await email.sendMailing(job.content, job.subject);
+				break;
 			default:
 				await email.sendWelcome();
 		}
