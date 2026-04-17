@@ -18,50 +18,7 @@ import { formatPrice, convertPrice } from "../../utils/currencyUtils";
 import { useCurrency } from "../../contexts/CurrencyContext";
 import { DEFAULT_CURRENCY } from "../../config/currencies";
 
-export const getStatusConfig = (status) => {
-	const configs = {
-		pending: {
-			color: "text-yellow-600 bg-yellow-100",
-			text: "En attente",
-			icon: FiClock,
-		},
-		confirmed: {
-			color: "text-blue-600 bg-blue-100",
-			text: "Confirmée",
-			icon: FiCheckCircle,
-		},
-		processing: {
-			color: "text-purple-600 bg-purple-100",
-			text: "En préparation",
-			icon: FiPackage,
-		},
-		shipped: {
-			color: "text-indigo-600 bg-indigo-100",
-			text: "Expédiée",
-			icon: FiTruck,
-		},
-		delivered: {
-			color: "text-green-600 bg-green-100",
-			text: "Livrée",
-			icon: FiCheckCircle,
-		},
-		cancelled: {
-			color: "text-red-600 bg-red-100",
-			text: "Annulée",
-			icon: FiClock,
-		},
-	};
-	return configs[status] || configs["pending"];
-};
-
-export const formatDate = (dateString) =>
-	new Date(dateString).toLocaleDateString("fr-FR", {
-		year: "numeric",
-		month: "long",
-		day: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-	});
+import { formatDate } from "../../utils/orderUIUtils";
 
 export const SuccessHeader = () => (
 	<div className="text-center mb-8">
@@ -228,19 +185,9 @@ export const OrderItemsCard = ({ items }) => {
 	);
 };
 
-export const OrderSummaryCard = ({
-	totals,
-	deliveryDetail,
-	deliveryMethod,
-}) => {
+export const OrderSummaryCard = ({ totals }) => {
 	const { currency } = useCurrency();
-	const deliveryMethodLabels = {
-		pickup: "retrait sur place",
-		"standard-delivery": "livraison standard",
-		"express-delivery": "livraison express",
-		"same-day": "livraison jour même",
-		scheduled: "livraison programmée",
-	};
+
 
 	return (
 		<div className="bg-white rounded-lg shadow p-6">
@@ -255,22 +202,7 @@ export const OrderSummaryCard = ({
 						currency
 					)}
 				/>
-				<Row
-					label="Frais de livraison"
-					value={formatPrice(
-						convertPrice(totals.deliveryFee, DEFAULT_CURRENCY, currency),
-						currency
-					)}
-				/>
-				{totals.deliveryFee > 0 &&
-					(deliveryDetail?.reason || deliveryMethod) && (
-						<p className="text-xs text-gray-500 text-right">
-							{deliveryDetail?.reason ||
-								`Forfait ${
-									deliveryMethodLabels[deliveryMethod] || deliveryMethod
-								}`}
-						</p>
-					)}
+
 				{totals.taxes > 0 && (
 					<Row
 						label="TVA"

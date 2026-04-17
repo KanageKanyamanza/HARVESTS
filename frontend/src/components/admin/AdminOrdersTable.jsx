@@ -2,7 +2,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 import {
 	Eye,
-	Truck,
 	CreditCard,
 	Clock,
 	CheckCircle,
@@ -84,7 +83,6 @@ export const formatPrice = (price, currency = "XOF") =>
 const AdminOrdersTable = ({
 	orders,
 	onConfirmPayment,
-	onOpenAssignModal,
 	confirmingPayment,
 }) => {
 	if (!orders.length) {
@@ -135,7 +133,6 @@ const AdminOrdersTable = ({
 								key={order._id}
 								order={order}
 								onConfirmPayment={onConfirmPayment}
-								onOpenAssignModal={onOpenAssignModal}
 								confirmingPayment={confirmingPayment}
 							/>
 						))}
@@ -149,17 +146,12 @@ const AdminOrdersTable = ({
 const OrderRow = ({
 	order,
 	onConfirmPayment,
-	onOpenAssignModal,
 	confirmingPayment,
 }) => {
 	const canConfirmPayment =
 		order.payment?.method === "cash" &&
 		order.payment?.status !== "completed" &&
 		order.payment?.status !== "paid";
-	const needsTransporter =
-		order.delivery?.method !== "pickup" &&
-		!order.delivery?.transporter &&
-		["confirmed", "preparing", "ready-for-pickup"].includes(order.status);
 
 	return (
 		<tr className="group hover:bg-emerald-50/30 transition-all duration-300">
@@ -252,15 +244,6 @@ const OrderRow = ({
 							title="Confirmer paiement"
 						>
 							<CreditCard className="h-3.5 w-3.5" />
-						</button>
-					)}
-					{needsTransporter && (
-						<button
-							onClick={() => onOpenAssignModal(order)}
-							className="p-1.5 bg-gray-50 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all duration-300 border border-transparent hover:border-amber-100"
-							title="Assigner transporteur"
-						>
-							<Truck className="h-3.5 w-3.5" />
 						</button>
 					)}
 					<div className="p-1.5 bg-gray-50 text-gray-300 rounded-lg transition-all">

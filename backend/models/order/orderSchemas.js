@@ -139,10 +139,7 @@ const orderSegmentSchema = new mongoose.Schema(
 			type: Number,
 			default: 0,
 		},
-		deliveryFee: {
-			type: Number,
-			default: 0,
-		},
+
 		discount: {
 			type: Number,
 			default: 0,
@@ -274,16 +271,7 @@ const deliverySchema = new mongoose.Schema({
 	trackingNumber: String,
 	estimatedDeliveryDate: Date,
 	actualDeliveryDate: Date,
-	deliveryFee: {
-		type: Number,
-		default: 0,
-	},
-	feeDetail: {
-		scope: String,
-		method: String,
-		reason: String,
-		amount: Number,
-	},
+
 	deliveryAddress: deliveryAddressSchema,
 	pickupAddress: deliveryAddressSchema,
 	timeline: [
@@ -352,17 +340,7 @@ const orderSchema = new mongoose.Schema(
 			min: [0, "Le sous-total ne peut pas être négatif"],
 		},
 
-		deliveryFee: {
-			type: Number,
-			default: 0,
-			min: [0, "Les frais de livraison ne peuvent pas être négatifs"],
-		},
-		deliveryFeeDetail: {
-			scope: String,
-			method: String,
-			reason: String,
-			amount: Number,
-		},
+
 
 		taxes: {
 			type: Number,

@@ -211,16 +211,7 @@ const OrderDetail = () => {
 	const statusConfig = getStatusConfig(displayedStatus);
 	const StatusIcon = statusConfig.icon;
 
-	const deliveryFee =
-		order.originalTotals?.deliveryFee ??
-		order.deliveryFee ??
-		order.delivery?.deliveryFee ??
-		0;
-	const deliveryDetail =
-		order.originalTotals?.deliveryFeeDetail ||
-		order.deliveryFeeDetail ||
-		order.delivery?.feeDetail ||
-		null;
+
 
 	return (
 		<div className="min-h-screen pb-20 relative overflow-hidden bg-harvests-light/10">
@@ -385,8 +376,6 @@ const OrderDetail = () => {
 						<OrderSummaryCard
 							order={order}
 							isSellerView={isSellerView}
-							deliveryFee={deliveryFee}
-							deliveryDetail={deliveryDetail}
 						/>
 						<DeliveryInfoCard order={order} />
 

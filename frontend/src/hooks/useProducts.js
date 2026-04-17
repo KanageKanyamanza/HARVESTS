@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useParams } from 'react-router-dom';
 import { productService } from '../services';
-import { useApiCache } from './useApiCache';
 
 /**
  * Hook personnalisé pour gérer les produits et leurs filtres
+ * Modifié pour afficher séparément les produits producteurs/transformateurs et restaurateurs
  */
 export const useProducts = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -12,6 +12,7 @@ export const useProducts = () => {
 
   // États
   const [products, setProducts] = useState([]);
+  const [restaurateurProducts, setRestaurateurProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,10 +36,6 @@ export const useProducts = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
-  const productsPerPage = 12;
-
-  // Cache pour les produits
-  const { getCachedData, setCachedData } = useApiCache(5 * 60 * 1000); // Cache de 5 minutes
 
   // États debouncés
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchParams.get("q") || "");
@@ -52,69 +49,50 @@ export const useProducts = () => {
       setLoading(true);
       setError(null);
 
-      const params = {
+      // 1. Fetch Producer/Transformer products (paginated)
+      const producerParams = {
         page: currentPage,
-        limit: productsPerPage,
+        limit: 12, // User requested 12
+        userType: 'producer,transformer',
+        sort: sortBy === "newest" ? "-createdAt" : sortBy,
+        useLocation: 'true'
       };
 
       if (debouncedSearchQuery && debouncedSearchQuery.trim() !== "") {
-        params.search = debouncedSearchQuery.trim();
+        producerParams.search = debouncedSearchQuery.trim();
       }
       
       if (selectedCategory && selectedCategory !== "") {
-        params.category = selectedCategory;
-      }
-      
-      if (debouncedPriceRange.min && debouncedPriceRange.min !== "" && !isNaN(parseFloat(debouncedPriceRange.min))) {
-        params.minPrice = parseFloat(debouncedPriceRange.min).toString();
-      }
-      
-      if (debouncedPriceRange.max && debouncedPriceRange.max !== "" && !isNaN(parseFloat(debouncedPriceRange.max))) {
-        params.maxPrice = parseFloat(debouncedPriceRange.max).toString();
-      }
-      
-      if (sortBy && sortBy !== "newest") {
-        params.sort = sortBy;
-      } else if (sortBy === "newest") {
-        params.sort = "-createdAt";
+        producerParams.category = selectedCategory;
       }
 
-      if (params.useLocation === undefined) {
-        params.useLocation = 'true';
+      if (debouncedPriceRange.min) producerParams.minPrice = debouncedPriceRange.min;
+      if (debouncedPriceRange.max) producerParams.maxPrice = debouncedPriceRange.max;
+
+      // 2. Fetch Restaurateur products (latest 12, not paginated here for simplicity as requested)
+      const restaurateurParams = {
+        page: 1,
+        limit: 12,
+        userType: 'restaurateur',
+        sort: '-createdAt'
+      };
+
+      const [producerRes, restaurateurRes] = await Promise.all([
+        productService.getProducts(producerParams),
+        productService.getProducts(restaurateurParams)
+      ]);
+
+      if (producerRes.data.status === "success") {
+        setProducts(producerRes.data.data.products || []);
+        // Check where totalPages is located in the response
+        setTotalPages(producerRes.data.totalPages || 1);
+        setTotalProducts(producerRes.data.total || 0);
       }
 
-      // Créer une clé de cache basée sur les paramètres
-      const cacheKey = `products_${JSON.stringify(params)}_${isFeatured}`;
-      
-      // Vérifier le cache
-      const cached = getCachedData(cacheKey);
-      if (cached) {
-        setProducts(cached.products || []);
-        setTotalPages(cached.totalPages || 1);
-        setTotalProducts(cached.totalProducts || 0);
-        setLoading(false);
-        return;
+      if (restaurateurRes.data.status === "success") {
+        setRestaurateurProducts(restaurateurRes.data.data.products || []);
       }
 
-      const response = isFeatured
-        ? await productService.getFeaturedProducts(params)
-        : await productService.getProducts(params);
-
-      if (response.data.status === "success") {
-        const productsData = response.data.data.products || [];
-        const paginationData = response.data.pagination || {};
-        
-        setProducts(productsData);
-        setTotalPages(paginationData.totalPages || 1);
-        setTotalProducts(paginationData.total || 0);
-        
-        // Mettre en cache
-        setCachedData(cacheKey, {
-          products: productsData,
-          totalPages: paginationData.totalPages || 1,
-          totalProducts: paginationData.total || 0
-        });
-      }
     } catch (error) {
       console.error("Erreur lors du chargement des produits:", error);
       setError("Erreur lors du chargement des produits");
@@ -127,10 +105,7 @@ export const useProducts = () => {
     sortBy,
     debouncedPriceRange,
     debouncedSearchQuery,
-    isFeatured,
-    productsPerPage,
-    getCachedData,
-    setCachedData,
+    isFeatured
   ]);
 
   const loadCategories = useCallback(async () => {
@@ -233,6 +208,7 @@ export const useProducts = () => {
 
   return {
     products,
+    restaurateurProducts,
     categories,
     loading,
     error,
@@ -252,4 +228,3 @@ export const useProducts = () => {
     loadProducts
   };
 };
-

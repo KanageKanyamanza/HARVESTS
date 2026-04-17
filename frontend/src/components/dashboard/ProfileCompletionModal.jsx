@@ -112,9 +112,11 @@ const ProfileCompletionModal = ({ user }) => {
 		user?.farmName,
 		user?.restaurantName,
 		user?.companyName,
+		user,
 	]);
 
 	const handleClose = () => {
+		console.log("[ProfileModal] Closing modal...");
 		setIsOpen(false);
 		const key = getDismissKey(user);
 		if (key) {
@@ -133,18 +135,27 @@ const ProfileCompletionModal = ({ user }) => {
 			></div>
 
 			{/* Modal Container */}
-			<div className="relative max-h-[95vh] w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-y-auto border border-gray-100">
-				{/* Top Decorative Header */}
-				<div className="bg-gradient-to-br from-emerald-600 to-teal-500 p-8 text-white relative overflow-hidden">
-					<div className="absolute top-[-20%] right-[-10%] w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
-					<div className="absolute bottom-[-20%] left-[-10%] w-32 h-32 bg-emerald-400/20 rounded-full blur-xl"></div>
+			<div className="relative max-h-[95vh] w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100 flex flex-col">
+				{/* Close Button - Fixed relative to container */}
+				<button
+					onClick={(e) => {
+						e.stopPropagation();
+						console.log("[ProfileModal] Close button clicked");
+						handleClose();
+					}}
+					className="absolute top-6 right-6 z-[60] p-2 rounded-full bg-black/10 hover:bg-black/20 text-white backdrop-blur-md border border-white/20 transition-all active:scale-90"
+					aria-label="Fermer"
+				>
+					<X size={20} className="drop-shadow-sm" />
+				</button>
 
-					<button
-						onClick={handleClose}
-						className="absolute top-6 right-6 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white"
-					>
-						<X size={20} />
-					</button>
+				{/* Scrollable Content */}
+				<div className="overflow-y-auto flex-1">
+					{/* Top Decorative Header */}
+					<div className="bg-gradient-to-br from-emerald-600 to-teal-500 p-8 text-white relative overflow-hidden">
+						<div className="absolute top-[-20%] right-[-10%] w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+						<div className="absolute bottom-[-20%] left-[-10%] w-32 h-32 bg-emerald-400/20 rounded-full blur-xl"></div>
+
 
 					<div className="relative z-10 flex flex-col items-center text-center">
 						<div className="bg-white/20 p-4 rounded-3xl backdrop-blur-md mb-4 ring-1 ring-white/30">
@@ -216,11 +227,12 @@ const ProfileCompletionModal = ({ user }) => {
 						>
 							Rappelle-moi plus tard
 						</button>
-					</div>
 				</div>
 			</div>
 		</div>
-	);
+	</div>
+</div>
+);
 };
 
 export default ProfileCompletionModal;

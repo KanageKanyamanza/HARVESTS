@@ -12,7 +12,6 @@ import {
 import { adminService } from "../../services/adminService";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import AdminOrdersTable from "../../components/admin/AdminOrdersTable";
-import TransporterAssignModal from "../../components/admin/TransporterAssignModal";
 
 const AdminOrders = () => {
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -26,11 +25,7 @@ const AdminOrders = () => {
 	const [totalPages, setTotalPages] = useState(1);
 	const [totalOrders, setTotalOrders] = useState(0);
 	const [confirmingPayment, setConfirmingPayment] = useState(null);
-	const [showAssignModal, setShowAssignModal] = useState(false);
 	const [selectedOrder, setSelectedOrder] = useState(null);
-	const [availableTransporters, setAvailableTransporters] = useState([]);
-	const [loadingTransporters, setLoadingTransporters] = useState(false);
-	const [assigning, setAssigning] = useState(false);
 
 	const loadOrders = useCallback(async () => {
 		try {
@@ -83,42 +78,6 @@ const AdminOrders = () => {
 			alert("Erreur lors de la confirmation");
 		} finally {
 			setConfirmingPayment(null);
-		}
-	};
-
-	const handleOpenAssignModal = async (order) => {
-		setSelectedOrder(order);
-		setShowAssignModal(true);
-		setLoadingTransporters(true);
-		try {
-			const response = await adminService.getAvailableTransporters(order._id);
-			setAvailableTransporters(
-				response.status === "success" && response.data
-					? response.data.transporters || []
-					: []
-			);
-		} catch {
-			setAvailableTransporters([]);
-		} finally {
-			setLoadingTransporters(false);
-		}
-	};
-
-	const handleAssignTransporter = async (transporterId) => {
-		if (!selectedOrder) return;
-		setAssigning(true);
-		try {
-			await adminService.assignTransporterToOrder(
-				selectedOrder._id,
-				transporterId
-			);
-			setShowAssignModal(false);
-			setSelectedOrder(null);
-			loadOrders();
-		} catch (error) {
-			alert(error.response?.data?.message || "Erreur");
-		} finally {
-			setAssigning(false);
 		}
 	};
 
@@ -199,7 +158,6 @@ const AdminOrders = () => {
 					<AdminOrdersTable
 						orders={orders}
 						onConfirmPayment={handleConfirmPayment}
-						onOpenAssignModal={handleOpenAssignModal}
 						confirmingPayment={confirmingPayment}
 					/>
 				</div>
@@ -362,19 +320,6 @@ const AdminOrders = () => {
 					</div>
 				)}
 
-				{/* Assign Modal */}
-				<TransporterAssignModal
-					show={showAssignModal}
-					order={selectedOrder}
-					transporters={availableTransporters}
-					loading={loadingTransporters}
-					assigning={assigning}
-					onAssign={handleAssignTransporter}
-					onClose={() => {
-						setShowAssignModal(false);
-						setSelectedOrder(null);
-					}}
-				/>
 			</div>
 		</div>
 	);

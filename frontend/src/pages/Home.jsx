@@ -3,7 +3,7 @@ import HeroSection from "../components/home/HeroSection";
 import TrustBadgesSection from "../components/home/TrustBadgesSection";
 import CategoriesSection from "../components/home/CategoriesSection";
 import ProductsSection from "../components/home/ProductsSection";
-import LogisticsPartnersSection from "../components/home/LogisticsPartnersSection";
+// import LogisticsPartnersSection from "../components/home/LogisticsPartnersSection";
 import BannersSection from "../components/home/BannersSection";
 import DiscountBannerSection from "../components/home/DiscountBannerSection";
 import LoyaltyProgramSection from "../components/home/LoyaltyProgramSection";
@@ -21,7 +21,7 @@ const Home = () => {
 			<BannersSection />
 			<DiscountBannerSection />
 			<LoyaltyProgramSection />
-			<LogisticsPartnersSection />
+			{/* <LogisticsPartnersSection /> */}
 		</div>
 	);
 };

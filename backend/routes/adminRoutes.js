@@ -9,10 +9,8 @@ const adminOrderController = require("../controllers/admin/adminOrderController"
 const adminReviewController = require("../controllers/admin/adminReviewController");
 const adminMessageController = require("../controllers/admin/adminMessageController");
 const adminPaymentController = require("../controllers/admin/adminPaymentController");
-const adminDeliveryController = require("../controllers/admin/adminDeliveryController");
 const adminAnalyticsController = require("../controllers/admin/adminAnalyticsController");
 const adminSettingsController = require("../controllers/admin/adminSettingsController");
-const adminTransporterController = require("../controllers/admin/adminTransporterController");
 const adminAuditController = require("../controllers/admin/adminAuditController");
 
 /**
@@ -246,18 +244,6 @@ router.patch(
 // Annuler une commande
 router.post("/orders/:id/cancel", adminOrderController.cancelOrder);
 
-// Obtenir les transporteurs disponibles pour une commande
-router.get(
-	"/orders/:id/available-transporters",
-	adminTransporterController.getAvailableTransporters,
-);
-
-// Assigner un transporteur à une commande
-router.post(
-	"/orders/:id/assign-transporter",
-	adminTransporterController.assignTransporterToOrder,
-);
-
 // ========================================
 // GESTION DES AVIS
 // ========================================
@@ -317,28 +303,6 @@ router.patch(
 
 // Rembourser un paiement
 router.post("/payments/:id/refund", adminPaymentController.refundPayment);
-
-// ========================================
-// GESTION DES LIVRAISONS
-// ========================================
-
-// Obtenir toutes les livraisons avec filtres
-router.get("/deliveries", adminDeliveryController.getAllDeliveries);
-
-// Obtenir une livraison spécifique
-router.get("/deliveries/:id", adminDeliveryController.getDeliveryById);
-
-// Mettre à jour le statut d'une livraison
-router.patch(
-	"/deliveries/:id/status",
-	adminDeliveryController.updateDeliveryStatus,
-);
-
-// Assigner un transporteur
-router.post(
-	"/deliveries/:id/assign",
-	adminDeliveryController.assignTransporter,
-);
 
 // ========================================
 // RAPPORTS ET ANALYTICS

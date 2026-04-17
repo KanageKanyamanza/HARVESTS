@@ -121,9 +121,17 @@ const ProductCard = ({ product }) => {
 	};
 
 	const getVendorName = (vendor) => {
-		if (!vendor) return "";
+		if (!vendor) return "Vendeur";
+		
+		// Si c'est juste un ID (pas populé)
+		if (typeof vendor === 'string') return "Vendeur local";
 
-		// Priorité 1 : Nom de la boutique (si profil complété)
+		// Priorité 1 : Nom du restaurant (si c'est un restaurateur)
+		if (vendor.restaurantName && vendor.restaurantName !== "À compléter") {
+			return vendor.restaurantName;
+		}
+
+		// Priorité 2 : Nom de la boutique (pour producteurs/transformateurs)
 		if (vendor.shopInfo?.shopName) {
 			return vendor.shopInfo.shopName;
 		}
@@ -138,11 +146,6 @@ const ProductCard = ({ product }) => {
 			return vendor.companyName;
 		}
 
-		// Pour les restaurateurs
-		if (vendor.restaurantName && vendor.restaurantName !== "À compléter") {
-			return vendor.restaurantName;
-		}
-
 		// Fallback : nom complet de la personne
 		if (vendor.firstName) {
 			const lastName =
@@ -153,10 +156,7 @@ const ProductCard = ({ product }) => {
 		}
 
 		// Dernier fallback
-		const companyName = vendor.user?.companyName;
-		return companyName && companyName !== "À compléter" ?
-				companyName
-			:	"Vendeur";
+		return vendor.user?.companyName || "Vendeur";
 	};
 
 	return (
@@ -242,19 +242,21 @@ const ProductCard = ({ product }) => {
 
 					{/* Vendeur et bouton panier sur la même ligne */}
 					<div className="flex items-center justify-between">
-						{(product.producer || product.transformer) && (
+						{(product.producer || product.transformer || product.restaurateur) && (
 							<div className="flex items-center text-xs text-gray-500 flex-1 min-w-0 mr-2">
 								<FiMapPin className="h-3 w-3 mr-1 flex-shrink-0" />
 								<span className="truncate">
-									{getVendorName(product.producer || product.transformer)}
+									{getVendorName(product.producer || product.transformer || product.restaurateur)}
 								</span>
 								{(product.producer?.address?.city ||
-									product.transformer?.address?.city) && (
+									product.transformer?.address?.city ||
+									product.restaurateur?.address?.city) && (
 									<>
 										<span className="mx-1">•</span>
 										<span className="truncate">
 											{product.producer?.address?.city ||
-												product.transformer?.address?.city}
+												product.transformer?.address?.city ||
+												product.restaurateur?.address?.city}
 										</span>
 									</>
 								)}

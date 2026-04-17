@@ -313,7 +313,6 @@ exports.updateOrderPaymentStatus = catchAsync(async (req, res, next) => {
   // Vérifier l'état avant de mettre à jour
   const wasCompleted = order.payment.status === 'completed' || order.payment.status === 'succeeded';
   const isNowCompleted = paymentStatus === 'completed';
-  
   // Mettre à jour le statut de paiement
   order.payment.status = paymentStatus;
   if (transactionId) order.payment.transactionId = transactionId;
@@ -323,69 +322,8 @@ exports.updateOrderPaymentStatus = catchAsync(async (req, res, next) => {
   await order.save();
 
   // Si le paiement est confirmé et la commande est en attente, la confirmer
-  if (isNowCompleted && order.status === 'pending') {
+  if (paymentStatus === 'completed' && order.status === 'pending') {
     await order.updateStatus('confirmed', req.admin._id, 'Paiement confirmé');
-  }
-
-  // Créer un paiement pour les frais de livraison si le paiement vient d'être complété et qu'il y a un livreur
-  if (isNowCompleted && !wasCompleted && order.delivery?.transporter) {
-    const transporterId = order.delivery.transporter._id || order.delivery.transporter;
-    const deliveryFee = order.deliveryFee || order.delivery?.deliveryFee || 0;
-    
-    if (transporterId && deliveryFee > 0) {
-      const Payment = require('../../models/Payment');
-      
-      // Vérifier si un paiement existe déjà
-      const existingPayment = await Payment.findOne({
-        order: order._id,
-        user: transporterId,
-        type: 'payout',
-        'metadata.deliveryFee': true
-      });
-      
-      if (!existingPayment) {
-        const mongoose = require('mongoose');
-        const transporterPayment = await Payment.create({
-          paymentId: new mongoose.Types.ObjectId().toString(),
-          order: order._id,
-          user: transporterId,
-          amount: deliveryFee,
-          currency: order.currency || 'XAF',
-          method: 'cash',
-          provider: 'cash-on-delivery',
-          type: 'payout',
-          status: 'completed',
-          metadata: {
-            orderId: order._id.toString(),
-            orderNumber: order.orderNumber,
-            deliveryFee: true
-          },
-          paidAt: new Date()
-        });
-        
-        // Notifier le transporteur
-        const Notification = require('../../models/Notification');
-        await Notification.createNotification({
-          recipient: transporterId,
-          type: 'payout_processed',
-          category: 'payment',
-          title: 'Frais de livraison reçus',
-          message: `Vous avez reçu ${deliveryFee} ${order.currency || 'XAF'} de frais de livraison pour la commande ${order.orderNumber}`,
-          data: {
-            orderId: order._id,
-            orderNumber: order.orderNumber,
-            amount: deliveryFee,
-            currency: order.currency || 'XAF',
-            paymentId: transporterPayment.paymentId
-          },
-          channels: {
-            inApp: { enabled: true },
-            email: { enabled: true },
-            push: { enabled: true }
-          }
-        });
-      }
-    }
   }
 
   res.status(200).json({

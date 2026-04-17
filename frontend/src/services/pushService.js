@@ -66,7 +66,7 @@ const pushService = {
 			await this.sendSubscriptionToBackend(subscription, isAdmin);
 		} catch (error) {
 			console.error("❌ [pushService] Web Push Subscription Error:", error);
-			alert("Échec de l'abonnement Web Push en Prod : " + (error.message || "Erreur inconnue") + "\n(Vérifiez que vous êtes sur HTTPS ou vos clés Backend)");
+			alert("Échec de l'abonnement aux notifications : " + (error.message || "Erreur inconnue") + "\n(Vérifiez que vous êtes sur HTTPS ou que les services de notification sont activés dans votre navigateur)");
 		}
 	},
 

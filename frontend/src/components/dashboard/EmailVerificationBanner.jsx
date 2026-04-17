@@ -6,7 +6,7 @@ import api from "../../services/api";
  * Bannière orange affichée en haut du dashboard si l'email n'est pas vérifié.
  * Disparaît définitivement si l'utilisateur la ferme, ou si l'email est vérifié.
  */
-const EmailVerificationBanner = ({ user }) => {
+const EmailVerificationBanner = ({ user, onClose }) => {
 	const [dismissed, setDismissed] = useState(false);
 	const [sending, setSending] = useState(false);
 	const [sent, setSent] = useState(false);
@@ -29,6 +29,11 @@ const EmailVerificationBanner = ({ user }) => {
 		} finally {
 			setSending(false);
 		}
+	};
+
+	const handleDismiss = () => {
+		setDismissed(true);
+		if (onClose) onClose();
 	};
 
 	return (
@@ -84,7 +89,7 @@ const EmailVerificationBanner = ({ user }) => {
 					)}
 
 					<button
-						onClick={() => setDismissed(true)}
+						onClick={handleDismiss}
 						className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
 						title="Fermer"
 					>

@@ -117,6 +117,16 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
   if (queryParams.category) queryObj.category = queryParams.category;
   if (queryParams.subcategory) queryObj.subcategory = queryParams.subcategory;
   
+  if (queryParams.userType) {
+    if (queryParams.userType.includes(',')) {
+      queryObj.userType = { $in: queryParams.userType.split(',') };
+    } else {
+      queryObj.userType = queryParams.userType;
+    }
+  }
+
+  if (queryParams.originType) queryObj.originType = queryParams.originType;
+  
   if (queryParams.region) {
     const User = require('../../models/User');
     const vendors = await User.find({ 
@@ -203,6 +213,7 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
   let query = Product.find(queryObj)
     .populate('producer', 'farmName firstName lastName address salesStats createdAt country isBio')
     .populate('transformer', 'companyName firstName lastName address salesStats createdAt country isBio')
+    .populate('restaurateur', 'restaurantName firstName lastName address salesStats createdAt country isBio')
     .select('-__v');
 
   // Tri
@@ -308,6 +319,7 @@ async function getProductsByLocation(queryParams = {}) {
   let query = Product.find(locationQueryObj)
     .populate('producer', 'farmName firstName lastName address city region country salesStats createdAt isBio')
     .populate('transformer', 'companyName firstName lastName address city region country salesStats createdAt isBio')
+    .populate('restaurateur', 'restaurantName firstName lastName address city region country salesStats createdAt isBio')
     .select('-__v')
     .sort('-createdAt')
     .skip(skip)
@@ -461,6 +473,7 @@ async function getProductsByCategory(category, queryParams = {}) {
   let query = Product.find(queryObj)
     .populate('producer', 'farmName firstName lastName address salesStats createdAt country isBio')
     .populate('transformer', 'companyName firstName lastName address salesStats createdAt country isBio')
+    .populate('restaurateur', 'restaurantName firstName lastName address salesStats createdAt country isBio')
     .select('-__v');
 
   // Tri
@@ -498,7 +511,8 @@ async function getProductById(productId) {
     isPublic: { $ne: false }
   })
   .populate('producer', 'farmName firstName lastName address salesStats certifications createdAt country region userType shopLogo shopBanner avatar isBio')
-  .populate('transformer', 'companyName firstName lastName address salesStats certifications createdAt country region userType shopLogo shopBanner avatar isBio');
+  .populate('transformer', 'companyName firstName lastName address salesStats certifications createdAt country region userType shopLogo shopBanner avatar isBio')
+  .populate('restaurateur', 'restaurantName firstName lastName address salesStats certifications createdAt country region userType shopLogo shopBanner avatar isBio');
 
   if (!product) {
     throw new Error('Produit non trouvé');
@@ -541,6 +555,7 @@ async function getFeaturedProducts() {
   })
   .populate('producer', 'farmName firstName lastName address createdAt country isBio')
   .populate('transformer', 'companyName firstName lastName address createdAt country isBio')
+  .populate('restaurateur', 'restaurantName firstName lastName address createdAt country isBio')
   .sort('-createdAt')
   .limit(12);
 
@@ -561,6 +576,7 @@ async function getNewProducts() {
   })
   .populate('producer', 'farmName firstName lastName createdAt country isBio')
   .populate('transformer', 'companyName firstName lastName createdAt country isBio')
+  .populate('restaurateur', 'restaurantName firstName lastName createdAt country isBio')
   .sort('-createdAt')
   .limit(20);
 

@@ -176,7 +176,14 @@ VITE_API_URL=http://localhost:5000/api/v1
 # Services
 VITE_STRIPE_PUBLIC_KEY=pk_test_...
 VITE_CLOUDINARY_CLOUD_NAME=your-cloud-name
+VITE_VAPID_PUBLIC_KEY=your-vapid-public-key
 ```
+
+### 🔔 Dépannage Web Push (Local)
+Si vous obtenez l'erreur "Registration failed - push service error" en local :
+1. **Navigateur Brave :** Allez dans `brave://settings/privacy` et activez "Utiliser les services Google pour la messagerie push".
+2. **Configuration :** Assurez-vous que `VITE_VAPID_PUBLIC_KEY` est défini dans `frontend/.env` ET que le serveur Vite a été redémarré.
+3. **Service Worker :** Vérifiez dans l'onglet "Application" > "Service Workers" des outils de développement que `sw.js` est bien enregistré.
 
 ## 🚀 Scripts NPM
 

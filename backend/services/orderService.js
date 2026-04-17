@@ -353,13 +353,6 @@ async function createOrder(orderData, user) {
 		0,
 	);
 	const deliveryMethod = orderData.deliveryMethod || "standard-delivery";
-	const deliveryFeeDetail = deliveryService.calculateDeliveryFee(
-		processedItems,
-		orderData.deliveryAddress,
-		sellerLocations,
-		deliveryMethod,
-	);
-	const deliveryFee = deliveryFeeDetail.amount;
 	const taxes = 0;
 
 	let discount = 0;
@@ -380,7 +373,7 @@ async function createOrder(orderData, user) {
 		}
 	}
 
-	const total = subtotal + deliveryFee + taxes - discount;
+	const total = subtotal + taxes - discount;
 
 	const uniqueSellerIds = sellerLocations
 		.map((location) => location?.id)
@@ -432,8 +425,6 @@ async function createOrder(orderData, user) {
 		items: processedItems,
 		segments: createSegmentsFromItems(processedItems),
 		subtotal,
-		deliveryFee,
-		deliveryFeeDetail,
 		taxes,
 		discount,
 		total,
@@ -446,9 +437,7 @@ async function createOrder(orderData, user) {
 			status: "pending",
 		},
 		delivery: {
-			method: deliveryMethod,
-			deliveryFee,
-			feeDetail: deliveryFeeDetail,
+			method: deliveryMethod || "standard-delivery",
 			deliveryAddress: orderData.deliveryAddress,
 			estimatedDeliveryDate:
 				deliveryService.calculateEstimatedDelivery(deliveryMethod),
@@ -663,13 +652,6 @@ async function estimateOrderCosts(
 		(sum, item) => sum + (item.totalPrice || 0),
 		0,
 	);
-	const deliveryFeeDetail = deliveryService.calculateDeliveryFee(
-		processedItems,
-		deliveryAddress,
-		sellerLocations,
-		deliveryMethod,
-	);
-	const deliveryFee = deliveryFeeDetail.amount;
 	const taxes = 0;
 
 	let discount = 0;
@@ -689,7 +671,7 @@ async function estimateOrderCosts(
 		}
 	}
 
-	const total = subtotal + deliveryFee + taxes - discount;
+	const total = subtotal + taxes - discount;
 	const paymentMethodRaw = options.paymentMethod;
 	const normalizedPaymentMethod =
 		["paypal", "cash"].includes((paymentMethodRaw || "").toLowerCase()) ?
@@ -701,8 +683,6 @@ async function estimateOrderCosts(
 
 	return {
 		subtotal,
-		deliveryFee,
-		deliveryFeeDetail,
 		taxes,
 		discount,
 		total,

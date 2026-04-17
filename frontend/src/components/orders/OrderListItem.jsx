@@ -35,17 +35,15 @@ const OrderListItem = ({
 	toggleCollapse,
 }) => {
 	const { currency: userCurrency } = useCurrency();
-	const isSellerView = ["producer", "transformer", "restaurateur"].includes(
-		userType,
-	);
+	const isSellerView =
+		["producer", "transformer", "restaurateur"].includes(userType) &&
+		order.role !== "buyer";
+	const isBuyerView =
+		userType === "consumer" || order.role === "buyer";
 	const segmentStatus = order.segment?.status || order.status;
 	const statusConfig = getStatusConfig(segmentStatus);
 	const StatusIcon = statusConfig.icon;
 	const clientInfo = getClientInfo(order, userType) || {};
-	const hasClientInfo =
-		Boolean(clientInfo.name) ||
-		Boolean(clientInfo.email) ||
-		Boolean(clientInfo.phone);
 	const orderItems =
 		isSellerView ?
 			order.segment?.items || order.items || []
@@ -128,6 +126,7 @@ const OrderListItem = ({
 							</span>
 
 							{(isSellerView ||
+								isBuyerView ||
 								userType === "transporter" ||
 								userType === "exporter") &&
 								onUpdateStatus && (
@@ -139,6 +138,7 @@ const OrderListItem = ({
 										onUpdateStatus={onUpdateStatus}
 										updatingOrders={updatingOrders}
 										isSellerView={isSellerView}
+										isBuyerView={isBuyerView}
 									/>
 								)}
 						</div>
@@ -320,6 +320,7 @@ const StatusButtons = ({
 	onUpdateStatus,
 	updatingOrders,
 	isSellerView,
+	isBuyerView,
 }) => {
 	const isUpdating = updatingOrders.has(order._id);
 
@@ -389,10 +390,47 @@ const StatusButtons = ({
 					<button
 						onClick={() => onUpdateStatus(order, "ready-for-pickup", segmentId)}
 						disabled={isUpdating}
+						className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-indigo-700 transition-all hover:scale-105 shadow-md shadow-indigo-100 disabled:opacity-50"
+					>
+						<FiPackage className="h-3.5 w-3.5 mr-2" />
+						{isUpdating ? "Chargement..." : "Prête"}
+					</button>
+				)}
+				{segmentStatus === "ready-for-pickup" && (
+					<button
+						onClick={() => onUpdateStatus(order, "delivered", segmentId)}
+						disabled={isUpdating}
 						className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition-all hover:scale-105 shadow-md shadow-emerald-100 disabled:opacity-50"
 					>
 						<FiCheckCircle className="h-3.5 w-3.5 mr-2" />
-						{isUpdating ? "Chargement..." : "Prête"}
+						{isUpdating ? "Validation..." : "Livrée"}
+					</button>
+				)}
+			</div>
+		);
+	}
+
+	if (isBuyerView) {
+		return (
+			<div className="flex gap-2">
+				{(segmentStatus === "ready-for-pickup" || segmentStatus === "in-transit") && (
+					<button
+						onClick={() => onUpdateStatus(order, "delivered", segmentId)}
+						disabled={isUpdating}
+						className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all hover:scale-105 shadow-md shadow-blue-100 disabled:opacity-50"
+					>
+						<FiCheckCircle className="h-3.5 w-3.5 mr-2" />
+						{isUpdating ? "Validation..." : "Reçu"}
+					</button>
+				)}
+				{segmentStatus === "delivered" && (
+					<button
+						onClick={() => onUpdateStatus(order, "completed", segmentId)}
+						disabled={isUpdating}
+						className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition-all hover:scale-105 shadow-md shadow-emerald-100 disabled:opacity-50"
+					>
+						<FiCheckCircle className="h-3.5 w-3.5 mr-2" />
+						{isUpdating ? "Validation..." : "Terminer"}
 					</button>
 				)}
 			</div>

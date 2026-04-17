@@ -177,8 +177,6 @@ const AddressDisplay = ({ address }) => (
 export const OrderSummaryCard = ({
 	order,
 	isSellerView,
-	deliveryFee,
-	deliveryDetail,
 }) => {
 	const { formatAmount } = useOrderCurrency(order);
 
@@ -198,31 +196,12 @@ export const OrderSummaryCard = ({
 								? order.segment?.subtotal ?? order.subtotal ?? 0
 								: order.subtotal ??
 										order.originalTotals?.subtotal ??
-										order.total - deliveryFee + (order.couponDiscount || 0)
+										order.total + (order.couponDiscount || 0)
 						)}
 					</span>
 				</div>
 
-				{((!isSellerView && deliveryFee > 0) ||
-					(isSellerView && (order.segment?.deliveryFee ?? 0) > 0)) && (
-					<div className="flex justify-between items-center px-2">
-						<div className="flex flex-col">
-							<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-								Frais de port
-							</span>
-							{deliveryFee > 0 && !isSellerView && deliveryDetail?.reason && (
-								<span className="text-[8px] font-bold text-gray-400">
-									{deliveryDetail.reason}
-								</span>
-							)}
-						</div>
-						<span className="text-base font-black text-gray-900 tracking-tighter">
-							{formatAmount(
-								isSellerView ? order.segment?.deliveryFee ?? 0 : deliveryFee
-							)}
-						</span>
-					</div>
-				)}
+
 
 				{(order.couponDiscount > 0 ||
 					(isSellerView && order.segment?.discount > 0)) && (
@@ -255,8 +234,7 @@ export const OrderSummaryCard = ({
 												order.subtotal ??
 												0
 										: order.total ||
-												(order.subtotal ?? 0) +
-													deliveryFee -
+												(order.subtotal ?? 0) -
 													(order.couponDiscount ?? 0)
 								)}
 							</span>

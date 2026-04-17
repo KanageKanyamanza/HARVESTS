@@ -199,15 +199,10 @@ export const useCheckout = (user, cartItems) => {
 			}
 			return sum + amount;
 		}, 0);
-		const deliveryFeeFallback = estimateDeliveryFee(
-			cartItems,
-			orderData.deliveryMethod,
-			orderData.deliveryAddress
-		);
 		const discount = orderData.useLoyaltyPoints
 			? orderData.loyaltyPointsToUse * 10
 			: 0;
-		const totalFallback = subtotal + deliveryFeeFallback - discount;
+		const totalFallback = subtotal - discount;
 
 		if (estimation) {
 			return {
@@ -220,7 +215,6 @@ export const useCheckout = (user, cartItems) => {
 		}
 		return {
 			subtotal,
-			deliveryFee: deliveryFeeFallback,
 			taxes: 0,
 			discount,
 			total: totalFallback,
