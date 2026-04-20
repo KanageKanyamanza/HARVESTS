@@ -5,24 +5,10 @@ import { formatPrice, convertPrice } from "../../utils/currencyUtils";
 import { useCurrency } from "../../contexts/CurrencyContext.jsx";
 import { DEFAULT_CURRENCY } from "../../config/currencies";
 
-const deliveryMethodLabels = {
-	"standard-delivery": "livraison standard",
-	"express-delivery": "livraison express",
-	"same-day": "livraison jour même",
-	scheduled: "livraison programmée",
-	pickup: "retrait sur place",
-};
 
-const OrderSummary = ({
-	cartItems,
-	totals,
-	isEstimating,
-	estimation,
-	estimationError,
-	orderData,
-}) => {
+
+const OrderSummary = ({ cartItems, totals }) => {
 	const { currency } = useCurrency();
-	const deliveryDetail = estimation?.deliveryFeeDetail;
 
 	return (
 		<div className="bg-white rounded-lg shadow p-6 sticky top-6">
@@ -82,15 +68,7 @@ const OrderSummary = ({
 					</span>
 				</div>
 
-				<div className="flex justify-between text-sm">
-					<span className="text-gray-600">Livraison</span>
-					<span className="font-medium">
-						{formatPrice(
-							convertPrice(totals.deliveryFee, DEFAULT_CURRENCY, currency),
-							currency
-						)}
-					</span>
-				</div>
+
 
 				{totals.taxes > 0 && (
 					<div className="flex justify-between text-sm">
@@ -129,29 +107,10 @@ const OrderSummary = ({
 					</div>
 				</div>
 
-				{isEstimating && (
-					<p className="text-xs text-blue-500 text-right mt-1">
-						Estimation des frais en cours...
-					</p>
-				)}
-				{!isEstimating && deliveryDetail && !estimationError && (
-					<p className="text-xs text-gray-500 text-right mt-1">
-						{deliveryDetail.reason}
-					</p>
-				)}
-				{!isEstimating && !deliveryDetail && !estimationError && (
-					<p className="text-xs text-gray-500 text-right mt-1">
-						Montant calculé via le forfait{" "}
-						{deliveryMethodLabels[orderData.deliveryMethod] ||
-							orderData.deliveryMethod}
-						.
-					</p>
-				)}
-				{estimationError && (
-					<p className="text-xs text-red-500 text-right mt-1">
-						{estimationError}
-					</p>
-				)}
+				{/* Livraison gratuite (frais retirés) */}
+				<p className="text-[10px] text-gray-400 text-right mt-1 italic uppercase font-bold tracking-tighter">
+					Livraison offerte par Harvests
+				</p>
 			</div>
 
 			{/* Security Info */}

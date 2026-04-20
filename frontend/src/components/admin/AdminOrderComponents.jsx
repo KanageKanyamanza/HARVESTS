@@ -17,94 +17,14 @@ import {
 import CloudinaryImage from "../common/CloudinaryImage";
 import { parseProductName } from "../../utils/productUtils";
 
-export const getStatusConfig = (status) => {
-	const configs = {
-		pending: {
-			color: "text-yellow-600 bg-yellow-100",
-			text: "En attente",
-			icon: Clock,
-		},
-		confirmed: {
-			color: "text-blue-600 bg-blue-100",
-			text: "Confirmée",
-			icon: CheckCircle,
-		},
-		preparing: {
-			color: "text-purple-600 bg-purple-100",
-			text: "En préparation",
-			icon: Package,
-		},
-		processing: {
-			color: "text-purple-600 bg-purple-100",
-			text: "En cours",
-			icon: Package,
-		},
-		"ready-for-pickup": {
-			color: "text-indigo-600 bg-indigo-100",
-			text: "Prête à collecter",
-			icon: Package,
-		},
-		"in-transit": {
-			color: "text-indigo-600 bg-indigo-100",
-			text: "En transit",
-			icon: Truck,
-		},
-		shipped: {
-			color: "text-indigo-600 bg-indigo-100",
-			text: "Expédiée",
-			icon: Truck,
-		},
-		delivered: {
-			color: "text-green-600 bg-green-100",
-			text: "Livrée",
-			icon: CheckCircle,
-		},
-		completed: {
-			color: "text-green-600 bg-green-100",
-			text: "Terminée",
-			icon: CheckCircle,
-		},
-		cancelled: {
-			color: "text-red-600 bg-red-100",
-			text: "Annulée",
-			icon: XCircle,
-		},
-		disputed: {
-			color: "text-orange-600 bg-orange-100",
-			text: "En litige",
-			icon: AlertTriangle,
-		},
-	};
-	return configs[status] || configs["pending"];
-};
+import {
+	getStatusConfig,
+	getPaymentStatusConfig,
+	formatDate,
+	formatPrice,
+} from "../../utils/adminOrderUtils";
 
-export const getPaymentStatusConfig = (status) => {
-	const configs = {
-		pending: { color: "text-yellow-600 bg-yellow-100", text: "En attente" },
-		completed: { color: "text-green-600 bg-green-100", text: "Payé" },
-		paid: { color: "text-green-600 bg-green-100", text: "Payé" },
-		failed: { color: "text-red-600 bg-red-100", text: "Échoué" },
-		refunded: { color: "text-gray-600 bg-gray-100", text: "Remboursé" },
-	};
-	return configs[status] || configs["pending"];
-};
-
-export const formatDate = (date) =>
-	new Date(date).toLocaleDateString("fr-FR", {
-		year: "numeric",
-		month: "long",
-		day: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-	});
-export const formatPrice = (price) =>
-	new Intl.NumberFormat("fr-FR", {
-		style: "currency",
-		currency: "XOF",
-		minimumFractionDigits: 0,
-	}).format(price);
-
-export const OrderSegment = ({ segment, index }) => {
+export const OrderSegment = ({ segment }) => {
 	const segmentStatusConfig = getStatusConfig(segment.status);
 	const SegmentStatusIcon = segmentStatusConfig.icon;
 
@@ -317,12 +237,7 @@ export const OrderTotalsCard = ({ order }) => (
 				<span className="text-gray-500">Sous-total</span>
 				<span>{formatPrice(order?.subtotal || 0)}</span>
 			</div>
-			<div className="flex justify-between">
-				<span className="text-gray-500">Livraison</span>
-				<span>
-					{formatPrice(order?.deliveryFee || order?.delivery?.deliveryFee || 0)}
-				</span>
-			</div>
+
 			{(order?.discount || order?.couponDiscount) > 0 && (
 				<div className="flex justify-between text-green-600">
 					<span>Réduction</span>
@@ -364,33 +279,7 @@ export const OrderActionsCard = ({
 						{updating ? "Mise à jour..." : "Confirmer la commande"}
 					</button>
 				)}
-				{order?.status === "confirmed" && (
-					<button
-						onClick={() => onUpdateStatus("preparing")}
-						disabled={updating}
-						className="w-full px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50"
-					>
-						{updating ? "Mise à jour..." : "Marquer en préparation"}
-					</button>
-				)}
-				{order?.status === "preparing" && (
-					<button
-						onClick={() => onUpdateStatus("ready-for-pickup")}
-						disabled={updating}
-						className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
-					>
-						{updating ? "Mise à jour..." : "Prête pour collecte"}
-					</button>
-				)}
-				{order?.status === "in-transit" && (
-					<button
-						onClick={() => onUpdateStatus("delivered")}
-						disabled={updating}
-						className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
-					>
-						{updating ? "Mise à jour..." : "Marquer livrée"}
-					</button>
-				)}
+
 				{canConfirmPayment && (
 					<button
 						onClick={onConfirmPayment}

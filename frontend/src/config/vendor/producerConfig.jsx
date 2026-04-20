@@ -219,10 +219,7 @@ export const producerConfig = {
 										• Rayon d'action : {vendor.deliveryOptions.deliveryRadius}{" "}
 										km autour de {vendor.city || "la ferme"}
 									</p>
-									<p>
-										• Frais de livraison : {vendor.deliveryOptions.deliveryFee}{" "}
-										FCFA
-									</p>
+
 								</div>
 							)}
 						</div>

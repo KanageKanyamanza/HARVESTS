@@ -299,5 +299,6 @@ router.get('/dishes/:dishId', restaurateurController.getDishDetail);
 router.get('/:id', restaurateurController.getRestaurateur);
 router.get('/:id/dishes', restaurateurController.getRestaurateurDishes);
 router.get('/:id/products', restaurateurController.getRestaurateurProducts);
+router.get('/:id/reviews', restaurateurController.getRestaurateurReviews);
 
 module.exports = router;

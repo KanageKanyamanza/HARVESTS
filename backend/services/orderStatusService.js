@@ -28,16 +28,18 @@ function getValidStatusTransitions(currentStatus, userType) {
       admin: ['ready-for-pickup', 'cancelled']
     },
     'ready-for-pickup': {
-      transporter: ['picked-up', 'in-transit'],
-      exporter: ['picked-up', 'in-transit'],
-      producer: ['cancelled'],
-      transformer: ['cancelled'],
-      restaurateur: ['cancelled'],
+      transporter: ['picked-up', 'in-transit', 'delivered'],
+      exporter: ['picked-up', 'in-transit', 'delivered'],
+      producer: ['delivered', 'cancelled'],
+      transformer: ['delivered', 'cancelled'],
+      restaurateur: ['delivered', 'cancelled'],
+      consumer: ['delivered', 'cancelled'],
       admin: ['picked-up', 'in-transit', 'delivered', 'cancelled']
     },
     'in-transit': {
       transporter: ['delivered'],
       exporter: ['delivered'],
+      consumer: ['delivered'],
       admin: ['delivered', 'cancelled']
     },
     delivered: {
@@ -278,7 +280,7 @@ async function updateOrderStatus(order, status, user, options = {}) {
       pending: ['confirmed', 'cancelled'],
       confirmed: ['preparing', 'cancelled'],
       preparing: ['ready-for-pickup', 'cancelled'],
-      'ready-for-pickup': ['in-transit', 'cancelled'],
+      'ready-for-pickup': ['in-transit', 'delivered', 'cancelled'],
       'in-transit': ['delivered', 'cancelled'],
       delivered: ['completed', 'cancelled'],
       completed: [],
@@ -349,7 +351,7 @@ async function updateOrderStatus(order, status, user, options = {}) {
           pending: ['confirmed', 'cancelled'],
           confirmed: ['preparing', 'cancelled'],
           preparing: ['ready-for-pickup', 'cancelled'],
-          'ready-for-pickup': ['in-transit', 'cancelled'],
+          'ready-for-pickup': ['in-transit', 'delivered', 'cancelled'],
           'in-transit': ['delivered', 'cancelled'],
           delivered: ['completed', 'cancelled'],
           completed: [],
@@ -387,7 +389,7 @@ async function updateOrderStatus(order, status, user, options = {}) {
           pending: ['confirmed', 'cancelled'],
           confirmed: ['preparing', 'cancelled'],
           preparing: ['ready-for-pickup', 'cancelled'],
-          'ready-for-pickup': ['in-transit', 'cancelled'],
+          'ready-for-pickup': ['in-transit', 'delivered', 'cancelled'],
           'in-transit': ['delivered', 'cancelled'],
           delivered: ['completed', 'cancelled'],
           completed: [],

@@ -91,11 +91,16 @@ self.addEventListener("fetch", (event) => {
 					return response;
 				});
 			})
-			.catch(() => {
+			.catch((err) => {
+				console.error("[Service Worker] Fetch error:", err);
 				// En cas d'erreur, retourner une page offline si c'est une navigation
 				if (event.request.destination === "document") {
 					return caches.match("/");
 				}
+				
+				// Retourner une réponse vide ou d'erreur au lieu de undefined
+				// pour éviter "Failed to convert value to 'Response'"
+				return new Response('', { status: 408, statusText: 'Network error or Timeout' });
 			})
 	);
 });
@@ -135,12 +140,17 @@ self.addEventListener("push", (event) => {
 		tag: data.tag || "harvests-general",
 		renotify: true,
 		requireInteraction: true,
-		actions: data.actions || [],
+		actions: (data.actions || []).map(action => ({
+			...action,
+			action: action.action || 'view' // Ensure action ID is present
+		})),
 	};
 
 	event.waitUntil(
 		Promise.all([
-			self.registration.showNotification(title, options),
+			self.registration.showNotification(title, options).catch(err => {
+				console.error("[Service Worker] Notification error:", err);
+			}),
 			// Mise à jour du badge
 			"setAppBadge" in navigator
 				? navigator.setAppBadge(data.unreadCount || 1).catch(() => {})

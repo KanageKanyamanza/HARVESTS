@@ -5,7 +5,7 @@ import pushService from "../../services/pushService";
 /**
  * Bannière violette affichée si les notifications push ne sont pas activées.
  */
-const PushNotificationBanner = ({ user }) => {
+const PushNotificationBanner = ({ user, onClose }) => {
 	const [status, setStatus] = useState({ supported: true, subscribed: false });
 	const [dismissed, setDismissed] = useState(() => {
 		const saved = localStorage.getItem("push-banner-dismissed");
@@ -47,6 +47,7 @@ const PushNotificationBanner = ({ user }) => {
 	const handleDismiss = () => {
 		setDismissed(true);
 		localStorage.setItem("push-banner-dismissed", new Date().toISOString());
+		if (onClose) onClose();
 	};
 
 	return (

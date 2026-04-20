@@ -103,76 +103,12 @@ function computeMaxDistanceKm(sellerLocations, deliveryAddress) {
 }
 
 function calculateDeliveryFee(items, deliveryAddress, sellerLocations = [], deliveryMethod = 'standard-delivery') {
-  const method = deliveryMethod || 'standard-delivery';
-
-  const toAmount = (value, fallback) => {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
-  };
-
-  const methodLabels = {
-    pickup: 'retrait sur place',
-    'standard-delivery': 'livraison standard',
-    'express-delivery': 'livraison express',
-    'same-day': 'livraison jour même',
-    'scheduled': 'livraison programmée'
-  };
-
-  const localFees = {
-    pickup: toAmount(process.env.DELIVERY_FEE_PICKUP_LOCAL, 0),
-    'standard-delivery': toAmount(process.env.DELIVERY_FEE_STANDARD_LOCAL, 2000),
-    'express-delivery': toAmount(process.env.DELIVERY_FEE_EXPRESS_LOCAL, 5000),
-    'same-day': toAmount(process.env.DELIVERY_FEE_SAME_DAY_LOCAL, 7000),
-    'scheduled': toAmount(process.env.DELIVERY_FEE_SCHEDULED_LOCAL, 3000)
-  };
-
-  const localFee = localFees[method] ?? localFees['standard-delivery'];
-  const methodKey = method.replace(/-/g, '_').toUpperCase();
-
-  const intercityBaseDefault = toAmount(process.env.DELIVERY_FEE_INTERCITY_BASE, localFee);
-  const intercityMethodBase = toAmount(process.env[`DELIVERY_FEE_INTERCITY_${methodKey}`], intercityBaseDefault);
-  const perKm = toAmount(process.env.DELIVERY_FEE_PER_KM, 0);
-  const internationalBaseDefault = toAmount(process.env.DELIVERY_FEE_INTERNATIONAL_BASE, intercityBaseDefault + 3000);
-  const internationalMethodBase = toAmount(process.env[`DELIVERY_FEE_INTERNATIONAL_${methodKey}`], internationalBaseDefault);
-
-  const result = {
-    amount: localFee,
+  return {
+    amount: 0,
     scope: 'local',
-    method,
-    reason: `Livraison locale (${methodLabels[method] || method})`
+    method: deliveryMethod || 'standard-delivery',
+    reason: 'Livraison gratuite sur toute la plateforme.'
   };
-
-  if (!deliveryAddress || !Array.isArray(sellerLocations) || sellerLocations.length === 0) {
-    result.reason = 'Adresse ou vendeurs manquants : application du forfait local.';
-    return result;
-  }
-
-  const allSameCity = sellerLocations.every((seller) => isSameCity(seller, deliveryAddress));
-  if (allSameCity) {
-    result.amount = localFee;
-    result.scope = 'local';
-    result.reason = `Tous les vendeurs et l'adresse de livraison sont dans la même ville (${methodLabels[method] || method}).`;
-    return result;
-  }
-
-  const allSameCountry = sellerLocations.every((seller) => isSameCountry(seller, deliveryAddress));
-  if (allSameCountry) {
-    const maxDistance = computeMaxDistanceKm(sellerLocations, deliveryAddress);
-    const variableFee = maxDistance > 0 && perKm > 0 ? perKm * maxDistance : 0;
-    result.amount = Math.round(intercityMethodBase + variableFee);
-    result.scope = 'domestic';
-    if (maxDistance > 0 && perKm > 0) {
-      result.reason = `Livraison inter-ville (${methodLabels[method] || method}) : distance maximale estimée ${maxDistance.toFixed(1)} km.`;
-    } else {
-      result.reason = `Livraison inter-ville (${methodLabels[method] || method}) : application du forfait national.`;
-    }
-    return result;
-  }
-
-  result.amount = Math.round(internationalMethodBase);
-  result.scope = 'international';
-  result.reason = `Livraison internationale (${methodLabels[method] || method}) : au moins un vendeur se trouve dans un autre pays.`;
-  return result;
 }
 
 function calculateEstimatedDelivery(deliveryMethod) {

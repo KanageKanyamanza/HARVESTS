@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import {
 	producerService,
 	transformerService,
@@ -13,6 +13,8 @@ import {
 	FiArrowRight,
 	FiTool,
 	FiSun,
+	FiChevronDown,
+	FiX
 } from "react-icons/fi";
 import { Leaf } from "lucide-react";
 import {
@@ -28,9 +30,20 @@ const Vendeurs = () => {
 	const [vendeurs, setVendeurs] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [filter, setFilter] = useState("all"); // 'all', 'producers', 'transformers', 'restaurateurs'
-	const [locationInfo, setLocationInfo] = useState(null);
+	const [searchParams, setSearchParams] = useSearchParams();
+	const selectedCountry = searchParams.get("country") || "";
+	
 	const { getCachedData, setCachedData } = useApiCache(5 * 60 * 1000); // Cache de 5 minutes
-	const hasLoadedRef = useRef(false);
+
+	const handleCountryChange = (country) => {
+		const newParams = new URLSearchParams(searchParams);
+		if (country) {
+			newParams.set("country", country);
+		} else {
+			newParams.delete("country");
+		}
+		setSearchParams(newParams);
+	};
 
 	const buildVendorRating = (vendor) => {
 		const average = getVendorAverageRating(vendor);
@@ -43,40 +56,36 @@ const Vendeurs = () => {
 
 	useEffect(() => {
 		const loadVendeurs = async (forceRefresh = false) => {
-			// Éviter les appels multiples simultanés
-			if (hasLoadedRef.current && !forceRefresh) return;
-			hasLoadedRef.current = true;
-
 			try {
-				const cacheKey = "vendeurs_list";
+				const cacheKey = `vendeurs_list_${selectedCountry}`;
 
 				// Vérifier le cache
 				if (!forceRefresh) {
 					const cached = getCachedData(cacheKey);
 					if (cached) {
 						setVendeurs(cached.vendeurs || []);
-						setLocationInfo(cached.locationInfo || null);
 						setLoading(false);
-						hasLoadedRef.current = false;
 						return;
 					}
 				}
 
 				setLoading(true);
 
-				// Charger producteurs, transformateurs et restaurateurs en parallèle
-				const API_BASE_URL =
-					import.meta.env.VITE_API_URL ||
-					"https://harvests.onrender.com/api/v1";
+				const queryParams = { 
+					limit: 50, 
+					useLocation: selectedCountry ? "false" : "true" 
+				};
+				if (selectedCountry) queryParams.country = selectedCountry;
 
 				const [producersResponse, transformersResponse, restaurateursResponse] =
 					await Promise.allSettled([
-						producerService.getAllPublic({ limit: 50, useLocation: "true" }),
-						transformerService.getAllPublic({ limit: 50 }),
-						restaurateurService.getAllPublic({ limit: 50 }),
+						producerService.getAllPublic(queryParams),
+						transformerService.getAllPublic(queryParams),
+						restaurateurService.getAllPublic(queryParams),
 					]);
 
 				const allVendeurs = [];
+				let locationData = null;
 
 				// Ajouter les producteurs
 				if (
@@ -87,7 +96,7 @@ const Vendeurs = () => {
 
 					// Stocker les informations de localisation
 					if (producersResponse.value.data.data.location) {
-						setLocationInfo(producersResponse.value.data.data.location);
+						locationData = producersResponse.value.data.data.location;
 					}
 
 					allVendeurs.push(
@@ -136,7 +145,6 @@ const Vendeurs = () => {
 				}
 
 				// Ajouter les restaurateurs
-
 				if (
 					restaurateursResponse.status === "fulfilled" &&
 					restaurateursResponse.value.data.status === "success"
@@ -162,8 +170,6 @@ const Vendeurs = () => {
 							logo: restaurateur.shopLogo,
 						})),
 					);
-				} else {
-					console.error("❌ Erreur restaurateurs:", restaurateursResponse);
 				}
 
 				const vendeursAvecNotes = await Promise.all(
@@ -214,18 +220,17 @@ const Vendeurs = () => {
 				// Mettre en cache
 				setCachedData(cacheKey, {
 					vendeurs: vendeursAvecNotes,
-					locationInfo: locationInfo,
+					locationInfo: locationData,
 				});
 			} catch (error) {
 				console.error("Erreur lors du chargement des vendeurs:", error);
 			} finally {
 				setLoading(false);
-				hasLoadedRef.current = false;
 			}
 		};
 
 		loadVendeurs();
-	}, [getCachedData, setCachedData]);
+	}, [getCachedData, setCachedData, selectedCountry]);
 
 	const getTypeBadge = (type) => {
 		switch (type) {
@@ -293,34 +298,53 @@ const Vendeurs = () => {
 					<h1 className="text-4xl font-bold text-gray-900 mb-4">
 						Nos Vendeurs
 					</h1>
-					<p className="text-xl text-gray-600">
-						Découvrez les producteurs et transformateurs locaux qui proposent
+					<p className="text-xl text-gray-600 mb-8">
+						Découvrez les producteurs, transformateurs et restaurateurs locaux qui proposent
 						des produits frais et de qualité
 					</p>
 
-					{/* Message discret si pas de vendeurs dans la zone */}
-					{locationInfo?.detected && locationInfo?.noProducersInZone && (
-						<div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-700">
-							<svg
-								className="w-4 h-4 flex-shrink-0"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2}
-									d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-								/>
-							</svg>
-							<span>
-								Aucun vendeur disponible dans votre zone. Affichage de tous les
-								vendeurs.
-							</span>
+					{/* Filtre de pays */}
+					<div className="flex justify-center mb-10">
+						<div className="relative inline-flex items-center">
+							<div className="relative">
+								<FiMapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 h-5 w-5 pointer-events-none" />
+								<select
+									value={selectedCountry}
+									onChange={(e) => handleCountryChange(e.target.value)}
+									className="pl-10 pr-10 py-3 bg-white border-2 border-green-100 rounded-2xl focus:ring-4 focus:ring-green-500/10 focus:border-green-500 appearance-none text-gray-700 font-bold shadow-sm transition-all cursor-pointer min-w-[240px]"
+								>
+									<option value="">Tous les pays / zones</option>
+									<optgroup label="Zones">
+										<option value="West Africa">Afrique de l'Ouest</option>
+										<option value="Central Africa">Afrique Centrale</option>
+									</optgroup>
+									<optgroup label="Pays">
+										<option value="SN">Sénégal</option>
+										<option value="CM">Cameroun</option>
+										<option value="CI">Côte d'Ivoire</option>
+										<option value="BF">Burkina Faso</option>
+										<option value="ML">Mali</option>
+										<option value="GH">Ghana</option>
+										<option value="NG">Nigeria</option>
+									</optgroup>
+								</select>
+								<FiChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
+							</div>
+							
+							{selectedCountry && (
+								<button
+									onClick={() => handleCountryChange("")}
+									className="ml-3 p-3 text-gray-400 hover:text-red-500 bg-white border-2 border-gray-100 rounded-2xl transition-colors shadow-sm"
+									title="Effacer le filtre"
+								>
+									<FiX className="h-5 w-5" />
+								</button>
+							)}
 						</div>
-					)}
-				</div>
+					</div>
+
+					</div>
+
 
 				{/* Filtres */}
 				<div className="flex justify-center mb-8">

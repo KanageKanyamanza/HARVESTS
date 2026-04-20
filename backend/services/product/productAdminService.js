@@ -14,7 +14,9 @@ async function approveProduct(productId) {
     productId,
     { 
       status: 'approved',
-      publishedAt: new Date()
+      publishedAt: new Date(),
+      isPublic: true,
+      isActive: true
     },
     { new: true }
   )

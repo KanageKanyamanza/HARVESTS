@@ -18,11 +18,6 @@ export const estimateDeliveryFee = (
   deliveryMethod = 'standard-delivery',
   deliveryAddress = null
 ) => {
-  if (!Array.isArray(cartItems) || cartItems.length === 0) {
-    return 0;
-  }
-
-  const method = deliveryMethod || 'standard-delivery';
-  return LOCAL_FEES[method] ?? STANDARD_FALLBACK;
+  return 0;
 };
 

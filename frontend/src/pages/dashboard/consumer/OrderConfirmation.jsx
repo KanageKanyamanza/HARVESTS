@@ -7,17 +7,17 @@ import {
 	paymentService,
 } from "../../../services";
 import PayPalPaymentSection from "../../../components/orders/PayPalPaymentSection";
-import {
-	getStatusConfig,
-	SuccessHeader,
-	OrderInfoCard,
-	OrderItemsCard,
-	OrderSummaryCard,
-	DeliveryAddressCard,
-	PaymentInfoCard,
-	NextStepsCard,
-	ActionButtons,
+import { 
+	SuccessHeader, 
+	OrderInfoCard, 
+	OrderItemsCard, 
+	OrderSummaryCard, 
+	DeliveryAddressCard, 
+	PaymentInfoCard, 
+	NextStepsCard, 
+	ActionButtons 
 } from "../../../components/orders/OrderConfirmationComponents";
+import { getStatusConfig } from "../../../utils/orderUIUtils";
 import { FiShoppingBag, FiArrowRight, FiHome } from "react-icons/fi";
 import { useCurrency } from "../../../contexts/CurrencyContext";
 import { CURRENCIES, DEFAULT_CURRENCY } from "../../../config/currencies";
@@ -366,15 +366,9 @@ const OrderConfirmation = () => {
 	const showCurrencyNotice =
 		Boolean(orderCurrency) && orderCurrency !== paypalCurrency;
 	const statusConfig = getStatusConfig(order?.status);
-	const deliveryDetail =
-		order?.deliveryFeeDetail || order?.delivery?.feeDetail || null;
+
 	const confirmedTotals = {
 		subtotal: order?.subtotal ?? order?.originalTotals?.subtotal ?? 0,
-		deliveryFee:
-			order?.deliveryFee ??
-			order?.originalTotals?.deliveryFee ??
-			order?.delivery?.deliveryFee ??
-			0,
 		taxes: order?.taxes ?? order?.originalTotals?.taxes ?? 0,
 		discount: order?.discount ?? order?.originalTotals?.discount ?? 0,
 		total: order?.total ?? order?.originalTotals?.total ?? 0,
@@ -420,8 +414,6 @@ const OrderConfirmation = () => {
 				<OrderItemsCard items={order.items} />
 				<OrderSummaryCard
 					totals={confirmedTotals}
-					deliveryDetail={deliveryDetail}
-					deliveryMethod={order.delivery?.method}
 				/>
 				<DeliveryAddressCard address={order.delivery?.deliveryAddress} />
 				<PaymentInfoCard payment={order.payment} />

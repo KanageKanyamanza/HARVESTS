@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import DashboardSidebarFixed from "../dashboard/DashboardSidebarFixed";
 import DashboardTopbar from "../dashboard/DashboardTopbar";
@@ -17,8 +17,9 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
 		return saved ? JSON.parse(saved) : false;
 	});
 	const { logout } = useAuth();
-	const navigate = useNavigate();
+
 	const [showPushBanner, setShowPushBanner] = useState(false);
+	const [emailBannerDismissed, setEmailBannerDismissed] = useState(false);
 
 	// Vérifier si on doit montrer la bannière push
 	useEffect(() => {
@@ -68,16 +69,32 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
 		setSidebarCollapsed(!sidebarCollapsed);
 	};
 
+	const showEmailBanner = user && !user.isEmailVerified && !emailBannerDismissed;
+	const bannerCount = (showEmailBanner ? 1 : 0) + (showPushBanner ? 1 : 0);
+	const bannerHeight = 40; // Hauteur approximative en pixels pour chaque bannière
+	const topOffset = bannerCount * bannerHeight;
+
 	return (
 		<div className="h-screen bg-harvests-light overflow-hidden">
 			{/* Profil Completion Modal */}
 			<ProfileCompletionModal user={user} />
 
-			{/* Bannière vérification email - FIXED top 0 */}
+			{/* Bannières fixes tout en haut */}
 			<div className="fixed top-0 left-0 right-0 z-40">
-				<EmailVerificationBanner user={user} />
-				<PushNotificationBanner user={user} />
+				{showEmailBanner && (
+					<EmailVerificationBanner 
+						user={user} 
+						onClose={() => setEmailBannerDismissed(true)} 
+					/>
+				)}
+				{showPushBanner && (
+					<PushNotificationBanner 
+						user={user} 
+						onClose={() => setShowPushBanner(false)} 
+					/>
+				)}
 			</div>
+
 			{/* Sidebar - FIXED position, 100vh */}
 			<div
 				className={`fixed top-0 left-0 h-screen z-30 hidden lg:block transition-all duration-300 ${
@@ -112,14 +129,12 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
 				</>
 			)}
 
-			{/* Topbar - FIXED, sous la bannière si présente */}
+			{/* Topbar - FIXED position */}
 			<div
 				className={`fixed right-0 h-16 z-20 transition-all duration-300 ${
-					sidebarCollapsed ? "left-[90px]" : "left-0 lg:left-[250px]"
-				} ${
-					(user && !user.isEmailVerified) && showPushBanner ? "top-[90px]" : 
-					(user && !user.isEmailVerified) || showPushBanner ? "top-[40px]" : "top-0"
+					sidebarCollapsed ? "left-24" : "left-0 lg:left-64"
 				}`}
+				style={{ top: `${topOffset}px` }}
 			>
 				<DashboardTopbar onMenuClick={() => setSidebarOpen(true)} />
 			</div>
@@ -127,11 +142,9 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
 			{/* Contenu - SEULE zone scrollable */}
 			<div
 				className={`fixed right-0 bottom-0 overflow-y-auto bg-harvests-light transition-all duration-300 ${
-					sidebarCollapsed ? "left-[85px]" : "left-0 lg:left-[250px]"
-				} ${
-					(user && !user.isEmailVerified) && showPushBanner ? "top-[154px]" : 
-					(user && !user.isEmailVerified) || showPushBanner ? "top-[104px]" : "top-16"
+					sidebarCollapsed ? "left-24" : "left-0 lg:left-64"
 				}`}
+				style={{ top: `${topOffset + 64}px` }}
 			>
 				{children}
 			</div>

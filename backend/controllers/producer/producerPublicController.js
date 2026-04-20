@@ -8,7 +8,7 @@ const Review = require("../../models/Review");
 exports.getAllProducers = catchAsync(async (req, res, next) => {
 	try {
 		let userLocation = null;
-		if (req.query.useLocation !== "false") {
+		if (req.query.useLocation !== "false" && !req.query.country) {
 			try {
 				const {
 					getUserLocation,

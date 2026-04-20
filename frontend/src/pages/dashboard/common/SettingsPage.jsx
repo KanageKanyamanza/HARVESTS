@@ -125,12 +125,14 @@ const SettingsPage = () => {
 		{ id: "addresses", label: "Adresses", icon: MapPin, color: "rose" },
 	];
 
-	if (!isAuthenticated || !user) {
+	if (!isAuthenticated || !user || loading) {
 		return (
 			<div className="min-h-[80vh] flex flex-col items-center justify-center space-y-4">
 				<div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
 				<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-					Identification en cours...
+					{!isAuthenticated || !user ?
+						"Identification en cours..."
+					:	"Chargement des paramètres..."}
 				</p>
 			</div>
 		);

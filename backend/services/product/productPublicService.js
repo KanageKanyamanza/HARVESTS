@@ -90,8 +90,8 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
 
   let noProductsInZone = false;
 
-  // Détection automatique de la localisation si activée
-  if (queryParams.useLocation !== 'false' && userLocation && (userLocation.city || userLocation.region || userLocation.country)) {
+  // Détection automatique de la localisation si activée et pas de pays explicite
+  if (queryParams.useLocation !== 'false' && !queryParams.country && userLocation && (userLocation.city || userLocation.region || userLocation.country)) {
     const locationQuery = buildLocationQuery(userLocation, {
       prioritizeRegion: true,
       prioritizeCity: true
@@ -117,6 +117,47 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
   if (queryParams.category) queryObj.category = queryParams.category;
   if (queryParams.subcategory) queryObj.subcategory = queryParams.subcategory;
   
+  if (queryParams.userType) {
+    if (queryParams.userType.includes(',')) {
+      queryObj.userType = { $in: queryParams.userType.split(',') };
+    } else {
+      queryObj.userType = queryParams.userType;
+    }
+  }
+
+  if (queryParams.originType) queryObj.originType = queryParams.originType;
+  
+  if (queryParams.country) {
+    const User = require('../../models/User');
+    
+    // Gérer les zones géographiques
+    let countriesToFilter = [queryParams.country];
+    if (queryParams.country === "West Africa") {
+      countriesToFilter = ["SN", "Sénégal", "CI", "Côte d'Ivoire", "BF", "Burkina Faso", "ML", "Mali", "GH", "Ghana", "NG", "Nigeria", "NE", "Niger", "BJ", "Bénin", "TG", "Togo"];
+    } else if (queryParams.country === "Central Africa") {
+      countriesToFilter = ["CM", "Cameroun", "GA", "Gabon", "CG", "Congo", "CD", "République démocratique du Congo", "TD", "Tchad", "CF", "République centrafricaine", "GQ", "Guinée équatoriale"];
+    }
+
+    const countryQuery = {
+      $or: [
+        { country: { $in: countriesToFilter } },
+        { 'address.country': { $in: countriesToFilter } }
+      ]
+    };
+    
+    const vendors = await User.find(countryQuery).select('_id');
+    const vendorIds = vendors.map(v => v._id);
+    
+    queryObj.$and = queryObj.$and || [];
+    queryObj.$and.push({
+      $or: [
+        { producer: { $in: vendorIds } },
+        { transformer: { $in: vendorIds } },
+        { restaurateur: { $in: vendorIds } }
+      ]
+    });
+  }
+
   if (queryParams.region) {
     const User = require('../../models/User');
     const vendors = await User.find({ 
@@ -132,11 +173,6 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
         { restaurateur: { $in: vendorIds } }
       ]
     });
-    
-    // Nettoyer d'éventuels filtres $or conflictuels injectés par buildLocationQuery
-    if (queryObj.$and) {
-      // On garde uniquement les conditions non-$or ou notre nouvelle condition
-    }
   }
   
   if (queryParams.farmingMethod) queryObj['agricultureInfo.farmingMethod'] = queryParams.farmingMethod;
@@ -203,6 +239,7 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
   let query = Product.find(queryObj)
     .populate('producer', 'farmName firstName lastName address salesStats createdAt country isBio')
     .populate('transformer', 'companyName firstName lastName address salesStats createdAt country isBio')
+    .populate('restaurateur', 'restaurantName firstName lastName address salesStats createdAt country isBio')
     .select('-__v');
 
   // Tri
@@ -308,6 +345,7 @@ async function getProductsByLocation(queryParams = {}) {
   let query = Product.find(locationQueryObj)
     .populate('producer', 'farmName firstName lastName address city region country salesStats createdAt isBio')
     .populate('transformer', 'companyName firstName lastName address city region country salesStats createdAt isBio')
+    .populate('restaurateur', 'restaurantName firstName lastName address city region country salesStats createdAt isBio')
     .select('-__v')
     .sort('-createdAt')
     .skip(skip)
@@ -461,6 +499,7 @@ async function getProductsByCategory(category, queryParams = {}) {
   let query = Product.find(queryObj)
     .populate('producer', 'farmName firstName lastName address salesStats createdAt country isBio')
     .populate('transformer', 'companyName firstName lastName address salesStats createdAt country isBio')
+    .populate('restaurateur', 'restaurantName firstName lastName address salesStats createdAt country isBio')
     .select('-__v');
 
   // Tri
@@ -498,7 +537,8 @@ async function getProductById(productId) {
     isPublic: { $ne: false }
   })
   .populate('producer', 'farmName firstName lastName address salesStats certifications createdAt country region userType shopLogo shopBanner avatar isBio')
-  .populate('transformer', 'companyName firstName lastName address salesStats certifications createdAt country region userType shopLogo shopBanner avatar isBio');
+  .populate('transformer', 'companyName firstName lastName address salesStats certifications createdAt country region userType shopLogo shopBanner avatar isBio')
+  .populate('restaurateur', 'restaurantName firstName lastName address salesStats certifications createdAt country region userType shopLogo shopBanner avatar isBio');
 
   if (!product) {
     throw new Error('Produit non trouvé');
@@ -541,6 +581,7 @@ async function getFeaturedProducts() {
   })
   .populate('producer', 'farmName firstName lastName address createdAt country isBio')
   .populate('transformer', 'companyName firstName lastName address createdAt country isBio')
+  .populate('restaurateur', 'restaurantName firstName lastName address createdAt country isBio')
   .sort('-createdAt')
   .limit(12);
 
@@ -561,6 +602,7 @@ async function getNewProducts() {
   })
   .populate('producer', 'farmName firstName lastName createdAt country isBio')
   .populate('transformer', 'companyName firstName lastName createdAt country isBio')
+  .populate('restaurateur', 'restaurantName firstName lastName createdAt country isBio')
   .sort('-createdAt')
   .limit(20);
 

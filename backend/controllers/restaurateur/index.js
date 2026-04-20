@@ -22,6 +22,7 @@ module.exports = {
   getRestaurateurDishes: restaurateurPublicController.getRestaurateurDishes,
   getDishDetail: restaurateurPublicController.getDishDetail,
   getRestaurateurProducts: restaurateurPublicController.getRestaurateurProducts,
+  getRestaurateurReviews: restaurateurPublicController.getRestaurateurReviews,
   
   // Profile routes
   getMyProfile: restaurateurProfileController.getMyProfile,

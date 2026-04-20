@@ -135,3 +135,37 @@ exports.getRestaurateurProducts = catchAsync(async (req, res, next) => {
   });
 });
 
+// Récupérer les avis d'un restaurateur (public)
+exports.getRestaurateurReviews = catchAsync(async (req, res, next) => {
+  const Review = require('../../models/Review');
+  
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
+  const skip = (page - 1) * limit;
+
+  const reviews = await Review.find({
+    producer: req.params.id, // Dans le modèle Review, 'producer' est utilisé pour tous les vendeurs
+    status: 'approved',
+  })
+    .populate('reviewer', 'firstName lastName avatar')
+    .sort('-createdAt')
+    .skip(skip)
+    .limit(limit);
+
+  const total = await Review.countDocuments({
+    producer: req.params.id,
+    status: 'approved',
+  });
+
+  res.status(200).json({
+    status: 'success',
+    results: reviews.length,
+    total,
+    page,
+    totalPages: Math.ceil(total / limit),
+    data: {
+      reviews,
+    },
+  });
+});
+

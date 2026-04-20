@@ -189,21 +189,6 @@ export const cancelOrder = async (id, reason) => {
 	return response.data;
 };
 
-export const getAvailableTransporters = async (orderId) => {
-	const response = await api.get(
-		`/admin/orders/${orderId}/available-transporters`,
-	);
-	return response.data;
-};
-
-export const assignTransporterToOrder = async (orderId, transporterId) => {
-	const response = await api.post(
-		`/admin/orders/${orderId}/assign-transporter`,
-		{ transporterId },
-	);
-	return response.data;
-};
-
 // Service pour la gestion des avis
 export const getReviews = async (params = {}) => {
 	const response = await api.get("/admin/reviews", { params });
@@ -463,8 +448,6 @@ export const adminService = {
 	updateOrderStatus,
 	updatePaymentStatus,
 	cancelOrder,
-	getAvailableTransporters,
-	assignTransporterToOrder,
 
 	// Reviews
 	getReviews,

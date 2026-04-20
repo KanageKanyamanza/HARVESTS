@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { producerService } from "../services";
-import { FiMapPin, FiStar, FiPackage, FiArrowRight } from "react-icons/fi";
+import { FiMapPin, FiStar, FiPackage, FiArrowRight, FiChevronDown, FiX } from "react-icons/fi";
 import { Leaf } from "lucide-react";
 import { getCountryName } from "../utils/countryMapper";
 import LoadingSpinner from "../components/common/LoadingSpinner";
@@ -10,43 +10,53 @@ import { useApiCache } from "../hooks/useApiCache";
 const Producers = () => {
 	const [producers, setProducers] = useState([]);
 	const [loading, setLoading] = useState(true);
-	const [locationInfo, setLocationInfo] = useState(null);
+	const [searchParams, setSearchParams] = useSearchParams();
+	const selectedCountry = searchParams.get("country") || "";
+	
 	const { getCachedData, setCachedData } = useApiCache(5 * 60 * 1000); // Cache de 5 minutes
-	const hasLoadedRef = useRef(false);
+
+	const handleCountryChange = (country) => {
+		const newParams = new URLSearchParams(searchParams);
+		if (country) {
+			newParams.set("country", country);
+		} else {
+			newParams.delete("country");
+		}
+		setSearchParams(newParams);
+	};
 
 	useEffect(() => {
 		const loadProducers = async (forceRefresh = false) => {
-			// Éviter les appels multiples simultanés
-			if (hasLoadedRef.current && !forceRefresh) return;
-			hasLoadedRef.current = true;
-
 			try {
-				const cacheKey = "producers_list";
+				const cacheKey = `producers_list_${selectedCountry}`;
 
 				// Vérifier le cache
 				if (!forceRefresh) {
 					const cached = getCachedData(cacheKey);
 					if (cached) {
 						setProducers(cached.producers || []);
-						setLocationInfo(cached.locationInfo || null);
 						setLoading(false);
-						hasLoadedRef.current = false;
 						return;
 					}
 				}
 
 				setLoading(true);
-				// Activer la détection automatique de localisation
-				const response = await producerService.getAllPublic({
+				
+				const queryParams = {
 					limit: 20,
-					useLocation: "true",
-				});
+					useLocation: selectedCountry ? "false" : "true",
+				};
+
+				if (selectedCountry) {
+					queryParams.country = selectedCountry;
+				}
+
+				const response = await producerService.getAllPublic(queryParams);
 				if (response.data.status === "success") {
 					const producersData = response.data.data.producers || [];
 					const locationData = response.data.data.location || null;
 
 					setProducers(producersData);
-					setLocationInfo(locationData);
 
 					// Mettre en cache
 					setCachedData(cacheKey, {
@@ -58,12 +68,11 @@ const Producers = () => {
 				console.error("Erreur lors du chargement des producteurs:", error);
 			} finally {
 				setLoading(false);
-				hasLoadedRef.current = false;
 			}
 		};
 
 		loadProducers();
-	}, [getCachedData, setCachedData]);
+	}, [getCachedData, setCachedData, selectedCountry]);
 
 	if (loading) {
 		return (
@@ -80,34 +89,52 @@ const Producers = () => {
 					<h1 className="text-4xl font-bold text-gray-900 mb-4">
 						Nos Producteurs
 					</h1>
-					<p className="text-xl text-gray-600">
+					<p className="text-xl text-gray-600 mb-8">
 						Découvrez les producteurs locaux qui cultivent des produits frais et
 						de qualité
 					</p>
 
-					{/* Message discret si pas de producteurs dans la zone */}
-					{locationInfo?.detected && locationInfo?.noProducersInZone && (
-						<div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-700">
-							<svg
-								className="w-4 h-4 flex-shrink-0"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2}
-									d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-								/>
-							</svg>
-							<span>
-								Aucun producteur disponible dans votre zone. Affichage de tous
-								les producteurs.
-							</span>
+					{/* Filtre de pays */}
+					<div className="flex justify-center mb-10">
+						<div className="relative inline-flex items-center">
+							<div className="relative">
+								<FiMapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 h-5 w-5 pointer-events-none" />
+								<select
+									value={selectedCountry}
+									onChange={(e) => handleCountryChange(e.target.value)}
+									className="pl-10 pr-10 py-3 bg-white border-2 border-green-100 rounded-2xl focus:ring-4 focus:ring-green-500/10 focus:border-green-500 appearance-none text-gray-700 font-bold shadow-sm transition-all cursor-pointer min-w-[240px]"
+								>
+									<option value="">Tous les pays / zones</option>
+									<optgroup label="Zones">
+										<option value="West Africa">Afrique de l'Ouest</option>
+										<option value="Central Africa">Afrique Centrale</option>
+									</optgroup>
+									<optgroup label="Pays">
+										<option value="SN">Sénégal</option>
+										<option value="CM">Cameroun</option>
+										<option value="CI">Côte d'Ivoire</option>
+										<option value="BF">Burkina Faso</option>
+										<option value="ML">Mali</option>
+										<option value="GH">Ghana</option>
+										<option value="NG">Nigeria</option>
+									</optgroup>
+								</select>
+								<FiChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
+							</div>
+							
+							{selectedCountry && (
+								<button
+									onClick={() => handleCountryChange("")}
+									className="ml-3 p-3 text-gray-400 hover:text-red-500 bg-white border-2 border-gray-100 rounded-2xl transition-colors shadow-sm"
+									title="Effacer le filtre"
+								>
+									<FiX className="h-5 w-5" />
+								</button>
+							)}
 						</div>
-					)}
-				</div>
+					</div>
+
+					</div>
 
 				{producers.length > 0 ?
 					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
