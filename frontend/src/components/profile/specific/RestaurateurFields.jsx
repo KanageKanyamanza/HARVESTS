@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { Info, Users, Clock, Utensils, ChevronDown, Check } from "lucide-react";
 
 const RESTAURANT_TYPES = [
@@ -12,7 +12,12 @@ const RESTAURANT_TYPES = [
 	{ value: "bakery", label: "Boulangerie" },
 ];
 
-const RestaurateurFields = ({ formData, editing, onInputChange }) => {
+const RestaurateurFields = ({
+	formData,
+	editing,
+	onInputChange,
+	onCuisineTypeChange,
+}) => {
 	const DAYS = [
 		{ key: "monday", label: "Lundi" },
 		{ key: "tuesday", label: "Mardi" },
@@ -35,19 +40,7 @@ const RestaurateurFields = ({ formData, editing, onInputChange }) => {
 		{ value: "vegan", label: "Végane" },
 	];
 
-	const handleCuisineTypeChange = (e) => {
-		const { value, checked } = e.target;
-		const current = formData.cuisineTypes || [];
-		let newVal;
-		if (checked) {
-			newVal = [...current, value];
-		} else {
-			newVal = current.filter((t) => t !== value);
-		}
-		onInputChange({
-			target: { name: "cuisineTypes", value: newVal, type: "custom" },
-		});
-	};
+
 
 	return (
 		<div className="space-y-12">
@@ -143,7 +136,7 @@ const RestaurateurFields = ({ formData, editing, onInputChange }) => {
 												checked={(formData.cuisineTypes || []).includes(
 													cuisine.value,
 												)}
-												onChange={handleCuisineTypeChange}
+												onChange={onCuisineTypeChange}
 												className="peer h-5 w-5 cursor-pointer appearance-none rounded-lg border-2 border-gray-200 transition-all checked:border-orange-500 checked:bg-orange-500"
 											/>
 											<Check className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white opacity-0 peer-checked:opacity-100" />

@@ -287,7 +287,6 @@ const ProfilePage = () => {
 										verificationStatus={verificationStatus}
 										onInputChange={handleInputChange}
 										onCuisineTypeChange={handleCuisineTypeChange}
-										onFormDataChange={setFormData}
 										safeDisplay={safeDisplay}
 									/>
 								</div>
