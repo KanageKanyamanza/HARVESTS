@@ -9,9 +9,28 @@ function buildAllRestaurateursQuery(queryParams) {
   const queryObj = { ...queryParams };
   const excludedFields = ['page', 'sort', 'limit', 'fields'];
   excludedFields.forEach((el) => delete queryObj[el]);
-  let queryStr = JSON.stringify(queryObj);
-  queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-  return JSON.parse(queryStr);
+
+  // Gérer le filtrage par pays et zones
+  if (queryParams.country) {
+    let countriesToFilter = [queryParams.country];
+    if (queryParams.country === "West Africa") {
+      countriesToFilter = ["SN", "Sénégal", "CI", "Côte d'Ivoire", "BF", "Burkina Faso", "ML", "Mali", "GH", "Ghana", "NG", "Nigeria", "NE", "Niger", "BJ", "Bénin", "TG", "Togo"];
+    } else if (queryParams.country === "Central Africa") {
+      countriesToFilter = ["CM", "Cameroun", "GA", "Gabon", "CG", "Congo", "CD", "République démocratique du Congo", "TD", "Tchad", "CF", "République centrafricaine", "GQ", "Guinée équatoriale"];
+    }
+
+    delete queryObj.country;
+    queryObj.$or = [
+      { country: { $in: countriesToFilter } },
+      { 'address.country': { $in: countriesToFilter } }
+    ];
+  }
+
+  queryObj.isActive = true;
+  queryObj.isApproved = true;
+  queryObj.isEmailVerified = true;
+
+  return queryObj;
 }
 
 function buildSearchQuery(queryParams) {

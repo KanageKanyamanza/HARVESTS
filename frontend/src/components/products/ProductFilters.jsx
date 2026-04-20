@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiFilter, FiChevronDown, FiX } from 'react-icons/fi';
+import { FiFilter, FiChevronDown, FiX, FiMapPin } from 'react-icons/fi';
 import { getCategoryLabel, getSortOptions } from '../../utils/productHelpers';
 
 const ProductFilters = ({
@@ -13,9 +13,11 @@ const ProductFilters = ({
   categories,
   onFilterChange,
   onClearFilters,
-  onPageReset
+  onPageReset,
+  selectedCountry
 }) => {
   const hasActiveFilters = selectedCategory ||
+    selectedCountry ||
     sortBy !== "newest" ||
     priceRange.min ||
     priceRange.max;
@@ -96,6 +98,31 @@ const ProductFilters = ({
               </option>
             ))}
           </select>
+
+          <div className="relative">
+            <FiMapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
+            <select
+              value={selectedCountry}
+              onChange={(e) => onFilterChange("country", e.target.value)}
+              className="pl-9 pr-6 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 appearance-none bg-white"
+            >
+              <option value="">Tous les pays / zones</option>
+              <optgroup label="Zones">
+                <option value="West Africa">Afrique de l'Ouest</option>
+                <option value="Central Africa">Afrique Centrale</option>
+              </optgroup>
+              <optgroup label="Pays">
+                <option value="SN">Sénégal</option>
+                <option value="CM">Cameroun</option>
+                <option value="CI">Côte d'Ivoire</option>
+                <option value="BF">Burkina Faso</option>
+                <option value="ML">Mali</option>
+                <option value="GH">Ghana</option>
+                <option value="NG">Nigeria</option>
+              </optgroup>
+            </select>
+            <FiChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
+          </div>
 
           {hasActiveFilters && (
             <button

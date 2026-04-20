@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 export const useProductURL = (
   debouncedSearchQuery,
   selectedCategory,
+  selectedCountry,
   sortBy,
   isFeatured,
   debouncedPriceRange,
@@ -18,6 +19,7 @@ export const useProductURL = (
     const params = new URLSearchParams();
     if (debouncedSearchQuery) params.set("q", debouncedSearchQuery);
     if (selectedCategory) params.set("category", selectedCategory);
+    if (selectedCountry) params.set("country", selectedCountry);
     if (sortBy !== "newest") params.set("sort", sortBy);
     if (isFeatured) params.set("featured", "true");
     if (debouncedPriceRange.min) params.set("minPrice", debouncedPriceRange.min);
@@ -26,7 +28,7 @@ export const useProductURL = (
 
     const newUrl = `/products${params.toString() ? `?${params.toString()}` : ''}`;
     navigate(newUrl, { replace: true });
-  }, [debouncedSearchQuery, selectedCategory, sortBy, isFeatured, debouncedPriceRange.min, debouncedPriceRange.max, currentPage, navigate]);
+  }, [debouncedSearchQuery, selectedCategory, selectedCountry, sortBy, isFeatured, debouncedPriceRange.min, debouncedPriceRange.max, currentPage, navigate]);
 
   // Mise à jour de l'URL avec debounce
   useEffect(() => {

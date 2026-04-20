@@ -19,13 +19,27 @@ function buildAllProducersQuery(queryParams) {
 	];
 	excludedFields.forEach((el) => delete baseQueryObj[el]);
 
+	// Gérer le filtrage par pays et zones
+	if (queryParams.country) {
+		let countriesToFilter = [queryParams.country];
+		if (queryParams.country === "West Africa") {
+			countriesToFilter = ["SN", "Sénégal", "CI", "Côte d'Ivoire", "BF", "Burkina Faso", "ML", "Mali", "GH", "Ghana", "NG", "Nigeria", "NE", "Niger", "BJ", "Bénin", "TG", "Togo"];
+		} else if (queryParams.country === "Central Africa") {
+			countriesToFilter = ["CM", "Cameroun", "GA", "Gabon", "CG", "Congo", "CD", "République démocratique du Congo", "TD", "Tchad", "CF", "République centrafricaine", "GQ", "Guinée équatoriale"];
+		}
+
+		delete baseQueryObj.country; // On remplace par un filtre complexe
+		baseQueryObj.$or = [
+			{ country: { $in: countriesToFilter } },
+			{ 'address.country': { $in: countriesToFilter } }
+		];
+	}
+
 	baseQueryObj.isActive = true;
 	baseQueryObj.isApproved = true;
 	baseQueryObj.isEmailVerified = true;
 
-	let queryStr = JSON.stringify(baseQueryObj);
-	queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-	return JSON.parse(queryStr);
+	return baseQueryObj;
 }
 
 async function getAllProducers(queryParams, userLocation = null) {

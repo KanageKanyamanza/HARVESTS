@@ -90,8 +90,8 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
 
   let noProductsInZone = false;
 
-  // Détection automatique de la localisation si activée
-  if (queryParams.useLocation !== 'false' && userLocation && (userLocation.city || userLocation.region || userLocation.country)) {
+  // Détection automatique de la localisation si activée et pas de pays explicite
+  if (queryParams.useLocation !== 'false' && !queryParams.country && userLocation && (userLocation.city || userLocation.region || userLocation.country)) {
     const locationQuery = buildLocationQuery(userLocation, {
       prioritizeRegion: true,
       prioritizeCity: true
@@ -127,6 +127,37 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
 
   if (queryParams.originType) queryObj.originType = queryParams.originType;
   
+  if (queryParams.country) {
+    const User = require('../../models/User');
+    
+    // Gérer les zones géographiques
+    let countriesToFilter = [queryParams.country];
+    if (queryParams.country === "West Africa") {
+      countriesToFilter = ["SN", "Sénégal", "CI", "Côte d'Ivoire", "BF", "Burkina Faso", "ML", "Mali", "GH", "Ghana", "NG", "Nigeria", "NE", "Niger", "BJ", "Bénin", "TG", "Togo"];
+    } else if (queryParams.country === "Central Africa") {
+      countriesToFilter = ["CM", "Cameroun", "GA", "Gabon", "CG", "Congo", "CD", "République démocratique du Congo", "TD", "Tchad", "CF", "République centrafricaine", "GQ", "Guinée équatoriale"];
+    }
+
+    const countryQuery = {
+      $or: [
+        { country: { $in: countriesToFilter } },
+        { 'address.country': { $in: countriesToFilter } }
+      ]
+    };
+    
+    const vendors = await User.find(countryQuery).select('_id');
+    const vendorIds = vendors.map(v => v._id);
+    
+    queryObj.$and = queryObj.$and || [];
+    queryObj.$and.push({
+      $or: [
+        { producer: { $in: vendorIds } },
+        { transformer: { $in: vendorIds } },
+        { restaurateur: { $in: vendorIds } }
+      ]
+    });
+  }
+
   if (queryParams.region) {
     const User = require('../../models/User');
     const vendors = await User.find({ 
@@ -142,11 +173,6 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
         { restaurateur: { $in: vendorIds } }
       ]
     });
-    
-    // Nettoyer d'éventuels filtres $or conflictuels injectés par buildLocationQuery
-    if (queryObj.$and) {
-      // On garde uniquement les conditions non-$or ou notre nouvelle condition
-    }
   }
   
   if (queryParams.farmingMethod) queryObj['agricultureInfo.farmingMethod'] = queryParams.farmingMethod;

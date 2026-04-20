@@ -27,6 +27,7 @@ export const useProducts = () => {
   const [isFeatured, setIsFeatured] = useState(
     searchParams.get("featured") === "true"
   );
+  const [selectedCountry, setSelectedCountry] = useState(searchParams.get("country") || "");
   const [priceRange, setPriceRange] = useState({
     min: searchParams.get("minPrice") || "",
     max: searchParams.get("maxPrice") || "",
@@ -66,16 +67,28 @@ export const useProducts = () => {
         producerParams.category = selectedCategory;
       }
 
+      if (selectedCountry && selectedCountry !== "") {
+        producerParams.country = selectedCountry;
+      }
+
       if (debouncedPriceRange.min) producerParams.minPrice = debouncedPriceRange.min;
       if (debouncedPriceRange.max) producerParams.maxPrice = debouncedPriceRange.max;
 
-      // 2. Fetch Restaurateur products (latest 12, not paginated here for simplicity as requested)
+      // 2. Fetch Restaurateur products (latest 12)
       const restaurateurParams = {
         page: 1,
         limit: 12,
         userType: 'restaurateur',
         sort: '-createdAt'
       };
+
+      if (selectedCountry && selectedCountry !== "") {
+        restaurateurParams.country = selectedCountry;
+      }
+
+      if (debouncedSearchQuery && debouncedSearchQuery.trim() !== "") {
+        restaurateurParams.search = debouncedSearchQuery.trim();
+      }
 
       const [producerRes, restaurateurRes] = await Promise.all([
         productService.getProducts(producerParams),
@@ -105,7 +118,8 @@ export const useProducts = () => {
     sortBy,
     debouncedPriceRange,
     debouncedSearchQuery,
-    isFeatured
+    isFeatured,
+    selectedCountry
   ]);
 
   const loadCategories = useCallback(async () => {
@@ -129,6 +143,7 @@ export const useProducts = () => {
       min: searchParams.get("minPrice") || "",
       max: searchParams.get("maxPrice") || "",
     };
+    const urlCountry = searchParams.get("country") || "";
     const urlPage = parseInt(searchParams.get("page")) || 1;
 
     setSearchQuery(urlSearchQuery);
@@ -136,6 +151,7 @@ export const useProducts = () => {
     setSortBy(urlSort);
     setIsFeatured(urlFeatured);
     setPriceRange(urlPriceRange);
+    setSelectedCountry(urlCountry);
     setCurrentPage(urlPage);
 
     setDebouncedSearchQuery(urlSearchQuery);
@@ -168,19 +184,22 @@ export const useProducts = () => {
 
   // Recherche avec debounce
   useEffect(() => {
-    const hasActiveFilters = debouncedSearchQuery || selectedCategory || debouncedPriceRange.min || debouncedPriceRange.max || isFeatured;
+    const hasActiveFilters = debouncedSearchQuery || selectedCategory || selectedCountry || debouncedPriceRange.min || debouncedPriceRange.max || isFeatured;
     
     if (hasActiveFilters || currentPage > 1) {
       setIsSearching(true);
       loadProducts().finally(() => setIsSearching(false));
     }
-  }, [debouncedSearchQuery, selectedCategory, sortBy, isFeatured, debouncedPriceRange.min, debouncedPriceRange.max, currentPage, loadProducts]);
+  }, [debouncedSearchQuery, selectedCategory, selectedCountry, sortBy, isFeatured, debouncedPriceRange.min, debouncedPriceRange.max, currentPage, loadProducts]);
 
   const handleFilterChange = (filterType, value) => {
     setCurrentPage(1);
     switch (filterType) {
       case "category":
         setSelectedCategory(value);
+        break;
+      case "country":
+        setSelectedCountry(value);
         break;
       case "sort":
         setSortBy(value);
@@ -199,6 +218,7 @@ export const useProducts = () => {
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedCategory("");
+    setSelectedCountry("");
     setSortBy("newest");
     setIsFeatured(false);
     setPriceRange({ min: "", max: "" });
@@ -216,6 +236,7 @@ export const useProducts = () => {
     searchQuery,
     setSearchQuery,
     selectedCategory,
+    selectedCountry,
     sortBy,
     isFeatured,
     priceRange,

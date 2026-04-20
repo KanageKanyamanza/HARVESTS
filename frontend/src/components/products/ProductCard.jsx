@@ -18,6 +18,7 @@ import {
 } from "../../utils/vendorRatings";
 import { convertPrice, formatPrice } from "../../utils/currencyUtils";
 import { useCurrency } from "../../contexts/CurrencyContext";
+import { getCountryName } from "../../utils/countryMapper";
 
 const ProductCard = ({ product }) => {
 	const { addToCart } = useCart();
@@ -243,23 +244,41 @@ const ProductCard = ({ product }) => {
 					{/* Vendeur et bouton panier sur la même ligne */}
 					<div className="flex items-center justify-between">
 						{(product.producer || product.transformer || product.restaurateur) && (
-							<div className="flex items-center text-xs text-gray-500 flex-1 min-w-0 mr-2">
-								<FiMapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-								<span className="truncate">
-									{getVendorName(product.producer || product.transformer || product.restaurateur)}
-								</span>
-								{(product.producer?.address?.city ||
-									product.transformer?.address?.city ||
-									product.restaurateur?.address?.city) && (
-									<>
-										<span className="mx-1">•</span>
-										<span className="truncate">
-											{product.producer?.address?.city ||
-												product.transformer?.address?.city ||
-												product.restaurateur?.address?.city}
-										</span>
-									</>
-								)}
+							<div className="flex flex-col text-xs text-gray-500 flex-1 min-w-0 mr-2">
+								<div className="flex items-center">
+									<FiMapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+									<span className="truncate font-medium text-gray-700">
+										{getVendorName(product.producer || product.transformer || product.restaurateur)}
+									</span>
+								</div>
+								<div className="flex items-center mt-0.5 text-[10px]">
+									<span className="truncate">
+										{getCountryName(product.producer?.address?.country ||
+											product.transformer?.address?.country ||
+											product.restaurateur?.address?.country ||
+											product.producer?.country ||
+											product.transformer?.country ||
+											product.restaurateur?.country)}
+									</span>
+									{(product.producer?.address?.city ||
+										product.transformer?.address?.city ||
+										product.restaurateur?.address?.city ||
+										product.producer?.city ||
+										product.transformer?.city ||
+										product.restaurateur?.city) && (
+										<>
+											<span className="mx-1">•</span>
+											<span className="truncate text-gray-400">
+												{product.producer?.address?.city ||
+													product.transformer?.address?.city ||
+													product.restaurateur?.address?.city ||
+													product.producer?.city ||
+													product.transformer?.city ||
+													product.restaurateur?.city}
+											</span>
+										</>
+									)}
+								</div>
 							</div>
 						)}
 

@@ -13,22 +13,16 @@ import { FiPackage } from "react-icons/fi";
 const Products = () => {
 	const navigate = useNavigate();
 	const [showFilters, setShowFilters] = useState(false);
-	const baseUrl = (
-		import.meta.env.VITE_FRONTEND_URL ||
-		(typeof window !== "undefined" ? window.location.origin : "") ||
-		""
-	).replace(/\/$/, "");
-
 	const {
 		products,
 		restaurateurProducts,
 		categories,
 		loading,
-		error,
 		isSearching,
 		searchQuery,
 		setSearchQuery,
 		selectedCategory,
+		selectedCountry,
 		sortBy,
 		isFeatured,
 		priceRange,
@@ -38,13 +32,13 @@ const Products = () => {
 		totalProducts,
 		handleFilterChange,
 		clearFilters,
-		loadProducts,
 	} = useProducts();
 
 	// Synchronisation URL (utilise les valeurs debouncées internes)
 	useProductURL(
 		searchQuery, // Le hook useProducts gère déjà le debounce
 		selectedCategory,
+		selectedCountry,
 		sortBy,
 		isFeatured,
 		priceRange,
@@ -58,6 +52,7 @@ const Products = () => {
 
 	const pageTitle =
 		selectedCategory ? `Produits : ${getCategoryLabel(selectedCategory)}`
+		: selectedCountry ? `Produits au ${selectedCountry}`
 		: isFeatured ? "Produits mis en avant"
 		: "Nos produits";
 
@@ -85,6 +80,8 @@ const Products = () => {
 					<h1 className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tighter">
 						{selectedCategory ?
 							getCategoryLabel(selectedCategory)
+						: selectedCountry ?
+							`Produits : ${selectedCountry}`
 						: isFeatured ?
 							"Produits Mis en Avant"
 						:	"Nos Produits"}
@@ -114,6 +111,7 @@ const Products = () => {
 					onFilterChange={handleFilterChange}
 					onClearFilters={handleClearFilters}
 					onPageReset={() => setCurrentPage(1)}
+					selectedCountry={selectedCountry}
 				/>
 
 				{/* Informations de pagination */}
@@ -130,94 +128,110 @@ const Products = () => {
 				</div>
 
 				{/* Section 1: Producteurs & Transformateurs */}
-				<div className="mb-16">
-					<div className="flex items-center gap-3 mb-8">
-						<div className="h-8 w-1.5 bg-green-600 rounded-full"></div>
-						<h2 className="text-xl font-black text-gray-900 uppercase tracking-tighter">
-							Produits des Producteurs & Transformateurs
-						</h2>
-					</div>
-					
-					{error ?
-						<div className="text-center py-12">
-							<div className="text-red-600 mb-4">{error}</div>
-							<button
-								onClick={loadProducts}
-								className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-							>
-								Réessayer
-							</button>
+				{(products.length > 0 || restaurateurProducts.length > 0) && (
+					<div className="mb-12">
+						<div className="flex items-center gap-3 mb-8">
+							<div className="h-8 w-1.5 bg-green-600 rounded-full"></div>
+							<h2 className="text-xl font-black text-gray-900 uppercase tracking-tighter">
+								Produits des Producteurs & Transformateurs
+							</h2>
 						</div>
-					: products.length > 0 ?
-						<>
+
+						{products.length > 0 ? (
+							<>
+								<div className="grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+									{products.map((product) => (
+										<ProductCard key={product._id} product={product} />
+									))}
+								</div>
+								
+								{/* Pagination */}
+								{totalPages > 1 && (
+									<div className="flex justify-center mt-12 py-8">
+										<nav className="flex items-center gap-1">
+											{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+												<button
+													key={page}
+													onClick={() => {
+														setCurrentPage(page);
+														window.scrollTo({ top: 0, behavior: 'smooth' });
+													}}
+													className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+														currentPage === page
+															? "bg-green-600 text-white"
+															: "bg-white text-gray-600 hover:bg-gray-50 border border-gray-200"
+													}`}
+												>
+													{page}
+												</button>
+											))}
+										</nav>
+									</div>
+								)}
+							</>
+						) : (
+							<div className="text-center py-12 bg-white/50 rounded-3xl border border-dashed border-gray-200">
+								<FiPackage className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+								<p className="text-gray-500 font-medium">Aucun produit de producteur trouvé</p>
+							</div>
+						)}
+					</div>
+				)}
+
+				{/* Section 2: Restaurateurs */}
+				{(restaurateurProducts.length > 0 || (products.length > 0 && !loading)) && (
+					<div className="mt-16 pt-16 border-t border-gray-200">
+						<div className="flex items-center gap-3 mb-8">
+							<div className="h-8 w-1.5 bg-orange-500 rounded-full"></div>
+							<h2 className="text-xl font-black text-gray-900 uppercase tracking-tighter">
+								Plats des Restaurateurs
+							</h2>
+						</div>
+
+						{restaurateurProducts.length > 0 ? (
 							<div className="grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-								{products.map((product) => (
+								{restaurateurProducts.map((product) => (
 									<ProductCard key={product._id} product={product} />
 								))}
 							</div>
-
-							<ProductPagination
-								currentPage={currentPage}
-								totalPages={totalPages}
-								onPageChange={setCurrentPage}
-							/>
-						</>
-					:	<div className="text-center py-12 bg-white/50 rounded-3xl border border-dashed border-gray-200">
-							<FiPackage className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-							<p className="text-gray-500 font-medium">Aucun produit de producteur trouvé</p>
-						</div>
-					}
-				</div>
-
-				{/* Section 2: Restaurateurs */}
-				<div className="mt-16 pt-16 border-t border-gray-200">
-					<div className="flex items-center gap-3 mb-8">
-						<div className="h-8 w-1.5 bg-orange-500 rounded-full"></div>
-						<h2 className="text-xl font-black text-gray-900 uppercase tracking-tighter">
-							Plats des Restaurateurs
-						</h2>
+						) : (
+							<div className="text-center py-12 bg-white/50 rounded-3xl border border-dashed border-gray-200">
+								<FiPackage className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+								<p className="text-gray-500 font-medium">Aucun plat de restaurateur trouvé</p>
+							</div>
+						)}
 					</div>
-
-					{restaurateurProducts.length > 0 ?
-						<div className="grid gap-4 grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-							{restaurateurProducts.map((product) => (
-								<ProductCard key={product._id} product={product} />
-							))}
-						</div>
-					:	<div className="text-center py-12 bg-white/50 rounded-3xl border border-dashed border-gray-200">
-							<FiPackage className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-							<p className="text-gray-500 font-medium">Aucun plat de restaurateur trouvé</p>
-						</div>
-					}
-				</div>
+				)}
 
 				{(products.length === 0 && restaurateurProducts.length === 0 && !loading) && (
-					<div className="text-center py-12">
-						<FiPackage className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-						<h3 className="text-lg font-medium text-gray-900 mb-2">
-							Aucun produit trouvé
+					<div className="text-center py-24 bg-gray-50/50 rounded-3xl border border-dashed border-gray-300">
+						<FiPackage className="mx-auto h-16 w-16 text-gray-300 mb-6" />
+						<h3 className="text-2xl font-black text-gray-900 mb-2">
+							Aucun résultat trouvé
 						</h3>
-						<p className="text-gray-500 mb-4">
+						<p className="text-gray-600 mb-8 max-w-md mx-auto">
 							{(
 								searchQuery ||
 								selectedCategory ||
+								selectedCountry ||
 								isFeatured ||
 								priceRange.min ||
 								priceRange.max
 							) ?
-								"Essayez de modifier vos critères de recherche"
-							:	"Aucun produit disponible pour le moment"}
+								`Nous n'avons trouvé aucun produit correspondant à vos filtres actuels${selectedCountry ? ` au ${selectedCountry}` : ''}.`
+							:	"Il n'y a aucun produit disponible pour le moment."}
 						</p>
 						{(searchQuery ||
 							selectedCategory ||
+							selectedCountry ||
 							isFeatured ||
 							priceRange.min ||
 							priceRange.max) && (
 							<button
 								onClick={clearFilters}
-								className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+								className="px-8 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 shadow-lg shadow-green-200 transition-all active:scale-95"
 							>
-								Effacer les filtres
+								Réinitialiser tous les filtres
 							</button>
 						)}
 					</div>
