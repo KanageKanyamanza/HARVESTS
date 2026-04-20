@@ -27,7 +27,6 @@ const VendorProfile = ({
 	getVendorName,
 	getVendorSubtitle,
 	getVendorStats,
-	getVendorContact,
 	getVendorTags,
 	formatPrice,
 	getItemName,
@@ -120,7 +119,6 @@ const VendorProfile = ({
 									// Pour les restaurateurs, s'assurer que le champ restaurateur est rempli
 									// Note: vendor peut ne pas être encore chargé, donc on utilise vendorData si disponible
 									const currentVendor =
-										vendor ||
 										vendorResponse?.data?.data?.[vendorType] ||
 										vendorResponse?.data?.[vendorType];
 									if (
@@ -307,7 +305,6 @@ const VendorProfile = ({
 	}
 
 	const stats = getVendorStats(vendor, items, reviews);
-	const contact = getVendorContact(vendor);
 	const tags = getVendorTags(vendor);
 
 	return (
@@ -447,24 +444,7 @@ const VendorProfile = ({
 							))}
 						</div>
 
-						{/* Informations de contact */}
-						{contact.length > 0 && (
-							<div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-								{contact.map((item, index) => (
-									<div key={index} className="flex items-center">
-										{item.icon}
-										{item.href ?
-											<a
-												href={item.href}
-												className="text-sm text-gray-900 hover:text-green-600"
-											>
-												{item.text}
-											</a>
-										:	<span className="text-sm text-gray-900">{item.text}</span>}
-									</div>
-								))}
-							</div>
-						)}
+						{/* Contact supprimé uniquement */}
 
 						{/* Tags */}
 						{tags.length > 0 && (

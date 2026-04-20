@@ -2,7 +2,6 @@ import React from "react";
 import { FiStar, FiPackage, FiUsers, FiCalendar } from "react-icons/fi";
 import {
 	getVendorAverageRating,
-	getVendorReviewCount,
 	formatAverageRating,
 } from "../../utils/vendorRatings";
 import { toPlainText } from "../../utils/textHelpers";
@@ -46,7 +45,6 @@ export const restaurateurConfig = {
 
 	getVendorStats: (restaurateur, dishes, reviews = []) => {
 		const averageRating = getVendorAverageRating(restaurateur, reviews);
-		const reviewCount = getVendorReviewCount(restaurateur, reviews);
 		return [
 			{
 				icon: <FiStar className="w-5 h-5 text-yellow-500" />,
