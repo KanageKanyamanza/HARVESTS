@@ -58,11 +58,7 @@ function addEmailTransportMethods(EmailClass) {
 	EmailClass.prototype.newTransport = function () {
 		const isProduction = process.env.NODE_ENV === "production";
 
-		// En PRODUCTION: SendGrid via API (pas SMTP)
-		if (isProduction && process.env.SENDGRID_API_KEY) {
-			// Ne pas créer de transport SMTP, on utilisera l'API directement
-			return null;
-		}
+		// Note: On ne retourne plus null ici pour permettre d'utiliser SMTP comme fallback de l'API SendGrid
 
 		// En DÉVELOPPEMENT: Gmail avec Nodemailer
 		if (
@@ -150,7 +146,7 @@ function addEmailTransportMethods(EmailClass) {
 			subject: subject,
 			message: htmlToText.convert(html),
 			html_message: html,
-			reply_to: process.env.EMAIL_FROM || "noreply@harvests.sn",
+			reply_to: process.env.EMAIL_FROM || "contact@harvests.site",
 		};
 
 		return await emailjs.send(

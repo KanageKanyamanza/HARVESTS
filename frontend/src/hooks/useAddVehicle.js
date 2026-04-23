@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { exporterService, transporterService, uploadService } from '../services';
-import { useNotifications } from '../contexts/NotificationContext';
+import { useNotifications } from '../hooks/useNotifications';
 
 /**
  * Hook personnalisé pour gérer l'ajout d'un véhicule

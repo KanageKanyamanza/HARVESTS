@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Upload, X, Image as ImageIcon, Move, Trash2 } from 'lucide-react';
 import uploadService from '../../services/uploadService';
 import CloudinaryImage from '../common/CloudinaryImage';
-import { useNotifications } from '../../contexts/NotificationContext';
+import { useNotifications } from '../../hooks/useNotifications';
 import LoadingSpinner from '../common/LoadingSpinner';
 
 const ImageUploader = ({

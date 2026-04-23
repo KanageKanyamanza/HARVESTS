@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNotifications } from '../../contexts/NotificationContext';
+import { useNotifications } from '../../hooks/useNotifications';
 import NotificationToast from './NotificationToast';
 
 const NotificationContainer = () => {

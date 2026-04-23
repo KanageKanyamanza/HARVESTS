@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { restaurateurService } from '../services';
-import { useNotifications } from '../contexts/NotificationContext';
+import { useNotifications } from '../hooks/useNotifications';
 
 /**
  * Hook personnalisé pour gérer les fournisseurs

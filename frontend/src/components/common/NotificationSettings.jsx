@@ -13,7 +13,7 @@ import {
 	Zap,
 } from "lucide-react";
 import { commonService } from "../../services";
-import { useNotifications } from "../../contexts/NotificationContext";
+import { useNotifications } from "../../hooks/useNotifications";
 import PushNotificationToggle from "./PushNotificationToggle";
 
 const NotificationSettings = ({ onUpdate, loading = false, data = null }) => {

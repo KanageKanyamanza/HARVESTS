@@ -11,7 +11,7 @@ import {
 	FiAlertCircle,
 	FiRefreshCw,
 } from "react-icons/fi";
-import { useNotifications } from "../../contexts/NotificationContext";
+import { useNotifications } from "../../hooks/useNotifications";
 import { useAuth } from "../../hooks/useAuth";
 import { getNotificationsRoute } from "../../utils/routeUtils";
 

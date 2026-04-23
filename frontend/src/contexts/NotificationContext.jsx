@@ -1,6 +1,4 @@
 import React, {
-	createContext,
-	useContext,
 	useState,
 	useEffect,
 	useCallback,
@@ -9,28 +7,21 @@ import React, {
 import { useAuth } from "../hooks/useAuth";
 import { generateUniqueId } from "../utils/uuid";
 import { notificationService } from "../services/notificationService";
-
-const NotificationContext = createContext();
+import { NotificationContext } from "./NotificationContext";
 
 export const NotificationProvider = ({ children }) => {
 	const [notifications, setNotifications] = useState([]);
 	const [unreadCount, setUnreadCount] = useState(0);
 
-	// Vérifier si useAuth est disponible
-	let isAuthenticated = false;
-	let user = null;
-	try {
-		const auth = useAuth();
-		isAuthenticated = auth?.isAuthenticated || false;
-		user = auth?.user || null;
-	} catch (error) {
-		console.warn("useAuth non disponible dans NotificationProvider:", error);
-	}
+	// Récupérer l'état d'authentification (doit être fait au niveau racine du composant)
+	const auth = useAuth();
+	const isAuthenticated = auth?.isAuthenticated || false;
+	const user = auth?.user || null;
 
 	const isAdmin = user?.role === "admin" || user?.userType === "admin";
 
 	// Nettoyer les notifications anciennes (plus de 30 jours)
-	const cleanupOldNotifications = () => {
+	const cleanupOldNotifications = useCallback(() => {
 		const thirtyDaysAgo = new Date();
 		thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -60,7 +51,7 @@ export const NotificationProvider = ({ children }) => {
 			localStorage.getItem("harvests_notifications") || "[]",
 		);
 		setUnreadCount(currentNotifications.filter((n) => !n.read).length);
-	};
+	}, []);
 
 	// Charger les notifications (backend + localStorage pour les non-connectés)
 	useEffect(() => {
@@ -140,7 +131,7 @@ export const NotificationProvider = ({ children }) => {
 				clearInterval(pollingInterval);
 			}
 		};
-	}, [isAuthenticated]); // Recharger quand l'état d'authentification change
+	}, [isAuthenticated, isAdmin, cleanupOldNotifications]); // Recharger quand l'état d'authentification ou le rôle change
 
 	// 📱 Mettre à jour le badge de l'icône de l'application (PWA Badging API)
 	useEffect(() => {
@@ -193,7 +184,7 @@ export const NotificationProvider = ({ children }) => {
 				removeNotification(newNotification.id);
 			}, 5000);
 		}
-	}, []);
+	}, [removeNotification]);
 
 	// Marquer une notification comme lue
 	const markAsRead = useCallback(
@@ -298,7 +289,7 @@ export const NotificationProvider = ({ children }) => {
 	);
 
 	// Supprimer toutes les notifications
-	const clearAllNotifications = async () => {
+	const clearAllNotifications = useCallback(async () => {
 		// Mettre à jour l'état local immédiatement
 		setNotifications([]);
 		setUnreadCount(0);
@@ -315,7 +306,7 @@ export const NotificationProvider = ({ children }) => {
 				);
 			}
 		}
-	};
+	}, [isAuthenticated]);
 
 	// Fonctions utilitaires pour différents types de notifications
 	const showSuccess = useCallback(
@@ -444,14 +435,5 @@ export const NotificationProvider = ({ children }) => {
 	);
 };
 
-const useNotifications = () => {
-	const context = useContext(NotificationContext);
-	if (!context) {
-		throw new Error(
-			"useNotifications doit être utilisé dans un NotificationProvider",
-		);
-	}
-	return context;
-};
 
-export { useNotifications };
+

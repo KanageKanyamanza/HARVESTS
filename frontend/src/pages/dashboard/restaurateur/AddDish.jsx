@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
-import { useNotifications } from "../../../contexts/NotificationContext";
+import { useNotifications } from "../../../hooks/useNotifications";
 import { restaurateurService } from "../../../services";
 import { FiArrowLeft, FiSave, FiUpload, FiX } from "react-icons/fi";
 import { CURRENCIES, DEFAULT_CURRENCY } from "../../../config/currencies";

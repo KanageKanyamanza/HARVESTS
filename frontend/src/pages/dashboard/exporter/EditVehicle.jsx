@@ -11,7 +11,7 @@ import {
 	FiZap,
 } from "react-icons/fi";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
-import { useNotifications } from "../../../contexts/NotificationContext";
+import { useNotifications } from "../../../hooks/useNotifications";
 import VehicleImageUpload from "../../../components/vehicles/VehicleImageUpload";
 import VehicleCapacity from "../../../components/vehicles/VehicleCapacity";
 import {

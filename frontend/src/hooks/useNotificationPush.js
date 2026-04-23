@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react';
-import { useNotifications } from '../contexts/NotificationContext';
+import { useNotifications } from '../hooks/useNotifications';
 import { notificationService } from '../services/notificationService';
 
 /**

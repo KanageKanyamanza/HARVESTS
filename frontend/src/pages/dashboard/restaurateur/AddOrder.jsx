@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { restaurateurService } from "../../../services";
-import { useNotifications } from "../../../contexts/NotificationContext";
+import { useNotifications } from "../../../hooks/useNotifications";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 import OrderProgress from "../../../components/orders/OrderProgress";
 import SupplierSelector from "../../../components/orders/SupplierSelector";

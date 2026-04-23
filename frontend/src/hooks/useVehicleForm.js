@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from './useAuth';
 import { uploadService } from '../services';
-import { useNotifications } from '../contexts/NotificationContext';
+import { useNotifications } from '../hooks/useNotifications';
 
 export const useVehicleForm = (service, userTypeKey, basePath, defaultWeightUnit = 'kg') => {
   const { user } = useAuth();

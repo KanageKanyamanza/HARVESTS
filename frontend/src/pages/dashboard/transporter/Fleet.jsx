@@ -4,7 +4,7 @@ import { useAuth } from "../../../hooks/useAuth";
 import { transporterService } from "../../../services";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 import { FiTruck, FiPlus, FiSearch, FiEdit, FiTrash2 } from "react-icons/fi";
-import { useNotifications } from "../../../contexts/NotificationContext";
+import { useNotifications } from "../../../hooks/useNotifications";
 import CloudinaryImage from "../../../components/common/CloudinaryImage";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
 
