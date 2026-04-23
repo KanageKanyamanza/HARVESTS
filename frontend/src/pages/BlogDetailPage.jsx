@@ -6,7 +6,7 @@ import { blogApiService, adminBlogApiService } from "../services/blogService";
 import trackingService from "../services/trackingService";
 import BlogVisitorModal from "../components/blog/BlogVisitorModal";
 import useBlogVisitorModal from "../hooks/useBlogVisitorModal";
-import { useNotifications } from "../contexts/NotificationContext";
+import { useNotifications } from "../hooks/useNotifications";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import BlogPreviewBanner from "./blogDetail/BlogPreviewBanner";
 import BlogHeader from "./blogDetail/BlogHeader";

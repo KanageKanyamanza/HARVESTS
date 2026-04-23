@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { producerService } from "../../../services";
-import { useNotifications } from "../../../contexts/NotificationContext";
+import { useNotifications } from "../../../hooks/useNotifications";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 import ProductImageManager from "../../../components/common/ProductImageManager";
 import {

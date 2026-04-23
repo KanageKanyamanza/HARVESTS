@@ -233,6 +233,17 @@
 	.animate-slide-down {
 		@apply animate-slide-down;
 	}
+
+	/* Dashboard Compact Mode - High Density */
+	.dashboard-compact-mode {
+		zoom: 0.75; /* Requested exactly 75% zoom effect */
+	}
+
+	@media (max-width: 1024px) {
+		.dashboard-compact-mode {
+			zoom: 1; /* Reset on mobile for better accessibility */
+		}
+	}
 }
 
 @keyframes fadeIn {

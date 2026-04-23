@@ -60,7 +60,6 @@ const ProfileFormFields = ({
 	verificationStatus,
 	onInputChange,
 	onCuisineTypeChange,
-	onFormDataChange,
 	safeDisplay,
 }) => {
 	const renderField = (
@@ -244,6 +243,7 @@ const ProfileFormFields = ({
 						formData={editing ? formData : user}
 						editing={editing}
 						onInputChange={onInputChange}
+						onCuisineTypeChange={onCuisineTypeChange}
 					/>
 				)}
 

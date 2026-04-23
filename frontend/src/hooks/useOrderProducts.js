@@ -5,7 +5,7 @@ import {
   transformerService, 
   exporterService 
 } from '../services';
-import { useNotifications } from '../contexts/NotificationContext';
+import { useNotifications } from '../hooks/useNotifications';
 
 /**
  * Hook personnalisé pour gérer les produits d'un fournisseur

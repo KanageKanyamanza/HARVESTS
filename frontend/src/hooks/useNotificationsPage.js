@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { notificationService } from '../services/notificationService';
-import { useNotifications } from '../contexts/NotificationContext';
+import { useNotifications } from '../hooks/useNotifications';
 
 /**
  * Hook personnalisé pour gérer la page des notifications

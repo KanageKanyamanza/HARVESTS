@@ -128,7 +128,7 @@ exports.sendNotificationToAdmins = async ({ title, message, data = {}, actions =
       return;
     }
 
-    const fromEmail = process.env.EMAIL_FROM || 'noreply@harvests.site';
+    const fromEmail = process.env.EMAIL_FROM || 'contact@harvests.site';
     
     // Créer le contenu HTML de l'email
     const htmlContent = `

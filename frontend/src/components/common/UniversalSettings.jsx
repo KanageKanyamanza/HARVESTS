@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
-import { useNotifications } from '../../contexts/NotificationContext';
+import { useNotifications } from '../../hooks/useNotifications';
 import ModularDashboardLayout from '../layout/ModularDashboardLayout';
 import LoadingSpinner from './LoadingSpinner';
 import {

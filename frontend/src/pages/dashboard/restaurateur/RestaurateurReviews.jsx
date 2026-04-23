@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 import { useAuth } from "../../../hooks/useAuth";
-import { useNotifications } from "../../../contexts/NotificationContext";
+import { useNotifications } from "../../../hooks/useNotifications";
 import { reviewService } from "../../../services";
 import StarRating from "../../../components/reviews/StarRating";
 import {

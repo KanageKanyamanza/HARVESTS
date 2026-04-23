@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import SEOHead from "../components/seo/SEOHead";
 import { useAuth } from "../hooks/useAuth";
 import { useCart } from "../contexts/CartContext";
-import { useNotifications } from "../contexts/NotificationContext";
+import { useNotifications } from "../hooks/useNotifications";
 import { useProductDetail, canViewProduct } from "../hooks/useProductDetail";
 import { reviewService, consumerService } from "../services";
 import {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Languages, Check, X, Loader } from 'lucide-react';
 import { adminService } from '../../services/adminService';
-import { useNotifications } from '../../contexts/NotificationContext';
+import { useNotifications } from '../../hooks/useNotifications';
 
 const AutoTranslation = ({
   formData,

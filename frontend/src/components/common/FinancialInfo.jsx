@@ -15,7 +15,7 @@ import {
 	Wallet,
 } from "lucide-react";
 import { commonService } from "../../services";
-import { useNotifications } from "../../contexts/NotificationContext";
+import { useNotifications } from "../../hooks/useNotifications";
 
 const FinancialInfo = ({
 	bankAccount,

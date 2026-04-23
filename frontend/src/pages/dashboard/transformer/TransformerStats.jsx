@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { transformerService } from "../../../services";
 import { transformerService as genericTransformerService } from "../../../services/genericService";
-import { useNotifications } from "../../../contexts/NotificationContext";
+import { useNotifications } from "../../../hooks/useNotifications";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import {

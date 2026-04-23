@@ -18,7 +18,7 @@ import {
 	TrendingUp,
 } from "lucide-react";
 import { adminService } from "../../services/adminService";
-import { useNotifications } from "../../contexts/NotificationContext";
+import { useNotifications } from "../../hooks/useNotifications";
 import CloudinaryImage from "../../components/common/CloudinaryImage";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 

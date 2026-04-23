@@ -23,14 +23,10 @@ const ProfileHeader = ({
 	user,
 	avatar,
 	editing,
-	saving,
 	vendorStats,
 	vendorStatsLoading,
 	onAvatarChange,
 	onAvatarRemove,
-	onEdit,
-	onSave,
-	onCancel,
 	safeDisplay,
 }) => {
 	const isVendor = VENDOR_TYPES.includes(user.userType);

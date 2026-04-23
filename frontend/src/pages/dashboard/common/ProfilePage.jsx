@@ -287,7 +287,6 @@ const ProfilePage = () => {
 										verificationStatus={verificationStatus}
 										onInputChange={handleInputChange}
 										onCuisineTypeChange={handleCuisineTypeChange}
-										onFormDataChange={setFormData}
 										safeDisplay={safeDisplay}
 									/>
 								</div>
@@ -327,7 +326,6 @@ const ProfilePage = () => {
 								onBannerRemove={() => handleImageRemove("banner")}
 								onLogoChange={(url) => handleImageChange("logo", url)}
 								onLogoRemove={() => handleImageRemove("logo")}
-								editing={editing}
 							/>
 						</div>
 					)}

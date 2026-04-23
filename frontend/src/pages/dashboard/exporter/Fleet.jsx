@@ -16,7 +16,7 @@ import {
 	FiZap,
 	FiStar,
 } from "react-icons/fi";
-import { useNotifications } from "../../../contexts/NotificationContext";
+import { useNotifications } from "../../../hooks/useNotifications";
 import CloudinaryImage from "../../../components/common/CloudinaryImage";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
 

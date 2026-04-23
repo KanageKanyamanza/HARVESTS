@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { adminService } from "../services/adminService";
 import uploadService from "../services/uploadService";
-import { useNotifications } from "../contexts/NotificationContext";
+import { useNotifications } from "../hooks/useNotifications";
 
 const initialFormData = {
 	title: { fr: "", en: "" },

@@ -18,7 +18,7 @@ import {
 	ChevronRight,
 } from "lucide-react";
 import { adminService } from "../../services/adminService";
-import { useNotifications } from "../../contexts/NotificationContext";
+import { useNotifications } from "../../hooks/useNotifications";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 const AdminBlogAnalytics = () => {

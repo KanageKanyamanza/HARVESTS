@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { restaurateurService } from "../../../services";
-import { useNotifications } from "../../../contexts/NotificationContext";
+import { useNotifications } from "../../../hooks/useNotifications";
 import { useAuth } from "../../../hooks/useAuth";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";

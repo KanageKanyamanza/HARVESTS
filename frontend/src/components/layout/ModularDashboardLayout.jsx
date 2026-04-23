@@ -75,7 +75,7 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
 	const topOffset = bannerCount * bannerHeight;
 
 	return (
-		<div className="h-screen bg-harvests-light overflow-hidden">
+		<div className="h-screen bg-harvests-light overflow-hidden dashboard-compact-mode">
 			{/* Profil Completion Modal */}
 			<ProfileCompletionModal user={user} />
 

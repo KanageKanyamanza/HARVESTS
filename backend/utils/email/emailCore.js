@@ -36,48 +36,33 @@ function addEmailCoreMethods(EmailClass) {
 		const text = htmlToText.convert(html);
 
 		// 2) PRODUCTION ou DÉVELOPPEMENT avec SendGrid: Utiliser SendGrid API (pas SMTP)
-		// Utiliser SendGrid si la clé API est définie (production ou développement)
 		if (process.env.SENDGRID_API_KEY) {
 			try {
-				const envLabel = isProduction ? "PRODUCTION" : "TEST";
+				const envLabel = isProduction ? "PRODUCTION" : "DÉVELOPPEMENT";
 				console.log(
 					`📧 Tentative d'envoi email à ${this.to} via SendGrid API (${envLabel})`,
 				);
 				const result = await this.sendWithSendGrid(subject, html, text);
 				return result;
 			} catch (error) {
-				console.error("❌ Erreur SendGrid API:", error.message);
-
-				// Fallback EmailJS si configuré
-				if (this.isEmailJSConfigured()) {
-					console.log("🔄 Tentative de fallback avec EmailJS...");
-					try {
-						await this.sendWithEmailJS(subject, html);
-						console.log("✅ Email envoyé avec succès via EmailJS (fallback)");
-						return;
-					} catch (emailjsError) {
-						console.error("❌ Erreur EmailJS également:", emailjsError.message);
-						throw new Error(
-							`Échec envoi email: SendGrid (${error.message}) et EmailJS (${emailjsError.message})`,
-						);
-					}
-				} else {
-					throw new Error(
-						`Échec envoi email: SendGrid (${error.message}) - EmailJS non configuré`,
-					);
-				}
+				console.error("❌ Échec SendGrid API:", error.message);
+				console.log("🔄 Tentative de fallback avec SMTP (IONOS)...");
+				// Continuer vers la section 3 (Nodemailer/SMTP)
 			}
 		}
 
-		// 3) DÉVELOPPEMENT: Utiliser Gmail avec Nodemailer
+		// 3) FALLBACK ou DÉVELOPPEMENT: Utiliser Nodemailer (SMTP IONOS ou Gmail)
 		try {
 			const transporter = this.newTransport();
 			if (!transporter) {
-				throw new Error("Aucun transport email configuré");
+				throw new Error("Aucun transport SMTP configuré");
 			}
 
+			const isIonos = process.env.EMAIL_HOST && process.env.EMAIL_HOST.includes('ionos');
+			const transportType = isIonos ? "IONOS SMTP" : (process.env.GMAIL_USER ? "Gmail" : "SMTP");
+
 			console.log(
-				`📧 Tentative d'envoi email à ${this.to} via Gmail (DÉVELOPPEMENT)`,
+				`📧 Tentative d'envoi email à ${this.to} via ${transportType}`,
 			);
 
 			const mailOptions = {
@@ -89,43 +74,27 @@ function addEmailCoreMethods(EmailClass) {
 			};
 
 			const result = await transporter.sendMail(mailOptions);
-			console.log("✅ Email envoyé avec succès via Nodemailer");
-			console.log(`   Message ID: ${result.messageId}`);
-			console.log(`   Response: ${result.response}`);
+			console.log(`✅ Email envoyé avec succès via ${transportType}`);
 			return result;
 		} catch (error) {
-			console.error("❌ Erreur Nodemailer détaillée:");
-			console.error(`   Message: ${error.message}`);
-			console.error(`   Code: ${error.code || "N/A"}`);
+			console.error(`❌ Échec transport SMTP: ${error.message}`);
 
-			if (error.code === "EAUTH" || error.message.includes("Invalid login")) {
-				console.error("🔐 ERREUR D'AUTHENTIFICATION:");
-				console.error("   - Vérifiez GMAIL_USER et GMAIL_APP_PASSWORD");
-				console.error(
-					"   - Pour Gmail: Activez l'authentification 2FA et créez un mot de passe d'application",
-				);
-			} else if (error.code === "ECONNECTION" || error.code === "ETIMEDOUT") {
-				console.error("🔌 ERREUR DE CONNEXION/TIMEOUT:");
-				console.error("   - Vérifiez votre connexion internet");
-				console.error("   - Vérifiez que Gmail est accessible");
-			}
-
-			// Fallback EmailJS si configuré
+			// Fallback ultime : EmailJS
 			if (this.isEmailJSConfigured()) {
-				console.log("🔄 Tentative de fallback avec EmailJS...");
+				console.log("🔄 Tentative de fallback ultime avec EmailJS...");
 				try {
-					await this.sendWithEmailJS(subject, html);
-					console.log("✅ Email envoyé avec succès via EmailJS (fallback)");
-					return;
+					const result = await this.sendWithEmailJS(subject, html);
+					console.log("✅ Email envoyé avec succès via EmailJS (fallback ultime)");
+					return result;
 				} catch (emailjsError) {
-					console.error("❌ Erreur EmailJS également:", emailjsError.message);
+					console.error("❌ Échec EmailJS également:", emailjsError.message);
 					throw new Error(
-						`Échec envoi email: Nodemailer (${error.message}) et EmailJS (${emailjsError.message})`,
+						`Échec total envoi email: SendGrid, SMTP et EmailJS ont tous échoué.`,
 					);
 				}
 			} else {
 				throw new Error(
-					`Échec envoi email: Nodemailer (${error.message}) - EmailJS non configuré`,
+					`Échec envoi email: SendGrid et SMTP ont échoué - EmailJS non configuré`,
 				);
 			}
 		}

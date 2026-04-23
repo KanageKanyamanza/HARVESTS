@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiClock, FiDollarSign, FiTag, FiAlertTriangle, FiEdit, FiTrash2 } from 'react-icons/fi';
 import { restaurateurService } from '../../../services';
-import { useNotifications } from '../../../contexts/NotificationContext';
+import { useNotifications } from '../../../hooks/useNotifications';
 import LoadingSpinner from '../../../components/common/LoadingSpinner';
 
 const DishDetail = () => {
