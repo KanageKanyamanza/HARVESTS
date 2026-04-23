@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import {
 	ShoppingBag,
 	Image as ImageIcon,
@@ -25,7 +25,6 @@ const ShopSection = ({
 	onBannerRemove,
 	onLogoChange,
 	onLogoRemove,
-	editing = false,
 }) => {
 	if (!VENDOR_TYPES.includes(user?.userType)) return null;
 

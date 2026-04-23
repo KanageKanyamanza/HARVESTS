@@ -59,7 +59,6 @@ const pushService = {
 					userVisibleOnly: true,
 					applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
 				});
-			} else {
 			}
 
 			// 4. Send subscription to backend

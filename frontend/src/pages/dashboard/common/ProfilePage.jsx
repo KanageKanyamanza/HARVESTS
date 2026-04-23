@@ -326,7 +326,6 @@ const ProfilePage = () => {
 								onBannerRemove={() => handleImageRemove("banner")}
 								onLogoChange={(url) => handleImageChange("logo", url)}
 								onLogoRemove={() => handleImageRemove("logo")}
-								editing={editing}
 							/>
 						</div>
 					)}
