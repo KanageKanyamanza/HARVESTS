@@ -5,7 +5,8 @@ export const initialState = {
   user: null,
   token: null,
   isAuthenticated: false,
-  isLoading: true, // Commencer à true pour attendre la restauration de session
+  isLoading: true, // Chargement général pour les actions d'authentification
+  isRestoringSession: true, // Charger la session au démarrage
   error: null,
   lastActivity: null,
   tokenExpiry: null,
