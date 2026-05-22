@@ -21,6 +21,7 @@ import { adminService } from "../../services/adminService";
 import { useNotifications } from "../../hooks/useNotifications";
 import CloudinaryImage from "../../components/common/CloudinaryImage";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
+import { useDebounce } from "../../hooks/useDebounce";
 
 const AdminBlogs = () => {
 	const { showSuccess, showError } = useNotifications();
@@ -44,10 +45,12 @@ const AdminBlogs = () => {
 		return fallback;
 	};
 
+	const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
 	useEffect(() => {
 		loadBlogs();
 		loadStats();
-	}, [currentPage, statusFilter, typeFilter, categoryFilter, searchTerm]);
+	}, [currentPage, statusFilter, typeFilter, categoryFilter, debouncedSearchTerm]);
 
 	const [stats, setStats] = useState({
 		total: 0,
@@ -89,8 +92,8 @@ const AdminBlogs = () => {
 				let blogsData = response.data || [];
 
 				// Filtrer par recherche si nécessaire
-				if (searchTerm) {
-					const searchLower = searchTerm.toLowerCase();
+			if (debouncedSearchTerm) {
+				const searchLower = debouncedSearchTerm.toLowerCase();
 					blogsData = blogsData.filter((blog) => {
 						const title = getLocalizedText(blog.title).toLowerCase();
 						const excerpt = getLocalizedText(blog.excerpt).toLowerCase();

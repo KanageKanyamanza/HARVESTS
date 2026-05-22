@@ -22,6 +22,7 @@ import {
 import CloudinaryImage from "../../components/common/CloudinaryImage";
 import { normalizeDishImage } from "../../utils/dishImageUtils";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
+import { useDebounce } from "../../hooks/useDebounce";
 
 const AdminDishes = () => {
 	const [dishes, setDishes] = useState([]);
@@ -31,10 +32,11 @@ const AdminDishes = () => {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [totalPages, setTotalPages] = useState(1);
 	const [selectedDishes, setSelectedDishes] = useState([]);
+	const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
 	useEffect(() => {
 		loadDishes();
-	}, [currentPage, statusFilter, searchTerm]);
+	}, [currentPage, statusFilter, debouncedSearchTerm]);
 
 	const loadDishes = async () => {
 		try {
@@ -42,7 +44,7 @@ const AdminDishes = () => {
 			const params = {
 				page: currentPage,
 				limit: 10,
-				search: searchTerm,
+				search: debouncedSearchTerm,
 				status: statusFilter,
 			};
 			const response = await getDishes(params);
