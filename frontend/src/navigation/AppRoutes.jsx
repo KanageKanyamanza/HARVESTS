@@ -134,9 +134,9 @@ const SuspenseRoute = ({ element }) => (
  * Composant pour les routes protégées
  */
 const ProtectedRoute = ({ children, requiredRole, requiredUserType }) => {
-	const { isAuthenticated, user, isLoading } = useAuth();
+	const { isAuthenticated, user, isRestoringSession } = useAuth();
 
-	if (isLoading) {
+	if (isRestoringSession) {
 		return <RouteFallback />;
 	}
 
@@ -159,9 +159,9 @@ const ProtectedRoute = ({ children, requiredRole, requiredUserType }) => {
  * Composant pour les routes publiques (redirection si connecté)
  */
 const PublicRoute = ({ children }) => {
-	const { isAuthenticated, isLoading } = useAuth();
+	const { isAuthenticated, isRestoringSession } = useAuth();
 
-	if (isLoading) {
+	if (isRestoringSession) {
 		return <RouteFallback />;
 	}
 

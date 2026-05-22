@@ -6,7 +6,7 @@ Une plateforme e-commerce moderne connectant producteurs et consommateurs à tra
 
 ```bash
 # Cloner le repository
-git clone https://github.com/ZooM982/HARVESTS.git
+git clone https://github.com/KanageKanyamanza/HARVESTS.git
 cd HARVESTS
 
 # Installation complète
@@ -17,9 +17,10 @@ npm run dev
 ```
 
 **🎯 Accès rapide :**
-- 🌐 **Frontend:** http://localhost:5173
-- 📡 **Backend API:** http://localhost:5000
-- 📚 **Documentation API:** http://localhost:5000/api-docs
+
+- 🌐 **Frontend:** <http://localhost:5173>
+- 📡 **Backend API:** <http://localhost:5000>
+- 📚 **Documentation API:** <http://localhost:5000/api-docs>
 
 ## 🏗️ Architecture
 
@@ -46,6 +47,7 @@ HARVESTS/
 ## 🌍 Fonctionnalités
 
 ### ✅ **Backend (Production Ready)**
+
 - 🔐 **Authentification JWT** avec vérification email
 - 👥 **6 types d'utilisateurs** (producteur, consommateur, transformateur, etc.)
 - 🌐 **API bilingue** FR/EN avec détection automatique
@@ -58,6 +60,7 @@ HARVESTS/
 - 🌍 **Support mondial** avec pays par défaut Sénégal
 
 ### ✅ **Frontend (Interface Moderne)**
+
 - ⚡ **React 19** + Vite (build ultra-rapide)
 - 🎨 **Tailwind CSS 3.4** avec design system agricole
 - 🌐 **Internationalisation** FR/EN
@@ -69,6 +72,7 @@ HARVESTS/
 - 🛡️ **Hooks Robustes** : Architecture React stabilisée (useCallback/useEffect) pour éviter les re-rendus inutiles
 
 ### ✅ **Logique Business Avancée**
+
 - 👁️ **Visibilité Garantie** : Système d'approbation admin qui réactive automatiquement les produits approuvés (`isActive: true`).
 - 📍 **Géo-Search Hybride** : Moteur de recherche capable d'extraire la localisation des requêtes textuelles et de filtrer les produits en fonction de l'adresse réelle des vendeurs (plus fiable que le filtrage par champ plat).
 - 🏭 **Support spécifique Transformateur** : Flux de publication optimisé pour les entreprises de transformation agro-alimentaires.
@@ -93,6 +97,7 @@ HARVESTS/
 ## 🛠️ Technologies
 
 ### Backend
+
 - **Runtime:** Node.js 16+
 - **Framework:** Express.js
 - **Base de données:** MongoDB + Mongoose
@@ -104,6 +109,7 @@ HARVESTS/
 - **Tests:** Jest + Supertest (à implémenter)
 
 ### Frontend
+
 - **Framework:** React 19
 - **Build:** Vite
 - **Styling:** Tailwind CSS 3.4.0
@@ -117,14 +123,16 @@ HARVESTS/
 ## 📦 Installation Détaillée
 
 ### Prérequis
-- Node.js 16+ 
+
+- Node.js 16+
 - MongoDB 4.4+
 - Git
 
 ### Installation manuelle
+
 ```bash
 # 1. Cloner le repository
-git clone https://github.com/ZooM982/HARVESTS.git
+git clone https://github.com/KanageKanyamanza/HARVESTS.git
 cd HARVESTS
 
 # 2. Backend
@@ -146,6 +154,7 @@ npm run dev
 ## ⚙️ Configuration
 
 ### Variables d'environnement Backend
+
 ```bash
 # Base de données
 DATABASE_URI=mongodb://localhost:27017/harvests
@@ -169,6 +178,7 @@ CLOUDINARY_API_SECRET=your-api-secret
 ```
 
 ### Variables d'environnement Frontend
+
 ```bash
 # API Backend
 VITE_API_URL=http://localhost:5000/api/v1
@@ -180,7 +190,9 @@ VITE_VAPID_PUBLIC_KEY=your-vapid-public-key
 ```
 
 ### 🔔 Dépannage Web Push (Local)
+
 Si vous obtenez l'erreur "Registration failed - push service error" en local :
+
 1. **Navigateur Brave :** Allez dans `brave://settings/privacy` et activez "Utiliser les services Google pour la messagerie push".
 2. **Configuration :** Assurez-vous que `VITE_VAPID_PUBLIC_KEY` est défini dans `frontend/.env` ET que le serveur Vite a été redémarré.
 3. **Service Worker :** Vérifiez dans l'onglet "Application" > "Service Workers" des outils de développement que `sw.js` est bien enregistré.
@@ -188,6 +200,7 @@ Si vous obtenez l'erreur "Registration failed - push service error" en local :
 ## 🚀 Scripts NPM
 
 ### Racine du projet
+
 ```bash
 npm run dev          # Démarrer backend + frontend
 npm run setup        # Installation complète
@@ -197,6 +210,7 @@ npm run build        # Build frontend pour production
 ```
 
 ### Backend
+
 ```bash
 npm start            # Production
 npm run dev          # Développement avec nodemon
@@ -204,6 +218,7 @@ npm run verify       # Vérifier la configuration
 ```
 
 ### Frontend
+
 ```bash
 npm run dev          # Serveur de développement
 npm run build        # Build pour production
@@ -224,20 +239,23 @@ node test-bilingual.js       # Test système bilingue
 
 ## 📚 Documentation
 
-- 📖 **API Docs:** http://localhost:5000/api-docs (Swagger)
+- 📖 **API Docs:** <http://localhost:5000/api-docs> (Swagger)
 - 🏗️ **Architecture:** `backend/docs/ARCHITECTURE.md`
 - 🌐 **API Bilingue:** `backend/docs/BILINGUAL_API_GUIDE.md`
 - 🎨 **Frontend:** `frontend/README.md`
+- 👥 **Profils et Fonctionnalités:** `docs/PROFILS_ET_FONCTIONNALITES.md`
 
 ## 🚀 Déploiement
 
 ### Backend (Recommandations)
+
 - **Heroku** + MongoDB Atlas
 - **DigitalOcean** + Docker
 - **AWS** EC2 + DocumentDB
 - **Railway** + MongoDB Atlas
 
 ### Frontend
+
 - **Vercel** (recommandé)
 - **Netlify**
 - **AWS** S3 + CloudFront
@@ -246,12 +264,14 @@ node test-bilingual.js       # Test système bilingue
 ## 📊 Performance
 
 ### Métriques Backend
+
 - ⚡ **API Response:** < 200ms moyenne
 - 🔒 **Rate Limiting:** 100 req/15min par IP
 - 📊 **Logging:** Rotation quotidienne
 - 🛡️ **Sécurité:** Headers sécurisés + validation
 
 ### Métriques Frontend
+
 - ⚡ **First Paint:** < 1.5s
 - 📱 **Mobile Score:** 95+ Lighthouse
 - 📦 **Bundle Size:** < 500KB gzipped
@@ -272,6 +292,7 @@ MIT License - voir [LICENSE](LICENSE)
 ## 🎯 Roadmap
 
 ### Phase 1 - ✅ Terminée
+
 - [x] Backend API complet bilingue
 - [x] Frontend base avec design system
 - [x] Authentification et sécurité
@@ -281,6 +302,7 @@ MIT License - voir [LICENSE](LICENSE)
 - [x] **Recherche hybride** : Filtrage géographique par vendeurs (Producteurs/Transformateurs)
 
 ### Phase 2 - 🚧 En cours
+
 - [x] Formulaires d'authentification complets
 - [x] Pages produits avec recherche/filtres avancés
 - [ ] Dashboards utilisateurs par type (Restaurateur, Transformateur)
@@ -289,6 +311,7 @@ MIT License - voir [LICENSE](LICENSE)
 - [x] **Stabilité React** : Correction des boucles de re-rendu et dépendances Hooks
 
 ### Phase 3 - 📋 Planifiée
+
 - [ ] Application mobile (React Native)
 - [ ] Analytics avancées
 - [ ] IA pour recommandations
@@ -297,7 +320,7 @@ MIT License - voir [LICENSE](LICENSE)
 
 ## 📞 Support
 
-- 📧 **Email:** contact@harvests.site
+- 📧 **Email:** <contact@harvests.site>
 - 🐛 **Issues:** [GitHub Issues](https://github.com/ZooM982/HARVESTS/issues)
 - 💬 **Discussions:** [GitHub Discussions](https://github.com/ZooM982/HARVESTS/discussions)
 

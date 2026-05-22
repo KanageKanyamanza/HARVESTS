@@ -5,26 +5,32 @@ Bienvenue dans la documentation complète de la plateforme **Harvests** - L'Amaz
 ## 📖 Table des Matières
 
 ### 🚀 Démarrage Rapide
+
 - [Guide d'Installation](./INSTALLATION.md) - Installation et configuration complète
 - [Guide de Développement](./DEVELOPMENT.md) - Guide pour les développeurs
 - [Guide de Déploiement](./DEPLOYMENT.md) - Déploiement en production
 
 ### 📡 API Documentation
+
 - [Documentation API Complète](./API_DOCUMENTATION.md) - Tous les endpoints détaillés
 - [Guide Swagger](./SWAGGER_GUIDE.md) - Utilisation de Swagger UI
 - [Spécification OpenAPI](./SWAGGER_GUIDE.md#spécification-openapi) - Format JSON/YAML
 
 ### 🏗️ Architecture
+
 - [Architecture Détaillée](./ARCHITECTURE.md) - Structure complète de l'application
 - [Modèles de Données](./MODELS.md) - Schémas et relations
 - [Services Centralisés](./CENTRALIZED_SERVICES.md) - Services partagés
+- [Profils et Fonctionnalités](./PROFILS_ET_FONCTIONNALITES.md) - Description détaillée des profils et fonctionnalités
 
 ### 🔒 Sécurité
+
 - [Documentation Sécurité](./SECURITY.md) - Mesures de sécurité implémentées
 - [Authentification](./API_DOCUMENTATION.md#authentication) - Système JWT
 - [Rate Limiting](./SECURITY.md#rate-limiting) - Protection DDoS
 
 ### 🔄 Migration & Guides
+
 - [Guide de Migration des Profils](./PROFILE_MIGRATION_GUIDE.md) - Migration vers système universel
 - [Résumé de Migration](./MIGRATION_SUMMARY.md) - État des migrations
 - [Guide d'Implémentation](./IMPLEMENTATION_SUMMARY.md) - Services centralisés
@@ -32,13 +38,15 @@ Bienvenue dans la documentation complète de la plateforme **Harvests** - L'Amaz
 ## 🌐 Accès Rapide
 
 ### Documentation Interactive
-- **Swagger UI**: http://localhost:5000/api/docs
-- **OpenAPI JSON**: http://localhost:5000/api/docs.json
+
+- **Swagger UI**: <http://localhost:5000/api/docs>
+- **OpenAPI JSON**: <http://localhost:5000/api/docs.json>
 
 ### Applications
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:5000
-- **Health Check**: http://localhost:5000/api/v1/health
+
+- **Frontend**: <http://localhost:5173>
+- **Backend API**: <http://localhost:5000>
+- **Health Check**: <http://localhost:5000/api/v1/health>
 
 ## 📋 Vue d'Ensemble
 
@@ -60,6 +68,7 @@ Harvests est une plateforme e-commerce moderne connectant producteurs et consomm
 ## 🛠️ Technologies
 
 ### Backend
+
 - **Runtime**: Node.js 16+
 - **Framework**: Express.js
 - **Base de données**: MongoDB + Mongoose
@@ -69,6 +78,7 @@ Harvests est une plateforme e-commerce moderne connectant producteurs et consomm
 - **Documentation**: Swagger/OpenAPI 3.0
 
 ### Frontend
+
 - **Framework**: React 19
 - **Build**: Vite
 - **Styling**: Tailwind CSS 3.4
@@ -101,9 +111,10 @@ HARVESTS/
 ## 🚀 Démarrage Rapide
 
 ### Installation Complète
+
 ```bash
 # Cloner le repository
-git clone https://github.com/ZooM982/HARVESTS.git
+git clone https://github.com/KanageKanyamanza/HARVESTS.git
 cd HARVESTS
 
 # Installation
@@ -114,24 +125,28 @@ npm run dev
 ```
 
 ### Accès
-- 🌐 **Frontend**: http://localhost:5173
-- 📡 **Backend**: http://localhost:5000
-- 📚 **Swagger**: http://localhost:5000/api/docs
+
+- 🌐 **Frontend**: <http://localhost:5173>
+- 📡 **Backend**: <http://localhost:5000>
+- 📚 **Swagger**: <http://localhost:5000/api/docs>
 
 ## 📖 Documentation par Catégorie
 
 ### Pour les Développeurs
+
 1. [Guide de Développement](./DEVELOPMENT.md) - Workflow, conventions, bonnes pratiques
 2. [Architecture](./ARCHITECTURE.md) - Structure détaillée du code
 3. [Modèles de Données](./MODELS.md) - Schémas MongoDB
 4. [API Documentation](./API_DOCUMENTATION.md) - Tous les endpoints
 
 ### Pour les DevOps
+
 1. [Guide de Déploiement](./DEPLOYMENT.md) - Production, CI/CD
 2. [Installation](./INSTALLATION.md) - Configuration serveur
 3. [Sécurité](./SECURITY.md) - Mesures de sécurité
 
 ### Pour les Utilisateurs API
+
 1. [API Documentation](./API_DOCUMENTATION.md) - Référence complète
 2. [Guide Swagger](./SWAGGER_GUIDE.md) - Utilisation interactive
 3. [Exemples de Code](./API_DOCUMENTATION.md#exemples) - Snippets
@@ -139,6 +154,7 @@ npm run dev
 ## 🔍 Recherche dans la Documentation
 
 ### Par Fonctionnalité
+
 - **Authentification**: [API Docs - Auth](./API_DOCUMENTATION.md#authentication)
 - **Produits**: [API Docs - Products](./API_DOCUMENTATION.md#products)
 - **Commandes**: [API Docs - Orders](./API_DOCUMENTATION.md#orders)
@@ -146,6 +162,7 @@ npm run dev
 - **Chatbot**: [API Docs - Chat](./API_DOCUMENTATION.md#chatbot)
 
 ### Par Type d'Utilisateur
+
 - **Producteurs**: [API Docs - Producers](./API_DOCUMENTATION.md#producers)
 - **Transformateurs**: [API Docs - Transformers](./API_DOCUMENTATION.md#transformers)
 - **Consommateurs**: [API Docs - Consumers](./API_DOCUMENTATION.md#consumers)
@@ -153,7 +170,7 @@ npm run dev
 
 ## 📞 Support
 
-- 📧 **Email**: contact@harvests.site
+- 📧 **Email**: <contact@harvests.site>
 - 🐛 **Issues**: [GitHub Issues](https://github.com/ZooM982/HARVESTS/issues)
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/ZooM982/HARVESTS/discussions)
 
@@ -166,4 +183,3 @@ MIT License - Voir [LICENSE](../LICENSE)
 **🌍 Harvests - Révolutionner l'agriculture africaine, un clic à la fois !**
 
 *Made with ❤️ in Africa*
-

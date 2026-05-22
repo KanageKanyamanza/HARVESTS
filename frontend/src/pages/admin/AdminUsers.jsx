@@ -22,6 +22,7 @@ import {
 import { adminService } from "../../services/adminService";
 import CloudinaryImage from "../../components/common/CloudinaryImage";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
+import { useDebounce } from "../../hooks/useDebounce";
 
 const AdminUsers = () => {
 	const [users, setUsers] = useState([]);
@@ -32,6 +33,7 @@ const AdminUsers = () => {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [totalPages, setTotalPages] = useState(1);
 	const [selectedUsers, setSelectedUsers] = useState([]);
+	const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
 	const loadUsers = useCallback(async () => {
 		try {
@@ -39,7 +41,7 @@ const AdminUsers = () => {
 			const params = {
 				page: currentPage,
 				limit: 10,
-				search: searchTerm,
+				search: debouncedSearchTerm,
 				role: roleFilter,
 				status: statusFilter,
 			};
@@ -66,7 +68,7 @@ const AdminUsers = () => {
 		} finally {
 			setLoading(false);
 		}
-	}, [currentPage, roleFilter, statusFilter, searchTerm]);
+	}, [currentPage, roleFilter, statusFilter, debouncedSearchTerm]);
 
 	useEffect(() => {
 		loadUsers();

@@ -8,7 +8,8 @@
 ## 📡 Accès à la Documentation
 
 ### Swagger UI Interactif
-- **URL**: http://localhost:5000/api/docs
+
+- **URL**: <http://localhost:5000/api/docs>
 - **Description**: Interface graphique pour tester l'API en temps réel
 - **Fonctionnalités**:
   - Tests interactifs
@@ -18,7 +19,8 @@
   - Codes de réponse
 
 ### Spécification OpenAPI 3.0
-- **URL**: http://localhost:5000/api/docs.json
+
+- **URL**: <http://localhost:5000/api/docs.json>
 - **Format**: JSON
 - **Utilisation**:
   - Import Postman
@@ -44,6 +46,7 @@
 | POST | `/refresh-token` | Rafraîchir token JWT | ✅ |
 
 **Exemple d'inscription**:
+
 ```json
 POST /api/v1/auth/signup
 {
@@ -137,6 +140,7 @@ POST /api/v1/auth/signup
 | GET | `/featured` | Produits mis en avant | ❌ |
 
 **Recherche Intelligente**:
+
 - Gestion pluriel/singulier : "tomates" trouve "tomate"
 - Détection géographique : "tomates à Dakar" filtre automatiquement
 - Insensible à la casse et accents
@@ -155,6 +159,7 @@ POST /api/v1/auth/signup
 | POST | `/:id/review` | Ajouter avis | ✅ Owner |
 
 **Statuts de commande**:
+
 - `pending` - En attente
 - `confirmed` - Confirmée
 - `preparing` - En préparation
@@ -251,6 +256,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 Ou via cookie httpOnly (automatique après login):
+
 ```http
 Cookie: jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
@@ -282,6 +288,7 @@ GET /api/v1/products?page=1&limit=20&sort=-createdAt
 ```
 
 **Réponse**:
+
 ```json
 {
   "status": "success",
@@ -300,16 +307,19 @@ GET /api/v1/products?page=1&limit=20&sort=-createdAt
 ### Filtres Avancés
 
 **Produits**:
+
 ```
 /api/v1/products?category=cereals&region=Thiès&price[gte]=5000&price[lte]=15000
 ```
 
 **Commandes**:
+
 ```
 /api/v1/orders?status=delivered&createdAt[gte]=2025-01-01&payment.method=wave
 ```
 
 **Utilisateurs**:
+
 ```
 /api/v1/producers?farmingType=organic&region=Thiès&isActive=true
 ```
@@ -327,17 +337,19 @@ GET /api/v1/products?page=1&limit=20&sort=-createdAt
 ### Mobile Money
 
 **Wave** (60% marché):
+
 - Endpoint: `/api/v1/payments/wave`
 - Opérateurs: Orange, Free, Expresso
 
 **Orange Money** (25% marché):
+
 - Endpoint: `/api/v1/payments/orange-money`
 - Opérateurs: Orange uniquement
 
 ### Format Numéros Téléphone
 
 - **Format**: `+221 XX XXX XXXX`
-- **Exemples**: 
+- **Exemples**:
   - `+221771234567` (Orange)
   - `+221781234567` (Orange)
   - `+221761234567` (Free)
@@ -348,11 +360,13 @@ GET /api/v1/products?page=1&limit=20&sort=-createdAt
 ## 📊 Codes de Réponse
 
 ### ✅ Succès
+
 - **200** - OK - Requête réussie
 - **201** - Created - Ressource créée
 - **204** - No Content - Suppression réussie
 
 ### ❌ Erreurs Client
+
 - **400** - Bad Request - Données invalides
 - **401** - Unauthorized - Non authentifié
 - **403** - Forbidden - Non autorisé
@@ -362,6 +376,7 @@ GET /api/v1/products?page=1&limit=20&sort=-createdAt
 - **429** - Too Many Requests - Rate limit dépassé
 
 ### 🔥 Erreurs Serveur
+
 - **500** - Internal Server Error - Erreur serveur
 - **502** - Bad Gateway - Service externe indisponible
 - **503** - Service Unavailable - Maintenance
@@ -387,9 +402,10 @@ GET /api/v1/products?page=1&limit=20&sort=-createdAt
 ## 📚 Ressources Développeur
 
 ### Liens Utiles
-- **Swagger UI**: http://localhost:5000/api/docs
-- **Health Check**: http://localhost:5000/api/v1/health
-- **OpenAPI JSON**: http://localhost:5000/api/docs.json
+
+- **Swagger UI**: <http://localhost:5000/api/docs>
+- **Health Check**: <http://localhost:5000/api/v1/health>
+- **OpenAPI JSON**: <http://localhost:5000/api/docs.json>
 
 ### Import Postman
 
@@ -418,7 +434,7 @@ curl http://localhost:5000/api/v1/health
 
 ### Authentification dans Swagger
 
-1. Aller sur http://localhost:5000/api/docs
+1. Aller sur <http://localhost:5000/api/docs>
 2. Cliquer "Authorize" (🔒)
 3. Entrer: `Bearer YOUR_JWT_TOKEN`
 4. Tous les endpoints protégés sont maintenant accessibles
@@ -428,12 +444,14 @@ curl http://localhost:5000/api/v1/health
 ## 📊 Métriques API
 
 ### Performance
+
 - **Response Time**: < 200ms (moyenne)
 - **Throughput**: 1000+ req/sec
 - **Uptime**: > 99.9%
 - **Error Rate**: < 0.1%
 
 ### Sécurité
+
 - **Rate Limiting**: 100 req/15min par IP
 - **Auth Rate Limit**: 5 tentatives/15min
 - **JWT Expiration**: 90 jours
@@ -442,4 +460,3 @@ curl http://localhost:5000/api/v1/health
 ---
 
 *Pour plus de détails, consultez [Swagger UI](http://localhost:5000/api/docs) ou [Guide Swagger](./SWAGGER_GUIDE.md)*
-

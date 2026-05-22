@@ -18,6 +18,7 @@ export const authReducer = (state, action) => {
         token: action.payload.token,
         isAuthenticated: true,
         isLoading: false,
+        isRestoringSession: false,
         error: null,
         lastActivity: new Date().toISOString(),
         tokenExpiry: action.payload.tokenExpiry || null,
@@ -31,6 +32,7 @@ export const authReducer = (state, action) => {
         token: null,
         isAuthenticated: false,
         isLoading: false,
+        isRestoringSession: false,
         error: action.payload,
       };
 
@@ -38,6 +40,7 @@ export const authReducer = (state, action) => {
       return {
         ...state,
         isLoading: false,
+        isRestoringSession: false,
         error: null,
         // Ne pas connecter automatiquement après inscription
         // L'utilisateur doit vérifier son email
@@ -50,6 +53,7 @@ export const authReducer = (state, action) => {
         token: null,
         isAuthenticated: false,
         isLoading: false,
+        isRestoringSession: false,
         error: null,
         lastActivity: null,
         tokenExpiry: null,
@@ -65,6 +69,8 @@ export const authReducer = (state, action) => {
       return {
         ...state,
         isLoading: action.payload,
+        isRestoringSession:
+          action.payload === false ? false : state.isRestoringSession,
       };
 
     case AUTH_ACTIONS.CLEAR_ERROR:
@@ -80,6 +86,7 @@ export const authReducer = (state, action) => {
         token: action.payload.token,
         isAuthenticated: true,
         isLoading: false,
+        isRestoringSession: false,
         lastActivity: action.payload.lastActivity || new Date().toISOString(),
         tokenExpiry: action.payload.tokenExpiry || null,
       };

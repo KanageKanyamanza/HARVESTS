@@ -16,6 +16,7 @@ import {
     Plus,
 } from "lucide-react";
 import { getConfig } from "../../config/production";
+import { useDebounce } from "../../hooks/useDebounce";
 
 const AdminContacts = () => {
 	const navigate = useNavigate();
@@ -33,6 +34,7 @@ const AdminContacts = () => {
 
 	const { API_BASE_URL } = getConfig();
 	const baseUrl = API_BASE_URL.replace(/\/api\/v1$/, "");
+	const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
 	const fetchContacts = useCallback(async () => {
 		try {
@@ -41,7 +43,7 @@ const AdminContacts = () => {
 			const params = new URLSearchParams({
 				page: pagination.page,
 				limit: pagination.limit,
-				search: searchTerm,
+				search: debouncedSearchTerm,
 				source: sourceFilter,
 			});
 
@@ -66,7 +68,7 @@ const AdminContacts = () => {
 		} finally {
 			setLoading(false);
 		}
-	}, [pagination.page, pagination.limit, searchTerm, sourceFilter, baseUrl]);
+	}, [pagination.page, pagination.limit, debouncedSearchTerm, sourceFilter, baseUrl]);
 
 	useEffect(() => {
 		fetchContacts();
