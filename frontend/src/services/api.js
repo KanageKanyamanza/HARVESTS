@@ -14,6 +14,9 @@ const api = axios.create({
 	headers: {
 		"Content-Type": "application/json",
 	},
+	withCredentials: true,
+	xsrfCookieName: "harvests_csrf_token",
+	xsrfHeaderName: "x-csrf-token",
 	// Configuration du cache HTTP
 	cache: {
 		maxAge: 5 * 60 * 1000, // 5 minutes par défaut

@@ -18,11 +18,15 @@ import {
 	Calendar,
 	Ban,
 	UserCheck,
+	LayoutGrid,
+	List,
+	Leaf,
 } from "lucide-react";
 import { adminService } from "../../services/adminService";
 import CloudinaryImage from "../../components/common/CloudinaryImage";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { useDebounce } from "../../hooks/useDebounce";
+import { getCountryName } from "../../utils/countryMapper";
 
 const AdminUsers = () => {
 	const [users, setUsers] = useState([]);
@@ -34,6 +38,27 @@ const AdminUsers = () => {
 	const [totalPages, setTotalPages] = useState(1);
 	const [selectedUsers, setSelectedUsers] = useState([]);
 	const debouncedSearchTerm = useDebounce(searchTerm, 500);
+	const [viewMode, setViewMode] = useState(() => {
+		return localStorage.getItem("adminUsersViewMode") || "table";
+	});
+
+	const handleViewModeChange = (mode) => {
+		setViewMode(mode);
+		localStorage.setItem("adminUsersViewMode", mode);
+	};
+
+	const getGradientColors = (role) => {
+		const gradients = {
+			admin: "from-rose-400 to-rose-600",
+			producer: "from-emerald-400 to-emerald-600",
+			consumer: "from-sky-400 to-sky-600",
+			transformer: "from-purple-400 to-purple-600",
+			restaurateur: "from-amber-400 to-amber-600",
+			exporter: "from-indigo-400 to-indigo-600",
+			transporter: "from-slate-400 to-slate-600",
+		};
+		return gradients[role] || "from-gray-400 to-gray-600";
+	};
 
 	const loadUsers = useCallback(async () => {
 		try {
@@ -327,13 +352,41 @@ const AdminUsers = () => {
 				{/* Table */}
 				<div className="bg-white/70 backdrop-blur-xl rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white/60 overflow-hidden animate-fade-in-up delay-200">
 					<div className="p-4 border-b border-gray-200/50 flex items-center justify-between bg-white/30">
-						<div>
-							<h3 className="text-base font-[1000] text-gray-900 tracking-tight">
-								Liste des Membres
-							</h3>
-							<p className="text-[9px] font-black text-gray-400 mt-0.5 uppercase tracking-[0.2em]">
-								Total: {users.length} utilisateurs
-							</p>
+						<div className="flex items-center gap-4">
+							<div>
+								<h3 className="text-base font-[1000] text-gray-900 tracking-tight">
+									Liste des Membres
+								</h3>
+								<p className="text-[9px] font-black text-gray-400 mt-0.5 uppercase tracking-[0.2em]">
+									Total: {users.length} utilisateurs
+								</p>
+							</div>
+
+							{/* Toggle view buttons */}
+							<div className="flex items-center bg-gray-200/50 rounded-xl p-0.5 border border-transparent">
+								<button
+									onClick={() => handleViewModeChange("table")}
+									className={`p-1.5 rounded-lg transition-all ${
+										viewMode === "table" ?
+											"bg-white text-emerald-600 shadow-sm"
+										:	"text-gray-500 hover:text-gray-900"
+									}`}
+									title="Vue tableau"
+								>
+									<List className="h-4 w-4" />
+								</button>
+								<button
+									onClick={() => handleViewModeChange("grid")}
+									className={`p-1.5 rounded-lg transition-all ${
+										viewMode === "grid" ?
+											"bg-white text-emerald-600 shadow-sm"
+										:	"text-gray-500 hover:text-gray-900"
+									}`}
+									title="Vue miniatures"
+								>
+									<LayoutGrid className="h-4 w-4" />
+								</button>
+							</div>
 						</div>
 						{selectedUsers.length > 0 && (
 							<div className="flex gap-2 animate-fade-in">
@@ -355,53 +408,50 @@ const AdminUsers = () => {
 						)}
 					</div>
 
-					<div className="overflow-x-auto">
-						<table className="w-full">
-							<thead>
-								<tr className="border-b border-gray-200/50">
-									<th className="px-5 py-3 text-left">
-										<input
-											type="checkbox"
-											checked={
-												selectedUsers.length === users.length &&
-												users.length > 0
-											}
-											onChange={handleSelectAll}
-											className="w-3.5 h-3.5 border-2 border-gray-200 rounded-md bg-white checked:bg-green-600 checked:border-green-600 transition-all cursor-pointer appearance-none"
-										/>
-									</th>
-									<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
-										Utilisateur
-									</th>
-									<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
-										Rôle
-									</th>
-									<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
-										Statut
-									</th>
-									<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
-										Membre
-									</th>
-									<th className="px-5 py-3 text-right text-[9px] font-black text-gray-400 uppercase tracking-widest">
-										Actions
-									</th>
-								</tr>
-							</thead>
-							<tbody className="divide-y divide-gray-200/50">
-								{users.length === 0 ?
-									<tr>
-										<td colSpan="6" className="px-5 py-10 text-center">
-											<div className="flex flex-col items-center">
-												<div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-2">
-													<User className="h-6 w-6 text-gray-300" />
-												</div>
-												<p className="text-sm font-[1000] text-gray-900 tracking-tight">
-													Aucun utilisateur
-												</p>
-											</div>
-										</td>
+					{users.length === 0 ? (
+						<div className="p-10 text-center flex flex-col items-center justify-center bg-white/30">
+							<div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-2">
+								<User className="h-6 w-6 text-gray-300" />
+							</div>
+							<p className="text-sm font-[1000] text-gray-900 tracking-tight">
+								Aucun utilisateur
+							</p>
+						</div>
+					) : viewMode === "table" ? (
+						<div className="overflow-x-auto">
+							<table className="w-full">
+								<thead>
+									<tr className="border-b border-gray-200/50">
+										<th className="px-5 py-3 text-left">
+											<input
+												type="checkbox"
+												checked={
+													selectedUsers.length === users.length &&
+													users.length > 0
+												}
+												onChange={handleSelectAll}
+												className="w-3.5 h-3.5 border-2 border-gray-200 rounded-md bg-white checked:bg-green-600 checked:border-green-600 transition-all cursor-pointer appearance-none"
+											/>
+										</th>
+										<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+											Utilisateur
+										</th>
+										<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+											Rôle
+										</th>
+										<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+											Statut
+										</th>
+										<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+											Membre
+										</th>
+										<th className="px-5 py-3 text-right text-[9px] font-black text-gray-400 uppercase tracking-widest">
+											Actions
+										</th>
 									</tr>
-								:	users.map((user) => (
+								</thead>
+								<tbody className="divide-y divide-gray-200/50">
+									{users.map((user) => (
 										<tr
 											key={user._id}
 											className="group hover:bg-gray-50/50 transition-colors duration-300"
@@ -502,11 +552,171 @@ const AdminUsers = () => {
 												</div>
 											</td>
 										</tr>
-									))
-								}
-							</tbody>
-						</table>
-					</div>
+									))}
+								</tbody>
+							</table>
+						</div>
+					) : (
+						<div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 bg-white/30">
+							{users.map((user) => {
+								const bannerUrl = user.shopBanner || user.shopInfo?.shopBanner;
+								return (
+									<div
+										key={user._id}
+										className="bg-white rounded-2xl shadow-sm hover:shadow-md border border-gray-100 overflow-hidden relative group transition-all duration-300 flex flex-col justify-between"
+									>
+										{/* Banner */}
+										<div className={`relative h-28 bg-gradient-to-r ${getGradientColors(user.userType)}`}>
+											{bannerUrl ? (
+												<img
+													src={bannerUrl}
+													alt="Bannière de la boutique"
+													className="w-full h-full object-cover"
+													onError={(e) => {
+														e.target.style.display = "none";
+													}}
+												/>
+											) : null}
+
+											{/* Overlay */}
+											<div className="absolute inset-0 bg-black/10"></div>
+
+											{/* Bulk Selection Checkbox */}
+											<div className="absolute top-3 left-3 z-20">
+												<input
+													type="checkbox"
+													checked={selectedUsers.includes(user._id)}
+													onChange={() => handleSelectUser(user._id)}
+													className="w-4 h-4 border-2 border-white/50 rounded bg-white/90 checked:bg-green-600 checked:border-green-600 transition-all cursor-pointer appearance-none shadow-sm"
+												/>
+											</div>
+
+											{/* Role Badge */}
+											<div className="absolute top-3 right-3 z-20">
+												<span className={`inline-flex px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest border ${getRoleColor(user.userType)} shadow-sm bg-white/95 backdrop-blur-sm`}>
+													{getRoleLabel(user.userType)}
+												</span>
+											</div>
+
+											{/* User Avatar */}
+											<div className="absolute bottom-0 left-4 transform translate-y-1/2 z-10">
+												<div className="w-12 h-12 rounded-xl bg-white p-0.5 shadow-md">
+													<div className="w-full h-full rounded-lg bg-gray-50 overflow-hidden border border-gray-100">
+														{user.avatar ? (
+															<CloudinaryImage
+																src={user.avatar}
+																alt={`${user.firstName} ${user.lastName}`}
+																className="h-full w-full object-cover"
+															/>
+														) : (
+															<div className="h-full w-full bg-gray-200 flex items-center justify-center">
+																<span className="text-[10px] font-black text-gray-500">
+																	{user.firstName?.charAt(0)}
+																	{user.lastName?.charAt(0)}
+																</span>
+															</div>
+														)}
+													</div>
+												</div>
+											</div>
+										</div>
+
+										{/* Content */}
+										<div className="p-4 pt-8 flex-1 flex flex-col justify-between">
+											<div>
+												<h3 className="font-black text-gray-900 text-sm tracking-tight flex items-center gap-1.5 mb-2 truncate">
+													<span className="truncate group-hover:text-green-600 transition-colors">
+														{user.firstName} {user.lastName}
+													</span>
+													{user.isBio && (
+														<span
+															className="flex-shrink-0 inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200"
+															title="Certifié Bio"
+														>
+															<Leaf className="w-2.5 h-2.5 mr-0.5" />
+															BIO
+														</span>
+													)}
+												</h3>
+
+												<div className="space-y-1">
+													<div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500" title={user.email}>
+														<Mail className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+														<span className="truncate">{user.email}</span>
+													</div>
+
+													{user.phone && (
+														<div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500">
+															<Phone className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+															<span className="truncate">{user.phone}</span>
+														</div>
+													)}
+
+													{(user.country || user.address?.country || user.city || user.address?.city) && (
+														<div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-500">
+															<MapPin className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+															<span className="truncate">
+																{getCountryName(user.country || user.address?.country)}
+																{(user.city || user.address?.city) && ` • ${user.city || user.address?.city}`}
+															</span>
+														</div>
+													)}
+												</div>
+
+												<div className="mt-3">
+													<span className={`inline-flex px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest border ${getStatusColor(user.status)}`}>
+														{user.status}
+													</span>
+												</div>
+											</div>
+
+											{/* Footer Actions */}
+											<div className="flex items-center justify-between border-t border-gray-100 pt-3 mt-4">
+												<div className="flex items-center gap-1 text-[8px] font-black text-gray-400 uppercase tracking-widest">
+													<Calendar className="h-3 w-3" />
+													{formatDate(user.createdAt)}
+												</div>
+												<div className="flex items-center gap-1">
+													<Link
+														to={`/admin/users/${user._id}`}
+														className="p-1.5 bg-gray-50 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300 border border-transparent hover:border-blue-100"
+														title="Voir détails"
+													>
+														<Eye className="h-3.5 w-3.5" />
+													</Link>
+													{user.status !== "Vérifié" && (
+														<button
+															onClick={() => handleVerifyUser(user._id)}
+															className="p-1.5 bg-gray-50 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-300 border border-transparent hover:border-green-100"
+															title="Vérifier"
+														>
+															<UserCheck className="h-3.5 w-3.5" />
+														</button>
+													)}
+													{user.status !== "Banni" && (
+														<button
+															onClick={() => handleBanUser(user._id)}
+															className="p-1.5 bg-gray-50 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all duration-300 border border-transparent hover:border-rose-100"
+															title="Bannir"
+														>
+															<Ban className="h-3.5 w-3.5" />
+														</button>
+													)}
+													<button
+														onClick={() => handleDeleteUser(user._id)}
+														className="p-1.5 bg-gray-50 text-gray-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-300 border border-transparent hover:border-red-100"
+														title="Supprimer"
+													>
+														<Trash2 className="h-3.5 w-3.5" />
+													</button>
+												</div>
+											</div>
+										</div>
+									</div>
+								);
+							})}
+						</div>
+					)}
 
 					{/* Pagination */}
 					<div className="p-3.5 border-t border-gray-200/50 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/30">

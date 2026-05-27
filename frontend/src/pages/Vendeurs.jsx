@@ -16,7 +16,7 @@ import {
 	FiChevronDown,
 	FiX
 } from "react-icons/fi";
-import { Leaf } from "lucide-react";
+import { Leaf, Search } from "lucide-react";
 import {
 	getVendorAverageRating,
 	getVendorReviewCount,
@@ -32,6 +32,7 @@ const Vendeurs = () => {
 	const [filter, setFilter] = useState("all"); // 'all', 'producers', 'transformers', 'restaurateurs'
 	const [searchParams, setSearchParams] = useSearchParams();
 	const selectedCountry = searchParams.get("country") || "";
+	const [searchTerm, setSearchTerm] = useState("");
 	
 	const { getCachedData, setCachedData } = useApiCache(5 * 60 * 1000); // Cache de 5 minutes
 
@@ -232,55 +233,21 @@ const Vendeurs = () => {
 		loadVendeurs();
 	}, [getCachedData, setCachedData, selectedCountry]);
 
-	const getTypeBadge = (type) => {
-		switch (type) {
-			case "producer":
-				return {
-					label: "Producteur",
-					icon: FiSun,
-					color: "bg-green-100 text-green-800",
-					iconColor: "text-green-600",
-				};
-			case "transformer":
-				return {
-					label: "Transformateur",
-					icon: FiTool,
-					color: "bg-purple-100 text-purple-800",
-					iconColor: "text-purple-600",
-				};
-			case "restaurateur":
-				return {
-					label: "Restaurateur",
-					icon: FiPackage,
-					color: "bg-orange-100 text-orange-800",
-					iconColor: "text-orange-600",
-				};
-			default:
-				return {
-					label: "Vendeur",
-					icon: FiPackage,
-					color: "bg-gray-100 text-gray-800",
-					iconColor: "text-gray-600",
-				};
-		}
-	};
 
-	const getGradientColors = (type) => {
-		switch (type) {
-			case "producer":
-				return "from-green-400 to-green-600";
-			case "transformer":
-				return "from-purple-400 to-purple-600";
-			case "restaurateur":
-				return "from-orange-400 to-orange-600";
-			default:
-				return "from-gray-400 to-gray-600";
-		}
-	};
 
 	const filteredVendeurs = vendeurs.filter((vendeur) => {
-		if (filter === "all") return true;
-		return vendeur.type === filter;
+		const matchesType = filter === "all" || vendeur.type === filter;
+		const name = (vendeur.displayName || "").toLowerCase();
+		const city = (vendeur.city || "").toLowerCase();
+		const country = (vendeur.country || "").toLowerCase();
+		const region = (vendeur.region || "").toLowerCase();
+		const searchLower = searchTerm.toLowerCase();
+		const matchesSearch = 
+			name.includes(searchLower) || 
+			city.includes(searchLower) || 
+			region.includes(searchLower) || 
+			country.includes(searchLower);
+		return matchesType && matchesSearch;
 	});
 
 	if (loading) {
@@ -292,113 +259,120 @@ const Vendeurs = () => {
 	}
 
 	return (
-		<div className="min-h-screen bg-harvests-light">
-			<div className="container mx-auto px-4 py-8">
-				<div className="text-center mb-8">
-					<h1 className="text-4xl font-bold text-gray-900 mb-4">
-						Nos Vendeurs
+		<div className="min-h-screen bg-[#f3f9e5] relative overflow-hidden">
+			{/* Background radial glows */}
+			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
+				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-green-200/20 rounded-full blur-[120px]"></div>
+				<div className="absolute top-[30%] right-[-10%] w-[40%] h-[40%] bg-yellow-200/20 rounded-full blur-[100px]"></div>
+				<div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-emerald-200/10 rounded-full blur-[120px]"></div>
+			</div>
+
+			<div className="relative z-10 container mx-auto px-4 py-12 max-w-7xl">
+				{/* Hero Header Area */}
+				<div className="text-center space-y-3 max-w-2xl mx-auto mb-8 animate-in fade-in duration-700">
+					<h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight leading-none">
+						Découvrez nos <span className="text-emerald-600">Vendeurs Locaux</span>
 					</h1>
-					<p className="text-xl text-gray-600 mb-8">
-						Découvrez les producteurs, transformateurs et restaurateurs locaux qui proposent
-						des produits frais et de qualité
+					<p className="text-xs sm:text-sm text-gray-500 font-medium max-w-md mx-auto">
+						Explorez les producteurs, transformateurs et restaurateurs près de chez vous proposant des produits frais et de qualité supérieure.
 					</p>
+				</div>
 
-					{/* Filtre de pays */}
-					<div className="flex justify-center mb-10">
-						<div className="relative inline-flex items-center">
-							<div className="relative">
-								<FiMapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 h-5 w-5 pointer-events-none" />
-								<select
-									value={selectedCountry}
-									onChange={(e) => handleCountryChange(e.target.value)}
-									className="pl-10 pr-10 py-3 bg-white border-2 border-green-100 rounded-2xl focus:ring-4 focus:ring-green-500/10 focus:border-green-500 appearance-none text-gray-700 font-bold shadow-sm transition-all cursor-pointer min-w-[240px]"
-								>
-									<option value="">Tous les pays / zones</option>
-									<optgroup label="Zones">
-										<option value="West Africa">Afrique de l'Ouest</option>
-										<option value="Central Africa">Afrique Centrale</option>
-									</optgroup>
-									<optgroup label="Pays">
-										<option value="SN">Sénégal</option>
-										<option value="CM">Cameroun</option>
-										<option value="CI">Côte d'Ivoire</option>
-										<option value="BF">Burkina Faso</option>
-										<option value="ML">Mali</option>
-										<option value="GH">Ghana</option>
-										<option value="NG">Nigeria</option>
-									</optgroup>
-								</select>
-								<FiChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
-							</div>
-							
-							{selectedCountry && (
-								<button
-									onClick={() => handleCountryChange("")}
-									className="ml-3 p-3 text-gray-400 hover:text-red-500 bg-white border-2 border-gray-100 rounded-2xl transition-colors shadow-sm"
-									title="Effacer le filtre"
-								>
-									<FiX className="h-5 w-5" />
-								</button>
-							)}
+				{/* Search & Filters Bar - Separate and smaller */}
+				<div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6 animate-slide-up">
+					{/* Search input */}
+					<div className="relative w-full sm:max-w-md bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+						<div className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400">
+							<Search className="h-4 w-4" />
 						</div>
+						<input
+							type="text"
+							placeholder="Rechercher par nom, ville, région..."
+							value={searchTerm}
+							onChange={(e) => setSearchTerm(e.target.value)}
+							className="w-full pl-10 pr-10 py-2.5 bg-transparent border-none focus:outline-none text-gray-900 placeholder:text-gray-400 text-xs font-semibold"
+						/>
+						{searchTerm && (
+							<button
+								onClick={() => setSearchTerm("")}
+								className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-500 transition-colors"
+							>
+								<FiX className="h-3.5 w-3.5" />
+							</button>
+						)}
 					</div>
 
-					</div>
-
-
-				{/* Filtres */}
-				<div className="flex justify-center mb-8">
-					<div className="bg-white rounded-lg shadow-sm p-1 flex overflow-x-auto">
-						<button
-							onClick={() => setFilter("all")}
-							className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-								filter === "all" ?
-									"bg-green-600 text-white"
-								:	"text-gray-600 hover:text-gray-900"
-							}`}
+					{/* Country select */}
+					<div className="relative w-full sm:w-[220px] bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+						<div className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-emerald-600 h-4 w-4 pointer-events-none">
+							<FiMapPin />
+						</div>
+						<select
+							value={selectedCountry}
+							onChange={(e) => handleCountryChange(e.target.value)}
+							className="w-full pl-10 pr-8 py-2.5 bg-transparent border-none focus:outline-none appearance-none text-gray-700 font-bold cursor-pointer text-xs"
 						>
-							Tous
-						</button>
-						<button
-							onClick={() => setFilter("producer")}
-							className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-								filter === "producer" ?
-									"bg-green-600 text-white"
-								:	"text-gray-600 hover:text-gray-900"
-							}`}
-						>
-							Producteurs
-						</button>
-						<button
-							onClick={() => setFilter("transformer")}
-							className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-								filter === "transformer" ?
-									"bg-purple-600 text-white"
-								:	"text-gray-600 hover:text-gray-900"
-							}`}
-						>
-							Transformateurs
-						</button>
-						<button
-							onClick={() => setFilter("restaurateur")}
-							className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-								filter === "restaurateur" ?
-									"bg-orange-600 text-white"
-								:	"text-gray-600 hover:text-gray-900"
-							}`}
-						>
-							Restaurateurs
-						</button>
+							<option value="">Tous les pays / zones</option>
+							<optgroup label="Zones">
+								<option value="West Africa">Afrique de l'Ouest</option>
+								<option value="Central Africa">Afrique Centrale</option>
+							</optgroup>
+							<optgroup label="Pays">
+								<option value="SN">Sénégal</option>
+								<option value="CM">Cameroun</option>
+								<option value="CI">Côte d'Ivoire</option>
+								<option value="BF">Burkina Faso</option>
+								<option value="ML">Mali</option>
+								<option value="GH">Ghana</option>
+								<option value="NG">Nigeria</option>
+							</optgroup>
+						</select>
+						<div className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
+							<FiChevronDown className="h-4 w-4" />
+						</div>
+						{selectedCountry && (
+							<button
+								onClick={() => handleCountryChange("")}
+								className="absolute right-8 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-500 transition-colors"
+								title="Effacer le filtre"
+							>
+								<FiX className="h-3.5 w-3.5" />
+							</button>
+						)}
 					</div>
 				</div>
 
-				{filteredVendeurs.length > 0 ?
-					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+				{/* Type tabs - Separate and smaller */}
+				<div className="flex justify-center gap-1.5 mb-8 animate-slide-up">
+					{[
+						{ id: "all", label: "Tous", color: "bg-emerald-600 text-white" },
+						{ id: "producer", label: "Producteurs", color: "bg-green-600 text-white" },
+						{ id: "transformer", label: "Transformateurs", color: "bg-purple-600 text-white" },
+						{ id: "restaurateur", label: "Restaurateurs", color: "bg-orange-600 text-white" }
+					].map((tab) => {
+						const isActive = filter === tab.id;
+						return (
+							<button
+								key={tab.id}
+								onClick={() => setFilter(tab.id)}
+								className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${
+									isActive ?
+										tab.color + " shadow-sm scale-105"
+									:	"bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-900 shadow-sm"
+								}`}
+							>
+								{tab.label}
+							</button>
+						);
+					})}
+				</div>
+
+				{/* Grid */}
+				{filteredVendeurs.length > 0 ? (
+					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 animate-slide-up">
 						{filteredVendeurs.map((vendeur) => {
 							const { averageDisplay, reviewCount } =
 								buildVendorRating(vendeur);
-							const typeBadge = getTypeBadge(vendeur.type);
-							const BadgeIcon = typeBadge.icon;
 
 							return (
 								<Link
@@ -407,12 +381,8 @@ const Vendeurs = () => {
 									className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden block group"
 								>
 									{/* Bannière en arrière-plan */}
-									<div
-										className={`relative h-[175px] bg-gradient-to-r ${getGradientColors(
-											vendeur.type,
-										)}`}
-									>
-										{vendeur.shopBanner ?
+									<div className="relative h-[175px] bg-gradient-to-r from-green-400 to-green-600">
+										{vendeur.shopBanner ? (
 											<img
 												src={vendeur.shopBanner}
 												alt="Bannière de la boutique"
@@ -425,35 +395,22 @@ const Vendeurs = () => {
 													// Image loaded successfully
 												}}
 											/>
-										:	<div
-												className={`w-full h-full bg-gradient-to-r ${getGradientColors(
-													vendeur.type,
-												)} flex items-center justify-center`}
-											>
-												<BadgeIcon className="w-12 h-12 text-white opacity-50" />
-											</div>
-										}
+										) : null}
+										<div
+											className="w-full h-full bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center"
+											style={{ display: vendeur.shopBanner ? "none" : "flex" }}
+										>
+											<FiPackage className="w-12 h-12 text-white opacity-50" />
+										</div>
 
 										{/* Overlay pour améliorer la lisibilité */}
 										<div className="absolute inset-0 bg-black bg-opacity-20"></div>
-
-										{/* Badge de type */}
-										<div className="absolute top-3 right-3">
-											<span
-												className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${typeBadge.color}`}
-											>
-												<BadgeIcon
-													className={`w-3 h-3 mr-1 ${typeBadge.iconColor}`}
-												/>
-												{typeBadge.label}
-											</span>
-										</div>
 
 										{/* Photo de profil en coin inférieur gauche */}
 										<div className="absolute bottom-5 left-5 transform -translate-x-2 translate-y-2">
 											<div className="w-16 h-16 rounded-full bg-white p-1 shadow-lg">
 												<div className="w-full h-full rounded-full bg-gray-200 overflow-hidden">
-													{vendeur.logo ?
+													{vendeur.logo ? (
 														<img
 															src={vendeur.logo}
 															alt={`${vendeur.displayName}`}
@@ -466,13 +423,16 @@ const Vendeurs = () => {
 																// Avatar loaded successfully
 															}}
 														/>
-													:	<div className="w-full h-full bg-purple-100 flex items-center justify-center">
-															<span className="text-sm font-bold text-purple-600">
-																{vendeur.displayName?.[0] ||
-																	vendeur.firstName?.[0]}
-															</span>
-														</div>
-													}
+													) : null}
+													<div
+														className="w-full h-full bg-purple-100 flex items-center justify-center"
+														style={{ display: vendeur.logo ? "none" : "flex" }}
+													>
+														<span className="text-sm font-bold text-purple-600">
+															{vendeur.displayName?.[0] ||
+																vendeur.firstName?.[0]}
+														</span>
+													</div>
 												</div>
 											</div>
 										</div>
@@ -484,10 +444,10 @@ const Vendeurs = () => {
 											<span className="truncate">{vendeur.displayName}</span>
 											{vendeur.isBio && (
 												<span
-													className="flex-shrink-0 inline-flex items-center px-2 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200"
-													title="Certifié Bio"
+													className="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200"
+													title="Producteur Bio Certifié"
 												>
-													<Leaf className="w-3 h-3 mr-1" />
+													<Leaf className="w-2.5 h-2.5 mr-1" />
 													BIO
 												</span>
 											)}
@@ -527,16 +487,17 @@ const Vendeurs = () => {
 							);
 						})}
 					</div>
-				:	<div className="text-center py-12">
-						<FiPackage className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-						<h3 className="text-lg font-medium text-gray-900 mb-2">
-							Aucun vendeur disponible
+				) : (
+					<div className="text-center py-20 bg-white/50 backdrop-blur-md rounded-[2rem] border border-gray-100 max-w-lg mx-auto">
+						<FiPackage className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+						<h3 className="text-lg font-[1000] text-gray-900 tracking-tight mb-1">
+							Aucun vendeur trouvé
 						</h3>
-						<p className="text-gray-500">
-							Revenez plus tard pour découvrir nos vendeurs.
+						<p className="text-xs text-gray-500 font-medium px-6">
+							Essayez de modifier vos filtres ou votre recherche pour découvrir d'autres partenaires.
 						</p>
 					</div>
-				}
+				)}
 			</div>
 		</div>
 	);

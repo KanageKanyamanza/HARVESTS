@@ -65,8 +65,13 @@ const SalesChart = ({ data, type = "line", color = "green" }) => {
 
 	if (type === "bar") {
 		return (
-			<ResponsiveContainer width="90%" height={300}>
-				<BarChart data={data}>
+			<ResponsiveContainer width="100%" height={300}>
+				<BarChart
+					data={data}
+					margin={{ top: 10, right: 16, left: 0, bottom: 8 }}
+					barCategoryGap="18%"
+					barSize={18}
+				>
 					<CartesianGrid strokeDasharray="3 3" />
 					<XAxis
 						dataKey="month"
@@ -74,6 +79,7 @@ const SalesChart = ({ data, type = "line", color = "green" }) => {
 						angle={-45}
 						textAnchor="end"
 						height={60}
+						interval={0}
 					/>
 					<YAxis tickFormatter={(value) => formatCurrency(value)} />
 					<Tooltip

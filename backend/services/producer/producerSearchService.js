@@ -38,6 +38,8 @@ function buildAllProducersQuery(queryParams) {
 	baseQueryObj.isActive = true;
 	baseQueryObj.isApproved = true;
 	baseQueryObj.isEmailVerified = true;
+	// Les producteurs doivent avoir une bannière (shopBanner) pour être visibles en public
+	baseQueryObj.shopBanner = { $exists: true, $ne: null };
 
 	return baseQueryObj;
 }
@@ -86,6 +88,8 @@ function buildSearchQuery(queryParams) {
 		isActive: true,
 		isApproved: true,
 		isEmailVerified: true,
+		// Les producteurs doivent avoir une bannière (shopBanner) pour être visibles en public
+		shopBanner: { $exists: true, $ne: null },
 	};
 
 	if (q) {
@@ -120,6 +124,8 @@ async function getProducersByRegion(region) {
 		isActive: true,
 		isApproved: true,
 		isEmailVerified: true,
+		// Les producteurs doivent avoir une bannière (shopBanner) pour être visibles en public
+		shopBanner: { $exists: true, $ne: null },
 	}).sort("-salesStats.averageRating");
 	return producers;
 }
@@ -130,6 +136,8 @@ async function getProducersByCrop(crop) {
 		isActive: true,
 		isApproved: true,
 		isEmailVerified: true,
+		// Les producteurs doivent avoir une bannière (shopBanner) pour être visibles en public
+		shopBanner: { $exists: true, $ne: null },
 	}).sort("-salesStats.averageRating");
 	return producers;
 }
