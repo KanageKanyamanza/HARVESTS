@@ -14,6 +14,8 @@ const {
 	globalLimiter,
 	suspiciousActivityLogger,
 	validateObjectId,
+	csrfProtection,
+	ensureCsrfCookie,
 } = require("./middleware/security");
 
 // Importation des routes
@@ -77,6 +79,9 @@ app.use(express.json({ limit: "10mb" })); // Limite la taille du body pour les u
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
+// Générer un token CSRF côté client si nécessaire
+app.use(ensureCsrfCookie);
+
 // Middleware de timeout pour les requêtes longues (comme l'envoi d'emails)
 app.use((req, res, next) => {
 	// Timeout de 3 minutes pour les routes d'authentification
@@ -104,6 +109,9 @@ app.use(mongoSanitize);
 
 // Logging des activités suspectes
 app.use(suspiciousActivityLogger);
+
+// Protection CSRF pour les routes POST/PUT/PATCH/DELETE
+app.use(csrfProtection);
 
 // Validation des IDs MongoDB dans les paramètres
 app.use(validateObjectId);

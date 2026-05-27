@@ -187,7 +187,10 @@ const AdminLayout = ({ children }) => {
 		<div className="min-h-screen bg-gray-50/50 dashboard-compact-mode">
 			{/* Banner Section */}
 			<div className="fixed top-0 left-0 right-0 z-[60]">
-				<PushNotificationBanner user={user} />
+				<PushNotificationBanner
+					user={user}
+					onClose={() => setShowPushBanner(false)}
+				/>
 			</div>
 
 			{/* Mobile sidebar */}

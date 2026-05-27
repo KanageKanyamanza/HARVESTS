@@ -5,6 +5,7 @@ const xssLib = require("xss");
 const hpp = require("hpp");
 const cors = require("cors");
 const compression = require("compression");
+const crypto = require("crypto");
 
 /**
  * Configuration CORS pour autoriser les requêtes depuis les domaines spécifiés
@@ -29,10 +30,10 @@ const corsOptions = {
 		if (!origin) return callback(null, true);
 
 		if (allowedOrigins.indexOf(origin) !== -1) {
-			callback(null, true);
-		} else {
-			callback(new Error("Non autorisé par CORS"));
+			return callback(null, true);
 		}
+
+		callback(new Error("Not allowed by CORS"), false);
 	},
 	credentials: true, // Permettre les cookies
 	methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -42,8 +43,10 @@ const corsOptions = {
 		"Content-Type",
 		"Accept",
 		"Authorization",
-		"Cache-Control",
 		"Pragma",
+		"Cache-Control",
+		"x-csrf-token",
+		"x-xsrf-token",
 	],
 	exposedHeaders: ["X-Total-Count"],
 };
@@ -385,6 +388,78 @@ const xssMiddleware = (req, res, next) => {
 		req.body = cleanObject(req.body, new WeakSet(), isTokenRoute);
 	}
 
+	// Nettoyer les données de req.query
+	if (req.query && typeof req.query === "object") {
+		req.query = cleanObject(req.query, new WeakSet(), isTokenRoute);
+	}
+
+	// Nettoyer les données de req.params
+	if (req.params && typeof req.params === "object") {
+		req.params = cleanObject(req.params, new WeakSet(), isTokenRoute);
+	}
+
+	next();
+};
+
+const CSRF_COOKIE_NAME = "harvests_csrf_token";
+const stateChangingMethods = ["POST", "PUT", "PATCH", "DELETE"];
+const csrfProtection = (req, res, next) => {
+	if (!req.path.startsWith("/api/")) {
+		return next();
+	}
+
+	if (!stateChangingMethods.includes(req.method)) {
+		return next();
+	}
+
+	if (req.path.includes("/webhook") || req.path.includes("/webhooks")) {
+		return next();
+	}
+
+	// Exempter les routes d'authentification publiques et les API JWT
+	if (
+		req.headers.authorization &&
+		req.headers.authorization.toLowerCase().startsWith("bearer ")
+	) {
+		return next();
+	}
+
+	if (
+		req.path.startsWith("/api/v1/auth") ||
+		req.path.startsWith("/api/v1/admin/auth")
+	) {
+		return next();
+	}
+
+	const headerToken =
+		req.headers["x-csrf-token"] ||
+		req.headers["x-xsrf-token"] ||
+		req.body?._csrf;
+	const cookieToken = req.cookies?.[CSRF_COOKIE_NAME];
+
+	if (!headerToken || !cookieToken || headerToken !== cookieToken) {
+		return res.status(403).json({
+			status: "error",
+			message: "Token CSRF invalide",
+		});
+	}
+
+	next();
+};
+
+const ensureCsrfCookie = (req, res, next) => {
+	const token = req.cookies?.[CSRF_COOKIE_NAME];
+	if (!token) {
+		const newToken = crypto.randomBytes(24).toString("hex");
+		res.cookie(CSRF_COOKIE_NAME, newToken, {
+			httpOnly: false,
+			secure: process.env.NODE_ENV === "production",
+			sameSite:
+				process.env.NODE_ENV === "production" ? "strict" : "none",
+			maxAge: 24 * 60 * 60 * 1000,
+		});
+	}
+
 	next();
 };
 
@@ -440,6 +515,9 @@ module.exports = {
 			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 		],
 	},
+	// Middleware CSRF
+	csrfProtection,
+	ensureCsrfCookie,
 
 	// Tailles de fichiers
 	fileSizes: {

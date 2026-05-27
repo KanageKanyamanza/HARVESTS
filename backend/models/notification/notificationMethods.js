@@ -180,16 +180,19 @@ function addNotificationMethods(notificationSchema) {
 			const Model = this.recipientModel === "Admin" ? Admin : User;
 
 			// Récupérer l'utilisateur/admin avec ses souscriptions
-			// IMPORTANT: Sélectionner explicitement webPushSubscriptions car Mongoose peut ne pas le charger automatiquement
+			// IMPORTANT: Sélectionner explicitement webPushSubscriptions et fcmTokens car Mongoose peut ne pas les charger automatiquement
 			const recipient = await Model.findById(this.recipient)
-				.select("email webPushSubscriptions notificationSettings preferences")
+				.select("email fcmTokens webPushSubscriptions notificationSettings preferences")
 				.lean();
 
-			if (
-				!recipient ||
-				!recipient.webPushSubscriptions ||
-				recipient.webPushSubscriptions.length === 0
-			) {
+			if (!recipient) {
+				return false;
+			}
+
+			const hasWebPush = recipient.webPushSubscriptions && recipient.webPushSubscriptions.length > 0;
+			const hasFCM = recipient.fcmTokens && recipient.fcmTokens.length > 0;
+
+			if (!hasWebPush && !hasFCM) {
 				return false;
 			}
 
@@ -236,26 +239,70 @@ function addNotificationMethods(notificationSchema) {
 			// Récupérer le nombre de notifications non lues pour le badge
 			const unreadCount = await this.constructor.getUnreadCount(this.recipient);
 
-			// Préparer les données pour le service
-			const notificationPayload = {
-				title: this.title,
-				body: this.message,
-				icon: "/logo.png",
-				// Chercher une action "view" pour l'URL de redirection
-				clickAction: this.actions?.find((a) => a.type === "view")?.url || "/",
-				actions: this.actions,
-				image: this.data?.image || null,
-				unreadCount: unreadCount,
-			};
+			let webPushSuccess = false;
+			let fcmPushSuccess = false;
 
-			// Utiliser le service existant
-			const result = await NotificationService.sendWebPushNotification(
-				recipient.webPushSubscriptions,
-				notificationPayload,
-				this.data
-			);
+			// 1. Envoyer via Web Push si disponible
+			if (hasWebPush) {
+				try {
+					const notificationPayload = {
+						title: this.title,
+						body: this.message,
+						icon: "/logo.png",
+						// Chercher une action "view" pour l'URL de redirection
+						clickAction: this.actions?.find((a) => a.type === "view")?.url || "/",
+						actions: this.actions,
+						image: this.data?.image || null,
+						unreadCount: unreadCount,
+					};
 
-			if (result && result.successCount > 0) {
+					const result = await NotificationService.sendWebPushNotification(
+						recipient.webPushSubscriptions,
+						notificationPayload,
+						this.data
+					);
+					if (result && result.successCount > 0) {
+						webPushSuccess = true;
+					}
+				} catch (err) {
+					console.error("❌ Erreur envoi Web Push dans sendViaPush:", err.message);
+				}
+			}
+
+			// 2. Envoyer via FCM si disponible
+			if (hasFCM) {
+				try {
+					const fcmNotification = {
+						title: this.title,
+						body: this.message,
+						image: this.data?.image || null,
+						clickAction: this.actions?.find((a) => a.type === "view")?.url || null,
+					};
+
+					// Conversion de data en chaînes simples car FCM n'accepte que des chaînes plates
+					const fcmData = {};
+					if (this.data) {
+						Object.entries(this.data).forEach(([key, val]) => {
+							if (val !== null && val !== undefined) {
+								fcmData[key] = typeof val === "object" ? JSON.stringify(val) : String(val);
+							}
+						});
+					}
+
+					const result = await NotificationService.sendFCMNotification(
+						recipient.fcmTokens,
+						fcmNotification,
+						fcmData
+					);
+					if (result && result.successCount > 0) {
+						fcmPushSuccess = true;
+					}
+				} catch (err) {
+					console.error("❌ Erreur envoi FCM Push dans sendViaPush:", err.message);
+				}
+			}
+
+			if (webPushSuccess || fcmPushSuccess) {
 				this.channels.push.sent = true;
 				this.channels.push.sentAt = new Date();
 

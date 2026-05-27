@@ -158,6 +158,63 @@ mongoose
 		};
 
 		await createAdminIfNeeded();
+
+		// Séquence d'initialisation des bannières par défaut pour restaurateurs et producteurs
+		const initDefaultBanners = async () => {
+			try {
+				const Producer = require("./models/Producer");
+				const Restaurateur = require("./models/Restaurateur");
+				const Transformer = require("./models/Transformer");
+
+				// 1. Producteurs
+				const pResult = await Producer.updateMany(
+					{
+						$or: [
+							{ shopBanner: null },
+							{ shopBanner: { $exists: false } },
+							{ shopBanner: "" }
+						]
+					},
+					{ $set: { shopBanner: "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1200&q=80" } }
+				);
+				if (pResult.modifiedCount > 0) {
+					console.log(`✅ [Bannières] ${pResult.modifiedCount} producteurs ont reçu une bannière par défaut.`);
+				}
+
+				// 2. Restaurateurs
+				const rResult = await Restaurateur.updateMany(
+					{
+						$or: [
+							{ restaurantBanner: null },
+							{ restaurantBanner: { $exists: false } },
+							{ restaurantBanner: "" }
+						]
+					},
+					{ $set: { restaurantBanner: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80" } }
+				);
+				if (rResult.modifiedCount > 0) {
+					console.log(`✅ [Bannières] ${rResult.modifiedCount} restaurateurs ont reçu une bannière par défaut.`);
+				}
+
+				// 3. Transformateurs
+				const tResult = await Transformer.updateMany(
+					{
+						$or: [
+							{ shopBanner: null },
+							{ shopBanner: { $exists: false } },
+							{ shopBanner: "" }
+						]
+					},
+					{ $set: { shopBanner: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1200&q=80" } }
+				);
+				if (tResult.modifiedCount > 0) {
+					console.log(`✅ [Bannières] ${tResult.modifiedCount} transformateurs ont reçu une bannière par défaut.`);
+				}
+			} catch (err) {
+				console.error("⚠️ [Bannières] Erreur lors de l'initialisation des bannières:", err.message);
+			}
+		};
+		await initDefaultBanners();
 	})
 	.catch((err) => {
 		console.error("❌ Erreur de connexion à la base de données:", err);

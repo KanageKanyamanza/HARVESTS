@@ -26,8 +26,22 @@ const PushNotificationBanner = ({ user, onClose }) => {
 		checkStatus();
 	}, []);
 
+	const isVisible = Boolean(
+		user &&
+		status.supported &&
+		!status.subscribed &&
+		!dismissed &&
+		status.permission !== "denied"
+	);
+
+	useEffect(() => {
+		if (!isVisible && onClose) {
+			onClose();
+		}
+	}, [isVisible, onClose]);
+
 	// Ne pas afficher si : non supporté, déjà abonné, fermé, ou pas d'user
-	if (!user || !status.supported || status.subscribed || dismissed || status.permission === 'denied') return null;
+	if (!isVisible) return null;
 
 	const handleEnable = async () => {
 		setProcessing(true);

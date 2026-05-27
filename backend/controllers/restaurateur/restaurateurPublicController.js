@@ -53,7 +53,11 @@ exports.getRestaurateursByRegion = catchAsync(async (req, res, next) => {
 exports.getRestaurateursByCuisine = catchAsync(async (req, res, next) => {
   const restaurateurs = await Restaurateur.find({
     cuisineTypes: req.params.cuisine,
-    isActive: true, isApproved: true, isEmailVerified: true,
+    isActive: true, 
+    isApproved: true, 
+    isEmailVerified: true,
+    // Les restaurateurs doivent avoir une bannière pour être visibles en public
+    restaurantBanner: { $exists: true, $ne: null },
   }).sort('-businessStats.supplierRating');
 
   res.status(200).json({

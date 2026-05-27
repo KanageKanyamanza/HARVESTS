@@ -6,10 +6,12 @@
 @layer base {
 	html {
 		font-family: Inter, system-ui, sans-serif;
+		background-color: #f3f9e5;
 	}
 
 	body {
 		@apply antialiased text-xs md:text-sm;
+		background-color: #f3f9e5;
 	}
 
 	h1,

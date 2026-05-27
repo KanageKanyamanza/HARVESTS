@@ -21,7 +21,7 @@ const { info, error } = require("../config/logger");
 const emailService = require("../utils/email");
 
 // Configuration Firebase Admin SDK
-if (process.env.FCM_SERVER_KEY && admin) {
+if (process.env.FIREBASE_PROJECT_ID && admin) {
 	try {
 		const serviceAccount = {
 			type: "service_account",

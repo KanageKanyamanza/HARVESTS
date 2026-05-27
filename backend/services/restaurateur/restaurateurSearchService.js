@@ -29,13 +29,21 @@ function buildAllRestaurateursQuery(queryParams) {
   queryObj.isActive = true;
   queryObj.isApproved = true;
   queryObj.isEmailVerified = true;
+  // Les restaurateurs doivent avoir une bannière pour être visibles en public
+  queryObj.restaurantBanner = { $exists: true, $ne: null };
 
   return queryObj;
 }
 
 function buildSearchQuery(queryParams) {
   const { q, region, restaurantType, cuisineType } = queryParams;
-  let searchQuery = { isActive: true, isApproved: true, isEmailVerified: true };
+  let searchQuery = { 
+    isActive: true, 
+    isApproved: true, 
+    isEmailVerified: true,
+    // Les restaurateurs doivent avoir une bannière pour être visibles en public
+    restaurantBanner: { $exists: true, $ne: null },
+  };
 
   if (q) {
     searchQuery.$or = [
@@ -83,7 +91,11 @@ async function searchRestaurateurs(queryParams) {
 async function getRestaurateursByRegion(region) {
   const restaurateurs = await Restaurateur.find({
     'address.region': region,
-    isActive: true, isApproved: true, isEmailVerified: true,
+    isActive: true, 
+    isApproved: true, 
+    isEmailVerified: true,
+    // Les restaurateurs doivent avoir une bannière pour être visibles en public
+    restaurantBanner: { $exists: true, $ne: null },
   }).sort('-businessStats.supplierRating');
   return restaurateurs;
 }
