@@ -214,7 +214,7 @@ mongoose
 				console.error("⚠️ [Bannières] Erreur lors de l'initialisation des bannières:", err.message);
 			}
 		};
-		await initDefaultBanners();
+		// await initDefaultBanners(); // Désactivé sur demande pour ne plus attribuer de bannière par défaut
 	})
 	.catch((err) => {
 		console.error("❌ Erreur de connexion à la base de données:", err);

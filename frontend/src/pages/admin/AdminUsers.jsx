@@ -36,6 +36,7 @@ const AdminUsers = () => {
 	const [statusFilter, setStatusFilter] = useState("");
 	const [currentPage, setCurrentPage] = useState(1);
 	const [totalPages, setTotalPages] = useState(1);
+	const [totalUsers, setTotalUsers] = useState(0);
 	const [selectedUsers, setSelectedUsers] = useState([]);
 	const debouncedSearchTerm = useDebounce(searchTerm, 500);
 	const [viewMode, setViewMode] = useState(() => {
@@ -65,7 +66,7 @@ const AdminUsers = () => {
 			setLoading(true);
 			const params = {
 				page: currentPage,
-				limit: 10,
+				limit: 16,
 				search: debouncedSearchTerm,
 				role: roleFilter,
 				status: statusFilter,
@@ -75,6 +76,7 @@ const AdminUsers = () => {
 			if (response.data && response.data.users) {
 				setUsers(response.data.users || []);
 				setTotalPages(response.data.pagination?.totalPages || 1);
+				setTotalUsers(response.data.pagination?.totalUsers || 0);
 			} else if (
 				response.data &&
 				response.data.data &&
@@ -82,14 +84,17 @@ const AdminUsers = () => {
 			) {
 				setUsers(response.data.data.users || []);
 				setTotalPages(response.data.data.pagination?.totalPages || 1);
+				setTotalUsers(response.data.data.pagination?.totalUsers || 0);
 			} else {
 				setUsers([]);
 				setTotalPages(1);
+				setTotalUsers(0);
 			}
 		} catch (error) {
 			console.error("Erreur lors du chargement des utilisateurs:", error);
 			setUsers([]);
 			setTotalPages(1);
+			setTotalUsers(0);
 		} finally {
 			setLoading(false);
 		}
@@ -358,7 +363,7 @@ const AdminUsers = () => {
 									Liste des Membres
 								</h3>
 								<p className="text-[9px] font-black text-gray-400 mt-0.5 uppercase tracking-[0.2em]">
-									Total: {users.length} utilisateurs
+									Total: {totalUsers} utilisateurs
 								</p>
 							</div>
 
