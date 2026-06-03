@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { productService } from '../../services';
 import { toPlainText } from '../../utils/textHelpers';
+import { Leaf } from 'lucide-react';
 import LoadingSpinner from './LoadingSpinner';
 
 // Composant pour gérer les images des produits
@@ -31,7 +32,7 @@ const ProductImage = ({ product, className = "" }) => {
     return (
       <div className={`${className} bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center`}>
         <div className="text-center">
-          <div className="text-green-600 text-lg mb-1">🌱</div>
+          <div className="text-green-600 flex justify-center mb-1"><Leaf size={20} /></div>
           <span className="text-green-700 text-xs font-medium">Bio</span>
         </div>
       </div>

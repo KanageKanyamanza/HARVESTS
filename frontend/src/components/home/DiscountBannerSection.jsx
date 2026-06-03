@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Leaf, Handshake, Star } from "lucide-react";
 import DiscountBanner from "../../assets/images/Discount-Bannar.webp";
 import harvestIntroVideo from "../../assets/videos/harvestintro.mp4";
 
@@ -56,7 +56,7 @@ const DiscountBannerSection = () => {
 								<div className="space-y-4 mb-8">
 									<div className="flex items-center">
 										<div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center mr-4">
-											<span className="text-sm">🌱</span>
+											<Leaf className="w-5 h-5 text-white" />
 										</div>
 										<span className="text-lg">
 											Agriculture durable et respectueuse
@@ -64,7 +64,7 @@ const DiscountBannerSection = () => {
 									</div>
 									<div className="flex items-center">
 										<div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center mr-4">
-											<span className="text-sm">🤝</span>
+											<Handshake className="w-5 h-5 text-white" />
 										</div>
 										<span className="text-lg">
 											Connexion directe producteur-consommateur
@@ -72,7 +72,7 @@ const DiscountBannerSection = () => {
 									</div>
 									<div className="flex items-center">
 										<div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center mr-4">
-											<span className="text-sm">⭐</span>
+											<Star className="w-5 h-5 text-white" />
 										</div>
 										<span className="text-lg">
 											Qualité garantie et produits frais

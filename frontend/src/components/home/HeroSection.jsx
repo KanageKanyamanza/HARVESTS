@@ -96,7 +96,7 @@ const HeroSection = () => {
 			))}
 
 			<div className="absolute bg-black inset-0 bg-pattern opacity-50"></div>
-			<div className="relative container-xl flex flex-1 py-16 md:py-20">
+			<div className="relative container-xl flex flex-1 pt-16 pb-40 md:pt-20 md:pb-48">
 				<div
 					className={`flex w-full md:max-w-4xl flex-col gap-6 ${position.wrapper}`}
 				>
@@ -132,7 +132,7 @@ const HeroSection = () => {
 				</div>
 
 				{/* Lien vers la section vidéo en bas à droite */}
-				<div className="absolute bottom-6 sm:right-24 md:bottom-10 md:right-[80px]">
+				<div className="absolute bottom-4 sm:right-24 md:bottom-6 md:right-[80px] z-10">
 					<a
 						href="#why-harvests"
 						onClick={(e) => {

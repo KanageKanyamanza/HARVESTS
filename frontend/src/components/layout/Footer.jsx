@@ -172,135 +172,151 @@ const Footer = () => {
 
 	return (
 		<footer className="bg-black text-white">
-			<div className="container-xl">
-				<div className="py-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-					<div className="lg:col-span-1">
-						<Link to="/" className="inline-block mb-4">
-							<img src={logo} alt="Harvests Logo" className="h-10 w-auto" />
-						</Link>
-						<p className="text-gray-400 text-sm mb-6">
-							Produits agricoles frais.
-							<br />
-							Partenaires de la chaine de valeur alimentaire.
-						</p>
+			{/* Back to top button (Amazon style) */}
+			<div 
+				className="bg-gray-800 hover:bg-gray-700 text-center py-4 cursor-pointer text-sm font-medium transition-colors"
+				onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+			>
+				Retour en haut
+			</div>
 
-						<div className="space-y-2 text-sm text-gray-400">
-							<p className="font-semibold text-white/90">
-								UBUNTU BUSINESS BUILDERS (UBB) – SARL
-							</p>
-							<div className="flex items-center space-x-2">
-								<MapPin className="h-4 w-4 flex-shrink-0" />
-								<span>{contactInfo.address}</span>
-							</div>
-							<div className="text-xs space-y-1 opacity-80 mb-2">
-								<p>RCCM : SN.DKR.2026.B.1650</p>
-								<p>NINEA : 012753069</p>
-							</div>
-
-							{contactInfo.phones.map((phone, index) => (
-								<a
-									key={index}
-									href={`tel:${phone.replace(/\s/g, "")}`}
-									className="flex items-center space-x-2 hover:text-primary-500 transition-colors"
-								>
-									<Phone className="h-4 w-4 flex-shrink-0" />
-									<span>{phone}</span>
-								</a>
-							))}
-							<a
-								href={`mailto:${contactInfo.email}`}
-								className="flex items-center space-x-2 hover:text-primary-500 transition-colors"
-							>
-								<Mail className="h-4 w-4 flex-shrink-0" />
-								<span>{contactInfo.email}</span>
-							</a>
-						</div>
-					</div>
-
+			<div className="container-xl mx-auto">
+				{/* 4-Column Layout */}
+				<div className="py-10 px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+					
+					{/* Column 1: Contact Info */}
 					<div>
-						<h3 className="font-semibold text-white text-base mb-4">
-							Mon Compte
-						</h3>
-						<ul className="space-y-2">
-							{myAccountLinks.map((link) => (
-								<li key={link.name}>
-									<Link
-										to={link.href}
-										className="text-gray-400 hover:text-primary-500 transition-colors text-sm"
-									>
-										{link.name}
-									</Link>
-								</li>
-							))}
+						<h3 className="font-bold text-white text-base mb-4 leading-relaxed">UBUNTU BUSINESS BUILDERS (UBB) – SARL</h3>
+						<ul className="space-y-3">
+							<li className="flex items-start text-gray-400 text-sm">
+								<MapPin className="h-5 w-5 mr-3 shrink-0" />
+								<span>Dakar, Sénégal</span>
+							</li>
+							<li className="text-gray-400 text-sm ml-8">
+								RCCM : SN.DKR.2026.B.1650
+							</li>
+							<li className="text-gray-400 text-sm ml-8">
+								NINEA : 012753069
+							</li>
+							<li className="flex items-center text-gray-400 text-sm">
+								<Phone className="h-5 w-5 mr-3 shrink-0" />
+								<a href="tel:+221771970713" className="hover:text-white transition-colors">+221 771970713</a>
+							</li>
+							<li className="flex items-center text-gray-400 text-sm">
+								<Phone className="h-5 w-5 mr-3 shrink-0" />
+								<a href="tel:+221774536704" className="hover:text-white transition-colors">+221 774536704</a>
+							</li>
+							<li className="flex items-center text-gray-400 text-sm">
+								<Mail className="h-5 w-5 mr-3 shrink-0" />
+								<a href="mailto:contact@harvests.site" className="hover:text-white transition-colors">contact@harvests.site</a>
+							</li>
 						</ul>
 					</div>
 
+					{/* Column 2: Gagnez de l'argent avec nous */}
 					<div>
-						<h3 className="font-semibold text-white text-base mb-4">Aide</h3>
+						<h3 className="font-bold text-white text-base mb-4">Gagnez de l'argent avec nous</h3>
 						<ul className="space-y-2">
-							{footerLinks.help.map((link) => (
-								<li key={link.name}>
-									<Link
-										to={link.href}
-										className="text-gray-400 hover:text-primary-500 transition-colors text-sm"
-									>
-										{link.name}
-									</Link>
-								</li>
-							))}
+							<li><Link to="/register" className="text-gray-300 hover:underline text-sm">Devenir Producteur</Link></li>
+							<li><Link to="/register" className="text-gray-300 hover:underline text-sm">Devenir Transporteur</Link></li>
+							<li><Link to="/producteurs" className="text-gray-300 hover:underline text-sm">Nos partenaires</Link></li>
+							<li><Link to="/pricing" className="text-gray-300 hover:underline text-sm">Tarifs et commissions</Link></li>
 						</ul>
 					</div>
 
+					{/* Column 3: Catégories & Découverte */}
 					<div>
-						<h3 className="font-semibold text-white text-base mb-4">
-							Catégories
-						</h3>
+						<h3 className="font-bold text-white text-base mb-4">Catégories & Découverte</h3>
 						<ul className="space-y-2">
 							{displayedCategories.map((cat) => (
 								<li key={cat.slug}>
 									<Link
 										to={`/categories/${cat.slug}`}
-										className="text-gray-400 hover:text-primary-500 transition-colors text-sm"
+										className="text-gray-300 hover:underline text-sm"
 									>
 										{cat.name}
 									</Link>
 								</li>
 							))}
+							<li><Link to="/categories" className="text-gray-300 hover:underline text-sm">Voir toutes les catégories</Link></li>
 						</ul>
+					</div>
 
-						<div className="mt-8 pt-6 border-t border-gray-800">
-							<h4 className="text-sm font-semibold mb-3 text-white">
-								Newsletter
+					{/* Column 4: Besoin d'aide ? */}
+					<div>
+						<h3 className="font-bold text-white text-base mb-4">Besoin d'aide ?</h3>
+						<ul className="space-y-2">
+							{myAccountLinks.map((link) => (
+								<li key={link.name}>
+									<Link
+										to={link.href}
+										className="text-gray-300 hover:underline text-sm"
+									>
+										{link.name}
+									</Link>
+								</li>
+							))}
+							{footerLinks.help.slice(3).map((link) => ( // FAQs, Conditions, Privacy
+								<li key={link.name}>
+									<Link
+										to={link.href}
+										className="text-gray-300 hover:underline text-sm"
+									>
+										{link.name}
+									</Link>
+								</li>
+							))}
+						</ul>
+					</div>
+				</div>
+
+				<div className="border-t border-gray-800 py-8 px-4 sm:px-6 lg:px-8">
+					<div className="flex flex-col items-center gap-6">
+						{/* Logo and Selectors */}
+						<div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
+							<Link to="/">
+								<img src={logo} alt="Harvests Logo" className="h-8 w-auto" />
+							</Link>
+							
+							<div className="flex items-center gap-4">
+								<div className="border border-gray-500 rounded px-3 py-2 flex items-center cursor-pointer hover:border-white transition-colors">
+									<span className="text-sm text-gray-300">Français</span>
+								</div>
+								<div className="border border-gray-500 rounded px-3 py-2 flex items-center cursor-pointer hover:border-white transition-colors">
+									<span className="text-sm text-gray-300 font-bold">FCFA - Franc CFA</span>
+								</div>
+							</div>
+						</div>
+
+						{/* Newsletter (moved below selectors) */}
+						<div className="w-full max-w-md">
+							<h4 className="text-sm font-semibold mb-2 text-center text-white">
+								Restez informé(e) de nos actualités
 							</h4>
-							<p className="text-xs text-gray-400 mb-3">
-								Inscrivez-vous pour recevoir nos dernières actualités.
-							</p>
 							<form onSubmit={handleSubscribe} className="relative">
 								<div className="flex">
 									<input
 										type="email"
 										value={email}
 										onChange={(e) => setEmail(e.target.value)}
-										placeholder="Votre email"
-										className="w-full bg-gray-800 text-white text-sm px-4 py-2 rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary-500 border border-gray-700 border-r-0 placeholder-gray-500"
+										placeholder="Votre adresse e-mail"
+										className="w-full bg-white text-black text-sm px-4 py-2 rounded-l focus:outline-none focus:ring-2 focus:ring-primary-500 border-none"
 										required
 									/>
 									<button
 										type="submit"
 										disabled={subscribeStatus === "loading"}
-										className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 rounded-r-md transition-colors flex items-center justify-center min-w-[40px]"
+										className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-r transition-colors flex items-center justify-center min-w-[100px] font-bold text-sm"
 									>
 										{subscribeStatus === "loading" ?
 											<Loader2 className="h-4 w-4 animate-spin" />
-										:	<ArrowRight className="h-4 w-4" />}
+										:	"S'inscrire"}
 									</button>
 								</div>
 								{subscribeMessage && (
 									<p
-										className={`text-xs mt-2 ${
-											subscribeStatus === "success" ? "text-green-400" : (
-												"text-red-400"
-											)
+										className={`text-xs mt-2 text-center ${
+											subscribeStatus === "success" ? "text-green-400" : "text-red-400"
 										}`}
 									>
 										{subscribeMessage}
@@ -311,24 +327,19 @@ const Footer = () => {
 					</div>
 				</div>
 
-				<div className="py-6 border-t border-gray-800 dark:border-gray-700 justify-center content-center text-center">
-					<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-						<div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4">
-							<p className="text-gray-500 text-sm">
-								© {currentYear} Harvests. Tous droits réservés.
-							</p>
+				{/* Bottom Links & Copyright */}
+				<div className="bg-black py-6 px-4 sm:px-6 lg:px-8 border-t border-gray-800">
+					<div className="flex flex-col items-center gap-4 text-center">
+						<div className="flex flex-wrap justify-center gap-4 text-xs text-gray-300">
+							<Link to="/terms" className="hover:underline">Conditions générales de vente</Link>
+							<Link to="/privacy" className="hover:underline">Vos informations personnelles</Link>
+							<Link to="/cookies" className="hover:underline">Cookies</Link>
+							<Link to="/ads" className="hover:underline">Annonces basées sur vos centres d'intérêt</Link>
 						</div>
-
-						<div className="flex flex-wrap items-center justify-center content-center gap-2">
-							<p className="text-gray-500 text-sm flex items-center">
-								Un produit de{" "}
-								<span className="text-yellow-200 font-bold ml-1"> UBB </span>
-							</p>
-							<SocialLinks
-								variant="minimal"
-								size="sm"
-								className="justify-start"
-							/>
+						<div className="text-xs text-gray-400 flex flex-col md:flex-row items-center gap-2">
+							<span>© {currentYear} Harvests. Tous droits réservés.</span>
+							<span className="hidden md:inline">|</span>
+							<span className="flex items-center">Un produit de <span className="text-yellow-200 font-bold ml-1"> UBB </span></span>
 						</div>
 					</div>
 				</div>

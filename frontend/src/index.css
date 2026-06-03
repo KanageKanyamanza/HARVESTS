@@ -6,12 +6,12 @@
 @layer base {
 	html {
 		font-family: Inter, system-ui, sans-serif;
-		background-color: #f3f9e5;
+		background-color: #ffffff;
 	}
 
 	body {
 		@apply antialiased text-xs md:text-sm;
-		background-color: #f3f9e5;
+		background-color: #ffffff;
 	}
 
 	h1,
@@ -325,7 +325,7 @@
 	}
 
 	.bg-harvests-light {
-		background-color: #f3f9e5 !important;
+		background-color: #ffffff !important;
 	}
 
 	.text-harvests-green {

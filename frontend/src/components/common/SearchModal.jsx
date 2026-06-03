@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { X, Search } from 'lucide-react';
+import { X, Search, Leaf } from 'lucide-react';
 import { productService } from '../../services';
 import { toPlainText } from '../../utils/textHelpers';
 import LoadingSpinner from './LoadingSpinner';
@@ -30,7 +30,7 @@ const ProductImage = ({ product, className = "" }) => {
     return (
       <div className={`${className} bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center`}>
         <div className="text-center">
-          <div className="text-green-600 text-lg mb-1">🌱</div>
+          <div className="text-green-600 flex justify-center mb-1"><Leaf size={20} /></div>
           <span className="text-green-700 text-xs font-medium">Bio</span>
         </div>
       </div>

@@ -87,7 +87,7 @@ const FeaturedProductsSection = () => {
 				) : (
 					<>
 						{/* Grille de produits */}
-						<div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-5">
+						<div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-6 mb-5">
 							{products.map((product) => (
 								<ProductCard key={product._id} product={product} />
 							))}

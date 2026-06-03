@@ -168,7 +168,7 @@ function App() {
 											</Helmet>
 											<ResourcePreloader />
 											<ScrollToTop />
-											<div className="App bg-[#f3f9e5]">
+											<div className="App bg-white">
 												<UserTypeRedirect>
 													<Suspense fallback={<RouteFallback />}>
 														<AppRoutes />
