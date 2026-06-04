@@ -18,6 +18,7 @@ module.exports = {
   getNewProducts: productPublicController.getNewProducts,
   getCategories: productPublicController.getCategories,
   getProductsByCategory: productPublicController.getProductsByCategory,
+  getFlashSales: productPublicController.getFlashSales,
   
   // Producer routes
   getMyProducts: productProducerController.getMyProducts,

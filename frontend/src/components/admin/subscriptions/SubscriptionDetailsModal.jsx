@@ -1,5 +1,5 @@
 import React from "react";
-import { XCircle, Banknote, CreditCard } from "lucide-react";
+import { XCircle, Banknote, CreditCard, CheckCircle, PauseCircle, PlayCircle } from "lucide-react";
 import {
 	formatPrice,
 	formatDate,
@@ -199,9 +199,9 @@ const SubscriptionDetailsModal = ({ subscription, onClose, onUpdate }) => {
 							{subscription.status === "pending" && (
 								<button
 									onClick={() => handleStatusUpdate("active", "completed")}
-									className="flex-1 px-6 py-4 bg-emerald-500 text-white rounded-2xl hover:bg-emerald-600 font-bold text-sm transition-all shadow-lg shadow-emerald-200 transform hover:-translate-y-1"
+									className="flex-1 px-6 py-4 bg-emerald-500 text-white rounded-2xl hover:bg-emerald-600 font-bold text-sm transition-all shadow-lg shadow-emerald-200 transform hover:-translate-y-1 flex items-center justify-center gap-2"
 								>
-									✅ Activer
+									<CheckCircle className="w-5 h-5" /> Activer
 								</button>
 							)}
 							{subscription.status === "active" && (
@@ -209,9 +209,9 @@ const SubscriptionDetailsModal = ({ subscription, onClose, onUpdate }) => {
 									onClick={() =>
 										handleStatusUpdate("suspended", subscription.paymentStatus)
 									}
-									className="flex-1 px-6 py-4 bg-amber-500 text-white rounded-2xl hover:bg-amber-600 font-bold text-sm transition-all shadow-lg shadow-amber-200 transform hover:-translate-y-1"
+									className="flex-1 px-6 py-4 bg-amber-500 text-white rounded-2xl hover:bg-amber-600 font-bold text-sm transition-all shadow-lg shadow-amber-200 transform hover:-translate-y-1 flex items-center justify-center gap-2"
 								>
-									⏸️ Suspendre
+									<PauseCircle className="w-5 h-5" /> Suspendre
 								</button>
 							)}
 							{subscription.status === "suspended" && (
@@ -219,9 +219,9 @@ const SubscriptionDetailsModal = ({ subscription, onClose, onUpdate }) => {
 									onClick={() =>
 										handleStatusUpdate("active", subscription.paymentStatus)
 									}
-									className="flex-1 px-6 py-4 bg-emerald-500 text-white rounded-2xl hover:bg-emerald-600 font-bold text-sm transition-all shadow-lg shadow-emerald-200 transform hover:-translate-y-1"
+									className="flex-1 px-6 py-4 bg-emerald-500 text-white rounded-2xl hover:bg-emerald-600 font-bold text-sm transition-all shadow-lg shadow-emerald-200 transform hover:-translate-y-1 flex items-center justify-center gap-2"
 								>
-									▶️ Réactiver
+									<PlayCircle className="w-5 h-5" /> Réactiver
 								</button>
 							)}
 							{subscription.paymentStatus === "pending" && (
@@ -229,9 +229,9 @@ const SubscriptionDetailsModal = ({ subscription, onClose, onUpdate }) => {
 									onClick={() =>
 										handleStatusUpdate(subscription.status, "completed")
 									}
-									className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-bold text-sm transition-all shadow-lg shadow-blue-200 transform hover:-translate-y-1"
+									className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 font-bold text-sm transition-all shadow-lg shadow-blue-200 transform hover:-translate-y-1 flex items-center justify-center gap-2"
 								>
-									💰 Marquer payé
+									<Banknote className="w-5 h-5" /> Marquer payé
 								</button>
 							)}
 						</div>

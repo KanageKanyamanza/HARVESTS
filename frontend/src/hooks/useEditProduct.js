@@ -26,6 +26,9 @@ export const useEditProduct = () => {
 		unit: "kg",
 		currency: DEFAULT_CURRENCY,
 		status: "draft",
+		flashSaleIsActive: false,
+		flashSaleDiscount: "",
+		flashSaleEndDate: "",
 	});
 
 	// Charger le produit à modifier
@@ -56,6 +59,9 @@ export const useEditProduct = () => {
 						unit: formattedProduct.unit || "kg",
 						currency: formattedProduct.currency || DEFAULT_CURRENCY,
 						status: formattedProduct.status || "draft",
+						flashSaleIsActive: formattedProduct.flashSale?.isActive || false,
+						flashSaleDiscount: formattedProduct.flashSale?.discountPercentage || "",
+						flashSaleEndDate: formattedProduct.flashSale?.endDate ? new Date(formattedProduct.flashSale.endDate).toISOString().split('T')[0] : "",
 					});
 
 					if (productData.images && productData.images.length > 0) {
@@ -84,8 +90,9 @@ export const useEditProduct = () => {
 	}, [id]);
 
 	const handleInputChange = (e) => {
-		const { name, value } = e.target;
-		setFormData((prev) => ({ ...prev, [name]: value }));
+		const { name, value, type, checked } = e.target;
+		const val = type === "checkbox" ? checked : value;
+		setFormData((prev) => ({ ...prev, [name]: val }));
 		if (errors[name]) {
 			setErrors((prev) => ({ ...prev, [name]: "" }));
 		}
@@ -178,6 +185,11 @@ export const useEditProduct = () => {
 				unit: formData.unit || "unité",
 				currency: formData.currency || DEFAULT_CURRENCY,
 				images: productImages,
+				flashSale: {
+					isActive: formData.flashSaleIsActive,
+					discountPercentage: formData.flashSaleDiscount ? parseInt(formData.flashSaleDiscount) : 0,
+					endDate: formData.flashSaleEndDate || null
+				}
 			};
 
 			await producerService.updateProduct(id, productData);

@@ -177,6 +177,20 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
   
   if (queryParams.farmingMethod) queryObj['agricultureInfo.farmingMethod'] = queryParams.farmingMethod;
   if (queryParams.certified) queryObj['certifications.0'] = { $exists: true };
+  if (queryParams.isBio === 'true') {
+    const User = require('../../models/User');
+    const bioVendors = await User.find({ isBio: true }).select('_id');
+    const bioVendorIds = bioVendors.map(v => v._id);
+    
+    queryObj.$and = queryObj.$and || [];
+    queryObj.$and.push({
+      $or: [
+        { producer: { $in: bioVendorIds } },
+        { transformer: { $in: bioVendorIds } },
+        { restaurateur: { $in: bioVendorIds } }
+      ]
+    });
+  }
 
   // Filtres de prix
   if (queryParams.minPrice || queryParams.maxPrice) {
@@ -609,6 +623,26 @@ async function getNewProducts() {
   return products;
 }
 
+/**
+ * Obtenir les produits en vente flash
+ */
+async function getFlashSales() {
+  const now = new Date();
+  const products = await Product.find({
+    status: 'approved',
+    isActive: true,
+    'flashSale.isActive': true,
+    'flashSale.endDate': { $gt: now }
+  })
+  .populate('producer', 'farmName firstName lastName address createdAt country isBio')
+  .populate('transformer', 'companyName firstName lastName address createdAt country isBio')
+  .populate('restaurateur', 'restaurantName firstName lastName address createdAt country isBio')
+  .sort('flashSale.endDate')
+  .limit(10);
+
+  return products;
+}
+
 module.exports = {
   getAllProducts,
   getProductsByLocation,
@@ -617,5 +651,6 @@ module.exports = {
   getFeaturedProducts,
   getNewProducts,
   getCategories,
-  getProductsByCategory
+  getProductsByCategory,
+  getFlashSales
 };

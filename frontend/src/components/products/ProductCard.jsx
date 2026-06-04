@@ -161,10 +161,10 @@ const ProductCard = ({ product }) => {
 	};
 
 	return (
-		<div className="bg-white border rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden group">
-			<Link to={`/products/${product._id}`} className="block">
+		<div className="bg-white border border-gray-200 rounded-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full group relative">
+			<Link to={`/products/${product._id}`} className="block flex-shrink-0 p-2 sm:p-4">
 				{/* Image */}
-				<div className="aspect-[4/3] relative overflow-hidden bg-gray-100 rounded-b-xl">
+				<div className="aspect-square relative flex items-center justify-center overflow-hidden mb-2 sm:mb-3">
 					{primaryImage ?
 						<CloudinaryImage
 							src={primaryImage.url}
@@ -173,133 +173,95 @@ const ProductCard = ({ product }) => {
 							width={300}
 							height={300}
 							quality="auto"
-							crop="fit"
+							crop="fill"
 						/>
-					:	<div className="w-full h-full flex items-center justify-center text-gray-400">
-							<FiPackage className="h-12 w-12" />
+					:	<div className="w-full h-full flex items-center justify-center text-gray-300 bg-gray-50">
+							<FiPackage className="h-16 w-16" />
 						</div>
 					}
 
 					{/* Badge Featured */}
 					{product.isFeatured && (
-						<div className="absolute top-3 left-3 bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-semibold z-10">
-							⭐
+						<div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-0.5 text-xs font-bold shadow-sm">
+							Choix de récolte
+						</div>
+					)}
+				</div>
+				
+				<div className="flex flex-col flex-grow">
+					{/* Titre */}
+					<h3 className="text-[13px] sm:text-[15px] font-medium text-gray-900 group-hover:text-primary-700 line-clamp-2 leading-tight min-h-[2.5rem]">
+						{productName}
+					</h3>
+					
+					{/* BIO Badge */}
+					{(product.producer?.isBio || product.transformer?.isBio) && (
+						<div className="mt-1">
+							<span className="inline-flex items-center px-2 py-0.5 text-[10px] sm:text-xs font-black text-white bg-harvests-green rounded shadow-sm shadow-emerald-200">
+								<Leaf className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+								CERTIFIÉ BIO
+							</span>
 						</div>
 					)}
 
-					{/* Badge Stock */}
-					{product.inventory?.quantity <= 5 &&
-						product.inventory?.quantity > 0 && (
-							<div className="absolute top-3 right-3 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-semibold z-10">
-								Stock limité
-							</div>
-						)}
-				</div>
-
-				{/* Informations */}
-				<div className="p-4 space-y-2">
-					<div className="flex items-center justify-between">
-						<span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-							{getCategoryLabel(product.category)}
-						</span>
-						<div className="flex items-center text-yellow-500">
-							<FiStar className="h-4 w-4 fill-current" />
-							<span className="ml-1 text-sm text-gray-600 font-medium">
-								{formatAverageRating(ratingStats.average)}
-							</span>
-							{ratingStats.totalReviews > 0 && (
-								<span className="ml-1 text-xs text-gray-500">
-									({ratingStats.totalReviews})
-								</span>
-							)}
+					{/* Notes */}
+					<div className="flex items-center space-x-1 mt-1 sm:mt-1.5">
+						<span className="text-xs sm:text-sm font-bold text-gray-800">{formatAverageRating(ratingStats.average)}</span>
+						<div className="flex text-yellow-500">
+							<FiStar className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-current" />
 						</div>
+						{ratingStats.totalReviews > 0 && (
+							<span className="text-xs sm:text-sm text-primary-600 hover:underline">
+								{ratingStats.totalReviews}
+							</span>
+						)}
 					</div>
 
-					<h3 className="font-semibold text-gray-900 line-clamp-2 min-h-[1rem] flex items-center justify-between">
-						<span className="truncate">{productName}</span>
-						{(product.producer?.isBio || product.transformer?.isBio) && (
-							<span
-								className="flex-shrink-0 ml-2 inline-flex items-center px-2 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200"
-								title="Certifié Bio"
-							>
-								<Leaf className="w-3 h-3 mr-1" />
-								BIO
-							</span>
-						)}
-					</h3>
-
-					<div className="flex items-center justify-between pt-2 border-t border-gray-100">
-						<span className="text-xl font-bold text-green-600">
-							{formatPrice(product.price)}{" "}
-							<span className="text-xs font-normal text-gray-500">
-								/ {product.unit || "unité"}
-							</span>
+					{/* Prix */}
+					<div className="mt-1 sm:mt-2 flex items-baseline flex-wrap">
+						<span className="text-base sm:text-xl font-bold text-gray-900">
+							{formatPrice(product.price)}
 						</span>
-						<div className="hidden whitespace-nowrap sm:flex items-center text-sm text-gray-500">
-							<FiPackage className="h-4 w-4 mr-1" />
-							{product.inventory?.quantity || 0} en stock
-						</div>
+						<span className="text-[10px] sm:text-xs text-gray-500 ml-1">
+							/ {product.unit || "unité"}
+						</span>
 					</div>
 
-					{/* Vendeur et bouton panier sur la même ligne */}
-					<div className="flex items-center justify-between">
-						{(product.producer || product.transformer || product.restaurateur) && (
-							<div className="flex flex-col text-xs text-gray-500 flex-1 min-w-0 mr-2">
-								<div className="flex items-center">
-									<FiMapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-									<span className="truncate font-medium text-gray-700">
-										{getVendorName(product.producer || product.transformer || product.restaurateur)}
-									</span>
-								</div>
-								<div className="flex items-center mt-0.5 text-[10px]">
-									<span className="truncate">
-										{getCountryName(product.producer?.address?.country ||
-											product.transformer?.address?.country ||
-											product.restaurateur?.address?.country ||
-											product.producer?.country ||
-											product.transformer?.country ||
-											product.restaurateur?.country)}
-									</span>
-									{(product.producer?.address?.city ||
-										product.transformer?.address?.city ||
-										product.restaurateur?.address?.city ||
-										product.producer?.city ||
-										product.transformer?.city ||
-										product.restaurateur?.city) && (
-										<>
-											<span className="mx-1">•</span>
-											<span className="truncate text-gray-400">
-												{product.producer?.address?.city ||
-													product.transformer?.address?.city ||
-													product.restaurateur?.address?.city ||
-													product.producer?.city ||
-													product.transformer?.city ||
-													product.restaurateur?.city}
-											</span>
-										</>
-									)}
-								</div>
-							</div>
+					{/* Stock & Vendeur */}
+					<div className="mt-1 sm:mt-2 text-[10px] sm:text-xs text-gray-500 space-y-0.5">
+						{product.inventory?.quantity > 0 ? (
+							<div className="text-green-700 font-medium">En stock</div>
+						) : (
+							<div className="text-red-600 font-medium">Rupture</div>
 						)}
-
-						{/* Bouton Ajout au panier - toujours visible */}
-						<button
-							onClick={handleAddToCart}
-							className={`p-2 rounded-full shadow-sm transition-all duration-300 transform flex-shrink-0 ${
-								isAdded ?
-									"bg-green-600 scale-110"
-								:	"bg-green-500 hover:bg-green-600 hover:scale-105"
-							}`}
-							title="Ajouter au panier"
-							aria-label="Ajouter au panier"
-						>
-							{isAdded ?
-								<FiCheck className="h-4 w-4 text-white" />
-							:	<FiShoppingCart className="h-4 w-4 text-white" />}
-						</button>
+						<div className="truncate">
+							<span className="hidden sm:inline">Vendu par : </span>
+							<span className="text-primary-600 hover:underline">{getVendorName(product.producer || product.transformer || product.restaurateur)}</span>
+						</div>
 					</div>
 				</div>
 			</Link>
+
+			{/* Bouton Ajouter au panier (Toujours en bas) */}
+			<div className="p-2 sm:p-4 mt-auto">
+				<button
+					onClick={handleAddToCart}
+					disabled={product.inventory?.quantity <= 0}
+					className={`w-full py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium shadow-sm transition-colors border flex items-center justify-center ${
+						isAdded ?
+							"bg-green-100 border-green-200 text-green-800"
+						: product.inventory?.quantity <= 0 ?
+							"bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
+						: "bg-white hover:bg-green-50 border-harvests-green text-harvests-green"
+					}`}
+				>
+					{isAdded ?
+						<><FiCheck className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Ajouté</span></>
+					: product.inventory?.quantity <= 0 ?
+						"Indisp."
+					: <><FiShoppingCart className="h-4 w-4 sm:mr-2 sm:hidden" /><span className="hidden sm:inline">Ajouter au panier</span><span className="sm:hidden ml-1">Ajouter</span></>}
+				</button>
+			</div>
 		</div>
 	);
 };

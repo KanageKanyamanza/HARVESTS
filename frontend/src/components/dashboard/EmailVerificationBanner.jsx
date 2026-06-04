@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Mail, X, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { Mail, X, CheckCircle, AlertCircle, Loader2, AlertTriangle } from "lucide-react";
 import api from "../../services/api";
 
 /**
@@ -52,12 +52,12 @@ const EmailVerificationBanner = ({ user, onClose }) => {
 							</span>
 						) : (
 							<>
-								<span className="hidden sm:inline">
-									⚠️ Votre adresse email <strong>{user.email}</strong> n'est pas encore vérifiée.
+								<span className="hidden sm:inline-flex items-center">
+									<AlertTriangle className="w-4 h-4 mr-1.5" /> Votre adresse email <strong>{user.email}</strong> n'est pas encore vérifiée.
 									Certaines fonctionnalités sont limitées.
 								</span>
-								<span className="sm:hidden">
-									⚠️ Email non vérifié — fonctionnalités limitées.
+								<span className="sm:hidden flex items-center">
+									<AlertTriangle className="w-4 h-4 mr-1.5" /> Email non vérifié — fonctionnalités limitées.
 								</span>
 							</>
 						)}

@@ -143,6 +143,23 @@ exports.getNewProducts = catchAsync(async (req, res, next) => {
   }
 });
 
+// Obtenir les ventes flash
+exports.getFlashSales = catchAsync(async (req, res, next) => {
+  try {
+    const products = await productPublicService.getFlashSales();
+
+    res.status(200).json({
+      status: 'success',
+      results: products.length,
+      data: {
+        products
+      }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
+});
+
 // Obtenir les catégories de produits
 exports.getCategories = catchAsync(async (req, res, next) => {
   try {

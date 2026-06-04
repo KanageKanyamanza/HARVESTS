@@ -56,11 +56,11 @@ const SubscriptionFilters = ({
 						className="w-full h-full px-4 py-2 bg-white/50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all duration-300 outline-none cursor-pointer appearance-none font-bold text-gray-700 hover:border-emerald-200 shadow-sm text-xs"
 					>
 						<option value="">Tous statuts</option>
-						<option value="active">🟢 Actif</option>
-						<option value="pending">⏳ En attente</option>
-						<option value="cancelled">🔴 Annulé</option>
-						<option value="expired">🕰️ Expiré</option>
-						<option value="suspended">⛔ Suspendu</option>
+						<option value="active">Actif</option>
+						<option value="pending">En attente</option>
+						<option value="cancelled">Annulé</option>
+						<option value="expired">Expiré</option>
+						<option value="suspended">Suspendu</option>
 					</select>
 					<div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none group-hover:translate-x-1 transition-transform">
 						<svg
@@ -86,9 +86,9 @@ const SubscriptionFilters = ({
 						className="w-full h-full px-4 py-2 bg-white/50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all duration-300 outline-none cursor-pointer appearance-none font-bold text-gray-700 hover:border-emerald-200 shadow-sm text-xs"
 					>
 						<option value="">Tous plans</option>
-						<option value="gratuit">🌱 Gratuit</option>
-						<option value="standard">🌾 Standard</option>
-						<option value="premium">🚜 Premium</option>
+						<option value="gratuit">Gratuit</option>
+						<option value="standard">Standard</option>
+						<option value="premium">Premium</option>
 					</select>
 					<div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none group-hover:translate-x-1 transition-transform">
 						<svg
@@ -114,9 +114,9 @@ const SubscriptionFilters = ({
 						className="w-full h-full px-4 py-2 bg-white/50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all duration-300 outline-none cursor-pointer appearance-none font-bold text-gray-700 hover:border-emerald-200 shadow-sm text-xs"
 					>
 						<option value="">Tous paiements</option>
-						<option value="completed">✅ Payé</option>
-						<option value="pending">🕒 En attente</option>
-						<option value="failed">❌ Échoué</option>
+						<option value="completed">Payé</option>
+						<option value="pending">En attente</option>
+						<option value="failed">Échoué</option>
 					</select>
 					<div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none group-hover:translate-x-1 transition-transform">
 						<svg
