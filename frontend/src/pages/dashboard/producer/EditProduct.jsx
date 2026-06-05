@@ -450,6 +450,57 @@ const EditProduct = () => {
 											<option value="inactive">Inactif</option>
 										</select>
 									</div>
+
+									{/* Flash Sale Section */}
+									<div className="pt-4 border-t border-gray-100">
+										<div className="flex items-center justify-between mb-3">
+											<label className="block text-[10px] font-black text-emerald-600 uppercase tracking-widest ml-1">
+												Activer la Vente Flash
+											</label>
+											<label className="relative inline-flex items-center cursor-pointer">
+												<input
+													type="checkbox"
+													name="flashSaleIsActive"
+													checked={formData.flashSaleIsActive}
+													onChange={handleInputChange}
+													className="sr-only peer"
+												/>
+												<div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500"></div>
+											</label>
+										</div>
+
+										{formData.flashSaleIsActive && (
+											<div className="space-y-3 p-3 bg-emerald-50/50 rounded-xl border border-emerald-100/50">
+												<div>
+													<label className="block text-[9px] font-black text-emerald-700 uppercase tracking-widest mb-1.5 ml-1">
+														Réduction (%)
+													</label>
+													<input
+														type="number"
+														name="flashSaleDiscount"
+														value={formData.flashSaleDiscount}
+														onChange={handleInputChange}
+														className="w-full px-3 py-2 bg-white/70 border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 text-sm font-bold text-gray-800"
+														placeholder="Ex: 20"
+														min="1"
+														max="100"
+													/>
+												</div>
+												<div>
+													<label className="block text-[9px] font-black text-emerald-700 uppercase tracking-widest mb-1.5 ml-1">
+														Date de fin
+													</label>
+													<input
+														type="date"
+														name="flashSaleEndDate"
+														value={formData.flashSaleEndDate}
+														onChange={handleInputChange}
+														className="w-full px-3 py-2 bg-white/70 border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 text-sm font-bold text-gray-800"
+													/>
+												</div>
+											</div>
+										)}
+									</div>
 								</div>
 							</div>
 

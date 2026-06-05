@@ -74,13 +74,13 @@ const TopSellersSection = () => {
               className="bg-white border border-gray-200 rounded-sm hover:shadow-md transition-shadow overflow-hidden group flex flex-col items-center text-center p-4 relative"
             >
               {/* Cover Banner */}
-              <div className="absolute top-0 left-0 w-full h-16 bg-gradient-to-r from-emerald-400 to-emerald-600">
+              <div className="absolute top-0 left-0 w-full h-[100px] bg-gradient-to-r from-emerald-400 to-emerald-600">
                 {seller.shopBanner && (
                   <img src={seller.shopBanner} alt="" className="w-full h-full object-cover opacity-80 mix-blend-overlay" />
                 )}
               </div>
               
-              <div className="w-20 h-20 rounded-full bg-white p-1 border border-gray-200 shadow-sm z-10 mt-4 mb-3">
+              <div className="w-20 h-20 rounded-full bg-white p-1 border border-gray-200 shadow-sm z-10 mt-12 mb-3">
                 <div className="w-full h-full rounded-full bg-gray-100 overflow-hidden flex items-center justify-center">
                   {seller.avatar ? (
                     <img src={seller.avatar} alt={seller.firstName} className="w-full h-full object-cover" />

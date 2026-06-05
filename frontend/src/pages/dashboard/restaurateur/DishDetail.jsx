@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Utensils } from 'lucide-react';
 import { FiArrowLeft, FiClock, FiDollarSign, FiTag, FiAlertTriangle, FiEdit, FiTrash2 } from 'react-icons/fi';
 import { restaurateurService } from '../../../services';
 import { useNotifications } from '../../../hooks/useNotifications';
@@ -80,7 +81,7 @@ const DishDetail = () => {
     return (
       <div className="min-h-screen bg-harvests-light flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl text-red-500 mb-4">⚠️</div>
+          <div className="flex justify-center text-red-500 mb-4"><FiAlertTriangle size={64} /></div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Plat non trouvé</h1>
           <p className="text-gray-600 mb-6">{error || 'Ce plat n\'existe pas ou a été supprimé.'}</p>
           <button
@@ -146,7 +147,7 @@ const DishDetail = () => {
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <div className="text-center text-gray-400">
-                    <div className="text-6xl mb-2">🍽️</div>
+                    <div className="flex justify-center mb-4 text-gray-300"><Utensils size={64} /></div>
                     <p>Aucune image</p>
                   </div>
                 </div>

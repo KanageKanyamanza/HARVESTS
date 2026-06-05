@@ -165,7 +165,7 @@ const PayPalSuccess = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f9e5] py-16">
+    <div className="min-h-screen bg-white py-16">
       <div className="container mx-auto px-4">
         <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-10 text-center">
           <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-green-600">

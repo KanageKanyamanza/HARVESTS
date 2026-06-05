@@ -85,7 +85,7 @@ const OrdersList = () => {
 
 		try {
 			console.log(
-				`🔄 Mise à jour du statut vers: ${newStatus} pour la commande: ${orderId}`,
+				`Mise à jour du statut vers: ${newStatus} pour la commande: ${orderId}`,
 			);
 
 			setUpdatingOrders((prev) => new Set([...prev, orderId]));
@@ -102,18 +102,18 @@ const OrdersList = () => {
 				payload,
 			);
 
-			console.log("📡 Réponse API:", response);
+			console.log("Réponse API:", response);
 
 			if (response.data.status === "success") {
-				console.log(`✅ Commande ${orderId} ${newStatus} avec succès`);
+				console.log(`Commande ${orderId} ${newStatus} avec succès`);
 				await loadOrders();
 			} else {
-				console.error("❌ Erreur dans la réponse API:", response.data);
+				console.error("Erreur dans la réponse API:", response.data);
 			}
 		} catch (error) {
-			console.error("❌ Erreur lors de la mise à jour du statut:", error);
+			console.error("Erreur lors de la mise à jour du statut:", error);
 			if (error.response) {
-				console.error("📡 Détails de l'erreur API:", error.response.data);
+				console.error("Détails de l'erreur API:", error.response.data);
 			}
 		} finally {
 			// Retirer cette commande de la liste des commandes en cours de mise à jour

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { productService } from '../services';
 import CloudinaryImage from '../components/common/CloudinaryImage';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { Wheat, Carrot, Apple, Bean, Flame, Leaf, Sprout, Milk, Beef, Drumstick, Fish, Archive, CupSoda, Package as PackageLucide } from "lucide-react";
 import { 
   FiGrid, 
   FiList, 
@@ -112,24 +113,26 @@ const Categories = () => {
 
   const getCategoryIcon = (category) => {
     const icons = {
-      'cereals': '🌾',
-      'vegetables': '🥬',
-      'fruits': '🍎',
-      'legumes': '🫘',
-      'tubers': '🥔',
-      'spices': '🌶️',
-      'herbs': '🌿',
-      'nuts': '🥜',
-      'seeds': '🌱',
-      'dairy': '🥛',
-      'meat': '🥩',
-      'poultry': '🐔',
-      'fish': '🐟',
-      'processed-foods': '🥫',
-      'beverages': '🥤',
-      'other': '📦'
+      'cereals': Wheat,
+      'vegetables': Carrot,
+      'fruits': Apple,
+      'legumes': Bean,
+      'tubers': Carrot,
+      'spices': Flame,
+      'herbs': Leaf,
+      'grains': Wheat,
+      'nuts': PackageLucide,
+      'seeds': Sprout,
+      'dairy': Milk,
+      'meat': Beef,
+      'poultry': Drumstick,
+      'fish': Fish,
+      'processed-foods': Archive,
+      'beverages': CupSoda,
+      'other': PackageLucide
     };
-    return icons[category] || '📦';
+    const Icon = icons[category] || PackageLucide;
+    return <Icon className="w-[1em] h-[1em]" />;
   };
 
   const formatPrice = (price) => {

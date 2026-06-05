@@ -37,6 +37,9 @@ export const productService = {
   // Obtenir les produits mis en avant (featured)
   getFeaturedProducts: (params = {}) => apiRequest.get('/products/featured', { params }),
   
+  // Obtenir les ventes flash
+  getFlashSales: (params = {}) => apiRequest.get('/products/flash-sales', { params }),
+  
   // Obtenir les catégories de produits
   getCategories: () => apiRequest.get('/products/categories'),
   

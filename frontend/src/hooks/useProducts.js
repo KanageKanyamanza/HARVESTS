@@ -27,6 +27,7 @@ export const useProducts = () => {
   const [isFeatured, setIsFeatured] = useState(
     searchParams.get("featured") === "true"
   );
+  const [isBio, setIsBio] = useState(searchParams.get("bio") === "true");
   const [selectedCountry, setSelectedCountry] = useState(searchParams.get("country") || "");
   const [priceRange, setPriceRange] = useState({
     min: searchParams.get("minPrice") || "",
@@ -71,6 +72,8 @@ export const useProducts = () => {
         producerParams.country = selectedCountry;
       }
 
+      if (isBio) producerParams.isBio = 'true';
+
       if (debouncedPriceRange.min) producerParams.minPrice = debouncedPriceRange.min;
       if (debouncedPriceRange.max) producerParams.maxPrice = debouncedPriceRange.max;
 
@@ -89,6 +92,8 @@ export const useProducts = () => {
       if (debouncedSearchQuery && debouncedSearchQuery.trim() !== "") {
         restaurateurParams.search = debouncedSearchQuery.trim();
       }
+
+      if (isBio) restaurateurParams.isBio = 'true';
 
       const [producerRes, restaurateurRes] = await Promise.all([
         productService.getProducts(producerParams),
@@ -119,6 +124,7 @@ export const useProducts = () => {
     debouncedPriceRange,
     debouncedSearchQuery,
     isFeatured,
+    isBio,
     selectedCountry
   ]);
 
@@ -139,6 +145,7 @@ export const useProducts = () => {
     const urlCategory = categoryFromRoute || searchParams.get("category") || "";
     const urlSort = searchParams.get("sort") || "newest";
     const urlFeatured = searchParams.get("featured") === "true";
+    const urlBio = searchParams.get("bio") === "true";
     const urlPriceRange = {
       min: searchParams.get("minPrice") || "",
       max: searchParams.get("maxPrice") || "",
@@ -150,6 +157,7 @@ export const useProducts = () => {
     setSelectedCategory(urlCategory);
     setSortBy(urlSort);
     setIsFeatured(urlFeatured);
+    setIsBio(urlBio);
     setPriceRange(urlPriceRange);
     setSelectedCountry(urlCountry);
     setCurrentPage(urlPage);
@@ -184,13 +192,13 @@ export const useProducts = () => {
 
   // Recherche avec debounce
   useEffect(() => {
-    const hasActiveFilters = debouncedSearchQuery || selectedCategory || selectedCountry || debouncedPriceRange.min || debouncedPriceRange.max || isFeatured;
+    const hasActiveFilters = debouncedSearchQuery || selectedCategory || selectedCountry || debouncedPriceRange.min || debouncedPriceRange.max || isFeatured || isBio;
     
     if (hasActiveFilters || currentPage > 1) {
       setIsSearching(true);
       loadProducts().finally(() => setIsSearching(false));
     }
-  }, [debouncedSearchQuery, selectedCategory, selectedCountry, sortBy, isFeatured, debouncedPriceRange.min, debouncedPriceRange.max, currentPage, loadProducts]);
+  }, [debouncedSearchQuery, selectedCategory, selectedCountry, sortBy, isFeatured, isBio, debouncedPriceRange.min, debouncedPriceRange.max, currentPage, loadProducts]);
 
   const handleFilterChange = (filterType, value) => {
     setCurrentPage(1);
@@ -210,6 +218,9 @@ export const useProducts = () => {
       case "priceMax":
         setPriceRange((prev) => ({ ...prev, max: value }));
         break;
+      case "bio":
+        setIsBio(value);
+        break;
       default:
         break;
     }
@@ -221,6 +232,7 @@ export const useProducts = () => {
     setSelectedCountry("");
     setSortBy("newest");
     setIsFeatured(false);
+    setIsBio(false);
     setPriceRange({ min: "", max: "" });
     setCurrentPage(1);
     setSearchParams({});
@@ -239,6 +251,7 @@ export const useProducts = () => {
     selectedCountry,
     sortBy,
     isFeatured,
+    isBio,
     priceRange,
     currentPage,
     setCurrentPage,

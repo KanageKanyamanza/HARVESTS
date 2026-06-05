@@ -259,7 +259,7 @@ const Vendeurs = () => {
 	}
 
 	return (
-		<div className="min-h-screen bg-[#f3f9e5] relative overflow-hidden">
+		<div className="min-h-screen bg-white relative overflow-hidden">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-green-200/20 rounded-full blur-[120px]"></div>
@@ -343,7 +343,7 @@ const Vendeurs = () => {
 				</div>
 
 				{/* Type tabs - Separate and smaller */}
-				<div className="flex justify-center gap-1.5 mb-8 animate-slide-up">
+				<div className="flex flex-wrap justify-center gap-1.5 mb-8 animate-slide-up">
 					{[
 						{ id: "all", label: "Tous", color: "bg-emerald-600 text-white" },
 						{ id: "producer", label: "Producteurs", color: "bg-green-600 text-white" },
@@ -378,10 +378,10 @@ const Vendeurs = () => {
 								<Link
 									key={`${vendeur.type}-${vendeur._id}`}
 									to={vendeur.profileUrl}
-									className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden block group"
+									className="bg-white border border-gray-200 rounded-sm hover:shadow-md transition-shadow overflow-hidden block group"
 								>
 									{/* Bannière en arrière-plan */}
-									<div className="relative h-[175px] bg-gradient-to-r from-green-400 to-green-600">
+									<div className="relative h-40 bg-gray-100">
 										{vendeur.shopBanner ? (
 											<img
 												src={vendeur.shopBanner}
@@ -391,25 +391,19 @@ const Vendeurs = () => {
 													e.target.style.display = "none";
 													e.target.nextSibling.style.display = "flex";
 												}}
-												onLoad={() => {
-													// Image loaded successfully
-												}}
 											/>
 										) : null}
 										<div
-											className="w-full h-full bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center"
+											className="w-full h-full bg-gradient-to-r from-gray-200 to-gray-300 flex items-center justify-center"
 											style={{ display: vendeur.shopBanner ? "none" : "flex" }}
 										>
-											<FiPackage className="w-12 h-12 text-white opacity-50" />
+											<FiPackage className="w-12 h-12 text-gray-400" />
 										</div>
 
-										{/* Overlay pour améliorer la lisibilité */}
-										<div className="absolute inset-0 bg-black bg-opacity-20"></div>
-
-										{/* Photo de profil en coin inférieur gauche */}
-										<div className="absolute bottom-5 left-5 transform -translate-x-2 translate-y-2">
-											<div className="w-16 h-16 rounded-full bg-white p-1 shadow-lg">
-												<div className="w-full h-full rounded-full bg-gray-200 overflow-hidden">
+										{/* Photo de profil centrée qui déborde */}
+										<div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2">
+											<div className="w-16 h-16 rounded-full bg-white p-1 border border-gray-200 shadow-sm">
+												<div className="w-full h-full rounded-full bg-gray-100 overflow-hidden">
 													{vendeur.logo ? (
 														<img
 															src={vendeur.logo}
@@ -419,16 +413,13 @@ const Vendeurs = () => {
 																e.target.style.display = "none";
 																e.target.nextSibling.style.display = "flex";
 															}}
-															onLoad={() => {
-																// Avatar loaded successfully
-															}}
 														/>
 													) : null}
 													<div
-														className="w-full h-full bg-purple-100 flex items-center justify-center"
+														className="w-full h-full bg-primary-100 flex items-center justify-center"
 														style={{ display: vendeur.logo ? "none" : "flex" }}
 													>
-														<span className="text-sm font-bold text-purple-600">
+														<span className="text-lg font-bold text-primary-700">
 															{vendeur.displayName?.[0] ||
 																vendeur.firstName?.[0]}
 														</span>
@@ -438,49 +429,41 @@ const Vendeurs = () => {
 										</div>
 									</div>
 
-									{/* Informations en bas */}
-									<div className="p-4 pt-6">
-										<h3 className="font-semibold text-gray-900 mb-1 text-lg flex items-center justify-between">
-											<span className="truncate">{vendeur.displayName}</span>
-											{vendeur.isBio && (
-												<span
-													className="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200"
-													title="Producteur Bio Certifié"
-												>
-													<Leaf className="w-2.5 h-2.5 mr-1" />
-													BIO
-												</span>
-											)}
+									{/* Informations */}
+									<div className="px-4 pt-10 pb-4 text-center">
+										<h3 className="font-bold text-gray-900 text-lg mb-1 truncate">
+											{vendeur.displayName}
 										</h3>
-										<div className="flex items-center text-gray-500 text-sm mb-3">
-											<FiMapPin className="mr-1" />
+										
+										<div className="flex items-center justify-center text-sm text-gray-600 mb-2">
+											<FiMapPin className="mr-1 h-3 w-3" />
 											<span>{getCountryName(vendeur.country)}</span>
 											{vendeur.city && (
-												<span className="ml-2">• {vendeur.city}</span>
-											)}
-											{vendeur.region && (
-												<span className="ml-2">• {vendeur.region}</span>
+												<span className="ml-1">• {vendeur.city}</span>
 											)}
 										</div>
 
-										{/* Statistiques */}
-										<div className="flex items-center justify-between text-sm">
-											<div className="flex items-center text-yellow-600">
-												<FiStar className="mr-1" />
-												<span>{averageDisplay}</span>
+										<div className="flex items-center justify-center space-x-2 mb-4">
+											<div className="flex items-center text-yellow-500">
+												<span className="text-sm font-bold text-gray-800 mr-1">
+													{averageDisplay}
+												</span>
+												<FiStar className="h-4 w-4 fill-current" />
 												<span className="ml-1 text-xs text-gray-500">
-													({reviewCount} avis)
+													({reviewCount})
 												</span>
 											</div>
-											<div className="flex items-center text-gray-500">
-												<FiPackage className="mr-1" />
-												<span className="mr-1">
-													{vendeur.type === "producer" ?
-														"Produits"
-													:	"Services"}
+											{vendeur.isBio && (
+												<span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+													<Leaf className="w-3 h-3 mr-1" />
+													BIO
 												</span>
-												<FiArrowRight className="text-gray-400 group-hover:text-gray-600 transition-colors" />
-											</div>
+											)}
+										</div>
+
+										<div className="text-primary-600 text-sm font-medium hover:text-primary-800 hover:underline inline-flex items-center">
+											Visiter la boutique
+											<FiArrowRight className="ml-1 h-4 w-4" />
 										</div>
 									</div>
 								</Link>
