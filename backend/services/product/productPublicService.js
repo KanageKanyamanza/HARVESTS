@@ -559,7 +559,12 @@ async function getCategories() {
     isActive: true
   });
 
-  return categories;
+  const filtered = categories.filter(c => c !== 'other' && c !== 'Other');
+  if (categories.includes('other') || categories.includes('Other')) {
+    filtered.push('other');
+  }
+
+  return filtered;
 }
 
 /**
