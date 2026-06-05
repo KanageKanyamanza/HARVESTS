@@ -2,26 +2,43 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { producerService, transformerService, restaurateurService, reviewService } from '../../services';
 import LoadingSpinner from '../common/LoadingSpinner';
-import { FiStar, FiArrowRight } from 'react-icons/fi';
+import { FiStar, FiArrowRight, FiMapPin } from 'react-icons/fi';
 import { Leaf } from 'lucide-react';
 import { getCountryName } from '../../utils/countryMapper';
+import { useGeoLocation } from '../../hooks/useGeoLocation';
 
 const TopSellersSection = () => {
   const [sellers, setSellers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isLocal, setIsLocal] = useState(false);
+  const { countryCode, countryName, detected, loading: geoLoading } = useGeoLocation();
 
   useEffect(() => {
-    loadSellers();
-  }, []);
+    if (!geoLoading) {
+      loadSellers();
+    }
+  }, [geoLoading, countryCode]);
 
   const loadSellers = async () => {
     try {
       setLoading(true);
-      // Fetch some producers to highlight
-      const response = await producerService.getAllPublic({ limit: 4 });
+      const params = { limit: 4 };
+      if (detected && countryCode) params.country = countryCode;
+
+      const response = await producerService.getAllPublic(params);
       if (response.data.status === 'success') {
-        const producers = response.data.data.producers || [];
-        
+        let producers = response.data.data.producers || [];
+        setIsLocal(detected && countryCode && producers.length > 0);
+
+        // Fallback global si aucun producteur dans la zone
+        if (detected && countryCode && producers.length === 0) {
+          const fallback = await producerService.getAllPublic({ limit: 4 });
+          if (fallback.data.status === 'success') {
+            producers = fallback.data.data.producers || [];
+          }
+          setIsLocal(false);
+        }
+
         const sellersWithStats = await Promise.all(
           producers.map(async (producer) => {
             try {
@@ -35,7 +52,7 @@ const TopSellersSection = () => {
             }
           })
         );
-        
+
         setSellers(sellersWithStats);
       }
     } catch (err) {
@@ -50,11 +67,19 @@ const TopSellersSection = () => {
   return (
     <section className="bg-white mb-6 p-4 sm:p-6 mx-4 sm:mx-6 lg:mx-8 max-w-[1500px] lg:mx-auto rounded-sm shadow-sm relative z-10" data-aos="fade-up">
       <div className="flex justify-between items-end mb-6">
-        <h2 className="text-xl md:text-2xl font-bold text-gray-900">
-          Vendeurs à la Une
-        </h2>
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900">
+            Vendeurs à la Une
+          </h2>
+          {isLocal && countryName && (
+            <span className="inline-flex items-center gap-1 mt-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
+              <FiMapPin className="h-3 w-3" />
+              {countryName}
+            </span>
+          )}
+        </div>
         <Link
-          to="/producers"
+          to={isLocal && countryCode ? `/producteurs?country=${countryCode}` : '/producers'}
           className="text-sm font-medium text-primary-600 hover:text-primary-800 hover:underline"
         >
           Découvrir plus
@@ -74,9 +99,9 @@ const TopSellersSection = () => {
               className="bg-white border border-gray-200 rounded-sm hover:shadow-md transition-shadow overflow-hidden group flex flex-col items-center text-center p-4 relative"
             >
               {/* Cover Banner */}
-              <div className="absolute top-0 left-0 w-full h-[100px] bg-gradient-to-r from-emerald-400 to-emerald-600">
+              <div className="absolute top-0 left-0 w-full h-[100px] bg-gradient-to-r from-gray-100 to-gray-200">
                 {seller.shopBanner && (
-                  <img src={seller.shopBanner} alt="" className="w-full h-full object-cover opacity-80 mix-blend-overlay" />
+                  <img src={seller.shopBanner} alt="" className="w-full h-full object-cover" />
                 )}
               </div>
               

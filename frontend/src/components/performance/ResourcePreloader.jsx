@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import heroBg2 from "../../assets/images/herobgcar2.webp";
 
 /**
  * Composant pour précharger les ressources critiques
@@ -10,8 +9,7 @@ const ResourcePreloader = () => {
 		// Précharger les polices critiques
 		const preloadFonts = () => {
 			const fonts = [
-				"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
-				"https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap",
+				"https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap",
 			];
 
 			fonts.forEach((fontUrl) => {
@@ -29,7 +27,6 @@ const ResourcePreloader = () => {
 			const criticalImages = [
 				"/logo.png",
 				"/favicon.ico",
-				heroBg2, // LCP Image
 			];
 
 			criticalImages.forEach((imageSrc) => {

@@ -586,18 +586,65 @@ async function getProductById(productId) {
 
 /**
  * Obtenir les produits en vedette
+ * Filtre par pays du vendeur si une localisation est détectée
  */
-async function getFeaturedProducts() {
-  const products = await Product.find({
+async function getFeaturedProducts(queryParams = {}, userLocation = null) {
+  const User = require('../../models/User');
+
+  const baseQuery = {
     isFeatured: true,
     status: 'approved',
     isActive: true
-  })
-  .populate('producer', 'farmName firstName lastName address createdAt country isBio')
-  .populate('transformer', 'companyName firstName lastName address createdAt country isBio')
-  .populate('restaurateur', 'restaurantName firstName lastName address createdAt country isBio')
-  .sort('-createdAt')
-  .limit(12);
+  };
+
+  // Filtre par pays explicite (depuis le frontend)
+  let countryFilter = queryParams.country || (userLocation && userLocation.country);
+
+  if (countryFilter) {
+    let countriesToFilter = [countryFilter];
+    if (countryFilter === 'West Africa') {
+      countriesToFilter = ['SN', 'Sénégal', 'CI', "Côte d'Ivoire", 'BF', 'Burkina Faso', 'ML', 'Mali', 'GH', 'Ghana', 'NG', 'Nigeria', 'NE', 'Niger', 'BJ', 'Bénin', 'TG', 'Togo'];
+    } else if (countryFilter === 'Central Africa') {
+      countriesToFilter = ['CM', 'Cameroun', 'GA', 'Gabon', 'CG', 'Congo', 'CD', 'République démocratique du Congo', 'TD', 'Tchad', 'CF', 'République centrafricaine', 'GQ', 'Guinée équatoriale'];
+    }
+
+    const vendors = await User.find({
+      $or: [
+        { country: { $in: countriesToFilter } },
+        { 'address.country': { $in: countriesToFilter } }
+      ]
+    }).select('_id');
+    const vendorIds = vendors.map(v => v._id);
+
+    const localQuery = {
+      ...baseQuery,
+      $or: [
+        { producer: { $in: vendorIds } },
+        { transformer: { $in: vendorIds } },
+        { restaurateur: { $in: vendorIds } }
+      ]
+    };
+
+    const localProducts = await Product.find(localQuery)
+      .populate('producer', 'farmName firstName lastName address createdAt country isBio')
+      .populate('transformer', 'companyName firstName lastName address createdAt country isBio')
+      .populate('restaurateur', 'restaurantName firstName lastName address createdAt country isBio')
+      .sort('-createdAt')
+      .limit(12);
+
+    if (localProducts.length > 0) {
+      return localProducts;
+    }
+    // Fallback to global if no local featured products
+  }
+
+  // Global (no location filter or no local results)
+  const products = await Product.find(baseQuery)
+    .populate('producer', 'farmName firstName lastName address createdAt country isBio')
+    .populate('transformer', 'companyName firstName lastName address createdAt country isBio')
+    .populate('restaurateur', 'restaurantName firstName lastName address createdAt country isBio')
+    .sort('-createdAt')
+    .limit(12);
 
   return products;
 }
@@ -625,20 +672,67 @@ async function getNewProducts() {
 
 /**
  * Obtenir les produits en vente flash
+ * Filtre par pays du vendeur si une localisation est détectée
  */
-async function getFlashSales() {
+async function getFlashSales(queryParams = {}, userLocation = null) {
+  const User = require('../../models/User');
   const now = new Date();
-  const products = await Product.find({
+
+  const baseQuery = {
     status: 'approved',
     isActive: true,
     'flashSale.isActive': true,
     'flashSale.endDate': { $gt: now }
-  })
-  .populate('producer', 'farmName firstName lastName address createdAt country isBio')
-  .populate('transformer', 'companyName firstName lastName address createdAt country isBio')
-  .populate('restaurateur', 'restaurantName firstName lastName address createdAt country isBio')
-  .sort('flashSale.endDate')
-  .limit(10);
+  };
+
+  // Filtre par pays explicite (depuis le frontend) ou localisation IP
+  let countryFilter = queryParams.country || (userLocation && userLocation.country);
+
+  if (countryFilter) {
+    let countriesToFilter = [countryFilter];
+    if (countryFilter === 'West Africa') {
+      countriesToFilter = ['SN', 'Sénégal', 'CI', "Côte d'Ivoire", 'BF', 'Burkina Faso', 'ML', 'Mali', 'GH', 'Ghana', 'NG', 'Nigeria', 'NE', 'Niger', 'BJ', 'Bénin', 'TG', 'Togo'];
+    } else if (countryFilter === 'Central Africa') {
+      countriesToFilter = ['CM', 'Cameroun', 'GA', 'Gabon', 'CG', 'Congo', 'CD', 'République démocratique du Congo', 'TD', 'Tchad', 'CF', 'République centrafricaine', 'GQ', 'Guinée équatoriale'];
+    }
+
+    const vendors = await User.find({
+      $or: [
+        { country: { $in: countriesToFilter } },
+        { 'address.country': { $in: countriesToFilter } }
+      ]
+    }).select('_id');
+    const vendorIds = vendors.map(v => v._id);
+
+    const localQuery = {
+      ...baseQuery,
+      $or: [
+        { producer: { $in: vendorIds } },
+        { transformer: { $in: vendorIds } },
+        { restaurateur: { $in: vendorIds } }
+      ]
+    };
+
+    const localProducts = await Product.find(localQuery)
+      .populate('producer', 'farmName firstName lastName address createdAt country isBio')
+      .populate('transformer', 'companyName firstName lastName address createdAt country isBio')
+      .populate('restaurateur', 'restaurantName firstName lastName address createdAt country isBio')
+      .sort('flashSale.endDate')
+      .limit(10);
+
+    if (localProducts.length > 0) {
+      return localProducts;
+    }
+    // Fallback to global if no local flash sales
+  }
+
+  // Global (no location filter or no local results)
+  const products = await Product.find(baseQuery)
+    .populate('producer', 'farmName firstName lastName address createdAt country isBio')
+    .populate('transformer', 'companyName firstName lastName address createdAt country isBio')
+    .populate('restaurateur', 'restaurantName firstName lastName address createdAt country isBio')
+    .sort('flashSale.endDate')
+    .limit(10);
 
   return products;
 }

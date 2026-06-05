@@ -3,36 +3,55 @@ import { Link } from 'react-router-dom';
 import ProductCard from '../products/ProductCard';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { productService } from '../../services';
-import { FiClock } from 'react-icons/fi';
+import { FiClock, FiMapPin } from 'react-icons/fi';
+import { useGeoLocation } from '../../hooks/useGeoLocation';
 
 const FlashSalesSection = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isLocal, setIsLocal] = useState(false);
   const [timeLeft, setTimeLeft] = useState({ hours: 12, minutes: 45, seconds: 30 });
+  const { countryCode, countryName, detected, loading: geoLoading } = useGeoLocation();
 
   useEffect(() => {
-    loadProducts();
-    
     // Simulate countdown timer
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
         if (prev.minutes > 0) return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
         if (prev.hours > 0) return { ...prev, hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        return { hours: 24, minutes: 0, seconds: 0 }; // reset
+        return { hours: 24, minutes: 0, seconds: 0 };
       });
     }, 1000);
-    
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (!geoLoading) {
+      loadProducts();
+    }
+  }, [geoLoading, countryCode]);
 
   const loadProducts = async () => {
     try {
       setLoading(true);
-      // Fetch actual flash sales
-      const response = await productService.getFlashSales();
+      const params = {};
+      if (detected && countryCode) params.country = countryCode;
+
+      const response = await productService.getFlashSales(params);
       if (response.data.status === 'success') {
-        setProducts(response.data.data.products || []);
+        const fetched = response.data.data.products || [];
+        setProducts(fetched);
+        setIsLocal(detected && countryCode && fetched.length > 0);
+
+        // Fallback global si aucune vente flash dans la zone
+        if (detected && countryCode && fetched.length === 0) {
+          const fallback = await productService.getFlashSales();
+          if (fallback.data.status === 'success') {
+            setProducts(fallback.data.data.products || []);
+          }
+          setIsLocal(false);
+        }
       }
     } catch (err) {
       console.error('Erreur lors du chargement des ventes flash:', err);
@@ -48,9 +67,17 @@ const FlashSalesSection = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
         <div className="flex items-center gap-4">
-          <h2 className="text-xl md:text-2xl font-bold text-red-600 flex items-center">
-            Ventes Flash
-          </h2>
+          <div>
+            <h2 className="text-xl md:text-2xl font-bold text-red-600 flex items-center">
+              Ventes Flash
+            </h2>
+            {isLocal && countryName && (
+              <span className="inline-flex items-center gap-1 mt-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
+                <FiMapPin className="h-3 w-3" />
+                {countryName}
+              </span>
+            )}
+          </div>
           
           <div className="flex items-center text-red-600 text-sm font-bold bg-red-50 px-3 py-1 rounded">
             <FiClock className="mr-2" />
