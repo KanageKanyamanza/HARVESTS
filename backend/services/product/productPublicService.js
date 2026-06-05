@@ -3,6 +3,58 @@ const Review = require('../../models/Review');
 const { buildSearchWithLocation } = require('../../utils/searchUtils');
 const { getUserLocation, buildLocationQuery } = require('../../utils/locationService');
 
+const countrySynonyms = {
+  'SN': ['SN', 'Sénégal', 'Senegal'],
+  'Sénégal': ['SN', 'Sénégal', 'Senegal'],
+  'Senegal': ['SN', 'Sénégal', 'Senegal'],
+  'CM': ['CM', 'Cameroun', 'Cameroon'],
+  'Cameroun': ['CM', 'Cameroun', 'Cameroon'],
+  'Cameroon': ['CM', 'Cameroun', 'Cameroon'],
+  'CI': ['CI', "Côte d'Ivoire", "Cote d'Ivoire", 'Ivory Coast'],
+  "Côte d'Ivoire": ['CI', "Côte d'Ivoire", "Cote d'Ivoire", 'Ivory Coast'],
+  "Cote d'Ivoire": ['CI', "Côte d'Ivoire", "Cote d'Ivoire", 'Ivory Coast'],
+  'BF': ['BF', 'Burkina Faso', 'Burkina'],
+  'Burkina Faso': ['BF', 'Burkina Faso', 'Burkina'],
+  'Burkina': ['BF', 'Burkina Faso', 'Burkina'],
+  'ML': ['ML', 'Mali'],
+  'Mali': ['ML', 'Mali'],
+  'GH': ['GH', 'Ghana'],
+  'Ghana': ['GH', 'Ghana'],
+  'NG': ['NG', 'Nigeria'],
+  'Nigeria': ['NG', 'Nigeria'],
+  'NE': ['NE', 'Niger'],
+  'Niger': ['NE', 'Niger'],
+  'BJ': ['BJ', 'Bénin', 'Benin'],
+  'Bénin': ['BJ', 'Bénin', 'Benin'],
+  'Benin': ['BJ', 'Bénin', 'Benin'],
+  'TG': ['TG', 'Togo'],
+  'Togo': ['TG', 'Togo'],
+  'GA': ['GA', 'Gabon'],
+  'Gabon': ['GA', 'Gabon'],
+  'CG': ['CG', 'Congo'],
+  'Congo': ['CG', 'Congo'],
+  'CD': ['CD', 'République démocratique du Congo', 'RDC', 'DRC', 'Democratic Republic of Congo'],
+  'République démocratique du Congo': ['CD', 'République démocratique du Congo', 'RDC', 'DRC', 'Democratic Republic of Congo'],
+  'TD': ['TD', 'Tchad', 'Chad'],
+  'Tchad': ['TD', 'Tchad', 'Chad'],
+  'CF': ['CF', 'République centrafricaine', 'Central African Republic'],
+  'République centrafricaine': ['CF', 'République centrafricaine', 'Central African Republic'],
+  'GQ': ['GQ', 'Guinée équatoriale', 'Equatorial Guinea'],
+  'Guinée équatoriale': ['GQ', 'Guinée équatoriale', 'Equatorial Guinea']
+};
+
+function getCountryFilterList(country) {
+  if (!country) return [];
+  if (country === 'West Africa') {
+    return ['SN', 'Sénégal', 'Senegal', 'CI', "Côte d'Ivoire", "Cote d'Ivoire", 'BF', 'Burkina Faso', 'ML', 'Mali', 'GH', 'Ghana', 'NG', 'Nigeria', 'NE', 'Niger', 'BJ', 'Bénin', 'Benin', 'TG', 'Togo'];
+  }
+  if (country === 'Central Africa') {
+    return ['CM', 'Cameroun', 'Cameroon', 'GA', 'Gabon', 'CG', 'Congo', 'CD', 'République démocratique du Congo', 'TD', 'Tchad', 'CF', 'République centrafricaine', 'GQ', 'Guinée équatoriale'];
+  }
+  const normalized = country.trim();
+  return countrySynonyms[normalized] || [normalized];
+}
+
 /**
  * Service pour les routes publiques des produits
  * Toutes les fonctions ont été fusionnées ici pour éviter les problèmes de résolution de module
@@ -88,31 +140,6 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
     isPublic: { $ne: false }
   };
 
-  let noProductsInZone = false;
-
-  // Détection automatique de la localisation si activée et pas de pays explicite
-  if (queryParams.useLocation !== 'false' && !queryParams.country && userLocation && (userLocation.city || userLocation.region || userLocation.country)) {
-    const locationQuery = buildLocationQuery(userLocation, {
-      prioritizeRegion: true,
-      prioritizeCity: true
-    });
-    
-    const locationQueryObj = { ...queryObj };
-    if (locationQuery.$or && locationQuery.$or.length > 0) {
-      locationQueryObj.$and = locationQueryObj.$and || [];
-      locationQueryObj.$and.push({ $or: locationQuery.$or });
-    }
-    
-    const countInZone = await Product.countDocuments(locationQueryObj);
-    
-    if (countInZone > 0 && locationQuery.$or && locationQuery.$or.length > 0) {
-      queryObj.$and = queryObj.$and || [];
-      queryObj.$and.push({ $or: locationQuery.$or });
-    } else {
-      noProductsInZone = true;
-    }
-  }
-
   // Filtres explicites
   if (queryParams.category) queryObj.category = queryParams.category;
   if (queryParams.subcategory) queryObj.subcategory = queryParams.subcategory;
@@ -130,18 +157,14 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
   if (queryParams.country) {
     const User = require('../../models/User');
     
-    // Gérer les zones géographiques
-    let countriesToFilter = [queryParams.country];
-    if (queryParams.country === "West Africa") {
-      countriesToFilter = ["SN", "Sénégal", "CI", "Côte d'Ivoire", "BF", "Burkina Faso", "ML", "Mali", "GH", "Ghana", "NG", "Nigeria", "NE", "Niger", "BJ", "Bénin", "TG", "Togo"];
-    } else if (queryParams.country === "Central Africa") {
-      countriesToFilter = ["CM", "Cameroun", "GA", "Gabon", "CG", "Congo", "CD", "République démocratique du Congo", "TD", "Tchad", "CF", "République centrafricaine", "GQ", "Guinée équatoriale"];
-    }
+    // Gérer les zones géographiques et synonymes
+    const countriesToFilter = getCountryFilterList(queryParams.country);
+    const countryRegexes = countriesToFilter.map(c => new RegExp(`^${c}$`, 'i'));
 
     const countryQuery = {
       $or: [
-        { country: { $in: countriesToFilter } },
-        { 'address.country': { $in: countriesToFilter } }
+        { country: { $in: countryRegexes } },
+        { 'address.country': { $in: countryRegexes } }
       ]
     };
     
@@ -249,27 +272,142 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
   const limit = parseInt(queryParams.limit, 10) || 20;
   const skip = (page - 1) * limit;
 
-  // Construction de la requête
-  let query = Product.find(queryObj)
-    .populate('producer', 'farmName firstName lastName address salesStats createdAt country isBio')
-    .populate('transformer', 'companyName firstName lastName address salesStats createdAt country isBio')
-    .populate('restaurateur', 'restaurantName firstName lastName address salesStats createdAt country isBio')
-    .select('-__v');
+  let products = [];
+  let total = 0;
+  let noProductsInZone = false;
+  let localVendorIds = [];
+  let isLocalPrioritized = false;
 
-  // Tri
-  if (queryParams.sort) {
-    const sortBy = queryParams.sort.split(',').join(' ');
-    query = query.sort(sortBy);
-  } else {
-    query = query.sort('-createdAt');
+  // Détection automatique de la localisation si activée et pas de pays explicite
+  const shouldPrioritizeLocal = queryParams.useLocation !== 'false' && !queryParams.country && userLocation && (userLocation.city || userLocation.region || userLocation.country);
+
+  if (shouldPrioritizeLocal) {
+    const locationQuery = buildLocationQuery(userLocation, {
+      prioritizeRegion: true,
+      prioritizeCity: true
+    });
+
+    if (locationQuery.$or && locationQuery.$or.length > 0) {
+      const User = require('../../models/User');
+      const vendors = await User.find({ $or: locationQuery.$or }).select('_id');
+      localVendorIds = vendors.map(v => v._id);
+    }
   }
 
-  // Appliquer pagination
-  query = query.skip(skip).limit(limit);
+  // Si des vendeurs locaux sont trouvés, on fait le tri "local en premier"
+  if (localVendorIds.length > 0) {
+    isLocalPrioritized = true;
+    
+    // Requête pour les produits locaux
+    const localQueryObj = {
+      ...queryObj,
+      $or: [
+        { producer: { $in: localVendorIds } },
+        { transformer: { $in: localVendorIds } },
+        { restaurateur: { $in: localVendorIds } }
+      ]
+    };
 
-  // Exécuter la requête
-  const products = await query;
-  const total = await Product.countDocuments(queryObj);
+    // Requête pour les autres produits (excluant les vendeurs locaux)
+    const otherQueryObj = {
+      ...queryObj,
+      $and: [
+        ...(queryObj.$and || []),
+        {
+          $nor: [
+            { producer: { $in: localVendorIds } },
+            { transformer: { $in: localVendorIds } },
+            { restaurateur: { $in: localVendorIds } }
+          ]
+        }
+      ]
+    };
+
+    // Calculer les totaux de chaque groupe
+    const totalLocal = await Product.countDocuments(localQueryObj);
+    const totalOther = await Product.countDocuments(otherQueryObj);
+    total = totalLocal + totalOther;
+
+    if (totalLocal === 0) {
+      noProductsInZone = true;
+    }
+
+    // Récupérer les produits pour la page courante
+    if (skip < totalLocal) {
+      // La page courante contient au moins quelques produits locaux
+      const localLimit = Math.min(limit, totalLocal - skip);
+      let queryLocal = Product.find(localQueryObj)
+        .populate('producer', 'farmName firstName lastName address salesStats createdAt country isBio')
+        .populate('transformer', 'companyName firstName lastName address salesStats createdAt country isBio')
+        .populate('restaurateur', 'restaurantName firstName lastName address salesStats createdAt country isBio')
+        .select('-__v');
+
+      if (queryParams.sort) {
+        const sortBy = queryParams.sort.split(',').join(' ');
+        queryLocal = queryLocal.sort(sortBy);
+      } else {
+        queryLocal = queryLocal.sort('-createdAt');
+      }
+
+      const localProducts = await queryLocal.skip(skip).limit(localLimit);
+      products = [...localProducts];
+
+      // S'il reste de la place sur la page, on complète avec des produits d'autres pays
+      if (products.length < limit && totalOther > 0) {
+        const otherLimit = limit - products.length;
+        let queryOther = Product.find(otherQueryObj)
+          .populate('producer', 'farmName firstName lastName address salesStats createdAt country isBio')
+          .populate('transformer', 'companyName firstName lastName address salesStats createdAt country isBio')
+          .populate('restaurateur', 'restaurantName firstName lastName address salesStats createdAt country isBio')
+          .select('-__v');
+
+        if (queryParams.sort) {
+          const sortBy = queryParams.sort.split(',').join(' ');
+          queryOther = queryOther.sort(sortBy);
+        } else {
+          queryOther = queryOther.sort('-createdAt');
+        }
+
+        const otherProducts = await queryOther.skip(0).limit(otherLimit);
+        products = [...products, ...otherProducts];
+      }
+    } else {
+      // Tous les produits locaux ont déjà été affichés sur les pages précédentes
+      const otherSkip = skip - totalLocal;
+      let queryOther = Product.find(otherQueryObj)
+        .populate('producer', 'farmName firstName lastName address salesStats createdAt country isBio')
+        .populate('transformer', 'companyName firstName lastName address salesStats createdAt country isBio')
+        .populate('restaurateur', 'restaurantName firstName lastName address salesStats createdAt country isBio')
+        .select('-__v');
+
+      if (queryParams.sort) {
+        const sortBy = queryParams.sort.split(',').join(' ');
+        queryOther = queryOther.sort(sortBy);
+      } else {
+        queryOther = queryOther.sort('-createdAt');
+      }
+
+      const otherProducts = await queryOther.skip(otherSkip).limit(limit);
+      products = [...otherProducts];
+    }
+  } else {
+    // Chemin standard (pas de localisation ou aucun vendeur correspondant)
+    let query = Product.find(queryObj)
+      .populate('producer', 'farmName firstName lastName address salesStats createdAt country isBio')
+      .populate('transformer', 'companyName firstName lastName address salesStats createdAt country isBio')
+      .populate('restaurateur', 'restaurantName firstName lastName address salesStats createdAt country isBio')
+      .select('-__v');
+
+    if (queryParams.sort) {
+      const sortBy = queryParams.sort.split(',').join(' ');
+      query = query.sort(sortBy);
+    } else {
+      query = query.sort('-createdAt');
+    }
+
+    products = await query.skip(skip).limit(limit);
+    total = await Product.countDocuments(queryObj);
+  }
 
   // Statistiques pour les filtres
   const categoryStats = await Product.aggregate([
@@ -601,17 +739,13 @@ async function getFeaturedProducts(queryParams = {}, userLocation = null) {
   let countryFilter = queryParams.country || (userLocation && userLocation.country);
 
   if (countryFilter) {
-    let countriesToFilter = [countryFilter];
-    if (countryFilter === 'West Africa') {
-      countriesToFilter = ['SN', 'Sénégal', 'CI', "Côte d'Ivoire", 'BF', 'Burkina Faso', 'ML', 'Mali', 'GH', 'Ghana', 'NG', 'Nigeria', 'NE', 'Niger', 'BJ', 'Bénin', 'TG', 'Togo'];
-    } else if (countryFilter === 'Central Africa') {
-      countriesToFilter = ['CM', 'Cameroun', 'GA', 'Gabon', 'CG', 'Congo', 'CD', 'République démocratique du Congo', 'TD', 'Tchad', 'CF', 'République centrafricaine', 'GQ', 'Guinée équatoriale'];
-    }
+    const countriesToFilter = getCountryFilterList(countryFilter);
+    const countryRegexes = countriesToFilter.map(c => new RegExp(`^${c}$`, 'i'));
 
     const vendors = await User.find({
       $or: [
-        { country: { $in: countriesToFilter } },
-        { 'address.country': { $in: countriesToFilter } }
+        { country: { $in: countryRegexes } },
+        { 'address.country': { $in: countryRegexes } }
       ]
     }).select('_id');
     const vendorIds = vendors.map(v => v._id);
@@ -689,17 +823,13 @@ async function getFlashSales(queryParams = {}, userLocation = null) {
   let countryFilter = queryParams.country || (userLocation && userLocation.country);
 
   if (countryFilter) {
-    let countriesToFilter = [countryFilter];
-    if (countryFilter === 'West Africa') {
-      countriesToFilter = ['SN', 'Sénégal', 'CI', "Côte d'Ivoire", 'BF', 'Burkina Faso', 'ML', 'Mali', 'GH', 'Ghana', 'NG', 'Nigeria', 'NE', 'Niger', 'BJ', 'Bénin', 'TG', 'Togo'];
-    } else if (countryFilter === 'Central Africa') {
-      countriesToFilter = ['CM', 'Cameroun', 'GA', 'Gabon', 'CG', 'Congo', 'CD', 'République démocratique du Congo', 'TD', 'Tchad', 'CF', 'République centrafricaine', 'GQ', 'Guinée équatoriale'];
-    }
+    const countriesToFilter = getCountryFilterList(countryFilter);
+    const countryRegexes = countriesToFilter.map(c => new RegExp(`^${c}$`, 'i'));
 
     const vendors = await User.find({
       $or: [
-        { country: { $in: countriesToFilter } },
-        { 'address.country': { $in: countriesToFilter } }
+        { country: { $in: countryRegexes } },
+        { 'address.country': { $in: countryRegexes } }
       ]
     }).select('_id');
     const vendorIds = vendors.map(v => v._id);

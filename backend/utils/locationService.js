@@ -177,14 +177,58 @@ function buildLocationQuery(location, options = {}, type = 'producer') {
   
   // Priorité 3 : Même pays
   if (location.country) {
+    const countrySynonyms = {
+      'SN': ['SN', 'Sénégal', 'Senegal'],
+      'Sénégal': ['SN', 'Sénégal', 'Senegal'],
+      'Senegal': ['SN', 'Sénégal', 'Senegal'],
+      'CM': ['CM', 'Cameroun', 'Cameroon'],
+      'Cameroun': ['CM', 'Cameroun', 'Cameroon'],
+      'Cameroon': ['CM', 'Cameroun', 'Cameroon'],
+      'CI': ['CI', "Côte d'Ivoire", "Cote d'Ivoire", 'Ivory Coast'],
+      "Côte d'Ivoire": ['CI', "Côte d'Ivoire", "Cote d'Ivoire", 'Ivory Coast'],
+      "Cote d'Ivoire": ['CI', "Côte d'Ivoire", "Cote d'Ivoire", 'Ivory Coast'],
+      'BF': ['BF', 'Burkina Faso', 'Burkina'],
+      'Burkina Faso': ['BF', 'Burkina Faso', 'Burkina'],
+      'Burkina': ['BF', 'Burkina Faso', 'Burkina'],
+      'ML': ['ML', 'Mali'],
+      'Mali': ['ML', 'Mali'],
+      'GH': ['GH', 'Ghana'],
+      'Ghana': ['GH', 'Ghana'],
+      'NG': ['NG', 'Nigeria'],
+      'Nigeria': ['NG', 'Nigeria'],
+      'NE': ['NE', 'Niger'],
+      'Niger': ['NE', 'Niger'],
+      'BJ': ['BJ', 'Bénin', 'Benin'],
+      'Bénin': ['BJ', 'Bénin', 'Benin'],
+      'Benin': ['BJ', 'Bénin', 'Benin'],
+      'TG': ['TG', 'Togo'],
+      'Togo': ['TG', 'Togo'],
+      'GA': ['GA', 'Gabon'],
+      'Gabon': ['GA', 'Gabon'],
+      'CG': ['CG', 'Congo'],
+      'Congo': ['CG', 'Congo'],
+      'CD': ['CD', 'République démocratique du Congo', 'RDC', 'DRC', 'Democratic Republic of Congo'],
+      'République démocratique du Congo': ['CD', 'République démocratique du Congo', 'RDC', 'DRC', 'Democratic Republic of Congo'],
+      'TD': ['TD', 'Tchad', 'Chad'],
+      'Tchad': ['TD', 'Tchad', 'Chad'],
+      'CF': ['CF', 'République centrafricaine', 'Central African Republic'],
+      'République centrafricaine': ['CF', 'République centrafricaine', 'Central African Republic'],
+      'GQ': ['GQ', 'Guinée équatoriale', 'Equatorial Guinea'],
+      'Guinée équatoriale': ['GQ', 'Guinée équatoriale', 'Equatorial Guinea']
+    };
+    
+    const normalized = location.country.trim();
+    const synonyms = countrySynonyms[normalized] || [normalized];
+    const countryRegexes = synonyms.map(c => new RegExp(`^${c}$`, 'i'));
+
     if (type === 'transporter') {
       orConditions.push(
-        { country: { $regex: location.country, $options: 'i' } }
+        { country: { $in: countryRegexes } }
       );
     } else {
       orConditions.push(
-        { [`${addressPrefix}.country`]: { $regex: location.country, $options: 'i' } },
-        { country: { $regex: location.country, $options: 'i' } }
+        { [`${addressPrefix}.country`]: { $in: countryRegexes } },
+        { country: { $in: countryRegexes } }
       );
     }
   }
