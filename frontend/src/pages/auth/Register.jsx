@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Mail, Lock, Phone, MapPin } from "lucide-react";
+import { Mail, Lock, Phone, MapPin, User as UserIcon } from "lucide-react";
 import SocialLinks from "../../components/common/SocialLinks";
 import UserTypeSelector from "../../components/auth/UserTypeSelector";
 import NameFields from "../../components/auth/NameFields";
@@ -177,6 +177,17 @@ const Register = () => {
 									onChange={handleChange}
 									placeholder="Saisissez votre pays (ex: Sénégal, Cameroun, Ghana...)"
 									error={errors.country}
+								/>
+
+								{/* Commercial */}
+								<FormField
+									icon={UserIcon}
+									type="text"
+									name="referredBy"
+									value={formData.referredBy || ""}
+									onChange={handleChange}
+									placeholder="Nom ou Code du commercial (Optionnel)"
+									error={errors.referredBy}
 								/>
 
 								{/* Lien de connexion */}

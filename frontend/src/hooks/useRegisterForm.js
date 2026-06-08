@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 /**
  * Hook personnalisé pour gérer le formulaire d'inscription
  */
 export const useRegisterForm = () => {
+  const [searchParams] = useSearchParams();
+  const commercial = searchParams.get('ref') || searchParams.get('commercial') || '';
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -16,7 +20,8 @@ export const useRegisterForm = () => {
     phone: '',
     userType: '',
     country: 'Sénégal',
-    preferredLanguage: 'fr'
+    preferredLanguage: 'fr',
+    referredBy: commercial
   });
 
 
@@ -70,7 +75,8 @@ export const useRegisterForm = () => {
       phone: '',
       userType: '',
       country: 'Sénégal',
-      preferredLanguage: 'fr'
+      preferredLanguage: 'fr',
+      referredBy: commercial
     });
 
     setErrors({});

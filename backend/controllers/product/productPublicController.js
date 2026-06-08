@@ -112,7 +112,13 @@ exports.getProduct = catchAsync(async (req, res, next) => {
 // Obtenir les produits en vedette
 exports.getFeaturedProducts = catchAsync(async (req, res, next) => {
   try {
-    const products = await productPublicService.getFeaturedProducts();
+    let userLocation = null;
+    try {
+      userLocation = await getUserLocation(req);
+    } catch (e) {
+      // ignore
+    }
+    const products = await productPublicService.getFeaturedProducts(req.query, userLocation);
 
     res.status(200).json({
       status: 'success',
@@ -130,6 +136,29 @@ exports.getFeaturedProducts = catchAsync(async (req, res, next) => {
 exports.getNewProducts = catchAsync(async (req, res, next) => {
   try {
     const products = await productPublicService.getNewProducts();
+
+    res.status(200).json({
+      status: 'success',
+      results: products.length,
+      data: {
+        products
+      }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, 404));
+  }
+});
+
+// Obtenir les ventes flash
+exports.getFlashSales = catchAsync(async (req, res, next) => {
+  try {
+    let userLocation = null;
+    try {
+      userLocation = await getUserLocation(req);
+    } catch (e) {
+      // ignore
+    }
+    const products = await productPublicService.getFlashSales(req.query, userLocation);
 
     res.status(200).json({
       status: 'success',

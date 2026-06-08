@@ -5,6 +5,7 @@ const AppError = require("../../utils/appError");
 const emailQueue = require("../../services/emailQueueService");
 const { logAudit, AUDIT_ACTIONS } = require("../../utils/auditLogger");
 const adminNotifications = require("../../utils/adminNotifications");
+const excelSyncService = require("../../services/excelSyncService");
 
 // Fonction pour signer un JWT
 const signToken = (id) => {
@@ -81,6 +82,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 		userType,
 		preferredLanguage: req.body.preferredLanguage || "fr",
 		country: req.body.country || "Sénégal",
+		referredBy: req.body.referredBy || req.body.commercial || null,
 	};
 
 	// Ajouter les champs d'identification spécifiques s'ils sont fournis
@@ -111,6 +113,11 @@ exports.signup = catchAsync(async (req, res, next) => {
 	// Générer token de vérification email
 	const verifyToken = newUser.createEmailVerificationToken();
 	await newUser.save({ validateBeforeSave: false });
+
+	// Synchroniser en temps réel avec le tableau Excel (si configuré)
+	excelSyncService.syncNewUserRealtime(newUser).catch((err) => {
+		console.error("❌ Erreur de synchro Excel en temps réel :", err.message);
+	});
 
 	// Réponse de succès d'inscription
 	const successResponse = {

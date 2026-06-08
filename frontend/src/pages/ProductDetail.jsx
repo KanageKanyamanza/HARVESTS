@@ -295,108 +295,115 @@ const ProductDetail = () => {
 					</button>
 				</div>
 
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-					<ProductImageGallery
-						images={product.images}
-						selectedIndex={selectedImageIndex}
-						onSelectImage={setSelectedImageIndex}
-						productName={productName}
-					/>
+				<div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+					{/* Colonne 1: Galerie d'images (Left) */}
+					<div className="lg:col-span-5">
+						<ProductImageGallery
+							images={product.images}
+							selectedIndex={selectedImageIndex}
+							onSelectImage={setSelectedImageIndex}
+							productName={productName}
+						/>
+					</div>
 
-					<div className="space-y-6 relative">
+					{/* Colonne 2: Informations du produit (Middle) */}
+					<div className="lg:col-span-4 space-y-4">
 						{/* En-tête */}
 						<div>
 							<div className="flex flex-wrap items-center justify-between mb-2">
-								<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+								<span className="inline-flex items-center text-sm font-medium text-primary-700 hover:underline cursor-pointer">
 									{getCategoryLabel(product.category)}
 								</span>
-								<div className="flex items-center space-x-2">
-									<span
-										className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusConfig.color}`}
-									>
-										<StatusIcon className="w-3 h-3 mr-1" />
-										{statusConfig.text}
-									</span>
-									{product.status !== "approved" && (
-										<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-											<FiShield className="w-3 h-3 mr-1" />
-											Non public
-										</span>
-									)}
-								</div>
 							</div>
-							<h1 className="text-3xl font-bold text-gray-900 mb-2">
+							<h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-2">
 								{productName}
+							</h1>
+							
+							<div className="flex items-center space-x-2 border-b border-gray-200 pb-2 mb-2">
+								<div className="flex items-center cursor-pointer hover:text-primary-600">
+									<span className="text-sm font-bold text-gray-800 mr-1">{reviewStats?.averageRating || 0}</span>
+									<StarRating rating={reviewStats?.averageRating || 0} size="sm" />
+								</div>
+								{reviewStats?.totalReviews > 0 && (
+									<span className="text-sm text-primary-600 hover:underline cursor-pointer">
+										{reviewStats.totalReviews} évaluations
+									</span>
+								)}
+							</div>
+
+							<div className="flex items-center space-x-2 mt-2 mb-4">
+								<span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${statusConfig.color}`}>
+									<StatusIcon className="w-3 h-3 mr-1" />
+									{statusConfig.text}
+								</span>
 								{(producer?.isBio || product.transformer?.isBio) && (
-									<span className="ml-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-sm transition-all hover:bg-emerald-200">
-										<Leaf className="mr-1.5 h-3.5 w-3.5" />
+									<span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-800">
+										<Leaf className="mr-1 h-3 w-3" />
 										CERTIFIE BIO
 									</span>
 								)}
-							</h1>
-							<div className="flex flex-wrap gap-2 items-center">
-								<StarRating
-									rating={reviewStats?.averageRating || 0}
-									size="md"
-									showText
-								/>
-								{reviewStats?.totalReviews > 0 && (
-									<span className="text-sm text-gray-600">
-										({reviewStats.totalReviews} avis)
-									</span>
-								)}
-								<div className="flex items-center text-sm text-gray-600">
-									<FiPackage className="h-4 w-4 mr-1" />
-									{product.inventory?.quantity || 0} En stock
-								</div>
-								{product.stats && (
-									<>
-										<div className="flex items-center text-sm text-gray-600">
-											<FiEye className="h-4 w-4 mr-1" />
-											{product.stats.views || 0} vues
-										</div>
-										<div className="flex items-center text-sm text-gray-600">
-											<FiHeart className="h-4 w-4 mr-1" />
-											{favoritesCount} favoris
-										</div>
-									</>
-								)}
 							</div>
 						</div>
 
-						{/* Prix */}
-						<div className="flex items-center space-x-4">
-							<span className="text-3xl font-bold text-gray-900">
-								{formatPrice(product.price, product.currency)}
-							</span>
-							<span className="text-sm text-gray-600">
+						{/* Prix (Middle) */}
+						<div className="py-2">
+							<div className="flex items-end">
+								<span className="text-3xl font-bold text-gray-900">
+									{formatPrice(product.price, product.currency)}
+								</span>
+							</div>
+							<div className="text-sm text-gray-500 mt-1">
 								par {product.unit || "unité"}
-							</span>
+							</div>
 						</div>
 
-						<p className="text-gray-600 leading-relaxed">
-							{productDescription}
-						</p>
+						{/* Description courte / Bullets */}
+						<div className="border-t border-gray-200 pt-4">
+							<h3 className="font-bold text-gray-900 mb-2">À propos de cet article</h3>
+							<p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+								{productDescription}
+							</p>
+						</div>
+					</div>
 
-						<ProductActions
-							quantity={quantity}
-							onQuantityChange={setQuantity}
-							onAddToCart={handleAddToCart}
-							onToggleFavorite={handleToggleFavorite}
-							onShare={handleShare}
-							isFavorite={isFavorite}
-							showAddedToCart={showAddedToCart}
-						/>
-
-						{showAddedToCart && (
-							<div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center">
-								<FiShoppingCart className="h-4 w-4 mr-2" />
-								{quantity} article{quantity > 1 ? "s" : ""} ajouté
-								{quantity > 1 ? "s" : ""} !
+					{/* Colonne 3: Buy Box (Right) */}
+					<div className="lg:col-span-3">
+						<div className="bg-white border border-gray-300 rounded-lg p-4 shadow-sm sticky top-4">
+							<div className="text-2xl font-bold text-gray-900 mb-2">
+								{formatPrice(product.price, product.currency)}
 							</div>
-						)}
+							
+							<div className="text-sm text-gray-600 mb-4 flex items-center">
+								<FiPackage className="h-4 w-4 mr-2 text-primary-600" />
+								<span className="font-medium text-green-700">En stock</span>
+								<span className="ml-1">({product.inventory?.quantity || 0} disponibles)</span>
+							</div>
 
-						<VendorCard vendor={producer} />
+							<ProductActions
+								quantity={quantity}
+								onQuantityChange={setQuantity}
+								onAddToCart={handleAddToCart}
+								onToggleFavorite={handleToggleFavorite}
+								onShare={handleShare}
+								isFavorite={isFavorite}
+								showAddedToCart={showAddedToCart}
+							/>
+
+							{showAddedToCart && (
+								<div className="mt-3 bg-green-50 text-green-700 px-3 py-2 rounded border border-green-200 text-sm flex items-center">
+									<FiCheckCircle className="h-4 w-4 mr-2" />
+									Ajouté au panier
+								</div>
+							)}
+
+							<div className="mt-4 pt-4 border-t border-gray-200">
+								<div className="text-sm text-gray-600 mb-2 flex items-center">
+									<FiShield className="h-4 w-4 mr-2 text-gray-400" />
+									Paiement sécurisé
+								</div>
+								<VendorCard vendor={producer} />
+							</div>
+						</div>
 					</div>
 				</div>
 

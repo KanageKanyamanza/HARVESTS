@@ -137,41 +137,38 @@ const Producers = () => {
 					</div>
 
 				{producers.length > 0 ?
-					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 						{producers.map((producer) => (
 							<Link
 								key={producer._id}
 								to={`/producers/${producer._id}`}
-								className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden block group"
+								className="bg-white border border-gray-200 rounded-sm hover:shadow-md transition-shadow overflow-hidden block group"
 							>
 								{/* Bannière en arrière-plan */}
-								<div className="relative h-[175px] bg-gradient-to-r from-green-400 to-green-600">
+								<div className="relative h-40 bg-gray-100">
 									{producer.shopBanner ?
 										<img
 											src={producer.shopBanner}
 											alt="Bannière de la boutique"
 											className="w-full h-full object-cover"
 										/>
-									:	<div className=" w-full h-full bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
-											<FiPackage className="w-12 h-12 text-white opacity-50" />
+									:	<div className="w-full h-full bg-gradient-to-r from-gray-200 to-gray-300 flex items-center justify-center">
+											<FiPackage className="w-12 h-12 text-gray-400" />
 										</div>
 									}
 
-									{/* Overlay pour améliorer la lisibilité */}
-									<div className="absolute inset-0 bg-black bg-opacity-20"></div>
-
-									{/* Photo de profil en coin inférieur gauche */}
-									<div className="absolute  bottom-5 left-5 transform -translate-x-2 translate-y-2">
-										<div className="w-16 h-16 rounded-full bg-white p-1 shadow-lg">
-											<div className="w-full h-full rounded-full bg-gray-200 overflow-hidden">
+									{/* Photo de profil centrée qui déborde */}
+									<div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2">
+										<div className="w-16 h-16 rounded-full bg-white p-1 border border-gray-200 shadow-sm">
+											<div className="w-full h-full rounded-full bg-gray-100 overflow-hidden">
 												{producer.avatar ?
 													<img
 														src={producer.avatar}
 														alt={`${producer.firstName} ${producer.lastName}`}
 														className="w-full h-full object-cover"
 													/>
-												:	<div className="w-full h-full bg-green-100 flex items-center justify-center">
-														<span className="text-sm font-bold text-green-600">
+												:	<div className="w-full h-full bg-primary-100 flex items-center justify-center">
+														<span className="text-lg font-bold text-primary-700">
 															{producer.firstName?.[0]}
 															{producer.lastName?.[0]}
 														</span>
@@ -182,72 +179,58 @@ const Producers = () => {
 									</div>
 								</div>
 
-								{/* Informations en bas */}
-								<div className="p-4 pt-6">
-									<h3 className="font-semibold text-gray-900 mb-1 text-lg flex items-center justify-between">
-										<span className="truncate">
-											{producer.shopInfo?.shopName ||
-												((
-													producer.farmName && producer.farmName !== "À compléter"
-												) ?
-													producer.farmName
-												:	null) ||
-												`${producer.firstName} ${
-													producer.lastName !== "À compléter" ?
-														producer.lastName
-													:	""
-												}`.trim()}
-										</span>
-										{producer.isBio && (
-											<span
-												className="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200"
-												title="Producteur Bio Certifié"
-											>
-												<Leaf className="w-2.5 h-2.5 mr-1" />
-												BIO
-											</span>
-										)}
+								{/* Informations */}
+								<div className="px-4 pt-10 pb-4 text-center">
+									<h3 className="font-bold text-gray-900 text-lg mb-1 truncate">
+										{producer.shopInfo?.shopName ||
+											((producer.farmName && producer.farmName !== "À compléter") ?
+												producer.farmName
+											:	null) ||
+											`${producer.firstName} ${
+												producer.lastName !== "À compléter" ?
+													producer.lastName
+												:	""
+											}`.trim()}
 									</h3>
-									<p className="text-sm text-gray-600 mb-2">
-										{producer.firstName}{" "}
-										{producer.lastName !== "À compléter" ?
-											producer.lastName
-										:	""}
-									</p>
-									<div className="flex items-center text-gray-500 text-sm mb-3">
-										<FiMapPin className="mr-1" />
+									
+									<div className="flex items-center justify-center text-sm text-gray-600 mb-2">
+										<FiMapPin className="mr-1 h-3 w-3" />
 										<span>{getCountryName(producer.country)}</span>
 										{producer.address?.city && (
-											<span className="ml-2">• {producer.address.city}</span>
+											<span className="ml-1">• {producer.address.city}</span>
 										)}
 									</div>
 
-									{/* Statistiques */}
-									<div className="flex items-center justify-between text-sm">
-										<div className="flex items-center text-yellow-600">
-											<FiStar className="mr-1" />
-											<span>
-												{producer.salesStats?.averageRating?.toFixed(1) ||
-													"0.0"}
+									<div className="flex items-center justify-center space-x-2 mb-4">
+										<div className="flex items-center text-yellow-500">
+											<span className="text-sm font-bold text-gray-800 mr-1">
+												{producer.salesStats?.averageRating?.toFixed(1) || "0.0"}
 											</span>
+											<FiStar className="h-4 w-4 fill-current" />
 										</div>
-										<div className="flex items-center text-gray-500">
-											<FiPackage className="mr-1" />
-											<span className="mr-1">Produits</span>
-											<FiArrowRight className="text-gray-400 group-hover:text-gray-600 transition-colors" />
-										</div>
+										{producer.isBio && (
+											<span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+												<Leaf className="w-3 h-3 mr-1" />
+												BIO
+											</span>
+										)}
+									</div>
+
+									<div className="text-primary-600 text-sm font-medium hover:text-primary-800 hover:underline inline-flex items-center">
+										Visiter la boutique
+										<FiArrowRight className="ml-1 h-4 w-4" />
 									</div>
 								</div>
 							</Link>
 						))}
 					</div>
-				:	<div className="text-center py-12">
-						<FiPackage className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-						<h3 className="text-lg font-medium text-gray-900 mb-2">
+				:	<div className="text-center py-16 bg-white border border-gray-200 rounded-sm">
+						<FiPackage className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+						<h3 className="text-xl font-bold text-gray-900 mb-2">
 							Aucun producteur disponible
 						</h3>
-						<p className="text-gray-500">
-							Revenez plus tard pour découvrir nos producteurs.
+						<p className="text-gray-500 max-w-md mx-auto">
+							Il n'y a actuellement aucun producteur correspondant à vos critères.
 						</p>
 					</div>
 				}

@@ -5,7 +5,6 @@ import { faqData, findBestAnswer } from "../../data/faqData";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../contexts/CartContext";
-import useBackToTopVisible from "../../hooks/useBackToTopVisible";
 import { useChatBot } from "../../hooks/useChatBot";
 import { chatService } from "../../services/chatService";
 import ChatInput from "./ChatInput";
@@ -33,7 +32,6 @@ import {
 const ChatBot = () => {
 	const { isAuthenticated, user } = useAuth();
 	const { cart, clearCart: clearCartAction } = useCart();
-	const backToTopVisible = useBackToTopVisible();
 	const location = useLocation();
 	const isHomePage = location.pathname === "/";
 
@@ -91,11 +89,11 @@ const ChatBot = () => {
 				addBotMessage(
 					`Enchanté ${
 						message.split(" ")[0]
-					} ! 😊\n\nPour mieux vous aider, pourriez-vous me donner votre adresse email ? (Tapez "passer" si vous préférez ne pas le partager)`,
+					} ! \n\nPour mieux vous aider, pourriez-vous me donner votre adresse email ? (Tapez "passer" si vous préférez ne pas le partager)`,
 				);
 			} else {
 				addBotMessage(
-					`Pas de souci ! 😊 Pouvez-vous me donner votre adresse email pour le suivi ? (Ou tapez "passer")`,
+					`Pas de souci ! Pouvez-vous me donner votre adresse email pour le suivi ? (Ou tapez "passer")`,
 				);
 			}
 			setInfoStep("email");
@@ -127,7 +125,7 @@ const ChatBot = () => {
 		if (!isAuthenticated && !guestInfo?.name && !askingForInfo) {
 			setAskingForInfo(true);
 			setInfoStep("name");
-			addBotMessage(`Avant de commencer, puis-je connaître votre prénom ? 😊`);
+			addBotMessage(`Avant de commencer, puis-je connaître votre prénom ?`);
 			return true;
 		}
 		return false;
@@ -152,7 +150,7 @@ const ChatBot = () => {
 			if (intent === "MY_CART") {
 				setIsTyping(false);
 				if (!isAuthenticated) {
-					responseText = "Vous devez être connecté pour voir votre panier. 😊";
+					responseText = "Vous devez être connecté pour voir votre panier.";
 					const botMsgId = addBotMessage(responseText);
 					const interactionId = await logChatBotInteraction(
 						message,
@@ -190,7 +188,7 @@ const ChatBot = () => {
 			if (intent === "MY_FAVORITES") {
 				setIsTyping(false);
 				if (!isAuthenticated) {
-					responseText = "Vous devez être connecté pour voir vos favoris. ❤️";
+					responseText = "Vous devez être connecté pour voir vos favoris.";
 					const botMsgId = addBotMessage(responseText);
 					const interactionId = await logChatBotInteraction(
 						message,
@@ -210,7 +208,7 @@ const ChatBot = () => {
 					setFoundProducts(favorites.map((f) => f.product));
 				} else {
 					responseText =
-						"Vous n'avez pas encore de favoris. Cliquez sur le ❤️ des produits qui vous plaisent !";
+						"Vous n'avez pas encore de favoris. Ajoutez les produits qui vous plaisent !";
 				}
 				const botMsgId = addBotMessage(responseText);
 				const interactionId = await logChatBotInteraction(
@@ -228,7 +226,7 @@ const ChatBot = () => {
 			if (intent === "MY_ORDERS") {
 				setIsTyping(false);
 				if (!isAuthenticated) {
-					responseText = "Vous devez être connecté pour voir vos commandes. 📦";
+					responseText = "Vous devez être connecté pour voir vos commandes.";
 					const botMsgId = addBotMessage(responseText);
 					const interactionId = await logChatBotInteraction(
 						message,
@@ -294,7 +292,7 @@ const ChatBot = () => {
 			if (intent === "CONTACT_SUPPORT") {
 				setIsTyping(false);
 				responseText =
-					"Pour toute assistance, vous pouvez nous contacter :\n• Email : **contact@harvests.site**\n• Téléphone : **+221 77 197 07 13**\n\nNotre équipe est à votre disposition ! 😊";
+					"Pour toute assistance, vous pouvez nous contacter :\n• Email : **contact@harvests.site**\n• Téléphone : **+221 77 197 07 13**\n\nNotre équipe est à votre disposition !";
 				const botMsgId = addBotMessage(responseText);
 				const interactionId = await logChatBotInteraction(
 					message,
@@ -312,7 +310,7 @@ const ChatBot = () => {
 				setIsTyping(false);
 				if (!isAuthenticated) {
 					responseText =
-						"Pour suivre votre commande, vous devez d'abord vous connecter à votre compte. 👤";
+						"Pour suivre votre commande, vous devez d'abord vous connecter à votre compte.";
 					const botMsgId = addBotMessage(responseText);
 					const interactionId = await logChatBotInteraction(
 						message,
@@ -447,7 +445,7 @@ const ChatBot = () => {
 		if (action === "confirmClearCart") {
 			try {
 				await clearCartAction();
-				addBotMessage("✓ Votre panier a été vidé.");
+				addBotMessage("Votre panier a été vidé.");
 				setQuickLinks([]);
 			} catch {
 				addBotMessage("Erreur lors du vidage.");
@@ -573,22 +571,15 @@ const ChatBot = () => {
 	if (!isOpen) {
 		return (
 			<>
-				<div
-					className={`fixed right-6 z-50 ${
-						backToTopVisible ? "bottom-[80px]" : "bottom-6"
-					}`}
-				>
-					<ChatBotButton
-						onClick={() => setIsOpen(true)}
-						backToTopVisible={backToTopVisible}
-					/>
+				<div className="fixed right-6 z-50 bottom-6">
+					<ChatBotButton onClick={() => setIsOpen(true)} />
 				</div>
 
 				{showTooltip && !isOpen && (
 					<div
 						className="fixed right-24 z-[60] bg-white rounded-lg shadow-2xl p-4 border-2 border-green-200"
 						style={{
-							bottom: backToTopVisible ? "80px" : "24px",
+							bottom: "24px",
 							width: "320px",
 							maxWidth: "calc(100vw - 110px)",
 						}}
@@ -619,12 +610,12 @@ const ChatBot = () => {
 							</div>
 							<div className="flex-1">
 								<h4 className="font-semibold text-gray-900 text-sm mb-1">
-									Salut ! 👋
+									Salut !
 								</h4>
 								<p className="text-xs text-gray-600 leading-relaxed">
 									Je suis l'assistant{" "}
 									<span className="font-semibold text-green-600">Harvests</span>{" "}
-									! Posez-moi vos questions, je suis là pour vous aider ! 😊
+									Posez-moi vos questions, je suis là pour vous aider !
 								</p>
 							</div>
 						</div>
@@ -646,8 +637,8 @@ const ChatBot = () => {
 				isMinimized ? "right-6 w-96 max-w-[calc(100vw-3rem)] h-[4rem]"
 				: isMaximized ? "right-[5vw] left-[5vw] w-[90vw] bottom-[5vh] h-[90vh]"
 				: "right-6 w-96 max-w-[calc(100vw-3rem)] h-[700px] max-h-[85vh]"
-			} ${!isMaximized && (backToTopVisible ? "bottom-[90px]" : "bottom-8")} ${
-				isMinimized && (backToTopVisible ? "bottom-[90px]" : "bottom-8")
+			} ${!isMaximized && "bottom-8"} ${
+				isMinimized && "bottom-8"
 			}`}
 		>
 			<ChatBotHeader

@@ -27,6 +27,9 @@ export const useEditProductTransformer = () => {
 		stock: "",
 		unit: DEFAULT_UNIT,
 		status: "draft",
+		flashSaleIsActive: false,
+		flashSaleDiscount: "",
+		flashSaleEndDate: "",
 	});
 
 	// Charger le produit à modifier
@@ -66,6 +69,9 @@ export const useEditProductTransformer = () => {
 						"",
 					unit: formattedProduct.unit || DEFAULT_UNIT,
 					status: formattedProduct.status || "draft",
+					flashSaleIsActive: formattedProduct.flashSale?.isActive || false,
+					flashSaleDiscount: formattedProduct.flashSale?.discountPercentage || "",
+					flashSaleEndDate: formattedProduct.flashSale?.endDate ? new Date(formattedProduct.flashSale.endDate).toISOString().split('T')[0] : "",
 				});
 
 				if (productData.images && productData.images.length > 0) {
@@ -93,8 +99,9 @@ export const useEditProductTransformer = () => {
 	}, [id]);
 
 	const handleInputChange = (e) => {
-		const { name, value } = e.target;
-		setFormData((prev) => ({ ...prev, [name]: value }));
+		const { name, value, type, checked } = e.target;
+		const val = type === "checkbox" ? checked : value;
+		setFormData((prev) => ({ ...prev, [name]: val }));
 		if (errors[name]) {
 			setErrors((prev) => ({ ...prev, [name]: "" }));
 		}
@@ -184,9 +191,15 @@ export const useEditProductTransformer = () => {
 				inventory: {
 					quantity: parseInt(formData.stock),
 				},
-				unit: formData.unit,
+				unit: formData.unit || "unité",
+				currency: formData.currency || DEFAULT_CURRENCY,
 				status: formData.status || "draft",
 				images: productImages,
+				flashSale: {
+					isActive: formData.flashSaleIsActive,
+					discountPercentage: formData.flashSaleDiscount ? parseInt(formData.flashSaleDiscount) : 0,
+					endDate: formData.flashSaleEndDate || null
+				}
 			};
 
 			await transformerService.updateProduct(id, productData);

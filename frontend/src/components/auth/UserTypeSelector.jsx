@@ -1,13 +1,13 @@
 import React from 'react';
-import { Users, ChevronDown } from 'lucide-react';
+import { Users, ChevronDown, ShoppingCart, Wheat, Factory, Utensils, Ship, Truck } from 'lucide-react';
 
 const userTypes = [
-  { value: 'consumer', label: '🛒 Consommateur', description: 'Achetez des produits frais directement des producteurs' },
-  { value: 'producer', label: '🌾 Producteur', description: 'Vendez vos produits agricoles sur notre plateforme' },
-  { value: 'transformer', label: '🏭 Transformateur', description: 'Transformez et commercialisez des produits agricoles' },
-  { value: 'restaurateur', label: '🍽️ Restaurateur', description: 'Commandez des ingrédients frais pour votre restaurant' },
-  { value: 'exporter', label: '🚢 Exportateur', description: 'Exportez des produits agricoles vers d\'autres pays' },
-  { value: 'transporter', label: '🚛 Transporteur', description: 'Transportez des produits agricoles en toute sécurité' }
+  { value: 'consumer', icon: ShoppingCart, label: 'Consommateur', description: 'Achetez des produits frais directement des producteurs' },
+  { value: 'producer', icon: Wheat, label: 'Producteur', description: 'Vendez vos produits agricoles sur notre plateforme' },
+  { value: 'transformer', icon: Factory, label: 'Transformateur', description: 'Transformez et commercialisez des produits agricoles' },
+  { value: 'restaurateur', icon: Utensils, label: 'Restaurateur', description: 'Commandez des ingrédients frais pour votre restaurant' },
+  { value: 'exporter', icon: Ship, label: 'Exportateur', description: 'Exportez des produits agricoles vers d\'autres pays' },
+  { value: 'transporter', icon: Truck, label: 'Transporteur', description: 'Transportez des produits agricoles en toute sécurité' }
 ];
 
 const UserTypeSelector = ({ 
@@ -31,9 +31,14 @@ const UserTypeSelector = ({
           error ? 'border-red-300' : 'border-gray-300'
         }`}
       >
-        <span className={selectedUserType ? 'text-gray-900' : 'text-gray-500'}>
+        <span className={selectedUserType ? 'text-gray-900 flex items-center' : 'text-gray-500 flex items-center'}>
           {selectedUserType 
-            ? userTypes.find(type => type.value === selectedUserType)?.label 
+            ? (() => {
+                const type = userTypes.find(t => t.value === selectedUserType);
+                if (!type) return 'Sélectionner un profil';
+                const Icon = type.icon;
+                return <><Icon className="w-4 h-4 mr-2" /> {type.label}</>;
+              })()
             : 'Sélectionner un profil'
           }
         </span>
@@ -54,10 +59,10 @@ const UserTypeSelector = ({
                 }`}
               >
                 <div className="flex items-start space-x-3">
-                  <div className="text-2xl">{type.label.split(' ')[0]}</div>
+                  <div className="mt-0.5"><type.icon className="w-5 h-5 text-green-600" /></div>
                   <div className="flex-1">
                     <div className="font-medium text-sm">
-                      {type.label.split(' ').slice(1).join(' ')}
+                      {type.label}
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
                       {type.description}

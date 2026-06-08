@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { BellRing, BellOff, Smartphone, Loader2, ShieldAlert, CheckCircle2, XCircle } from "lucide-react";
+import { BellRing, BellOff, Smartphone, Loader2, ShieldAlert, CheckCircle2, XCircle, Lock } from "lucide-react";
 import pushService from "../../services/pushService";
 
 /**
@@ -139,7 +139,7 @@ const PushNotificationToggle = ({ isAdmin = false, className = "" }) => {
 					</p>
 					<p className="text-[11px] text-rose-600 font-medium leading-relaxed mb-3">
 						Les notifications ont été bloquées dans votre navigateur. Pour les réactiver, cliquez sur le
-						cadenas <strong>🔒</strong> dans la barre d'adresse → Notifications → Autoriser.
+						cadenas <Lock className="inline w-4 h-4 text-gray-700" /> dans la barre d'adresse → Notifications → Autoriser.
 					</p>
 					<a
 						href="https://support.google.com/chrome/answer/3220216"

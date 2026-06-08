@@ -1,29 +1,50 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { FiMapPin } from "react-icons/fi";
 import ProductCard from "../products/ProductCard";
 import LoadingSpinner from "../common/LoadingSpinner";
 import { productService } from "../../services";
+import { useGeoLocation } from "../../hooks/useGeoLocation";
 
 const FeaturedProductsSection = () => {
 	const [products, setProducts] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
+	const [isLocal, setIsLocal] = useState(false);
+	const { countryCode, countryName, detected, loading: geoLoading } = useGeoLocation();
 
 	useEffect(() => {
-		loadFeaturedProducts();
-	}, []);
+		if (!geoLoading) {
+			loadFeaturedProducts();
+		}
+	}, [geoLoading, countryCode]);
 
 	const loadFeaturedProducts = async () => {
 		try {
 			setLoading(true);
 			setError(null);
 
-			// Récupérer seulement 8 produits featured pour la homepage
-			const response = await productService.getFeaturedProducts({ limit: 8 });
+			const params = { limit: 8 };
+			if (detected && countryCode) {
+				params.country = countryCode;
+			}
+
+			const response = await productService.getFeaturedProducts(params);
 
 			if (response.data.status === "success") {
-				setProducts(response.data.data.products || []);
+				const fetched = response.data.data.products || [];
+				setProducts(fetched);
+				setIsLocal(detected && countryCode && fetched.length > 0);
+
+				// Fallback global si aucun produit featured dans la zone
+				if (detected && countryCode && fetched.length === 0) {
+					const fallback = await productService.getFeaturedProducts({ limit: 8 });
+					if (fallback.data.status === "success") {
+						setProducts(fallback.data.data.products || []);
+					}
+					setIsLocal(false);
+				}
 			}
 		} catch (err) {
 			console.error(
@@ -36,8 +57,6 @@ const FeaturedProductsSection = () => {
 		}
 	};
 
-	// Debug: Logs pour comprendre le problème d'affichage
-
 	// Ne pas afficher la section s'il n'y a pas de produits featured
 	if (!loading && products.length === 0) {
 		return null;
@@ -48,9 +67,17 @@ const FeaturedProductsSection = () => {
 			<div className="container-xl">
 				{/* En-tête */}
 				<div className="flex justify-between items-center mb-5">
-					<h2 className="text-3xl md:text-4xl font-display font-bold text-gray-900">
-						Featured Products
-					</h2>
+					<div>
+						<h2 className="text-3xl md:text-4xl font-display font-bold text-gray-900">
+							Featured Products
+						</h2>
+						{isLocal && countryName && (
+							<span className="inline-flex items-center gap-1 mt-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
+								<FiMapPin className="h-3 w-3" />
+								{countryName}
+							</span>
+						)}
+					</div>
 					{/* CTA pour voir tous les produits */}
 					<div className="flex whitespace-nowrap justify-end">
 						<Link
@@ -87,7 +114,7 @@ const FeaturedProductsSection = () => {
 				) : (
 					<>
 						{/* Grille de produits */}
-						<div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-5">
+						<div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-6 mb-5">
 							{products.map((product) => (
 								<ProductCard key={product._id} product={product} />
 							))}

@@ -29,12 +29,10 @@ const categoryIcons = {
 	produits: ShoppingBag,
 };
 
-export const ChatBotButton = ({ onClick, backToTopVisible }) => (
+export const ChatBotButton = ({ onClick }) => (
 	<button
 		onClick={onClick}
-		className={`fixed right-6 w-12 h-12 bg-gradient-to-tr from-primary-600 to-primary-500 text-white rounded-[1.5rem] shadow-xl shadow-primary-200 hover:shadow-2xl hover:scale-110 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center z-40 group ${
-			backToTopVisible ? "bottom-[70px]" : "bottom-5"
-		}`}
+		className="fixed right-6 bottom-5 w-12 h-12 bg-gradient-to-tr from-primary-600 to-primary-500 text-white rounded-[1.5rem] shadow-xl shadow-primary-200 hover:shadow-2xl hover:scale-110 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center z-40 group"
 		aria-label="Ouvrir le chat"
 	>
 		<div className="absolute inset-0 rounded-[1.5rem] bg-white/20 animate-pulse rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />

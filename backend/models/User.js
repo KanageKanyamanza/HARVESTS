@@ -332,6 +332,13 @@ const baseUserSchema = new mongoose.Schema(
 			},
 		},
 
+		// Commercial / Parrainage
+		referredBy: {
+			type: String,
+			trim: true,
+			default: null,
+		},
+
 		// Abonnements Web Push
 		webPushSubscriptions: [
 			{

@@ -63,162 +63,148 @@ const Cart = () => {
 
 	return (
 		<div className="min-h-screen bg-harvests-light py-8">
-			<div className="max-w-5xl mx-auto px-4">
-				<div className="flex items-center justify-between mb-6">
-					<div className="flex items-center">
-						<button
-							onClick={() => navigate(-1)}
-							className="mr-4 p-2 text-gray-600 hover:text-gray-900"
-						>
-							<FiArrowLeft className="h-5 w-5" />
-						</button>
-						<h1 className="text-2xl font-bold text-gray-900">
-							Mon Panier ({totalItems} articles)
-						</h1>
-					</div>
-					<button
-						onClick={clearCart}
-						className="text-red-600 hover:text-red-800 text-sm font-medium"
-					>
-						Vider le panier
-					</button>
-				</div>
+			<div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+				<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+					{/* Liste des articles (Left) */}
+					<div className="lg:col-span-9">
+						<div className="bg-white rounded-sm shadow-sm border border-gray-200 p-6">
+							<div className="flex items-end justify-between border-b border-gray-200 pb-4 mb-4">
+								<h1 className="text-3xl font-normal text-gray-900">
+									Votre panier
+								</h1>
+								<span className="text-sm text-gray-600 hidden sm:inline">Prix</span>
+							</div>
 
-				<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-					{/* Liste des articles */}
-					<div className="lg:col-span-2">
-						<div className="bg-white rounded-lg shadow">
 							{items.map((item) => (
 								<div
 									key={item.productId}
-									className="p-6 border-b border-gray-200 last:border-b-0"
+									className="py-4 border-b border-gray-100 last:border-b-0 flex flex-col sm:flex-row gap-4"
 								>
-									<div className="flex items-center space-x-4">
-										<div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden">
-											<CloudinaryImage
-												src={item.image}
-												alt={item.name}
-												className="w-full h-full object-cover"
-												width={80}
-												height={80}
-											/>
-										</div>
+									{/* Image */}
+									<div className="w-32 h-32 flex-shrink-0 bg-gray-50 flex items-center justify-center p-2">
+										<CloudinaryImage
+											src={item.image}
+											alt={item.name}
+											className="max-w-full max-h-full object-contain mix-blend-multiply"
+											width={120}
+											height={120}
+										/>
+									</div>
 
-										<div className="flex-1">
-											<h3 className="font-medium text-gray-900">{item.name}</h3>
-											<p className="text-sm text-gray-600">
-												Par{" "}
-												{item.producer?.name ||
-													item.producerName ||
-													item.supplierName ||
-													"Fournisseur"}
-											</p>
-											<p className="text-lg font-semibold text-harvests-green">
-												{formatPrice(
-													convertPrice(
-														item.price,
-														item.currency || DEFAULT_CURRENCY,
-														currency
-													),
-													currency
-												)}{" "}
-												<span className="text-xs font-normal text-gray-500">
-													/ {item.unit || "unité"}
+									{/* Infos */}
+									<div className="flex-1 flex flex-col sm:flex-row justify-between">
+										<div className="flex-1 pr-4">
+											<h3 className="text-lg font-medium text-gray-900 line-clamp-2 leading-tight">
+												{item.name}
+											</h3>
+											<p className="text-sm text-green-700 mt-1">En stock</p>
+											<p className="text-xs text-gray-500 mt-1">
+												Vendu par : {" "}
+												<span className="text-primary-600 hover:underline cursor-pointer">
+													{item.producer?.name ||
+														item.producerName ||
+														item.supplierName ||
+														"Fournisseur"}
 												</span>
 											</p>
-										</div>
 
-										<div className="flex items-center space-x-3">
-											<div className="flex items-center border border-gray-300 rounded-lg">
+											{/* Actions (Qty, Delete) */}
+											<div className="flex items-center gap-4 mt-4">
+												<div className="flex items-center border border-gray-300 rounded shadow-sm bg-gray-50">
+													<button
+														onClick={() =>
+															updateQuantity(
+																item.productId,
+																item.quantity - 1,
+																item.originType
+															)
+														}
+														className="p-1 px-2 hover:bg-gray-200 text-gray-600"
+													>
+														<FiMinus className="h-4 w-4" />
+													</button>
+													<span className="px-3 py-1 bg-white border-x border-gray-300 min-w-[2.5rem] text-center text-sm font-medium">
+														{item.quantity}
+													</span>
+													<button
+														onClick={() =>
+															updateQuantity(
+																item.productId,
+																item.quantity + 1,
+																item.originType
+															)
+														}
+														className="p-1 px-2 hover:bg-gray-200 text-gray-600"
+													>
+														<FiPlus className="h-4 w-4" />
+													</button>
+												</div>
+
+												<div className="h-4 border-l border-gray-300 hidden sm:block"></div>
+
 												<button
 													onClick={() =>
-														updateQuantity(
-															item.productId,
-															item.quantity - 1,
-															item.originType
-														)
+														removeFromCart(item.productId, item.originType)
 													}
-													className="p-2 hover:bg-gray-100"
+													className="text-sm text-primary-600 hover:underline"
 												>
-													<FiMinus className="h-4 w-4" />
-												</button>
-												<span className="px-3 py-2 min-w-[3rem] text-center">
-													{item.quantity}
-												</span>
-												<button
-													onClick={() =>
-														updateQuantity(
-															item.productId,
-															item.quantity + 1,
-															item.originType
-														)
-													}
-													className="p-2 hover:bg-gray-100"
-												>
-													<FiPlus className="h-4 w-4" />
+													Supprimer
 												</button>
 											</div>
+										</div>
 
-											<button
-												onClick={() =>
-													removeFromCart(item.productId, item.originType)
-												}
-												className="p-2 text-red-600 hover:text-red-800"
-											>
-												<FiTrash2 className="h-4 w-4" />
-											</button>
+										{/* Prix individuel (aligné à droite sur desktop) */}
+										<div className="text-right mt-4 sm:mt-0 font-bold text-lg text-gray-900">
+											{formatPrice(
+												convertPrice(
+													item.price,
+													item.currency || DEFAULT_CURRENCY,
+													currency
+												),
+												currency
+											)}
 										</div>
 									</div>
 								</div>
 							))}
+							
+							<div className="flex justify-end pt-4 font-normal text-lg">
+								Sous-total ({totalItems} articles): {" "}
+								<span className="font-bold ml-2">
+									{formatPrice(
+										convertPrice(totalPrice, DEFAULT_CURRENCY, currency),
+										currency
+									)}
+								</span>
+							</div>
 						</div>
 					</div>
 
-					{/* Résumé de la commande */}
-					<div className="lg:col-span-1">
-						<div className="bg-white rounded-lg shadow p-6 sticky top-4">
-							<h2 className="text-lg font-semibold text-gray-900 mb-4">
-								Résumé de la commande
-							</h2>
-
-							<div className="space-y-3 mb-6">
-								<div className="flex justify-between text-sm">
-									<span>Sous-total ({totalItems} articles)</span>
-									<span>
-										{formatPrice(
-											convertPrice(totalPrice, DEFAULT_CURRENCY, currency),
-											currency
-										)}
-									</span>
-								</div>
-								<hr />
-								<div className="flex justify-between font-semibold text-lg">
-									<span>Total</span>
-									<span>
-										{formatPrice(
-											convertPrice(totalPrice, DEFAULT_CURRENCY, currency),
-											currency
-										)}
-									</span>
-								</div>
+					{/* Résumé de la commande (Right) */}
+					<div className="lg:col-span-3">
+						<div className="bg-white rounded-sm shadow-sm border border-gray-200 p-4 sticky top-4">
+							<div className="text-lg font-normal mb-4">
+								Sous-total ({totalItems} articles): {" "}
+								<span className="font-bold">
+									{formatPrice(
+										convertPrice(totalPrice, DEFAULT_CURRENCY, currency),
+										currency
+									)}
+								</span>
 							</div>
 
 							<button
 								onClick={() => {
 									console.log('🛒 [Cart] Bouton "Passer la commande" cliqué');
-									console.log("🛒 [Cart] User:", user);
-									console.log("🛒 [Cart] UserType:", user?.userType);
-									// Navigation conditionnelle selon le type d'utilisateur
 									let checkoutRoute = "/checkout";
 									if (user?.userType === "consumer") {
 										checkoutRoute = "/consumer/checkout";
 									} else if (user?.userType === "restaurateur") {
 										checkoutRoute = "/restaurateur/checkout";
 									}
-									console.log("🛒 [Cart] Navigation vers:", checkoutRoute);
 									navigate(checkoutRoute);
 								}}
-								className="w-full bg-harvests-green text-white py-3 rounded-lg hover:bg-green-600 transition-colors font-medium"
+								className="w-full bg-yellow-400 hover:bg-yellow-500 text-black py-2 rounded-full transition-colors font-medium shadow-sm border border-yellow-500 text-sm"
 							>
 								Passer la commande
 							</button>

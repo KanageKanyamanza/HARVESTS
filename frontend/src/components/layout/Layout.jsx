@@ -3,7 +3,6 @@ import { useLocation } from "react-router-dom";
 import AOS from "aos";
 import Header from "./Header";
 import Footer from "./Footer";
-import BackToTop from "../common/BackToTop";
 import ChatBot from "../chat/ChatBot";
 import SEOHead from "../seo/SEOHead";
 import { useSEO } from "../../hooks/useSEO";
@@ -49,7 +48,6 @@ const Layout = ({ children, className = "", seo }) => {
 			<main className={`flex-1 ${className}`}>{children}</main>
 
 			<Footer />
-			<BackToTop />
 			<ChatBot />
 		</div>
 	);

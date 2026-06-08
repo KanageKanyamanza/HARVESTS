@@ -64,7 +64,7 @@ const AuthLayout = ({ children, showBackButton = true }) => {
                     currentLanguage === 'fr' ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
                   } flex items-center px-4 py-2 text-sm w-full text-left hover:bg-gray-100 transition-colors`}
                 >
-                  <span className="mr-3">🇫🇷</span>
+                  <span className="mr-3 font-semibold">FR</span>
                   Français
                 </button>
                 <button
@@ -73,7 +73,7 @@ const AuthLayout = ({ children, showBackButton = true }) => {
                     currentLanguage === 'en' ? 'bg-gray-100 text-gray-900' : 'text-gray-700'
                   } flex items-center px-4 py-2 text-sm w-full text-left hover:bg-gray-100 transition-colors`}
                 >
-                  <span className="mr-3">🇬🇧</span>
+                  <span className="mr-3 font-semibold">EN</span>
                   English
                 </button>
               </div>

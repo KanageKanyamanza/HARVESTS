@@ -27,7 +27,8 @@ import {
   FiShoppingCart,
   FiBell,
   FiAward,
-  FiDollarSign
+  FiDollarSign,
+  FiCamera
 } from 'react-icons/fi';
 
 const UniversalProfile = ({ userType, service, profileFields, tabs }) => {
@@ -428,8 +429,8 @@ const UniversalProfile = ({ userType, service, profileFields, tabs }) => {
         {/* Section d'upload d'images */}
         {editing && (
           <div className="mt-8 bg-harvests-light border border-gray-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              📸 Gestion des Images
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <FiCamera className="mr-2" /> Gestion des Images
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>

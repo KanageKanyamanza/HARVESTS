@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiDownload, FiX, FiSmartphone, FiCheck } from 'react-icons/fi';
+import { X, Download, Monitor, Smartphone, Apple, Chrome, Share, Check } from "lucide-react";
 
 /**
  * Modal pour inviter l'utilisateur à installer la PWA
@@ -127,12 +127,12 @@ const PWAInstallModal = () => {
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
           aria-label="Fermer"
         >
-          <FiX className="w-6 h-6" />
+          <X className="w-6 h-6" />
         </button>
 
         <div className="text-center mb-6">
           <div className="mx-auto w-16 h-16 bg-harvests-green rounded-full flex items-center justify-center mb-4">
-            <FiSmartphone className="w-8 h-8 text-white" />
+            <Smartphone className="w-8 h-8 text-white" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
             Installer HARVESTS
@@ -148,7 +148,7 @@ const PWAInstallModal = () => {
               Pour installer HARVESTS sur iOS :
             </p>
             <ol className="list-decimal list-inside space-y-2 text-sm text-gray-600">
-              <li>Appuyez sur le bouton <strong>Partager</strong> <span className="text-lg">📤</span></li>
+              <li>Appuyez sur le bouton <strong>Partager</strong> <Share className="inline w-5 h-5 ml-1" /></li>
               <li>Sélectionnez <strong>"Sur l'écran d'accueil"</strong></li>
               <li>Appuyez sur <strong>"Ajouter"</strong></li>
             </ol>
@@ -157,19 +157,19 @@ const PWAInstallModal = () => {
           <div className="mb-6">
             <ul className="space-y-3 text-sm text-gray-600">
               <li className="flex items-start">
-                <FiCheck className="w-5 h-5 text-harvests-green mr-2 mt-0.5 flex-shrink-0" />
+                <Check className="w-5 h-5 text-harvests-green mr-2 mt-0.5 flex-shrink-0" />
                 <span>Accès rapide depuis l'écran d'accueil</span>
               </li>
               <li className="flex items-start">
-                <FiCheck className="w-5 h-5 text-harvests-green mr-2 mt-0.5 flex-shrink-0" />
+                <Check className="w-5 h-5 text-harvests-green mr-2 mt-0.5 flex-shrink-0" />
                 <span>Fonctionnement hors ligne</span>
               </li>
               <li className="flex items-start">
-                <FiCheck className="w-5 h-5 text-harvests-green mr-2 mt-0.5 flex-shrink-0" />
+                <Check className="w-5 h-5 text-harvests-green mr-2 mt-0.5 flex-shrink-0" />
                 <span>Notifications push</span>
               </li>
               <li className="flex items-start">
-                <FiCheck className="w-5 h-5 text-harvests-green mr-2 mt-0.5 flex-shrink-0" />
+                <Check className="w-5 h-5 text-harvests-green mr-2 mt-0.5 flex-shrink-0" />
                 <span>Expérience optimisée</span>
               </li>
             </ul>
@@ -182,7 +182,7 @@ const PWAInstallModal = () => {
               onClick={handleInstall}
               className="w-full bg-harvests-green text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center"
             >
-              <FiDownload className="w-5 h-5 mr-2" />
+              <Download className="w-5 h-5 mr-2" />
               Installer maintenant
             </button>
           )}

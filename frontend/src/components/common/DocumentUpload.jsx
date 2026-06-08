@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { FiUpload, FiX, FiCheck, FiFileText, FiImage } from "react-icons/fi";
+import { FiUpload, FiX, FiCheck, FiFileText, FiImage, FiLoader } from "react-icons/fi";
 import { uploadService } from "../../services";
 
 const DocumentUpload = ({
@@ -92,7 +92,7 @@ const DocumentUpload = ({
 				>
 					{uploading ? (
 						<div className="flex items-center justify-center text-sm text-blue-600">
-							<span className="animate-spin mr-2">⏳</span> Upload en cours...
+							<FiLoader className="animate-spin mr-2" /> Upload en cours...
 						</div>
 					) : (
 						<div className="flex flex-col items-center justify-center text-gray-500">

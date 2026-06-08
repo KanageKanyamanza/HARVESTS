@@ -1,29 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import { FiMapPin } from 'react-icons/fi';
 import ProductCard from '../products/ProductCard';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { productService } from '../../services';
+import { useGeoLocation } from '../../hooks/useGeoLocation';
 
 const ProductsSection = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isLocal, setIsLocal] = useState(false);
+  const { countryCode, countryName, detected, loading: geoLoading } = useGeoLocation();
 
   useEffect(() => {
-    loadProducts();
-  }, []);
+    if (!geoLoading) {
+      loadProducts();
+    }
+  }, [geoLoading, countryCode]);
 
   const loadProducts = async () => {
     try {
       setLoading(true);
       setError(null);
-      
-      // Récupérer 6 produits récents
-      const response = await productService.getProducts({ limit: 6, sort: 'newest' });
-      
+
+      const params = { limit: 6, sort: 'newest', useLocation: 'true' };
+      if (detected && countryCode) {
+        params.country = countryCode;
+      }
+
+      const response = await productService.getProducts(params);
+
       if (response.data.status === 'success') {
-        setProducts(response.data.data.products || []);
+        const fetched = response.data.data.products || [];
+        setProducts(fetched);
+        // If we passed a country and got results, mark as local
+        setIsLocal(detected && countryCode && fetched.length > 0);
+
+        // If local filtering returned nothing, fallback to global
+        if (detected && countryCode && fetched.length === 0) {
+          const fallback = await productService.getProducts({ limit: 6, sort: 'newest' });
+          if (fallback.data.status === 'success') {
+            setProducts(fallback.data.data.products || []);
+          }
+          setIsLocal(false);
+        }
       }
     } catch (err) {
       console.error('Erreur lors du chargement des produits:', err);
@@ -39,56 +61,55 @@ const ProductsSection = () => {
   }
 
   return (
-    <section className="py-20 bg-harvests-light" data-aos="fade-up">
-      <div className="container-xl">
-        {/* En-tête */}
-        <div className="flex justify-between items-center mb-5">
-          <h2 className="text-3xl md:text-4xl font-display font-bold text-gray-900">
+    <section className="bg-white mb-8 p-4 sm:p-6 mx-4 sm:mx-6 lg:mx-8 max-w-[1500px] lg:mx-auto rounded-sm shadow-sm relative z-10" data-aos="fade-up">
+      {/* En-tête */}
+      <div className="flex justify-between items-end mb-4">
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900">
             Produits Récents
           </h2>
-          {/* CTA pour voir tous les produits */}
-          <div className="flex whitespace-nowrap justify-end">
-            <Link
-              to="/products"
-              className="font-semibold inline-flex items-center text-primary-500 hover:text-primary-600 hover:underline hover:-translate-y-1 transition-all duration-300 ease-in-out"
-            >
-              Voir Tous
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </div>
+          {isLocal && countryName && (
+            <span className="inline-flex items-center gap-1 mt-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
+              <FiMapPin className="h-3 w-3" />
+              {countryName}
+            </span>
+          )}
         </div>
-        <div className="mb-5 text-center">
-          <p className="text-sm text-gray-600">
-            Découvrez les derniers produits ajoutés par nos producteurs
-          </p>
-        </div>
-
-        {/* Contenu */}
-        {loading ? (
-          <div className="flex justify-center items-center py-10">
-            <LoadingSpinner />
-          </div>
-        ) : error ? (
-          <div className="text-center py-12">
-            <div className="text-red-600 mb-4">{error}</div>
-            <button
-              onClick={loadProducts}
-              className="btn bg-primary-500 text-white hover:bg-primary-600"
-            >
-              Réessayer
-            </button>
-          </div>
-        ) : (
-          <>
-            {/* Grille de produits */}
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-5">
-              {products.map((product) => (
-                <ProductCard key={product._id} product={product} />
-              ))}
-            </div>
-          </>
-        )}
+        <Link
+          to={isLocal && countryCode ? `/products?country=${countryCode}` : '/products'}
+          className="text-sm font-medium text-primary-600 hover:text-primary-800 hover:underline"
+        >
+          Voir Tous
+        </Link>
       </div>
+
+      {/* Contenu */}
+      {loading ? (
+        <div className="flex justify-center items-center py-10">
+          <LoadingSpinner />
+        </div>
+      ) : error ? (
+        <div className="text-center py-12">
+          <div className="text-red-600 mb-4">{error}</div>
+          <button
+            onClick={loadProducts}
+            className="btn bg-primary-500 text-white hover:bg-primary-600"
+          >
+            Réessayer
+          </button>
+        </div>
+      ) : (
+        <div className="relative">
+          {/* Scrollable container */}
+          <div className="flex overflow-x-auto gap-4 pb-4 snap-x hide-scrollbar scroll-smooth">
+            {products.map((product) => (
+              <div key={product._id} className="min-w-[200px] max-w-[200px] sm:min-w-[240px] sm:max-w-[240px] snap-start flex-none">
+                <ProductCard product={product} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 };

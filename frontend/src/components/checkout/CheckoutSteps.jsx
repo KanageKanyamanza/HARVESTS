@@ -362,8 +362,8 @@ export const ConfirmationStep = ({ orderData, cartItems }) => {
 							<p className="text-blue-600">Vous serez redirigé vers PayPal.</p>
 						)}
 						{orderData.paymentMethod === "cash" && (
-							<p className="text-green-600 font-medium">
-								✓ Paiement en espèces à la livraison
+							<p className="text-green-600 font-medium flex items-center">
+								<FiCheck className="w-4 h-4 mr-1" /> Paiement en espèces à la livraison
 							</p>
 						)}
 					</div>

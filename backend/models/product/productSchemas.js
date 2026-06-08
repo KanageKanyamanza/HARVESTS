@@ -232,6 +232,26 @@ const productSchema = new mongoose.Schema(
 			default: "XOF",
 		},
 
+		// Vente Flash
+		flashSale: {
+			isActive: {
+				type: Boolean,
+				default: false,
+			},
+			discountPercentage: {
+				type: Number,
+				min: 0,
+				max: 100,
+			},
+			salePrice: {
+				type: Number,
+				min: 0,
+			},
+			endDate: {
+				type: Date,
+			},
+		},
+
 		// Variantes du produit
 		variants: [variantSchema],
 

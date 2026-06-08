@@ -1,14 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Award, Gift, TrendingUp, Star, ArrowRight, ShoppingBag, Coins, Crown, Sparkles } from 'lucide-react';
+import { Award, Gift, TrendingUp, Star, ArrowRight, ShoppingBag, Coins, Crown, Sparkles, Medal, Trophy, Gem, ShoppingCart, DollarSign } from 'lucide-react';
 
 const LoyaltyProgram = () => {
   const { isAuthenticated, userType } = useAuth();
   const tiers = [
     {
       name: 'Bronze',
-      icon: '🥉',
+      icon: <Medal className="w-16 h-16 mx-auto text-orange-500" />,
       color: 'from-orange-400 to-orange-600',
       bgColor: 'bg-orange-50',
       borderColor: 'border-orange-200',
@@ -22,7 +22,7 @@ const LoyaltyProgram = () => {
     },
     {
       name: 'Silver',
-      icon: '🥈',
+      icon: <Medal className="w-16 h-16 mx-auto text-gray-400" />,
       color: 'from-gray-400 to-gray-600',
       bgColor: 'bg-harvests-light',
       borderColor: 'border-gray-200',
@@ -37,7 +37,7 @@ const LoyaltyProgram = () => {
     },
     {
       name: 'Gold',
-      icon: '🥇',
+      icon: <Trophy className="w-16 h-16 mx-auto text-yellow-500" />,
       color: 'from-yellow-400 to-yellow-600',
       bgColor: 'bg-yellow-50',
       borderColor: 'border-yellow-200',
@@ -53,7 +53,7 @@ const LoyaltyProgram = () => {
     },
     {
       name: 'Platinum',
-      icon: '💎',
+      icon: <Gem className="w-16 h-16 mx-auto text-purple-500" />,
       color: 'from-purple-400 to-purple-600',
       bgColor: 'bg-purple-50',
       borderColor: 'border-purple-200',
@@ -196,7 +196,7 @@ const LoyaltyProgram = () => {
                 <div className={`absolute top-0 left-0 right-0 h-2 bg-gradient-to-r ${tier.color}`}></div>
                 
                 <div className="text-center mb-6 mt-4">
-                  <div className="text-6xl mb-3">{tier.icon}</div>
+                  <div className="flex justify-center mb-3">{tier.icon}</div>
                   <h4 className="font-bold text-2xl mb-2 text-gray-900">{tier.name}</h4>
                   <div className={`inline-block px-4 py-1 ${tier.bgColor} rounded-full`}>
                     <p className="text-sm font-semibold text-gray-700">{tier.points} points</p>
@@ -283,7 +283,7 @@ const LoyaltyProgram = () => {
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-semibold">Achat de 50,000 XAF</span>
-                    <span className="text-2xl">🛒</span>
+                    <ShoppingCart className="w-6 h-6" />
                   </div>
                   <div className="text-sm text-white/80">
                     Niveau Bronze : +500 points<br/>
@@ -294,7 +294,7 @@ const LoyaltyProgram = () => {
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-semibold">Économies possibles</span>
-                    <span className="text-2xl">💰</span>
+                    <Coins className="w-6 h-6" />
                   </div>
                   <div className="text-sm text-white/80">
                     500 points = 500 XAF de réduction<br/>
@@ -305,7 +305,7 @@ const LoyaltyProgram = () => {
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-semibold">Bonus membre Platinum</span>
-                    <span className="text-2xl">💎</span>
+                    <Gem className="w-6 h-6" />
                   </div>
                   <div className="text-sm text-white/80">
                     Livraison gratuite illimitée<br/>

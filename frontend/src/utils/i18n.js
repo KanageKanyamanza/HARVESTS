@@ -99,14 +99,14 @@ export const getLanguageInfo = (lang = getCurrentLanguage()) => {
 			code: "fr",
 			name: "Français",
 			nativeName: "Français",
-			flag: "🇫🇷",
+			flag: "FR",
 			dir: "ltr",
 		},
 		en: {
 			code: "en",
 			name: "English",
 			nativeName: "English",
-			flag: "🇬🇧",
+			flag: "EN",
 			dir: "ltr",
 		},
 	};

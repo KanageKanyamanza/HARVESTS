@@ -214,14 +214,14 @@ const OrderConfirmation = () => {
 	const handleDownloadInvoice = async () => {
 		if (!orderId) {
 			console.error(
-				"🛒 [OrderConfirmation] Pas d'ID de commande pour télécharger la facture"
+				"[OrderConfirmation] Pas d'ID de commande pour télécharger la facture"
 			);
 			return;
 		}
 
 		try {
 			console.log(
-				"🛒 [OrderConfirmation] Téléchargement de la facture pour la commande:",
+				"[OrderConfirmation] Téléchargement de la facture pour la commande:",
 				orderId
 			);
 			setLoading(true);
@@ -257,10 +257,10 @@ const OrderConfirmation = () => {
 			document.body.removeChild(link);
 			window.URL.revokeObjectURL(url);
 
-			console.log("🛒 [OrderConfirmation] Facture téléchargée avec succès");
+			console.log("[OrderConfirmation] Facture téléchargée avec succès");
 		} catch (error) {
 			console.error(
-				"🛒 [OrderConfirmation] Erreur lors du téléchargement de la facture:",
+				"[OrderConfirmation] Erreur lors du téléchargement de la facture:",
 				error
 			);
 			if (error.response?.status === 403) {

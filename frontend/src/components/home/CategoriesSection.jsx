@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Wheat, Carrot, Apple, Bean, Flame, Leaf, Sprout, Milk, Beef, Drumstick, Fish, Archive, CupSoda, Package } from "lucide-react";
 import CloudinaryImage from "../common/CloudinaryImage";
 import LoadingSpinner from "../common/LoadingSpinner";
 import { productService } from "../../services";
@@ -51,24 +51,25 @@ const CategoriesSection = () => {
 
 	const getCategoryIcon = (category) => {
 		const icons = {
-			cereals: "🌾",
-			vegetables: "🥬",
-			fruits: "🍎",
-			legumes: "🫘",
-			tubers: "🥔",
-			spices: "🌶️",
-			herbs: "🌿",
-			nuts: "🥜",
-			seeds: "🌱",
-			dairy: "🥛",
-			meat: "🥩",
-			poultry: "🐔",
-			fish: "🐟",
-			"processed-foods": "🥫",
-			beverages: "🥤",
-			other: "📦",
+			cereals: Wheat,
+			vegetables: Carrot,
+			fruits: Apple,
+			legumes: Bean,
+			tubers: Carrot,
+			spices: Flame,
+			herbs: Leaf,
+			nuts: Package,
+			seeds: Sprout,
+			dairy: Milk,
+			meat: Beef,
+			poultry: Drumstick,
+			fish: Fish,
+			"processed-foods": Archive,
+			beverages: CupSoda,
+			other: Package,
 		};
-		return icons[category] || "📦";
+		const Icon = icons[category] || Package;
+		return <Icon size={80} className="text-gray-400" />;
 	};
 
 	const loadCategoryProduct = async (category) => {
@@ -162,104 +163,68 @@ const CategoriesSection = () => {
 	}, [allCategories, categoryProducts]);
 
 	return (
-		<section className="py-20 bg-harvests-light" data-aos="fade-up">
-			<div className="container-xl">
-				{/* En-tête */}
-				<div className="flex justify-between items-center mb-5">
-					<h2 className="text-3xl md:text-4xl font-display font-bold">
-						Catégories Populaires
-					</h2>
-					{/* CTA pour voir toutes les catégories */}
-					<div className="flex whitespace-nowrap justify-end">
-						<Link
-							to="/categories"
-							className="font-semibold inline-flex items-center text-primary-500 hover:text-primary-600 hover:underline hover:-translate-y-1 transition-all duration-300 ease-in-out"
-						>
-							Voir Toutes
-							<ArrowRight className="ml-2 h-5 w-5" />
-						</Link>
-					</div>
+		<section className="relative z-20 px-4 sm:px-6 lg:px-8 max-w-[1500px] mx-auto mb-8" data-aos="fade-up">
+			{loading ? (
+				<div className="flex justify-center items-center py-10 bg-white rounded-lg shadow-sm">
+					<LoadingSpinner />
 				</div>
-				<div className="mb-5 text-center">
-					<p className="text-sm text-gray-600">
-						Explorez nos catégories de produits frais et de qualité
-					</p>
+			) : error ? (
+				<div className="text-center py-12 bg-white rounded-lg shadow-sm">
+					<div className="text-red-600 mb-4">{error}</div>
+					<button
+						onClick={loadCategories}
+						className="btn bg-primary-500 text-white hover:bg-primary-600"
+					>
+						Réessayer
+					</button>
 				</div>
+			) : (
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+					{displayedCategories.map((category) => {
+						const product = categoryProducts[category];
+						const primaryImage =
+							product?.images?.find((img) => img.isPrimary) ||
+							product?.images?.[0];
 
-				{/* Contenu */}
-				{loading ?
-					<div className="flex justify-center items-center py-10">
-						<LoadingSpinner />
-					</div>
-				: error ?
-					<div className="text-center py-12">
-						<div className="text-red-600 mb-4">{error}</div>
-						<button
-							onClick={loadCategories}
-							className="btn bg-primary-500 text-white hover:bg-primary-600"
-						>
-							Réessayer
-						</button>
-					</div>
-				:	<div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-						{displayedCategories.map((category) => {
-							const product = categoryProducts[category];
-							const primaryImage =
-								product?.images?.find((img) => img.isPrimary) ||
-								product?.images?.[0];
-
-							return (
-								<Link
-									key={category}
-									to={`/categories/${category}`}
-									className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-								>
-									{/* Image du produit */}
-									<div className="aspect-[4/3] relative overflow-hidden bg-gray-100 flex items-center justify-center">
-										{primaryImage ?
+						return (
+							<div key={category} className="bg-white p-5 flex flex-col shadow-sm rounded-sm z-10 h-[420px]">
+								<h3 className="text-xl font-bold mb-4 text-gray-900">
+									{getCategoryLabel(category)}
+								</h3>
+								
+								<div className="flex-1 bg-gray-50 mb-4 flex items-center justify-center overflow-hidden">
+									{primaryImage ? (
+										<Link to={`/categories/${category}`} className="w-full h-full block">
 											<CloudinaryImage
 												src={primaryImage.url}
 												alt={getCategoryLabel(category)}
-												className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+												className="w-full h-full object-cover hover:opacity-90 transition-opacity"
 												width={400}
 												height={300}
 												quality="auto"
 												crop="fill"
 											/>
-										:	<>
-												<CloudinaryImage
-													src="/images/placeholder.svg"
-													alt={getCategoryLabel(category)}
-													className="absolute inset-0 w-full h-full object-cover opacity-20 grayscale"
-												/>
-												<div className="relative z-10 text-6xl transform group-hover:scale-125 transition-transform duration-500">
-													{getCategoryIcon(category)}
-												</div>
-											</>
-										}
-										{/* Overlay avec icône */}
-										<div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent">
-											<div className="absolute bottom-0 left-0 right-0 p-4">
-												<div className="flex items-center justify-between text-white">
-													<div>
-														<h3 className="text-xl text-white font-bold mb-1">
-															{getCategoryLabel(category)}
-														</h3>
-														<p className="text-xs text-white/80">
-															Découvrir la catégorie
-														</p>
-													</div>
-													<ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-												</div>
+										</Link>
+									) : (
+										<Link to={`/categories/${category}`} className="w-full h-full flex flex-col items-center justify-center bg-gray-100 hover:bg-gray-200 transition-colors">
+											<div className="mb-2 flex justify-center items-center h-full w-full">
+												{getCategoryIcon(category)}
 											</div>
-										</div>
-									</div>
+										</Link>
+									)}
+								</div>
+
+								<Link
+									to={`/categories/${category}`}
+									className="text-primary-600 text-sm font-medium hover:text-primary-800 hover:underline"
+								>
+									Découvrir la catégorie
 								</Link>
-							);
-						})}
-					</div>
-				}
-			</div>
+							</div>
+						);
+					})}
+				</div>
+			)}
 		</section>
 	);
 };

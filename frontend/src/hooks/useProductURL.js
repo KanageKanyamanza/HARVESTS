@@ -10,6 +10,7 @@ export const useProductURL = (
   selectedCountry,
   sortBy,
   isFeatured,
+  isBio,
   debouncedPriceRange,
   currentPage
 ) => {
@@ -22,13 +23,14 @@ export const useProductURL = (
     if (selectedCountry) params.set("country", selectedCountry);
     if (sortBy !== "newest") params.set("sort", sortBy);
     if (isFeatured) params.set("featured", "true");
-    if (debouncedPriceRange.min) params.set("minPrice", debouncedPriceRange.min);
-    if (debouncedPriceRange.max) params.set("maxPrice", debouncedPriceRange.max);
+    if (isBio) params.set("bio", "true");
+    if (debouncedPriceRange && debouncedPriceRange.min) params.set("minPrice", debouncedPriceRange.min);
+    if (debouncedPriceRange && debouncedPriceRange.max) params.set("maxPrice", debouncedPriceRange.max);
     if (currentPage > 1) params.set("page", currentPage);
 
     const newUrl = `/products${params.toString() ? `?${params.toString()}` : ''}`;
     navigate(newUrl, { replace: true });
-  }, [debouncedSearchQuery, selectedCategory, selectedCountry, sortBy, isFeatured, debouncedPriceRange.min, debouncedPriceRange.max, currentPage, navigate]);
+  }, [debouncedSearchQuery, selectedCategory, selectedCountry, sortBy, isFeatured, isBio, debouncedPriceRange, currentPage, navigate]);
 
   // Mise à jour de l'URL avec debounce
   useEffect(() => {

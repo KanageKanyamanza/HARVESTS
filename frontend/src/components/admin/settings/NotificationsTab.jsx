@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Mail, Save, X, Smartphone, BellRing } from "lucide-react";
+import { Mail, Save, X, Smartphone, BellRing, Sparkles } from "lucide-react";
 import PushNotificationToggle from "../../common/PushNotificationToggle";
 import { notificationService } from "../../../services/notificationService";
 
@@ -81,8 +81,8 @@ const NotificationsTab = ({
 						{formData.notificationEmail &&
 							formData.notificationEmail !== user?.notificationEmail && (
 								<div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100 animate-fade-in">
-									<p className="text-[10px] font-black uppercase tracking-widest text-indigo-900">
-										✨ Nouveau :{" "}
+									<p className="text-[10px] font-black uppercase tracking-widest text-indigo-900 flex items-center">
+										<Sparkles className="w-3 h-3 mr-1" /> Nouveau :{" "}
 										<span className="text-indigo-600">
 											{formData.notificationEmail}
 										</span>
@@ -172,11 +172,11 @@ const NotificationsTab = ({
 							onClick={async () => {
 								try {
 									await notificationService.sendTestNotification();
-									window.alert("✅ Notification de test envoyée avec succès !");
+									window.alert("Notification de test envoyée avec succès !");
 								} catch (err) {
 									console.error(err);
 									window.alert(
-										"❌ Erreur lors de l'envoi du test. Vérifiez la console."
+										"Erreur lors de l'envoi du test. Vérifiez la console."
 									);
 								}
 							}}

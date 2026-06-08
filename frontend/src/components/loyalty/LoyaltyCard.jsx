@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Award, TrendingUp, Gift, ArrowRight } from 'lucide-react';
+import { Award, TrendingUp, Gift, ArrowRight, Medal, Gem } from 'lucide-react';
 
 const LoyaltyCard = ({ loyaltyData, compact = false }) => {
   const { points = 0, tier = 'bronze', totalPointsEarned = 0 } = loyaltyData || {};
@@ -13,7 +13,7 @@ const LoyaltyCard = ({ loyaltyData, compact = false }) => {
         bgColor: '#FFF4E6',
         nextTier: 'Silver',
         pointsNeeded: 1000,
-        icon: '🥉'
+        icon: Medal
       },
       silver: {
         name: 'Silver',
@@ -21,7 +21,7 @@ const LoyaltyCard = ({ loyaltyData, compact = false }) => {
         bgColor: '#F5F5F5',
         nextTier: 'Gold',
         pointsNeeded: 5000,
-        icon: '🥈'
+        icon: Medal
       },
       gold: {
         name: 'Gold',
@@ -29,7 +29,7 @@ const LoyaltyCard = ({ loyaltyData, compact = false }) => {
         bgColor: '#FFFBEB',
         nextTier: 'Platinum',
         pointsNeeded: 10000,
-        icon: '🥇'
+        icon: Award
       },
       platinum: {
         name: 'Platinum',
@@ -37,7 +37,7 @@ const LoyaltyCard = ({ loyaltyData, compact = false }) => {
         bgColor: '#F9FAFB',
         nextTier: null,
         pointsNeeded: null,
-        icon: '💎'
+        icon: Gem
       }
     };
     return tiers[tier] || tiers.bronze;
@@ -59,7 +59,7 @@ const LoyaltyCard = ({ loyaltyData, compact = false }) => {
             <Award className="h-5 w-5" />
             <span className="font-semibold">Fidélité</span>
           </div>
-          <span className="text-2xl">{tierInfo.icon}</span>
+          <tierInfo.icon className="h-8 w-8" />
         </div>
         <div className="text-3xl font-bold mb-1">{points.toLocaleString()}</div>
         <div className="text-sm opacity-90">Points disponibles</div>
@@ -80,7 +80,7 @@ const LoyaltyCard = ({ loyaltyData, compact = false }) => {
           </div>
           <p className="text-sm opacity-90">Statut: {tierInfo.name}</p>
         </div>
-        <div className="text-5xl">{tierInfo.icon}</div>
+        <tierInfo.icon className="h-12 w-12" />
       </div>
 
       {/* Points disponibles */}
