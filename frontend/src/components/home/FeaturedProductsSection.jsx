@@ -25,27 +25,24 @@ const FeaturedProductsSection = () => {
 			setLoading(true);
 			setError(null);
 
-			const params = { limit: 8 };
-			if (detected && countryCode) {
-				params.country = countryCode;
-			}
+			// Récupérer les produits mis en avant locaux et globaux, puis fusionner (locaux d'abord)
+			const [localResp, allResp] = await Promise.all([
+				productService.getFeaturedProducts({ limit: 8, useLocation: 'true' }),
+				productService.getFeaturedProducts({ limit: 8, useLocation: 'false' }),
+			]);
 
-			const response = await productService.getFeaturedProducts(params);
+			const localList = localResp?.data?.status === 'success' ? localResp.data.data.products || [] : [];
+			const allList = allResp?.data?.status === 'success' ? allResp.data.data.products || [] : [];
 
-			if (response.data.status === "success") {
-				const fetched = response.data.data.products || [];
-				setProducts(fetched);
-				setIsLocal(detected && countryCode && fetched.length > 0);
+			const seen = new Set();
+			const merged = [];
+			for (const p of localList) { merged.push(p); seen.add(p._id); }
+			for (const p of allList) { if (!seen.has(p._id)) merged.push(p); }
 
-				// Fallback global si aucun produit featured dans la zone
-				if (detected && countryCode && fetched.length === 0) {
-					const fallback = await productService.getFeaturedProducts({ limit: 8 });
-					if (fallback.data.status === "success") {
-						setProducts(fallback.data.data.products || []);
-					}
-					setIsLocal(false);
-				}
-			}
+			const finalProducts = merged.slice(0, 8);
+
+			setProducts(finalProducts);
+			setIsLocal(detected && countryCode && localList.length > 0);
 		} catch (err) {
 			console.error(
 				"Erreur lors du chargement des produits mis en avant:",
