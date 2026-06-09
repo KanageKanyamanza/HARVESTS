@@ -23,17 +23,33 @@ export const formatUnit = (quantity, unit) => {
 	return quantity > 1 ? `${unitValue}s` : unitValue;
 };
 
+const isValidVendorName = (value) => {
+	if (!value) return false;
+	const name = String(value).trim();
+	if (!name) return false;
+	return !/^(à|a)\s*compl[eé]ter$/i.test(name);
+};
+
 // Fonction utilitaire pour obtenir le nom du vendeur
 export const getVendorName = (vendor) => {
 	if (!vendor) return "";
-	return (
-		vendor.farmName ||
-		vendor.companyName ||
-		vendor.restaurantName ||
-		vendor.businessName ||
-		`${vendor.firstName || ""} ${vendor.lastName || ""}`.trim() ||
-		"Vendeur"
-	);
+	const shopName = vendor.shopInfo?.shopName;
+	const candidateNames = [
+		shopName,
+		vendor.farmName,
+		vendor.companyName,
+		vendor.restaurantName,
+		vendor.businessName,
+		`${vendor.firstName || ""} ${vendor.lastName || ""}`.trim(),
+	];
+
+	for (const name of candidateNames) {
+		if (isValidVendorName(name)) {
+			return name;
+		}
+	}
+
+	return "Vendeur";
 };
 
 // Fonction utilitaire pour obtenir le logo du vendeur
