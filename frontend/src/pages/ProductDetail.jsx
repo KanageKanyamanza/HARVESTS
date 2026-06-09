@@ -56,7 +56,6 @@ const ProductDetail = () => {
 		error,
 		isFavorite,
 		setIsFavorite,
-		favoritesCount,
 		setFavoritesCount,
 		loadReviews,
 	} = useProductDetail(id, user);
@@ -360,8 +359,8 @@ const ProductDetail = () => {
 						{/* Description courte / Bullets */}
 						<div className="border-t border-gray-200 pt-4">
 							<h3 className="font-bold text-gray-900 mb-2">À propos de cet article</h3>
-							<p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-								{productDescription}
+							<p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line truncate">
+								{productDescription.length > 150 ? productDescription.slice(0, 150) + "..." : productDescription}
 							</p>
 						</div>
 					</div>
@@ -390,7 +389,7 @@ const ProductDetail = () => {
 							/>
 
 							{showAddedToCart && (
-								<div className="mt-3 bg-green-50 text-green-700 px-3 py-2 rounded border border-green-200 text-sm flex items-center">
+								<div className="mt-3 bg-green-50 text-green-700 whitespace-nowrap px-3 py-2 rounded border border-green-200 text-sm flex items-center">
 									<FiCheckCircle className="h-4 w-4 mr-2" />
 									Ajouté au panier
 								</div>

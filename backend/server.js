@@ -27,6 +27,9 @@ if (process.env.DATABASE) {
 } else if (process.env.DATABASE_URL) {
 	// Production directe
 	DB = process.env.DATABASE_URL;
+} else if (process.env.DATABASE_PROD) {
+	// Atlas / production (URI complète dans .env)
+	DB = process.env.DATABASE_PROD;
 } else if (process.env.DATABASE_LOCAL) {
 	// Développement local
 	DB = process.env.DATABASE_LOCAL;

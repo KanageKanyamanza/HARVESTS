@@ -17,11 +17,7 @@ import {
 	FiX
 } from "react-icons/fi";
 import { Leaf, Search } from "lucide-react";
-import {
-	getVendorAverageRating,
-	getVendorReviewCount,
-	formatAverageRating,
-} from "../utils/vendorRatings";
+import { buildVendorRating } from "../utils/vendorRatings";
 import { getCountryName } from "../utils/countryMapper";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import { useApiCache } from "../hooks/useApiCache";
@@ -80,8 +76,8 @@ const Vendeurs = () => {
 								displayName: producer.shopInfo?.shopName || (producer.farmName && producer.farmName !== "À compléter" ? producer.farmName : null) || `${producer.firstName} ${producer.lastName !== "À compléter" ? producer.lastName : ""}`.trim(),
 								profileUrl: `/producers/${producer._id}`,
 								shopBanner: producer.shopBanner,
-								logo: producer.shopLogo,
-							}));
+								logo: producer.shopLogo
+							})));
 						}
 						if (tResp.status === "fulfilled" && tResp.value.data.status === "success") {
 							localList.push(...(tResp.value.data.data.transformers || []).map((transformer) => ({
@@ -90,8 +86,8 @@ const Vendeurs = () => {
 								displayName: transformer.shopInfo?.shopName || ((transformer.companyName && transformer.companyName !== "À compléter") ? transformer.companyName : null) || `${transformer.firstName} ${transformer.lastName !== "À compléter" ? transformer.lastName : ""}`.trim(),
 								profileUrl: `/transformers/${transformer._id}`,
 								shopBanner: transformer.shopBanner,
-								logo: transformer.shopLogo,
-							}));
+								logo: transformer.shopLogo
+							})));
 						}
 						if (rResp.status === "fulfilled" && rResp.value.data.status === "success") {
 							localList.push(...(rResp.value.data.data.restaurateurs || []).map((restaurateur) => ({
@@ -100,8 +96,8 @@ const Vendeurs = () => {
 								displayName: restaurateur.shopInfo?.shopName || ((restaurateur.restaurantName && restaurateur.restaurantName !== "À compléter") ? restaurateur.restaurantName : null) || `${restaurateur.firstName} ${restaurateur.lastName !== "À compléter" ? restaurateur.lastName : ""}`.trim(),
 								profileUrl: `/restaurateurs/${restaurateur._id}`,
 								shopBanner: restaurateur.restaurantBanner || restaurateur.shopBanner,
-								logo: restaurateur.shopLogo,
-							}));
+								logo: restaurateur.shopLogo
+							})));
 						}
 
 						const vendeursAvecNotes = await Promise.all(localList.map(async (vendeur) => {
