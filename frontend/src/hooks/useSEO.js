@@ -57,7 +57,7 @@ export const useSEO = (customSEO = {}) => {
       },
       '/restaurateurs': {
         title: t('seo.restaurateurs.title', 'Restaurateurs | Harvests'),
-        description: t('seo.restaurateurs.description', 'Partenaires restaurateurs de Harvests — découvrez les professionnels de la restauration qui s'approvisionnent en circuits courts.'),
+        description: t('seo.restaurateurs.description', "Partenaires restaurateurs de Harvests — découvrez les professionnels de la restauration qui s'approvisionnent en circuits courts."),
         keywords: t('seo.restaurateurs.keywords', 'restaurateurs, restaurants, cuisine, approvisionnement'),
       },
       '/transporteurs-exportateurs': {
