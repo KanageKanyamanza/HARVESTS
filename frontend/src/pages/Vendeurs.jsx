@@ -40,7 +40,13 @@ const Vendeurs = () => {
 		const newParams = new URLSearchParams(searchParams);
 		if (country) {
 			newParams.set("country", country);
-		useEffect(() => {
+		} else {
+			newParams.delete("country");
+		}
+		setSearchParams(newParams);
+	};
+
+	useEffect(() => {
 			const loadVendeurs = async (forceRefresh = false) => {
 				const cacheKey = `vendeurs_list_${selectedCountry}`;
 
@@ -210,21 +216,6 @@ const Vendeurs = () => {
 
 			loadVendeurs();
 		}, [getCachedData, setCachedData, selectedCountry]);
-
-				// Mettre en cache
-				setCachedData(cacheKey, {
-					vendeurs: vendeursAvecNotes,
-					locationInfo: locationData,
-				});
-			} catch (error) {
-				console.error("Erreur lors du chargement des vendeurs:", error);
-			} finally {
-				setLoading(false);
-			}
-		};
-
-		loadVendeurs();
-	}, [getCachedData, setCachedData, selectedCountry]);
 
 
 
