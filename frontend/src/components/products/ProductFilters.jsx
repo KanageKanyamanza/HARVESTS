@@ -92,6 +92,7 @@ const ProductFilters = ({
           onChange={(e) => onFilterChange("country", e.target.value)}
           className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-sm focus:ring-1 focus:ring-primary-500 bg-white shadow-sm"
         >
+          <option value="MY_ZONE">Ma zone</option>
           <option value="">Tous les pays</option>
           <optgroup label="Zones">
             <option value="West Africa">Afrique de l'Ouest</option>

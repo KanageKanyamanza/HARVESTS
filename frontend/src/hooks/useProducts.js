@@ -52,30 +52,21 @@ export const useProducts = () => {
       setError(null);
 
       // 1. Fetch Producer/Transformer products (paginated)
-      const producerParams = {
+      // If a specific country is selected (including zones), request that country with useLocation=false
+      // If selectedCountry === 'MY_ZONE' -> only local products
+      // If no country selected -> fetch both all and local, then merge with local first
+      const baseProducerParams = {
         page: currentPage,
         limit: 12, // User requested 12
         userType: 'producer,transformer',
         sort: sortBy === "newest" ? "-createdAt" : sortBy,
-        useLocation: 'true'
       };
 
-      if (debouncedSearchQuery && debouncedSearchQuery.trim() !== "") {
-        producerParams.search = debouncedSearchQuery.trim();
-      }
-      
-      if (selectedCategory && selectedCategory !== "") {
-        producerParams.category = selectedCategory;
-      }
-
-      if (selectedCountry && selectedCountry !== "") {
-        producerParams.country = selectedCountry;
-      }
-
-      if (isBio) producerParams.isBio = 'true';
-
-      if (debouncedPriceRange.min) producerParams.minPrice = debouncedPriceRange.min;
-      if (debouncedPriceRange.max) producerParams.maxPrice = debouncedPriceRange.max;
+      if (debouncedSearchQuery && debouncedSearchQuery.trim() !== "") baseProducerParams.search = debouncedSearchQuery.trim();
+      if (selectedCategory && selectedCategory !== "") baseProducerParams.category = selectedCategory;
+      if (isBio) baseProducerParams.isBio = 'true';
+      if (debouncedPriceRange.min) baseProducerParams.minPrice = debouncedPriceRange.min;
+      if (debouncedPriceRange.max) baseProducerParams.maxPrice = debouncedPriceRange.max;
 
       // 2. Fetch Restaurateur products (latest 12)
       const restaurateurParams = {
@@ -95,21 +86,57 @@ export const useProducts = () => {
 
       if (isBio) restaurateurParams.isBio = 'true';
 
-      const [producerRes, restaurateurRes] = await Promise.all([
-        productService.getProducts(producerParams),
+      let producerList = [];
+      let total = 0;
+      let pages = 1;
+
+      if (selectedCountry === "MY_ZONE") {
+        const localParams = { ...baseProducerParams, useLocation: 'true' };
+        const producerRes = await productService.getProducts(localParams);
+        if (producerRes.data.status === "success") {
+          producerList = producerRes.data.data.products || [];
+          pages = producerRes.data.totalPages || 1;
+          total = producerRes.data.total || 0;
+        }
+      } else if (!selectedCountry) {
+        // fetch all and local, merge local first
+        const [allRes, localRes] = await Promise.all([
+          productService.getProducts({ ...baseProducerParams, useLocation: 'false' }),
+          productService.getProducts({ ...baseProducerParams, useLocation: 'true' }),
+        ]);
+        const allList = allRes.data.status === 'success' ? allRes.data.data.products || [] : [];
+        const localList = localRes.data.status === 'success' ? localRes.data.data.products || [] : [];
+
+        const seen = new Set();
+        const merged = [];
+        for (const p of localList) { merged.push({ ...p, isLocal: true }); seen.add(p._id); }
+        for (const p of allList) { if (!seen.has(p._id)) merged.push(p); }
+        producerList = merged;
+        pages = allRes.data.totalPages || 1;
+        total = allRes.data.total || merged.length;
+      } else {
+        const countryParams = { ...baseProducerParams, useLocation: 'false', country: selectedCountry };
+        const producerRes = await productService.getProducts(countryParams);
+        if (producerRes.data.status === "success") {
+          producerList = producerRes.data.data.products || [];
+          pages = producerRes.data.totalPages || 1;
+          total = producerRes.data.total || 0;
+        }
+      }
+
+      // Restaurateur products (still per-country or default)
+      const [_, restaurateurRes] = await Promise.all([
+        Promise.resolve(),
         productService.getProducts(restaurateurParams)
       ]);
-
-      if (producerRes.data.status === "success") {
-        setProducts(producerRes.data.data.products || []);
-        // Check where totalPages is located in the response
-        setTotalPages(producerRes.data.totalPages || 1);
-        setTotalProducts(producerRes.data.total || 0);
-      }
 
       if (restaurateurRes.data.status === "success") {
         setRestaurateurProducts(restaurateurRes.data.data.products || []);
       }
+
+      setProducts(producerList);
+      setTotalPages(pages);
+      setTotalProducts(total);
 
     } catch (error) {
       console.error("Erreur lors du chargement des produits:", error);

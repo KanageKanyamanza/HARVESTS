@@ -26,19 +26,20 @@ const TransporteursExportateurs = () => {
 			try {
 				setLoading(true);
 
-				const [exportersResponse, transportersResponse] =
-					await Promise.allSettled([
-						exporterService.getAllPublic({ limit: 50 }),
-						transporterService.getAllPublic({ limit: 50, useLocation: 'true' }),
-					]);
+				// Fetch global exporters and both local+global transporters then merge transporters (local first)
+				const [exportersResponse, transportersAllResp, transportersLocalResp] = await Promise.allSettled([
+					exporterService.getAllPublic({ limit: 50 }),
+					transporterService.getAllPublic({ limit: 50, useLocation: 'false' }),
+					transporterService.getAllPublic({ limit: 50, useLocation: 'true' }),
+				]);
 				
-				// Stocker les informations de localisation des transporteurs
+				// Stocker les informations de localisation des transporteurs (locale si disponible)
 				if (
-					transportersResponse.status === "fulfilled" &&
-					transportersResponse.value.data.status === "success" &&
-					transportersResponse.value.data.data.location
+					transportersLocalResp.status === "fulfilled" &&
+					transportersLocalResp.value.data.status === "success" &&
+					transportersLocalResp.value.data.data.location
 				) {
-					setLocationInfo(transportersResponse.value.data.data.location);
+					setLocationInfo(transportersLocalResp.value.data.data.location);
 				}
 
 				const allLogistics = [];
@@ -63,25 +64,22 @@ const TransporteursExportateurs = () => {
 					);
 				}
 
-				// Ajouter les transporteurs
-				if (
-					transportersResponse.status === "fulfilled" &&
-					transportersResponse.value.data.status === "success"
-				) {
-					const transporters =
-						transportersResponse.value.data.data.transporters || [];
-					
-					allLogistics.push(
-						...transporters.map((transporter) => ({
-							...transporter,
-							type: "transporter",
-							displayName: transporter.companyName || "Transporteur",
-							profileUrl: `/transporters/${transporter._id}`,
-							shopBanner: transporter.shopBanner,
-							logo: transporter.shopLogo,
-						}))
-					);
-				}
+				// Merge transporters local first then global
+				const transportersAll = transportersAllResp.status === "fulfilled" && transportersAllResp.value.data.status === "success" ? transportersAllResp.value.data.data.transporters || [] : [];
+				const transportersLocal = transportersLocalResp.status === "fulfilled" && transportersLocalResp.value.data.status === "success" ? transportersLocalResp.value.data.data.transporters || [] : [];
+				const seen = new Set();
+				const mergedTransporters = [];
+				for (const t of transportersLocal) { mergedTransporters.push(t); seen.add(t._id); }
+				for (const t of transportersAll) { if (!seen.has(t._id)) mergedTransporters.push(t); }
+
+				allLogistics.push(...mergedTransporters.map((transporter) => ({
+					...transporter,
+					type: "transporter",
+					displayName: transporter.companyName || "Transporteur",
+					profileUrl: `/transporters/${transporter._id}`,
+					shopBanner: transporter.shopBanner,
+					logo: transporter.shopLogo,
+				})));
 
 				setLogistics(allLogistics);
 			} catch (error) {

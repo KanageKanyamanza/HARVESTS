@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { producerService } from "../services";
+import { producerService, reviewService } from "../services";
 import { FiMapPin, FiStar, FiPackage, FiArrowRight, FiChevronDown, FiX } from "react-icons/fi";
 import { Leaf } from "lucide-react";
 import { getCountryName } from "../utils/countryMapper";
@@ -27,10 +27,8 @@ const Producers = () => {
 
 	useEffect(() => {
 		const loadProducers = async (forceRefresh = false) => {
+			const cacheKey = `producers_list_${selectedCountry}`;
 			try {
-				const cacheKey = `producers_list_${selectedCountry}`;
-
-				// Vérifier le cache
 				if (!forceRefresh) {
 					const cached = getCachedData(cacheKey);
 					if (cached) {
@@ -39,34 +37,59 @@ const Producers = () => {
 						return;
 					}
 				}
-
 				setLoading(true);
-				
-				const queryParams = {
-					limit: 20,
-					useLocation: selectedCountry ? "false" : "true",
+
+				const isMyZone = selectedCountry === "MY_ZONE";
+
+				const fetchProducers = async (useLocation, country) => {
+					const params = { limit: 20 };
+					if (useLocation !== undefined) params.useLocation = useLocation ? "true" : "false";
+					if (country) params.country = country;
+					const response = await producerService.getAllPublic(params);
+					if (response.data.status === "success") return { list: response.data.data.producers || [], location: response.data.data.location || null };
+					return { list: [], location: null };
 				};
 
-				if (selectedCountry) {
-					queryParams.country = selectedCountry;
+				if (isMyZone) {
+					const { list } = await fetchProducers(true);
+					const withRatings = await Promise.all(list.map(async (p) => {
+						if (!p?._id) return p;
+						try {
+							const statsResponse = await reviewService.getProducerRatingStats(p._id);
+							const statsData = statsResponse?.data;
+							if (statsData) {
+								return { ...p, ratings: { ...(p.ratings || {}), average: statsData.averageRating || 0, count: statsData.totalReviews || 0 }, stats: { ...(p.stats || {}), averageRating: statsData.averageRating || 0, totalReviews: statsData.totalReviews || 0 }, reviewStats: statsData };
+							}
+						} catch (e) { console.error(e); }
+						return p;
+					}));
+					setProducers(withRatings);
+					setCachedData(cacheKey, { producers: withRatings, locationInfo: null });
+					setLoading(false);
+					return;
 				}
 
-				const response = await producerService.getAllPublic(queryParams);
-				if (response.data.status === "success") {
-					const producersData = response.data.data.producers || [];
-					const locationData = response.data.data.location || null;
-
-					setProducers(producersData);
-
-					// Mettre en cache
-					setCachedData(cacheKey, {
-						producers: producersData,
-						locationInfo: locationData,
-					});
+				if (!selectedCountry) {
+					const [allResp, localResp] = await Promise.all([fetchProducers(false), fetchProducers(true)]);
+					const allList = allResp.list;
+					const localList = localResp.list;
+					const seen = new Set();
+					const merged = [];
+					for (const v of localList) { merged.push({ ...v, isLocal: true }); seen.add(v._id); }
+					for (const v of allList) { if (!seen.has(v._id)) merged.push(v); }
+					setProducers(merged);
+					setCachedData(cacheKey, { producers: merged, locationInfo: allResp.location || localResp.location });
+					setLoading(false);
+					return;
 				}
+
+				// specific country selected
+				const resp = await fetchProducers(false, selectedCountry);
+				setProducers(resp.list);
+				setCachedData(cacheKey, { producers: resp.list, locationInfo: resp.location });
+				setLoading(false);
 			} catch (error) {
 				console.error("Erreur lors du chargement des producteurs:", error);
-			} finally {
 				setLoading(false);
 			}
 		};
@@ -104,6 +127,7 @@ const Producers = () => {
 									onChange={(e) => handleCountryChange(e.target.value)}
 									className="pl-10 pr-10 py-3 bg-white border-2 border-green-100 rounded-2xl focus:ring-4 focus:ring-green-500/10 focus:border-green-500 appearance-none text-gray-700 font-bold shadow-sm transition-all cursor-pointer min-w-[240px]"
 								>
+									<option value="MY_ZONE">Ma zone</option>
 									<option value="">Tous les pays / zones</option>
 									<optgroup label="Zones">
 										<option value="West Africa">Afrique de l'Ouest</option>
