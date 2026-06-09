@@ -74,3 +74,5 @@ tmp/
 # Build outputs
 dist/
 build/
+
+model.nlp

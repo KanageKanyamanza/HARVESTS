@@ -106,6 +106,17 @@ export const formatAverageRating = (rating) => {
   return rating.toFixed(1);
 };
 
+export const buildVendorRating = (vendor, reviews = []) => {
+  const average = getVendorAverageRating(vendor, reviews);
+  const reviewCount = getVendorReviewCount(vendor, reviews);
+
+  return {
+    average,
+    reviewCount,
+    averageDisplay: formatAverageRating(average),
+  };
+};
+
 export const getProductAverageRating = (product, reviews = []) => {
   if (!product) {
     return 0;
