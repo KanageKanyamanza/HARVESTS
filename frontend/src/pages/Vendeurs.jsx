@@ -40,183 +40,176 @@ const Vendeurs = () => {
 		const newParams = new URLSearchParams(searchParams);
 		if (country) {
 			newParams.set("country", country);
-		} else {
-			newParams.delete("country");
-		}
-		setSearchParams(newParams);
-	};
-
-	const buildVendorRating = (vendor) => {
-		const average = getVendorAverageRating(vendor);
-		const count = getVendorReviewCount(vendor);
-		return {
-			averageDisplay: formatAverageRating(average),
-			reviewCount: count,
-		};
-	};
-
-	useEffect(() => {
-		const loadVendeurs = async (forceRefresh = false) => {
-			try {
+		useEffect(() => {
+			const loadVendeurs = async (forceRefresh = false) => {
 				const cacheKey = `vendeurs_list_${selectedCountry}`;
 
-				// Vérifier le cache
-				if (!forceRefresh) {
-					const cached = getCachedData(cacheKey);
-					if (cached) {
-						setVendeurs(cached.vendeurs || []);
+				try {
+					// Vérifier le cache
+					if (!forceRefresh) {
+						const cached = getCachedData(cacheKey);
+						if (cached) {
+							setVendeurs(cached.vendeurs || []);
+							setLoading(false);
+							return;
+						}
+					}
+
+					setLoading(true);
+
+					const isMyZone = selectedCountry === "MY_ZONE";
+					// Cas 1 : l'utilisateur veut uniquement sa zone
+					if (isMyZone) {
+						const [pResp, tResp, rResp] = await Promise.allSettled([
+							producerService.getAllPublic({ limit: 50, useLocation: "true" }),
+							transformerService.getAllPublic({ limit: 50, useLocation: "true" }),
+							restaurateurService.getAllPublic({ limit: 50, useLocation: "true" }),
+						]);
+
+						const localList = [];
+						if (pResp.status === "fulfilled" && pResp.value.data.status === "success") {
+							localList.push(...(pResp.value.data.data.producers || []).map((producer) => ({
+								...producer,
+								type: "producer",
+								displayName: producer.shopInfo?.shopName || (producer.farmName && producer.farmName !== "À compléter" ? producer.farmName : null) || `${producer.firstName} ${producer.lastName !== "À compléter" ? producer.lastName : ""}`.trim(),
+								profileUrl: `/producers/${producer._id}`,
+								shopBanner: producer.shopBanner,
+								logo: producer.shopLogo,
+							}));
+						}
+						if (tResp.status === "fulfilled" && tResp.value.data.status === "success") {
+							localList.push(...(tResp.value.data.data.transformers || []).map((transformer) => ({
+								...transformer,
+								type: "transformer",
+								displayName: transformer.shopInfo?.shopName || ((transformer.companyName && transformer.companyName !== "À compléter") ? transformer.companyName : null) || `${transformer.firstName} ${transformer.lastName !== "À compléter" ? transformer.lastName : ""}`.trim(),
+								profileUrl: `/transformers/${transformer._id}`,
+								shopBanner: transformer.shopBanner,
+								logo: transformer.shopLogo,
+							}));
+						}
+						if (rResp.status === "fulfilled" && rResp.value.data.status === "success") {
+							localList.push(...(rResp.value.data.data.restaurateurs || []).map((restaurateur) => ({
+								...restaurateur,
+								type: "restaurateur",
+								displayName: restaurateur.shopInfo?.shopName || ((restaurateur.restaurantName && restaurateur.restaurantName !== "À compléter") ? restaurateur.restaurantName : null) || `${restaurateur.firstName} ${restaurateur.lastName !== "À compléter" ? restaurateur.lastName : ""}`.trim(),
+								profileUrl: `/restaurateurs/${restaurateur._id}`,
+								shopBanner: restaurateur.restaurantBanner || restaurateur.shopBanner,
+								logo: restaurateur.shopLogo,
+							}));
+						}
+
+						const vendeursAvecNotes = await Promise.all(localList.map(async (vendeur) => {
+							if (!vendeur?._id || !["producer", "transformer", "restaurateur"].includes(vendeur.type)) return vendeur;
+							try {
+								const statsResponse = await reviewService.getProducerRatingStats(vendeur._id);
+								const statsData = statsResponse?.data;
+								if (statsData) {
+									return { ...vendeur, ratings: { ...(vendeur.ratings || {}), average: statsData.averageRating || 0, count: statsData.totalReviews || 0 }, stats: { ...(vendeur.stats || {}), averageRating: statsData.averageRating || 0, totalReviews: statsData.totalReviews || 0 }, reviewStats: statsData };
+								}
+							} catch (statsError) {
+								console.error("Erreur lors du chargement des statistiques d'avis du vendeur:", statsError);
+							}
+							return vendeur;
+						}));
+
+						setVendeurs(vendeursAvecNotes);
+						setCachedData(cacheKey, { vendeurs: vendeursAvecNotes, locationInfo: null });
 						setLoading(false);
 						return;
 					}
-				}
 
-				setLoading(true);
+					// Cas 2 : aucune sélection -> récupérer tout + locaux et fusionner (locaux d'abord)
+					if (!selectedCountry) {
+						const [allSettled, localSettled] = await Promise.allSettled([
+							Promise.allSettled([
+								producerService.getAllPublic({ limit: 50, useLocation: "false" }),
+								transformerService.getAllPublic({ limit: 50, useLocation: "false" }),
+								restaurateurService.getAllPublic({ limit: 50, useLocation: "false" }),
+							]),
+							Promise.allSettled([
+								producerService.getAllPublic({ limit: 50, useLocation: "true" }),
+								transformerService.getAllPublic({ limit: 50, useLocation: "true" }),
+								restaurateurService.getAllPublic({ limit: 50, useLocation: "true" }),
+							]),
+						]);
 
-				const queryParams = { 
-					limit: 50, 
-					useLocation: selectedCountry ? "false" : "true" 
-				};
-				if (selectedCountry) queryParams.country = selectedCountry;
+						const buildList = (pResp, tResp, rResp) => {
+							const list = [];
+							if (pResp && pResp.status === "fulfilled" && pResp.value.data.status === "success") list.push(...(pResp.value.data.data.producers || []).map((producer) => ({ ...producer, type: "producer", displayName: producer.shopInfo?.shopName || (producer.farmName && producer.farmName !== "À compléter" ? producer.farmName : null) || `${producer.firstName} ${producer.lastName !== "À compléter" ? producer.lastName : ""}`.trim(), profileUrl: `/producers/${producer._id}`, shopBanner: producer.shopBanner, logo: producer.shopLogo })));
+							if (tResp && tResp.status === "fulfilled" && tResp.value.data.status === "success") list.push(...(tResp.value.data.data.transformers || []).map((transformer) => ({ ...transformer, type: "transformer", displayName: transformer.shopInfo?.shopName || ((transformer.companyName && transformer.companyName !== "À compléter") ? transformer.companyName : null) || `${transformer.firstName} ${transformer.lastName !== "À compléter" ? transformer.lastName : ""}`.trim(), profileUrl: `/transformers/${transformer._id}`, shopBanner: transformer.shopBanner, logo: transformer.shopLogo })));
+							if (rResp && rResp.status === "fulfilled" && rResp.value.data.status === "success") list.push(...(rResp.value.data.data.restaurateurs || []).map((restaurateur) => ({ ...restaurateur, type: "restaurateur", displayName: restaurateur.shopInfo?.shopName || ((restaurateur.restaurantName && restaurateur.restaurantName !== "À compléter") ? restaurateur.restaurantName : null) || `${restaurateur.firstName} ${restaurateur.lastName !== "À compléter" ? restaurateur.lastName : ""}`.trim(), profileUrl: `/restaurateurs/${restaurateur._id}`, shopBanner: restaurateur.restaurantBanner || restaurateur.shopBanner, logo: restaurateur.shopLogo })));
+							return list;
+						};
 
-				const [producersResponse, transformersResponse, restaurateursResponse] =
-					await Promise.allSettled([
+						const [pAll, tAll, rAll] = allSettled[0] || [];
+						const [pLocal, tLocal, rLocal] = localSettled[0] || [];
+						const allList = buildList(pAll, tAll, rAll);
+						const localList = buildList(pLocal, tLocal, rLocal);
+
+						const seen = new Set();
+						const merged = [];
+						const key = (v) => `${v.type}-${v._id}`;
+						for (const v of localList) { merged.push({ ...v, isLocal: true }); seen.add(key(v)); }
+						for (const v of allList) { if (!seen.has(key(v))) merged.push(v); }
+
+						const vendeursAvecNotes = await Promise.all(merged.map(async (vendeur) => {
+							if (!vendeur?._id || !["producer","transformer","restaurateur"].includes(vendeur.type)) return vendeur;
+							try { const statsResponse = await reviewService.getProducerRatingStats(vendeur._id); const statsData = statsResponse?.data; if (statsData) return { ...vendeur, ratings: { ...(vendeur.ratings||{}), average: statsData.averageRating||0, count: statsData.totalReviews||0 }, stats: { ...(vendeur.stats||{}), averageRating: statsData.averageRating||0, totalReviews: statsData.totalReviews||0 }, reviewStats: statsData }; } catch (e) { console.error('Erreur stats', e); }
+							return vendeur;
+						}));
+
+						setVendeurs(vendeursAvecNotes);
+						setCachedData(cacheKey, { vendeurs: vendeursAvecNotes, locationInfo: null });
+						setLoading(false);
+						return;
+					}
+
+					// Cas 3 : pays/zone précis sélectionné
+					const queryParams = { limit: 50, useLocation: "false" };
+					if (selectedCountry) queryParams.country = selectedCountry;
+
+					const [producersResponse, transformersResponse, restaurateursResponse] = await Promise.allSettled([
 						producerService.getAllPublic(queryParams),
 						transformerService.getAllPublic(queryParams),
 						restaurateurService.getAllPublic(queryParams),
 					]);
 
-				const allVendeurs = [];
-				let locationData = null;
+					const allVendeurs = [];
+					let locationData = null;
 
-				// Ajouter les producteurs
-				if (
-					producersResponse.status === "fulfilled" &&
-					producersResponse.value.data.status === "success"
-				) {
-					const producers = producersResponse.value.data.data.producers || [];
-
-					// Stocker les informations de localisation
-					if (producersResponse.value.data.data.location) {
-						locationData = producersResponse.value.data.data.location;
+					if (producersResponse.status === "fulfilled" && producersResponse.value.data.status === "success") {
+						const producers = producersResponse.value.data.data.producers || [];
+						if (producersResponse.value.data.data.location) locationData = producersResponse.value.data.data.location;
+						allVendeurs.push(...producers.map((producer) => ({ ...producer, type: "producer", displayName: producer.shopInfo?.shopName || (producer.farmName && producer.farmName !== "À compléter" ? producer.farmName : null) || `${producer.firstName} ${producer.lastName !== "À compléter" ? producer.lastName : ""}`.trim(), profileUrl: `/producers/${producer._id}`, shopBanner: producer.shopBanner, logo: producer.shopLogo })));
 					}
 
-					allVendeurs.push(
-						...producers.map((producer) => ({
-							...producer,
-							type: "producer",
-							displayName:
-								producer.shopInfo?.shopName ||
-								(producer.farmName && producer.farmName !== "À compléter" ?
-									producer.farmName
-								:	null) ||
-								`${producer.firstName} ${producer.lastName !== "À compléter" ? producer.lastName : ""}`.trim(),
-							profileUrl: `/producers/${producer._id}`,
-							shopBanner: producer.shopBanner,
-							logo: producer.shopLogo,
-						})),
-					);
-				}
+					if (transformersResponse.status === "fulfilled" && transformersResponse.value.data.status === "success") {
+						const transformers = transformersResponse.value.data.data.transformers || [];
+						allVendeurs.push(...transformers.map((transformer) => ({ ...transformer, type: "transformer", displayName: transformer.shopInfo?.shopName || ((transformer.companyName && transformer.companyName !== "À compléter") ? transformer.companyName : null) || `${transformer.firstName} ${transformer.lastName !== "À compléter" ? transformer.lastName : ""}`.trim(), profileUrl: `/transformers/${transformer._id}`, shopBanner: transformer.shopBanner, logo: transformer.shopLogo })));
+					}
 
-				// Ajouter les transformateurs
-				if (
-					transformersResponse.status === "fulfilled" &&
-					transformersResponse.value.data.status === "success"
-				) {
-					const transformers =
-						transformersResponse.value.data.data.transformers || [];
+					if (restaurateursResponse.status === "fulfilled" && restaurateursResponse.value.data.status === "success") {
+						const restaurateurs = restaurateursResponse.value.data.data.restaurateurs || [];
+						allVendeurs.push(...restaurateurs.map((restaurateur) => ({ ...restaurateur, type: "restaurateur", displayName: restaurateur.shopInfo?.shopName || ((restaurateur.restaurantName && restaurateur.restaurantName !== "À compléter") ? restaurateur.restaurantName : null) || `${restaurateur.firstName} ${restaurateur.lastName !== "À compléter" ? restaurateur.lastName : ""}`.trim(), profileUrl: `/restaurateurs/${restaurateur._id}`, shopBanner: restaurateur.restaurantBanner || restaurateur.shopBanner, logo: restaurateur.shopLogo })));
+					}
 
-					allVendeurs.push(
-						...transformers.map((transformer) => ({
-							...transformer,
-							type: "transformer",
-							displayName:
-								transformer.shopInfo?.shopName ||
-								((
-									transformer.companyName &&
-									transformer.companyName !== "À compléter"
-								) ?
-									transformer.companyName
-								:	null) ||
-								`${transformer.firstName} ${transformer.lastName !== "À compléter" ? transformer.lastName : ""}`.trim(),
-							profileUrl: `/transformers/${transformer._id}`,
-							shopBanner: transformer.shopBanner,
-							logo: transformer.shopLogo,
-						})),
-					);
-				}
-
-				// Ajouter les restaurateurs
-				if (
-					restaurateursResponse.status === "fulfilled" &&
-					restaurateursResponse.value.data.status === "success"
-				) {
-					const restaurateurs =
-						restaurateursResponse.value.data.data.restaurateurs || [];
-					allVendeurs.push(
-						...restaurateurs.map((restaurateur) => ({
-							...restaurateur,
-							type: "restaurateur",
-							displayName:
-								restaurateur.shopInfo?.shopName ||
-								((
-									restaurateur.restaurantName &&
-									restaurateur.restaurantName !== "À compléter"
-								) ?
-									restaurateur.restaurantName
-								:	null) ||
-								`${restaurateur.firstName} ${restaurateur.lastName !== "À compléter" ? restaurateur.lastName : ""}`.trim(),
-							profileUrl: `/restaurateurs/${restaurateur._id}`,
-							shopBanner:
-								restaurateur.restaurantBanner || restaurateur.shopBanner,
-							logo: restaurateur.shopLogo,
-						})),
-					);
-				}
-
-				const vendeursAvecNotes = await Promise.all(
-					allVendeurs.map(async (vendeur) => {
-						if (
-							!vendeur?._id ||
-							!["producer", "transformer", "restaurateur"].includes(
-								vendeur.type,
-							)
-						) {
-							return vendeur;
-						}
-
-						try {
-							const statsResponse = await reviewService.getProducerRatingStats(
-								vendeur._id,
-							);
-							const statsData = statsResponse?.data;
-							if (statsData) {
-								return {
-									...vendeur,
-									ratings: {
-										...(vendeur.ratings || {}),
-										average: statsData.averageRating || 0,
-										count: statsData.totalReviews || 0,
-									},
-									stats: {
-										...(vendeur.stats || {}),
-										averageRating: statsData.averageRating || 0,
-										totalReviews: statsData.totalReviews || 0,
-									},
-									reviewStats: statsData,
-								};
-							}
-						} catch (statsError) {
-							console.error(
-								"Erreur lors du chargement des statistiques d'avis du vendeur:",
-								statsError,
-							);
-						}
-
+					const vendeursAvecNotes = await Promise.all(allVendeurs.map(async (vendeur) => {
+						if (!vendeur?._id || !["producer","transformer","restaurateur"].includes(vendeur.type)) return vendeur;
+						try { const statsResponse = await reviewService.getProducerRatingStats(vendeur._id); const statsData = statsResponse?.data; if (statsData) return { ...vendeur, ratings: { ...(vendeur.ratings||{}), average: statsData.averageRating||0, count: statsData.totalReviews||0 }, stats: { ...(vendeur.stats||{}), averageRating: statsData.averageRating||0, totalReviews: statsData.totalReviews||0 }, reviewStats: statsData }; } catch (e) { console.error('Erreur stats', e); }
 						return vendeur;
-					}),
-				);
+					}));
 
-				setVendeurs(vendeursAvecNotes);
+					setVendeurs(vendeursAvecNotes);
+					setCachedData(cacheKey, { vendeurs: vendeursAvecNotes, locationInfo: locationData });
+				} catch (error) {
+					console.error("Erreur lors du chargement des vendeurs:", error);
+				} finally {
+					setLoading(false);
+				}
+			};
+
+			loadVendeurs();
+		}, [getCachedData, setCachedData, selectedCountry]);
 
 				// Mettre en cache
 				setCachedData(cacheKey, {
@@ -312,6 +305,7 @@ const Vendeurs = () => {
 							onChange={(e) => handleCountryChange(e.target.value)}
 							className="w-full pl-10 pr-8 py-2.5 bg-transparent border-none focus:outline-none appearance-none text-gray-700 font-bold cursor-pointer text-xs"
 						>
+							<option value="MY_ZONE">Ma zone</option>
 							<option value="">Tous les pays / zones</option>
 							<optgroup label="Zones">
 								<option value="West Africa">Afrique de l'Ouest</option>

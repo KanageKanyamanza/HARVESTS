@@ -25,28 +25,24 @@ const ProductsSection = () => {
       setLoading(true);
       setError(null);
 
-      const params = { limit: 6, sort: 'newest', useLocation: 'true' };
-      if (detected && countryCode) {
-        params.country = countryCode;
-      }
+      // Récupérer local et global et fusionner (locaux d'abord)
+      const [localResp, allResp] = await Promise.all([
+        productService.getProducts({ limit: 6, sort: 'newest', useLocation: 'true' }),
+        productService.getProducts({ limit: 6, sort: 'newest', useLocation: 'false' }),
+      ]);
 
-      const response = await productService.getProducts(params);
+      const localList = localResp?.data?.status === 'success' ? localResp.data.data.products || [] : [];
+      const allList = allResp?.data?.status === 'success' ? allResp.data.data.products || [] : [];
 
-      if (response.data.status === 'success') {
-        const fetched = response.data.data.products || [];
-        setProducts(fetched);
-        // If we passed a country and got results, mark as local
-        setIsLocal(detected && countryCode && fetched.length > 0);
+      const seen = new Set();
+      const merged = [];
+      for (const p of localList) { merged.push(p); seen.add(p._id); }
+      for (const p of allList) { if (!seen.has(p._id)) merged.push(p); }
 
-        // If local filtering returned nothing, fallback to global
-        if (detected && countryCode && fetched.length === 0) {
-          const fallback = await productService.getProducts({ limit: 6, sort: 'newest' });
-          if (fallback.data.status === 'success') {
-            setProducts(fallback.data.data.products || []);
-          }
-          setIsLocal(false);
-        }
-      }
+      const finalProducts = merged.slice(0, 6);
+
+      setProducts(finalProducts);
+      setIsLocal(detected && countryCode && localList.length > 0);
     } catch (err) {
       console.error('Erreur lors du chargement des produits:', err);
       setError('Impossible de charger les produits');

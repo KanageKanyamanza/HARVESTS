@@ -9,7 +9,7 @@ import { useApiCache } from '../hooks/useApiCache';
 const Transformers = () => {
   const [transformers, setTransformers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { getCachedData, setCachedData } = useApiCache(5 * 60 * 1000); // Cache de 5 minutes
+  const { getCachedData, setCachedData, clearCache } = useApiCache(5 * 60 * 1000); // Cache de 5 minutes
   const hasLoadedRef = useRef(false);
 
   useEffect(() => {
@@ -20,7 +20,7 @@ const Transformers = () => {
 
       try {
         const cacheKey = 'transformers_list';
-        
+
         // Vérifier le cache
         if (!forceRefresh) {
           const cached = getCachedData(cacheKey);
@@ -33,14 +33,25 @@ const Transformers = () => {
         }
 
         setLoading(true);
-        const response = await transformerService.getAllPublic({ limit: 20 });
-        if (response.data.status === 'success') {
-          const transformersData = response.data.data.transformers || [];
-          setTransformers(transformersData);
-          
-          // Mettre en cache
-          setCachedData(cacheKey, transformersData);
-        }
+
+        // Récupérer à la fois les transformateurs locaux et globaux, puis fusionner (locaux d'abord)
+        const [allResp, localResp] = await Promise.all([
+          transformerService.getAllPublic({ limit: 20, useLocation: 'false' }),
+          transformerService.getAllPublic({ limit: 20, useLocation: 'true' }),
+        ]);
+
+        const allList = allResp.data.status === 'success' ? allResp.data.data.transformers || [] : [];
+        const localList = localResp.data.status === 'success' ? localResp.data.data.transformers || [] : [];
+
+        const seen = new Set();
+        const merged = [];
+        for (const t of localList) { merged.push(t); seen.add(t._id); }
+        for (const t of allList) { if (!seen.has(t._id)) merged.push(t); }
+
+        setTransformers(merged);
+
+        // Mettre en cache
+        setCachedData(cacheKey, merged);
       } catch (error) {
         console.error('Erreur lors du chargement des transformateurs:', error);
       } finally {

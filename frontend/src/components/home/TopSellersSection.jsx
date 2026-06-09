@@ -22,39 +22,41 @@ const TopSellersSection = () => {
   const loadSellers = async () => {
     try {
       setLoading(true);
-      const params = { limit: 4 };
-      if (detected && countryCode) params.country = countryCode;
 
-      const response = await producerService.getAllPublic(params);
-      if (response.data.status === 'success') {
-        let producers = response.data.data.producers || [];
-        setIsLocal(detected && countryCode && producers.length > 0);
+      // Fetch both local (useLocation true) and global (useLocation false) and merge with local first
+      const [localResp, allResp] = await Promise.all([
+        producerService.getAllPublic({ limit: 4, useLocation: 'true' }),
+        producerService.getAllPublic({ limit: 4, useLocation: 'false' }),
+      ]);
 
-        // Fallback global si aucun producteur dans la zone
-        if (detected && countryCode && producers.length === 0) {
-          const fallback = await producerService.getAllPublic({ limit: 4 });
-          if (fallback.data.status === 'success') {
-            producers = fallback.data.data.producers || [];
+      const localList = localResp.data.status === 'success' ? localResp.data.data.producers || [] : [];
+      const allList = allResp.data.status === 'success' ? allResp.data.data.producers || [] : [];
+
+      const seen = new Set();
+      const merged = [];
+      for (const p of localList) { merged.push({ ...p, isLocal: true }); seen.add(p._id); }
+      for (const p of allList) { if (!seen.has(p._id)) merged.push(p); }
+
+      // limit to 4
+      const finalList = merged.slice(0, 4);
+
+      setIsLocal(localList.length > 0 && detected && Boolean(countryCode));
+
+      const sellersWithStats = await Promise.all(
+        finalList.map(async (producer) => {
+          try {
+            const statsResponse = await reviewService.getProducerRatingStats(producer._id);
+            return {
+              ...producer,
+              ratingStats: statsResponse?.data || { averageRating: 0, totalReviews: 0 }
+            };
+          } catch (e) {
+            return { ...producer, ratingStats: { averageRating: 0, totalReviews: 0 } };
           }
-          setIsLocal(false);
-        }
+        })
+      );
 
-        const sellersWithStats = await Promise.all(
-          producers.map(async (producer) => {
-            try {
-              const statsResponse = await reviewService.getProducerRatingStats(producer._id);
-              return {
-                ...producer,
-                ratingStats: statsResponse?.data || { averageRating: 0, totalReviews: 0 }
-              };
-            } catch (e) {
-              return { ...producer, ratingStats: { averageRating: 0, totalReviews: 0 } };
-            }
-          })
-        );
-
-        setSellers(sellersWithStats);
-      }
+      setSellers(sellersWithStats);
     } catch (err) {
       console.error('Erreur lors du chargement des vendeurs à la une:', err);
     } finally {
