@@ -4,17 +4,6 @@
 User-agent: *
 Allow: /
 
-# Bloquer l'accès aux endpoints API sensibles
-Disallow: /api/
-Disallow: /api/auth/
-Disallow: /api/admin/
-Disallow: /api/blogs/admin/
-Disallow: /api/blog-visitors/admin/
-Disallow: /api/orders/
-Disallow: /api/payments/
-Disallow: /api/users/
-Disallow: /api/notifications/
-
 # Pages à ne pas indexer
 Disallow: /admin/
 Disallow: /consumer/
@@ -23,6 +12,7 @@ Disallow: /transformer/
 Disallow: /restaurateur/
 Disallow: /transporter/
 Disallow: /exporter/
+Disallow: /explorer/
 Disallow: /auth/
 Disallow: /checkout
 Disallow: /cart
@@ -32,38 +22,33 @@ Disallow: /settings
 Disallow: /notifications
 Disallow: /profile
 Disallow: /dashboard
+Disallow: /messages
 
 # Autoriser les pages publiques importantes
 Allow: /products
-Allow: /products/*
+Allow: /products/
 Allow: /categories
 Allow: /producers
-Allow: /producers/*
+Allow: /producers/
 Allow: /transformers
-Allow: /transformers/*
+Allow: /transformers/
+Allow: /vendeurs
 Allow: /restaurateurs
-Allow: /restaurateurs/*
+Allow: /restaurateurs/
 Allow: /transporteurs-exportateurs
-Allow: /transporteurs/*
-Allow: /exportateurs/*
+Allow: /blog
+Allow: /blog/
 Allow: /about
+Allow: /a-propos
 Allow: /contact
-Allow: /faq
+Allow: /help
 Allow: /terms
 Allow: /privacy
 Allow: /pricing
-Allow: /loyalty-program
-Allow: /blog
-Allow: /blog/*
+Allow: /loyalty
 
 # Sitemap
 Sitemap: https://www.harvests.site/sitemap.xml
 
-# Crawl-delay (optionnel, en secondes)
+# Crawl-delay (en secondes)
 Crawl-delay: 1
-
-
-# Bloquer l'accès aux dossiers techniques
-Disallow: /backend/
-Disallow: /uploads/
-Disallow: /node_modules/
