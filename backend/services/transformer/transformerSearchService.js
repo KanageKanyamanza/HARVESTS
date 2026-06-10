@@ -31,7 +31,7 @@ function buildSearchQuery(queryParams) {
 
 function buildAllTransformersQuery(queryParams) {
   const baseQueryObj = { ...queryParams };
-  const excludedFields = ['page', 'sort', 'limit', 'fields'];
+  const excludedFields = ['page', 'sort', 'limit', 'fields', 'useLocation', 'locationQuery', 'lang'];
   excludedFields.forEach((el) => delete baseQueryObj[el]);
   
   // Gérer le filtrage par pays et zones

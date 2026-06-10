@@ -179,7 +179,7 @@ const CategoriesSection = () => {
 					</button>
 				</div>
 			) : (
-				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-h-[450px] sm:max-h-none overflow-y-auto sm:overflow-y-visible pr-1 scrollbar-thin">
 					{displayedCategories.map((category) => {
 						const product = categoryProducts[category];
 						const primaryImage =

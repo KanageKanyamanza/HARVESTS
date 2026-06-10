@@ -7,7 +7,7 @@ const Restaurateur = require('../../models/Restaurateur');
 // Construire une requête pour getAllRestaurateurs
 function buildAllRestaurateursQuery(queryParams) {
   const queryObj = { ...queryParams };
-  const excludedFields = ['page', 'sort', 'limit', 'fields'];
+  const excludedFields = ['page', 'sort', 'limit', 'fields', 'useLocation', 'locationQuery', 'lang'];
   excludedFields.forEach((el) => delete queryObj[el]);
 
   // Gérer le filtrage par pays et zones

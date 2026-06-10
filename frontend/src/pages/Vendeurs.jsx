@@ -122,17 +122,13 @@ const Vendeurs = () => {
 
 					// Cas 2 : aucune sélection -> récupérer tout + locaux et fusionner (locaux d'abord)
 					if (!selectedCountry) {
-						const [allSettled, localSettled] = await Promise.allSettled([
-							Promise.allSettled([
-								producerService.getAllPublic({ limit: 50, useLocation: "false" }),
-								transformerService.getAllPublic({ limit: 50, useLocation: "false" }),
-								restaurateurService.getAllPublic({ limit: 50, useLocation: "false" }),
-							]),
-							Promise.allSettled([
-								producerService.getAllPublic({ limit: 50, useLocation: "true" }),
-								transformerService.getAllPublic({ limit: 50, useLocation: "true" }),
-								restaurateurService.getAllPublic({ limit: 50, useLocation: "true" }),
-							]),
+						const [pAll, tAll, rAll, pLocal, tLocal, rLocal] = await Promise.allSettled([
+							producerService.getAllPublic({ limit: 50, useLocation: "false" }),
+							transformerService.getAllPublic({ limit: 50, useLocation: "false" }),
+							restaurateurService.getAllPublic({ limit: 50, useLocation: "false" }),
+							producerService.getAllPublic({ limit: 50, useLocation: "true" }),
+							transformerService.getAllPublic({ limit: 50, useLocation: "true" }),
+							restaurateurService.getAllPublic({ limit: 50, useLocation: "true" }),
 						]);
 
 						const buildList = (pResp, tResp, rResp) => {
@@ -143,8 +139,6 @@ const Vendeurs = () => {
 							return list;
 						};
 
-						const [pAll, tAll, rAll] = allSettled[0] || [];
-						const [pLocal, tLocal, rLocal] = localSettled[0] || [];
 						const allList = buildList(pAll, tAll, rAll);
 						const localList = buildList(pLocal, tLocal, rLocal);
 
