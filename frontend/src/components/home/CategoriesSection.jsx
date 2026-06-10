@@ -179,7 +179,7 @@ const CategoriesSection = () => {
 					</button>
 				</div>
 			) : (
-				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-h-[450px] sm:max-h-none overflow-y-auto sm:overflow-y-visible pr-1 scrollbar-thin">
+				<div className="flex overflow-x-auto gap-5 pb-4 snap-x scrollbar-hide scroll-smooth lg:grid lg:grid-cols-4 lg:overflow-x-visible lg:pb-0">
 					{displayedCategories.map((category) => {
 						const product = categoryProducts[category];
 						const primaryImage =
@@ -187,7 +187,7 @@ const CategoriesSection = () => {
 							product?.images?.[0];
 
 						return (
-							<div key={category} className="bg-white p-5 flex flex-col shadow-sm rounded-sm z-10 h-[420px]">
+							<div key={category} className="bg-white p-5 flex flex-col shadow-sm rounded-sm z-10 h-[420px] min-w-[280px] max-w-[280px] sm:min-w-[320px] sm:max-w-[320px] lg:min-w-0 lg:max-w-none snap-start flex-none">
 								<h3 className="text-xl font-bold mb-4 text-gray-900">
 									{getCategoryLabel(category)}
 								</h3>

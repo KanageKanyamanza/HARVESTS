@@ -93,12 +93,12 @@ const TopSellersSection = () => {
           <LoadingSpinner />
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 max-h-[350px] sm:max-h-none overflow-y-auto sm:overflow-y-visible pr-1 scrollbar-thin">
+        <div className="flex overflow-x-auto gap-4 pb-4 snap-x scrollbar-hide scroll-smooth md:grid md:grid-cols-4 md:overflow-x-visible md:pb-0">
           {sellers.map((seller) => (
             <Link
               key={seller._id}
               to={`/producers/${seller._id}`}
-              className="bg-white border border-gray-200 rounded-sm hover:shadow-md transition-shadow overflow-hidden group flex flex-col items-center text-center p-4 relative"
+              className="bg-white border border-gray-200 rounded-sm hover:shadow-md transition-shadow overflow-hidden group flex flex-col items-center text-center p-4 relative min-w-[240px] max-w-[240px] sm:min-w-[280px] sm:max-w-[280px] md:min-w-0 md:max-w-none snap-start flex-none"
             >
               {/* Cover Banner */}
               <div className="absolute top-0 left-0 w-full h-[100px] bg-gradient-to-r from-gray-100 to-gray-200">
