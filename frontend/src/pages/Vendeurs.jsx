@@ -143,8 +143,8 @@ const Vendeurs = () => {
 							return list;
 						};
 
-						const [pAll, tAll, rAll] = (allSettled && allSettled.status === "fulfilled") ? allSettled.value : [];
-						const [pLocal, tLocal, rLocal] = (localSettled && localSettled.status === "fulfilled") ? localSettled.value : [];
+						const [pAll, tAll, rAll] = allSettled[0] || [];
+						const [pLocal, tLocal, rLocal] = localSettled[0] || [];
 						const allList = buildList(pAll, tAll, rAll);
 						const localList = buildList(pLocal, tLocal, rLocal);
 
