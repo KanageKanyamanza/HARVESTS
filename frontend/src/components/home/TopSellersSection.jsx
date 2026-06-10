@@ -93,7 +93,7 @@ const TopSellersSection = () => {
           <LoadingSpinner />
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 max-h-[350px] sm:max-h-none overflow-y-auto sm:overflow-y-visible pr-1 scrollbar-thin">
           {sellers.map((seller) => (
             <Link
               key={seller._id}
