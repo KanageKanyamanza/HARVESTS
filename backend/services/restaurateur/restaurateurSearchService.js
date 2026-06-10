@@ -17,6 +17,19 @@ function buildAllRestaurateursQuery(queryParams) {
       countriesToFilter = ["SN", "Sénégal", "CI", "Côte d'Ivoire", "BF", "Burkina Faso", "ML", "Mali", "GH", "Ghana", "NG", "Nigeria", "NE", "Niger", "BJ", "Bénin", "TG", "Togo"];
     } else if (queryParams.country === "Central Africa") {
       countriesToFilter = ["CM", "Cameroun", "GA", "Gabon", "CG", "Congo", "CD", "République démocratique du Congo", "TD", "Tchad", "CF", "République centrafricaine", "GQ", "Guinée équatoriale"];
+    } else {
+      const countryMap = {
+        'SN': ['SN', 'Sénégal', 'Senegal'],
+        'CM': ['CM', 'Cameroun', 'Cameroon'],
+        'CI': ['CI', "Côte d'Ivoire", "Ivory Coast"],
+        'GH': ['GH', 'Ghana'],
+        'NG': ['NG', 'Nigeria'],
+        'ML': ['ML', 'Mali'],
+        'BF': ['BF', 'Burkina Faso']
+      };
+      if (countryMap[queryParams.country]) {
+        countriesToFilter = countryMap[queryParams.country];
+      }
     }
 
     delete queryObj.country;

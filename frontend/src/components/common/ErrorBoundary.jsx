@@ -84,15 +84,15 @@ class ErrorBoundary extends React.Component {
               </div>
               
               {process.env.NODE_ENV === 'development' && this.state.error && (
-                <details className="mt-4 text-left">
-                  <summary className="text-sm text-gray-500 cursor-pointer">
-                    Détails de l'erreur (développement)
-                  </summary>
-                  <pre className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded overflow-auto">
-                    {this.state.error.toString()}
-                    {this.state.errorInfo.componentStack}
+                <div className="mt-6 text-left border-t border-gray-200 pt-4">
+                  <h4 className="text-sm font-bold text-red-600 mb-2">
+                    Détails du Crash (Uniquement en Développement) :
+                  </h4>
+                  <pre className="text-xs text-red-600 bg-red-50 p-3 rounded-lg overflow-auto max-h-64 border border-red-100 shadow-inner whitespace-pre-wrap">
+                    <span className="font-bold block mb-1">{this.state.error.toString()}</span>
+                    {this.state.errorInfo?.componentStack}
                   </pre>
-                </details>
+                </div>
               )}
             </div>
           </div>

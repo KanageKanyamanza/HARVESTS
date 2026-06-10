@@ -119,7 +119,16 @@ api.interceptors.response.use(
 		const isAdminLoginAttempt =
 			error.config?.url?.includes("/admin/auth/login");
 		if (!isAdminLoginAttempt) {
-			console.error("API Error:", error);
+			console.error(
+				"🚨 API ERROR:", 
+				`[${error.response?.status || 'NETWORK_ERROR'}]`, 
+				error.config?.url
+			);
+			if (error.response?.data) {
+				console.error("📄 Détails de l'erreur API :", error.response.data);
+			} else {
+				console.error("📄 Erreur originale :", error.message || error);
+			}
 		}
 
 		// Gérer les erreurs d'authentification (401)
