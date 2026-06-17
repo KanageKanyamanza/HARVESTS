@@ -179,6 +179,10 @@ const baseUserSchema = new mongoose.Schema(
 			type: Boolean,
 			default: false,
 		},
+		isShopVisible: {
+			type: Boolean,
+			default: true,
+		},
 		emailVerificationToken: String,
 		emailVerificationExpires: Date,
 

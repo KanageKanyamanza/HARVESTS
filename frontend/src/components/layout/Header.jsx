@@ -108,7 +108,7 @@ const Header = () => {
 		setIsMobileMenuOpen(false);
 
 		// Naviguer vers le produit
-		navigate(`/products/${product._id}`);
+		navigate(`/products/${product.slug || product._id}`);
 	};
 
 	const handleLogout = async () => {

@@ -254,7 +254,7 @@ const SearchModal = ({ isOpen, onClose, onProductClick }) => {
                   {results.map((product) => (
                     <Link
                       key={product._id}
-                      to={`/products/${product._id}`}
+                      to={`/products/${product.slug || product._id}`}
                       onClick={(event) => handleProductClick(product, event)}
                       className="flex md:flex-col bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-200"
                     >

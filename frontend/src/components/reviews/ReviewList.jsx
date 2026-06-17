@@ -219,7 +219,7 @@ const ReviewList = ({
       {/* Liste des avis */}
       <div className="space-y-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredReviews.length === 0 ? (
-          <div className="text-center py-8">
+          <div className="col-span-full text-center py-16">
             <Star className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
               Aucun avis trouvé

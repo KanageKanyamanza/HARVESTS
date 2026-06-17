@@ -18,7 +18,7 @@ const ProductImageGallery = ({ images, selectedIndex, onSelectImage, productName
               onClick={() => onSelectImage(index)}
               className={`flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all ${
                 selectedIndex === index 
-                  ? 'border-harvests-green ring-2 ring-harvests-green ring-offset-2' 
+                  ? 'border-harvests-green'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
               style={{ width: '80px', height: '80px', minWidth: '80px' }}

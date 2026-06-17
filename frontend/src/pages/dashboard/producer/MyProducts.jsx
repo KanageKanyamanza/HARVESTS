@@ -422,7 +422,7 @@ const MyProducts = () => {
 													Publier
 												</button>
 											:	<Link
-													to={`/products/${product._id}`}
+													to={`/products/${product.slug || product._id}`}
 													className="text-[10px] text-gray-400 hover:text-emerald-600 font-black uppercase tracking-widest transition-all flex items-center gap-1.5"
 												>
 													Détails <FiEye className="w-4 h-4" />

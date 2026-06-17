@@ -42,6 +42,7 @@ function buildAllRestaurateursQuery(queryParams) {
   queryObj.isActive = true;
   queryObj.isApproved = true;
   queryObj.isEmailVerified = true;
+  queryObj.isShopVisible = true;
   // Les restaurateurs doivent avoir une bannière pour être visibles en public
   queryObj.restaurantBanner = { $exists: true, $ne: null };
 
@@ -50,10 +51,11 @@ function buildAllRestaurateursQuery(queryParams) {
 
 function buildSearchQuery(queryParams) {
   const { q, region, restaurantType, cuisineType } = queryParams;
-  let searchQuery = { 
-    isActive: true, 
-    isApproved: true, 
+  let searchQuery = {
+    isActive: true,
+    isApproved: true,
     isEmailVerified: true,
+    isShopVisible: true,
     // Les restaurateurs doivent avoir une bannière pour être visibles en public
     restaurantBanner: { $exists: true, $ne: null },
   };

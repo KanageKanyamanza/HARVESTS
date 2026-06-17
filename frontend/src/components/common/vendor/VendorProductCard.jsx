@@ -9,7 +9,7 @@ const VendorProductCard = ({ item, helpers, showRating = true, colorClass = 'tex
   return (
     <div 
       className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-      onClick={() => helpers.navigate(`/products/${item._id}`)}
+      onClick={() => helpers.navigate(`/products/${item.slug || item._id}`)}
     >
       <div className="h-48 bg-gray-200 relative">
         {helpers.getItemImage(item) ? (

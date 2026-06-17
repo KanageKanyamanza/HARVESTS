@@ -140,7 +140,7 @@ const ReviewsSection = () => {
               Commande #{review.order?.orderNumber || 'N/A'}
             </span>
             <Link
-              to={`/products/${review.product._id}`}
+              to={`/products/${review.product.slug || review.product._id}`}
               className="text-blue-600 hover:text-blue-800 text-xs"
             >
               Voir le produit
