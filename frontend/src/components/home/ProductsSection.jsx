@@ -97,7 +97,7 @@ const ProductsSection = () => {
       ) : (
         <div className="relative">
           {/* Scrollable container */}
-          <div className="flex overflow-x-auto gap-4 pb-4 snap-x hide-scrollbar scroll-smooth">
+          <div className="flex overflow-x-auto gap-4 pb-4 snap-x scrollbar-hide scroll-smooth">
             {products.map((product) => (
               <div key={product._id} className="min-w-[200px] max-w-[200px] sm:min-w-[240px] sm:max-w-[240px] snap-start flex-none">
                 <ProductCard product={product} />

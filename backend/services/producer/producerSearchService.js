@@ -51,7 +51,7 @@ function buildAllProducersQuery(queryParams) {
 	baseQueryObj.isActive = true;
 	baseQueryObj.isApproved = true;
 	baseQueryObj.isEmailVerified = true;
-	baseQueryObj.isShopVisible = true;
+	baseQueryObj.isShopVisible = { $ne: false };
 	// Les producteurs doivent avoir une bannière (shopBanner) pour être visibles en public
 	baseQueryObj.shopBanner = { $exists: true, $ne: null };
 

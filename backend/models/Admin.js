@@ -38,9 +38,7 @@ const adminSchema = new mongoose.Schema(
 			validate: {
 				validator: function (password) {
 					// Au moins 8 caractères, 1 majuscule, 1 minuscule, 1 chiffre
-					return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/.test(
-						password
-					);
+					return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password);
 				},
 				message:
 					"Le mot de passe doit contenir au moins 8 caractères, 1 majuscule, 1 minuscule et 1 chiffre",
