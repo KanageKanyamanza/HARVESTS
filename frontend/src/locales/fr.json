@@ -743,6 +743,16 @@
 			"title": "Toutes nos Catégories | De l'Essentiel aux Spécialités",
 			"description": "Explorez notre catalogue par catégorie : Céréales, Fruits, Légumes, Agrumes, Épices et Produits de la Mer.",
 			"keywords": "catégories produits alimentaires, fruits légumes en ligne, épices Sénégal, produits mer Dakar"
+		},
+		"vendeurs": {
+			"title": "Nos Vendeurs | Producteurs & Artisans du Terroir | Harvests",
+			"description": "Découvrez tous les vendeurs partenaires de Harvests : producteurs locaux, transformateurs et artisans agroalimentaires au Sénégal.",
+			"keywords": "vendeurs Harvests, boutiques producteurs, artisans agroalimentaires Sénégal, vente directe producteur"
+		},
+		"restaurateurs": {
+			"title": "Nos Restaurateurs | Cuisine Locale & Traditionnelle | Harvests",
+			"description": "Parcourez les restaurants et traiteurs partenaires de Harvests. Commandez des plats locaux préparés avec des ingrédients frais du terroir sénégalais.",
+			"keywords": "restaurateurs Sénégal, cuisine traditionnelle africaine, commande plats locaux, traiteurs Dakar, food sénégalais"
 		}
 	}
 }

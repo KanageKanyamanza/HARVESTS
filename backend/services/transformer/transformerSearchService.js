@@ -12,7 +12,7 @@ function buildSearchQuery(queryParams) {
     isActive: true,
     isApproved: true,
     isEmailVerified: true,
-    isShopVisible: true,
+    isShopVisible: { $ne: false },
   };
 
   if (q) {
@@ -67,7 +67,7 @@ function buildAllTransformersQuery(queryParams) {
   baseQueryObj.isActive = true;
   baseQueryObj.isApproved = true;
   baseQueryObj.isEmailVerified = true;
-  baseQueryObj.isShopVisible = true;
+  baseQueryObj.isShopVisible = { $ne: false };
 
   return baseQueryObj;
 }
