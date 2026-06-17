@@ -168,7 +168,7 @@ const FavoritesSection = () => {
           </div>
           <div className="flex items-center space-x-2">
             <Link
-              to={`/products/${favorite.product._id}`}
+              to={`/products/${favorite.product.slug || favorite.product._id}`}
               className="text-blue-600 hover:text-blue-800 text-sm"
             >
               Voir

@@ -105,7 +105,7 @@ const FavoriteCard = ({ favorite, onRemove }) => {
 					</div>
 
 					<Link
-						to={`/products/${product._id}`}
+						to={`/products/${product.slug || product._id}`}
 						className="w-12 h-12 bg-gray-900 rounded-2xl flex items-center justify-center text-white hover:bg-blue-600 transition-all shadow-xl shadow-gray-200 group-hover:shadow-blue-200"
 					>
 						<FiShoppingCart className="w-5 h-5" />

@@ -131,6 +131,12 @@ router.post("/users/:id/unban", adminUserController.unbanUser);
 // Vérifier un utilisateur
 router.post("/users/:id/verify", adminUserController.verifyUser);
 
+// Masquer la boutique d'un vendeur du public
+router.post("/users/:id/hide-shop", adminUserController.hideShop);
+
+// Rendre la boutique d'un vendeur visible au public
+router.post("/users/:id/show-shop", adminUserController.showShop);
+
 // ========================================
 // GESTION DES PRODUITS
 // ========================================

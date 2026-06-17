@@ -160,7 +160,7 @@ export const ProductResults = ({
 			.map((product) => (
 				<Link
 					key={product._id}
-					to={`/products/${product._id}`}
+					to={`/products/${product.slug || product._id}`}
 					className="flex gap-3 p-3 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-primary-200 transition-all group"
 					onClick={onClose}
 				>

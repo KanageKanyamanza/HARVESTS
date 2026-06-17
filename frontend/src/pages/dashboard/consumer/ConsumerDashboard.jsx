@@ -159,7 +159,7 @@ const ConsumerDashboard = () => {
 											</p>
 										</div>
 										<Link
-											to={`/products/${product.id}`}
+											to={`/products/${product.slug || product.id}`}
 											className="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
 										>
 											<FiShoppingCart className="w-4 h-4" />

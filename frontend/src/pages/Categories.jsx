@@ -261,7 +261,7 @@ const Categories = () => {
                               </span>
                             </div>
                             
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-2 gap-2 [&>*:only-child]:col-span-2 [&>*:only-child]:w-1/2 [&>*:only-child]:mx-auto">
                               {products.slice(0, 4).map((product) => {
                                 const productName = product.name?.fr || product.name?.en || product.name;
                                 const primaryImage = product.images?.find(img => img.isPrimary) || product.images?.[0];
@@ -390,10 +390,10 @@ const Categories = () => {
                   to={`/categories/${category}`}
                   className="bg-white rounded-lg p-4 text-center hover:shadow-md transition-shadow group"
                 >
-                  <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">
+                  <div className="flex justify-center mb-2 text-3xl group-hover:scale-110 transition-transform">
                     {getCategoryIcon(category)}
                   </div>
-                  <h3 className="text-sm font-medium text-gray-900">
+                  <h3 className="text-sm font-medium text-gray-900 text-center">
                     {getCategoryLabel(category)}
                   </h3>
                 </Link>

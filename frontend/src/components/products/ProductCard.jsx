@@ -162,7 +162,7 @@ const ProductCard = ({ product }) => {
 
 	return (
 		<div className="bg-white border border-gray-200 rounded-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full group relative">
-			<Link to={`/products/${product._id}`} className="block flex-shrink-0 p-2 sm:p-4">
+			<Link to={`/products/${product.slug || product._id}`} className="block flex-shrink-0 p-2 sm:p-4">
 				{/* Image */}
 				<div className="aspect-square relative flex items-center justify-center overflow-hidden mb-2 sm:mb-3">
 					{primaryImage ?

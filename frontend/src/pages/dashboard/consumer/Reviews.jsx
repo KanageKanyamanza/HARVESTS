@@ -223,7 +223,7 @@ const Reviews = () => {
 											</span>
 										</div>
 										<Link
-											to={`/products/${review.product?._id}`}
+											to={`/products/${review.product?.slug || review.product?._id}`}
 											className="flex items-center gap-1.5 text-[9px] font-black text-blue-600 uppercase tracking-widest hover:translate-x-1 transition-transform"
 										>
 											Acheter à nouveau <FiArrowRight className="w-3 h-3" />

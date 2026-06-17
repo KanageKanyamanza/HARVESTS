@@ -126,7 +126,7 @@ const ProductsSection = ({ products, userType, loading = false }) => {
           </div>
           <div className="flex space-x-1">
             <Link
-              to={`/products/${product._id}`}
+              to={`/products/${product.slug || product._id}`}
               className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
               title="Voir"
             >

@@ -375,7 +375,7 @@ const ProductDetail = () => {
 							<div className="text-sm text-gray-600 mb-4 flex items-center">
 								<FiPackage className="h-4 w-4 mr-2 text-primary-600" />
 								<span className="font-medium text-green-700">En stock</span>
-								<span className="ml-1">({product.inventory?.quantity || 0} disponibles)</span>
+								{/* <span className="ml-1">({product.inventory?.quantity || 0} disponibles)</span> */}
 							</div>
 
 							<ProductActions

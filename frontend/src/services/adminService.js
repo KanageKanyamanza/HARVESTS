@@ -87,6 +87,16 @@ export const unbanUser = async (id) => {
 	return response.data;
 };
 
+export const hideShop = async (id) => {
+	const response = await api.post(`/admin/users/${id}/hide-shop`);
+	return response.data;
+};
+
+export const showShop = async (id) => {
+	const response = await api.post(`/admin/users/${id}/show-shop`);
+	return response.data;
+};
+
 export const verifyUser = async (id) => {
 	const response = await api.post(`/admin/users/${id}/verify`);
 	return response.data;
@@ -419,6 +429,8 @@ export const adminService = {
 	deleteUser,
 	banUser,
 	unbanUser,
+	hideShop,
+	showShop,
 	verifyUser,
 	verifyUserDocument,
 	downloadDocumentProxy,

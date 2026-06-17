@@ -237,6 +237,48 @@ exports.unbanUser = catchAsync(async (req, res, next) => {
 	res.status(200).json({ status: "success", data: { user } });
 });
 
+// @desc    Masquer la boutique d'un vendeur du public
+exports.hideShop = catchAsync(async (req, res, next) => {
+	const user = await User.findByIdAndUpdate(
+		req.params.id,
+		{ isShopVisible: false },
+		{ new: true },
+	).select("-password");
+
+	if (!user) return next(new AppError("Utilisateur non trouvé", 404));
+
+	await logAudit({
+		adminId: req.admin._id,
+		action: AUDIT_ACTIONS.USER_UPDATED,
+		targetType: "User",
+		targetId: user._id,
+		details: { action: "hide_shop", userEmail: user.email },
+	});
+
+	res.status(200).json({ status: "success", data: { user } });
+});
+
+// @desc    Rendre la boutique d'un vendeur visible au public
+exports.showShop = catchAsync(async (req, res, next) => {
+	const user = await User.findByIdAndUpdate(
+		req.params.id,
+		{ isShopVisible: true },
+		{ new: true },
+	).select("-password");
+
+	if (!user) return next(new AppError("Utilisateur non trouvé", 404));
+
+	await logAudit({
+		adminId: req.admin._id,
+		action: AUDIT_ACTIONS.USER_UPDATED,
+		targetType: "User",
+		targetId: user._id,
+		details: { action: "show_shop", userEmail: user.email },
+	});
+
+	res.status(200).json({ status: "success", data: { user } });
+});
+
 // @desc    Vérifier un utilisateur
 exports.verifyUser = catchAsync(async (req, res, next) => {
 	const user = await User.findByIdAndUpdate(

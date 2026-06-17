@@ -107,7 +107,7 @@ const RecentProductsWidget = ({ products = [] }) => {
 										<Edit className="w-3 h-3" />
 									</Link>
 									<Link
-										to={`/products/${product._id}`}
+										to={`/products/${product.slug || product._id}`}
 										className="p-1 bg-gray-100 hover:bg-emerald-50 text-gray-500 hover:text-emerald-600 rounded-lg transition-colors"
 									>
 										<Eye className="w-3 h-3" />

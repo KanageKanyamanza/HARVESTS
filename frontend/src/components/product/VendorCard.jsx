@@ -6,7 +6,7 @@ import { getVendorName, getVendorLogo, formatVendorAddress, getVendorProfileRout
 
 const VendorCard = ({ vendor }) => {
   const navigate = useNavigate();
-  
+
   if (!vendor) return null;
 
   const logo = getVendorLogo(vendor);
@@ -31,21 +31,15 @@ const VendorCard = ({ vendor }) => {
             <FiUser className="h-6 w-6 text-white" />
           </div>
         )}
-        <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-gray-900 truncate">{name}</h3>
-          {address && (
-            <p className="text-sm text-gray-600 flex items-center mt-1">
-              <FiMapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-              <span className="truncate">{address}</span>
-            </p>
-          )}
+        <div className="flex-1 min-w-0 truncate">
+          <h3 className="font-medium text-gray-900 ">{name}</h3>
+          <button
+            onClick={() => navigate(getVendorProfileRoute(vendor))}
+            className="text-harvests-green hover:text-green-600 text-sm font-medium whitespace-nowrap flex-shrink-0"
+          >
+            Visiter la boutique
+          </button>
         </div>
-        <button
-          onClick={() => navigate(getVendorProfileRoute(vendor))}
-          className="text-harvests-green hover:text-green-600 text-sm font-medium whitespace-nowrap flex-shrink-0"
-        >
-          Visiter la boutique
-        </button>
       </div>
     </div>
   );

@@ -17,6 +17,7 @@ import {
 	FileText,
 	Award,
 	Eye,
+	EyeOff,
 	Check,
 	X,
 	Download,
@@ -142,6 +143,29 @@ const UserDetails = () => {
 			setActionLoading(false);
 		}
 	};
+
+	const handleToggleShopVisibility = async () => {
+		const isVisible = user.isShopVisible !== false;
+		const confirmMsg = isVisible
+			? "Masquer cette boutique du public ?"
+			: "Rendre cette boutique visible au public ?";
+		if (!window.confirm(confirmMsg)) return;
+		try {
+			setActionLoading(true);
+			if (isVisible) {
+				await adminService.hideShop(id);
+			} else {
+				await adminService.showShop(id);
+			}
+			await loadUser();
+		} catch (error) {
+			console.error("Erreur lors du changement de visibilité:", error);
+		} finally {
+			setActionLoading(false);
+		}
+	};
+
+	const isSellerType = ["producer", "restaurateur", "transformer", "exporter"].includes(user?.userType);
 
 
 	const isPdf = (url) => url?.toLowerCase().includes(".pdf");
@@ -396,6 +420,12 @@ const UserDetails = () => {
 									<span className="inline-flex items-center px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest bg-gray-900 text-white shadow-sm border border-gray-800">
 										{user.userType}
 									</span>
+									{isSellerType && user.isShopVisible === false && (
+										<span className="inline-flex items-center gap-1.5 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest bg-amber-50 text-amber-600 border border-amber-100 shadow-sm">
+											<EyeOff className="h-3 w-3" />
+											Boutique masquée
+										</span>
+									)}
 								</div>
 								<h1 className="text-2xl sm:text-3xl lg:text-4xl font-[1000] text-gray-900 tracking-tighter leading-tight">
 									{user.firstName} {user.lastName}
@@ -416,6 +446,27 @@ const UserDetails = () => {
 							>
 								Vérifier le profil
 							</button>
+						)}
+						{isSellerType && (
+							user.isShopVisible !== false ? (
+								<button
+									onClick={handleToggleShopVisibility}
+									disabled={actionLoading}
+									className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-amber-50 text-amber-600 border border-amber-100 rounded-[2.5rem] font-black text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-amber-500 hover:text-white transition-all duration-500"
+								>
+									<EyeOff className="h-4 w-4" />
+									Masquer boutique
+								</button>
+							) : (
+								<button
+									onClick={handleToggleShopVisibility}
+									disabled={actionLoading}
+									className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-[2.5rem] font-black text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-all duration-500"
+								>
+									<Eye className="h-4 w-4" />
+									Rendre visible
+								</button>
+							)
 						)}
 						{user.status !== "Banni" ? (
 							<button
