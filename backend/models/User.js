@@ -404,7 +404,7 @@ baseUserSchema.methods.createEmailVerificationToken = function () {
 		.update(verifyToken)
 		.digest("hex");
 
-	this.emailVerificationExpires = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 jours (pour les tests)
+	this.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000;
 
 	return verifyToken;
 };

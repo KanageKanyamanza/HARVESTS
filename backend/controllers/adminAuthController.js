@@ -3,30 +3,37 @@ const Admin = require('../models/Admin');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 
-// Fonction pour signer un JWT
 const signToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
+  return jwt.sign({ id, type: 'access' }, process.env.JWT_SECRET, {
+    expiresIn: '15m',
+    algorithm: 'HS256',
   });
 };
 
-// Fonction pour créer et envoyer un token
-const createSendToken = (admin, statusCode, req, res) => {
-  const token = signToken(admin._id);
+const signRefreshToken = (id) => {
+  return jwt.sign({ id, type: 'refresh' }, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, {
+    expiresIn: '7d',
+    algorithm: 'HS256',
+  });
+};
 
-  // Configuration du cookie
-  const cookieOptions = {
-    expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-    ),
+const setRefreshCookie = (res, req, refreshToken) => {
+  res.cookie('adminRefreshToken', refreshToken, {
+    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     httpOnly: true,
     secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
-    sameSite: 'strict'
-  };
+    sameSite: 'strict',
+    path: '/api/v1/admin/auth/refresh',
+  });
+};
 
-  res.cookie('jwt', token, cookieOptions);
+const createSendToken = (admin, statusCode, req, res) => {
+  const token = signToken(admin._id);
+  const refreshToken = signRefreshToken(admin._id);
 
-  // Supprimer le mot de passe de la sortie
+  setRefreshCookie(res, req, refreshToken);
+  res.clearCookie('jwt');
+
   admin.password = undefined;
 
   res.status(statusCode).json({
@@ -94,14 +101,42 @@ exports.login = catchAsync(async (req, res, next) => {
 
 // Déconnexion admin
 exports.logout = catchAsync(async (req, res, next) => {
-  res.cookie('jwt', 'loggedout', {
-    expires: new Date(Date.now() + 10 * 1000),
-    httpOnly: true
-  });
+  res.clearCookie('adminRefreshToken', { path: '/api/v1/admin/auth/refresh' });
+  res.clearCookie('jwt');
+  res.status(200).json({ status: 'success', message: 'Déconnexion réussie' });
+});
+
+// Renouvellement du token admin via refresh token
+exports.refreshToken = catchAsync(async (req, res, next) => {
+  const token = req.cookies.adminRefreshToken;
+  if (!token) {
+    return next(new AppError('Session expirée. Veuillez vous reconnecter.', 401));
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, { algorithms: ['HS256'] });
+  } catch {
+    return next(new AppError('Session expirée. Veuillez vous reconnecter.', 401));
+  }
+
+  if (decoded.type !== 'refresh') {
+    return next(new AppError('Token invalide.', 401));
+  }
+
+  const admin = await Admin.findById(decoded.id);
+  if (!admin || !admin.isActive) {
+    return next(new AppError('Administrateur introuvable ou inactif.', 401));
+  }
+
+  const newAccessToken = signToken(admin._id);
+  const newRefreshToken = signRefreshToken(admin._id);
+
+  setRefreshCookie(res, req, newRefreshToken);
 
   res.status(200).json({
     status: 'success',
-    message: 'Déconnexion réussie'
+    token: newAccessToken,
   });
 });
 
@@ -111,8 +146,6 @@ exports.protect = catchAsync(async (req, res, next) => {
   let token;
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
-  } else if (req.cookies.jwt) {
-    token = req.cookies.jwt;
   }
 
   if (!token) {
@@ -120,7 +153,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   // 2) Vérifier le token
-  const decoded = await jwt.verify(token, process.env.JWT_SECRET);
+  const decoded = await jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
 
   // 3) Vérifier si l'admin existe toujours
   const currentAdmin = await Admin.findById(decoded.id);
@@ -133,7 +166,12 @@ exports.protect = catchAsync(async (req, res, next) => {
     return next(new AppError('Votre compte administrateur a été désactivé.', 401));
   }
 
-  // 5) Donner accès à la route protégée
+  // 5) Vérifier si le mot de passe a changé après l'émission du token
+  if (currentAdmin.changedPasswordAfter(decoded.iat)) {
+    return next(new AppError('Mot de passe modifié récemment. Veuillez vous reconnecter.', 401));
+  }
+
+  // 6) Donner accès à la route protégée
   req.admin = currentAdmin;
   next();
 });

@@ -16,8 +16,6 @@ exports.protect = catchAsync(async (req, res, next) => {
 		req.headers.authorization.startsWith("Bearer")
 	) {
 		token = req.headers.authorization.split(" ")[1];
-	} else if (req.cookies.jwt) {
-		token = req.cookies.jwt;
 	}
 
 	if (!token) {
@@ -30,7 +28,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 	}
 
 	// Vérifier et décoder le token JWT
-	const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+	const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
 
 	// Vérifier si l'utilisateur existe toujours
 	const currentUser = await User.findById(decoded.id);
@@ -91,7 +89,8 @@ exports.isLoggedIn = async (req, res, next) => {
 			// 2) Vérifier le token
 			const decoded = await promisify(jwt.verify)(
 				token,
-				process.env.JWT_SECRET
+				process.env.JWT_SECRET,
+				{ algorithms: ['HS256'] }
 			);
 
 			// 3) Vérifier si l'utilisateur existe

@@ -7,30 +7,43 @@ const { logAudit, AUDIT_ACTIONS } = require("../../utils/auditLogger");
 const adminNotifications = require("../../utils/adminNotifications");
 const excelSyncService = require("../../services/excelSyncService");
 
-// Fonction pour signer un JWT
+// Access token — courte durée (15 min)
 const signToken = (id) => {
-	return jwt.sign({ id }, process.env.JWT_SECRET, {
-		expiresIn: process.env.JWT_EXPIRES_IN,
+	return jwt.sign({ id, type: 'access' }, process.env.JWT_SECRET, {
+		expiresIn: '15m',
+		algorithm: 'HS256',
 	});
 };
 
-// Fonction pour créer et envoyer un token
+// Refresh token — longue durée (7 jours), secret séparé
+const signRefreshToken = (id) => {
+	return jwt.sign({ id, type: 'refresh' }, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, {
+		expiresIn: '7d',
+		algorithm: 'HS256',
+	});
+};
+
+const setRefreshCookie = (res, req, refreshToken) => {
+	res.cookie('refreshToken', refreshToken, {
+		expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+		httpOnly: true,
+		secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
+		sameSite: 'strict',
+		path: '/api/v1/auth/refresh',
+	});
+};
+
+// Fonction pour créer et envoyer les tokens
 const createSendToken = (user, statusCode, req, res) => {
 	const token = signToken(user._id);
+	const refreshToken = signRefreshToken(user._id);
 
-	// Configuration du cookie
-	const cookieOptions = {
-		expires: new Date(
-			Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
-		),
-		httpOnly: true,
-		secure: req.secure || req.headers["x-forwarded-proto"] === "https",
-		sameSite: "strict",
-	};
+	// Refresh token en httpOnly cookie (path-restricted)
+	setRefreshCookie(res, req, refreshToken);
 
-	res.cookie("jwt", token, cookieOptions);
+	// Effacer l'ancien cookie jwt monolithique si présent
+	res.clearCookie('jwt');
 
-	// Supprimer le mot de passe de la sortie
 	user.password = undefined;
 
 	res.status(statusCode).json({
@@ -43,6 +56,41 @@ const createSendToken = (user, statusCode, req, res) => {
 		},
 	});
 };
+
+// Renouvellement du token via refresh token
+exports.refreshToken = catchAsync(async (req, res, next) => {
+	const token = req.cookies.refreshToken;
+	if (!token) {
+		return next(new AppError('Session expirée. Veuillez vous reconnecter.', 401));
+	}
+
+	let decoded;
+	try {
+		decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, { algorithms: ['HS256'] });
+	} catch {
+		return next(new AppError('Session expirée. Veuillez vous reconnecter.', 401));
+	}
+
+	if (decoded.type !== 'refresh') {
+		return next(new AppError('Token invalide.', 401));
+	}
+
+	const user = await User.findById(decoded.id);
+	if (!user || !user.isActive) {
+		return next(new AppError('Utilisateur introuvable ou inactif.', 401));
+	}
+
+	// Rotation : nouveau access token + nouveau refresh token
+	const newAccessToken = signToken(user._id);
+	const newRefreshToken = signRefreshToken(user._id);
+
+	setRefreshCookie(res, req, newRefreshToken);
+
+	res.status(200).json({
+		status: 'success',
+		token: newAccessToken,
+	});
+});
 
 // Inscription simplifiée
 exports.signup = catchAsync(async (req, res, next) => {
@@ -259,10 +307,8 @@ exports.login = catchAsync(async (req, res, next) => {
 
 // Déconnexion
 exports.logout = (req, res) => {
-	res.cookie("jwt", "loggedout", {
-		expires: new Date(Date.now() + 10 * 1000),
-		httpOnly: true,
-	});
+	res.clearCookie('refreshToken', { path: '/api/v1/auth/refresh' });
+	res.clearCookie('jwt');
 	res.status(200).json({ status: "success" });
 };
 

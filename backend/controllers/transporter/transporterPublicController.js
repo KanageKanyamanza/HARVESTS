@@ -5,9 +5,11 @@ const { getUserLocation, buildLocationQuery } = require('../../utils/locationSer
 
 // Obtenir tous les transporteurs
 exports.getAllTransporters = catchAsync(async (req, res, next) => {
-  const baseQueryObj = { ...req.query, isActive: true, isApproved: true, isEmailVerified: true };
-  const excludedFields = ['page', 'sort', 'limit', 'fields', 'useLocation'];
-  excludedFields.forEach((el) => delete baseQueryObj[el]);
+  const baseQueryObj = { isActive: true, isApproved: true, isEmailVerified: true };
+  const ALLOWED_FILTERS = ['country', 'region', 'serviceType', 'vehicleType'];
+  ALLOWED_FILTERS.forEach((key) => {
+    if (req.query[key] !== undefined) baseQueryObj[key] = req.query[key];
+  });
 
   // Détection automatique de la localisation si activée
   let userLocation = null;
@@ -43,10 +45,7 @@ exports.getAllTransporters = catchAsync(async (req, res, next) => {
     }
   }
 
-  let queryStr = JSON.stringify(baseQueryObj);
-  queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-
-  let query = Transporter.find(JSON.parse(queryStr));
+  let query = Transporter.find(baseQueryObj);
 
   if (req.query.sort) {
     const sortBy = req.query.sort.split(',').join(' ');
@@ -61,7 +60,7 @@ exports.getAllTransporters = catchAsync(async (req, res, next) => {
   query = query.skip(skip).limit(limit);
 
   const transporters = await query;
-  const total = await Transporter.countDocuments(JSON.parse(queryStr));
+  const total = await Transporter.countDocuments(baseQueryObj);
 
   res.status(200).json({
     status: 'success',

@@ -127,6 +127,7 @@ router.post('/signup', signupLimiter, authController.signup);
  *         $ref: '#/components/responses/UnauthorizedError'
  */
 router.post('/login', authLimiter, authController.login);
+router.post('/refresh', authController.refreshToken);
 
 /**
  * @swagger
