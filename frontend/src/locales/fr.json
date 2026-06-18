@@ -750,9 +750,34 @@
 			"keywords": "vendeurs Harvests, boutiques producteurs, artisans agroalimentaires Sénégal, vente directe producteur"
 		},
 		"restaurateurs": {
-			"title": "Nos Restaurateurs | Cuisine Locale & Traditionnelle | Harvests",
+			"title": "Nos Restaurateurs | Cuisine Locale \u0026 Traditionnelle | Harvests",
 			"description": "Parcourez les restaurants et traiteurs partenaires de Harvests. Commandez des plats locaux préparés avec des ingrédients frais du terroir sénégalais.",
 			"keywords": "restaurateurs Sénégal, cuisine traditionnelle africaine, commande plats locaux, traiteurs Dakar, food sénégalais"
+		},
+		"productDetail": {
+			"title": "Produit | Harvests",
+			"description": "Détails, prix et disponibilité du produit sur la marketplace Harvests.",
+			"keywords": "produit, achat, prix, disponibilité, Harvests"
+		},
+		"blogDetail": {
+			"title": "Article | Blog Harvests",
+			"description": "Article du blog Harvests sur l'agriculture, la logistique et les circuits courts en Afrique.",
+			"keywords": "article, blog, agriculture, logistique, Harvests"
+		},
+		"producerProfile": {
+			"title": "Profil producteur | Harvests",
+			"description": "Découvrez ce producteur local, ses produits et ses disponibilités sur Harvests.",
+			"keywords": "producteur, profil, produits locaux, Harvests"
+		},
+		"transformerProfile": {
+			"title": "Profil transformateur | Harvests",
+			"description": "Découvrez ce transformateur, ses produits et ses spécialités sur Harvests.",
+			"keywords": "transformateur, profil, produits transformés, Harvests"
+		},
+		"restaurateurProfile": {
+			"title": "Profil restaurateur | Harvests",
+			"description": "Découvrez ce restaurateur partenaire de Harvests.",
+			"keywords": "restaurateur, profil, restaurant, Harvests"
 		}
 	}
 }
