@@ -733,6 +733,41 @@
 			"title": "Categories | Harvests",
 			"description": "Browse our product categories: fruits, vegetables, meats, processed products and more.",
 			"keywords": "categories, products, fruits, vegetables, meats"
+		},
+		"vendeurs": {
+			"title": "Our Sellers | Producers & Artisans | Harvests",
+			"description": "Discover all partner sellers on Harvests: local producers, transformers and agrifood artisans.",
+			"keywords": "sellers, Harvests, producer shops, agrifood artisans"
+		},
+		"restaurateurs": {
+			"title": "Our Restaurateurs | Local Cuisine | Harvests",
+			"description": "Browse restaurants and caterers partnered with Harvests. Order local dishes prepared with fresh ingredients.",
+			"keywords": "restaurateurs, African cuisine, local food order, caterers, Senegal food"
+		},
+		"productDetail": {
+			"title": "Product | Harvests",
+			"description": "Details, price and availability of the product on the Harvests marketplace.",
+			"keywords": "product, buy, price, availability, Harvests"
+		},
+		"blogDetail": {
+			"title": "Article | Harvests Blog",
+			"description": "Harvests blog article about agriculture, logistics and short circuits in Africa.",
+			"keywords": "article, blog, agriculture, logistics, Harvests"
+		},
+		"producerProfile": {
+			"title": "Producer Profile | Harvests",
+			"description": "Discover this local producer, their products and availability on Harvests.",
+			"keywords": "producer, profile, local products, Harvests"
+		},
+		"transformerProfile": {
+			"title": "Transformer Profile | Harvests",
+			"description": "Discover this transformer, their products and specialties on Harvests.",
+			"keywords": "transformer, profile, processed products, Harvests"
+		},
+		"restaurateurProfile": {
+			"title": "Restaurateur Profile | Harvests",
+			"description": "Discover this Harvests partner restaurateur.",
+			"keywords": "restaurateur, profile, restaurant, Harvests"
 		}
 	}
 }

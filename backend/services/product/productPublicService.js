@@ -682,17 +682,30 @@ async function getProductsByCategory(category, queryParams = {}) {
 
 /**
  * Obtenir un produit par ID ou slug
+ * Supporte à la fois les ObjectId MongoDB et les slugs textuels
  */
 async function getProductById(productId) {
-  const product = await Product.findOne({
-    $or: [
-      { _id: productId },
-      { slug: productId }
-    ],
+  // Détecter si c'est un ObjectId valide (24 caractères hexadécimaux)
+  const isObjectId = /^[a-f\d]{24}$/i.test(productId);
+
+  const query = {
     status: 'approved',
     isActive: true,
     isPublic: { $ne: false }
-  })
+  };
+
+  // Si c'est un ObjectId valide, chercher par _id OU slug
+  // Sinon, chercher uniquement par slug pour éviter une CastError Mongoose
+  if (isObjectId) {
+    query.$or = [
+      { _id: productId },
+      { slug: productId }
+    ];
+  } else {
+    query.slug = productId;
+  }
+
+  const product = await Product.findOne(query)
   .populate('producer', 'farmName firstName lastName address salesStats certifications createdAt country region userType shopLogo shopBanner avatar isBio')
   .populate('transformer', 'companyName firstName lastName address salesStats certifications createdAt country region userType shopLogo shopBanner avatar isBio')
   .populate('restaurateur', 'restaurantName firstName lastName address salesStats certifications createdAt country region userType shopLogo shopBanner avatar isBio');
