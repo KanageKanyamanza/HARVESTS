@@ -3,10 +3,20 @@ const Review = require('../../models/Review');
 const { buildSearchWithLocation } = require('../../utils/searchUtils');
 const { getUserLocation, buildLocationQuery } = require('../../utils/locationService');
 
-// Exclut les produits dont le vendeur a isShopVisible: false
+// Exclut les produits dont le vendeur est invisible publiquement :
+// - isShopVisible: false (masqué manuellement par l'admin)
+// - producteur sans shopBanner
+// - restaurateur sans restaurantBanner
+// (miroir exact des critères des searchServices)
 async function applyVendorVisibility(queryObj) {
   const User = require('../../models/User');
-  const hiddenVendors = await User.find({ isShopVisible: false }).select('_id').lean();
+  const hiddenVendors = await User.find({
+    $or: [
+      { isShopVisible: false },
+      { userType: 'producer', shopBanner: null },
+      { userType: 'restaurateur', restaurantBanner: null },
+    ]
+  }).select('_id').lean();
   if (hiddenVendors.length === 0) return queryObj;
   const hiddenIds = hiddenVendors.map(v => v._id);
   queryObj.$and = queryObj.$and || [];
