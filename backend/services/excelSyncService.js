@@ -7,10 +7,10 @@ const User = require("../models/User");
  */
 class ExcelSyncService {
 	constructor() {
-		this.webhookUrl = process.env.POWER_AUTOMATE_WEBHOOK_URL || null;
+		this.webhookUrl = process.env.GOOGLE_SHEETS_WEBAPP_URL || process.env.POWER_AUTOMATE_WEBHOOK_URL || null;
 		
 		// Initialiser la tâche planifiée quotidienne si configurée
-		if (process.env.EXCEL_DAILY_SYNC_ENABLED === "true") {
+		if (process.env.EXCEL_DAILY_SYNC_ENABLED === "true" || process.env.GOOGLE_SHEETS_DAILY_SYNC_ENABLED === "true") {
 			this.initDailyCron();
 		}
 	}
@@ -103,7 +103,7 @@ class ExcelSyncService {
 	 */
 	async syncDailyRegistrations(targetDate = new Date()) {
 		if (!this.webhookUrl) {
-			console.warn("[ExcelSync] Synchronisation impossible : POWER_AUTOMATE_WEBHOOK_URL non défini.");
+			console.warn("[ExcelSync] Synchronisation impossible : GOOGLE_SHEETS_WEBAPP_URL ou POWER_AUTOMATE_WEBHOOK_URL non défini.");
 			return;
 		}
 
