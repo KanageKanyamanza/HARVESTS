@@ -106,6 +106,7 @@ async function getTransformersByRegion(region) {
     isActive: true,
     isApproved: true,
     isEmailVerified: true,
+    isShopVisible: { $ne: false },
   }).sort('-businessStats.supplierRating');
   return transformers;
 }
@@ -116,6 +117,7 @@ async function getTransformersByType(type) {
     isActive: true,
     isApproved: true,
     isEmailVerified: true,
+    isShopVisible: { $ne: false },
   }).sort('-businessStats.supplierRating');
   return transformers;
 }

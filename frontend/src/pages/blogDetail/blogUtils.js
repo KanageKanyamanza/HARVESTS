@@ -1,6 +1,7 @@
 // Utilitaires pour BlogDetailPage
 
-import { 
+import DOMPurify from 'dompurify';
+import {
   FileText,
   BookOpen,
   TrendingUp,
@@ -94,10 +95,9 @@ export const getLocalizedContent = (content, fallback = '', i18n) => {
 export const markdownToHtml = (markdown) => {
   if (!markdown || typeof markdown !== 'string') return '';
   
-  // Si le contenu contient déjà des balises HTML structurées, le retourner tel quel
-  // (détection simple : présence de balises HTML de bloc)
+  // Si le contenu contient déjà des balises HTML structurées, le sanitiser et retourner
   if (markdown.match(/<(h[1-6]|p|div|ul|ol|li|article|section)[\s>]/i)) {
-    return markdown;
+    return DOMPurify.sanitize(markdown, { USE_PROFILES: { html: true } });
   }
   
   let html = markdown;

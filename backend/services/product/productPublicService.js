@@ -3,6 +3,33 @@ const Review = require('../../models/Review');
 const { buildSearchWithLocation } = require('../../utils/searchUtils');
 const { getUserLocation, buildLocationQuery } = require('../../utils/locationService');
 
+// Exclut les produits dont le vendeur est invisible publiquement :
+// - isShopVisible: false (masqué manuellement par l'admin)
+// - producteur sans shopBanner
+// - restaurateur sans restaurantBanner
+// (miroir exact des critères des searchServices)
+async function applyVendorVisibility(queryObj) {
+  const User = require('../../models/User');
+  const hiddenVendors = await User.find({
+    $or: [
+      { isShopVisible: false },
+      { userType: 'producer', shopBanner: null },
+      { userType: 'restaurateur', restaurantBanner: null },
+    ]
+  }).select('_id').lean();
+  if (hiddenVendors.length === 0) return queryObj;
+  const hiddenIds = hiddenVendors.map(v => v._id);
+  queryObj.$and = queryObj.$and || [];
+  queryObj.$and.push({
+    $nor: [
+      { producer: { $in: hiddenIds } },
+      { transformer: { $in: hiddenIds } },
+      { restaurateur: { $in: hiddenIds } },
+    ]
+  });
+  return queryObj;
+}
+
 const countrySynonyms = {
   'SN': ['SN', 'Sénégal', 'Senegal'],
   'Sénégal': ['SN', 'Sénégal', 'Senegal'],
@@ -64,12 +91,12 @@ function getCountryFilterList(country) {
  * Recherche de produits (améliorée avec gestion pluriel/singulier et localisation)
  */
 async function searchProducts(searchTerm, filters = {}) {
-  const queryObj = {
+  const queryObj = await applyVendorVisibility({
     status: 'approved',
     isActive: true,
     isPublic: { $ne: false },
     ...filters
-  };
+  });
   
   // Utiliser la recherche flexible avec détection de localisation si un terme de recherche est fourni
   if (searchTerm && searchTerm.trim()) {
@@ -134,11 +161,11 @@ async function searchProducts(searchTerm, filters = {}) {
  * Obtenir tous les produits avec filtres (incluant recherche)
  */
 async function getAllProducts(queryParams = {}, userLocation = null) {
-  const queryObj = { 
-    status: 'approved', 
+  const queryObj = await applyVendorVisibility({
+    status: 'approved',
     isActive: true,
     isPublic: { $ne: false }
-  };
+  });
 
   // Filtres explicites
   if (queryParams.category) queryObj.category = queryParams.category;
@@ -433,11 +460,11 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
 async function getProductsByLocation(queryParams = {}) {
   const userLocation = await getUserLocation({ query: queryParams });
   
-  const baseQueryObj = { 
-    status: 'approved', 
+  const baseQueryObj = await applyVendorVisibility({
+    status: 'approved',
     isActive: true,
     isPublic: { $ne: false }
-  };
+  });
 
   if (queryParams.category) baseQueryObj.category = queryParams.category;
   if (queryParams.subcategory) baseQueryObj.subcategory = queryParams.subcategory;
@@ -571,11 +598,11 @@ async function getCategories() {
  * Obtenir les produits par catégorie
  */
 async function getProductsByCategory(category, queryParams = {}) {
-  const queryObj = { 
+  const queryObj = await applyVendorVisibility({
     category,
-    status: 'approved', 
+    status: 'approved',
     isActive: true
-  };
+  });
 
   if (queryParams.subcategory) queryObj.subcategory = queryParams.subcategory;
   if (queryParams.region) {
@@ -688,11 +715,11 @@ async function getProductById(productId) {
   // Détecter si c'est un ObjectId valide (24 caractères hexadécimaux)
   const isObjectId = /^[a-f\d]{24}$/i.test(productId);
 
-  const query = {
+  const query = await applyVendorVisibility({
     status: 'approved',
     isActive: true,
     isPublic: { $ne: false }
-  };
+  });
 
   // Si c'est un ObjectId valide, chercher par _id OU slug
   // Sinon, chercher uniquement par slug pour éviter une CastError Mongoose
@@ -721,13 +748,14 @@ async function getProductById(productId) {
   const reviewStats = await Review.getProductRatingStats(product._id);
 
   // Produits similaires
-  const similarProducts = await Product.find({
+  const similarQuery = await applyVendorVisibility({
     _id: { $ne: product._id },
     category: product.category,
     status: 'approved',
     isActive: true,
     isPublic: { $ne: false }
-  })
+  });
+  const similarProducts = await Product.find(similarQuery)
   .populate('producer', 'farmName firstName lastName createdAt country isBio')
   .populate('transformer', 'companyName firstName lastName createdAt country isBio')
   .limit(6)
@@ -747,11 +775,11 @@ async function getProductById(productId) {
 async function getFeaturedProducts(queryParams = {}, userLocation = null) {
   const User = require('../../models/User');
 
-  const baseQuery = {
+  const baseQuery = await applyVendorVisibility({
     isFeatured: true,
     status: 'approved',
     isActive: true
-  };
+  });
 
   // Filtre par pays explicite (depuis le frontend)
   let countryFilter = queryParams.country || (userLocation && userLocation.country);
@@ -808,11 +836,12 @@ async function getNewProducts() {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-  const products = await Product.find({
+  const newProductsQuery = await applyVendorVisibility({
     createdAt: { $gte: sevenDaysAgo },
     status: 'approved',
     isActive: true
-  })
+  });
+  const products = await Product.find(newProductsQuery)
   .populate('producer', 'farmName firstName lastName createdAt country isBio')
   .populate('transformer', 'companyName firstName lastName createdAt country isBio')
   .populate('restaurateur', 'restaurantName firstName lastName createdAt country isBio')
@@ -830,12 +859,12 @@ async function getFlashSales(queryParams = {}, userLocation = null) {
   const User = require('../../models/User');
   const now = new Date();
 
-  const baseQuery = {
+  const baseQuery = await applyVendorVisibility({
     status: 'approved',
     isActive: true,
     'flashSale.isActive': true,
     'flashSale.endDate': { $gt: now }
-  };
+  });
 
   // Filtre par pays explicite (depuis le frontend) ou localisation IP
   let countryFilter = queryParams.country || (userLocation && userLocation.country);

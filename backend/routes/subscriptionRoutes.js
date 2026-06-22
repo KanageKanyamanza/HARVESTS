@@ -14,9 +14,9 @@ const router = express.Router();
 
 // Routes admin (doivent être avant les routes avec :id pour éviter les conflits)
 // Utiliser adminAuthController pour les routes admin car les admins se connectent via adminAuthController
-router.get('/stats/overview', adminAuthController.protect, subscriptionController.getSubscriptionStats);
-router.get('/admin', adminAuthController.protect, subscriptionController.getAllSubscriptions);
-router.patch('/admin/:id/status', adminAuthController.protect, subscriptionController.updateSubscriptionStatus);
+router.get('/stats/overview', adminAuthController.protect, adminAuthController.restrictTo('super-admin', 'admin'), subscriptionController.getSubscriptionStats);
+router.get('/admin', adminAuthController.protect, adminAuthController.restrictTo('super-admin', 'admin'), subscriptionController.getAllSubscriptions);
+router.patch('/admin/:id/status', adminAuthController.protect, adminAuthController.restrictTo('super-admin', 'admin'), subscriptionController.updateSubscriptionStatus);
 
 /**
  * @swagger

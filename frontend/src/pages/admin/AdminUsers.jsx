@@ -21,6 +21,7 @@ import {
 	LayoutGrid,
 	List,
 	Leaf,
+	ExternalLink,
 } from "lucide-react";
 import { adminService } from "../../services/adminService";
 import CloudinaryImage from "../../components/common/CloudinaryImage";
@@ -100,7 +101,8 @@ const AdminUsers = () => {
 		}
 	}, [currentPage, roleFilter, statusFilter, debouncedSearchTerm]);
 
-	useEffect(() => {
+	const useEffectFn = useEffect;
+	useEffectFn(() => {
 		loadUsers();
 	}, [loadUsers]);
 
@@ -272,7 +274,19 @@ const AdminUsers = () => {
 							communauté Harvests.
 						</p>
 					</div>
-					<div className="flex items-center gap-4 animate-fade-in-up">
+					<div className="flex items-center gap-3 flex-wrap animate-fade-in-up">
+						<a
+							href="https://docs.google.com/spreadsheets/d/1kCDPfNnCNiptDH-ffmtR7ttFtHyCKm1H/edit?gid=1297557795#gid=1297557795"
+							target="_blank"
+							rel="noopener noreferrer"
+							className="group relative inline-flex items-center justify-center gap-2 px-5 py-3 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-lg hover:border-emerald-100 transition-all duration-300"
+						>
+							<div className="absolute inset-0 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+							<ExternalLink className="w-4 h-4 text-emerald-600 relative z-10" />
+							<span className="text-[10px] font-[1000] uppercase tracking-widest text-gray-900 relative z-10 font-sans">
+								Registre Google Sheets
+							</span>
+						</a>
 						<button
 							onClick={async () => {
 								if (
@@ -291,7 +305,7 @@ const AdminUsers = () => {
 									}
 								}
 							}}
-							className="group relative inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-lg hover:border-emerald-100 transition-all duration-300"
+							className="group relative inline-flex items-center justify-center gap-2 px-5 py-3 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-lg hover:border-emerald-100 transition-all duration-300"
 						>
 							<div className="absolute inset-0 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 							<Mail className="w-4 h-4 text-emerald-600 relative z-10" />

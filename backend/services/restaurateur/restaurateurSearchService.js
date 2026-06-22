@@ -106,10 +106,10 @@ async function searchRestaurateurs(queryParams) {
 async function getRestaurateursByRegion(region) {
   const restaurateurs = await Restaurateur.find({
     'address.region': region,
-    isActive: true, 
-    isApproved: true, 
+    isActive: true,
+    isApproved: true,
     isEmailVerified: true,
-    // Les restaurateurs doivent avoir une bannière pour être visibles en public
+    isShopVisible: { $ne: false },
     restaurantBanner: { $exists: true, $ne: null },
   }).sort('-businessStats.supplierRating');
   return restaurateurs;

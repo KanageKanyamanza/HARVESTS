@@ -70,6 +70,11 @@ const adminSchema = new mongoose.Schema(
 			select: false,
 		},
 
+		emailVerificationExpires: {
+			type: Date,
+			select: false,
+		},
+
 		passwordResetToken: {
 			type: String,
 			select: false,
@@ -316,6 +321,8 @@ adminSchema.methods.createEmailVerificationToken = function () {
 		.update(verificationToken)
 		.digest("hex");
 
+	this.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000;
+
 	return verificationToken;
 };
 
@@ -373,12 +380,19 @@ adminSchema.statics.getDefaultPermissions = function (role) {
 
 // Middleware pour hasher le mot de passe avant sauvegarde
 adminSchema.pre("save", async function (next) {
-	// Ne hasher que si le mot de passe a été modifié
 	if (!this.isModified("password")) return next();
-
-	// Hasher le mot de passe avec un coût de 12
 	this.password = await bcrypt.hash(this.password, 12);
+	this.lastPasswordChange = Date.now();
 	next();
 });
+
+// Vérifie si le mot de passe a changé après l'émission du token
+adminSchema.methods.changedPasswordAfter = function (jwtTimestamp) {
+	if (this.lastPasswordChange) {
+		const changedAt = parseInt(this.lastPasswordChange.getTime() / 1000, 10);
+		return jwtTimestamp < changedAt;
+	}
+	return false;
+};
 
 module.exports = mongoose.model("Admin", adminSchema);

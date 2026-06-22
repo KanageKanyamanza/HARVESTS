@@ -40,6 +40,7 @@ const router = express.Router();
  *         description: Identifiants invalides
  */
 router.post('/login', adminAuthController.login);
+router.post('/refresh', adminAuthController.refreshToken);
 
 /**
  * @swagger

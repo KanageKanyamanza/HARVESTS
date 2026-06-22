@@ -1,133 +1,74 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Wheat, Carrot, Apple, Bean, Flame, Leaf, Sprout, Milk, Beef, Drumstick, Fish, Archive, CupSoda, Package } from "lucide-react";
+import { Wheat, Carrot, Apple, Bean, Flame, Leaf, Sprout, Milk, Beef, Drumstick, Fish, Archive, CupSoda, Package } from "lucide-react";
 import CloudinaryImage from "../common/CloudinaryImage";
 import LoadingSpinner from "../common/LoadingSpinner";
 import { productService } from "../../services";
 
-// Catégories par défaut si l'API échoue
-const DEFAULT_CATEGORIES = [
-	"fruits",
-	"vegetables",
-	"cereals",
-	"meat",
-	"dairy",
-	"fish",
-	"poultry",
-	"processed-foods",
+const ALL_CATEGORIES = [
+	"fruits", "vegetables", "cereals", "meat", "dairy", "fish",
+	"poultry", "processed-foods", "legumes", "tubers", "spices",
+	"herbs", "nuts", "seeds", "beverages", "other",
 ];
 
+const LABELS = {
+	cereals: "Céréales", vegetables: "Légumes", fruits: "Fruits",
+	legumes: "Légumineuses", tubers: "Tubercules", spices: "Épices",
+	herbs: "Herbes", nuts: "Noix", seeds: "Graines", dairy: "Produits Laitiers",
+	meat: "Viande", poultry: "Volaille", fish: "Poisson",
+	"processed-foods": "Produits Transformés", beverages: "Boissons", other: "Autre",
+};
+
+const ICONS = {
+	cereals: Wheat, vegetables: Carrot, fruits: Apple, legumes: Bean,
+	tubers: Carrot, spices: Flame, herbs: Leaf, nuts: Package, seeds: Sprout,
+	dairy: Milk, meat: Beef, poultry: Drumstick, fish: Fish,
+	"processed-foods": Archive, beverages: CupSoda, other: Package,
+};
+
+const CARD_WIDTH = 300; // px
+const CARD_GAP = 20;    // px
+const SCROLL_SPEED = 0.5; // px per frame
+
 const CategoriesSection = () => {
-	const [allCategories, setAllCategories] = useState(DEFAULT_CATEGORIES);
-	const [displayedCategories, setDisplayedCategories] = useState(
-		DEFAULT_CATEGORIES.slice(0, 4),
-	);
+	const [visibleCategories, setVisibleCategories] = useState([]);
 	const [categoryProducts, setCategoryProducts] = useState({});
 	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState(null);
-	const categoryIndexRef = useRef(0);
 
-	const getCategoryLabel = (category) => {
-		const labels = {
-			cereals: "Céréales",
-			vegetables: "Légumes",
-			fruits: "Fruits",
-			legumes: "Légumineuses",
-			tubers: "Tubercules",
-			spices: "Épices",
-			herbs: "Herbes",
-			nuts: "Noix",
-			seeds: "Graines",
-			dairy: "Produits Laitiers",
-			meat: "Viande",
-			poultry: "Volaille",
-			fish: "Poisson",
-			"processed-foods": "Produits Transformés",
-			beverages: "Boissons",
-			other: "Autre",
-		};
-		return labels[category] || category;
-	};
-
-	const getCategoryIcon = (category) => {
-		const icons = {
-			cereals: Wheat,
-			vegetables: Carrot,
-			fruits: Apple,
-			legumes: Bean,
-			tubers: Carrot,
-			spices: Flame,
-			herbs: Leaf,
-			nuts: Package,
-			seeds: Sprout,
-			dairy: Milk,
-			meat: Beef,
-			poultry: Drumstick,
-			fish: Fish,
-			"processed-foods": Archive,
-			beverages: CupSoda,
-			other: Package,
-		};
-		const Icon = icons[category] || Package;
-		return <Icon size={80} className="text-gray-400" />;
-	};
-
-	const loadCategoryProduct = async (category) => {
-		try {
-			const response = await productService.getProductsByCategory(category, {
-				limit: 1,
-			});
-			if (response.data.status === "success") {
-				const products = response.data.data.products || [];
-				if (products.length > 0) {
-					setCategoryProducts((prev) => ({
-						...prev,
-						[category]: products[0],
-					}));
-				}
-			}
-		} catch (error) {
-			console.error(
-				`Erreur lors du chargement du produit pour ${category}:`,
-				error,
-			);
-		}
-	};
+	const scrollRef = useRef(null);
+	const animRef = useRef(null);
+	const posRef = useRef(0);
+	const pausedRef = useRef(false);
 
 	const loadCategories = useCallback(async () => {
+		setLoading(true);
 		try {
-			setLoading(true);
-			setError(null);
+			let cats = ALL_CATEGORIES;
+			try {
+				const resp = await productService.getCategories();
+				if (resp.data.status === "success" && resp.data.data?.length > 0) {
+					cats = resp.data.data;
+				}
+			} catch {}
 
-			// Charger les catégories depuis l'API
-			const response = await productService.getCategories();
-			if (
-				response.data.status === "success" &&
-				response.data.data?.length > 0
-			) {
-				const cats = response.data.data;
-				setAllCategories(cats);
-
-				// Afficher les 4 premières catégories
-				const initialCats = cats.slice(0, 4);
-				setDisplayedCategories(initialCats);
-
-				// Charger un produit pour chaque catégorie affichée
-				await Promise.all(
-					initialCats.map((category) => loadCategoryProduct(category)),
-				);
-			} else {
-				// Utiliser les catégories par défaut
-				await Promise.all(
-					displayedCategories.map((category) => loadCategoryProduct(category)),
-				);
-			}
-		} catch (err) {
-			console.error("Erreur lors du chargement des catégories:", err);
-			// Utiliser les catégories par défaut en cas d'erreur
-			await Promise.all(
-				displayedCategories.map((category) => loadCategoryProduct(category)),
+			const results = await Promise.allSettled(
+				cats.map((cat) => productService.getProductsByCategory(cat, { limit: 1 }))
 			);
+
+			const products = {};
+			const visible = [];
+			results.forEach((result, i) => {
+				if (result.status === "fulfilled") {
+					const prods = result.value?.data?.data?.products || [];
+					if (prods.length > 0) {
+						products[cats[i]] = prods[0];
+						visible.push(cats[i]);
+					}
+				}
+			});
+
+			setCategoryProducts(products);
+			setVisibleCategories(visible);
 		} finally {
 			setLoading(false);
 		}
@@ -137,94 +78,104 @@ const CategoriesSection = () => {
 		loadCategories();
 	}, [loadCategories]);
 
-	// Rotation des catégories toutes les 3 minutes
+	// Défilement automatique lent — s'arrête au survol
 	useEffect(() => {
-		if (allCategories.length <= 4) return;
+		const el = scrollRef.current;
+		if (!el || visibleCategories.length === 0) return;
 
-		const interval = setInterval(() => {
-			const newIndex = (categoryIndexRef.current + 4) % allCategories.length;
-			categoryIndexRef.current = newIndex;
+		posRef.current = 0;
 
-			const newCats = [];
-			for (let i = 0; i < 4 && i < allCategories.length; i++) {
-				newCats.push(allCategories[(newIndex + i) % allCategories.length]);
+		const tick = () => {
+			if (!pausedRef.current) {
+				posRef.current += SCROLL_SPEED;
+				const half = (CARD_WIDTH + CARD_GAP) * visibleCategories.length;
+				if (posRef.current >= half) posRef.current = 0;
+				el.scrollLeft = posRef.current;
 			}
-			setDisplayedCategories(newCats);
+			animRef.current = requestAnimationFrame(tick);
+		};
 
-			// Charger les produits pour les nouvelles catégories
-			newCats.forEach((cat) => {
-				if (!categoryProducts[cat]) {
-					loadCategoryProduct(cat);
-				}
-			});
-		}, 180000); // 3 minutes
+		animRef.current = requestAnimationFrame(tick);
+		return () => cancelAnimationFrame(animRef.current);
+	}, [visibleCategories]);
 
-		return () => clearInterval(interval);
-	}, [allCategories, categoryProducts]);
-
-	return (
-		<section className="relative z-20 px-4 sm:px-6 lg:px-8 max-w-[1500px] mx-auto mb-8" data-aos="fade-up">
-			{loading ? (
+	if (loading) {
+		return (
+			<section className="relative z-20 px-4 sm:px-6 lg:px-8 max-w-[1500px] mx-auto mb-8">
 				<div className="flex justify-center items-center py-10 bg-white rounded-lg shadow-sm">
 					<LoadingSpinner />
 				</div>
-			) : error ? (
-				<div className="text-center py-12 bg-white rounded-lg shadow-sm">
-					<div className="text-red-600 mb-4">{error}</div>
-					<button
-						onClick={loadCategories}
-						className="btn bg-primary-500 text-white hover:bg-primary-600"
-					>
-						Réessayer
-					</button>
-				</div>
-			) : (
-				<div className="flex overflow-x-auto gap-5 pb-4 snap-x scrollbar-hide scroll-smooth lg:grid lg:grid-cols-4 lg:overflow-x-visible lg:pb-0">
-					{displayedCategories.map((category) => {
-						const product = categoryProducts[category];
-						const primaryImage =
-							product?.images?.find((img) => img.isPrimary) ||
-							product?.images?.[0];
+			</section>
+		);
+	}
 
-						return (
-							<div key={category} className="bg-white p-5 flex flex-col shadow-sm rounded-sm z-10 h-[420px] min-w-[280px] max-w-[280px] sm:min-w-[320px] sm:max-w-[320px] lg:min-w-0 lg:max-w-none snap-start flex-none">
-								<h3 className="text-xl font-bold mb-4 text-gray-900">
-									{getCategoryLabel(category)}
-								</h3>
-								
-								<div className="flex-1 bg-gray-50 mb-4 flex items-center justify-center overflow-hidden">
-									{primaryImage ? (
-										<Link to={`/categories/${category}`} className="w-full h-full block">
-											<CloudinaryImage
-												src={primaryImage.url}
-												alt={getCategoryLabel(category)}
-												className="w-full h-full object-cover hover:opacity-90 transition-opacity"
-												width={400}
-												height={300}
-												quality="auto"
-												crop="fill"
-											/>
-										</Link>
-									) : (
-										<Link to={`/categories/${category}`} className="w-full h-full flex flex-col items-center justify-center bg-gray-100 hover:bg-gray-200 transition-colors">
-											<div className="mb-2 flex justify-center items-center h-full w-full">
-												{getCategoryIcon(category)}
-											</div>
-										</Link>
-									)}
-								</div>
+	if (visibleCategories.length === 0) return null;
 
-								<Link
-									to={`/categories/${category}`}
-									className="text-primary-600 text-sm font-medium hover:text-primary-800 hover:underline"
-								>
-									Découvrir la catégorie
-								</Link>
+	// Dupliquer pour boucle infinie seamless
+	const loopItems = [...visibleCategories, ...visibleCategories];
+
+	return (
+		<section
+			className="relative z-20 px-4 sm:px-6 lg:px-8 max-w-[1500px] mx-auto mb-8"
+			data-aos="fade-up"
+		>
+			<div
+				ref={scrollRef}
+				className="flex overflow-x-hidden gap-5 scrollbar-hide"
+				style={{ cursor: "default" }}
+				onMouseEnter={() => { pausedRef.current = true; }}
+				onMouseLeave={() => { pausedRef.current = false; }}
+			>
+				{loopItems.map((category, idx) => {
+					const product = categoryProducts[category];
+					const primaryImage =
+						product?.images?.find((img) => img.isPrimary) ||
+						product?.images?.[0];
+					const Icon = ICONS[category] || Package;
+
+					return (
+						<div
+							key={`${category}-${idx}`}
+							className="bg-white p-5 flex flex-col shadow-sm rounded-sm z-10 h-[420px] flex-none"
+							style={{ width: CARD_WIDTH }}
+						>
+							<h3 className="text-xl font-bold mb-4 text-gray-900">
+								{LABELS[category] || category}
+							</h3>
+
+							<div className="flex-1 bg-gray-50 mb-4 flex items-center justify-center overflow-hidden">
+								{primaryImage ? (
+									<Link to={`/categories/${category}`} className="w-full h-full block">
+										<CloudinaryImage
+											src={primaryImage.url}
+											alt={LABELS[category] || category}
+											className="w-full h-full object-cover hover:opacity-90 transition-opacity"
+											width={400}
+											height={300}
+											quality="auto"
+											crop="fill"
+										/>
+									</Link>
+								) : (
+									<Link
+										to={`/categories/${category}`}
+										className="w-full h-full flex items-center justify-center bg-gray-100 hover:bg-gray-200 transition-colors"
+									>
+										<Icon size={80} className="text-gray-400" />
+									</Link>
+								)}
 							</div>
-						);
-					})}
-				</div>
-			)}
+
+							<Link
+								to={`/categories/${category}`}
+								className="text-primary-600 text-sm font-medium hover:text-primary-800 hover:underline"
+							>
+								Découvrir la catégorie
+							</Link>
+						</div>
+					);
+				})}
+			</div>
 		</section>
 	);
 };

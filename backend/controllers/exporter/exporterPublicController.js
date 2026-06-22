@@ -4,14 +4,13 @@ const Exporter = require('../../models/Exporter');
 
 // Obtenir tous les exportateurs
 exports.getAllExporters = catchAsync(async (req, res, next) => {
-  const queryObj = { ...req.query, isActive: true, isApproved: true, isEmailVerified: true };
-  const excludedFields = ['page', 'sort', 'limit', 'fields'];
-  excludedFields.forEach((el) => delete queryObj[el]);
+  const queryObj = { isActive: true, isApproved: true, isEmailVerified: true };
+  const ALLOWED_FILTERS = ['country', 'targetMarket', 'exportType', 'region'];
+  ALLOWED_FILTERS.forEach((key) => {
+    if (req.query[key] !== undefined) queryObj[key] = req.query[key];
+  });
 
-  let queryStr = JSON.stringify(queryObj);
-  queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
-
-  let query = Exporter.find(JSON.parse(queryStr));
+  let query = Exporter.find(queryObj);
 
   if (req.query.sort) {
     const sortBy = req.query.sort.split(',').join(' ');
@@ -26,7 +25,7 @@ exports.getAllExporters = catchAsync(async (req, res, next) => {
   query = query.skip(skip).limit(limit);
 
   const exporters = await query;
-  const total = await Exporter.countDocuments(JSON.parse(queryStr));
+  const total = await Exporter.countDocuments(queryObj);
 
   res.status(200).json({
     status: 'success',

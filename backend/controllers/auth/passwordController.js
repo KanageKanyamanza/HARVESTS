@@ -10,6 +10,7 @@ const { logAudit, AUDIT_ACTIONS } = require('../../utils/auditLogger');
 const createSendToken = (user, statusCode, req, res) => {
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
+    algorithm: 'HS256',
   });
 
   const cookieOptions = {
@@ -39,9 +40,14 @@ const createSendToken = (user, statusCode, req, res) => {
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   // 1) Récupérer l'utilisateur basé sur l'email
   const user = await User.findOne({ email: req.body.email });
-  if (!user) {
-    return next(new AppError('Aucun utilisateur trouvé avec cet email', 404));
-  }
+
+  // Réponse identique que l'email existe ou non (anti-énumération)
+  const neutralResponse = res.status(200).json({
+    status: 'success',
+    message: 'Si un compte existe avec cet email, vous recevrez un lien de réinitialisation.',
+  });
+
+  if (!user) return neutralResponse;
 
   // 2) Générer le token de reset aléatoire
   const resetToken = user.createPasswordResetToken();
@@ -54,10 +60,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
     await new Email(user, resetURL).sendPasswordReset();
 
-    res.status(200).json({
-      status: 'success',
-      message: 'Token de réinitialisation envoyé par email!',
-    });
+    return neutralResponse;
   } catch (err) {
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;

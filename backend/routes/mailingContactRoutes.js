@@ -6,7 +6,7 @@ const router = express.Router();
 
 // All routes are protected and restricted to super-admin or technical admins
 router.use(adminAuthController.protect);
-// router.use(adminAuthController.restrictTo('super-admin', 'admin'));
+router.use(adminAuthController.restrictTo('super-admin', 'admin'));
 
 router.get("/emails-only", mailingContactController.getEmailsOnly);
 

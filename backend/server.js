@@ -125,7 +125,7 @@ mongoose
 							lastName: process.env.ADMIN_LAST_NAME || "Harvests",
 							email: process.env.ADMIN_EMAIL || "admin@harvests.sn",
 							password:
-								process.env.ADMIN_PASSWORD || "Admin@Harvests2025!",
+								process.env.ADMIN_PASSWORD,
 							role: "super-admin",
 							department: "technical",
 							permissions: ["all"],

@@ -30,10 +30,13 @@ api.interceptors.request.use(
 		const publicRoutes = [
 			"/auth/signup",
 			"/auth/login",
+			"/auth/refresh",
 			"/auth/forgot-password",
 			"/auth/reset-password",
 			"/auth/verify-email",
 			"/auth/resend-verification",
+			"/admin/auth/login",
+			"/admin/auth/refresh",
 		];
 
 		// Routes qui peuvent être mises en cache (GET uniquement)
@@ -92,12 +95,30 @@ api.interceptors.request.use(
 	},
 );
 
+// Indicateur pour éviter les boucles infinies de refresh
+let isRefreshing = false;
+let refreshSubscribers = [];
+
+const onRefreshed = (token) => {
+	refreshSubscribers.forEach((cb) => cb(token));
+	refreshSubscribers = [];
+};
+
+const addRefreshSubscriber = (cb) => {
+	refreshSubscribers.push(cb);
+};
+
+const clearAuthAndRedirect = (redirectPath = "/login") => {
+	localStorage.removeItem("harvests_token");
+	localStorage.removeItem("harvests_user");
+	localStorage.removeItem("harvests_auth_data");
+	window.location.replace(redirectPath);
+};
+
 // Intercepteur de réponse
 api.interceptors.response.use(
-	(response) => {
-		return response;
-	},
-	(error) => {
+	(response) => response,
+	async (error) => {
 		// Gérer les erreurs de rate limiting en silence
 		if (error.response?.status === 429) {
 			console.warn("Trop de requêtes - Rate limiting activé");
@@ -106,22 +127,16 @@ api.interceptors.response.use(
 
 		// Gérer les erreurs de timeout
 		if (error.code === "ECONNABORTED" && error.message.includes("timeout")) {
-			console.error("Timeout de requête:", error.message);
-			const timeoutError = new Error(
-				"La requête a pris trop de temps. Veuillez réessayer.",
-			);
+			const timeoutError = new Error("La requête a pris trop de temps. Veuillez réessayer.");
 			timeoutError.isTimeout = true;
 			return Promise.reject(timeoutError);
 		}
 
-		// Ne pas afficher l'erreur dans la console pour les tentatives de connexion admin
-		// car c'est normal qu'elles échouent pour les utilisateurs non-admin
-		const isAdminLoginAttempt =
-			error.config?.url?.includes("/admin/auth/login");
+		const isAdminLoginAttempt = error.config?.url?.includes("/admin/auth/login");
 		if (!isAdminLoginAttempt) {
 			console.error(
-				"🚨 API ERROR:", 
-				`[${error.response?.status || 'NETWORK_ERROR'}]`, 
+				"🚨 API ERROR:",
+				`[${error.response?.status || 'NETWORK_ERROR'}]`,
 				error.config?.url
 			);
 			if (error.response?.data) {
@@ -131,53 +146,66 @@ api.interceptors.response.use(
 			}
 		}
 
-		// Gérer les erreurs d'authentification (401)
+		// Gérer les 401 — tentative de refresh automatique
 		if (error.response?.status === 401) {
-			const errorMessage = error.response?.data?.message || "";
+			const originalRequest = error.config;
 			const currentPath = window.location.pathname;
 
-			// Identifier s'il s'agit d'une tentative de connexion
-			const isLoginAttempt =
-				error.config?.url?.includes("/auth/login") ||
-				error.config?.url?.includes("/admin/auth/login");
+			const isAuthEndpoint =
+				originalRequest?.url?.includes("/auth/login") ||
+				originalRequest?.url?.includes("/auth/refresh") ||
+				originalRequest?.url?.includes("/admin/auth/login") ||
+				originalRequest?.url?.includes("/admin/auth/refresh");
 
-			// Ne pas rediriger si on essaie de se connecter ou si on est déjà sur la page login
-			if (!isLoginAttempt && currentPath !== "/login") {
-				// Liste des messages qui indiquent une session expirée ou invalide
-				const isSessionError =
-					errorMessage.includes("jwt") ||
-					errorMessage.includes("expiré") ||
-					errorMessage.includes("n'existe plus") ||
-					errorMessage.includes("User not found") ||
-					errorMessage.includes("pas connecté") ||
-					errorMessage.includes("authentifié");
+			// Ne pas tenter le refresh sur les endpoints d'auth eux-mêmes
+			if (isAuthEndpoint || originalRequest?._retry) {
+				clearAuthAndRedirect(currentPath.startsWith("/admin") ? "/admin/login" : "/login");
+				return Promise.reject(error);
+			}
 
-				if (isSessionError) {
-					console.warn(
-						"🔐 Session invalide ou expirée détectée, nettoyage et redirection...",
-						{ url: error.config?.url, message: errorMessage },
-					);
+			// Si un refresh est déjà en cours, mettre la requête en file d'attente
+			if (isRefreshing) {
+				return new Promise((resolve, reject) => {
+					addRefreshSubscriber((token) => {
+						if (token) {
+							originalRequest.headers.Authorization = `Bearer ${token}`;
+							resolve(api(originalRequest));
+						} else {
+							reject(error);
+						}
+					});
+				});
+			}
 
-					// Nettoyage complet
-					localStorage.removeItem("harvests_token");
-					localStorage.removeItem("harvests_user");
-					localStorage.removeItem("harvests_auth_data");
+			originalRequest._retry = true;
+			isRefreshing = true;
 
-					// Rediriger vers la page de connexion
-					// Utiliser replace pour ne pas polluer l'historique
-					if (!error.config?.skipRedirect) {
-						window.location.replace("/login");
-					}
-				}
+			const refreshEndpoint = currentPath.startsWith("/admin")
+				? "/admin/auth/refresh"
+				: "/auth/refresh";
+
+			try {
+				const { data } = await api.post(refreshEndpoint, {}, { withCredentials: true });
+				const newToken = data.token;
+
+				localStorage.setItem("harvests_token", newToken);
+				api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+				originalRequest.headers.Authorization = `Bearer ${newToken}`;
+
+				onRefreshed(newToken);
+				isRefreshing = false;
+
+				return api(originalRequest);
+			} catch {
+				isRefreshing = false;
+				onRefreshed(null);
+				clearAuthAndRedirect(currentPath.startsWith("/admin") ? "/admin/login" : "/login");
+				return Promise.reject(error);
 			}
 		}
 
-		// Gérer les erreurs de serveur
 		if (error.response?.status >= 500) {
-			console.error(
-				"Server error:",
-				error.response?.data?.message || "Erreur serveur",
-			);
+			console.error("Server error:", error.response?.data?.message || "Erreur serveur");
 		}
 
 		return Promise.reject(error);

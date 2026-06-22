@@ -12,6 +12,7 @@ import {
 	Filter,
 	ArrowRight,
 	Activity,
+	ExternalLink,
 } from "lucide-react";
 
 import { adminService } from "../../services/adminService";
@@ -137,10 +138,15 @@ const AdminAnalytics = () => {
 								<option value="1y">Dernière année</option>
 							</select>
 						</div>
-						<button className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-gray-800 transition-all shadow-lg active:scale-95">
-							<Download className="h-3 w-3" />
-							Exporter
-						</button>
+						<a
+							href="https://docs.google.com/spreadsheets/d/1kCDPfNnCNiptDH-ffmtR7ttFtHyCKm1H/edit?gid=1297557795#gid=1297557795"
+							target="_blank"
+							rel="noopener noreferrer"
+							className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-gray-800 transition-all shadow-lg active:scale-95"
+						>
+							<ExternalLink className="h-3 w-3" />
+							Registre Inscriptions
+						</a>
 					</div>
 				</div>
 

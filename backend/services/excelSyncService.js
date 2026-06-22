@@ -7,10 +7,10 @@ const User = require("../models/User");
  */
 class ExcelSyncService {
 	constructor() {
-		this.webhookUrl = process.env.POWER_AUTOMATE_WEBHOOK_URL || null;
+		this.webhookUrl = process.env.GOOGLE_SHEETS_WEBAPP_URL || process.env.POWER_AUTOMATE_WEBHOOK_URL || null;
 		
 		// Initialiser la tâche planifiée quotidienne si configurée
-		if (process.env.EXCEL_DAILY_SYNC_ENABLED === "true") {
+		if (process.env.EXCEL_DAILY_SYNC_ENABLED === "true" || process.env.GOOGLE_SHEETS_DAILY_SYNC_ENABLED === "true") {
 			this.initDailyCron();
 		}
 	}
@@ -92,7 +92,12 @@ class ExcelSyncService {
 			};
 
 			console.log(`[ExcelSync] Envoi en temps réel pour l'utilisateur ${user.email} (Nom: ${name})`);
-			await axios.post(this.webhookUrl, payload, { timeout: 5000 });
+			// maxRedirects:20 is needed because Google Apps Script returns a 302 redirect
+			// before executing the script; axios drops POST body on redirect by default
+			await axios.post(this.webhookUrl, payload, {
+				timeout: 30000,
+				maxRedirects: 20,
+			});
 		} catch (error) {
 			console.error("[ExcelSync] Erreur lors de la synchronisation en temps réel :", error.message);
 		}
@@ -103,7 +108,7 @@ class ExcelSyncService {
 	 */
 	async syncDailyRegistrations(targetDate = new Date()) {
 		if (!this.webhookUrl) {
-			console.warn("[ExcelSync] Synchronisation impossible : POWER_AUTOMATE_WEBHOOK_URL non défini.");
+			console.warn("[ExcelSync] Synchronisation impossible : GOOGLE_SHEETS_WEBAPP_URL ou POWER_AUTOMATE_WEBHOOK_URL non défini.");
 			return;
 		}
 

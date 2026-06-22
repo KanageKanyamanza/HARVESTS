@@ -76,3 +76,6 @@ dist/
 build/
 
 model.nlp
+
+# Security audit (internal document)
+SECURITY_AUDIT.md
