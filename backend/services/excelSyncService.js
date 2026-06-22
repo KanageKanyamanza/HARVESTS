@@ -92,7 +92,12 @@ class ExcelSyncService {
 			};
 
 			console.log(`[ExcelSync] Envoi en temps réel pour l'utilisateur ${user.email} (Nom: ${name})`);
-			await axios.post(this.webhookUrl, payload, { timeout: 5000 });
+			// maxRedirects:20 is needed because Google Apps Script returns a 302 redirect
+			// before executing the script; axios drops POST body on redirect by default
+			await axios.post(this.webhookUrl, payload, {
+				timeout: 30000,
+				maxRedirects: 20,
+			});
 		} catch (error) {
 			console.error("[ExcelSync] Erreur lors de la synchronisation en temps réel :", error.message);
 		}
