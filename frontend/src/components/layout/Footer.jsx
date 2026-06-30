@@ -163,7 +163,7 @@ const Footer = () => {
 			const idx = (categoryIndex + i) % categories.length;
 			const cat = categories[idx];
 			result.push({
-				name: CATEGORY_LABELS[cat] || cat,
+				name: CATEGORY_LABELS[cat] || cat.charAt(0).toUpperCase() + cat.slice(1),
 				slug: cat,
 			});
 		}
