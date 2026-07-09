@@ -78,7 +78,7 @@ const EmailVerificationModal = ({ isOpen, onClose, email, isRegistration = false
                     📝 Renseignez vos informations de profil
                   </h5>
                   <p className="text-xs text-blue-700 leading-relaxed">
-                    Afin de simplifier votre inscription, certains champs ont été retirés. <strong>Une fois connecté</strong>, n'oubliez pas de compléter votre profil en ajoutant votre <strong>numéro de téléphone</strong>, <strong>ville et pays</strong> pour pouvoir passer des commandes ou vendre vos produits.
+                    <strong>Une fois connecté</strong>, n'oubliez pas de compléter votre profil en ajoutant votre <strong>numéro de téléphone</strong>, <strong>ville et pays</strong> pour pouvoir passer des commandes ou vendre vos produits.
                   </p>
                 </div>
               </div>
