@@ -73,6 +73,14 @@ const EmailVerificationModal = ({ isOpen, onClose, email, isRegistration = false
                 <p className="text-sm text-gray-500 mb-6">
                   Cliquez sur le lien dans l'email pour activer votre compte et commencer à utiliser Harvests.
                 </p>
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-left">
+                  <h5 className="text-sm font-semibold text-blue-900 flex items-center gap-2 mb-1">
+                    📝 Renseignez vos informations de profil
+                  </h5>
+                  <p className="text-xs text-blue-700 leading-relaxed">
+                    Afin de simplifier votre inscription, certains champs ont été retirés. <strong>Une fois connecté</strong>, n'oubliez pas de compléter votre profil en ajoutant votre <strong>numéro de téléphone</strong>, <strong>ville et pays</strong> pour pouvoir passer des commandes ou vendre vos produits.
+                  </p>
+                </div>
               </div>
             ) : (
               <div className="text-center">

@@ -5,37 +5,20 @@ import FormField from './FormField';
 const NameFields = ({ 
   userType, 
   firstName, 
-  lastName, 
   onFirstNameChange, 
-  onLastNameChange, 
-  firstNameError, 
-  lastNameError 
+  firstNameError 
 }) => {
   if (userType === 'consumer') {
     return (
-      <>
-        {/* Prénom pour consommateur */}
-        <FormField
-          icon={User}
-          type="text"
-          name="firstName"
-          value={firstName}
-          onChange={onFirstNameChange}
-          placeholder="Votre prénom"
-          error={firstNameError}
-        />
-
-        {/* Nom pour consommateur */}
-        <FormField
-          icon={User}
-          type="text"
-          name="lastName"
-          value={lastName}
-          onChange={onLastNameChange}
-          placeholder="Votre nom"
-          error={lastNameError}
-        />
-      </>
+      <FormField
+        icon={User}
+        type="text"
+        name="fullName"
+        value={firstName}
+        onChange={onFirstNameChange}
+        placeholder="Votre prénom et nom"
+        error={firstNameError}
+      />
     );
   }
 
