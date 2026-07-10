@@ -4,13 +4,15 @@
 export const validateRegisterForm = (formData) => {
   const newErrors = {};
   
-  // Pour les consommateurs : prénom et nom séparés
+  // Pour les consommateurs : nom complet (prénom + nom)
   if (formData.userType === 'consumer') {
-    if (!formData.firstName?.trim()) {
-      newErrors.firstName = 'Le prénom est requis';
-    }
-    if (!formData.lastName?.trim()) {
-      newErrors.lastName = 'Le nom est requis';
+    if (!formData.fullName?.trim()) {
+      newErrors.firstName = 'Le nom complet est requis';
+    } else {
+      const parts = formData.fullName.trim().split(/\s+/);
+      if (parts.length < 2) {
+        newErrors.firstName = 'Veuillez saisir votre prénom et votre nom';
+      }
     }
   } else if (formData.userType === 'producer') {
     if (!formData.farmName?.trim()) {
@@ -44,19 +46,6 @@ export const validateRegisterForm = (formData) => {
     newErrors.password = 'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre';
   }
   
-  if (formData.password !== formData.confirmPassword) {
-    newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
-  }
-  
-  if (!formData.phone?.trim()) {
-    newErrors.phone = 'Le téléphone est requis';
-  } else {
-    const cleaned = formData.phone.replace(/\D/g, '');
-    if (cleaned.length < 7 || cleaned.length > 15) {
-      newErrors.phone = 'Le numéro doit contenir entre 7 et 15 chiffres';
-    }
-  }
-  
   if (!formData.userType) {
     newErrors.userType = 'Le type d\'utilisateur est requis';
   }
@@ -80,8 +69,18 @@ export const prepareRegistrationData = (formData) => {
   };
 
   if (formData.userType === 'consumer') {
+    const fullName = formData.fullName?.trim() || '';
+    const parts = fullName.split(/\s+/);
+    const firstName = parts[0] || 'À compléter';
+    const lastName = parts.slice(1).join(' ') || firstName || 'À compléter';
+    
+    // Create a copy of formData without fullName
+    const { fullName: _, ...restFormData } = formData;
+
     return {
-      ...formData,
+      ...restFormData,
+      firstName,
+      lastName,
       address: addressBase
     };
   }

@@ -159,7 +159,9 @@ api.interceptors.response.use(
 
 			// Ne pas tenter le refresh sur les endpoints d'auth eux-mêmes
 			if (isAuthEndpoint || originalRequest?._retry) {
-				clearAuthAndRedirect(currentPath.startsWith("/admin") ? "/admin/login" : "/login");
+				localStorage.removeItem("harvests_token");
+				localStorage.removeItem("harvests_user");
+				localStorage.removeItem("harvests_auth_data");
 				return Promise.reject(error);
 			}
 

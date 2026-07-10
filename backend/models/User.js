@@ -86,9 +86,14 @@ const baseUserSchema = new mongoose.Schema(
 		},
 		phone: {
 			type: String,
-			required: [true, "Numéro de téléphone requis"],
 			trim: true,
-			match: [/^[\+]?[0-9\s\-\(\)]{8,20}$/, "Format de téléphone invalide"],
+			validate: {
+				validator: function (v) {
+					if (!v) return true;
+					return /^[\+]?[0-9\s\-\(\)]{8,20}$/.test(v);
+				},
+				message: "Format de téléphone invalide",
+			},
 		},
 		country: {
 			type: String,

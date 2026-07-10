@@ -9,6 +9,7 @@ export const useRegisterForm = () => {
   const commercial = searchParams.get('ref') || searchParams.get('commercial') || '';
 
   const [formData, setFormData] = useState({
+    fullName: '',
     firstName: '',
     lastName: '',
     farmName: '',
@@ -64,6 +65,7 @@ export const useRegisterForm = () => {
 
   const resetForm = () => {
     setFormData({
+      fullName: '',
       firstName: '',
       lastName: '',
       farmName: '',

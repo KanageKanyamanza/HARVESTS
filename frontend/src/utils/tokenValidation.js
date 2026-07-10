@@ -13,7 +13,13 @@ export const isValidToken = (token) => {
   try {
     // Remplacer les caractères base64url par du base64 standard pour atob()
     const base64Url = tokenParts[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    
+    // Ajouter le rembourrage (padding) si nécessaire
+    const pad = base64.length % 4;
+    if (pad) {
+      base64 += '='.repeat(4 - pad);
+    }
     
     // Décoder le payload
     const jsonPayload = decodeURIComponent(

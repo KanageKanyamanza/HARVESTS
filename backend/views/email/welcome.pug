@@ -138,6 +138,36 @@ html(lang='fr')
         margin: 24px 0;
         border-left: 4px solid #d69e2e;
       }
+      .profile-notice {
+        background-color: #eff6ff;
+        border: 1px solid #bfdbfe;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 24px 0;
+        border-left: 4px solid #2563eb;
+      }
+      .profile-notice-title {
+        color: #1e3a8a;
+        font-weight: 600;
+        font-size: 16px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+      }
+      .profile-notice-title:before {
+        content: '📝';
+        margin-right: 8px;
+      }
+      .profile-notice-text {
+        color: #1e3a8a;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .profile-notice-text ul {
+        margin-top: 8px;
+        padding-left: 20px;
+        list-style-type: disc;
+      }
       .warning-title {
         color: #744210;
         font-weight: 600;
@@ -232,6 +262,15 @@ html(lang='fr')
         .warning
           .warning-title Important
           .warning-text Ce lien de vérification expire dans 24 heures. Si vous ne l'utilisez pas à temps, vous devrez demander un nouveau lien de vérification depuis la page de connexion.
+        
+        .profile-notice
+          .profile-notice-title Complétez votre profil
+          .profile-notice-text
+            | Afin de simplifier votre inscription, nous n'avons demandé que le strict minimum. Pour pouvoir passer des commandes ou vendre sur Harvests, veuillez compléter les informations suivantes dans votre profil dès votre première connexion :
+            ul
+              li Votre numéro de téléphone (requis pour le suivi de livraison)
+              li Votre pays et ville de localisation
+              li Vos informations métier spécifiques (ferme, entreprise ou restaurant)
         
         .link-fallback
           | Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :

@@ -37,7 +37,7 @@ const Register = () => {
 
 	return (
 		<div
-			className="flex items-center justify-center"
+			className="flex items-center justify-center min-h-screen"
 			style={{
 				backgroundImage: `url(${authbg})`,
 				backgroundSize: "cover",
@@ -103,16 +103,14 @@ const Register = () => {
 								<NameFields
 									userType={formData.userType}
 									firstName={
+										formData.userType === 'consumer'     ? formData.fullName :
 										formData.userType === 'producer'     ? formData.farmName :
 										formData.userType === 'restaurateur' ? formData.restaurantName :
 										['transformer','exporter','transporter'].includes(formData.userType) ? formData.companyName :
 										formData.firstName
 									}
-									lastName={formData.lastName}
 									onFirstNameChange={handleChange}
-									onLastNameChange={handleChange}
 									firstNameError={errors.firstName}
-									lastNameError={errors.lastName}
 								/>
 
 								{/* Email */}
@@ -139,55 +137,6 @@ const Register = () => {
 									showPassword={showPassword}
 									onTogglePassword={() => setShowPassword(!showPassword)}
 									helperText="Min. 8 caractères, 1 majuscule, 1 minuscule, 1 chiffre"
-								/>
-
-								{/* Confirmer mot de passe */}
-								<FormField
-									icon={Lock}
-									type={showConfirmPassword ? "text" : "password"}
-									name="confirmPassword"
-									value={formData.confirmPassword}
-									onChange={handleChange}
-									placeholder="Confirmez votre mot de passe"
-									error={errors.confirmPassword}
-									showPasswordToggle={true}
-									showPassword={showConfirmPassword}
-									onTogglePassword={() =>
-										setShowConfirmPassword(!showConfirmPassword)
-									}
-								/>
-
-								{/* Téléphone */}
-								<FormField
-									icon={Phone}
-									type="tel"
-									name="phone"
-									value={formData.phone}
-									onChange={handleChange}
-									placeholder="Ex: +221 77 123 45 67 ou 1234567890"
-									error={errors.phone}
-								/>
-
-								{/* Pays */}
-								<FormField
-									icon={MapPin}
-									type="text"
-									name="country"
-									value={formData.country}
-									onChange={handleChange}
-									placeholder="Saisissez votre pays (ex: Sénégal, Cameroun, Ghana...)"
-									error={errors.country}
-								/>
-
-								{/* Commercial */}
-								<FormField
-									icon={UserIcon}
-									type="text"
-									name="referredBy"
-									value={formData.referredBy || ""}
-									onChange={handleChange}
-									placeholder="Nom ou Code du commercial (Optionnel)"
-									error={errors.referredBy}
 								/>
 
 								{/* Lien de connexion */}

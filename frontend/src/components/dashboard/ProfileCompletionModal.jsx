@@ -135,7 +135,7 @@ const ProfileCompletionModal = ({ user }) => {
 			></div>
 
 			{/* Modal Container */}
-			<div className="relative max-h-[95vh] w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-gray-100 flex flex-col">
+			<div className="relative max-h-[90vh] w-full max-w-2xl bg-white rounded-[1rem] shadow-2xl overflow-hidden border border-gray-100 flex flex-col">
 				{/* Close Button - Fixed relative to container */}
 				<button
 					onClick={(e) => {
