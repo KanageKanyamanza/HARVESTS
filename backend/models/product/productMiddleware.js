@@ -45,12 +45,7 @@ function addProductMiddleware(productSchema) {
       
       while (true) {
         try {
-          const slugQueries = [];
-          if (this.producer) slugQueries.push({ producer: this.producer, slug });
-          if (this.transformer) slugQueries.push({ transformer: this.transformer, slug });
-          if (this.restaurateur) slugQueries.push({ restaurateur: this.restaurateur, slug });
-
-          const query = slugQueries.length > 0 ? { $or: slugQueries } : { slug };
+          const query = { slug };
 
           const existingProduct = await this.constructor.findOne(query);
           if (!existingProduct || existingProduct._id.toString() === this._id.toString()) {
