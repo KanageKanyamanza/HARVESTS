@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Wheat, Carrot, Apple, Bean, Flame, Leaf, Sprout, Milk, Beef, Drumstick, Fish, Archive, CupSoda, Package } from "lucide-react";
+import { Wheat, Carrot, Apple, Bean, Flame, Leaf, Sprout, Milk, Beef, Drumstick, Fish, Archive, CupSoda, Package, ArrowRight, Grid } from "lucide-react";
 import CloudinaryImage from "../common/CloudinaryImage";
 import LoadingSpinner from "../common/LoadingSpinner";
 import { productService } from "../../services";
@@ -12,11 +12,11 @@ const ALL_CATEGORIES = [
 ];
 
 const LABELS = {
-	cereals: "Céréales", vegetables: "Légumes", fruits: "Fruits",
-	legumes: "Légumineuses", tubers: "Tubercules", spices: "Épices",
-	herbs: "Herbes", nuts: "Noix", seeds: "Graines", dairy: "Produits Laitiers",
-	meat: "Viande", poultry: "Volaille", fish: "Poisson",
-	"processed-foods": "Produits Transformés", beverages: "Boissons", other: "Autre",
+	cereals: "Céréales & Grains", vegetables: "Légumes Frais", fruits: "Fruits de Saison",
+	legumes: "Légumineuses", tubers: "Tubercules & Racines", spices: "Épices Locales",
+	herbs: "Herbes Aromatiques", nuts: "Noix & Anacarde", seeds: "Graines & Semences", dairy: "Produits Laitiers",
+	meat: "Viande Bovine & Ovine", poultry: "Volaille Bio", fish: "Poisson & Halieutique",
+	"processed-foods": "Produits Transformés", beverages: "Jus & Boissons", other: "Épicerie & Produits Divers",
 };
 
 const ICONS = {
@@ -26,19 +26,22 @@ const ICONS = {
 	"processed-foods": Archive, beverages: CupSoda, other: Package,
 };
 
-const CARD_WIDTH = 300; // px
-const CARD_GAP = 20;    // px
-const SCROLL_SPEED = 0.5; // px per frame
+// Fallback high quality agritech images for categories
+const CATEGORY_FALLBACK_IMAGES = {
+	spices: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&auto=format&fit=crop",
+	tubers: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=600&auto=format&fit=crop",
+	vegetables: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop",
+	other: "https://images.unsplash.com/photo-1608686207856-001b95cf60ca?w=600&auto=format&fit=crop",
+	fruits: "https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=600&auto=format&fit=crop",
+	cereals: "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=600&auto=format&fit=crop",
+	poultry: "https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=600&auto=format&fit=crop",
+	"processed-foods": "https://images.unsplash.com/photo-1553279768-865429fa0078?w=600&auto=format&fit=crop"
+};
 
 const CategoriesSection = () => {
 	const [visibleCategories, setVisibleCategories] = useState([]);
 	const [categoryProducts, setCategoryProducts] = useState({});
 	const [loading, setLoading] = useState(true);
-
-	const scrollRef = useRef(null);
-	const animRef = useRef(null);
-	const posRef = useRef(0);
-	const pausedRef = useRef(false);
 
 	const loadCategories = useCallback(async () => {
 		setLoading(true);
@@ -67,8 +70,13 @@ const CategoriesSection = () => {
 				}
 			});
 
+			// If empty, use top 4 default categories
+			const displayCats = visible.length >= 4 ? visible.slice(0, 8) : ["spices", "tubers", "vegetables", "other"];
+
 			setCategoryProducts(products);
-			setVisibleCategories(visible);
+			setVisibleCategories(displayCats);
+		} catch {
+			setVisibleCategories(["spices", "tubers", "vegetables", "other"]);
 		} finally {
 			setLoading(false);
 		}
@@ -78,103 +86,89 @@ const CategoriesSection = () => {
 		loadCategories();
 	}, [loadCategories]);
 
-	// Défilement automatique lent — s'arrête au survol
-	useEffect(() => {
-		const el = scrollRef.current;
-		if (!el || visibleCategories.length === 0) return;
-
-		posRef.current = 0;
-
-		const tick = () => {
-			if (!pausedRef.current) {
-				posRef.current += SCROLL_SPEED;
-				const half = (CARD_WIDTH + CARD_GAP) * visibleCategories.length;
-				if (posRef.current >= half) posRef.current = 0;
-				el.scrollLeft = posRef.current;
-			}
-			animRef.current = requestAnimationFrame(tick);
-		};
-
-		animRef.current = requestAnimationFrame(tick);
-		return () => cancelAnimationFrame(animRef.current);
-	}, [visibleCategories]);
-
 	if (loading) {
 		return (
-			<section className="relative z-20 px-4 sm:px-6 lg:px-8 max-w-[1500px] mx-auto mb-8">
-				<div className="flex justify-center items-center py-10 bg-white rounded-lg shadow-sm">
+			<section className="my-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+				<div className="flex justify-center items-center py-12 bg-white rounded-2xl shadow-agri-card border border-emerald-100">
 					<LoadingSpinner />
 				</div>
 			</section>
 		);
 	}
 
-	if (visibleCategories.length === 0) return null;
-
-	// Dupliquer pour boucle infinie seamless
-	const loopItems = [...visibleCategories, ...visibleCategories];
-
 	return (
 		<section
-			className="relative z-20 px-4 sm:px-6 lg:px-8 max-w-[1500px] mx-auto mb-8"
+			className="md:bg-white my-6 p-0 sm:p-6 mx-4 sm:mx-6 lg:mx-8 max-w-7xl lg:mx-auto md:rounded-2xl md:shadow-agri-card md:border border-emerald-100/80 relative z-10"
 			data-aos="fade-up"
 		>
-			<div
-				ref={scrollRef}
-				className="flex overflow-x-hidden gap-5 scrollbar-hide"
-				style={{ cursor: "default" }}
-				onMouseEnter={() => { pausedRef.current = true; }}
-				onMouseLeave={() => { pausedRef.current = false; }}
-			>
-				{loopItems.map((category, idx) => {
+			<div className="flex flex-col sm:flex-row sm:items-end justify-between mb-5 gap-2">
+				<div>
+					<div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1A5514] uppercase tracking-wider mb-1">
+						<Grid className="w-4 h-4 text-[#31BC2E]" />
+						<span>Filières Agricoles & Produits</span>
+					</div>
+					<h2 className="text-2xl sm:text-3xl font-extrabold text-[#161D14]">
+						Catégories Populaires du Marketplace
+					</h2>
+					<p className="text-sm text-gray-600 mt-0.5">Découvrez nos produits classés par filière d'approvisionnement</p>
+				</div>
+				<Link to="/categories" className="hidden md:flex text-xs sm:text-sm font-bold text-[#1A5514] hover:text-[#31BC2E] transition-colors items-center gap-1">
+					Voir toutes les catégories →
+				</Link>
+			</div>
+
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+				{visibleCategories.slice(0, 4).map((category) => {
 					const product = categoryProducts[category];
 					const primaryImage =
-						product?.images?.find((img) => img.isPrimary) ||
-						product?.images?.[0];
+						product?.primaryImage?.url ||
+						product?.images?.find((img) => img.isPrimary)?.url ||
+						product?.images?.[0]?.url ||
+						CATEGORY_FALLBACK_IMAGES[category] ||
+						"https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop";
+
 					const Icon = ICONS[category] || Package;
 
 					return (
-						<div
-							key={`${category}-${idx}`}
-							className="bg-white p-5 flex flex-col shadow-sm rounded-sm z-10 h-[420px] flex-none"
-							style={{ width: CARD_WIDTH }}
+						<Link
+							key={category}
+							to={`/categories/${category}`}
+							className="group bg-white rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-xl hover:border-emerald-300 transition-all duration-300 hover:-translate-y-1 flex flex-col overflow-hidden"
 						>
-							<h3 className="text-xl font-bold mb-4 text-gray-900">
-								{LABELS[category] || category}
-							</h3>
-
-							<div className="flex-1 bg-gray-50 mb-4 flex items-center justify-center overflow-hidden">
-								{primaryImage ? (
-									<Link to={`/categories/${category}`} className="w-full h-full block">
-										<CloudinaryImage
-											src={primaryImage.url}
-											alt={LABELS[category] || category}
-											className="w-full h-full object-cover hover:opacity-90 transition-opacity"
-											width={400}
-											height={300}
-											quality="auto"
-											crop="fill"
-										/>
-									</Link>
-								) : (
-									<Link
-										to={`/categories/${category}`}
-										className="w-full h-full flex items-center justify-center bg-gray-100 hover:bg-gray-200 transition-colors"
-									>
-										<Icon size={80} className="text-gray-400" />
-									</Link>
-								)}
+							<div className="p-3.5 sm:p-4 flex items-center justify-between border-b border-gray-100 bg-[#F8FAF6] group-hover:bg-emerald-50/50 transition-colors">
+								<h3 className="text-base sm:text-lg font-extrabold text-[#161D14] group-hover:text-[#1A5514] transition-colors">
+									{LABELS[category] || category}
+								</h3>
+								<div className="w-8 h-8 rounded-xl bg-white border border-emerald-200/60 flex items-center justify-center shadow-sm">
+									<Icon className="w-4 h-4 text-[#1A5514]" />
+								</div>
 							</div>
 
-							<Link
-								to={`/categories/${category}`}
-								className="text-primary-600 text-sm font-medium hover:text-primary-800 hover:underline"
-							>
-								Découvrir la catégorie
-							</Link>
-						</div>
+							<div className="relative h-48 sm:h-56 w-full overflow-hidden bg-gray-100">
+								<img
+									src={primaryImage}
+									alt={LABELS[category] || category}
+									className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+								/>
+								<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+							</div>
+
+							<div className="p-3.5 bg-white flex items-center justify-between font-bold text-xs text-[#1A5514] group-hover:text-[#31BC2E]">
+								<span>Découvrir la filière</span>
+								<ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+							</div>
+						</Link>
 					);
 				})}
+			</div>
+
+			<div className="md:hidden mx-auto text-center p-2 my-5">
+				<Link
+					to="/categories"
+					className="text-xs sm:text-sm font-bold text-white hover:text-[#31BC2E] transition-colors bg-[#1A5514] rounded-full p-3 w-64 mx-auto flex items-center justify-center gap-1"
+				>
+					Voir toutes les catégories →
+				</Link>
 			</div>
 		</section>
 	);

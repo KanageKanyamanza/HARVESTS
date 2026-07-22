@@ -29,7 +29,7 @@ const ChatMessage = ({
 		>
 			{/* Avatar */}
 			{isBot ? (
-				<div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-md shadow-emerald-200 mb-1">
+				<div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-tr from-[#1A5514] to-[#31BC2E] text-white shadow-md shadow-emerald-900/20 mb-1">
 					<Bot className="w-5 h-5" />
 				</div>
 			) : userAvatar ? (
@@ -54,7 +54,7 @@ const ChatMessage = ({
 					className={`px-4 py-2.5 text-[13px] leading-relaxed shadow-sm ${
 						isBot
 							? "bg-white border border-gray-100 text-gray-700 rounded-2xl rounded-bl-sm"
-							: "bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-2xl rounded-br-sm shadow-emerald-100"
+							: "bg-gradient-to-br from-[#1A5514] to-[#2E8B22] text-white rounded-2xl rounded-br-sm shadow-emerald-900/10"
 					}`}
 				>
 					{message}

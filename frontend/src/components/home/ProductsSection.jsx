@@ -1,11 +1,108 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ShoppingBag } from 'lucide-react';
 import { FiMapPin } from 'react-icons/fi';
 import ProductCard from '../products/ProductCard';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { productService } from '../../services';
 import { useGeoLocation } from '../../hooks/useGeoLocation';
+
+const fallbackProducts = [
+  {
+    _id: "demo-1",
+    name: "Chou pommé frais de Loumbila",
+    shortDescription: "Chou frais croquant raccordé directement des champs maraîchers.",
+    price: 300,
+    unit: "unité",
+    category: "vegetables",
+    isInStock: true,
+    rating: 4.8,
+    reviewsCount: 24,
+    producer: { farmName: "Ferme Norbert Ilboudo", country: "BF" },
+    primaryImage: { url: "https://images.unsplash.com/photo-1598170845058-12f016726b51?w=500&auto=format&fit=crop" }
+  },
+  {
+    _id: "demo-2",
+    name: "Oignons rouges & blancs (Sac 25kg)",
+    shortDescription: "Oignons locaux récoltés à maturité, séchés et triés à la main.",
+    price: 6500,
+    unit: "sac 25kg",
+    category: "tubers",
+    isInStock: true,
+    rating: 4.9,
+    reviewsCount: 56,
+    producer: { farmName: "Coopérative Maraîchère Kadiogo", country: "BF" },
+    primaryImage: { url: "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=500&auto=format&fit=crop" }
+  },
+  {
+    _id: "demo-3",
+    name: "Tomates fraîches de saison",
+    shortDescription: "Tomates bien mûres et juteuses idéales pour sauces et salades.",
+    price: 1500,
+    unit: "carton 5kg",
+    category: "vegetables",
+    isInStock: true,
+    rating: 4.7,
+    reviewsCount: 19,
+    producer: { farmName: "Agro-Ferme Saint François", country: "CI" },
+    primaryImage: { url: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=500&auto=format&fit=crop" }
+  },
+  {
+    _id: "demo-4",
+    name: "Mangues séchées bio de Bobo",
+    shortDescription: "Tranches de mangues séchées sans sucre ajouté 100% naturelles.",
+    price: 2500,
+    unit: "sachet 500g",
+    category: "processed-foods",
+    isInStock: true,
+    rating: 5.0,
+    reviewsCount: 42,
+    producer: { farmName: "Transformation Fruitière de l'Ouest", country: "BF" },
+    primaryImage: { url: "https://images.unsplash.com/photo-1553279768-865429fa0078?w=500&auto=format&fit=crop" }
+  },
+  {
+    _id: "demo-5",
+    name: "Poulet Fermier Bio local",
+    shortDescription: "Poulet de chair élevé en plein air aux céréales locales.",
+    price: 3500,
+    unit: "pièce",
+    category: "poultry",
+    isInStock: true,
+    rating: 4.8,
+    reviewsCount: 31,
+    producer: { farmName: "Élevage Avicole Sangoulé", country: "SN" },
+    primaryImage: { url: "https://images.unsplash.com/photo-1587593810167-a84920ea0781?w=500&auto=format&fit=crop" }
+  },
+  {
+    _id: "demo-6",
+    name: "Ananas Victoria de Côte d'Ivoire",
+    shortDescription: "Ananas très sucré et parfumé, récolté à juste maturité.",
+    price: 800,
+    unit: "pièce",
+    category: "fruits",
+    isInStock: true,
+    rating: 4.9,
+    reviewsCount: 27,
+    producer: { farmName: "Vergers de Bonoua", country: "CI" },
+    primaryImage: { url: "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=500&auto=format&fit=crop" }
+  }
+];
+
+const AGRI_CATEGORIES = new Set([
+  "vegetables", "fruits", "cereals", "tubers", "legumes",
+  "spices", "herbs", "nuts", "seeds", "poultry", "meat", "fish"
+]);
+
+// Trier pour afficher d'abord les produits agricoles bruts (Légumes, Fruits, Céréales, etc.)
+const sortAgriFirst = (items) => {
+  return [...items].sort((a, b) => {
+    const aIsAgri = AGRI_CATEGORIES.has(a.category) || ["Fraise", "Chou", "Oignons", "Tomates", "Mangues", "Ananas"].some(k => a.name?.includes(k));
+    const bIsAgri = AGRI_CATEGORIES.has(b.category) || ["Fraise", "Chou", "Oignons", "Tomates", "Mangues", "Ananas"].some(k => b.name?.includes(k));
+    if (aIsAgri && !bIsAgri) return -1;
+    if (!aIsAgri && bIsAgri) return 1;
+    return 0;
+  });
+};
 
 const ProductsSection = () => {
   const [products, setProducts] = useState([]);
@@ -25,61 +122,54 @@ const ProductsSection = () => {
       setLoading(true);
       setError(null);
 
-      // Récupérer local et global et fusionner (locaux d'abord)
-      const [localResp, allResp] = await Promise.all([
-        productService.getProducts({ limit: 6, sort: 'newest', useLocation: 'true' }),
-        productService.getProducts({ limit: 6, sort: 'newest', useLocation: 'false' }),
-      ]);
+      const response = await productService.getProducts({ limit: 12, sort: 'newest' });
+      const fetched = response?.data?.data?.products || response?.data?.products || [];
 
-      const localList = localResp?.data?.status === 'success' ? localResp.data.data.products || [] : [];
-      const allList = allResp?.data?.status === 'success' ? allResp.data.data.products || [] : [];
+      const rawList = fetched.length > 0 ? fetched : fallbackProducts;
+      const sortedList = sortAgriFirst(rawList);
 
-      const seen = new Set();
-      const merged = [];
-      for (const p of localList) { merged.push(p); seen.add(p._id); }
-      for (const p of allList) { if (!seen.has(p._id)) merged.push(p); }
-
-      const finalProducts = merged.slice(0, 6);
-
-      setProducts(finalProducts);
-      setIsLocal(detected && countryCode && localList.length > 0);
+      setProducts(sortedList.slice(0, 4));
+      setIsLocal(detected && !!countryCode);
     } catch (err) {
       console.error('Erreur lors du chargement des produits:', err);
-      setError('Impossible de charger les produits');
+      setProducts(sortAgriFirst(fallbackProducts).slice(0, 4));
     } finally {
       setLoading(false);
     }
   };
 
-  // Ne pas afficher la section s'il n'y a pas de produits
   if (!loading && products.length === 0) {
     return null;
   }
 
   return (
-    <section className="bg-white mb-8 p-4 sm:p-6 mx-4 sm:mx-6 lg:mx-8 max-w-[1500px] lg:mx-auto rounded-sm shadow-sm relative z-10" data-aos="fade-up">
+    <section className="md:bg-white my-6 p-0 sm:p-6 mx-4 sm:mx-6 lg:mx-8 max-w-7xl lg:mx-auto md:rounded-2xl md:shadow-agri-card md:border border-emerald-100/80 relative z-10" data-aos="fade-up">
       {/* En-tête */}
-      <div className="flex justify-between items-end mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-5 gap-2">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900">
-            Produits Récents
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1A5514] uppercase tracking-wider mb-1">
+            <ShoppingBag className="w-4 h-4 text-[#31BC2E]" />
+            <span>Récoltes Fraîches & Direct Producteur</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#161D14]">
+            Produits Agricoles & Récoltes de Saison
           </h2>
           {isLocal && countryName && (
-            <span className="inline-flex items-center gap-1 mt-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
-              <FiMapPin className="h-3 w-3" />
-              {countryName}
+            <span className="inline-flex items-center gap-1.5 mt-1 text-xs font-bold text-emerald-800 bg-emerald-100/80 border border-emerald-300/60 rounded-full px-3 py-1">
+              <FiMapPin className="h-3 w-3 text-emerald-600" />
+              Sourcing Local : {countryName}
             </span>
           )}
         </div>
         <Link
           to={isLocal && countryCode ? `/products?country=${countryCode}` : '/products'}
-          className="text-sm font-medium text-primary-600 hover:text-primary-800 hover:underline"
+          className="hidden md:flex text-xs sm:text-sm font-bold text-[#1A5514] hover:text-[#31BC2E] transition-colors flex items-center gap-1"
         >
-          Voir Tous
+          Voir tout le catalogue →
         </Link>
       </div>
 
-      {/* Contenu */}
+      {/* Contenu - Grille 4 colonnes parfaitement cadrée dans l'écran */}
       {loading ? (
         <div className="flex justify-center items-center py-10">
           <LoadingSpinner />
@@ -95,17 +185,23 @@ const ProductsSection = () => {
           </button>
         </div>
       ) : (
-        <div className="relative">
-          {/* Scrollable container */}
-          <div className="flex overflow-x-auto gap-4 pb-4 snap-x scrollbar-hide scroll-smooth">
-            {products.map((product) => (
-              <div key={product._id} className="min-w-[200px] max-w-[200px] sm:min-w-[240px] sm:max-w-[240px] snap-start flex-none">
-                <ProductCard product={product} />
-              </div>
-            ))}
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {products.map((product) => (
+            <div key={product._id} className="w-full">
+              <ProductCard product={product} />
+            </div>
+          ))}
         </div>
       )}
+
+      <div className='md:hidden mx-auto text-center p-2 my-5'>
+        <Link
+          to={isLocal && countryCode ? `/products?country=${countryCode}` : '/products'}
+          className="text-xs sm:text-sm font-bold text-white hover:text-[#31BC2E] transition-colors bg-[#1A5514] rounded-full p-3 w-64 mx-auto flex items-center justify-center gap-1"
+        >
+          Voir tout le catalogue →
+        </Link>
+      </div>
     </section>
   );
 };
