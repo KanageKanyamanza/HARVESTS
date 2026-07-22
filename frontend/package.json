@@ -9,7 +9,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "build": "vite build",
+    "build": "node scripts/set-sw-version.js && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

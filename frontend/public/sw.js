@@ -1,8 +1,7 @@
 // Service Worker pour HARVESTS PWA
-const CACHE_NAME = "harvests-v1.0.0";
+// __BUILD_ID__ est remplacé automatiquement à chaque build (voir scripts/set-sw-version.js)
+const CACHE_NAME = "harvests-__BUILD_ID__";
 const urlsToCache = [
-	"/",
-	"/index.html",
 	"/manifest.json",
 	"/logo.png",
 	"/favicon.ico",
@@ -17,7 +16,7 @@ self.addEventListener("install", (event) => {
 		caches
 			.open(CACHE_NAME)
 			.then((cache) => {
-				console.log("Cache ouvert");
+				console.log("Cache ouvert:", CACHE_NAME);
 				return cache.addAll(urlsToCache);
 			})
 			.catch((error) => {
@@ -32,6 +31,9 @@ self.addEventListener("activate", (event) => {
 	event.waitUntil(
 		Promise.all([
 			self.clients.claim(),
+			// Supprimer TOUS les anciens caches dont le nom ne correspond plus
+			// au build courant, pour forcer la récupération des derniers assets
+			// à chaque déploiement sur main.
 			caches.keys().then((cacheNames) => {
 				return Promise.all(
 					cacheNames.map((cacheName) => {
@@ -61,6 +63,25 @@ self.addEventListener("fetch", (event) => {
 		return;
 	}
 
+	// Navigation (HTML) : toujours réseau d'abord, sinon l'utilisateur peut
+	// rester bloqué sur un ancien index.html qui pointe vers d'anciens bundles
+	// JS/CSS supprimés au build suivant.
+	if (event.request.mode === "navigate" || event.request.destination === "document") {
+		event.respondWith(
+			fetch(event.request)
+				.then((response) => {
+					const responseToCache = response.clone();
+					caches.open(CACHE_NAME).then((cache) => {
+						cache.put(event.request, responseToCache);
+					});
+					return response;
+				})
+				.catch(() => caches.match(event.request).then((cached) => cached || caches.match("/")))
+		);
+		return;
+	}
+
+	// Assets statiques (JS/CSS hashés, images) : cache d'abord, réseau en repli
 	event.respondWith(
 		caches
 			.match(event.request)
@@ -97,7 +118,7 @@ self.addEventListener("fetch", (event) => {
 				if (event.request.destination === "document") {
 					return caches.match("/");
 				}
-				
+
 				// Retourner une réponse vide ou d'erreur au lieu de undefined
 				// pour éviter "Failed to convert value to 'Response'"
 				return new Response('', { status: 408, statusText: 'Network error or Timeout' });
