@@ -32,14 +32,14 @@ const categoryIcons = {
 export const ChatBotButton = ({ onClick }) => (
 	<button
 		onClick={onClick}
-		className="fixed right-6 bottom-5 w-12 h-12 bg-gradient-to-tr from-primary-600 to-primary-500 text-white rounded-[1.5rem] shadow-xl shadow-primary-200 hover:shadow-2xl hover:scale-110 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center z-40 group"
+		className="fixed right-4 bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-6 w-14 h-14 bg-gradient-to-tr from-[#1A5514] to-[#31BC2E] text-white rounded-full shadow-lg shadow-emerald-900/20 hover:shadow-xl hover:shadow-emerald-900/30 hover:scale-110 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center z-40 group ring-4 ring-white/60"
 		aria-label="Ouvrir le chat"
 	>
-		<div className="absolute inset-0 rounded-[1.5rem] bg-white/20 animate-pulse rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-		<MessageCircle className="w-7 h-7" />
+		<span className="absolute inset-0 rounded-full bg-[#31BC2E]/40 animate-ping opacity-0 group-hover:opacity-100" />
+		<MessageCircle className="w-6 h-6 relative z-10" />
 		<span className="absolute -top-1 -right-1 flex h-4 w-4">
-			<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-			<span className="relative inline-flex rounded-full h-4 w-4 bg-rose-500 border-2 border-white"></span>
+			<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF9900] opacity-75"></span>
+			<span className="relative inline-flex rounded-full h-4 w-4 bg-[#FF9900] border-2 border-white"></span>
 		</span>
 	</button>
 );
@@ -54,29 +54,37 @@ export const ChatBotHeader = ({
 	messagesCount,
 }) => (
 	<div
-		className="relative px-5 py-1 flex items-center justify-between cursor-pointer bg-gradient-to-r from-primary-600 to-primary-500 text-white overflow-hidden shrink-0"
+		className={`relative flex items-center justify-between cursor-pointer bg-gradient-to-r from-[#1A5514] to-[#2E8B22] text-white overflow-hidden shrink-0 transition-all ${
+			isMinimized ? "px-4 py-2 h-full" : "px-5 py-3"
+		}`}
 		onClick={() => isMinimized && setIsMinimized(false)}
 	>
 		{/* Decorative circles */}
 		<div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 rounded-full bg-white/10 blur-xl pointer-events-none"></div>
 		<div className="absolute bottom-0 left-0 -ml-4 -mb-4 w-16 h-16 rounded-full bg-black/5 blur-lg pointer-events-none"></div>
 
-		<div className="relative flex items-center gap-4 z-10">
-			<div className="w-11 h-11 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30 shadow-sm">
-				<MessageCircle className="w-6 h-6 text-white" />
+		<div className="relative flex items-center gap-3 z-10 min-w-0">
+			<div
+				className={`bg-white/15 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/25 shadow-sm shrink-0 transition-all ${
+					isMinimized ? "w-8 h-8" : "w-11 h-11"
+				}`}
+			>
+				<MessageCircle className={isMinimized ? "w-4 h-4 text-white" : "w-6 h-6 text-white"} />
 			</div>
-			<div>
-				<h3 className="font-bold text-white text-lg tracking-tight">
+			<div className="min-w-0">
+				<h3 className="font-extrabold text-white text-base sm:text-lg tracking-tight leading-tight truncate">
 					Assistant Harvests
 				</h3>
-				<div className="flex items-center gap-1">
-					<span className="w-2 h-2 mb-2 bg-primary-100 rounded-full animate-pulse shadow-[0_0_8px_rgba(110,231,183,0.8)]"></span>
-					<p className="text-xs font-medium text-white/90">En ligne</p>
-				</div>
+				{!isMinimized && (
+					<div className="flex items-center gap-1.5">
+						<span className="w-1.5 h-1.5 bg-emerald-300 rounded-full animate-pulse shadow-[0_0_8px_rgba(110,231,183,0.9)]"></span>
+						<p className="text-[11px] font-semibold text-white/85">En ligne</p>
+					</div>
+				)}
 			</div>
 		</div>
-		<div className="relative flex items-center gap-1 z-10">
-			{messagesCount > 1 && (
+		<div className="relative flex items-center gap-1 z-10 shrink-0">
+			{messagesCount > 1 && !isMinimized && (
 				<button
 					onClick={(e) => {
 						e.stopPropagation();
@@ -98,20 +106,22 @@ export const ChatBotHeader = ({
 			>
 				<Minus className="w-5 h-5" />
 			</button>
-			<button
-				onClick={(e) => {
-					e.stopPropagation();
-					setIsMaximized(!isMaximized);
-				}}
-				className="w-8 h-8 flex items-center justify-center hover:bg-white/20 rounded-xl transition-colors text-white/80 hover:text-white"
-				title={isMaximized ? "Restaurer" : "Agrandir"}
-			>
-				{isMaximized ? (
-					<Minimize2 className="w-5 h-5" />
-				) : (
-					<Maximize2 className="w-5 h-5" />
-				)}
-			</button>
+			{!isMinimized && (
+				<button
+					onClick={(e) => {
+						e.stopPropagation();
+						setIsMaximized(!isMaximized);
+					}}
+					className="hidden md:flex w-8 h-8 items-center justify-center hover:bg-white/20 rounded-xl transition-colors text-white/80 hover:text-white"
+					title={isMaximized ? "Restaurer" : "Agrandir"}
+				>
+					{isMaximized ? (
+						<Minimize2 className="w-5 h-5" />
+					) : (
+						<Maximize2 className="w-5 h-5" />
+					)}
+				</button>
+			)}
 			<button
 				onClick={(e) => {
 					e.stopPropagation();
@@ -128,20 +138,20 @@ export const ChatBotHeader = ({
 
 export const TypingIndicator = () => (
 	<div className="flex gap-3 px-2 py-1">
-		<div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-100 to-primary-50 text-primary-600 flex items-center justify-center shadow-sm border border-primary-100/50">
+		<div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#1A5514] to-[#31BC2E] text-white flex items-center justify-center shadow-sm">
 			<MessageCircle className="w-4 h-4" />
 		</div>
 		<div className="bg-white border border-gray-100 px-4 py-3 rounded-[1.3rem] rounded-tl-none shadow-sm flex items-center gap-1.5">
 			<span
-				className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-bounce"
+				className="w-1.5 h-1.5 bg-[#31BC2E] rounded-full animate-bounce"
 				style={{ animationDelay: "0ms" }}
 			></span>
 			<span
-				className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-bounce"
+				className="w-1.5 h-1.5 bg-[#31BC2E] rounded-full animate-bounce"
 				style={{ animationDelay: "150ms" }}
 			></span>
 			<span
-				className="w-1.5 h-1.5 bg-primary-400 rounded-full animate-bounce"
+				className="w-1.5 h-1.5 bg-[#31BC2E] rounded-full animate-bounce"
 				style={{ animationDelay: "300ms" }}
 			></span>
 		</div>
@@ -161,7 +171,7 @@ export const ProductResults = ({
 				<Link
 					key={product._id}
 					to={`/products/${product.slug || product._id}`}
-					className="flex gap-3 p-3 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-primary-200 transition-all group"
+					className="flex gap-3 p-3 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-emerald-300 transition-all group"
 					onClick={onClose}
 				>
 					<div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-50 flex-shrink-0 border border-gray-100 relative group-hover:scale-105 transition-transform duration-300">
@@ -178,21 +188,21 @@ export const ProductResults = ({
 						)}
 					</div>
 					<div className="flex-1 min-w-0 flex flex-col justify-center">
-						<p className="font-bold text-gray-900 truncate group-hover:text-primary-700 transition-colors text-[13px]">
+						<p className="font-bold text-gray-900 truncate group-hover:text-[#1A5514] transition-colors text-[13px]">
 							{getProductName(product)}
 						</p>
-						<p className="text-primary-600 font-bold mt-1 text-xs bg-primary-50 w-fit px-2 py-0.5 rounded-lg">
+						<p className="text-[#1A5514] font-bold mt-1 text-xs bg-emerald-50 w-fit px-2 py-0.5 rounded-lg">
 							{product.price?.toLocaleString("fr-FR")} FCFA
 						</p>
 					</div>
-					<div className="flex items-center justify-center w-8 text-gray-300 group-hover:text-primary-500 group-hover:translate-x-1 transition-all">
+					<div className="flex items-center justify-center w-8 text-gray-300 group-hover:text-[#31BC2E] group-hover:translate-x-1 transition-all">
 						<ArrowRight className="w-5 h-5" />
 					</div>
 				</Link>
 			))}
 		<Link
 			to="/products"
-			className="flex items-center justify-center w-full py-3 text-xs font-bold text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-xl transition-all"
+			className="flex items-center justify-center w-full py-3 text-xs font-bold text-[#1A5514] bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-all"
 			onClick={onClose}
 		>
 			Voir tout le catalogue
@@ -302,7 +312,7 @@ export const QuickLinks = ({ links, onAction, onClose }) => (
 				<button
 					key={idx}
 					onClick={() => onAction(link.action)}
-					className="w-full flex items-center justify-between px-4 py-2.5 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-700 hover:bg-primary-50 hover:text-primary-700 hover:border-primary-200 transition-all shadow-sm group"
+					className="w-full flex items-center justify-between px-4 py-2.5 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-700 hover:bg-emerald-50 hover:text-[#1A5514] hover:border-emerald-200 transition-all shadow-sm group"
 				>
 					<span>{link.label}</span>
 					<ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
@@ -311,7 +321,7 @@ export const QuickLinks = ({ links, onAction, onClose }) => (
 				<Link
 					key={idx}
 					to={link.to}
-					className="w-full flex items-center justify-between px-4 py-2.5 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-700 hover:bg-primary-50 hover:text-primary-700 hover:border-primary-200 transition-all shadow-sm group"
+					className="w-full flex items-center justify-between px-4 py-2.5 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-700 hover:bg-emerald-50 hover:text-[#1A5514] hover:border-emerald-200 transition-all shadow-sm group"
 					onClick={onClose}
 				>
 					<span>{link.label}</span>
@@ -381,7 +391,7 @@ export const QuickQuestions = ({ questions, onClick }) => (
 			<button
 				key={faq.id}
 				onClick={() => onClick(faq)}
-				className="w-full text-left p-3 bg-white border border-gray-100 rounded-2xl text-[13px] font-medium text-gray-700 hover:bg-primary-50 hover:text-primary-800 hover:border-primary-200 transition-all shadow-sm hover:shadow-md"
+				className="w-full text-left p-3 bg-white border border-gray-100 rounded-2xl text-[13px] font-medium text-gray-700 hover:bg-emerald-50 hover:text-[#1A5514] hover:border-emerald-200 transition-all shadow-sm hover:shadow-md"
 			>
 				{faq.question}
 			</button>
@@ -401,7 +411,7 @@ export const Categories = ({ onCategoryClick }) => (
 					<button
 						key={cat.id}
 						onClick={() => onCategoryClick(cat.id)}
-						className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-600 hover:bg-primary-500 hover:text-white hover:border-primary-500 hover:shadow-md hover:shadow-primary-200 transition-all duration-300"
+						className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold text-gray-600 hover:bg-[#1A5514] hover:text-white hover:border-[#1A5514] hover:shadow-md hover:shadow-emerald-900/20 transition-all duration-300"
 					>
 						<Icon className="w-3.5 h-3.5" />
 						<span>{cat.label.replace(/[^\w\s]/gi, "").trim()}</span>

@@ -37,14 +37,14 @@ const ChatInput = ({
 					placeholder={placeholder}
 					disabled={disabled}
 					autoComplete="off"
-					className="w-full px-5 py-3 border border-gray-100 rounded-full bg-gray-50 focus:bg-white text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all placeholder-gray-400 font-medium"
+					className="w-full px-5 py-3 border border-gray-100 rounded-full bg-gray-50 focus:bg-white text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-[#31BC2E] disabled:bg-gray-100 disabled:cursor-not-allowed transition-all placeholder-gray-400 font-medium"
 					style={{ fontSize: "15px" }}
 				/>
 			</div>
 			<button
 				type="submit"
 				disabled={!message.trim() || disabled}
-				className="p-3 bg-gradient-to-tr from-emerald-600 to-teal-500 text-white rounded-full hover:shadow-lg hover:shadow-emerald-200 hover:scale-105 disabled:opacity-50 disabled:shadow-none disabled:scale-100 disabled:cursor-not-allowed transition-all duration-300 transform"
+				className="p-3 bg-gradient-to-tr from-[#1A5514] to-[#31BC2E] text-white rounded-full hover:shadow-lg hover:shadow-emerald-900/20 hover:scale-105 disabled:opacity-50 disabled:shadow-none disabled:scale-100 disabled:cursor-not-allowed transition-all duration-300 transform"
 			>
 				<Send className="w-5 h-5 ml-0.5" />
 			</button>

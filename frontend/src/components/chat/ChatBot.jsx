@@ -568,18 +568,19 @@ const ChatBot = () => {
 		setShowTooltip(false);
 	};
 
+	if (!isHomePage) {
+		return null;
+	}
+
 	if (!isOpen) {
 		return (
 			<>
-				<div className="fixed right-6 z-50 bottom-6">
-					<ChatBotButton onClick={() => setIsOpen(true)} />
-				</div>
+				<ChatBotButton onClick={() => setIsOpen(true)} />
 
 				{showTooltip && !isOpen && (
 					<div
-						className="fixed right-24 z-[60] bg-white rounded-lg shadow-2xl p-4 border-2 border-green-200"
+						className="fixed right-24 z-[60] bg-white rounded-lg shadow-2xl p-4 border-2 border-green-200 bottom-[calc(4rem+env(safe-area-inset-bottom))] md:bottom-6"
 						style={{
-							bottom: "24px",
 							width: "320px",
 							maxWidth: "calc(100vw - 110px)",
 						}}
@@ -633,12 +634,12 @@ const ChatBot = () => {
 
 	return (
 		<div
-			className={`fixed z-40 flex flex-col overflow-hidden transition-all duration-500 ease-out border border-white/50 ring-1 ring-black/5 bg-white rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] ${
+			className={`fixed z-40 flex flex-col overflow-hidden transition-all duration-500 ease-out border border-emerald-900/5 ring-1 ring-black/5 bg-white rounded-xl shadow-[0_20px_60px_-15px_rgba(26,85,20,0.35)] ${
 				isMinimized ? "right-6 w-96 max-w-[calc(100vw-3rem)] h-[4rem]"
 				: isMaximized ? "right-[5vw] left-[5vw] w-[90vw] bottom-[5vh] h-[90vh]"
 				: "right-6 w-96 max-w-[calc(100vw-3rem)] h-[700px] max-h-[85vh]"
-			} ${!isMaximized && "bottom-8"} ${
-				isMinimized && "bottom-8"
+			} ${!isMaximized && "bottom-[calc(4.5rem+env(safe-area-inset-bottom))] md:bottom-6"} ${
+				isMinimized && "bottom-[calc(4.5rem+env(safe-area-inset-bottom))] md:bottom-6"
 			}`}
 		>
 			<ChatBotHeader
@@ -653,7 +654,7 @@ const ChatBot = () => {
 
 			{!isMinimized && (
 				<>
-					<div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+					<div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F8FAF6]">
 						<ChatMessages
 							messages={messages}
 							isTyping={isTyping}
