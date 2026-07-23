@@ -104,6 +104,10 @@ const sortAgriFirst = (items) => {
   });
 };
 
+// Cache module (survit aux démontages) : 5 minutes
+const CACHE_DURATION = 5 * 60 * 1000;
+let sectionCache = null;
+
 const ProductsSection = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -118,18 +122,41 @@ const ProductsSection = () => {
   }, [geoLoading, countryCode]);
 
   const loadProducts = async () => {
+    const cacheKey = countryCode || 'global';
+    if (
+      sectionCache &&
+      sectionCache.key === cacheKey &&
+      Date.now() - sectionCache.timestamp < CACHE_DURATION
+    ) {
+      setProducts(sectionCache.products);
+      setIsLocal(sectionCache.isLocal);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
-      const response = await productService.getProducts({ limit: 12, sort: 'newest' });
+      // On n'affiche que 4 produits (slice ci-dessous) : une petite marge de
+      // 6 suffit pour laisser sortAgriFirst réordonner sans sur-solliciter l'API.
+      const response = await productService.getProducts({ limit: 6, sort: 'newest' });
       const fetched = response?.data?.data?.products || response?.data?.products || [];
 
       const rawList = fetched.length > 0 ? fetched : fallbackProducts;
       const sortedList = sortAgriFirst(rawList);
+      const finalProducts = sortedList.slice(0, 4);
+      const finalIsLocal = detected && !!countryCode;
 
-      setProducts(sortedList.slice(0, 4));
-      setIsLocal(detected && !!countryCode);
+      sectionCache = {
+        key: cacheKey,
+        products: finalProducts,
+        isLocal: finalIsLocal,
+        timestamp: Date.now(),
+      };
+
+      setProducts(finalProducts);
+      setIsLocal(finalIsLocal);
     } catch (err) {
       console.error('Erreur lors du chargement des produits:', err);
       setProducts(sortAgriFirst(fallbackProducts).slice(0, 4));

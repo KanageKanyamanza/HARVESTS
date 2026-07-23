@@ -38,12 +38,27 @@ const CATEGORY_FALLBACK_IMAGES = {
 	"processed-foods": "https://images.unsplash.com/photo-1553279768-865429fa0078?w=600&auto=format&fit=crop"
 };
 
+// Cache au niveau module : survit aux montages/démontages du composant
+// (ex: navigation depuis/vers la home) pour éviter de refaire 8-16 requêtes
+// à chaque retour sur la page d'accueil.
+const CACHE_DURATION = 5 * 60 * 1000;
+let sectionCache = null;
+
 const CategoriesSection = () => {
 	const [visibleCategories, setVisibleCategories] = useState([]);
 	const [categoryProducts, setCategoryProducts] = useState({});
 	const [loading, setLoading] = useState(true);
 
 	const loadCategories = useCallback(async () => {
+		// Servir depuis le cache module si encore valide (évite de refaire
+		// 8 requêtes à chaque retour sur la home)
+		if (sectionCache && Date.now() - sectionCache.timestamp < CACHE_DURATION) {
+			setCategoryProducts(sectionCache.products);
+			setVisibleCategories(sectionCache.visibleCategories);
+			setLoading(false);
+			return;
+		}
+
 		setLoading(true);
 		try {
 			let cats = ALL_CATEGORIES;
@@ -53,6 +68,10 @@ const CategoriesSection = () => {
 					cats = resp.data.data;
 				}
 			} catch {}
+
+			// Limiter à 8 catégories interrogées en parallèle : on n'en
+			// affiche que 4, inutile de saturer l'API avec 16 requêtes.
+			cats = cats.slice(0, 8);
 
 			const results = await Promise.allSettled(
 				cats.map((cat) => productService.getProductsByCategory(cat, { limit: 1 }))
@@ -72,6 +91,12 @@ const CategoriesSection = () => {
 
 			// If empty, use top 4 default categories
 			const displayCats = visible.length >= 4 ? visible.slice(0, 8) : ["spices", "tubers", "vegetables", "other"];
+
+			sectionCache = {
+				products,
+				visibleCategories: displayCats,
+				timestamp: Date.now(),
+			};
 
 			setCategoryProducts(products);
 			setVisibleCategories(displayCats);

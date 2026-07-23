@@ -1,266 +1,563 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { producerService, reviewService } from "../services";
-import { FiMapPin, FiStar, FiPackage, FiArrowRight, FiChevronDown, FiX } from "react-icons/fi";
-import { Leaf } from "lucide-react";
-import { getCountryName } from "../utils/countryMapper";
+import { 
+  FiMapPin, FiStar, FiPackage, FiArrowRight, FiChevronDown, FiX, FiSearch, FiCheck, FiGrid, FiList
+} from "react-icons/fi";
+import { Leaf, Sprout, Search, ShieldCheck } from "lucide-react";
+import { getCountryName, SUPPORTED_COUNTRIES, REGIONAL_ZONES } from "../utils/countryMapper";
 import LoadingSpinner from "../components/common/LoadingSpinner";
+import SEOHead from "../components/seo/SEOHead";
 import { useApiCache } from "../hooks/useApiCache";
 
 const Producers = () => {
-	const [producers, setProducers] = useState([]);
-	const [loading, setLoading] = useState(true);
-	const [searchParams, setSearchParams] = useSearchParams();
-	const selectedCountry = searchParams.get("country") || "";
-	
-	const { getCachedData, setCachedData } = useApiCache(5 * 60 * 1000); // Cache de 5 minutes
+  const [producers, setProducers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState(() => {
+    return localStorage.getItem('preferred_view_mode') || 'grid';
+  });
 
-	const handleCountryChange = (country) => {
-		const newParams = new URLSearchParams(searchParams);
-		if (country) {
-			newParams.set("country", country);
-		} else {
-			newParams.delete("country");
-		}
-		setSearchParams(newParams);
-	};
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+    localStorage.setItem('preferred_view_mode', mode);
+  };
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
-	useEffect(() => {
-		const loadProducers = async (forceRefresh = false) => {
-			const cacheKey = `producers_list_${selectedCountry}`;
-			try {
-				if (!forceRefresh) {
-					const cached = getCachedData(cacheKey);
-					if (cached) {
-						setProducers(cached.producers || []);
-						setLoading(false);
-						return;
-					}
-				}
-				setLoading(true);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedCountry = searchParams.get("country") || "";
+  const [isCountryOpen, setIsCountryOpen] = useState(false);
+  const countryDropdownRef = useRef(null);
 
-				const isMyZone = selectedCountry === "MY_ZONE";
+  useEffect(() => {
+    if (!isCountryOpen) return;
+    const handleClickOutside = (e) => {
+      if (countryDropdownRef.current && !countryDropdownRef.current.contains(e.target)) {
+        setIsCountryOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isCountryOpen]);
 
-				const fetchProducers = async (useLocation, country) => {
-					const params = { limit: 20 };
-					if (useLocation !== undefined) params.useLocation = useLocation ? "true" : "false";
-					if (country) params.country = country;
-					const response = await producerService.getAllPublic(params);
-					if (response.data.status === "success") return { list: response.data.data.producers || [], location: response.data.data.location || null };
-					return { list: [], location: null };
-				};
+  const { getCachedData, setCachedData } = useApiCache(5 * 60 * 1000);
 
-				if (isMyZone) {
-					const { list } = await fetchProducers(true);
-					const withRatings = await Promise.all(list.map(async (p) => {
-						if (!p?._id) return p;
-						try {
-							const statsResponse = await reviewService.getProducerRatingStats(p._id);
-							const statsData = statsResponse?.data;
-							if (statsData) {
-								return { ...p, ratings: { ...(p.ratings || {}), average: statsData.averageRating || 0, count: statsData.totalReviews || 0 }, stats: { ...(p.stats || {}), averageRating: statsData.averageRating || 0, totalReviews: statsData.totalReviews || 0 }, reviewStats: statsData };
-							}
-						} catch (e) { console.error(e); }
-						return p;
-					}));
-					setProducers(withRatings);
-					setCachedData(cacheKey, { producers: withRatings, locationInfo: null });
-					setLoading(false);
-					return;
-				}
+  const handleCountryChange = (country) => {
+    setCurrentPage(1);
+    const newParams = new URLSearchParams(searchParams);
+    if (country) {
+      newParams.set("country", country);
+    } else {
+      newParams.delete("country");
+    }
+    setSearchParams(newParams);
+  };
 
-				if (!selectedCountry) {
-					const [allResp, localResp] = await Promise.all([fetchProducers(false), fetchProducers(true)]);
-					const allList = allResp.list;
-					const localList = localResp.list;
-					const seen = new Set();
-					const merged = [];
-					for (const v of localList) { merged.push({ ...v, isLocal: true }); seen.add(v._id); }
-					for (const v of allList) { if (!seen.has(v._id)) merged.push(v); }
-					setProducers(merged);
-					setCachedData(cacheKey, { producers: merged, locationInfo: allResp.location || localResp.location });
-					setLoading(false);
-					return;
-				}
+  useEffect(() => {
+    const loadProducers = async (forceRefresh = false) => {
+      const cacheKey = `producers_list_p${currentPage}_${selectedCountry}_q${searchQuery}`;
+      try {
+        if (!forceRefresh) {
+          const cached = getCachedData(cacheKey);
+          if (cached) {
+            setProducers(cached.producers || []);
+            setTotalPages(cached.totalPages || 1);
+            setTotalCount(cached.totalCount || 0);
+            setLoading(false);
+            return;
+          }
+        }
+        setLoading(true);
 
-				// specific country selected
-				const resp = await fetchProducers(false, selectedCountry);
-				setProducers(resp.list);
-				setCachedData(cacheKey, { producers: resp.list, locationInfo: resp.location });
-				setLoading(false);
-			} catch (error) {
-				console.error("Erreur lors du chargement des producteurs:", error);
-				setLoading(false);
-			}
-		};
+        const isMyZone = selectedCountry === "MY_ZONE";
 
-		loadProducers();
-	}, [getCachedData, setCachedData, selectedCountry]);
+        const fetchProducers = async (useLocation, country) => {
+          const params = { page: currentPage, limit: 60 }; // User requested 50-60 limit
+          if (useLocation !== undefined) params.useLocation = useLocation ? "true" : "false";
+          if (country) params.country = country;
+          if (searchQuery.trim()) params.search = searchQuery.trim();
 
-	if (loading) {
-		return (
-			<div className="min-h-screen bg-harvests-light flex items-center justify-center">
-				<LoadingSpinner size="lg" text="Chargement des producteurs..." />
-			</div>
-		);
-	}
+          const response = await producerService.getAllPublic(params);
+          if (response.data.status === "success") {
+            return { 
+              list: response.data.data.producers || [], 
+              totalPages: response.data.totalPages || 1,
+              total: response.data.total || (response.data.data.producers || []).length,
+              location: response.data.data.location || null 
+            };
+          }
+          return { list: [], totalPages: 1, total: 0, location: null };
+        };
 
-	return (
-		<div className="min-h-screen bg-harvests-light">
-			<div className="container mx-auto px-4 py-8">
-				<div className="text-center mb-8">
-					<h1 className="text-4xl font-bold text-gray-900 mb-4">
-						Nos Producteurs
-					</h1>
-					<p className="text-xl text-gray-600 mb-8">
-						Découvrez les producteurs locaux qui cultivent des produits frais et
-						de qualité
-					</p>
+        let finalProducers = [];
+        let pages = 1;
+        let count = 0;
 
-					{/* Filtre de pays */}
-					<div className="flex justify-center mb-10">
-						<div className="relative inline-flex items-center">
-							<div className="relative">
-								<FiMapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 h-5 w-5 pointer-events-none" />
-								<select
-									value={selectedCountry}
-									onChange={(e) => handleCountryChange(e.target.value)}
-									className="pl-10 pr-10 py-3 bg-white border-2 border-green-100 rounded-2xl focus:ring-4 focus:ring-green-500/10 focus:border-green-500 appearance-none text-gray-700 font-bold shadow-sm transition-all cursor-pointer min-w-[240px]"
-								>
-									<option value="MY_ZONE">Ma zone</option>
-									<option value="">Tous les pays / zones</option>
-									<optgroup label="Zones">
-										<option value="West Africa">Afrique de l'Ouest</option>
-										<option value="Central Africa">Afrique Centrale</option>
-									</optgroup>
-									<optgroup label="Pays">
-										<option value="SN">Sénégal</option>
-										<option value="CM">Cameroun</option>
-										<option value="CI">Côte d'Ivoire</option>
-										<option value="BF">Burkina Faso</option>
-										<option value="ML">Mali</option>
-										<option value="GH">Ghana</option>
-										<option value="NG">Nigeria</option>
-									</optgroup>
-								</select>
-								<FiChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
-							</div>
-							
-							{selectedCountry && (
-								<button
-									onClick={() => handleCountryChange("")}
-									className="ml-3 p-3 text-gray-400 hover:text-red-500 bg-white border-2 border-gray-100 rounded-2xl transition-colors shadow-sm"
-									title="Effacer le filtre"
-								>
-									<FiX className="h-5 w-5" />
-								</button>
-							)}
-						</div>
-					</div>
+        if (isMyZone) {
+          const res = await fetchProducers(true);
+          finalProducers = res.list;
+          pages = res.totalPages;
+          count = res.total;
+        } else if (!selectedCountry) {
+          const [allResp, localResp] = await Promise.all([fetchProducers(false), fetchProducers(true)]);
+          const allList = allResp.list;
+          const localList = localResp.list;
+          const seen = new Set();
+          const merged = [];
+          for (const v of localList) { merged.push({ ...v, isLocal: true }); seen.add(v._id); }
+          for (const v of allList) { if (!seen.has(v._id)) merged.push(v); }
+          finalProducers = merged;
+          pages = allResp.totalPages;
+          count = allResp.total;
+        } else {
+          const resp = await fetchProducers(false, selectedCountry);
+          finalProducers = resp.list;
+          pages = resp.totalPages;
+          count = resp.total;
+        }
 
-					</div>
+        // Attach ratings if missing
+        const withRatings = await Promise.all(finalProducers.map(async (p) => {
+          if (!p?._id) return p;
+          try {
+            const statsResponse = await reviewService.getProducerRatingStats(p._id);
+            const statsData = statsResponse?.data;
+            if (statsData) {
+              return { 
+                ...p, 
+                ratings: { ...(p.ratings || {}), average: statsData.averageRating || 0, count: statsData.totalReviews || 0 }, 
+                stats: { ...(p.stats || {}), averageRating: statsData.averageRating || 0, totalReviews: statsData.totalReviews || 0 }, 
+                reviewStats: statsData 
+              };
+            }
+          } catch (e) { console.error(e); }
+          return p;
+        }));
 
-				{producers.length > 0 ?
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-						{producers.map((producer) => (
-							<Link
-								key={producer._id}
-								to={`/producers/${producer._id}`}
-								className="bg-white border border-gray-200 rounded-sm hover:shadow-md transition-shadow overflow-hidden block group"
-							>
-								{/* Bannière en arrière-plan */}
-								<div className="relative h-40 bg-gray-100">
-									{producer.shopBanner ?
-										<img
-											src={producer.shopBanner}
-											alt="Bannière de la boutique"
-											className="w-full h-full object-cover"
-										/>
-									:	<div className="w-full h-full bg-gradient-to-r from-gray-200 to-gray-300 flex items-center justify-center">
-											<FiPackage className="w-12 h-12 text-gray-400" />
-										</div>
-									}
+        setProducers(withRatings);
+        setTotalPages(pages);
+        setTotalCount(count || withRatings.length);
+        setCachedData(cacheKey, { producers: withRatings, totalPages: pages, totalCount: count || withRatings.length });
+      } catch (error) {
+        console.error("Erreur lors du chargement des producteurs:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-									{/* Photo de profil centrée qui déborde */}
-									<div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2">
-										<div className="w-16 h-16 rounded-full bg-white p-1 border border-gray-200 shadow-sm">
-											<div className="w-full h-full rounded-full bg-gray-100 overflow-hidden">
-												{producer.avatar ?
-													<img
-														src={producer.avatar}
-														alt={`${producer.firstName} ${producer.lastName}`}
-														className="w-full h-full object-cover"
-													/>
-												:	<div className="w-full h-full bg-primary-100 flex items-center justify-center">
-														<span className="text-lg font-bold text-primary-700">
-															{producer.firstName?.[0]}
-															{producer.lastName?.[0]}
-														</span>
-													</div>
-												}
-											</div>
-										</div>
-									</div>
-								</div>
+    loadProducers();
+  }, [getCachedData, setCachedData, selectedCountry, currentPage, searchQuery]);
 
-								{/* Informations */}
-								<div className="px-4 pt-10 pb-4 text-center">
-									<h3 className="font-bold text-gray-900 text-lg mb-1 truncate">
-										{producer.shopInfo?.shopName ||
-											((producer.farmName && producer.farmName !== "À compléter") ?
-												producer.farmName
-											:	null) ||
-											`${producer.firstName} ${
-												producer.lastName !== "À compléter" ?
-													producer.lastName
-												:	""
-											}`.trim()}
-									</h3>
-									
-									<div className="flex items-center justify-center text-sm text-gray-600 mb-2">
-										<FiMapPin className="mr-1 h-3 w-3" />
-										<span>{getCountryName(producer.country)}</span>
-										{producer.address?.city && (
-											<span className="ml-1">• {producer.address.city}</span>
-										)}
-									</div>
+  const filteredProducers = producers.filter(p => {
+    if (!searchQuery.trim()) return true;
+    const term = searchQuery.toLowerCase().trim();
+    const name = (p.shopInfo?.shopName || p.farmName || `${p.firstName} ${p.lastName}`).toLowerCase();
+    const city = (p.address?.city || '').toLowerCase();
+    const country = getCountryName(p.country).toLowerCase();
+    return name.includes(term) || city.includes(term) || country.includes(term);
+  });
 
-									<div className="flex items-center justify-center space-x-2 mb-4">
-										<div className="flex items-center text-yellow-500">
-											<span className="text-sm font-bold text-gray-800 mr-1">
-												{producer.salesStats?.averageRating?.toFixed(1) || "0.0"}
-											</span>
-											<FiStar className="h-4 w-4 fill-current" />
-										</div>
-										{producer.isBio && (
-											<span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
-												<Leaf className="w-3 h-3 mr-1" />
-												BIO
-											</span>
-										)}
-									</div>
+  if (loading && producers.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#F8FAF6] flex items-center justify-center">
+        <LoadingSpinner size="lg" text="Chargement des producteurs agricoles..." />
+      </div>
+    );
+  }
 
-									<div className="text-primary-600 text-sm font-medium hover:text-primary-800 hover:underline inline-flex items-center">
-										Visiter la boutique
-										<FiArrowRight className="ml-1 h-4 w-4" />
-									</div>
-								</div>
-							</Link>
-						))}
-					</div>
-				:	<div className="text-center py-16 bg-white border border-gray-200 rounded-sm">
-						<FiPackage className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-						<h3 className="text-xl font-bold text-gray-900 mb-2">
-							Aucun producteur disponible
-						</h3>
-						<p className="text-gray-500 max-w-md mx-auto">
-							Il n'y a actuellement aucun producteur correspondant à vos critères.
-						</p>
-					</div>
-				}
-			</div>
-		</div>
-	);
+  return (
+    <div className="min-h-screen bg-[#F8FAF6] pb-16">
+      <SEOHead title="Producteurs Agricoles Certifiés | Harvests" description="Découvrez les exploitations agricoles et fermes locales certifiées." />
+      
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 pt-3 sm:pt-4">
+
+        {/* Hero Banner Agritech */}
+        <div className="relative rounded-2xl bg-gradient-to-r from-[#161D14] via-[#1A5514] to-[#0D330A] text-white p-6 sm:p-10 mb-6 overflow-hidden shadow-xl border border-emerald-800/40">
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+          
+          <div className="relative z-10 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-3">
+              <Sprout className="w-4 h-4 text-[#31BC2E]" />
+              <span>Exploitations & Fermes Verifiées</span>
+            </div>
+            
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight mb-3">
+              Nos Producteurs Agricoles
+            </h1>
+            
+            <p className="text-emerald-100/90 text-xs sm:text-sm leading-relaxed">
+              Achetez en direct des coopératives et agriculteurs certifiés. Produits ultra-frais, traçables et issus de circuits courts locaux.
+            </p>
+          </div>
+        </div>
+
+        {/* Search & Country Filter Toolbar (Sticky sous la Navbar 108px) */}
+        <div className="sticky top-16 sm:top-20 lg:top-[116px] z-30 bg-white/95 backdrop-blur-md rounded-2xl shadow-md border border-emerald-100/90 p-3 sm:p-4 mb-6 transition-all">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            
+            {/* Search Input */}
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Chercher une ferme, un producteur, une ville..."
+                className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm border border-gray-200/90 rounded-xl focus:ring-2 focus:ring-[#1A5514] focus:border-transparent outline-none transition-all shadow-sm"
+              />
+              {searchQuery && (
+                <button 
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs font-bold text-gray-400 hover:text-gray-600 bg-gray-100 px-2 py-0.5 rounded"
+                >
+                  Effacer
+                </button>
+              )}
+            </div>
+
+            {/* Country Select Filter + Toggle */}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="relative w-full sm:w-56" ref={countryDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsCountryOpen((o) => !o)}
+                  className="w-full flex items-center pl-9 pr-8 py-2 bg-white border border-gray-200/90 rounded-xl focus:ring-2 focus:ring-[#1A5514] text-xs font-bold text-gray-800 shadow-sm cursor-pointer relative text-left truncate"
+                >
+                  <FiMapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600 h-4 w-4 pointer-events-none" />
+                  <span className="truncate">
+                    {selectedCountry === "MY_ZONE" && "📍 Ma zone locale"}
+                    {selectedCountry === "" && "🌍 Tous les pays"}
+                    {selectedCountry &&
+                      selectedCountry !== "MY_ZONE" &&
+                      (REGIONAL_ZONES.find((z) => z.id === selectedCountry)?.label ||
+                        (() => {
+                          const c = SUPPORTED_COUNTRIES.find((c) => c.code === selectedCountry);
+                          return c ? `${c.flag} ${c.name}` : selectedCountry;
+                        })())}
+                  </span>
+                  <FiChevronDown className={`absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none transition-transform ${isCountryOpen ? "rotate-180" : ""}`} />
+                </button>
+
+                {isCountryOpen && (
+                  <div className="absolute z-30 mt-2 left-0 right-0 sm:w-64 bg-white border border-gray-100 rounded-2xl shadow-xl shadow-black/10 max-h-80 overflow-y-auto py-2">
+                    {[
+                      { value: "MY_ZONE", label: "📍 Ma zone locale" },
+                      { value: "", label: "🌍 Tous les pays" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.value || "all"}
+                        onClick={() => {
+                          handleCountryChange(opt.value);
+                          setIsCountryOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-4 py-2.5 text-sm font-bold text-left transition-colors ${
+                          selectedCountry === opt.value
+                            ? "bg-emerald-50 text-[#1A5514]"
+                            : "text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        {opt.label}
+                        {selectedCountry === opt.value && <FiCheck className="h-4 w-4 text-[#1A5514]" />}
+                      </button>
+                    ))}
+
+                    <p className="px-4 pt-3 pb-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Zones régionales</p>
+                    {REGIONAL_ZONES.map((z) => (
+                      <button
+                        key={z.id}
+                        onClick={() => {
+                          handleCountryChange(z.id);
+                          setIsCountryOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium text-left transition-colors ${
+                          selectedCountry === z.id
+                            ? "bg-emerald-50 text-[#1A5514] font-bold"
+                            : "text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        {z.label}
+                        {selectedCountry === z.id && <FiCheck className="h-4 w-4 text-[#1A5514]" />}
+                      </button>
+                    ))}
+
+                    <p className="px-4 pt-3 pb-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Pays</p>
+                    {SUPPORTED_COUNTRIES.map((c) => (
+                      <button
+                        key={c.code}
+                        onClick={() => {
+                          handleCountryChange(c.code);
+                          setIsCountryOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-4 py-2.5 text-sm font-medium text-left transition-colors ${
+                          selectedCountry === c.code
+                            ? "bg-emerald-50 text-[#1A5514] font-bold"
+                            : "text-gray-700 hover:bg-gray-50"
+                        }`}
+                      >
+                        <span>{c.flag} {c.name}</span>
+                        {selectedCountry === c.code && <FiCheck className="h-4 w-4 text-[#1A5514]" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {selectedCountry && (
+                <button
+                  onClick={() => handleCountryChange("")}
+                  className="p-2 text-gray-500 hover:text-red-600 bg-gray-50 border border-gray-200 rounded-xl transition-colors"
+                  title="Effacer le filtre pays"
+                >
+                  <FiX className="h-4 w-4" />
+                </button>
+              )}
+
+              {/* Switcher Grille / Liste */}
+              <div className="flex items-center bg-gray-100 p-1 rounded-xl gap-1 border border-gray-200">
+                <button
+                  onClick={() => handleViewModeChange('grid')}
+                  className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-xs font-bold ${viewMode === 'grid' ? 'bg-[#1A5514] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                  title="Vue en grille"
+                >
+                  <FiGrid className="h-4 w-4" />
+                  <span className="hidden sm:inline">Grille</span>
+                </button>
+                <button
+                  onClick={() => handleViewModeChange('list')}
+                  className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-xs font-bold ${viewMode === 'list' ? 'bg-[#1A5514] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                  title="Vue en liste"
+                >
+                  <FiList className="h-4 w-4" />
+                  <span className="hidden sm:inline">Liste</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <div className="mt-2.5 pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+            <span>
+              Affichage de <strong className="text-gray-900">{filteredProducers.length}</strong> producteur{filteredProducers.length > 1 ? 's' : ''} (page {currentPage} sur {totalPages})
+            </span>
+          </div>
+        </div>
+
+        {/* Producers Cards Grid / List */}
+        {filteredProducers.length > 0 ? (
+          viewMode === 'grid' ? (
+            /* VUE EN GRILLE (4 COLONNES) */
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
+              {filteredProducers.map((producer) => {
+                const producerName = producer.shopInfo?.shopName ||
+                  ((producer.farmName && producer.farmName !== "À compléter") ? producer.farmName : null) ||
+                  `${producer.firstName} ${producer.lastName !== "À compléter" ? producer.lastName : ""}`.trim();
+                const rating = producer.salesStats?.averageRating || producer.stats?.averageRating || 4.8;
+                const reviewCount = producer.salesStats?.totalReviews || producer.stats?.totalReviews || 0;
+
+                return (
+                  <div 
+                    key={producer._id} 
+                    className="bg-white border border-gray-200/90 rounded-2xl hover:border-emerald-500/40 hover:shadow-xl transition-all duration-300 flex flex-col justify-between group overflow-hidden"
+                  >
+                    <div>
+                      {/* Banner Image */}
+                      <div className="h-32 bg-gradient-to-r from-emerald-900 to-emerald-700 relative overflow-hidden">
+                        {producer.shopBanner ? (
+                          <img 
+                            src={producer.shopBanner} 
+                            alt={producerName} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                          />
+                        ) : (
+                          <div className="w-full h-full opacity-20 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
+                        )}
+
+                        {/* Top Left Verified Badge */}
+                        <div className="absolute top-2.5 left-2.5 bg-[#1A5514]/90 backdrop-blur-md border border-emerald-500/40 text-white px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-sm z-10">
+                          <ShieldCheck className="w-3.5 h-3.5 text-[#31BC2E]" />
+                          <span>Producteur Vérifié</span>
+                        </div>
+
+                        {/* Top Right Rating Badge */}
+                        <div className="absolute top-2.5 right-2.5 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full text-white text-[11px] font-bold flex items-center gap-1 shadow-sm z-10">
+                          <FiStar className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                          <span>{rating.toFixed(1)}</span>
+                          {reviewCount > 0 && <span className="text-gray-300 font-normal">({reviewCount})</span>}
+                        </div>
+                      </div>
+
+                      {/* Vendor Profile Avatar */}
+                      <div className="px-4 -mt-7 flex items-end justify-between relative z-10">
+                        <div className="w-14 h-14 rounded-xl bg-white p-0.5 border border-gray-200/90 shadow-md overflow-hidden flex-shrink-0">
+                          {producer.avatar ? (
+                            <img src={producer.avatar} alt={producerName} className="w-full h-full object-cover rounded-lg" />
+                          ) : (
+                            <div className="w-full h-full rounded-lg bg-emerald-50 text-[#1A5514] font-black flex items-center justify-center text-lg">
+                              {producer.firstName?.[0] || 'P'}
+                            </div>
+                          )}
+                        </div>
+
+                        {producer.isBio && (
+                          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-2 py-0.5 rounded-md text-[10px] font-extrabold flex items-center gap-1">
+                            <Leaf className="w-3 h-3 text-emerald-600" />
+                            <span>BIO</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Details */}
+                      <div className="p-4 pt-3 space-y-2 min-w-0">
+                        <h3 className="text-base font-extrabold text-[#161D14] group-hover:text-[#1A5514] transition-colors truncate whitespace-nowrap overflow-hidden block" title={producerName}>
+                          {producerName}
+                        </h3>
+
+                        {/* Location */}
+                        <div className="flex items-center text-xs text-gray-500 font-medium truncate">
+                          <FiMapPin className="w-3.5 h-3.5 text-emerald-600 mr-1 flex-shrink-0" />
+                          <span className="truncate whitespace-nowrap overflow-hidden">
+                            {producer.address?.city ? `${producer.address.city}, ` : ''}{getCountryName(producer.country)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* CTA Footer Link */}
+                    <Link
+                      to={`/producers/${producer._id}`}
+                      className="m-4 mt-0 pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-[#1A5514] hover:text-[#31BC2E] transition-colors"
+                    >
+                      <span>Visiter l'exploitation</span>
+                      <FiArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            /* VUE EN LISTE (1 SEULE COLONNE LARGE) */
+            <div className="grid md:grid-cols-2 gap-3.5">
+              {filteredProducers.map((producer) => {
+                const producerName = producer.shopInfo?.shopName ||
+                  ((producer.farmName && producer.farmName !== "À compléter") ? producer.farmName : null) ||
+                  `${producer.firstName} ${producer.lastName !== "À compléter" ? producer.lastName : ""}`.trim();
+                const rating = producer.salesStats?.averageRating || producer.stats?.averageRating || 4.8;
+                const reviewCount = producer.salesStats?.totalReviews || producer.stats?.totalReviews || 0;
+
+                return (
+                  <div 
+                    key={producer._id} 
+                    className="group bg-white rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-lg hover:border-emerald-300 transition-all p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 min-w-0"
+                  >
+                    {/* Left: Avatar + Details */}
+                    <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                      <div className="w-14 h-14 rounded-xl bg-white p-0.5 border border-gray-200/90 shadow-md overflow-hidden flex-shrink-0">
+                        {producer.avatar ? (
+                          <img src={producer.avatar} alt={producerName} className="w-full h-full object-cover rounded-lg" />
+                        ) : (
+                          <div className="w-full h-full rounded-lg bg-emerald-50 text-[#1A5514] font-black flex items-center justify-center text-lg">
+                            {producer.firstName?.[0] || 'P'}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-1 min-w-0 flex-1">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <h3 className="text-sm sm:text-base font-extrabold text-[#161D14] group-hover:text-[#1A5514] transition-colors truncate whitespace-nowrap overflow-hidden block" title={producerName}>
+                            {producerName}
+                          </h3>
+                          
+                          <div className="hidden sm:flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 flex-shrink-0">
+                            <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                            <span>Vérifié</span>
+                          </div>
+
+                          {producer.isBio && (
+                            <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-1.5 py-0.5 rounded text-[10px] font-extrabold flex items-center gap-1 flex-shrink-0">
+                              <Leaf className="w-3 h-3 text-emerald-600" />
+                              <span>BIO</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-3 text-xs text-gray-500 font-medium flex-wrap">
+                          <span className="flex items-center">
+                            <FiMapPin className="w-3.5 h-3.5 text-emerald-600 mr-1" />
+                            {producer.address?.city ? `${producer.address.city}, ` : ''}{getCountryName(producer.country)}
+                          </span>
+
+                          <span className="flex items-center text-yellow-600 font-bold">
+                            <FiStar className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400 mr-1" />
+                            {rating.toFixed(1)} {reviewCount > 0 && `(${reviewCount} avis)`}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right: CTA Button */}
+                    <div className="flex-shrink-0 self-end md:self-center">
+                      <Link
+                        to={`/producers/${producer._id}`}
+                        className="bg-[#1A5514] hover:bg-[#31BC2E] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 group-hover:shadow-md"
+                      >
+                        <span>Visiter l'exploitation</span>
+                        <FiArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )
+        ) : (
+          <div className="text-center py-16 bg-white rounded-2xl border border-emerald-100 shadow-sm">
+            <FiPackage className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <h3 className="text-base font-extrabold text-[#161D14] mb-1">
+              Aucun producteur trouvé
+            </h3>
+            <p className="text-xs text-gray-500 max-w-sm mx-auto mb-4">
+              Aucun producteur agricole ne correspond aux filtres sélectionnés.
+            </p>
+            {(selectedCountry || searchQuery) && (
+              <button
+                onClick={() => { handleCountryChange(""); setSearchQuery(""); }}
+                className="px-5 py-2 bg-[#1A5514] text-white text-xs font-bold rounded-full hover:bg-[#144210] transition-colors"
+              >
+                Réinitialiser les filtres
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Pagination Buttons */}
+        {totalPages > 1 && (
+          <div className="flex justify-center mt-10">
+            <div className="flex items-center gap-1.5 bg-white p-1.5 rounded-xl border border-gray-200 shadow-sm">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => {
+                    setCurrentPage(page);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors ${
+                    currentPage === page
+                      ? "bg-[#1A5514] text-white shadow-sm"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
 };
 
 export default Producers;
