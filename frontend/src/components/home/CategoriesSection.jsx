@@ -124,7 +124,6 @@ const CategoriesSection = () => {
 	return (
 		<section
 			className="md:bg-white my-6 p-0 sm:p-6 mx-4 sm:mx-6 lg:mx-8 max-w-7xl lg:mx-auto md:rounded-2xl md:shadow-agri-card md:border border-emerald-100/80 relative z-10"
-			data-aos="fade-up"
 		>
 			<div className="flex flex-col sm:flex-row sm:items-end justify-between mb-5 gap-2">
 				<div>
