@@ -35,7 +35,9 @@ const FlashSalesSection = () => {
   const loadProducts = async () => {
     try {
       setLoading(true);
-      const params = {};
+      // Section défile horizontalement mais reste bornée : pas besoin de
+      // récupérer un nombre illimité de ventes flash côté API.
+      const params = { limit: 10 };
       if (detected && countryCode) params.country = countryCode;
 
       const response = await productService.getFlashSales(params);
@@ -46,7 +48,7 @@ const FlashSalesSection = () => {
 
         // Fallback global si aucune vente flash dans la zone
         if (detected && countryCode && fetched.length === 0) {
-          const fallback = await productService.getFlashSales();
+          const fallback = await productService.getFlashSales({ limit: 10 });
           if (fallback.data.status === 'success') {
             setProducts(fallback.data.data.products || []);
           }

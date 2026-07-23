@@ -7,6 +7,10 @@ import LoadingSpinner from "../common/LoadingSpinner";
 import { productService } from "../../services";
 import { useGeoLocation } from "../../hooks/useGeoLocation";
 
+// Cache module (survit aux démontages) : 5 minutes
+const CACHE_DURATION = 5 * 60 * 1000;
+let sectionCache = null;
+
 const FeaturedProductsSection = () => {
 	const [products, setProducts] = useState([]);
 	const [loading, setLoading] = useState(true);
@@ -21,14 +25,28 @@ const FeaturedProductsSection = () => {
 	}, [geoLoading, countryCode]);
 
 	const loadFeaturedProducts = async () => {
+		const cacheKey = countryCode || 'global';
+		if (
+			sectionCache &&
+			sectionCache.key === cacheKey &&
+			Date.now() - sectionCache.timestamp < CACHE_DURATION
+		) {
+			setProducts(sectionCache.products);
+			setIsLocal(sectionCache.isLocal);
+			setLoading(false);
+			return;
+		}
+
 		try {
 			setLoading(true);
 			setError(null);
 
-			// Récupérer les produits mis en avant locaux et globaux, puis fusionner (locaux d'abord)
+			// On n'affiche que 8 produits au final : 5 locaux + 5 globaux
+			// laissent assez de marge pour la déduplication sans doubler
+			// inutilement la charge API (avant : 8 + 8 pour n'en garder que 8).
 			const [localResp, allResp] = await Promise.all([
-				productService.getFeaturedProducts({ limit: 8, useLocation: 'true' }),
-				productService.getFeaturedProducts({ limit: 8, useLocation: 'false' }),
+				productService.getFeaturedProducts({ limit: 5, useLocation: 'true' }),
+				productService.getFeaturedProducts({ limit: 5, useLocation: 'false' }),
 			]);
 
 			const localList = localResp?.data?.status === 'success' ? localResp.data.data.products || [] : [];
@@ -40,9 +58,17 @@ const FeaturedProductsSection = () => {
 			for (const p of allList) { if (!seen.has(p._id)) merged.push(p); }
 
 			const finalProducts = merged.slice(0, 8);
+			const finalIsLocal = detected && countryCode && localList.length > 0;
+
+			sectionCache = {
+				key: cacheKey,
+				products: finalProducts,
+				isLocal: finalIsLocal,
+				timestamp: Date.now(),
+			};
 
 			setProducts(finalProducts);
-			setIsLocal(detected && countryCode && localList.length > 0);
+			setIsLocal(finalIsLocal);
 		} catch (err) {
 			console.error(
 				"Erreur lors du chargement des produits mis en avant:",

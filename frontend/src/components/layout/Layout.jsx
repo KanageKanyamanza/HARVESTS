@@ -29,12 +29,18 @@ const Layout = ({ children, className = "", seo }) => {
 		};
 	}, [isHomePage]);
 
-	// Rafraîchir AOS lors des changements de route
+	// Rafraîchir AOS lors des changements de route.
+	// Plusieurs passes espacées : les sections qui chargent leurs données en
+	// asynchrone (ex: home) changent de hauteur après le premier rendu, ce
+	// qui décale les points de déclenchement des sections suivantes calculés
+	// trop tôt par AOS — sans ces re-calculs, ces sections restent bloquées
+	// à opacity:0 (AOS est en mode "once").
 	useEffect(() => {
-		const timer = setTimeout(() => {
-			AOS.refresh();
-		}, 100);
-		return () => clearTimeout(timer);
+		const delays = [100, 500, 1200, 2500];
+		const timers = delays.map((delay) =>
+			setTimeout(() => AOS.refresh(), delay)
+		);
+		return () => timers.forEach(clearTimeout);
 	}, [location.pathname]);
 
 	return (

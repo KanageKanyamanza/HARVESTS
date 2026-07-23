@@ -54,6 +54,10 @@ const fallbackSellers = [
   }
 ];
 
+// Cache module (survit aux démontages) : 5 minutes
+const CACHE_DURATION = 5 * 60 * 1000;
+let sectionCache = null;
+
 const TopSellersSection = () => {
   const [sellers, setSellers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -67,6 +71,18 @@ const TopSellersSection = () => {
   }, [geoLoading, countryCode]);
 
   const loadSellers = async () => {
+    const cacheKey = countryCode || 'global';
+    if (
+      sectionCache &&
+      sectionCache.key === cacheKey &&
+      Date.now() - sectionCache.timestamp < CACHE_DURATION
+    ) {
+      setSellers(sectionCache.sellers);
+      setIsLocal(sectionCache.isLocal);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
 
@@ -88,6 +104,12 @@ const TopSellersSection = () => {
           })
         );
         setSellers(sellersWithStats);
+        sectionCache = {
+          key: cacheKey,
+          sellers: sellersWithStats,
+          isLocal: detected && Boolean(countryCode),
+          timestamp: Date.now(),
+        };
       } else {
         setSellers(fallbackSellers);
       }
