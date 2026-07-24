@@ -161,7 +161,7 @@ const Categories = () => {
             </div>
             
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight mb-4">
-              Catégories & Récoltes du Marketplace
+              Catégories & Récoltes de la Marketplace
             </h1>
             
             <p className="text-emerald-100/90 text-sm sm:text-base leading-relaxed">
