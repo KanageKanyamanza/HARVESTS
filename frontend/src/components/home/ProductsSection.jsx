@@ -88,6 +88,12 @@ const fallbackProducts = [
   }
 ];
 
+// Légumes recherchés par nom pour compléter la section quand il n'y a pas
+// assez de produits BIO disponibles.
+const PRIORITY_VEGETABLE_TERMS = [
+  "Laitue", "Épinard", "Amarante", "Oignons", "Tomates", "Chou", "Carotte", "Aubergine",
+];
+
 const AGRI_CATEGORIES = new Set([
   "vegetables", "fruits", "cereals", "tubers", "legumes",
   "spices", "herbs", "nuts", "seeds", "poultry", "meat", "fish"
@@ -138,14 +144,54 @@ const ProductsSection = () => {
       setLoading(true);
       setError(null);
 
-      // On n'affiche que 4 produits (slice ci-dessous) : une petite marge de
-      // 6 suffit pour laisser sortAgriFirst réordonner sans sur-solliciter l'API.
-      const response = await productService.getProducts({ limit: 6, sort: 'newest' });
-      const fetched = response?.data?.data?.products || response?.data?.products || [];
+      // On affiche 12 produits. Priorité aux produits certifiés BIO ; si
+      // pas assez de BIO disponibles, on complète avec les autres produits.
+      const DISPLAY_COUNT = 12;
+      const bioResponse = await productService.getProducts({ limit: DISPLAY_COUNT, sort: 'newest', isBio: 'true' });
+      const bioFetched = bioResponse?.data?.data?.products || bioResponse?.data?.products || [];
 
-      const rawList = fetched.length > 0 ? fetched : fallbackProducts;
-      const sortedList = sortAgriFirst(rawList);
-      const finalProducts = sortedList.slice(0, 4);
+      let combined = bioFetched;
+      if (bioFetched.length < DISPLAY_COUNT) {
+        const seen = new Set(bioFetched.map((p) => p._id));
+        let filler = [];
+        let missing = DISPLAY_COUNT - bioFetched.length;
+
+        // Compléter en priorité avec des légumes courants recherchés par nom
+        // (laitue, épinard, amarante, oignons, ...), avant de retomber sur
+        // les produits les plus récents en général.
+        for (const term of PRIORITY_VEGETABLE_TERMS) {
+          if (missing <= 0) break;
+          try {
+            const searchResponse = await productService.getProducts({ search: term, limit: missing });
+            const searchFetched = searchResponse?.data?.data?.products || searchResponse?.data?.products || [];
+            for (const p of searchFetched) {
+              if (!seen.has(p._id)) {
+                seen.add(p._id);
+                filler.push(p);
+                missing -= 1;
+                if (missing <= 0) break;
+              }
+            }
+          } catch {}
+        }
+
+        // S'il manque encore des produits, compléter avec les plus récents.
+        if (missing > 0) {
+          const restResponse = await productService.getProducts({
+            limit: missing * 3,
+            sort: 'newest',
+          });
+          const restFetched = restResponse?.data?.data?.products || restResponse?.data?.products || [];
+          filler = [...filler, ...restFetched.filter((p) => !seen.has(p._id)).slice(0, missing)];
+        }
+
+        combined = [...bioFetched, ...filler];
+      }
+
+      // combined est déjà ordonné (BIO d'abord, puis légumes prioritaires,
+      // puis les plus récents) : ne pas le re-trier avec sortAgriFirst, sauf
+      // pour le jeu de démo de secours qui n'a pas cet ordre.
+      const finalProducts = (combined.length > 0 ? combined : sortAgriFirst(fallbackProducts)).slice(0, DISPLAY_COUNT);
       const finalIsLocal = detected && !!countryCode;
 
       sectionCache = {
@@ -159,7 +205,7 @@ const ProductsSection = () => {
       setIsLocal(finalIsLocal);
     } catch (err) {
       console.error('Erreur lors du chargement des produits:', err);
-      setProducts(sortAgriFirst(fallbackProducts).slice(0, 4));
+      setProducts(sortAgriFirst(fallbackProducts).slice(0, 12));
     } finally {
       setLoading(false);
     }
@@ -212,7 +258,7 @@ const ProductsSection = () => {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-6">
           {products.map((product) => (
             <div key={product._id} className="w-full">
               <ProductCard product={product} />

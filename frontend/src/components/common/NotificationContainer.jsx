@@ -6,9 +6,8 @@ const NotificationContainer = () => {
   const { notifications, removeNotification } = useNotifications();
 
   // Filtrer seulement les notifications qui doivent être affichées comme toasts
-  const toastNotifications = notifications.filter(notification => 
-    notification.showAsToast === true || 
-    (notification.type === 'success' || notification.type === 'info')
+  const toastNotifications = notifications.filter(notification =>
+    notification.showAsToast === true
   );
 
   return (
