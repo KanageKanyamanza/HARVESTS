@@ -66,8 +66,13 @@ export const NotificationProvider = ({ children }) => {
 			if (savedNotifications) {
 				try {
 					const parsed = JSON.parse(savedNotifications);
-					setNotifications(parsed);
-					setUnreadCount(parsed.filter((n) => !n.read).length);
+					// Les notifications rechargées depuis une session précédente
+					// ne doivent jamais réapparaître comme toast : le minuteur
+					// d'auto-fermeture (5s) n'est programmé qu'à la création, donc
+					// un toast restauré resterait affiché indéfiniment sinon.
+					const restored = parsed.map((n) => ({ ...n, showAsToast: false }));
+					setNotifications(restored);
+					setUnreadCount(restored.filter((n) => !n.read).length);
 				} catch (error) {
 					console.error("Erreur chargement local:", error);
 				}
