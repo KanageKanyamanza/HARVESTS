@@ -21,7 +21,7 @@
     "temp/",
     ".git/"
   ],
-  "exec": "node server.js",
+  "exec": "node",
   "env": {
     "NODE_ENV": "development"
   },

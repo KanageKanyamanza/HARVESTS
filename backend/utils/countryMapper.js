@@ -1,144 +1,148 @@
 /**
- * Utilitaire pour mapper les codes pays vers les noms complets
- * et vice versa
+ * Utilitaire centralisé backend pour la gestion des pays, codes ISO, et filtres régionaux
  */
 
+const SUPPORTED_COUNTRIES = [
+  { code: 'SN', name: 'Sénégal', currency: 'XOF', zone: 'West Africa' },
+  { code: 'CI', name: "Côte d'Ivoire", currency: 'XOF', zone: 'West Africa' },
+  { code: 'CM', name: 'Cameroun', currency: 'XAF', zone: 'Central Africa' },
+  { code: 'BF', name: 'Burkina Faso', currency: 'XOF', zone: 'West Africa' },
+  { code: 'ML', name: 'Mali', currency: 'XOF', zone: 'West Africa' },
+  { code: 'GH', name: 'Ghana', currency: 'GHS', zone: 'West Africa' },
+  { code: 'NG', name: 'Nigeria', currency: 'NGN', zone: 'West Africa' },
+  { code: 'BJ', name: 'Bénin', currency: 'XOF', zone: 'West Africa' },
+  { code: 'TG', name: 'Togo', currency: 'XOF', zone: 'West Africa' },
+  { code: 'GA', name: 'Gabon', currency: 'XAF', zone: 'Central Africa' },
+  { code: 'CG', name: 'Congo', currency: 'XAF', zone: 'Central Africa' },
+  { code: 'CD', name: 'République démocratique du Congo', currency: 'CDF', zone: 'Central Africa' },
+];
+
 const COUNTRY_CODE_TO_NAME = {
-  'CM': 'Cameroun',
   'SN': 'Sénégal',
-  'CI': 'Côte d\'Ivoire',
-  'GH': 'Ghana',
-  'NG': 'Nigeria',
-  'KE': 'Kenya',
+  'CI': "Côte d'Ivoire",
+  'CM': 'Cameroun',
   'BF': 'Burkina Faso',
   'ML': 'Mali',
-  'NE': 'Niger',
-  'TD': 'Tchad',
-  'CF': 'République centrafricaine',
+  'GH': 'Ghana',
+  'NG': 'Nigeria',
+  'BJ': 'Bénin',
+  'TG': 'Togo',
   'GA': 'Gabon',
   'CG': 'Congo',
   'CD': 'République démocratique du Congo',
-  'AO': 'Angola',
-  'ZM': 'Zambie',
-  'ZW': 'Zimbabwe',
-  'ZA': 'Afrique du Sud',
-  'EG': 'Égypte',
-  'MA': 'Maroc',
-  'TN': 'Tunisie',
-  'DZ': 'Algérie',
-  'LY': 'Libye',
-  'SD': 'Soudan',
-  'ET': 'Éthiopie',
-  'UG': 'Ouganda',
-  'TZ': 'Tanzanie',
-  'RW': 'Rwanda',
-  'BI': 'Burundi',
-  'MW': 'Malawi',
-  'MZ': 'Mozambique',
-  'MG': 'Madagascar',
-  'MU': 'Maurice',
-  'SC': 'Seychelles',
-  'KM': 'Comores',
-  'DJ': 'Djibouti',
-  'SO': 'Somalie',
-  'ER': 'Érythrée',
-  'SS': 'Soudan du Sud',
-  // Variantes de noms
+  'KE': 'Kenya',
+  'NE': 'Niger',
+  'TD': 'Tchad',
+  'CF': 'République centrafricaine',
+  
+  // Synonymes et équivalences
   'Cameroon': 'Cameroun',
   'cameroun': 'Cameroun',
   'Senegal': 'Sénégal',
   'senegal': 'Sénégal',
-  'Côte d\'Ivoire': 'Côte d\'Ivoire',
-  'côte d\'ivoire': 'Côte d\'Ivoire',
-  'Ivory Coast': 'Côte d\'Ivoire',
+  'Côte d\'Ivoire': "Côte d'Ivoire",
+  'côte d\'ivoire': "Côte d'Ivoire",
+  'Cote d\'Ivoire': "Côte d'Ivoire",
+  'Ivory Coast': "Côte d'Ivoire",
   'Ghana': 'Ghana',
   'ghana': 'Ghana',
   'Nigeria': 'Nigeria',
   'nigeria': 'Nigeria',
-  'Kenya': 'Kenya',
-  'kenya': 'Kenya'
+  'Benin': 'Bénin',
+  'benin': 'Bénin'
 };
 
-// Créer le mapping inverse (nom -> code) pour référence
-const COUNTRY_NAME_TO_CODE = {};
-Object.keys(COUNTRY_CODE_TO_NAME).forEach(code => {
-  const name = COUNTRY_CODE_TO_NAME[code];
-  if (code.length === 2) { // Seulement les codes à 2 lettres
-    COUNTRY_NAME_TO_CODE[name] = code;
-  }
-});
+const COUNTRY_NAME_TO_CODE = {
+  'Sénégal': 'SN',
+  'Senegal': 'SN',
+  "Côte d'Ivoire": 'CI',
+  "Cote d'Ivoire": 'CI',
+  'Ivory Coast': 'CI',
+  'Cameroun': 'CM',
+  'Cameroon': 'CM',
+  'Burkina Faso': 'BF',
+  'Burkina': 'BF',
+  'Mali': 'ML',
+  'Ghana': 'GH',
+  'Nigeria': 'NG',
+  'Bénin': 'BJ',
+  'Benin': 'BJ',
+  'Togo': 'TG',
+  'Gabon': 'GA',
+  'Congo': 'CG',
+  'République démocratique du Congo': 'CD',
+  'RDC': 'CD'
+};
 
-/**
- * Convertit un code pays en nom complet
- * @param {string} countryCode - Code pays (ex: 'SN', 'CM') ou nom de pays
- * @returns {string} Nom complet du pays
- */
-function getCountryName(countryCode) {
-  if (!countryCode) return 'Sénégal'; // Valeur par défaut
-  
-  // Si c'est déjà un nom complet (plus de 2 caractères et pas un code)
-  if (countryCode.length > 2 && !/^[A-Z]{2}$/.test(countryCode)) {
-    // Vérifier si c'est un nom valide dans notre mapping
-    const normalized = countryCode.trim();
-    if (COUNTRY_CODE_TO_NAME[normalized]) {
-      return COUNTRY_CODE_TO_NAME[normalized];
-    }
-    // Si c'est déjà un nom complet valide, le retourner tel quel
-    if (Object.values(COUNTRY_CODE_TO_NAME).includes(normalized)) {
-      return normalized;
-    }
-    // Sinon, retourner tel quel (peut être un nom non listé)
-    return normalized;
-  }
-  
-  // Si c'est un code à 2 lettres, le convertir
-  const code = countryCode.toUpperCase().trim();
-  return COUNTRY_CODE_TO_NAME[code] || countryCode;
+const countrySynonyms = {
+  'SN': ['SN', 'Sénégal', 'Senegal'],
+  'Sénégal': ['SN', 'Sénégal', 'Senegal'],
+  'Senegal': ['SN', 'Sénégal', 'Senegal'],
+  'CM': ['CM', 'Cameroun', 'Cameroon'],
+  'Cameroun': ['CM', 'Cameroun', 'Cameroon'],
+  'Cameroon': ['CM', 'Cameroun', 'Cameroon'],
+  'CI': ['CI', "Côte d'Ivoire", "Cote d'Ivoire", 'Ivory Coast'],
+  "Côte d'Ivoire": ['CI', "Côte d'Ivoire", "Cote d'Ivoire", 'Ivory Coast'],
+  "Cote d'Ivoire": ['CI', "Côte d'Ivoire", "Cote d'Ivoire", 'Ivory Coast'],
+  'BF': ['BF', 'Burkina Faso', 'Burkina'],
+  'Burkina Faso': ['BF', 'Burkina Faso', 'Burkina'],
+  'ML': ['ML', 'Mali'],
+  'Mali': ['ML', 'Mali'],
+  'GH': ['GH', 'Ghana'],
+  'Ghana': ['GH', 'Ghana'],
+  'NG': ['NG', 'Nigeria'],
+  'Nigeria': ['NG', 'Nigeria'],
+  'BJ': ['BJ', 'Bénin', 'Benin'],
+  'Bénin': ['BJ', 'Bénin', 'Benin'],
+  'TG': ['TG', 'Togo'],
+  'Togo': ['TG', 'Togo'],
+  'GA': ['GA', 'Gabon'],
+  'Gabon': ['GA', 'Gabon'],
+  'CG': ['CG', 'Congo'],
+  'Congo': ['CG', 'Congo'],
+  'CD': ['CD', 'République démocratique du Congo', 'RDC'],
+};
+
+function getCountryName(input) {
+  if (!input) return 'Sénégal';
+  const trimmed = input.trim();
+  if (COUNTRY_CODE_TO_NAME[trimmed]) return COUNTRY_CODE_TO_NAME[trimmed];
+  if (COUNTRY_CODE_TO_NAME[trimmed.toUpperCase()]) return COUNTRY_CODE_TO_NAME[trimmed.toUpperCase()];
+  return trimmed;
 }
 
-/**
- * Convertit un nom de pays en code pays
- * @param {string} countryName - Nom du pays
- * @returns {string} Code pays à 2 lettres
- */
-function getCountryCode(countryName) {
-  if (!countryName) return 'SN'; // Valeur par défaut
-  
-  // Si c'est déjà un code à 2 lettres
-  if (countryName.length === 2 && /^[A-Z]{2}$/.test(countryName)) {
-    return countryName;
+function getCountryCode(input) {
+  if (!input) return 'SN';
+  const trimmed = input.trim();
+  if (trimmed.length === 2 && /^[A-Z]{2}$/i.test(trimmed)) {
+    return trimmed.toUpperCase();
   }
-  
-  // Chercher dans le mapping inverse
-  const normalized = countryName.trim();
-  return COUNTRY_NAME_TO_CODE[normalized] || 'SN';
+  return COUNTRY_NAME_TO_CODE[trimmed] || 'SN';
 }
 
-/**
- * Normalise un pays (convertit toujours en nom complet)
- * @param {string} country - Code ou nom de pays
- * @returns {string} Nom complet du pays
- */
-function normalizeCountry(country) {
-  return getCountryName(country);
+function normalizeCountry(input) {
+  return getCountryName(input);
 }
 
-/**
- * Liste de tous les noms de pays supportés
- * @returns {Array<string>} Liste des noms de pays
- */
-function getAllCountryNames() {
-  return Object.values(COUNTRY_CODE_TO_NAME).filter((name, index, self) => 
-    self.indexOf(name) === index && name.length > 2
-  );
+function getCountryFilterList(country) {
+  if (!country) return [];
+  if (country === 'West Africa') {
+    return ['SN', 'Sénégal', 'Senegal', 'CI', "Côte d'Ivoire", "Cote d'Ivoire", 'BF', 'Burkina Faso', 'ML', 'Mali', 'GH', 'Ghana', 'NG', 'Nigeria', 'NE', 'Niger', 'BJ', 'Bénin', 'Benin', 'TG', 'Togo'];
+  }
+  if (country === 'Central Africa') {
+    return ['CM', 'Cameroun', 'Cameroon', 'GA', 'Gabon', 'CG', 'Congo', 'CD', 'République démocratique du Congo', 'TD', 'Tchad', 'CF', 'République centrafricaine'];
+  }
+  const normalized = country.trim();
+  return countrySynonyms[normalized] || [normalized];
 }
 
 module.exports = {
+  SUPPORTED_COUNTRIES,
   getCountryName,
   getCountryCode,
   normalizeCountry,
-  getAllCountryNames,
+  getCountryFilterList,
   COUNTRY_CODE_TO_NAME,
-  COUNTRY_NAME_TO_CODE
+  COUNTRY_NAME_TO_CODE,
+  countrySynonyms
 };
-

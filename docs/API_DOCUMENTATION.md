@@ -1,15 +1,16 @@
 # 📖 Documentation API Complète - Harvests
 
-**Version**: 1.0.0  
-**Date**: 2025  
-**Statut**: ✅ Production Ready  
-**Base URL**: `http://localhost:5000/api/v1` (dev) | `https://api.harvests.sn/v1` (prod)
+**Version**: 1.0.0\
+**Date**: 2025\
+**Statut**: ✅ Production Ready\
+**Base URL**: `http://localhost:5001/api/v1` (dev) |
+`https://api.harvests.sn/v1` (prod)
 
 ## 📡 Accès à la Documentation
 
 ### Swagger UI Interactif
 
-- **URL**: <http://localhost:5000/api/docs>
+- **URL**: <http://localhost:5001/api/docs>
 - **Description**: Interface graphique pour tester l'API en temps réel
 - **Fonctionnalités**:
   - Tests interactifs
@@ -20,7 +21,7 @@
 
 ### Spécification OpenAPI 3.0
 
-- **URL**: <http://localhost:5000/api/docs.json>
+- **URL**: <http://localhost:5001/api/docs.json>
 - **Format**: JSON
 - **Utilisation**:
   - Import Postman
@@ -34,16 +35,16 @@
 
 ### 🔐 Authentication (`/api/v1/auth`)
 
-| Méthode | Endpoint | Description | Auth |
-|---------|----------|-------------|------|
-| POST | `/signup` | Inscription utilisateur | ❌ |
-| POST | `/login` | Connexion | ❌ |
-| GET | `/logout` | Déconnexion | ✅ |
-| GET | `/verify-email/:token` | Vérification email | ❌ |
-| POST | `/resend-verification` | Renvoyer email vérification | ✅ |
-| POST | `/forgot-password` | Mot de passe oublié | ❌ |
-| PATCH | `/reset-password/:token` | Réinitialiser mot de passe | ❌ |
-| POST | `/refresh-token` | Rafraîchir token JWT | ✅ |
+| Méthode | Endpoint                 | Description                 | Auth |
+| ------- | ------------------------ | --------------------------- | ---- |
+| POST    | `/signup`                | Inscription utilisateur     | ❌   |
+| POST    | `/login`                 | Connexion                   | ❌   |
+| GET     | `/logout`                | Déconnexion                 | ✅   |
+| GET     | `/verify-email/:token`   | Vérification email          | ❌   |
+| POST    | `/resend-verification`   | Renvoyer email vérification | ✅   |
+| POST    | `/forgot-password`       | Mot de passe oublié         | ❌   |
+| PATCH   | `/reset-password/:token` | Réinitialiser mot de passe  | ❌   |
+| POST    | `/refresh-token`         | Rafraîchir token JWT        | ✅   |
 
 **Exemple d'inscription**:
 
@@ -67,77 +68,77 @@ POST /api/v1/auth/signup
 
 ### 👥 Users (`/api/v1/users`)
 
-| Méthode | Endpoint | Description | Auth |
-|---------|----------|-------------|------|
-| GET | `/` | Liste utilisateurs (admin) | ✅ Admin |
-| GET | `/me` | Profil utilisateur connecté | ✅ |
-| PATCH | `/me` | Modifier profil | ✅ |
-| DELETE | `/me` | Supprimer compte | ✅ |
-| POST | `/me/avatar` | Upload avatar | ✅ |
-| POST | `/me/banner` | Upload bannière | ✅ |
-| DELETE | `/me/images/:type` | Supprimer image | ✅ |
+| Méthode | Endpoint           | Description                 | Auth     |
+| ------- | ------------------ | --------------------------- | -------- |
+| GET     | `/`                | Liste utilisateurs (admin)  | ✅ Admin |
+| GET     | `/me`              | Profil utilisateur connecté | ✅       |
+| PATCH   | `/me`              | Modifier profil             | ✅       |
+| DELETE  | `/me`              | Supprimer compte            | ✅       |
+| POST    | `/me/avatar`       | Upload avatar               | ✅       |
+| POST    | `/me/banner`       | Upload bannière             | ✅       |
+| DELETE  | `/me/images/:type` | Supprimer image             | ✅       |
 
 ### 👨‍🌾 Producers (`/api/v1/producers`)
 
-| Méthode | Endpoint | Description | Auth |
-|---------|----------|-------------|------|
-| GET | `/` | Liste producteurs | ❌ |
-| POST | `/` | Créer producteur | ✅ |
-| GET | `/:id` | Détails producteur | ❌ |
-| PATCH | `/:id` | Modifier producteur | ✅ Owner/Admin |
-| DELETE | `/:id` | Supprimer producteur | ✅ Owner/Admin |
-| GET | `/:id/products` | Produits du producteur | ❌ |
-| GET | `/:id/orders` | Commandes du producteur | ✅ Owner |
-| GET | `/:id/reviews` | Avis du producteur | ❌ |
-| POST | `/:id/follow` | Suivre producteur | ✅ |
+| Méthode | Endpoint        | Description             | Auth           |
+| ------- | --------------- | ----------------------- | -------------- |
+| GET     | `/`             | Liste producteurs       | ❌             |
+| POST    | `/`             | Créer producteur        | ✅             |
+| GET     | `/:id`          | Détails producteur      | ❌             |
+| PATCH   | `/:id`          | Modifier producteur     | ✅ Owner/Admin |
+| DELETE  | `/:id`          | Supprimer producteur    | ✅ Owner/Admin |
+| GET     | `/:id/products` | Produits du producteur  | ❌             |
+| GET     | `/:id/orders`   | Commandes du producteur | ✅ Owner       |
+| GET     | `/:id/reviews`  | Avis du producteur      | ❌             |
+| POST    | `/:id/follow`   | Suivre producteur       | ✅             |
 
 ### 🏭 Transformers (`/api/v1/transformers`)
 
-| Méthode | Endpoint | Description | Auth |
-|---------|----------|-------------|------|
-| GET | `/` | Liste transformateurs | ❌ |
-| POST | `/` | Créer transformateur | ✅ |
-| GET | `/:id` | Détails transformateur | ❌ |
-| PATCH | `/:id` | Modifier transformateur | ✅ Owner/Admin |
-| GET | `/:id/products` | Produits transformés | ❌ |
-| GET | `/:id/orders` | Commandes | ✅ Owner |
+| Méthode | Endpoint        | Description             | Auth           |
+| ------- | --------------- | ----------------------- | -------------- |
+| GET     | `/`             | Liste transformateurs   | ❌             |
+| POST    | `/`             | Créer transformateur    | ✅             |
+| GET     | `/:id`          | Détails transformateur  | ❌             |
+| PATCH   | `/:id`          | Modifier transformateur | ✅ Owner/Admin |
+| GET     | `/:id/products` | Produits transformés    | ❌             |
+| GET     | `/:id/orders`   | Commandes               | ✅ Owner       |
 
 ### 🛒 Consumers (`/api/v1/consumers`)
 
-| Méthode | Endpoint | Description | Auth |
-|---------|----------|-------------|------|
-| GET | `/` | Liste consommateurs | ✅ Admin |
-| GET | `/me` | Mon profil consommateur | ✅ |
-| PATCH | `/me` | Modifier profil | ✅ |
-| GET | `/me/orders` | Mes commandes | ✅ |
-| GET | `/me/favorites` | Produits favoris | ✅ |
-| POST | `/me/favorites/:productId` | Ajouter favori | ✅ |
+| Méthode | Endpoint                   | Description             | Auth     |
+| ------- | -------------------------- | ----------------------- | -------- |
+| GET     | `/`                        | Liste consommateurs     | ✅ Admin |
+| GET     | `/me`                      | Mon profil consommateur | ✅       |
+| PATCH   | `/me`                      | Modifier profil         | ✅       |
+| GET     | `/me/orders`               | Mes commandes           | ✅       |
+| GET     | `/me/favorites`            | Produits favoris        | ✅       |
+| POST    | `/me/favorites/:productId` | Ajouter favori          | ✅       |
 
 ### 🍽️ Restaurateurs (`/api/v1/restaurateurs`)
 
-| Méthode | Endpoint | Description | Auth |
-|---------|----------|-------------|------|
-| GET | `/` | Liste restaurateurs | ❌ |
-| POST | `/` | Créer restaurateur | ✅ |
-| GET | `/:id` | Détails restaurateur | ❌ |
-| PATCH | `/:id` | Modifier restaurateur | ✅ Owner/Admin |
-| GET | `/:id/dishes` | Plats du restaurant | ❌ |
-| GET | `/:id/menu` | Menu complet | ❌ |
-| POST | `/:id/dishes` | Ajouter plat | ✅ Owner |
+| Méthode | Endpoint      | Description           | Auth           |
+| ------- | ------------- | --------------------- | -------------- |
+| GET     | `/`           | Liste restaurateurs   | ❌             |
+| POST    | `/`           | Créer restaurateur    | ✅             |
+| GET     | `/:id`        | Détails restaurateur  | ❌             |
+| PATCH   | `/:id`        | Modifier restaurateur | ✅ Owner/Admin |
+| GET     | `/:id/dishes` | Plats du restaurant   | ❌             |
+| GET     | `/:id/menu`   | Menu complet          | ❌             |
+| POST    | `/:id/dishes` | Ajouter plat          | ✅ Owner       |
 
 ### 🌾 Products (`/api/v1/products`)
 
-| Méthode | Endpoint | Description | Auth |
-|---------|----------|-------------|------|
-| GET | `/` | Catalogue produits | ❌ |
-| POST | `/` | Créer produit | ✅ Producer/Transformer |
-| GET | `/:id` | Détails produit | ❌ |
-| PATCH | `/:id` | Modifier produit | ✅ Owner |
-| DELETE | `/:id` | Supprimer produit | ✅ Owner |
-| POST | `/:id/images` | Upload images | ✅ Owner |
-| GET | `/search` | Recherche avancée | ❌ |
-| GET | `/categories` | Liste catégories | ❌ |
-| GET | `/featured` | Produits mis en avant | ❌ |
+| Méthode | Endpoint      | Description           | Auth                    |
+| ------- | ------------- | --------------------- | ----------------------- |
+| GET     | `/`           | Catalogue produits    | ❌                      |
+| POST    | `/`           | Créer produit         | ✅ Producer/Transformer |
+| GET     | `/:id`        | Détails produit       | ❌                      |
+| PATCH   | `/:id`        | Modifier produit      | ✅ Owner                |
+| DELETE  | `/:id`        | Supprimer produit     | ✅ Owner                |
+| POST    | `/:id/images` | Upload images         | ✅ Owner                |
+| GET     | `/search`     | Recherche avancée     | ❌                      |
+| GET     | `/categories` | Liste catégories      | ❌                      |
+| GET     | `/featured`   | Produits mis en avant | ❌                      |
 
 **Recherche Intelligente**:
 
@@ -148,15 +149,15 @@ POST /api/v1/auth/signup
 
 ### 📦 Orders (`/api/v1/orders`)
 
-| Méthode | Endpoint | Description | Auth |
-|---------|----------|-------------|------|
-| GET | `/` | Liste commandes | ✅ |
-| POST | `/` | Créer commande | ✅ |
-| GET | `/:id` | Détails commande | ✅ Owner |
-| PATCH | `/:id/status` | Modifier statut | ✅ Owner/Admin |
-| DELETE | `/:id` | Annuler commande | ✅ Owner |
-| GET | `/:id/tracking` | Suivi livraison | ✅ Owner |
-| POST | `/:id/review` | Ajouter avis | ✅ Owner |
+| Méthode | Endpoint        | Description      | Auth           |
+| ------- | --------------- | ---------------- | -------------- |
+| GET     | `/`             | Liste commandes  | ✅             |
+| POST    | `/`             | Créer commande   | ✅             |
+| GET     | `/:id`          | Détails commande | ✅ Owner       |
+| PATCH   | `/:id/status`   | Modifier statut  | ✅ Owner/Admin |
+| DELETE  | `/:id`          | Annuler commande | ✅ Owner       |
+| GET     | `/:id/tracking` | Suivi livraison  | ✅ Owner       |
+| POST    | `/:id/review`   | Ajouter avis     | ✅ Owner       |
 
 **Statuts de commande**:
 
@@ -171,77 +172,77 @@ POST /api/v1/auth/signup
 
 ### 💳 Payments (`/api/v1/payments`)
 
-| Méthode | Endpoint | Description | Auth |
-|---------|----------|-------------|------|
-| POST | `/wave` | Paiement Wave | ✅ |
-| POST | `/orange-money` | Paiement Orange Money | ✅ |
-| POST | `/stripe` | Paiement Stripe | ✅ |
-| POST | `/paypal` | Paiement PayPal | ✅ |
-| GET | `/:id/status` | Statut paiement | ✅ |
-| POST | `/:id/refund` | Remboursement | ✅ Admin |
-| GET | `/methods` | Méthodes disponibles | ❌ |
+| Méthode | Endpoint        | Description           | Auth     |
+| ------- | --------------- | --------------------- | -------- |
+| POST    | `/wave`         | Paiement Wave         | ✅       |
+| POST    | `/orange-money` | Paiement Orange Money | ✅       |
+| POST    | `/stripe`       | Paiement Stripe       | ✅       |
+| POST    | `/paypal`       | Paiement PayPal       | ✅       |
+| GET     | `/:id/status`   | Statut paiement       | ✅       |
+| POST    | `/:id/refund`   | Remboursement         | ✅ Admin |
+| GET     | `/methods`      | Méthodes disponibles  | ❌       |
 
 ### ⭐ Reviews (`/api/v1/reviews`)
 
-| Méthode | Endpoint | Description | Auth |
-|---------|----------|-------------|------|
-| GET | `/` | Liste avis | ❌ |
-| POST | `/` | Créer avis | ✅ |
-| GET | `/:id` | Détails avis | ❌ |
-| PATCH | `/:id` | Modifier avis | ✅ Owner |
-| DELETE | `/:id` | Supprimer avis | ✅ Owner |
+| Méthode | Endpoint | Description    | Auth     |
+| ------- | -------- | -------------- | -------- |
+| GET     | `/`      | Liste avis     | ❌       |
+| POST    | `/`      | Créer avis     | ✅       |
+| GET     | `/:id`   | Détails avis   | ❌       |
+| PATCH   | `/:id`   | Modifier avis  | ✅ Owner |
+| DELETE  | `/:id`   | Supprimer avis | ✅ Owner |
 
 ### 💬 Messages (`/api/v1/messages`)
 
-| Méthode | Endpoint | Description | Auth |
-|---------|----------|-------------|------|
-| GET | `/` | Liste conversations | ✅ |
-| POST | `/` | Créer conversation | ✅ |
-| GET | `/:id` | Détails conversation | ✅ |
-| POST | `/:id/messages` | Envoyer message | ✅ |
-| GET | `/:id/messages` | Messages conversation | ✅ |
+| Méthode | Endpoint        | Description           | Auth |
+| ------- | --------------- | --------------------- | ---- |
+| GET     | `/`             | Liste conversations   | ✅   |
+| POST    | `/`             | Créer conversation    | ✅   |
+| GET     | `/:id`          | Détails conversation  | ✅   |
+| POST    | `/:id/messages` | Envoyer message       | ✅   |
+| GET     | `/:id/messages` | Messages conversation | ✅   |
 
 ### 🔔 Notifications (`/api/v1/notifications`)
 
-| Méthode | Endpoint | Description | Auth |
-|---------|----------|-------------|------|
-| GET | `/` | Liste notifications | ✅ |
-| GET | `/unread` | Notifications non lues | ✅ |
-| PATCH | `/:id/read` | Marquer comme lu | ✅ |
-| PATCH | `/read-all` | Tout marquer comme lu | ✅ |
-| DELETE | `/:id` | Supprimer notification | ✅ |
+| Méthode | Endpoint    | Description            | Auth |
+| ------- | ----------- | ---------------------- | ---- |
+| GET     | `/`         | Liste notifications    | ✅   |
+| GET     | `/unread`   | Notifications non lues | ✅   |
+| PATCH   | `/:id/read` | Marquer comme lu       | ✅   |
+| PATCH   | `/read-all` | Tout marquer comme lu  | ✅   |
+| DELETE  | `/:id`      | Supprimer notification | ✅   |
 
 ### 🤖 Chatbot (`/api/v1/chat`)
 
-| Méthode | Endpoint | Description | Auth |
-|---------|----------|-------------|------|
-| GET | `/search-products` | Recherche produits | ❌ |
-| GET | `/search-sellers` | Recherche vendeurs | ❌ |
-| GET | `/search-transporters` | Recherche transporteurs | ❌ |
-| GET | `/categories` | Liste catégories | ❌ |
-| GET | `/track/:orderNumber` | Suivi commande | ❌ |
-| POST | `/log-interaction` | Enregistrer interaction | ❌ |
-| POST | `/log-feedback` | Enregistrer feedback | ❌ |
-| GET | `/my-orders` | Mes commandes récentes | ✅ |
+| Méthode | Endpoint               | Description             | Auth |
+| ------- | ---------------------- | ----------------------- | ---- |
+| GET     | `/search-products`     | Recherche produits      | ❌   |
+| GET     | `/search-sellers`      | Recherche vendeurs      | ❌   |
+| GET     | `/search-transporters` | Recherche transporteurs | ❌   |
+| GET     | `/categories`          | Liste catégories        | ❌   |
+| GET     | `/track/:orderNumber`  | Suivi commande          | ❌   |
+| POST    | `/log-interaction`     | Enregistrer interaction | ❌   |
+| POST    | `/log-feedback`        | Enregistrer feedback    | ❌   |
+| GET     | `/my-orders`           | Mes commandes récentes  | ✅   |
 
 ### 📝 Blog (`/api/v1/blogs`)
 
-| Méthode | Endpoint | Description | Auth |
-|---------|----------|-------------|------|
-| GET | `/` | Liste articles | ❌ |
-| POST | `/` | Créer article | ✅ Admin |
-| GET | `/:id` | Détails article | ❌ |
-| PATCH | `/:id` | Modifier article | ✅ Admin |
-| DELETE | `/:id` | Supprimer article | ✅ Admin |
-| GET | `/:id/visits` | Statistiques visites | ✅ Admin |
+| Méthode | Endpoint      | Description          | Auth     |
+| ------- | ------------- | -------------------- | -------- |
+| GET     | `/`           | Liste articles       | ❌       |
+| POST    | `/`           | Créer article        | ✅ Admin |
+| GET     | `/:id`        | Détails article      | ❌       |
+| PATCH   | `/:id`        | Modifier article     | ✅ Admin |
+| DELETE  | `/:id`        | Supprimer article    | ✅ Admin |
+| GET     | `/:id/visits` | Statistiques visites | ✅ Admin |
 
 ### 📤 Upload (`/api/v1/upload`)
 
-| Méthode | Endpoint | Description | Auth |
-|---------|----------|-------------|------|
-| POST | `/image` | Upload image | ✅ |
-| POST | `/images` | Upload multiple | ✅ |
-| DELETE | `/:publicId` | Supprimer image | ✅ |
+| Méthode | Endpoint     | Description     | Auth |
+| ------- | ------------ | --------------- | ---- |
+| POST    | `/image`     | Upload image    | ✅   |
+| POST    | `/images`    | Upload multiple | ✅   |
+| DELETE  | `/:publicId` | Supprimer image | ✅   |
 
 ---
 
@@ -266,13 +267,13 @@ Cookie: jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```json
 {
   "userTypes": [
-    "producer",      // Producteur agricole
-    "consumer",      // Consommateur final
-    "transformer",   // Transformateur de produits
-    "restaurateur",  // Restaurant/hôtel
-    "exporter",      // Exportateur
-    "transporter",   // Transporteur
-    "admin"          // Administrateur
+    "producer", // Producteur agricole
+    "consumer", // Consommateur final
+    "transformer", // Transformateur de produits
+    "restaurateur", // Restaurant/hôtel
+    "exporter", // Exportateur
+    "transporter", // Transporteur
+    "admin" // Administrateur
   ]
 }
 ```
@@ -403,14 +404,14 @@ GET /api/v1/products?page=1&limit=20&sort=-createdAt
 
 ### Liens Utiles
 
-- **Swagger UI**: <http://localhost:5000/api/docs>
-- **Health Check**: <http://localhost:5000/api/v1/health>
-- **OpenAPI JSON**: <http://localhost:5000/api/docs.json>
+- **Swagger UI**: <http://localhost:5001/api/docs>
+- **Health Check**: <http://localhost:5001/api/v1/health>
+- **OpenAPI JSON**: <http://localhost:5001/api/docs.json>
 
 ### Import Postman
 
 1. Ouvrir Postman
-2. Import → Link → `http://localhost:5000/api/docs.json`
+2. Import → Link → `http://localhost:5001/api/docs.json`
 3. Collection "Harvests API" créée automatiquement
 4. Configurer variables d'environnement
 5. Tester tous les endpoints
@@ -426,15 +427,15 @@ GET /api/v1/products?page=1&limit=20&sort=-createdAt
 npm run dev
 
 # 2. Ouvrir Swagger UI
-http://localhost:5000/api/docs
+http://localhost:5001/api/docs
 
 # 3. Tester l'API
-curl http://localhost:5000/api/v1/health
+curl http://localhost:5001/api/v1/health
 ```
 
 ### Authentification dans Swagger
 
-1. Aller sur <http://localhost:5000/api/docs>
+1. Aller sur <http://localhost:5001/api/docs>
 2. Cliquer "Authorize" (🔒)
 3. Entrer: `Bearer YOUR_JWT_TOKEN`
 4. Tous les endpoints protégés sont maintenant accessibles
@@ -459,4 +460,5 @@ curl http://localhost:5000/api/v1/health
 
 ---
 
-*Pour plus de détails, consultez [Swagger UI](http://localhost:5000/api/docs) ou [Guide Swagger](./SWAGGER_GUIDE.md)*
+_Pour plus de détails, consultez [Swagger UI](http://localhost:5001/api/docs) ou
+[Guide Swagger](./SWAGGER_GUIDE.md)_

@@ -147,7 +147,7 @@ cp env.example .env
 
 ```bash
 # API Backend
-VITE_API_URL=http://localhost:5000/api/v1
+VITE_API_URL=http://localhost:5001/api/v1
 
 # Application
 VITE_APP_NAME=Harvests
@@ -172,18 +172,21 @@ VITE_DEFAULT_LANGUAGE=fr
 #### Installation
 
 **Windows**:
+
 ```bash
 # Télécharger depuis https://www.mongodb.com/try/download/community
 # Installer et démarrer MongoDB Service
 ```
 
 **macOS**:
+
 ```bash
 brew install mongodb-community
 brew services start mongodb-community
 ```
 
 **Linux**:
+
 ```bash
 sudo apt-get install mongodb
 sudo systemctl start mongodb
@@ -344,10 +347,10 @@ npm start
 
 ```bash
 # Health check
-curl http://localhost:5000/api/v1/health
+curl http://localhost:5001/api/v1/health
 
 # Swagger UI
-# Ouvrir http://localhost:5000/api/docs
+# Ouvrir http://localhost:5001/api/docs
 ```
 
 ### Tester le Frontend
@@ -405,5 +408,5 @@ PORT=8001
 
 ---
 
-*Pour plus d'aide, consultez [Guide de Développement](./DEVELOPMENT.md) ou [Documentation API](./API_DOCUMENTATION.md)*
-
+_Pour plus d'aide, consultez [Guide de Développement](./DEVELOPMENT.md) ou
+[Documentation API](./API_DOCUMENTATION.md)_

@@ -2,9 +2,9 @@
 
 ## 🚀 **DOCUMENTATION API COMPLÈTE**
 
-**Date :** 20 septembre 2025  
-**Version :** 1.0.0  
-**Pays :** 🇸🇳 Sénégal  
+**Date :** 20 septembre 2025\
+**Version :** 1.0.0\
+**Pays :** 🇸🇳 Sénégal\
 **Statut :** ✅ **PRODUCTION READY**
 
 ---
@@ -12,8 +12,9 @@
 ## 📡 **ACCÈS À LA DOCUMENTATION**
 
 ### **🌐 Swagger UI Interactif**
+
 ```
-URL: http://localhost:5000/api/docs
+URL: http://localhost:5001/api/docs
 Description: Interface graphique pour tester l'API
 Fonctionnalités:
 ├── Tests en temps réel
@@ -24,8 +25,9 @@ Fonctionnalités:
 ```
 
 ### **📄 Spécification OpenAPI 3.0**
+
 ```
-URL: http://localhost:5000/api/docs.json
+URL: http://localhost:5001/api/docs.json
 Format: JSON
 Utilisation:
 ├── Import Postman
@@ -39,6 +41,7 @@ Utilisation:
 ## 🎯 **ENDPOINTS PRINCIPAUX**
 
 ### **🔐 Authentication (`/api/v1/auth`)**
+
 ```
 POST   /signup           - Inscription utilisateur
 POST   /login            - Connexion
@@ -50,6 +53,7 @@ PATCH  /reset-password/:token - Réinitialiser mot de passe
 ```
 
 ### **👥 Users (`/api/v1/users`)**
+
 ```
 GET    /               - Liste utilisateurs (admin)
 GET    /me             - Profil utilisateur connecté
@@ -59,6 +63,7 @@ POST   /me/avatar      - Upload avatar
 ```
 
 ### **👨‍🌾 Producers (`/api/v1/producers`)**
+
 ```
 GET    /               - Liste producteurs
 POST   /               - Créer producteur
@@ -72,6 +77,7 @@ POST   /:id/follow     - Suivre producteur
 ```
 
 ### **🌾 Products (`/api/v1/products`)**
+
 ```
 GET    /               - Catalogue produits (recherche intelligente)
 POST   /               - Créer produit
@@ -91,6 +97,7 @@ GET    /featured       - Produits mis en avant
 ```
 
 ### **📦 Orders (`/api/v1/orders`)**
+
 ```
 GET    /               - Liste commandes
 POST   /               - Créer commande
@@ -102,6 +109,7 @@ POST   /:id/review     - Ajouter avis
 ```
 
 ### **💳 Payments (`/api/v1/payments`)**
+
 ```
 POST   /wave           - Paiement Wave
 POST   /orange-money   - Paiement Orange Money
@@ -112,6 +120,7 @@ GET    /methods        - Méthodes disponibles
 ```
 
 ### **🤖 Chatbot (`/api/v1/chat`)**
+
 ```
 GET    /search-products      - Recherche produits (géolocalisation)
 GET    /search-sellers       - Recherche vendeurs (géolocalisation)
@@ -124,6 +133,7 @@ GET    /my-orders            - Mes commandes récentes (protégé)
 ```
 
 **🔍 Recherche Intelligente:**
+
 - Gestion pluriel/singulier : "tomates" trouve "tomate"
 - Détection géographique : "tomates à Dakar" filtre automatiquement
 - Recherche flexible : Insensible à la casse et accents
@@ -134,6 +144,7 @@ GET    /my-orders            - Mes commandes récentes (protégé)
 ## 🇸🇳 **SPÉCIFICITÉS SÉNÉGAL**
 
 ### **💰 Devises et Prix**
+
 ```json
 {
   "currency": "XOF",
@@ -151,6 +162,7 @@ GET    /my-orders            - Mes commandes récentes (protégé)
 ```
 
 ### **📱 Mobile Money Sénégal**
+
 ```json
 {
   "providers": [
@@ -173,6 +185,7 @@ GET    /my-orders            - Mes commandes récentes (protégé)
 ```
 
 ### **📞 Format Numéros Téléphone**
+
 ```json
 {
   "country": "Sénégal",
@@ -197,6 +210,7 @@ GET    /my-orders            - Mes commandes récentes (protégé)
 ## 🔐 **AUTHENTIFICATION**
 
 ### **🎯 JWT Token**
+
 ```javascript
 // Headers requis pour routes protégées
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -206,15 +220,16 @@ Cookie: jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 ### **👥 Types d'Utilisateurs**
+
 ```json
 {
   "userTypes": [
-    "producer",      // Producteur agricole
-    "consumer",      // Consommateur final
-    "transformer",   // Transformateur de produits
-    "restaurateur",  // Restaurant/hôtel
-    "exporter",      // Exportateur
-    "transporter"    // Transporteur
+    "producer", // Producteur agricole
+    "consumer", // Consommateur final
+    "transformer", // Transformateur de produits
+    "restaurateur", // Restaurant/hôtel
+    "exporter", // Exportateur
+    "transporter" // Transporteur
   ]
 }
 ```
@@ -224,6 +239,7 @@ Cookie: jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ## 📊 **PAGINATION & FILTRAGE**
 
 ### **📄 Pagination Standard**
+
 ```javascript
 // Paramètres query
 ?page=1&limit=20&sort=-createdAt
@@ -244,6 +260,7 @@ Cookie: jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 ### **🔍 Filtres Avancés**
+
 ```javascript
 // Produits
 /api/v1/products?category=cereals&region=Thiès&price[gte]=5000&price[lte]=15000
@@ -256,6 +273,7 @@ Cookie: jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 ### **🔍 Recherche Intelligente**
+
 ```javascript
 // Recherche avec gestion pluriel/singulier
 GET /api/v1/products/search?q=tomates
@@ -285,8 +303,9 @@ GET /api/v1/chat/search-sellers?query=transporteurs Douala
 ## 🌾 **EXEMPLES DE REQUÊTES**
 
 ### **1. 📝 Inscription Producteur Sénégalais**
+
 ```bash
-curl -X POST http://localhost:5000/api/v1/auth/signup \
+curl -X POST http://localhost:5001/api/v1/auth/signup \
   -H "Content-Type: application/json" \
   -d '{
     "firstName": "Amadou",
@@ -305,8 +324,9 @@ curl -X POST http://localhost:5000/api/v1/auth/signup \
 ```
 
 ### **2. 🔐 Connexion**
+
 ```bash
-curl -X POST http://localhost:5000/api/v1/auth/login \
+curl -X POST http://localhost:5001/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "amadou.diop@test.sn",
@@ -315,8 +335,9 @@ curl -X POST http://localhost:5000/api/v1/auth/login \
 ```
 
 ### **3. 🌾 Créer Produit**
+
 ```bash
-curl -X POST http://localhost:5000/api/v1/products \
+curl -X POST http://localhost:5001/api/v1/products \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -335,20 +356,22 @@ curl -X POST http://localhost:5000/api/v1/products \
 ```
 
 ### **4. 🔍 Recherche Intelligente**
+
 ```bash
 # Recherche simple (gère pluriel/singulier)
-curl -X GET "http://localhost:5000/api/v1/products/search?q=tomates"
+curl -X GET "http://localhost:5001/api/v1/products/search?q=tomates"
 
 # Recherche avec localisation
-curl -X GET "http://localhost:5000/api/v1/products/search?q=tomates à Dakar"
+curl -X GET "http://localhost:5001/api/v1/products/search?q=tomates à Dakar"
 
 # Recherche via chatbot
-curl -X GET "http://localhost:5000/api/v1/chat/search-products?query=producteurs Yaoundé&limit=5"
+curl -X GET "http://localhost:5001/api/v1/chat/search-products?query=producteurs Yaoundé&limit=5"
 ```
 
 ### **5. 🛒 Passer Commande**
+
 ```bash
-curl -X POST http://localhost:5000/api/v1/orders \
+curl -X POST http://localhost:5001/api/v1/orders \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -367,8 +390,9 @@ curl -X POST http://localhost:5000/api/v1/orders \
 ```
 
 ### **6. 🌊 Paiement Wave**
+
 ```bash
-curl -X POST http://localhost:5000/api/v1/payments/wave \
+curl -X POST http://localhost:5001/api/v1/payments/wave \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -383,11 +407,13 @@ curl -X POST http://localhost:5000/api/v1/payments/wave \
 ## 📊 **CODES DE RÉPONSE**
 
 ### **✅ Succès**
+
 - **200** : OK - Requête réussie
 - **201** : Created - Ressource créée
 - **204** : No Content - Suppression réussie
 
 ### **❌ Erreurs Client**
+
 - **400** : Bad Request - Données invalides
 - **401** : Unauthorized - Non authentifié
 - **403** : Forbidden - Non autorisé
@@ -397,6 +423,7 @@ curl -X POST http://localhost:5000/api/v1/payments/wave \
 - **429** : Too Many Requests - Rate limit dépassé
 
 ### **🔥 Erreurs Serveur**
+
 - **500** : Internal Server Error - Erreur serveur
 - **502** : Bad Gateway - Service externe indisponible
 - **503** : Service Unavailable - Maintenance
@@ -406,6 +433,7 @@ curl -X POST http://localhost:5000/api/v1/payments/wave \
 ## 🔔 **WEBHOOKS**
 
 ### **📡 Événements Disponibles**
+
 ```javascript
 Events:
 ├── order.created        - Nouvelle commande
@@ -420,8 +448,9 @@ Events:
 ```
 
 ### **🔐 Configuration Webhook**
+
 ```bash
-curl -X POST http://localhost:5000/api/v1/webhooks \
+curl -X POST http://localhost:5001/api/v1/webhooks \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -436,14 +465,16 @@ curl -X POST http://localhost:5000/api/v1/webhooks \
 ## 🧪 **ENVIRONNEMENTS DE TEST**
 
 ### **🔧 Développement**
+
 ```
-Base URL: http://localhost:5000/api/v1
+Base URL: http://localhost:5001/api/v1
 Database: MongoDB local
 Email: Gmail (500/jour)
 Payments: Mode test (Stripe, Wave sandbox)
 ```
 
 ### **🚀 Production**
+
 ```
 Base URL: https://api.harvests.sn/v1
 Database: MongoDB Atlas
@@ -457,26 +488,29 @@ CDN: Cloudinary + Cloudflare
 ## 📚 **RESSOURCES DÉVELOPPEUR**
 
 ### **🔗 Liens Utiles**
-- **Swagger UI** : http://localhost:5000/api/docs
-- **Health Check** : http://localhost:5000/api/v1/health
-- **OpenAPI JSON** : http://localhost:5000/api/docs.json
+
+- **Swagger UI** : http://localhost:5001/api/docs
+- **Health Check** : http://localhost:5001/api/v1/health
+- **OpenAPI JSON** : http://localhost:5001/api/docs.json
 - **Frontend** : http://localhost:3000
 - **Admin** : http://localhost:3001
 
 ### **📦 Collections Postman**
+
 ```javascript
 // Import depuis Swagger
 1. Ouvrir Postman
-2. Import → Link → http://localhost:5000/api/docs.json
+2. Import → Link → http://localhost:5001/api/docs.json
 3. Collection "Harvests API" créée automatiquement
 4. Configurer variables d'environnement
 5. Tester tous les endpoints
 ```
 
 ### **🔑 Variables d'Environnement Postman**
+
 ```json
 {
-  "baseUrl": "http://localhost:5000/api/v1",
+  "baseUrl": "http://localhost:5001/api/v1",
   "authToken": "{{jwt_token}}",
   "testEmail": "test@harvests.sn",
   "testPhone": "+221771234567",
@@ -489,26 +523,28 @@ CDN: Cloudinary + Cloudflare
 ## 🎯 **GUIDE D'UTILISATION RAPIDE**
 
 ### **🚀 Démarrage Rapide**
+
 ```bash
 # 1. Démarrer le serveur
 npm run dev
 
 # 2. Ouvrir Swagger UI
-http://localhost:5000/api/docs
+http://localhost:5001/api/docs
 
 # 3. Tester l'API
-curl http://localhost:5000/api/v1/health
+curl http://localhost:5001/api/v1/health
 
 # 4. S'inscrire
-curl -X POST http://localhost:5000/api/v1/auth/signup -d '{...}'
+curl -X POST http://localhost:5001/api/v1/auth/signup -d '{...}'
 
 # 5. Se connecter
-curl -X POST http://localhost:5000/api/v1/auth/login -d '{...}'
+curl -X POST http://localhost:5001/api/v1/auth/login -d '{...}'
 ```
 
 ### **🔐 Authentification dans Swagger**
+
 ```
-1. Aller sur http://localhost:5000/api/docs
+1. Aller sur http://localhost:5001/api/docs
 2. Cliquer "Authorize" (🔒)
 3. Entrer: Bearer YOUR_JWT_TOKEN
 4. Tous les endpoints protégés sont maintenant accessibles
@@ -519,18 +555,21 @@ curl -X POST http://localhost:5000/api/v1/auth/login -d '{...}'
 ## 📊 **MÉTRIQUES API**
 
 ### **⚡ Performance**
+
 - **Response Time** : < 200ms (moyenne)
 - **Throughput** : 1000+ req/sec
 - **Uptime** : > 99.9%
 - **Error Rate** : < 0.1%
 
 ### **🔒 Sécurité**
+
 - **Rate Limiting** : 100 req/15min par IP
 - **Auth Rate Limit** : 5 tentatives/15min
 - **JWT Expiration** : 90 jours
 - **Password Hashing** : bcrypt (12 rounds)
 
 ### **📈 Business Metrics**
+
 - **Endpoints** : 300+ disponibles
 - **Models** : 14 collections MongoDB
 - **Users Types** : 6 types supportés
@@ -541,6 +580,7 @@ curl -X POST http://localhost:5000/api/v1/auth/login -d '{...}'
 ## 🛠️ **DÉVELOPPEMENT**
 
 ### **🔧 Ajouter Nouvelles Routes**
+
 ```javascript
 // 1. Créer le controller
 // controllers/newController.js
@@ -562,15 +602,16 @@ curl -X POST http://localhost:5000/api/v1/auth/login -d '{...}'
  *       200:
  *         $ref: '#/components/schemas/Success'
  */
-router.post('/new-endpoint', controller.method);
+router.post("/new-endpoint", controller.method);
 
 // 3. Importer dans app.js
-app.use('/api/v1/new', newRoutes);
+app.use("/api/v1/new", newRoutes);
 
 // 4. Documentation auto-générée dans Swagger
 ```
 
 ### **📝 Conventions de Documentation**
+
 ```javascript
 Swagger Annotations:
 ├── @swagger au début de chaque route
@@ -586,6 +627,7 @@ Swagger Annotations:
 ## 🎊 **RÉSULTAT FINAL**
 
 ### **✅ DOCUMENTATION COMPLÈTE**
+
 - 📖 **Swagger UI** interactif opérationnel
 - 📄 **OpenAPI 3.0** spec complète
 - 🇸🇳 **Exemples sénégalais** dans toute la doc
@@ -594,6 +636,7 @@ Swagger Annotations:
 - 📊 **300+ endpoints** documentés
 
 ### **🚀 PRÊT POUR**
+
 - 👨‍💻 **Développeurs frontend** (React/Vite)
 - 📱 **Développeurs mobile** (React Native)
 - 🔗 **Intégrations** tierces (webhooks)
@@ -610,4 +653,4 @@ Swagger Annotations:
 
 ---
 
-*Documentation créée le 20/09/2025 - API v1.0.0 avec Swagger UI*
+_Documentation créée le 20/09/2025 - API v1.0.0 avec Swagger UI_

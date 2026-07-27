@@ -1,9 +1,22 @@
 import { getCountryName } from "./countryMapper";
 import { DEFAULT_CURRENCY, CURRENCIES } from "../config/currencies";
 
+export const normalizeUnit = (unit) => {
+	if (!unit) return "unité";
+	const unitMap = {
+		unit: "unité",
+		bunch: "botte",
+		bag: "sac",
+		box: "caisse",
+		pièces: "pièce",
+		tonnes: "tonne",
+	};
+	return unitMap[unit.toLowerCase()] || unit;
+};
+
 // Fonction utilitaire pour formater l'unité avec pluriel approprié
 export const formatUnit = (quantity, unit) => {
-	const unitValue = unit || "unité";
+	const unitValue = normalizeUnit(unit);
 	const unitsNoPlural = [
 		"kg",
 		"g",

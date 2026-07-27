@@ -185,7 +185,7 @@ const createTestAdmins = async () => {
 const showConnectionInfo = () => {
 	console.log("\n🌐 Informations de connexion:");
 	console.log("=====================================");
-	console.log("URL Backend: http://localhost:5000");
+	console.log("URL Backend: http://localhost:5001");
 	console.log("URL Frontend: http://localhost:5173");
 	console.log("Endpoint Admin: /api/v1/admin");
 	console.log("=====================================");

@@ -30,11 +30,11 @@ function startProcess(name, command, args, cwd) {
 	return process;
 }
 
-// Démarrer le backend sur le port 8001 avec nodemon
+// Démarrer le backend sur le port 5000 avec nodemon
 const backend = startProcess(
 	"Backend (Port 5000)",
-	"npx",
-	["nodemon", "server.js"],
+	"npm",
+	["run", "dev"],
 	"backend",
 );
 

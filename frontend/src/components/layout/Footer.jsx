@@ -171,7 +171,7 @@ const Footer = () => {
 	}, [categories, categoryIndex]);
 
 	return (
-		<footer className="bg-black text-white">
+		<footer className="bg-black text-white mb-14 md:mb-0">
 			{/* Back to top button (Amazon style) */}
 			<div 
 				className="bg-gray-800 hover:bg-gray-700 text-center py-4 cursor-pointer text-sm font-medium transition-colors"

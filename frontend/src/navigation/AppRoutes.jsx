@@ -288,7 +288,7 @@ const AppRoutes = () => {
 				path="/producteurs"
 				element={
 					<Layout>
-						<SuspenseRoute element={<Vendeurs />} />
+						<SuspenseRoute element={<Producers />} />
 					</Layout>
 				}
 			/>

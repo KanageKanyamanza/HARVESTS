@@ -308,4 +308,3 @@ process.once("SIGUSR2", () => {
 		process.kill(process.pid, "SIGUSR2");
 	});
 });
-// Trigger restart for env update

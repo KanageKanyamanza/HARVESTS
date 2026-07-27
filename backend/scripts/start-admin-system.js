@@ -164,9 +164,9 @@ const main = async () => {
 		}
 
 		console.log("\n✅ Configuration vérifiée avec succès");
-		console.log("🌐 Le serveur sera accessible sur: http://localhost:5000");
-		console.log("📚 Documentation API: http://localhost:5000/api-docs");
-		console.log("🔧 Interface admin: http://localhost:5000/api/v1/admin");
+		console.log("🌐 Le serveur sera accessible sur: http://localhost:5001");
+		console.log("📚 Documentation API: http://localhost:5001/api-docs");
+		console.log("🔧 Interface admin: http://localhost:5001/api/v1/admin");
 		console.log("\n💡 Commandes utiles:");
 		console.log("   - Créer un admin: node scripts/quick-admin-setup.js");
 		console.log("   - Gérer les admins: node scripts/admin-manager.js");

@@ -6,6 +6,23 @@ import { productService } from '../services';
  * Hook personnalisé pour gérer les produits et leurs filtres
  * Modifié pour afficher séparément les produits producteurs/transformateurs et restaurateurs
  */
+const getSortParam = (sortBy) => {
+  switch (sortBy) {
+    case "price_asc":
+      return "price";
+    case "price_desc":
+      return "-price";
+    case "rating":
+      return "-stats.views";
+    case "newest":
+    default:
+      return "-createdAt";
+  }
+};
+
+/**
+ * Hook personnalisé pour gérer les produits et leurs filtres
+ */
 export const useProducts = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { category: categoryFromRoute } = useParams();
@@ -18,7 +35,7 @@ export const useProducts = () => {
   const [error, setError] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Filtres et recherche
+  // Filtres et recherche (initialisés depuis l'URL)
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [selectedCategory, setSelectedCategory] = useState(
     categoryFromRoute || searchParams.get("category") || ""
@@ -35,7 +52,7 @@ export const useProducts = () => {
   });
 
   // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get("page")) || 1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
 
@@ -51,15 +68,11 @@ export const useProducts = () => {
       setLoading(true);
       setError(null);
 
-      // 1. Fetch Producer/Transformer products (paginated)
-      // If a specific country is selected (including zones), request that country with useLocation=false
-      // If selectedCountry === 'MY_ZONE' -> only local products
-      // If no country selected -> fetch both all and local, then merge with local first
       const baseProducerParams = {
         page: currentPage,
-        limit: 12, // User requested 12
+        limit: 12,
         userType: 'producer,transformer',
-        sort: sortBy === "newest" ? "-createdAt" : sortBy,
+        sort: getSortParam(sortBy),
       };
 
       if (debouncedSearchQuery && debouncedSearchQuery.trim() !== "") baseProducerParams.search = debouncedSearchQuery.trim();
@@ -68,7 +81,6 @@ export const useProducts = () => {
       if (debouncedPriceRange.min) baseProducerParams.minPrice = debouncedPriceRange.min;
       if (debouncedPriceRange.max) baseProducerParams.maxPrice = debouncedPriceRange.max;
 
-      // 2. Fetch Restaurateur products (latest 12)
       const restaurateurParams = {
         page: 1,
         limit: 12,
@@ -99,7 +111,6 @@ export const useProducts = () => {
           total = producerRes.data.total || 0;
         }
       } else if (!selectedCountry) {
-        // fetch all and local, merge local first
         const [allRes, localRes] = await Promise.all([
           productService.getProducts({ ...baseProducerParams, useLocation: 'false' }),
           productService.getProducts({ ...baseProducerParams, useLocation: 'true' }),
@@ -124,7 +135,6 @@ export const useProducts = () => {
         }
       }
 
-      // Restaurateur products (still per-country or default)
       const [_, restaurateurRes] = await Promise.all([
         Promise.resolve(),
         productService.getProducts(restaurateurParams)
@@ -166,32 +176,12 @@ export const useProducts = () => {
     }
   }, []);
 
-  // Synchroniser les paramètres URL avec l'état local
+  // Synchroniser la catégorie de route /categories/:category
   useEffect(() => {
-    const urlSearchQuery = searchParams.get("q") || "";
-    const urlCategory = categoryFromRoute || searchParams.get("category") || "";
-    const urlSort = searchParams.get("sort") || "newest";
-    const urlFeatured = searchParams.get("featured") === "true";
-    const urlBio = searchParams.get("bio") === "true";
-    const urlPriceRange = {
-      min: searchParams.get("minPrice") || "",
-      max: searchParams.get("maxPrice") || "",
-    };
-    const urlCountry = searchParams.get("country") || "";
-    const urlPage = parseInt(searchParams.get("page")) || 1;
-
-    setSearchQuery(urlSearchQuery);
-    setSelectedCategory(urlCategory);
-    setSortBy(urlSort);
-    setIsFeatured(urlFeatured);
-    setIsBio(urlBio);
-    setPriceRange(urlPriceRange);
-    setSelectedCountry(urlCountry);
-    setCurrentPage(urlPage);
-
-    setDebouncedSearchQuery(urlSearchQuery);
-    setDebouncedPriceRange(urlPriceRange);
-  }, [searchParams, categoryFromRoute]);
+    if (categoryFromRoute && categoryFromRoute !== selectedCategory) {
+      setSelectedCategory(categoryFromRoute);
+    }
+  }, [categoryFromRoute]);
 
   // Charger les données
   useEffect(() => {
@@ -203,7 +193,7 @@ export const useProducts = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
-    }, 1000);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
@@ -212,45 +202,65 @@ export const useProducts = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedPriceRange(priceRange);
-    }, 800);
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [priceRange]);
 
-  // Recherche avec debounce
-  useEffect(() => {
-    const hasActiveFilters = debouncedSearchQuery || selectedCategory || selectedCountry || debouncedPriceRange.min || debouncedPriceRange.max || isFeatured || isBio;
-    
-    if (hasActiveFilters || currentPage > 1) {
-      setIsSearching(true);
-      loadProducts().finally(() => setIsSearching(false));
-    }
-  }, [debouncedSearchQuery, selectedCategory, selectedCountry, sortBy, isFeatured, isBio, debouncedPriceRange.min, debouncedPriceRange.max, currentPage, loadProducts]);
-
   const handleFilterChange = (filterType, value) => {
     setCurrentPage(1);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete("page");
+
     switch (filterType) {
       case "category":
         setSelectedCategory(value);
+        if (value) newParams.set("category", value);
+        else newParams.delete("category");
         break;
       case "country":
         setSelectedCountry(value);
+        if (value) newParams.set("country", value);
+        else newParams.delete("country");
         break;
       case "sort":
         setSortBy(value);
+        if (value && value !== "newest") newParams.set("sort", value);
+        else newParams.delete("sort");
         break;
       case "priceMin":
         setPriceRange((prev) => ({ ...prev, min: value }));
+        if (value) newParams.set("minPrice", value);
+        else newParams.delete("minPrice");
         break;
       case "priceMax":
         setPriceRange((prev) => ({ ...prev, max: value }));
+        if (value) newParams.set("maxPrice", value);
+        else newParams.delete("maxPrice");
         break;
       case "bio":
         setIsBio(value);
+        if (value) newParams.set("bio", "true");
+        else newParams.delete("bio");
         break;
       default:
         break;
     }
+
+    setSearchParams(newParams, { replace: true });
+  };
+
+  const handleSearchChange = (query) => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete("page");
+    if (query && query.trim() !== "") {
+      newParams.set("q", query.trim());
+    } else {
+      newParams.delete("q");
+    }
+    setSearchParams(newParams, { replace: true });
   };
 
   const clearFilters = () => {
@@ -273,7 +283,7 @@ export const useProducts = () => {
     error,
     isSearching,
     searchQuery,
-    setSearchQuery,
+    setSearchQuery: handleSearchChange,
     selectedCategory,
     selectedCountry,
     sortBy,
@@ -281,7 +291,13 @@ export const useProducts = () => {
     isBio,
     priceRange,
     currentPage,
-    setCurrentPage,
+    setCurrentPage: (page) => {
+      setCurrentPage(page);
+      const newParams = new URLSearchParams(searchParams);
+      if (page > 1) newParams.set("page", page.toString());
+      else newParams.delete("page");
+      setSearchParams(newParams, { replace: true });
+    },
     totalPages,
     totalProducts,
     handleFilterChange,

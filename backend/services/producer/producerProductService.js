@@ -46,8 +46,8 @@ async function createProduct(producerId, productData) {
     },
     minimumOrderQuantity: minimumOrderQuantity !== undefined ? minimumOrderQuantity : 0,
     maximumOrderQuantity: maximumOrderQuantity || undefined,
-    // Note: unit et currency ne sont pas stockés dans le modèle Product
-    // Ils peuvent être utilisés pour des calculs ou affichage mais ne sont pas persistés
+    unit: unit || 'unité',
+    currency: currency || 'XOF',
     status: status || 'draft',
     images: images ? images.map((img, index) => ({
       ...img,

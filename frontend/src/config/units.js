@@ -1,22 +1,25 @@
 export const UNITS = [
 	{ value: "kg", label: "Kilogrammes (kg)" },
 	{ value: "g", label: "Grammes (g)" },
-	{ value: "L", label: "Litre (L)" },
-	{ value: "ml", label: "Millilitre (ml)" },
-	{ value: "pièces", label: "Pièces" },
+	{ value: "L", label: "Litres (L)" },
+	{ value: "ml", label: "Millilitres (ml)" },
+	{ value: "sac", label: "Sac" },
+	{ value: "carton", label: "Carton" },
+	{ value: "caisse", label: "Caisse" },
 	{ value: "sachet", label: "Sachet" },
-	{ value: "bunch", label: "Botte/Bouquet" },
-	{ value: "bag", label: "Sac" },
-	{ value: "box", label: "Caisse/Boîte" },
-	{ value: "tonnes", label: "Tonnes" },
-	{ value: "unit", label: "Unité" },
+	{ value: "botte", label: "Botte / Bouquet" },
+	{ value: "panier", label: "Panier" },
+	{ value: "pièce", label: "Pièce" },
+	{ value: "tonne", label: "Tonne" },
+	{ value: "unité", label: "Unité" },
 	{ value: "portion", label: "Portion" },
 	{ value: "plat", label: "Plat" },
 ];
 
-export const DEFAULT_UNIT = "unit";
+export const DEFAULT_UNIT = "unité";
 
 export const getUnitLabel = (unitValue) => {
-	const unit = UNITS.find((u) => u.value === unitValue);
-	return unit ? unit.label : unitValue;
+	const normalized = unitValue === "unit" ? "unité" : unitValue;
+	const unit = UNITS.find((u) => u.value === normalized);
+	return unit ? unit.label : normalized;
 };

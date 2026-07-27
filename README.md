@@ -1,6 +1,7 @@
 # 🌾 Harvests - L'Amazon des Produits Agricoles Africains
 
-Une plateforme e-commerce moderne connectant producteurs et consommateurs à travers l'Afrique, avec support multilingue et paiements locaux.
+Une plateforme e-commerce moderne connectant producteurs et consommateurs à
+travers l'Afrique, avec support multilingue et paiements locaux.
 
 ## 🚀 Démarrage Rapide
 
@@ -19,8 +20,8 @@ npm run dev
 **🎯 Accès rapide :**
 
 - 🌐 **Frontend:** <http://localhost:5173>
-- 📡 **Backend API:** <http://localhost:5000>
-- 📚 **Documentation API:** <http://localhost:5000/api-docs>
+- 📡 **Backend API:** <http://localhost:5001>
+- 📚 **Documentation API:** <http://localhost:5001/api-docs>
 
 ## 🏗️ Architecture
 
@@ -69,13 +70,18 @@ HARVESTS/
 - 🔐 **Authentification** avec Context API
 - 📡 **TanStack Query** pour gestion d'état serveur
 - 🎭 **Lazy loading** et optimisations performance
-- 🛡️ **Hooks Robustes** : Architecture React stabilisée (useCallback/useEffect) pour éviter les re-rendus inutiles
+- 🛡️ **Hooks Robustes** : Architecture React stabilisée (useCallback/useEffect)
+  pour éviter les re-rendus inutiles
 
 ### ✅ **Logique Business Avancée**
 
-- 👁️ **Visibilité Garantie** : Système d'approbation admin qui réactive automatiquement les produits approuvés (`isActive: true`).
-- 📍 **Géo-Search Hybride** : Moteur de recherche capable d'extraire la localisation des requêtes textuelles et de filtrer les produits en fonction de l'adresse réelle des vendeurs (plus fiable que le filtrage par champ plat).
-- 🏭 **Support spécifique Transformateur** : Flux de publication optimisé pour les entreprises de transformation agro-alimentaires.
+- 👁️ **Visibilité Garantie** : Système d'approbation admin qui réactive
+  automatiquement les produits approuvés (`isActive: true`).
+- 📍 **Géo-Search Hybride** : Moteur de recherche capable d'extraire la
+  localisation des requêtes textuelles et de filtrer les produits en fonction de
+  l'adresse réelle des vendeurs (plus fiable que le filtrage par champ plat).
+- 🏭 **Support spécifique Transformateur** : Flux de publication optimisé pour
+  les entreprises de transformation agro-alimentaires.
 
 ## 🌍 Support Mondial
 
@@ -83,7 +89,8 @@ HARVESTS/
 - **Saisie libre :** Les utilisateurs peuvent saisir n'importe quel pays
 - **Détection automatique :** Configuration régionale basée sur le nom du pays
 - **Langues supportées :** Français, Anglais, Portugais, Arabe
-- **Devises :** Détection automatique selon le pays (XOF, XAF, USD, GHS, NGN, KES, etc.)
+- **Devises :** Détection automatique selon le pays (XOF, XAF, USD, GHS, NGN,
+  KES, etc.)
 
 ## 👥 Types d'Utilisateurs
 
@@ -181,7 +188,7 @@ CLOUDINARY_API_SECRET=your-api-secret
 
 ```bash
 # API Backend
-VITE_API_URL=http://localhost:5000/api/v1
+VITE_API_URL=http://localhost:5001/api/v1
 
 # Services
 VITE_STRIPE_PUBLIC_KEY=pk_test_...
@@ -193,9 +200,12 @@ VITE_VAPID_PUBLIC_KEY=your-vapid-public-key
 
 Si vous obtenez l'erreur "Registration failed - push service error" en local :
 
-1. **Navigateur Brave :** Allez dans `brave://settings/privacy` et activez "Utiliser les services Google pour la messagerie push".
-2. **Configuration :** Assurez-vous que `VITE_VAPID_PUBLIC_KEY` est défini dans `frontend/.env` ET que le serveur Vite a été redémarré.
-3. **Service Worker :** Vérifiez dans l'onglet "Application" > "Service Workers" des outils de développement que `sw.js` est bien enregistré.
+1. **Navigateur Brave :** Allez dans `brave://settings/privacy` et activez
+   "Utiliser les services Google pour la messagerie push".
+2. **Configuration :** Assurez-vous que `VITE_VAPID_PUBLIC_KEY` est défini dans
+   `frontend/.env` ET que le serveur Vite a été redémarré.
+3. **Service Worker :** Vérifiez dans l'onglet "Application" > "Service Workers"
+   des outils de développement que `sw.js` est bien enregistré.
 
 ## 🚀 Scripts NPM
 
@@ -239,7 +249,7 @@ node test-bilingual.js       # Test système bilingue
 
 ## 📚 Documentation
 
-- 📖 **API Docs:** <http://localhost:5000/api-docs> (Swagger)
+- 📖 **API Docs:** <http://localhost:5001/api-docs> (Swagger)
 - 🏗️ **Architecture:** `backend/docs/ARCHITECTURE.md`
 - 🌐 **API Bilingue:** `backend/docs/BILINGUAL_API_GUIDE.md`
 - 🎨 **Frontend:** `frontend/README.md`
@@ -298,8 +308,10 @@ MIT License - voir [LICENSE](LICENSE)
 - [x] Authentification et sécurité
 - [x] Système de paiements dual
 - [x] Documentation complète
-- [x] **Visibilité intelligente** : Approbation admin couplée à l'activation automatique
-- [x] **Recherche hybride** : Filtrage géographique par vendeurs (Producteurs/Transformateurs)
+- [x] **Visibilité intelligente** : Approbation admin couplée à l'activation
+      automatique
+- [x] **Recherche hybride** : Filtrage géographique par vendeurs
+      (Producteurs/Transformateurs)
 
 ### Phase 2 - 🚧 En cours
 
@@ -308,7 +320,8 @@ MIT License - voir [LICENSE](LICENSE)
 - [ ] Dashboards utilisateurs par type (Restaurateur, Transformateur)
 - [ ] Système de panier et checkout
 - [ ] Notifications temps réel
-- [x] **Stabilité React** : Correction des boucles de re-rendu et dépendances Hooks
+- [x] **Stabilité React** : Correction des boucles de re-rendu et dépendances
+      Hooks
 
 ### Phase 3 - 📋 Planifiée
 
@@ -322,10 +335,11 @@ MIT License - voir [LICENSE](LICENSE)
 
 - 📧 **Email:** <contact@harvests.site>
 - 🐛 **Issues:** [GitHub Issues](https://github.com/ZooM982/HARVESTS/issues)
-- 💬 **Discussions:** [GitHub Discussions](https://github.com/ZooM982/HARVESTS/discussions)
+- 💬 **Discussions:**
+  [GitHub Discussions](https://github.com/ZooM982/HARVESTS/discussions)
 
 ---
 
 **🌍 Harvests - Révolutionner l'agriculture africaine, un clic à la fois !**
 
-*Made with ❤️ in Africa*
+_Made with ❤️ in Africa_

@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiUser, FiMapPin } from 'react-icons/fi';
+import { FiUser, FiArrowRight } from 'react-icons/fi';
 import CloudinaryImage from '../common/CloudinaryImage';
-import { getVendorName, getVendorLogo, formatVendorAddress, getVendorProfileRoute } from '../../utils/productUtils';
+import { getVendorName, getVendorLogo, getVendorProfileRoute } from '../../utils/productUtils';
 
 const VendorCard = ({ vendor }) => {
   const navigate = useNavigate();
@@ -11,39 +11,34 @@ const VendorCard = ({ vendor }) => {
 
   const logo = getVendorLogo(vendor);
   const name = getVendorName(vendor);
-  const address = formatVendorAddress(vendor);
 
   return (
-    <div className="bg-harvests-light rounded-lg p-4">
-      <div className="flex items-center space-x-3">
-        {logo ? (
-          <CloudinaryImage
-            src={logo}
-            alt={name}
-            className="w-12 h-12 rounded-full object-cover"
-            width={48}
-            height={48}
-            quality="auto"
-            crop="fill"
-          />
-        ) : (
-          <div className="w-12 h-12 bg-harvests-green rounded-full flex items-center justify-center flex-shrink-0">
-            <FiUser className="h-6 w-6 text-white" />
-          </div>
-        )}
-        <div className="flex-1 min-w-0 truncate">
-          <h3 className="font-medium text-gray-900 ">{name}</h3>
-          <button
-            onClick={() => navigate(getVendorProfileRoute(vendor))}
-            className="text-harvests-green hover:text-green-600 text-sm font-medium whitespace-nowrap flex-shrink-0"
-          >
-            Visiter la boutique
-          </button>
+    <button
+      onClick={() => navigate(getVendorProfileRoute(vendor))}
+      className="w-full bg-[#F8FAF6] hover:bg-emerald-50 border border-emerald-100/80 rounded-2xl p-3.5 flex items-center gap-3 transition-colors text-left group"
+    >
+      {logo ? (
+        <CloudinaryImage
+          src={logo}
+          alt={name}
+          className="w-11 h-11 rounded-full object-cover border-2 border-white shadow-sm flex-shrink-0"
+          width={44}
+          height={44}
+          quality="auto"
+          crop="fill"
+        />
+      ) : (
+        <div className="w-11 h-11 bg-gradient-to-tr from-[#1A5514] to-[#31BC2E] rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+          <FiUser className="h-5 w-5 text-white" />
         </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Vendu par</p>
+        <h3 className="font-bold text-[#161D14] truncate text-sm">{name}</h3>
       </div>
-    </div>
+      <FiArrowRight className="h-4 w-4 text-[#1A5514] shrink-0 group-hover:translate-x-1 transition-transform" />
+    </button>
   );
 };
 
 export default VendorCard;
-

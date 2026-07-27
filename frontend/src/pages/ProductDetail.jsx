@@ -17,7 +17,7 @@ import StarRating from "../components/reviews/StarRating";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import ProductSpecifications from "../components/product/ProductSpecifications";
 import { toPlainText } from "../utils/textHelpers";
-import { getCategoryLabel, getStatusConfig } from "../utils/productUtils";
+import { getCategoryLabel, getStatusConfig, normalizeUnit } from "../utils/productUtils";
 import { formatPrice } from "../utils/currencyUtils";
 import {
 	FiArrowLeft,
@@ -205,7 +205,7 @@ const ProductDetail = () => {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen bg-harvests-light flex items-center justify-center">
+			<div className="min-h-screen bg-[#F8FAF6] flex items-center justify-center">
 				<LoadingSpinner size="lg" text="Chargement du produit..." />
 			</div>
 		);
@@ -213,17 +213,17 @@ const ProductDetail = () => {
 
 	if (error || !product) {
 		return (
-			<div className="min-h-screen bg-harvests-light flex items-center justify-center">
-				<div className="text-center">
-					<h1 className="text-2xl font-bold text-gray-900 mb-4">
+			<div className="min-h-screen bg-[#F8FAF6] flex items-center justify-center px-4">
+				<div className="text-center bg-white rounded-3xl shadow-agri-card border border-emerald-100/80 p-10 max-w-md">
+					<h1 className="text-xl font-extrabold text-[#161D14] mb-2">
 						Produit non trouvé
 					</h1>
-					<p className="text-gray-600 mb-6">
+					<p className="text-gray-500 mb-6 text-sm">
 						Le produit n'existe pas ou n'est plus disponible
 					</p>
 					<button
 						onClick={() => navigate("/products")}
-						className="inline-flex items-center px-4 py-2 bg-harvests-green text-white rounded-md"
+						className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-[#1A5514] to-[#31BC2E] text-white rounded-full font-bold shadow-lg shadow-emerald-900/20"
 					>
 						<FiArrowLeft className="h-4 w-4 mr-2" />
 						Retour
@@ -235,17 +235,17 @@ const ProductDetail = () => {
 
 	if (!canViewProduct(product, user)) {
 		return (
-			<div className="min-h-screen bg-harvests-light flex items-center justify-center">
-				<div className="text-center">
-					<h1 className="text-2xl font-bold text-gray-900 mb-4">
+			<div className="min-h-screen bg-[#F8FAF6] flex items-center justify-center px-4">
+				<div className="text-center bg-white rounded-3xl shadow-agri-card border border-emerald-100/80 p-10 max-w-md">
+					<h1 className="text-xl font-extrabold text-[#161D14] mb-2">
 						Accès non autorisé
 					</h1>
-					<p className="text-gray-600 mb-6">
+					<p className="text-gray-500 mb-6 text-sm">
 						Ce produit n'est pas encore approuvé.
 					</p>
 					<button
 						onClick={() => navigate("/products")}
-						className="inline-flex items-center px-4 py-2 bg-harvests-green text-white rounded-md"
+						className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-[#1A5514] to-[#31BC2E] text-white rounded-full font-bold shadow-lg shadow-emerald-900/20"
 					>
 						<FiArrowLeft className="h-4 w-4 mr-2" />
 						Retour aux produits
@@ -273,7 +273,7 @@ const ProductDetail = () => {
 	}`;
 
 	return (
-		<div className="min-h-screen bg-harvests-light">
+		<div className="min-h-screen bg-[#F8FAF6] pb-24 lg:pb-8">
 			<SEOHead
 				title={productName}
 				description={
@@ -283,99 +283,94 @@ const ProductDetail = () => {
 				type="product"
 				canonical={canonicalUrl}
 			/>
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-				<div className="mb-6">
-					<button
-						onClick={() => navigate(-1)}
-						className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4"
-					>
-						<FiArrowLeft className="h-4 w-4 mr-2" />
-						Retour
-					</button>
-				</div>
+			<div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6">
+				<button
+					onClick={() => navigate(-1)}
+					className="inline-flex items-center text-gray-600 hover:text-[#1A5514] mb-4 text-sm font-bold transition-colors"
+				>
+					<FiArrowLeft className="h-4 w-4 mr-1.5" />
+					Retour
+				</button>
 
-				<div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+				<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 					{/* Colonne 1: Galerie d'images (Left) */}
 					<div className="lg:col-span-5">
-						<ProductImageGallery
-							images={product.images}
-							selectedIndex={selectedImageIndex}
-							onSelectImage={setSelectedImageIndex}
-							productName={productName}
-						/>
+						<div className="bg-white rounded-2xl border border-emerald-100/80 shadow-sm p-3 sm:p-4">
+							<ProductImageGallery
+								images={product.images}
+								selectedIndex={selectedImageIndex}
+								onSelectImage={setSelectedImageIndex}
+								productName={productName}
+							/>
+						</div>
 					</div>
 
 					{/* Colonne 2: Informations du produit (Middle) */}
 					<div className="lg:col-span-4 space-y-4">
-						{/* En-tête */}
-						<div>
-							<div className="flex flex-wrap items-center justify-between mb-2">
-								<span className="inline-flex items-center text-sm font-medium text-primary-700 hover:underline cursor-pointer">
-									{getCategoryLabel(product.category)}
-								</span>
-							</div>
-							<h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight mb-2">
+						<div className="bg-white rounded-2xl border border-emerald-100/80 shadow-sm p-5">
+							{/* En-tête */}
+							<span className="inline-flex items-center text-xs font-bold text-[#1A5514] bg-emerald-50 px-2.5 py-1 rounded-full mb-3">
+								{getCategoryLabel(product.category)}
+							</span>
+							<h1 className="text-xl sm:text-2xl font-extrabold text-[#161D14] leading-tight mb-2">
 								{productName}
 							</h1>
-							
-							<div className="flex items-center space-x-2 border-b border-gray-200 pb-2 mb-2">
-								<div className="flex items-center cursor-pointer hover:text-primary-600">
-									<span className="text-sm font-bold text-gray-800 mr-1">{reviewStats?.averageRating || 0}</span>
+
+							<div className="flex items-center gap-2 pb-3 mb-3 border-b border-gray-100">
+								<div className="flex items-center gap-1">
+									<span className="text-sm font-bold text-gray-800">{reviewStats?.averageRating || 0}</span>
 									<StarRating rating={reviewStats?.averageRating || 0} size="sm" />
 								</div>
 								{reviewStats?.totalReviews > 0 && (
-									<span className="text-sm text-primary-600 hover:underline cursor-pointer">
-										{reviewStats.totalReviews} évaluations
+									<span className="text-xs text-gray-500">
+										({reviewStats.totalReviews} évaluations)
 									</span>
 								)}
 							</div>
 
-							<div className="flex items-center space-x-2 mt-2 mb-4">
-								<span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${statusConfig.color}`}>
+							<div className="flex flex-wrap items-center gap-2 mb-4">
+								<span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${statusConfig.color}`}>
 									<StatusIcon className="w-3 h-3 mr-1" />
 									{statusConfig.text}
 								</span>
 								{(producer?.isBio || product.transformer?.isBio) && (
-									<span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-800">
+									<span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
 										<Leaf className="mr-1 h-3 w-3" />
-										CERTIFIE BIO
+										Certifié BIO
 									</span>
 								)}
 							</div>
-						</div>
 
-						{/* Prix (Middle) */}
-						<div className="py-2">
-							<div className="flex items-end">
-								<span className="text-3xl font-bold text-gray-900">
+							{/* Prix */}
+							<div className="py-3 border-t border-gray-100">
+								<span className="text-2xl sm:text-3xl font-extrabold text-[#1A5514]">
 									{formatPrice(product.price, product.currency)}
 								</span>
+								<span className="text-sm text-gray-500 ml-1.5">
+									/ {normalizeUnit(product.unit)}
+								</span>
 							</div>
-							<div className="text-sm text-gray-500 mt-1">
-								par {product.unit || "unité"}
-							</div>
-						</div>
 
-						{/* Description courte / Bullets */}
-						<div className="border-t border-gray-200 pt-4">
-							<h3 className="font-bold text-gray-900 mb-2">À propos de cet article</h3>
-							<p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line truncate">
-								{productDescription.length > 150 ? productDescription.slice(0, 150) + "..." : productDescription}
-							</p>
+							{/* Description courte */}
+							<div className="border-t border-gray-100 pt-4">
+								<h3 className="font-bold text-[#161D14] mb-2 text-sm">À propos de cet article</h3>
+								<p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line line-clamp-4">
+									{productDescription}
+								</p>
+							</div>
 						</div>
 					</div>
 
 					{/* Colonne 3: Buy Box (Right) */}
 					<div className="lg:col-span-3">
-						<div className="bg-white border border-gray-300 rounded-lg p-4 shadow-sm sticky top-4">
-							<div className="text-2xl font-bold text-gray-900 mb-2">
+						<div className="hidden lg:block bg-white border border-emerald-100/80 rounded-2xl p-5 shadow-agri-card sticky top-24">
+							<div className="text-2xl font-extrabold text-[#161D14] mb-1">
 								{formatPrice(product.price, product.currency)}
 							</div>
-							
-							<div className="text-sm text-gray-600 mb-4 flex items-center">
-								<FiPackage className="h-4 w-4 mr-2 text-primary-600" />
-								<span className="font-medium text-green-700">En stock</span>
-								{/* <span className="ml-1">({product.inventory?.quantity || 0} disponibles)</span> */}
+
+							<div className="text-sm mb-4 flex items-center gap-1.5">
+								<FiPackage className="h-4 w-4 text-[#1A5514]" />
+								<span className="font-bold text-emerald-700">En stock</span>
 							</div>
 
 							<ProductActions
@@ -389,15 +384,15 @@ const ProductDetail = () => {
 							/>
 
 							{showAddedToCart && (
-								<div className="mt-3 bg-green-50 text-green-700 whitespace-nowrap px-3 py-2 rounded border border-green-200 text-sm flex items-center">
+								<div className="mt-3 bg-emerald-50 text-emerald-700 whitespace-nowrap px-3 py-2 rounded-xl border border-emerald-200 text-sm flex items-center font-semibold">
 									<FiCheckCircle className="h-4 w-4 mr-2" />
 									Ajouté au panier
 								</div>
 							)}
 
-							<div className="mt-4 pt-4 border-t border-gray-200">
-								<div className="text-sm text-gray-600 mb-2 flex items-center">
-									<FiShield className="h-4 w-4 mr-2 text-gray-400" />
+							<div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+								<div className="text-xs text-gray-500 flex items-center gap-1.5 font-medium">
+									<FiShield className="h-3.5 w-3.5 text-emerald-500" />
 									Paiement sécurisé
 								</div>
 								<VendorCard vendor={producer} />
@@ -407,17 +402,17 @@ const ProductDetail = () => {
 				</div>
 
 				{/* Onglets */}
-				<div className="mt-12">
-					<div className="border-b border-gray-200">
-						<nav className="-mb-px flex space-x-8">
+				<div className="mt-8 bg-white rounded-2xl border border-emerald-100/80 shadow-sm">
+					<div className="border-b border-gray-100 px-3 sm:px-5 overflow-x-auto">
+						<nav className="-mb-px flex gap-1 sm:gap-2 w-max">
 							{["description", "specifications", "reviews"].map((tab) => (
 								<button
 									key={tab}
 									onClick={() => setActiveTab(tab)}
-									className={`py-2 px-1 border-b-2 font-medium text-sm ${
+									className={`py-3.5 px-3 sm:px-4 border-b-2 font-bold text-sm whitespace-nowrap transition-colors ${
 										activeTab === tab ?
-											"border-harvests-green text-harvests-green"
-										:	"border-transparent text-gray-500 hover:text-gray-700"
+											"border-[#1A5514] text-[#1A5514]"
+										:	"border-transparent text-gray-400 hover:text-gray-600"
 									}`}
 								>
 									{tab === "description" ?
@@ -430,9 +425,9 @@ const ProductDetail = () => {
 						</nav>
 					</div>
 
-					<div className="py-6">
+					<div className="p-4 sm:p-6">
 						{activeTab === "description" && (
-							<p className="text-gray-600 leading-relaxed">
+							<p className="text-gray-600 leading-relaxed text-sm">
 								{productDescription}
 							</p>
 						)}
@@ -447,18 +442,18 @@ const ProductDetail = () => {
 						{activeTab === "reviews" && (
 							<div className="space-y-6">
 								{canLeaveReview && !showReviewForm && (
-									<div className="bg-primary-50 border border-primary-200 rounded-lg p-4 flex items-center justify-between">
+									<div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
 										<div>
-											<h3 className="text-lg font-medium text-primary-500">
+											<h3 className="text-sm font-extrabold text-[#1A5514]">
 												Avez-vous acheté ce produit ?
 											</h3>
-											<p className="text-primary-700 text-sm mt-1">
+											<p className="text-emerald-700/80 text-xs mt-0.5">
 												Partagez votre expérience
 											</p>
 										</div>
 										<button
 											onClick={() => setShowReviewForm(true)}
-											className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+											className="inline-flex items-center justify-center px-4 py-2.5 bg-[#1A5514] text-white rounded-full text-sm font-bold hover:bg-emerald-800 transition-colors shrink-0"
 										>
 											<FiStar className="h-4 w-4 mr-2" />
 											Laisser un avis
@@ -466,14 +461,14 @@ const ProductDetail = () => {
 									</div>
 								)}
 								{showReviewForm && (
-									<div className="bg-white border border-gray-200 rounded-lg p-6">
+									<div className="bg-white border border-gray-100 rounded-2xl p-5 sm:p-6 shadow-sm">
 										<div className="flex items-center justify-between mb-4">
-											<h3 className="text-lg font-medium text-gray-900">
+											<h3 className="text-base font-extrabold text-[#161D14]">
 												Laisser un avis
 											</h3>
 											<button
 												onClick={() => setShowReviewForm(false)}
-												className="text-gray-400 hover:text-gray-600"
+												className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-full transition-colors"
 											>
 												<FiX className="h-5 w-5" />
 											</button>
@@ -499,6 +494,52 @@ const ProductDetail = () => {
 						)}
 					</div>
 				</div>
+			</div>
+
+			{/* Barre d'achat fixe (mobile) */}
+			<div className="lg:hidden fixed bottom-16 inset-x-0 z-30 bg-white border-t border-gray-200 p-3 shadow-[0_-8px_30px_-8px_rgba(0,0,0,0.15)]">
+				{showAddedToCart ? (
+					<div className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white py-3.5 rounded-full font-bold">
+						<FiCheckCircle className="h-5 w-5" />
+						Ajouté au panier
+					</div>
+				) : (
+					<div className="flex items-center gap-2">
+						<button
+							onClick={handleToggleFavorite}
+							aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+							className={`h-12 w-12 shrink-0 rounded-full border flex items-center justify-center transition-colors ${
+								isFavorite ? "bg-red-50 border-red-200 text-red-600" : "bg-white border-gray-200 text-gray-600"
+							}`}
+						>
+							<FiHeart className={`h-5 w-5 ${isFavorite ? "fill-current" : ""}`} />
+						</button>
+						<div className="flex items-center border border-gray-200 rounded-full bg-gray-50 overflow-hidden shrink-0">
+							<button
+								onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+								className="h-12 w-9 flex items-center justify-center text-gray-600 text-lg font-bold"
+							>
+								−
+							</button>
+							<span className="px-2 min-w-[1.75rem] text-center text-sm font-bold text-[#161D14]">{quantity}</span>
+							<button
+								onClick={() => setQuantity((q) => q + 1)}
+								className="h-12 w-9 flex items-center justify-center text-gray-600 text-lg font-bold"
+							>
+								+
+							</button>
+						</div>
+						<button
+							onClick={handleAddToCart}
+							className="flex-1 min-w-0 h-12 px-3 bg-gradient-to-r from-[#1A5514] to-[#31BC2E] text-white rounded-full font-bold shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-1.5 text-xs sm:text-sm"
+						>
+							<FiShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
+							<span className="truncate">
+								Ajouter — {formatPrice(product.price * quantity, product.currency)}
+							</span>
+						</button>
+					</div>
+				)}
 			</div>
 		</div>
 	);

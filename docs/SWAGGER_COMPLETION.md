@@ -2,11 +2,13 @@
 
 ## 📊 Résumé
 
-Toutes les routes de l'API Harvests ont été documentées avec des annotations Swagger complètes.
+Toutes les routes de l'API Harvests ont été documentées avec des annotations
+Swagger complètes.
 
 ## 📝 Routes Documentées
 
 ### 🔐 Authentification
+
 - ✅ **Authentication** (`/api/v1/auth`)
   - Signup, Login, Logout
   - Vérification email
@@ -18,6 +20,7 @@ Toutes les routes de l'API Harvests ont été documentées avec des annotations 
   - Profil admin
 
 ### 👥 Utilisateurs
+
 - ✅ **Users** (`/api/v1/users`)
   - GET/PATCH `/me`
   - DELETE `/delete-me`
@@ -29,40 +32,47 @@ Toutes les routes de l'API Harvests ont été documentées avec des annotations 
   - Upload images
 
 ### 👨‍🌾 Producteurs
+
 - ✅ **Producers** (`/api/v1/producers`)
   - Routes publiques : GET `/`, `/search`, `/by-region`, `/by-crop`
   - Routes privées : `/me/stats`, `/me/products`, `/me/orders`
   - Profil, certifications, produits
 
 ### 🏭 Transformateurs
+
 - ✅ **Transformers** (`/api/v1/transformers`)
   - Routes publiques et privées
   - Profil, produits, certifications
 
 ### 🛒 Consommateurs
+
 - ✅ **Consumers** (`/api/v1/consumers`)
   - Profil, panier, commandes
   - Wishlist, préférences, allergies
   - Adresses de livraison
 
 ### 🍽️ Restaurateurs
+
 - ✅ **Restaurateurs** (`/api/v1/restaurateurs`)
   - Routes publiques et privées
   - Plats, menu, horaires
   - Fournisseurs préférés
 
 ### 🚢 Exportateurs
+
 - ✅ **Exporters** (`/api/v1/exporters`)
   - Routes publiques : GET `/`, `/search`, `/by-market`, `/by-product`
   - Routes privées : Profil, licences, marchés cibles
 
 ### 🚛 Transporteurs
+
 - ✅ **Transporters** (`/api/v1/transporters`)
   - Routes publiques : GET `/`, `/search`, `/by-region`, `/by-service`
   - Calculateur de tarifs
   - Routes privées : Flotte, zones de service
 
 ### 🌾 Produits
+
 - ✅ **Products** (`/api/v1/products`)
   - GET `/` avec recherche intelligente
   - POST `/` créer produit
@@ -70,6 +80,7 @@ Toutes les routes de l'API Harvests ont été documentées avec des annotations 
   - Upload images
 
 ### 📦 Commandes
+
 - ✅ **Orders** (`/api/v1/orders`)
   - GET `/my` mes commandes
   - POST `/` créer commande
@@ -78,30 +89,35 @@ Toutes les routes de l'API Harvests ont été documentées avec des annotations 
   - GET `/:id/tracking` suivi
 
 ### 💳 Paiements
+
 - ✅ **Payments** (`/api/v1/payments`)
   - POST `/initiate` initier paiement
   - GET `/:id` détails paiement
   - Support Wave, Orange Money, Stripe, PayPal
 
 ### ⭐ Avis
+
 - ✅ **Reviews** (`/api/v1/reviews`)
   - GET `/product/:id` avis d'un produit
   - POST `/` créer avis
   - GET `/my/reviews` mes avis
 
 ### 💬 Messagerie
+
 - ✅ **Messages** (`/api/v1/messages`)
   - GET `/conversations` mes conversations
   - POST `/conversations` créer conversation
   - POST `/conversations/:id/messages` envoyer message
 
 ### 🔔 Notifications
+
 - ✅ **Notifications** (`/api/v1/notifications`)
   - GET `/my` mes notifications
   - PATCH `/:id/read` marquer comme lu
   - Préférences
 
 ### 🤖 Chatbot
+
 - ✅ **Chat** (`/api/v1/chat`)
   - GET `/search-products` recherche produits
   - GET `/search-sellers` recherche vendeurs
@@ -112,27 +128,32 @@ Toutes les routes de l'API Harvests ont été documentées avec des annotations 
   - Routes admin
 
 ### 📝 Blog
+
 - ✅ **Blog** (`/api/v1/blogs`)
   - GET `/` articles publiés (public)
   - POST `/admin/blogs` créer article (admin)
   - GET `/:slug` article par slug
 
 ### 👥 Visiteurs Blog
+
 - ✅ **Blog Visitors** (`/api/v1/blog-visitors`)
   - GET `/check` vérifier visiteur
   - POST `/submit` soumettre formulaire
 
 ### 📧 Contact
+
 - ✅ **Contact** (`/api/v1/contact`)
   - POST `/` envoyer message
 
 ### 📸 Upload
+
 - ✅ **Upload** (`/api/v1/upload`)
   - POST `/product-images` upload images produits
   - POST `/cloudinary` upload général
   - DELETE `/image/:publicId` supprimer image
 
 ### 📋 Abonnements
+
 - ✅ **Subscriptions** (`/api/v1/subscriptions`)
   - GET `/me` mes abonnements
   - POST `/` créer abonnement
@@ -141,6 +162,7 @@ Toutes les routes de l'API Harvests ont été documentées avec des annotations 
   - POST `/:id/renew` renouveler
 
 ### ⚙️ Administration
+
 - ✅ **Admin** (`/api/v1/admin`)
   - Dashboard stats
   - Gestion utilisateurs
@@ -193,6 +215,7 @@ Toutes les routes de l'API Harvests ont été documentées avec des annotations 
 ## ✅ Fonctionnalités Documentées
 
 ### Pour Chaque Route
+
 - ✅ Résumé et description
 - ✅ Tags appropriés
 - ✅ Paramètres (path, query, body)
@@ -203,6 +226,7 @@ Toutes les routes de l'API Harvests ont été documentées avec des annotations 
 - ✅ Sécurité (bearerAuth) quand nécessaire
 
 ### Spécificités
+
 - ✅ Recherche intelligente (pluriel/singulier, géolocalisation)
 - ✅ Pagination standardisée
 - ✅ Filtres avancés
@@ -212,13 +236,14 @@ Toutes les routes de l'API Harvests ont été documentées avec des annotations 
 
 ## 🚀 Accès
 
-- **Swagger UI** : http://localhost:5000/api/docs
-- **OpenAPI JSON** : http://localhost:5000/api/docs.json
-- **Alternative** : http://localhost:5000/api-docs (redirection)
+- **Swagger UI** : http://localhost:5001/api/docs
+- **OpenAPI JSON** : http://localhost:5001/api/docs.json
+- **Alternative** : http://localhost:5001/api-docs (redirection)
 
 ## 📝 Fichiers Modifiés
 
 ### Routes
+
 - ✅ `authRoutes.js`
 - ✅ `userRoutes.js`
 - ✅ `profileRoutes.js`
@@ -245,6 +270,7 @@ Toutes les routes de l'API Harvests ont été documentées avec des annotations 
 - ✅ `adminManagementRoutes.js`
 
 ### Configuration
+
 - ✅ `config/swagger.js` - Tags mis à jour
 - ✅ `routes/swagger-docs.js` - Documentation complémentaire créée
 
@@ -253,6 +279,7 @@ Toutes les routes de l'API Harvests ont été documentées avec des annotations 
 **La documentation Swagger est maintenant 100% complète !**
 
 Tous les endpoints sont documentés avec :
+
 - Descriptions détaillées
 - Paramètres complets
 - Exemples concrets
@@ -260,6 +287,7 @@ Tous les endpoints sont documentés avec :
 - Schémas de données
 
 **Prêt pour :**
+
 - ✅ Développeurs frontend
 - ✅ Intégrateurs API
 - ✅ Tests automatisés
@@ -268,5 +296,4 @@ Tous les endpoints sont documentés avec :
 
 ---
 
-*Documentation complétée le ${new Date().toLocaleDateString('fr-FR')}*
-
+_Documentation complétée le ${new Date().toLocaleDateString('fr-FR')}_
