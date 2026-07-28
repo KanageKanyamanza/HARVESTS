@@ -65,7 +65,7 @@ const Contact = () => {
 		{
 			icon: <FiPhone className="w-6 h-6" />,
 			title: "Téléphone",
-			details: ["+221 771970713", "+221 774536704"],
+			details: ["+221 77 361 11 72"],
 			description: "Lun-Ven: 8h-18h, Sam: 9h-13h",
 		},
 		{

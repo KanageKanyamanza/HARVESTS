@@ -119,7 +119,7 @@ async function generateInvoicePDF(
 			.text("Plateforme de vente de produits agricoles", companyX, headerY + 18)
 			.text("Dakar, Sénégal", companyX, headerY + 30)
 			.text("Email: contact@harvests.site", companyX, headerY + 42)
-			.text("Tél: +221 771970713 / +221 774536704", companyX, headerY + 54);
+			.text("Tél: +221 77 361 11 72", companyX, headerY + 54);
 
 		// Numéro de facture et date (en haut à droite) - aligné avec le header
 		const invoiceNumber =

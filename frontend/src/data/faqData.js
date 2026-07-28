@@ -126,7 +126,7 @@ export const faqData = {
 			],
 			question: "Je n'arrive pas à payer, que faire ?",
 			answer:
-				"Si vous rencontrez un problème de paiement :\n\n1. **Vérifiez votre connexion internet**\n2. **Rafraîchissez la page** et réessayez\n3. **Vérifiez vos informations** de paiement\n4. **Essayez un autre navigateur** ou mode navigation privée\n5. **Utilisez Mobile Money** : Orange Money, Wave ou Free Money\n6. **Paiement à la livraison** : Choisissez cette option si disponible\n\nSi le problème persiste, contactez-nous : contact@harvests.site ou +221 77 197 07 13",
+				"Si vous rencontrez un problème de paiement :\n\n1. **Vérifiez votre connexion internet**\n2. **Rafraîchissez la page** et réessayez\n3. **Vérifiez vos informations** de paiement\n4. **Essayez un autre navigateur** ou mode navigation privée\n5. **Utilisez Mobile Money** : Orange Money, Wave ou Free Money\n6. **Paiement à la livraison** : Choisissez cette option si disponible\n\nSi le problème persiste, contactez-nous : contact@harvests.site ou +221 77 361 11 72",
 		},
 		{
 			id: "paiement-probleme-technique",
@@ -141,7 +141,7 @@ export const faqData = {
 			],
 			question: "Problème technique lors du paiement",
 			answer:
-				"En cas de problème technique :\n\n1. **Rafraîchissez la page** (F5 ou Ctrl+R)\n2. **Videz le cache** de votre navigateur\n3. **Essayez un autre navigateur** (Chrome, Firefox, Safari)\n4. **Désactivez temporairement** les extensions de navigateur\n5. **Contactez le support** avec une capture d'écran de l'erreur\n\nEmail : contact@harvests.site\nTéléphone : +221 77 197 07 13",
+				"En cas de problème technique :\n\n1. **Rafraîchissez la page** (F5 ou Ctrl+R)\n2. **Videz le cache** de votre navigateur\n3. **Essayez un autre navigateur** (Chrome, Firefox, Safari)\n4. **Désactivez temporairement** les extensions de navigateur\n5. **Contactez le support** avec une capture d'écran de l'erreur\n\nEmail : contact@harvests.site\nTéléphone : +221 77 361 11 72",
 		},
 
 		// Commandes
@@ -721,7 +721,7 @@ export const faqData = {
 		noProductsFound:
 			"Aucun produit trouvé pour cette recherche.\n\nEssayez avec d'autres mots-clés.",
 		contactSupport:
-			"Pour une assistance personnalisée, vous pouvez nous contacter :\n• Email : contact@harvests.site\n• Téléphone : +221 77 197 07 13",
+			"Pour une assistance personnalisée, vous pouvez nous contacter :\n• Email : contact@harvests.site\n• Téléphone : +221 77 361 11 72",
 	},
 
 	// Intentions spéciales (déclenchent des actions)
@@ -1117,27 +1117,7 @@ export const findBestAnswer = (userMessage) => {
 		}
 	}
 
-	// Utiliser la détection d'intentions améliorée avec scoring
-	try {
-		const { detectIntentWithScore } = require("../utils/chatbotImprovements");
-		const intentMatch = detectIntentWithScore(userMessage, faqData.intents);
-		if (intentMatch && intentMatch.score >= 1) {
-			return {
-				type: "intent",
-				intent: intentMatch.intent.action,
-				data: intentMatch.intent,
-				confidence: intentMatch.score,
-			};
-		}
-	} catch (error) {
-		// Fallback sur la méthode basique si l'import échoue
-		console.warn(
-			"Erreur import detectIntentWithScore, utilisation méthode basique:",
-			error
-		);
-	}
-
-	// Vérifier les intentions spéciales (fallback méthode basique si import échoue)
+	// Vérifier les intentions spéciales (méthode basique par mots-clés)
 	// Utiliser la version normalisée pour la comparaison
 	for (const intent of faqData.intents) {
 		for (const keyword of intent.keywords) {

@@ -30,7 +30,7 @@ const Footer = () => {
 	const contactInfo = {
 		address: "Dakar, Sénégal",
 		email: "contact@harvests.site",
-		phones: ["+221 771970713", "+221 774536704"],
+		phones: ["+221 77 361 11 72"],
 	};
 
 	const footerLinks = {
@@ -200,11 +200,7 @@ const Footer = () => {
 							</li>
 							<li className="flex items-center text-gray-400 text-sm">
 								<Phone className="h-5 w-5 mr-3 shrink-0" />
-								<a href="tel:+221771970713" className="hover:text-white transition-colors">+221 771970713</a>
-							</li>
-							<li className="flex items-center text-gray-400 text-sm">
-								<Phone className="h-5 w-5 mr-3 shrink-0" />
-								<a href="tel:+221774536704" className="hover:text-white transition-colors">+221 774536704</a>
+								<a href="tel:+221773611172" className="hover:text-white transition-colors">+221 77 361 11 72</a>
 							</li>
 							<li className="flex items-center text-gray-400 text-sm">
 								<Mail className="h-5 w-5 mr-3 shrink-0" />

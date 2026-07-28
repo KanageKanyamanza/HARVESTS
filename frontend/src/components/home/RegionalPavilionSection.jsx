@@ -4,14 +4,14 @@ import { FiMapPin } from 'react-icons/fi';
 import { Globe } from 'lucide-react';
 import { useGeoLocation } from '../../hooks/useGeoLocation';
 
-import burkinaImg from '../../assets/images/pavilions/burkina_faso.png';
-import senegalImg from '../../assets/images/pavilions/senegal.png';
-import coteDivoireImg from '../../assets/images/pavilions/cote_divoire.png';
-import camerounImg from '../../assets/images/pavilions/cameroun.png';
-import maliImg from '../../assets/images/pavilions/mali.png';
-import ghanaImg from '../../assets/images/pavilions/ghana.png';
-import nigeriaImg from '../../assets/images/pavilions/nigeria.png';
-import beninImg from '../../assets/images/pavilions/benin.png';
+import burkinaImg from '../../assets/images/pavilions/burkina_faso.jpg';
+import senegalImg from '../../assets/images/pavilions/senegal.jpg';
+import coteDivoireImg from '../../assets/images/pavilions/cote_divoire.jpg';
+import camerounImg from '../../assets/images/pavilions/cameroun.jpg';
+import maliImg from '../../assets/images/pavilions/mali.jpg';
+import ghanaImg from '../../assets/images/pavilions/ghana.jpg';
+import nigeriaImg from '../../assets/images/pavilions/nigeria.jpg';
+import beninImg from '../../assets/images/pavilions/benin.jpg';
 
 const initialRegions = [
   {
