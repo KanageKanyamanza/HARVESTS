@@ -123,12 +123,12 @@ const Vendeurs = () => {
 					// Cas 2 : aucune sélection -> récupérer tout + locaux et fusionner (locaux d'abord)
 					if (!selectedCountry) {
 						const [pAll, tAll, rAll, pLocal, tLocal, rLocal] = await Promise.allSettled([
-							producerService.getAllPublic({ limit: 50, useLocation: "false" }),
-							transformerService.getAllPublic({ limit: 50, useLocation: "false" }),
-							restaurateurService.getAllPublic({ limit: 50, useLocation: "false" }),
-							producerService.getAllPublic({ limit: 50, useLocation: "true" }),
-							transformerService.getAllPublic({ limit: 50, useLocation: "true" }),
-							restaurateurService.getAllPublic({ limit: 50, useLocation: "true" }),
+							producerService.getAllPublic({ limit: 60, useLocation: "false" }),
+							transformerService.getAllPublic({ limit: 60, useLocation: "false" }),
+							restaurateurService.getAllPublic({ limit: 60, useLocation: "false" }),
+							producerService.getAllPublic({ limit: 60, useLocation: "true" }),
+							transformerService.getAllPublic({ limit: 60, useLocation: "true" }),
+							restaurateurService.getAllPublic({ limit: 60, useLocation: "true" }),
 						]);
 
 						const buildList = (pResp, tResp, rResp) => {
@@ -346,100 +346,76 @@ const Vendeurs = () => {
 				{filteredVendeurs.length > 0 ? (
 					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 animate-slide-up">
 						{filteredVendeurs.map((vendeur) => {
-							const { averageDisplay, reviewCount } =
-								buildVendorRating(vendeur);
+							const { averageDisplay, reviewCount } = buildVendorRating(vendeur);
 
 							return (
 								<Link
 									key={`${vendeur.type}-${vendeur._id}`}
 									to={vendeur.profileUrl}
-									className="bg-white border border-gray-200 rounded-sm hover:shadow-md transition-shadow overflow-hidden block group"
+									className="bg-white border border-gray-200/90 rounded-2xl hover:border-emerald-500/40 hover:shadow-xl transition-all duration-300 flex flex-col justify-between group overflow-hidden block"
 								>
-									{/* Bannière en arrière-plan */}
-									<div className="relative h-40 bg-gray-100">
-										{vendeur.shopBanner ? (
-											<img
-												src={vendeur.shopBanner}
-												alt="Bannière de la boutique"
-												className="w-full h-full object-cover"
-												onError={(e) => {
-													e.target.style.display = "none";
-													e.target.nextSibling.style.display = "flex";
-												}}
-											/>
-										) : null}
-										<div
-											className="w-full h-full bg-gradient-to-r from-gray-200 to-gray-300 flex items-center justify-center"
-											style={{ display: vendeur.shopBanner ? "none" : "flex" }}
-										>
-											<FiPackage className="w-12 h-12 text-gray-400" />
+									<div>
+										{/* Bannière en arrière-plan */}
+										<div className="relative h-32 bg-gradient-to-r from-emerald-900 to-emerald-700 overflow-hidden">
+											{vendeur.shopBanner ? (
+												<img
+													src={vendeur.shopBanner}
+													alt={vendeur.displayName}
+													className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+												/>
+											) : (
+												<div className="w-full h-full opacity-20 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
+											)}
+
+											{/* Top Right Rating Badge */}
+											<div className="absolute top-2.5 right-2.5 bg-black/50 backdrop-blur-md px-2 py-1 rounded-full text-white text-[11px] font-bold flex items-center gap-1 shadow-sm z-10">
+												<FiStar className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+												<span>{averageDisplay}</span>
+												{reviewCount > 0 && <span className="text-gray-300 font-normal">({reviewCount})</span>}
+											</div>
+
+											{/* Type Badge top left */}
+											<div className="absolute top-2.5 left-2.5 bg-emerald-600/90 backdrop-blur-md text-white px-2 py-0.5 rounded-full text-[10px] font-extrabold shadow-sm uppercase">
+												{vendeur.type === 'producer' ? 'Producteur' : vendeur.type === 'transformer' ? 'Transformateur' : 'Restaurateur'}
+											</div>
 										</div>
 
-										{/* Photo de profil centrée qui déborde */}
-										<div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2">
-											<div className="w-16 h-16 rounded-full bg-white p-1 border border-gray-200 shadow-sm">
-												<div className="w-full h-full rounded-full bg-gray-100 overflow-hidden">
-													{vendeur.logo ? (
-														<img
-															src={vendeur.logo}
-															alt={`${vendeur.displayName}`}
-															className="w-full h-full object-cover"
-															onError={(e) => {
-																e.target.style.display = "none";
-																e.target.nextSibling.style.display = "flex";
-															}}
-														/>
-													) : null}
-													<div
-														className="w-full h-full bg-primary-100 flex items-center justify-center"
-														style={{ display: vendeur.logo ? "none" : "flex" }}
-													>
-														<span className="text-lg font-bold text-primary-700">
-															{vendeur.displayName?.[0] ||
-																vendeur.firstName?.[0]}
-														</span>
+										{/* Photo de profil (Overlapping Banner) */}
+										<div className="px-4 -mt-7 flex items-end justify-between relative z-10">
+											<div className="w-14 h-14 rounded-xl bg-white p-0.5 border border-gray-200/90 shadow-md overflow-hidden flex-shrink-0">
+												{vendeur.logo || vendeur.avatar ? (
+													<img
+														src={vendeur.logo || vendeur.avatar}
+														alt={vendeur.displayName}
+														className="w-full h-full object-cover rounded-lg"
+													/>
+												) : (
+													<div className="w-full h-full rounded-lg bg-emerald-50 text-[#1A5514] font-black flex items-center justify-center text-lg">
+														{vendeur.displayName?.[0] || 'V'}
 													</div>
-												</div>
+												)}
+											</div>
+										</div>
+
+										{/* Informations */}
+										<div className="p-4 pt-3 space-y-1.5">
+											<h3 className="text-base font-extrabold text-[#161D14] group-hover:text-[#1A5514] transition-colors truncate" title={vendeur.displayName}>
+												{vendeur.displayName}
+											</h3>
+
+											<div className="flex items-center text-xs text-gray-500 font-medium truncate">
+												<FiMapPin className="w-3.5 h-3.5 text-emerald-600 mr-1 flex-shrink-0" />
+												<span className="truncate">
+													{vendeur.city ? `${vendeur.city}, ` : ''}{getCountryName(vendeur.country)}
+												</span>
 											</div>
 										</div>
 									</div>
 
-									{/* Informations */}
-									<div className="px-4 pt-10 pb-4 text-center">
-										<h3 className="font-bold text-gray-900 text-lg mb-1 truncate">
-											{vendeur.displayName}
-										</h3>
-										
-										<div className="flex items-center justify-center text-sm text-gray-600 mb-2">
-											<FiMapPin className="mr-1 h-3 w-3" />
-											<span>{getCountryName(vendeur.country)}</span>
-											{vendeur.city && (
-												<span className="ml-1">• {vendeur.city}</span>
-											)}
-										</div>
-
-										<div className="flex items-center justify-center space-x-2 mb-4">
-											<div className="flex items-center text-yellow-500">
-												<span className="text-sm font-bold text-gray-800 mr-1">
-													{averageDisplay}
-												</span>
-												<FiStar className="h-4 w-4 fill-current" />
-												<span className="ml-1 text-xs text-gray-500">
-													({reviewCount})
-												</span>
-											</div>
-											{vendeur.isBio && (
-												<span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
-													<Leaf className="w-3 h-3 mr-1" />
-													BIO
-												</span>
-											)}
-										</div>
-
-										<div className="text-primary-600 text-sm font-medium hover:text-primary-800 hover:underline inline-flex items-center">
-											Visiter la boutique
-											<FiArrowRight className="ml-1 h-4 w-4" />
-										</div>
+									{/* CTA Footer */}
+									<div className="m-4 mt-0 pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-[#1A5514] group-hover:text-[#31BC2E] transition-colors">
+										<span>Visiter la boutique</span>
+										<FiArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
 									</div>
 								</Link>
 							);
