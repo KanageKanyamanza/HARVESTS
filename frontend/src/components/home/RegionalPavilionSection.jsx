@@ -4,7 +4,7 @@ import { FiMapPin } from 'react-icons/fi';
 import { Globe } from 'lucide-react';
 import { useGeoLocation } from '../../hooks/useGeoLocation';
 
-import burkinaImg from '../../assets/images/pavilions/burkina_faso.jpg';
+import burkinaImg from '../../assets/images/pavilions/burkina_faso.png';
 import senegalImg from '../../assets/images/pavilions/senegal.jpg';
 import coteDivoireImg from '../../assets/images/pavilions/cote_divoire.jpg';
 import camerounImg from '../../assets/images/pavilions/cameroun.jpg';
