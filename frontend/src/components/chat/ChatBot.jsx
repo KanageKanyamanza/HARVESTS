@@ -292,7 +292,7 @@ const ChatBot = () => {
 			if (intent === "CONTACT_SUPPORT") {
 				setIsTyping(false);
 				responseText =
-					"Pour toute assistance, vous pouvez nous contacter :\n• Email : **contact@harvests.site**\n• Téléphone : **+221 77 361 11 72**\n\nNotre équipe est à votre disposition !";
+					"Pour toute assistance, vous pouvez nous contacter :\n• Email : **contact@harvests.site**\n• Téléphone : **+221 78 834 69 69**\n\nNotre équipe est à votre disposition !";
 				const botMsgId = addBotMessage(responseText);
 				const interactionId = await logChatBotInteraction(
 					message,

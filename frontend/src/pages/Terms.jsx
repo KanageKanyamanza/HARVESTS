@@ -197,7 +197,7 @@ const Terms = () => {
 									à :<br />
 									Email : contact@harvests.site
 									<br />
-									Téléphone : +221 77 361 11 72
+									Téléphone : +221 78 834 69 69
 								</p>
 							</section>
 						</div>

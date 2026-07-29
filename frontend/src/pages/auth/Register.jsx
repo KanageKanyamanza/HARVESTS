@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Mail, Lock, Phone, MapPin, User as UserIcon } from "lucide-react";
+import { Mail, Lock, UserPlus } from "lucide-react";
 import SocialLinks from "../../components/common/SocialLinks";
 import UserTypeSelector from "../../components/auth/UserTypeSelector";
 import NameFields from "../../components/auth/NameFields";
@@ -44,7 +44,7 @@ const Register = () => {
 				backgroundPosition: "center",
 			}}
 		>
-			<div className="w-full flex">
+			<div className="relative w-full flex">
 				{/* Section gauche - Logo et informations */}
 				<div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-center items-center text-white relative">
 					<div className="relative z-10 text-center">
@@ -53,7 +53,10 @@ const Register = () => {
 							alt="Harvests Logo"
 							className="w-[400px] h-[190px] mx-auto mb-6 drop-shadow-lg"
 						/>
-						<p className="text-green-700 text-lg mb-6"></p>
+						<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0D330A] shadow-md text-white text-xs font-bold uppercase tracking-wider mb-6">
+							<UserPlus className="w-4 h-4 text-[#31BC2E]" />
+							<span>Rejoignez Harvests</span>
+						</div>
 
 						{/* Réseaux sociaux */}
 						<div className="mt-8">
@@ -78,18 +81,18 @@ const Register = () => {
 							/>
 						</div>
 
-						<div className="text-center mb-2">
-							<h2 className="text-2xl font-bold text-gray-900">Inscription</h2>
+						<div className="text-center mb-4">
+							<h2 className="text-2xl font-extrabold text-white">Inscription</h2>
 						</div>
 
 						{errors.submit && (
-							<div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+							<div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-semibold">
 								{errors.submit}
 							</div>
 						)}
 
 						<form onSubmit={handleSubmit}>
-							<div className="space-y-2 px-5 pt-5 pb-2 sm:px-10 sm:pt-10 sm:pb-5 backdrop-blur-sm shadow-lg rounded-4xl bg-green-500/10">
+							<div className="space-y-3 px-5 pt-7 pb-5 sm:px-8 sm:pt-9 sm:pb-7 shadow-2xl shadow-black/30 rounded-3xl bg-white border border-emerald-100/80">
 								{/* Type de profil */}
 								<UserTypeSelector
 									selectedUserType={formData.userType}
@@ -140,49 +143,46 @@ const Register = () => {
 								/>
 
 								{/* Lien de connexion */}
-								<div className="text-center">
+								<div className="text-center pt-1">
 									<Link
 										to="/login"
-										className="text-green-600 hover:text-green-700 text-sm underline"
+										className="text-[#1A5514] hover:text-[#31BC2E] text-xs font-bold transition-colors"
 									>
 										Ou connectez-vous
 									</Link>
 								</div>
-							</div>
 
-							{/* Remember me */}
-							<div className="flex items-center justify-center text-center my-2">
-								<input
-									id="remember-me"
-									name="remember-me"
-									type="checkbox"
-									checked={rememberMe}
-									onChange={(e) => setRememberMe(e.target.checked)}
-									className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-								/>
-								<label
-									htmlFor="remember-me"
-									className="ml-2 block text-sm text-gray-700"
-								>
-									Se souvenir de moi
+								{/* Remember me */}
+								<label className="flex items-center justify-center gap-2 pt-1 cursor-pointer select-none">
+									<input
+										id="remember-me"
+										name="remember-me"
+										type="checkbox"
+										checked={rememberMe}
+										onChange={(e) => setRememberMe(e.target.checked)}
+										className="h-4 w-4 rounded border-gray-300 text-[#1A5514] focus:ring-[#1A5514]"
+									/>
+									<span className="text-xs text-gray-600 font-medium">
+										Se souvenir de moi
+									</span>
 								</label>
-							</div>
 
-							{/* Bouton d'inscription */}
-							<button
-								type="submit"
-								disabled={isSubmitting}
-								className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-full transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-							>
-								{isSubmitting ? (
-									<>
-										<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-										<span className="ml-2">Inscription en cours...</span>
-									</>
-								) : (
-									"S'inscrire"
-								)}
-							</button>
+								{/* Bouton d'inscription */}
+								<button
+									type="submit"
+									disabled={isSubmitting}
+									className="w-full bg-gradient-to-r from-[#1A5514] to-[#31BC2E] hover:shadow-lg shadow-emerald-900/20 text-white font-bold py-3 px-4 rounded-full transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+								>
+									{isSubmitting ? (
+										<>
+											<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+											<span>Inscription en cours...</span>
+										</>
+									) : (
+										"S'inscrire"
+									)}
+								</button>
+							</div>
 						</form>
 					</div>
 				</div>

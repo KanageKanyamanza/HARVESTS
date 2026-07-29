@@ -192,7 +192,7 @@ function addEmailNewsletterMethod(EmailClass) {
             </div>
             <div class="footer-contact">
               Questions ? Contactez-nous :<br>
-              📞 Sénégal : <a href="tel:+221773611172">+221 77 361 11 72</a><br>
+              📞 Sénégal : <a href="tel:+221788346969">+221 78 834 69 69</a><br>
               📧 Email : <a href="mailto:contact@harvests.site">contact@harvests.site</a>
             </div>
             

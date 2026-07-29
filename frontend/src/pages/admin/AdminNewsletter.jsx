@@ -640,7 +640,7 @@ const AdminNewsletter = () => {
 													</a>
 													{" | "}
 													<span style={{ color: "#64748b" }}>
-														+221 77 361 11 72
+														+221 78 834 69 69
 													</span>
 												</p>
 											</div>

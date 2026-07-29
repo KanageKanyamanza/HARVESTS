@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Mail } from "lucide-react";
+import { Mail, KeyRound } from "lucide-react";
 import { authService } from "../../services";
 import SocialLinks from "../../components/common/SocialLinks";
 import logo from "../../assets/logo.png";
@@ -87,7 +87,7 @@ const ForgotPassword = () => {
 					backgroundPosition: "center",
 				}}
 			>
-				<div className="w-full flex">
+				<div className="relative w-full flex">
 					{/* Section gauche - Logo et informations */}
 					<div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-center items-center text-white relative">
 						<div className="relative z-10 text-center">
@@ -96,7 +96,10 @@ const ForgotPassword = () => {
 								alt="Harvests Logo"
 								className="w-[400px] h-[190px] mx-auto mb-6 drop-shadow-lg"
 							/>
-							<p className="text-green-700 text-lg mb-6"></p>
+							<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0D330A] shadow-md text-white text-xs font-bold uppercase tracking-wider mb-6">
+								<KeyRound className="w-4 h-4 text-[#31BC2E]" />
+								<span>Réinitialisation</span>
+							</div>
 
 							{/* Réseaux sociaux */}
 							<div className="mt-8">
@@ -122,37 +125,34 @@ const ForgotPassword = () => {
 							</div>
 
 							<div className="text-center mb-5">
-								<h2 className="text-2xl font-bold text-gray-900">
+								<h2 className="text-2xl font-extrabold text-white">
 									Email envoyé !
 								</h2>
 							</div>
 
-							<div className="text-center mb-6">
-								<div className="bg-green-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-									<Mail className="h-8 w-8 text-green-600" />
+							<div className="space-y-3 px-5 pt-7 pb-5 sm:px-8 sm:pt-9 sm:pb-7 shadow-2xl shadow-black/30 rounded-3xl bg-white border border-emerald-100/80 text-center">
+								<div className="bg-emerald-50 border border-emerald-200/60 rounded-2xl p-4 w-14 h-14 mx-auto mb-4 flex items-center justify-center">
+									<Mail className="h-6 w-6 text-[#1A5514]" />
 								</div>
-								<p className="text-gray-600 mb-4">
+								<p className="text-gray-600 text-sm mb-4">
 									Nous avons envoyé un lien de réinitialisation à{" "}
-									<strong>{formData.email}</strong>
+									<strong className="text-[#161D14]">{formData.email}</strong>
 								</p>
-							</div>
 
-							<div className="text-center">
-								<Link
-									to="/login"
-									className="text-green-600 hover:text-green-700 text-sm underline"
-								>
-									Retour à la connexion
-								</Link>
-							</div>
-
-							<div className="flex items-center justify-center text-center my-4">
-								<button
-									onClick={() => setIsSuccess(false)}
-									className="text-green-600 hover:text-green-700 text-sm underline"
-								>
-									Renvoyer l'email
-								</button>
+								<div className="pt-2 border-t border-gray-100 space-y-2">
+									<Link
+										to="/login"
+										className="block text-[#1A5514] hover:text-[#31BC2E] text-xs font-bold transition-colors"
+									>
+										Retour à la connexion
+									</Link>
+									<button
+										onClick={() => setIsSuccess(false)}
+										className="text-[#1A5514] hover:text-[#31BC2E] text-xs font-bold transition-colors"
+									>
+										Renvoyer l'email
+									</button>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -170,7 +170,7 @@ const ForgotPassword = () => {
 				backgroundPosition: "center",
 			}}
 		>
-			<div className="w-full flex">
+			<div className="relative w-full flex">
 				{/* Section gauche - Logo et informations */}
 				<div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-center items-center text-white relative">
 					<div className="relative z-10 text-center">
@@ -179,7 +179,10 @@ const ForgotPassword = () => {
 							alt="Harvests Logo"
 							className="w-[400px] h-[190px] mx-auto mb-6 drop-shadow-lg"
 						/>
-						<p className="text-green-700 text-lg mb-6"></p>
+						<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0D330A] shadow-md text-white text-xs font-bold uppercase tracking-wider mb-6">
+							<KeyRound className="w-4 h-4 text-[#31BC2E]" />
+							<span>Réinitialisation</span>
+						</div>
 
 						{/* Réseaux sociaux */}
 						<div className="mt-8">
@@ -205,23 +208,23 @@ const ForgotPassword = () => {
 						</div>
 
 						<div className="text-center mb-5">
-							<h2 className="text-2xl font-bold text-gray-900">
+							<h2 className="text-2xl font-extrabold text-white">
 								Mot de passe oublié
 							</h2>
 						</div>
 
 						{errors.general && (
-							<div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+							<div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-semibold">
 								{errors.general}
 							</div>
 						)}
 
 						<form onSubmit={handleSubmit}>
-							<div className="space-y-2 px-5 pt-5 pb-2 sm:px-10 sm:pt-10 sm:pb-5 backdrop-blur-sm shadow-lg rounded-4xl bg-green-500/10">
+							<div className="space-y-3 px-5 pt-7 pb-5 sm:px-8 sm:pt-9 sm:pb-7 shadow-2xl shadow-black/30 rounded-3xl bg-white border border-emerald-100/80">
 								{/* Email */}
 								<div className="relative">
-									<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-										<Mail className="h-5 w-5 text-black" />
+									<div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+										<Mail className="h-4.5 w-4.5 text-gray-400" />
 									</div>
 									<input
 										type="email"
@@ -229,41 +232,41 @@ const ForgotPassword = () => {
 										value={formData.email}
 										onChange={handleChange}
 										placeholder="Votre email"
-										className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-											errors.email ? "border-red-300" : "border-gray-300"
+										className={`w-full pl-10 pr-4 py-3 border rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] outline-none transition-all text-sm ${
+											errors.email ? "border-red-300" : "border-gray-200"
 										}`}
 									/>
 									{errors.email && (
-										<p className="mt-1 text-sm text-red-600">{errors.email}</p>
+										<p className="mt-1 text-xs text-red-600 font-medium">{errors.email}</p>
 									)}
 								</div>
 
 								{/* Lien retour */}
-								<div className="text-center">
+								<div className="text-center pt-1">
 									<Link
 										to="/login"
-										className="text-green-600 hover:text-green-700 text-sm underline"
+										className="text-[#1A5514] hover:text-[#31BC2E] text-xs font-bold transition-colors"
 									>
 										Retour à la connexion
 									</Link>
 								</div>
-							</div>
 
-							{/* Bouton de soumission */}
-							<button
-								type="submit"
-								disabled={isLoading}
-								className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-full transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed mt-4"
-							>
-								{isLoading ? (
-									<>
-										<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-										<span className="ml-2">Envoi en cours...</span>
-									</>
-								) : (
-									"Envoyer le lien"
-								)}
-							</button>
+								{/* Bouton de soumission */}
+								<button
+									type="submit"
+									disabled={isLoading}
+									className="w-full bg-gradient-to-r from-[#1A5514] to-[#31BC2E] hover:shadow-lg shadow-emerald-900/20 text-white font-bold py-3 px-4 rounded-full transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+								>
+									{isLoading ? (
+										<>
+											<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+											<span>Envoi en cours...</span>
+										</>
+									) : (
+										"Envoyer le lien"
+									)}
+								</button>
+							</div>
 						</form>
 					</div>
 				</div>
