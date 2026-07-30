@@ -70,7 +70,7 @@ export const useProducts = () => {
 
       const baseProducerParams = {
         page: currentPage,
-        limit: 12,
+        limit: 24,
         userType: 'producer,transformer',
         sort: getSortParam(sortBy),
       };

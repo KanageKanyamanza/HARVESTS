@@ -63,9 +63,9 @@ const Vendeurs = () => {
 					// Cas 1 : l'utilisateur veut uniquement sa zone
 					if (isMyZone) {
 						const [pResp, tResp, rResp] = await Promise.allSettled([
-							producerService.getAllPublic({ limit: 50, useLocation: "true" }),
-							transformerService.getAllPublic({ limit: 50, useLocation: "true" }),
-							restaurateurService.getAllPublic({ limit: 50, useLocation: "true" }),
+							producerService.getAllPublic({ limit: 24, useLocation: "true" }),
+							transformerService.getAllPublic({ limit: 24, useLocation: "true" }),
+							restaurateurService.getAllPublic({ limit: 24, useLocation: "true" }),
 						]);
 
 						const localList = [];
@@ -123,12 +123,12 @@ const Vendeurs = () => {
 					// Cas 2 : aucune sélection -> récupérer tout + locaux et fusionner (locaux d'abord)
 					if (!selectedCountry) {
 						const [pAll, tAll, rAll, pLocal, tLocal, rLocal] = await Promise.allSettled([
-							producerService.getAllPublic({ limit: 60, useLocation: "false" }),
-							transformerService.getAllPublic({ limit: 60, useLocation: "false" }),
-							restaurateurService.getAllPublic({ limit: 60, useLocation: "false" }),
-							producerService.getAllPublic({ limit: 60, useLocation: "true" }),
-							transformerService.getAllPublic({ limit: 60, useLocation: "true" }),
-							restaurateurService.getAllPublic({ limit: 60, useLocation: "true" }),
+							producerService.getAllPublic({ limit: 24, useLocation: "false" }),
+							transformerService.getAllPublic({ limit: 24, useLocation: "false" }),
+							restaurateurService.getAllPublic({ limit: 24, useLocation: "false" }),
+							producerService.getAllPublic({ limit: 24, useLocation: "true" }),
+							transformerService.getAllPublic({ limit: 24, useLocation: "true" }),
+							restaurateurService.getAllPublic({ limit: 24, useLocation: "true" }),
 						]);
 
 						const buildList = (pResp, tResp, rResp) => {
@@ -161,7 +161,7 @@ const Vendeurs = () => {
 					}
 
 					// Cas 3 : pays/zone précis sélectionné
-					const queryParams = { limit: 50, useLocation: "false" };
+					const queryParams = { limit: 24, useLocation: "false" };
 					if (selectedCountry) queryParams.country = selectedCountry;
 
 					const [producersResponse, transformersResponse, restaurateursResponse] = await Promise.allSettled([

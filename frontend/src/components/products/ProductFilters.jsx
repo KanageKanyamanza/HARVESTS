@@ -26,7 +26,7 @@ const ProductFilters = ({
     priceRange.max;
 
   return (
-    <div className="bg-white rounded-t-3xl md:rounded-2xl md:shadow-sm border border-emerald-100/90 flex flex-col min-h-0 flex-1 md:flex-none md:sticky md:top-[140px] md:h-auto shadow-[0_-8px_30px_-8px_rgba(0,0,0,0.15)] md:shadow-sm">
+    <div className="bg-white rounded-t-3xl md:rounded-2xl md:shadow-sm border border-emerald-100/90 flex flex-col min-h-0 flex-1 md:flex-none md:self-start md:sticky md:top-[140px] md:h-auto shadow-[0_-8px_30px_-8px_rgba(0,0,0,0.15)] md:shadow-sm">
       {/* Poignée (mobile) */}
       <div className="md:hidden flex justify-center pt-2.5 pb-1 shrink-0">
         <span className="w-10 h-1.5 rounded-full bg-gray-200" />
@@ -43,9 +43,9 @@ const ProductFilters = ({
         </button>
       </div>
 
-      <div className="overflow-y-auto px-5 md:pt-5 flex-1 min-h-0">
+      <div className="overflow-y-auto px-5 pb-5 md:pt-5 flex-1 min-h-0">
         {/* Search Filter */}
-        <div className="mb-6">
+        <div className="mb-4">
           <h3 className="font-bold text-[#161D14] mb-2 text-sm">Recherche</h3>
           <div className="relative">
             <input
@@ -65,37 +65,28 @@ const ProductFilters = ({
         </div>
 
         {/* Category Filter */}
-        <div className="mb-6">
-          <h3 className="font-bold text-[#161D14] mb-2.5 text-sm">Catégorie</h3>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => onFilterChange("category", "")}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border ${
-                !selectedCategory
-                  ? 'bg-[#1A5514] text-white border-[#1A5514] shadow-sm'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300'
-              }`}
+        <div className="mb-4">
+          <h3 className="font-bold text-[#161D14] mb-2 text-sm">Catégorie</h3>
+          <div className="relative">
+            <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600 h-4 w-4 pointer-events-none" />
+            <select
+              value={selectedCategory}
+              onChange={(e) => onFilterChange("category", e.target.value)}
+              className="w-full pl-9 pr-8 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] appearance-none transition-all"
             >
-              Toutes les catégories
-            </button>
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => onFilterChange("category", category)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border ${
-                  selectedCategory === category
-                    ? 'bg-[#1A5514] text-white border-[#1A5514] shadow-sm'
-                    : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300'
-                }`}
-              >
-                {getCategoryLabel(category)}
-              </button>
-            ))}
+              <option value="">Toutes les catégories</option>
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {getCategoryLabel(category)}
+                </option>
+              ))}
+            </select>
+            <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
           </div>
         </div>
 
         {/* Country Filter */}
-        <div className="mb-6">
+        <div className="mb-4">
           <h3 className="font-bold text-[#161D14] mb-2 text-sm">Pays de provenance</h3>
           <div className="relative">
             <FiMapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600 h-4 w-4 pointer-events-none" />
@@ -122,7 +113,7 @@ const ProductFilters = ({
         </div>
 
         {/* Price Filter */}
-        <div className="mb-6">
+        <div className="mb-4">
           <h3 className="font-bold text-[#161D14] mb-2 text-sm">Prix (XOF)</h3>
           <div className="flex items-center gap-2">
             <input
@@ -144,7 +135,7 @@ const ProductFilters = ({
         </div>
 
         {/* Certification BIO Filter */}
-        <div className="mb-6">
+        <div className="mb-4">
           <label className="flex items-center justify-between p-3 bg-gray-50 rounded-xl cursor-pointer group border border-transparent has-[:checked]:border-emerald-200 has-[:checked]:bg-emerald-50 transition-all">
             <span className="text-sm font-bold text-gray-700 group-hover:text-[#1A5514] transition-colors">
               Produits Certifiés BIO
@@ -177,7 +168,7 @@ const ProductFilters = ({
         {hasActiveFilters && (
           <button
             onClick={onClearFilters}
-            className="w-full flex items-center justify-center px-4 py-2.5 text-sm font-bold border border-gray-200 rounded-xl text-gray-600 bg-white hover:bg-gray-50 transition-colors mb-4 md:mb-0"
+            className="w-full flex items-center justify-center px-4 py-2.5 text-sm font-bold border border-gray-200 rounded-xl text-gray-600 bg-white hover:bg-gray-50 transition-colors"
           >
             <FiX className="h-4 w-4 mr-1.5" />
             Effacer les filtres

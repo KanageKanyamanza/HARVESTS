@@ -40,9 +40,9 @@ const TransporteursExportateurs = () => {
 				setLoading(true);
 
 				const [exportersResponse, transportersAllResp, transportersLocalResp] = await Promise.allSettled([
-					exporterService.getAllPublic({ limit: 50 }),
-					transporterService.getAllPublic({ limit: 50, useLocation: 'false' }),
-					transporterService.getAllPublic({ limit: 50, useLocation: 'true' }),
+					exporterService.getAllPublic({ limit: 24 }),
+					transporterService.getAllPublic({ limit: 24, useLocation: 'false' }),
+					transporterService.getAllPublic({ limit: 24, useLocation: 'true' }),
 				]);
 
 				const allLogistics = [];

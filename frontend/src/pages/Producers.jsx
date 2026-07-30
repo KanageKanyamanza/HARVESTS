@@ -74,7 +74,7 @@ const Producers = () => {
         const isMyZone = selectedCountry === "MY_ZONE";
 
         const fetchProducers = async (useLocation, country) => {
-          const params = { page: currentPage, limit: 60 }; // User requested 50-60 limit
+          const params = { page: currentPage, limit: 24 }; // Multiple de la grille (2/3/4 colonnes)
           if (useLocation !== undefined) params.useLocation = useLocation ? "true" : "false";
           if (country) params.country = country;
           if (searchQuery.trim()) params.search = searchQuery.trim();

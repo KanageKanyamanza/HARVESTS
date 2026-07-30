@@ -235,7 +235,7 @@ const ProductsSection = () => {
           )}
         </div>
         <Link
-          to={isLocal && countryCode ? `/products?country=${countryCode}` : '/products'}
+          to="/products"
           className="hidden md:flex text-xs sm:text-sm font-bold text-[#1A5514] hover:text-[#31BC2E] transition-colors flex items-center gap-1"
         >
           Voir tout le catalogue →
@@ -269,7 +269,7 @@ const ProductsSection = () => {
 
       <div className='md:hidden mx-auto text-center p-2 my-5'>
         <Link
-          to={isLocal && countryCode ? `/products?country=${countryCode}` : '/products'}
+          to="/products"
           className="text-xs sm:text-sm font-bold text-white hover:text-[#31BC2E] transition-colors bg-[#1A5514] rounded-full p-3 w-64 mx-auto flex items-center justify-center gap-1"
         >
           Voir tout le catalogue →

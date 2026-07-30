@@ -52,8 +52,8 @@ const Transformers = () => {
         setLoading(true);
 
         const [allResp, localResp] = await Promise.all([
-          transformerService.getAllPublic({ limit: 20, useLocation: 'false' }),
-          transformerService.getAllPublic({ limit: 20, useLocation: 'true' }),
+          transformerService.getAllPublic({ limit: 24, useLocation: 'false' }),
+          transformerService.getAllPublic({ limit: 24, useLocation: 'true' }),
         ]);
 
         const allList = allResp.data.status === 'success' ? allResp.data.data.transformers || [] : [];
