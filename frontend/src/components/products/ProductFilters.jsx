@@ -66,31 +66,22 @@ const ProductFilters = ({
 
         {/* Category Filter */}
         <div className="mb-6">
-          <h3 className="font-bold text-[#161D14] mb-2.5 text-sm">Catégorie</h3>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => onFilterChange("category", "")}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border ${
-                !selectedCategory
-                  ? 'bg-[#1A5514] text-white border-[#1A5514] shadow-sm'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300'
-              }`}
+          <h3 className="font-bold text-[#161D14] mb-2 text-sm">Catégorie</h3>
+          <div className="relative">
+            <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600 h-4 w-4 pointer-events-none" />
+            <select
+              value={selectedCategory}
+              onChange={(e) => onFilterChange("category", e.target.value)}
+              className="w-full pl-9 pr-8 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] appearance-none transition-all"
             >
-              Toutes les catégories
-            </button>
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => onFilterChange("category", category)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border ${
-                  selectedCategory === category
-                    ? 'bg-[#1A5514] text-white border-[#1A5514] shadow-sm'
-                    : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-300'
-                }`}
-              >
-                {getCategoryLabel(category)}
-              </button>
-            ))}
+              <option value="">Toutes les catégories</option>
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {getCategoryLabel(category)}
+                </option>
+              ))}
+            </select>
+            <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
           </div>
         </div>
 
