@@ -58,11 +58,16 @@ const messageSchema = new mongoose.Schema({
     required: [true, 'Conversation requise']
   },
   
-  // Expéditeur
+  // Expéditeur (absent pour les messages système générés par le serveur)
   sender: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: [true, 'Expéditeur requis']
+    required: [
+      function () {
+        return this.type !== 'system';
+      },
+      'Expéditeur requis'
+    ]
   },
   
   // Type de message
