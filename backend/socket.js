@@ -1,8 +1,6 @@
 const socketIO = require("socket.io");
 const jwt = require("jsonwebtoken");
 const User = require("./models/User");
-const Conversation = require("./models/Conversation");
-const Message = require("./models/Message");
 
 /**
  * Initialisation de Socket.io
@@ -61,8 +59,9 @@ module.exports = (server) => {
 	io.on("connection", (socket) => {
 		console.log(`👤 User connected: ${socket.user.firstName} (${socket.id})`);
 
-		// Rejoindre la room personnelle de l'utilisateur (pour les notifs privées)
-		socket.join(socket.user._id.toString());
+		// Rejoindre la room personnelle de l'utilisateur (notifications, nouvelles conversations)
+		// Convention alignée avec les émissions faites depuis les contrôleurs REST (messageController)
+		socket.join(`user:${socket.user._id}`);
 
 		// Mettre à jour le statut "en ligne"
 		socket.broadcast.emit("user_online", {
@@ -71,8 +70,10 @@ module.exports = (server) => {
 		});
 
 		// Rejoindre les rooms de conversation
+		// Convention: "conversation:<id>" — doit matcher les emit() des contrôleurs REST
 		socket.on("join_conversation", (conversationId) => {
-			socket.join(conversationId);
+			if (!conversationId) return;
+			socket.join(`conversation:${conversationId}`);
 			console.log(
 				`User ${socket.user._id} joined conversation ${conversationId}`,
 			);
@@ -80,75 +81,43 @@ module.exports = (server) => {
 
 		// Quitter une conversation
 		socket.on("leave_conversation", (conversationId) => {
-			socket.leave(conversationId);
+			if (!conversationId) return;
+			socket.leave(`conversation:${conversationId}`);
 			console.log(
 				`User ${socket.user._id} left conversation ${conversationId}`,
 			);
 		});
 
-		// Envoi de message
-		socket.on("send_message", async (data) => {
-			try {
-				const {
-					conversationId,
-					content,
-					type = "text",
-					attachments = [],
-				} = data;
-
-				// Validation basique
-				if (!conversationId || (!content && attachments.length === 0)) {
-					return;
-				}
-
-				// Vérifier l'appartenance à la conversation (sécurité supplémentaire)
-				// Note: Idéalement, on devrait faire cette vérif via la DB,
-				// mais pour la rapidité on suppose que le client est honnête
-				// (la vraie sécurité est dans l'API REST)
-
-				// Emettre aux autres participants de la room
-				socket.to(conversationId).emit("new_message", {
-					_id: new Date().getTime().toString(), // Temp ID
-					conversation: conversationId,
-					sender: {
-						_id: socket.user._id,
-						firstName: socket.user.firstName,
-						lastName: socket.user.lastName,
-						avatar: socket.user.avatar,
-					},
-					content,
-					type,
-					attachments,
-					createdAt: new Date().toISOString(),
-					status: "sent",
-				});
-
-				// Notifier les participants hors ligne ou qui ne regardent pas cette conv
-				// (Géré par la logique "room", mais on peut envoyer une notif globale)
-			} catch (error) {
-				console.error("Error handling send_message:", error);
-				socket.emit("error", { message: "Failed to send message" });
-			}
-		});
-
 		// Indicateur "en train d'écrire"
 		socket.on("typing", (data) => {
-			const { conversationId, isTyping } = data;
-			socket.to(conversationId).emit("user_typing", {
+			const conversationId =
+				typeof data === "string" ? data : data?.conversationId;
+			if (!conversationId) return;
+			socket.to(`conversation:${conversationId}`).emit("typing", {
 				conversationId,
 				userId: socket.user._id,
-				isTyping,
 				user: {
+					_id: socket.user._id,
 					firstName: socket.user.firstName,
 				},
 			});
 		});
 
-		// Marquer comme lu
+		socket.on("stop_typing", (data) => {
+			const conversationId =
+				typeof data === "string" ? data : data?.conversationId;
+			if (!conversationId) return;
+			socket.to(`conversation:${conversationId}`).emit("stop_typing", {
+				conversationId,
+				userId: socket.user._id,
+			});
+		});
+
+		// Marquer comme lu (diffusion temps réel, la persistance se fait via l'API REST)
 		socket.on("mark_read", (data) => {
-			const { conversationId, messageId } = data;
-			// Diffuser l'info que c'est lu
-			socket.to(conversationId).emit("message_read", {
+			const { conversationId, messageId } = data || {};
+			if (!conversationId) return;
+			socket.to(`conversation:${conversationId}`).emit("message_read", {
 				conversationId,
 				messageId,
 				userId: socket.user._id,
@@ -159,7 +128,6 @@ module.exports = (server) => {
 		// Déconnexion
 		socket.on("disconnect", () => {
 			console.log(`User disconnected: ${socket.user._id}`);
-			// Notifier que l'utilisateur est hors ligne
 			socket.broadcast.emit("user_offline", {
 				userId: socket.user._id,
 				lastSeen: new Date(),
