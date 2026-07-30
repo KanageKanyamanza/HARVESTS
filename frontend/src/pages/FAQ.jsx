@@ -19,7 +19,7 @@ const FAQ = () => {
 				},
 				{
 					q: "Comment puis-je contacter le support ?",
-					a: "Vous pouvez nous contacter par email à contact@harvests.site, par téléphone au +221 771970713 ou +221 774536704, ou via notre page de contact sur le site.",
+					a: "Vous pouvez nous contacter par email à contact@harvests.site, par téléphone au +221 78 834 69 69, ou via notre page de contact sur le site.",
 				},
 			],
 		},

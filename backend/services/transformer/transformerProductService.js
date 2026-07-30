@@ -107,6 +107,8 @@ async function createProduct(transformerId, productData) {
 		minimumOrderQuantity:
 			minimumOrderQuantity !== undefined ? minimumOrderQuantity : 0,
 		maximumOrderQuantity: maximumOrderQuantity || undefined,
+		unit: unit || "unité",
+		currency: currency || "XOF",
 		status: status || "draft",
 		images:
 			images ?

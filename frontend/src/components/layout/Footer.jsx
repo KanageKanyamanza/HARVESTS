@@ -30,7 +30,7 @@ const Footer = () => {
 	const contactInfo = {
 		address: "Dakar, Sénégal",
 		email: "contact@harvests.site",
-		phones: ["+221 771970713", "+221 774536704"],
+		phones: ["+221 78 834 69 69"],
 	};
 
 	const footerLinks = {
@@ -171,7 +171,7 @@ const Footer = () => {
 	}, [categories, categoryIndex]);
 
 	return (
-		<footer className="bg-black text-white">
+		<footer className="bg-black text-white mb-14 md:mb-0">
 			{/* Back to top button (Amazon style) */}
 			<div 
 				className="bg-gray-800 hover:bg-gray-700 text-center py-4 cursor-pointer text-sm font-medium transition-colors"
@@ -200,11 +200,7 @@ const Footer = () => {
 							</li>
 							<li className="flex items-center text-gray-400 text-sm">
 								<Phone className="h-5 w-5 mr-3 shrink-0" />
-								<a href="tel:+221771970713" className="hover:text-white transition-colors">+221 771970713</a>
-							</li>
-							<li className="flex items-center text-gray-400 text-sm">
-								<Phone className="h-5 w-5 mr-3 shrink-0" />
-								<a href="tel:+221774536704" className="hover:text-white transition-colors">+221 774536704</a>
+								<a href="tel:+221788346969" className="hover:text-white transition-colors">+221 78 834 69 69</a>
 							</li>
 							<li className="flex items-center text-gray-400 text-sm">
 								<Mail className="h-5 w-5 mr-3 shrink-0" />

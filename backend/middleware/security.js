@@ -451,11 +451,11 @@ const ensureCsrfCookie = (req, res, next) => {
 	const token = req.cookies?.[CSRF_COOKIE_NAME];
 	if (!token) {
 		const newToken = crypto.randomBytes(24).toString("hex");
+		const isProduction = process.env.NODE_ENV === "production";
 		res.cookie(CSRF_COOKIE_NAME, newToken, {
 			httpOnly: false,
-			secure: process.env.NODE_ENV === "production",
-			sameSite:
-				process.env.NODE_ENV === "production" ? "strict" : "none",
+			secure: isProduction,
+			sameSite: isProduction ? "strict" : "lax",
 			maxAge: 24 * 60 * 60 * 1000,
 		});
 	}

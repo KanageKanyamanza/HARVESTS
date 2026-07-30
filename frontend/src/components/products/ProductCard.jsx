@@ -18,9 +18,9 @@ import {
 } from "../../utils/vendorRatings";
 import { convertPrice, formatPrice } from "../../utils/currencyUtils";
 import { useCurrency } from "../../contexts/CurrencyContext";
-import { getCountryName } from "../../utils/countryMapper";
+import { normalizeUnit } from "../../utils/productUtils";
 
-const ProductCard = ({ product }) => {
+const ProductCard = ({ product, viewMode = "grid" }) => {
 	const { addToCart } = useCart();
 	const { currency } = useCurrency();
 	const [isAdded, setIsAdded] = useState(false);
@@ -40,27 +40,19 @@ const ProductCard = ({ product }) => {
 
 		const loadRatingStats = async () => {
 			const productId = product?._id || product?.id;
-			if (!productId) {
-				return;
-			}
+			if (!productId) return;
 
 			try {
-				const statsResponse =
-					await reviewService.getProductRatingStats(productId);
+				const statsResponse = await reviewService.getProductRatingStats(productId);
 				const statsData = statsResponse?.data;
-				if (!isMounted || !statsData) {
-					return;
-				}
+				if (!isMounted || !statsData) return;
 
 				setRatingStats({
 					average: statsData.averageRating ?? initialAverage ?? 0,
 					totalReviews: statsData.totalReviews ?? initialCount ?? 0,
 				});
 			} catch (error) {
-				console.error(
-					"Erreur lors du chargement des statistiques d'avis du produit:",
-					error,
-				);
+				console.error("Erreur avis produit:", error);
 			}
 		};
 
@@ -84,7 +76,7 @@ const ProductCard = ({ product }) => {
 		setTimeout(() => setIsAdded(false), 2000);
 	};
 
-	const formatPrice = (price) => {
+	const formatProductPrice = (price) => {
 		const convertedPrice = convertPrice(
 			price,
 			product.currency || "FCFA",
@@ -99,77 +91,129 @@ const ProductCard = ({ product }) => {
 			.replace("XOF", "FCFA");
 	};
 
-	const getCategoryLabel = (category) => {
-		const categories = {
-			cereals: "Céréales",
-			vegetables: "Légumes",
-			fruits: "Fruits",
-			legumes: "Légumineuses",
-			tubers: "Tubercules",
-			spices: "Épices",
-			herbs: "Herbes",
-			nuts: "Noix",
-			seeds: "Graines",
-			dairy: "Produits laitiers",
-			meat: "Viande",
-			poultry: "Volaille",
-			fish: "Poisson",
-			"processed-foods": "Produits transformés",
-			beverages: "Boissons",
-			other: "Autre",
-		};
-		return categories[category] || category;
-	};
-
 	const getVendorName = (vendor) => {
 		if (!vendor) return "Vendeur";
-		
-		// Si c'est juste un ID (pas populé)
 		if (typeof vendor === 'string') return "Vendeur local";
 
-		// Priorité 1 : Nom du restaurant (si c'est un restaurateur)
 		if (vendor.restaurantName && vendor.restaurantName !== "À compléter") {
 			return vendor.restaurantName;
 		}
-
-		// Priorité 2 : Nom de la boutique (pour producteurs/transformateurs)
 		if (vendor.shopInfo?.shopName) {
 			return vendor.shopInfo.shopName;
 		}
-
-		// Pour les producteurs
 		if (vendor.farmName && vendor.farmName !== "À compléter") {
 			return vendor.farmName;
 		}
-
-		// Pour les transformateurs
 		if (vendor.companyName && vendor.companyName !== "À compléter") {
 			return vendor.companyName;
 		}
-
-		// Fallback : nom complet de la personne
 		if (vendor.firstName) {
-			const lastName =
-				vendor.lastName && vendor.lastName !== "À compléter" ?
-					vendor.lastName
-				:	"";
+			const lastName = vendor.lastName && vendor.lastName !== "À compléter" ? vendor.lastName : "";
 			return `${vendor.firstName} ${lastName}`.trim();
 		}
-
-		// Dernier fallback
 		return vendor.user?.companyName || "Vendeur";
 	};
 
+	/* Mode Liste */
+	if (viewMode === 'list') {
+		return (
+			<div className="bg-white border border-gray-200/90 rounded-2xl hover:border-emerald-500/40 hover:shadow-lg transition-all duration-300 p-3 sm:p-4 flex gap-4 items-center group relative overflow-hidden min-w-0">
+				<Link to={`/products/${product.slug || product._id}`} className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl bg-gray-50 border border-gray-100 overflow-hidden flex-shrink-0 relative flex items-center justify-center">
+					{primaryImage ? (
+						<CloudinaryImage
+							src={primaryImage.url}
+							alt={productName}
+							className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+							width={200}
+							height={200}
+							quality="auto"
+							crop="fill"
+						/>
+					) : (
+						<div className="w-full h-full flex items-center justify-center text-gray-300 bg-gray-50">
+							<FiPackage className="h-10 w-10" />
+						</div>
+					)}
+
+					{product.isFeatured && (
+						<div className="absolute top-1.5 left-1.5 bg-[#FF9900] text-gray-900 px-1.5 py-0.5 text-[9px] font-extrabold rounded-full shadow-md">
+							Choix
+						</div>
+					)}
+				</Link>
+
+				<div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+					<div className="space-y-1 min-w-0 flex-1">
+						<div className="flex items-center gap-2">
+							<h3 className="text-sm font-bold text-[#161D14] group-hover:text-[#1A5514] truncate" title={productName}>
+								{productName}
+							</h3>
+
+							{(product.producer?.isBio || product.transformer?.isBio) && (
+								<span className="inline-flex items-center px-1.5 py-0.5 text-[9px] font-extrabold text-white bg-[#1A5514] rounded-md flex-shrink-0">
+									<Leaf className="w-2.5 h-2.5 mr-0.5 text-emerald-400" />
+									BIO
+								</span>
+							)}
+						</div>
+
+						<div className="flex flex-wrap items-center gap-1.5 text-xs">
+							<span className="font-bold text-amber-600">{formatAverageRating(ratingStats.average)}</span>
+							<FiStar className="h-3.5 w-3.5 fill-current text-amber-500" />
+							<span className="text-gray-400">({ratingStats.totalReviews || 0})</span>
+							<span className="text-gray-300">•</span>
+							<span className="text-gray-500 truncate">Vendu par <strong className="text-emerald-800">{getVendorName(product.producer || product.transformer || product.restaurateur)}</strong></span>
+						</div>
+
+						<div className="text-xs font-semibold text-emerald-700">
+							{product.inventory?.quantity > 0 ? "En stock - Livraison rapide" : <span className="text-red-600">En rupture</span>}
+						</div>
+					</div>
+
+					<div className="flex flex-row sm:flex-col items-center sm:items-end justify-between gap-2 flex-shrink-0">
+						<div className="text-left sm:text-right">
+							<span className="text-base sm:text-lg font-black text-[#161D14]">
+								{formatProductPrice(product.price)}
+							</span>
+							<span className="text-[11px] text-gray-500 font-medium block">
+								/ {normalizeUnit(product.unit)}
+							</span>
+						</div>
+
+						<button
+							onClick={handleAddToCart}
+							disabled={product.inventory?.quantity <= 0}
+							className={`px-4 py-2 rounded-full text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 ${
+								isAdded ?
+									"bg-emerald-100 border-emerald-300 text-emerald-900"
+								: product.inventory?.quantity <= 0 ?
+									"bg-gray-100 text-gray-400 cursor-not-allowed"
+								: "bg-[#FF9900] hover:bg-[#e68a00] text-gray-900 shadow-amber-500/20 active:scale-95"
+							}`}
+						>
+							{isAdded ?
+								<><FiCheck className="h-4 w-4" /> <span>Ajouté</span></>
+							: product.inventory?.quantity <= 0 ?
+								"Indisponible"
+							: <><FiShoppingCart className="h-4 w-4" /><span>Ajouter</span></>}
+						</button>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	/* Mode Grille */
 	return (
-		<div className="bg-white border border-gray-200 rounded-sm hover:shadow-lg transition-all duration-300 flex flex-col h-full group relative">
-			<Link to={`/products/${product.slug || product._id}`} className="block flex-shrink-0 p-2 sm:p-4">
+		<div className="bg-white border border-gray-200/90 rounded-2xl hover:border-emerald-500/40 hover:shadow-xl transition-all duration-300 flex flex-col h-full group relative overflow-hidden">
+			<Link to={`/products/${product.slug || product._id}`} className="block flex-shrink-0 p-1">
 				{/* Image */}
-				<div className="aspect-square relative flex items-center justify-center overflow-hidden mb-2 sm:mb-3">
+				<div className="aspect-square relative flex items-center justify-center overflow-hidden mb-3 rounded-xl bg-gray-50 border border-gray-100">
 					{primaryImage ?
 						<CloudinaryImage
 							src={primaryImage.url}
 							alt={productName}
-							className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+							className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
 							width={300}
 							height={300}
 							quality="auto"
@@ -182,84 +226,84 @@ const ProductCard = ({ product }) => {
 
 					{/* Badge Featured */}
 					{product.isFeatured && (
-						<div className="absolute top-2 left-2 bg-orange-500 text-white px-2 py-0.5 text-xs font-bold shadow-sm">
-							Choix de récolte
+						<div className="absolute top-2 left-2 bg-[#FF9900] text-gray-900 px-2.5 py-0.5 text-[10px] font-extrabold rounded-full shadow-md">
+							Choix Harvests
 						</div>
 					)}
 				</div>
 				
-				<div className="flex flex-col flex-grow">
-					{/* Titre */}
-					<h3 className="text-[13px] sm:text-[15px] font-medium text-gray-900 group-hover:text-primary-700 line-clamp-2 leading-tight min-h-[2.5rem]">
+				<div className="flex flex-col flex-grow space-y-1">
+					{/* Titre (1 seule ligne) */}
+					<h3 className="text-xs sm:text-sm font-bold text-[#161D14] group-hover:text-[#1A5514] truncate leading-snug" title={productName}>
 						{productName}
 					</h3>
 					
-					{/* BIO Badge */}
-					{(product.producer?.isBio || product.transformer?.isBio) && (
-						<div className="mt-1">
-							<span className="inline-flex items-center px-2 py-0.5 text-[10px] sm:text-xs font-black text-white bg-harvests-green rounded shadow-sm shadow-emerald-200">
-								<Leaf className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-								CERTIFIÉ BIO
+					{/* Ligne Meta : Badge BIO & Notes sur la même ligne */}
+					<div className="flex items-center justify-between pt-1 min-h-[1.5rem]">
+						<div className="flex items-center space-x-1">
+							<span className="text-xs font-bold text-amber-600">{formatAverageRating(ratingStats.average)}</span>
+							<div className="flex text-amber-500">
+								<FiStar className="h-3 w-3 fill-current" />
+							</div>
+							<span className="text-[11px] text-gray-500 font-medium">
+								({ratingStats.totalReviews || 0})
 							</span>
 						</div>
-					)}
 
-					{/* Notes */}
-					<div className="flex items-center space-x-1 mt-1 sm:mt-1.5">
-						<span className="text-xs sm:text-sm font-bold text-gray-800">{formatAverageRating(ratingStats.average)}</span>
-						<div className="flex text-yellow-500">
-							<FiStar className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-current" />
-						</div>
-						{ratingStats.totalReviews > 0 && (
-							<span className="text-xs sm:text-sm text-primary-600 hover:underline">
-								{ratingStats.totalReviews}
+						{(product.producer?.isBio || product.transformer?.isBio) && (
+							<span className="inline-flex items-center px-1.5 py-0.5 text-[9px] font-extrabold text-white bg-[#1A5514] rounded-md shadow-sm">
+								<Leaf className="w-2.5 h-2.5 mr-1 text-emerald-400" />
+								CERTIFIÉ BIO
 							</span>
 						)}
 					</div>
 
 					{/* Prix */}
-					<div className="mt-1 sm:mt-2 flex items-baseline flex-wrap">
-						<span className="text-base sm:text-xl font-bold text-gray-900">
-							{formatPrice(product.price)}
+					<div className="pt-1 flex items-baseline flex-wrap gap-1">
+						<span className="text-base sm:text-lg font-extrabold text-[#161D14]">
+							{formatProductPrice(product.price)}
 						</span>
-						<span className="text-[10px] sm:text-xs text-gray-500 ml-1">
-							/ {product.unit || "unité"}
+						<span className="text-[11px] text-gray-500 font-medium">
+							/ {normalizeUnit(product.unit)}
 						</span>
 					</div>
 
 					{/* Stock & Vendeur */}
-					<div className="mt-1 sm:mt-2 text-[10px] sm:text-xs text-gray-500 space-y-0.5">
+					<div className="pt-1 text-[11px] text-gray-500 space-y-0.5">
 						{product.inventory?.quantity > 0 ? (
-							<div className="text-green-700 font-medium">En stock</div>
+							<div className="text-emerald-700 font-semibold text-[11px] flex items-center gap-1">
+								<span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+								En stock - Livraison rapide
+							</div>
 						) : (
-							<div className="text-red-600 font-medium">Rupture</div>
+							<div className="text-red-600 font-semibold text-[11px]">En rupture temporaire</div>
 						)}
-						<div className="truncate">
-							<span className="hidden sm:inline">Vendu par : </span>
-							<span className="text-primary-600 hover:underline">{getVendorName(product.producer || product.transformer || product.restaurateur)}</span>
+						<div className="truncate text-gray-500">
+							<span>Vendu par : </span>
+							<span className="text-[#1A5514] font-semibold hover:underline">{getVendorName(product.producer || product.transformer || product.restaurateur)}</span>
 						</div>
 					</div>
 				</div>
 			</Link>
 
-			{/* Bouton Ajouter au panier (Toujours en bas) */}
-			<div className="p-2 sm:p-4 mt-auto">
+			{/* Bouton Ajouter au panier */}
+			<div className="p-3 sm:p-4 pt-0 mt-auto">
 				<button
 					onClick={handleAddToCart}
 					disabled={product.inventory?.quantity <= 0}
-					className={`w-full py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium shadow-sm transition-colors border flex items-center justify-center ${
+					className={`w-full py-2 px-3 rounded-full text-xs font-bold shadow-sm transition-all duration-200 border flex items-center justify-center gap-2 whitespace-nowrap ${
 						isAdded ?
-							"bg-green-100 border-green-200 text-green-800"
+							"bg-emerald-100 border-emerald-300 text-emerald-900"
 						: product.inventory?.quantity <= 0 ?
 							"bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
-						: "bg-white hover:bg-green-50 border-harvests-green text-harvests-green"
+						: "bg-[#FF9900] hover:bg-[#e68a00] border-[#FF9900] text-gray-900 shadow-amber-500/20 active:scale-95"
 					}`}
 				>
 					{isAdded ?
-						<><FiCheck className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Ajouté</span></>
+						<><FiCheck className="h-4 w-4" /> <span>Ajouté <span className="hidden sm:inline">au panier</span></span></>
 					: product.inventory?.quantity <= 0 ?
-						"Indisp."
-					: <><FiShoppingCart className="h-4 w-4 sm:mr-2 sm:hidden" /><span className="hidden sm:inline">Ajouter au panier</span><span className="sm:hidden ml-1">Ajouter</span></>}
+						"Indisponible"
+					: <><FiShoppingCart className="h-4 w-4" /><span>Ajouter <span className="hidden sm:inline">au panier</span></span></>}
 				</button>
 			</div>
 		</div>

@@ -60,19 +60,37 @@ exports.getBlogs = catchAsync(async (req, res, next) => {
 		.skip(skip)
 		.limit(limit)
 		.select(
-			`title.${language} slug.${language} excerpt.${language} type category tags featuredImage author views likes likedBy publishedAt createdAt`
+			`title.${language} slug.${language} excerpt.${language} type category tags featuredImage images coverImage author views likes likedBy publishedAt createdAt`
 		);
 
 	const total = await Blog.countDocuments(queryObj);
 
 	// Localiser les données
-	const localizedBlogs = blogs.map((blog) => ({
-		...blog.toObject(),
-		title: blog.getTitle(language),
-		slug: blog.getSlug(language),
-		excerpt: blog.getExcerpt(language),
-		isLiked: req.user ? (blog.likedBy || []).includes(req.user._id) : false,
-	}));
+	const localizedBlogs = blogs.map((blog) => {
+		const obj = blog.toObject();
+		let imgUrl = null;
+		if (typeof obj.featuredImage === 'string' && obj.featuredImage.trim()) {
+			imgUrl = obj.featuredImage;
+		} else if (obj.featuredImage?.url) {
+			imgUrl = obj.featuredImage.url;
+		} else if (Array.isArray(obj.images) && obj.images.length > 0) {
+			const first = obj.images[0];
+			imgUrl = typeof first === 'string' ? first : first?.url;
+		} else if (typeof obj.coverImage === 'string' && obj.coverImage.trim()) {
+			imgUrl = obj.coverImage;
+		} else if (obj.coverImage?.url) {
+			imgUrl = obj.coverImage.url;
+		}
+
+		return {
+			...obj,
+			featuredImage: imgUrl ? { url: imgUrl } : (obj.featuredImage || null),
+			title: blog.getTitle(language),
+			slug: blog.getSlug(language),
+			excerpt: blog.getExcerpt(language),
+			isLiked: req.user ? (blog.likedBy || []).includes(req.user._id) : false,
+		};
+	});
 
 	res.status(200).json({
 		success: true,

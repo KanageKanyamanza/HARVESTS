@@ -15,6 +15,7 @@ const api = axios.create({
 		"Content-Type": "application/json",
 	},
 	withCredentials: true,
+	withXSRFToken: true,
 	xsrfCookieName: "harvests_csrf_token",
 	xsrfHeaderName: "x-csrf-token",
 	// Configuration du cache HTTP

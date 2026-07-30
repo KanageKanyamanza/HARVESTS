@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, LogIn as LogInIcon } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import SocialLinks from "../../components/common/SocialLinks";
 import { useModal } from "../../hooks/useModal";
@@ -102,7 +102,7 @@ const Login = () => {
 				backgroundPosition: "center",
 			}}
 		>
-			<div className="w-full flex">
+			<div className="relative w-full flex">
 				{/* Section gauche - Logo et informations */}
 				<div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-center items-center text-white relative">
 					<div className="relative z-10 text-center">
@@ -111,7 +111,10 @@ const Login = () => {
 							alt="Harvests Logo"
 							className="w-[400px] h-[190px] mx-auto mb-6 drop-shadow-lg"
 						/>
-						<p className="text-green-700 text-lg mb-6"></p>
+						<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0D330A] shadow-md text-white text-xs font-bold uppercase tracking-wider mb-6">
+							<LogInIcon className="w-4 h-4 text-[#31BC2E]" />
+							<span>Bon retour</span>
+						</div>
 
 						{/* Réseaux sociaux */}
 						<div className="mt-8">
@@ -137,21 +140,21 @@ const Login = () => {
 						</div>
 
 						<div className="text-center mb-5">
-							<h2 className="text-2xl font-bold text-gray-900">Connexion</h2>
+							<h2 className="text-2xl font-extrabold text-white">Connexion</h2>
 						</div>
 
 						{errors.submit && (
-							<div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+							<div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-semibold">
 								{errors.submit}
 							</div>
 						)}
 
 						<form onSubmit={handleSubmit}>
-							<div className="space-y-2 px-5 pt-5 pb-2 sm:px-10 sm:pt-10 sm:pb-5 backdrop-blur-sm shadow-lg rounded-4xl bg-green-500/10">
+							<div className="space-y-3 px-5 pt-7 pb-5 sm:px-8 sm:pt-9 sm:pb-7 shadow-2xl shadow-black/30 rounded-3xl bg-white border border-emerald-100/80">
 								{/* Email */}
 								<div className="relative">
-									<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-										<Mail className="h-5 w-5 text-black" />
+									<div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+										<Mail className="h-4.5 w-4.5 text-gray-400" />
 									</div>
 									<input
 										type="email"
@@ -159,19 +162,19 @@ const Login = () => {
 										value={formData.email}
 										onChange={handleChange}
 										placeholder="Votre email"
-										className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-											errors.email ? "border-red-300" : "border-gray-300"
+										className={`w-full pl-10 pr-4 py-3 border rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] outline-none transition-all text-sm ${
+											errors.email ? "border-red-300" : "border-gray-200"
 										}`}
 									/>
 									{errors.email && (
-										<p className="mt-1 text-sm text-red-600">{errors.email}</p>
+										<p className="mt-1 text-xs text-red-600 font-medium">{errors.email}</p>
 									)}
 								</div>
 
 								{/* Mot de passe */}
 								<div className="relative">
-									<div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-										<Lock className="h-5 w-5 text-black" />
+									<div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+										<Lock className="h-4.5 w-4.5 text-gray-400" />
 									</div>
 									<input
 										type={showPassword ? "text" : "password"}
@@ -179,82 +182,75 @@ const Login = () => {
 										value={formData.password}
 										onChange={handleChange}
 										placeholder="Votre mot de passe"
-										className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-											errors.password ? "border-red-300" : "border-gray-300"
+										className={`w-full pl-10 pr-12 py-3 border rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] outline-none transition-all text-sm ${
+											errors.password ? "border-red-300" : "border-gray-200"
 										}`}
 									/>
 									<button
 										type="button"
-										className="absolute inset-y-0 right-0 pr-3 flex items-center"
+										className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600"
 										onClick={() => setShowPassword(!showPassword)}
 									>
 										{showPassword ? (
-											<EyeOff className="h-5 w-5 text-black" />
+											<EyeOff className="h-4.5 w-4.5" />
 										) : (
-											<Eye className="h-5 w-5 text-black" />
+											<Eye className="h-4.5 w-4.5" />
 										)}
 									</button>
 									{errors.password && (
-										<p className="mt-1 text-sm text-red-600">
+										<p className="mt-1 text-xs text-red-600 font-medium">
 											{errors.password}
 										</p>
 									)}
 								</div>
 
-								{/* Lien d'inscription */}
-								<div className="text-center">
+								{/* Liens */}
+								<div className="flex items-center justify-between text-xs pt-1">
 									<Link
 										to="/register"
-										className="text-green-600 hover:text-green-700 text-sm underline"
+										className="text-[#1A5514] hover:text-[#31BC2E] font-bold transition-colors"
 									>
 										Ou inscrivez-vous
 									</Link>
-								</div>
-
-								{/* Lien mot de passe oublié */}
-								<div className="text-center">
 									<Link
 										to="/forgot-password"
-										className="text-green-600 hover:text-green-700 text-sm underline"
+										className="text-[#1A5514] hover:text-[#31BC2E] font-bold transition-colors"
 									>
 										Mot de passe oublié ?
 									</Link>
 								</div>
-							</div>
 
-							{/* Remember me */}
-							<div className="flex items-center justify-center text-center my-2">
-								<input
-									id="remember-me"
-									name="remember-me"
-									type="checkbox"
-									checked={rememberMe}
-									onChange={(e) => setRememberMe(e.target.checked)}
-									className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-								/>
-								<label
-									htmlFor="remember-me"
-									className="ml-2 block text-sm text-gray-700"
-								>
-									Se souvenir de moi
+								{/* Remember me */}
+								<label className="flex items-center gap-2 pt-1 cursor-pointer select-none">
+									<input
+										id="remember-me"
+										name="remember-me"
+										type="checkbox"
+										checked={rememberMe}
+										onChange={(e) => setRememberMe(e.target.checked)}
+										className="h-4 w-4 rounded border-gray-300 text-[#1A5514] focus:ring-[#1A5514]"
+									/>
+									<span className="text-xs text-gray-600 font-medium">
+										Se souvenir de moi
+									</span>
 								</label>
-							</div>
 
-							{/* Bouton de connexion */}
-							<button
-								type="submit"
-								disabled={isSubmitting}
-								className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-full transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-							>
-								{isSubmitting ? (
-									<>
-										<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-										<span className="ml-2">Connexion en cours...</span>
-									</>
-								) : (
-									"Se connecter"
-								)}
-							</button>
+								{/* Bouton de connexion */}
+								<button
+									type="submit"
+									disabled={isSubmitting}
+									className="w-full bg-gradient-to-r from-[#1A5514] to-[#31BC2E] hover:shadow-lg shadow-emerald-900/20 text-white font-bold py-3 px-4 rounded-full transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+								>
+									{isSubmitting ? (
+										<>
+											<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+											<span>Connexion en cours...</span>
+										</>
+									) : (
+										"Se connecter"
+									)}
+								</button>
+							</div>
 						</form>
 					</div>
 				</div>

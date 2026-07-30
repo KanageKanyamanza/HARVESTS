@@ -30,57 +30,7 @@ async function applyVendorVisibility(queryObj) {
   return queryObj;
 }
 
-const countrySynonyms = {
-  'SN': ['SN', 'Sénégal', 'Senegal'],
-  'Sénégal': ['SN', 'Sénégal', 'Senegal'],
-  'Senegal': ['SN', 'Sénégal', 'Senegal'],
-  'CM': ['CM', 'Cameroun', 'Cameroon'],
-  'Cameroun': ['CM', 'Cameroun', 'Cameroon'],
-  'Cameroon': ['CM', 'Cameroun', 'Cameroon'],
-  'CI': ['CI', "Côte d'Ivoire", "Cote d'Ivoire", 'Ivory Coast'],
-  "Côte d'Ivoire": ['CI', "Côte d'Ivoire", "Cote d'Ivoire", 'Ivory Coast'],
-  "Cote d'Ivoire": ['CI', "Côte d'Ivoire", "Cote d'Ivoire", 'Ivory Coast'],
-  'BF': ['BF', 'Burkina Faso', 'Burkina'],
-  'Burkina Faso': ['BF', 'Burkina Faso', 'Burkina'],
-  'Burkina': ['BF', 'Burkina Faso', 'Burkina'],
-  'ML': ['ML', 'Mali'],
-  'Mali': ['ML', 'Mali'],
-  'GH': ['GH', 'Ghana'],
-  'Ghana': ['GH', 'Ghana'],
-  'NG': ['NG', 'Nigeria'],
-  'Nigeria': ['NG', 'Nigeria'],
-  'NE': ['NE', 'Niger'],
-  'Niger': ['NE', 'Niger'],
-  'BJ': ['BJ', 'Bénin', 'Benin'],
-  'Bénin': ['BJ', 'Bénin', 'Benin'],
-  'Benin': ['BJ', 'Bénin', 'Benin'],
-  'TG': ['TG', 'Togo'],
-  'Togo': ['TG', 'Togo'],
-  'GA': ['GA', 'Gabon'],
-  'Gabon': ['GA', 'Gabon'],
-  'CG': ['CG', 'Congo'],
-  'Congo': ['CG', 'Congo'],
-  'CD': ['CD', 'République démocratique du Congo', 'RDC', 'DRC', 'Democratic Republic of Congo'],
-  'République démocratique du Congo': ['CD', 'République démocratique du Congo', 'RDC', 'DRC', 'Democratic Republic of Congo'],
-  'TD': ['TD', 'Tchad', 'Chad'],
-  'Tchad': ['TD', 'Tchad', 'Chad'],
-  'CF': ['CF', 'République centrafricaine', 'Central African Republic'],
-  'République centrafricaine': ['CF', 'République centrafricaine', 'Central African Republic'],
-  'GQ': ['GQ', 'Guinée équatoriale', 'Equatorial Guinea'],
-  'Guinée équatoriale': ['GQ', 'Guinée équatoriale', 'Equatorial Guinea']
-};
-
-function getCountryFilterList(country) {
-  if (!country) return [];
-  if (country === 'West Africa') {
-    return ['SN', 'Sénégal', 'Senegal', 'CI', "Côte d'Ivoire", "Cote d'Ivoire", 'BF', 'Burkina Faso', 'ML', 'Mali', 'GH', 'Ghana', 'NG', 'Nigeria', 'NE', 'Niger', 'BJ', 'Bénin', 'Benin', 'TG', 'Togo'];
-  }
-  if (country === 'Central Africa') {
-    return ['CM', 'Cameroun', 'Cameroon', 'GA', 'Gabon', 'CG', 'Congo', 'CD', 'République démocratique du Congo', 'TD', 'Tchad', 'CF', 'République centrafricaine', 'GQ', 'Guinée équatoriale'];
-  }
-  const normalized = country.trim();
-  return countrySynonyms[normalized] || [normalized];
-}
+const { getCountryFilterList } = require('../../utils/countryMapper');
 
 /**
  * Service pour les routes publiques des produits

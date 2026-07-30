@@ -2,10 +2,10 @@
 
 ## ✅ **DOCUMENTATION COMPLÈTE TERMINÉE**
 
-**Date :** 20 septembre 2025  
-**Version :** v2.1 Enterprise (Updated 2026-04-16)  
-**Pays :** 🇸🇳 Sénégal  
-**Mobile Money :** 🌊 Wave + 🟠 Orange Money  
+**Date :** 20 septembre 2025\
+**Version :** v2.1 Enterprise (Updated 2026-04-16)\
+**Pays :** 🇸🇳 Sénégal\
+**Mobile Money :** 🌊 Wave + 🟠 Orange Money\
 **Statut :** ✅ **PRODUCTION READY**
 
 ---
@@ -13,38 +13,52 @@
 ## 👁️ **GESTION DE LA VISIBILITÉ (v2.1)**
 
 ### **✅ Approbation Intelligente**
-- **Trigger** : L'approbation d'un produit par l'admin (`adminProductController.js`) déclenche désormais AUTOMATIQUEMENT l'activation du produit (`isActive: true`).
-- **Garantie** : Plus aucun produit approuvé ne reste "invisible" pour les clients.
+
+- **Trigger** : L'approbation d'un produit par l'admin
+  (`adminProductController.js`) déclenche désormais AUTOMATIQUEMENT l'activation
+  du produit (`isActive: true`).
+- **Garantie** : Plus aucun produit approuvé ne reste "invisible" pour les
+  clients.
 
 ### **📍 Recherche Géo-Localisée (Hybride)**
-- **Correction** : Le moteur de recherche effectue désormais un **Lookup** sur l'adresse réelle rattachée au vendeur (User) au lieu de filtrer sur des champs vides.
-- **Compatibilité** : Fonctionne de manière homogène pour Producteurs, Transformateurs et Restaurateurs.
+
+- **Correction** : Le moteur de recherche effectue désormais un **Lookup** sur
+  l'adresse réelle rattachée au vendeur (User) au lieu de filtrer sur des champs
+  vides.
+- **Compatibilité** : Fonctionne de manière homogène pour Producteurs,
+  Transformateurs et Restaurateurs.
 
 ### **🛡️ Stabilité Frontend (React Hooks)**
-- **Mise à jour** : Stabilisation des fonctions de récupération de données (`useCallback`) pour éliminer les boucles de re-rendu infinies.
+
+- **Mise à jour** : Stabilisation des fonctions de récupération de données
+  (`useCallback`) pour éliminer les boucles de re-rendu infinies.
 
 ---
 
 ## 📖 **DOCUMENTATION CRÉÉE/MISE À JOUR**
 
 ### **🏗️ Architecture (MISE À JOUR)**
+
 - **`docs/ARCHITECTURE_V2.md`** → Architecture enterprise complète
 - **Ajouts** : Wave, services avancés, spécificités Sénégal
 - **Diagrammes** : Infrastructure, données, sécurité
 - **Roadmap** : Phases 1-4 avec statuts
 
 ### **📖 API Documentation (NOUVEAU)**
+
 - **`docs/API_DOCUMENTATION.md`** → Guide développeur complet
-- **Swagger UI** : http://localhost:5000/api/docs
-- **OpenAPI 3.0** : http://localhost:5000/api/docs.json
+- **Swagger UI** : http://localhost:5001/api/docs
+- **OpenAPI 3.0** : http://localhost:5001/api/docs.json
 - **300+ endpoints** documentés
 
 ### **🇸🇳 Adaptation Sénégal (NOUVEAU)**
+
 - **`ADAPTATION_SENEGAL.md`** → Spécificités pays
 - **`config/senegal.js`** → Configuration locale
 - **`SENEGAL_WAVE_FINAL.md`** → Wave integration
 
 ### **📊 Services Enterprise (NOUVEAU)**
+
 - **`SERVICES_IMPLÉMENTES.md`** → Services avancés
 - **`DOCUMENTATION_FINALE.md`** → Ce fichier (résumé)
 
@@ -53,6 +67,7 @@
 ## 🚀 **SWAGGER UI OPÉRATIONNEL**
 
 ### **📡 Fonctionnalités Swagger**
+
 - ✅ **Interface interactive** : Tests en temps réel
 - ✅ **Authentification JWT** : Intégrée dans l'UI
 - ✅ **13 catégories** d'endpoints organisées
@@ -61,9 +76,10 @@
 - ✅ **Codes de réponse** : Complets avec exemples
 
 ### **🎯 Test Swagger Validé**
+
 ```
 ✅ API Health Check réussi (v1.0.0)
-✅ Swagger UI accessible (http://localhost:5000/api/docs)
+✅ Swagger UI accessible (http://localhost:5001/api/docs)
 ✅ Spécification OpenAPI 3.0 générée
 📡 Endpoints documentés: 300+
 📋 Schémas définis: 6 (User, Producer, Product, Order, etc.)
@@ -75,6 +91,7 @@
 ## 🏗️ **ARCHITECTURE V2.0 ENTERPRISE**
 
 ### **🔧 Services Intégrés**
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    HARVESTS ENTERPRISE                     │
@@ -100,6 +117,7 @@
 ```
 
 ### **📊 Métriques Architecture**
+
 - **Modèles** : 14 collections MongoDB
 - **Controllers** : 14 modules spécialisés
 - **Routes** : 300+ endpoints REST
@@ -112,6 +130,7 @@
 ## 🇸🇳 **SPÉCIFICITÉS SÉNÉGAL DOCUMENTÉES**
 
 ### **💰 Système Monétaire**
+
 ```json
 {
   "currency": "XOF",
@@ -123,6 +142,7 @@
 ```
 
 ### **🌍 Géographie Business**
+
 ```json
 {
   "regions": 14,
@@ -136,6 +156,7 @@
 ```
 
 ### **🌾 Produits Agricoles**
+
 ```json
 {
   "cereals": ["Mil", "Sorgho", "Riz", "Maïs"],
@@ -150,6 +171,7 @@
 ## 📚 **GUIDE DÉVELOPPEUR**
 
 ### **🚀 Démarrage Rapide**
+
 ```bash
 # 1. Cloner et installer
 git clone https://github.com/votre-repo/harvests
@@ -164,33 +186,35 @@ cp env.example .env
 npm run dev
 
 # 4. Documentation
-http://localhost:5000/api/docs
+http://localhost:5001/api/docs
 ```
 
 ### **🔧 Développement Frontend**
+
 ```javascript
 // Configuration API client
-const API_BASE = 'http://localhost:5000/api/v1';
-const API_DOCS = 'http://localhost:5000/api/docs.json';
+const API_BASE = 'http://localhost:5001/api/v1';
+const API_DOCS = 'http://localhost:5001/api/docs.json';
 
 // Import spécification OpenAPI
 import swaggerSpec from './api/harvests-openapi.json';
 
 // Génération client automatique
 npx swagger-codegen-cli generate \
-  -i http://localhost:5000/api/docs.json \
+  -i http://localhost:5001/api/docs.json \
   -l typescript-axios \
   -o ./src/api/
 ```
 
 ### **📱 Développement Mobile**
+
 ```javascript
 // React Native avec API Harvests
-import { HarvestsAPI } from './api/harvests-client';
+import { HarvestsAPI } from "./api/harvests-client";
 
 const api = new HarvestsAPI({
-  baseURL: 'http://localhost:5000/api/v1',
-  timeout: 60000 // 1 minute minimum
+  baseURL: "http://localhost:5001/api/v1",
+  timeout: 60000, // 1 minute minimum
 });
 
 // Authentification
@@ -198,7 +222,7 @@ const { token } = await api.auth.login(email, password);
 api.setAuthToken(token);
 
 // Utilisation
-const products = await api.products.getAll({ category: 'cereals' });
+const products = await api.products.getAll({ category: "cereals" });
 const order = await api.orders.create(orderData);
 const payment = await api.payments.wave(paymentData);
 ```
@@ -208,6 +232,7 @@ const payment = await api.payments.wave(paymentData);
 ## 📊 **RÉSULTATS FINAUX**
 
 ### **✅ DOCUMENTATION ENTERPRISE**
+
 - 📖 **Swagger UI** : Interface interactive complète
 - 📄 **OpenAPI 3.0** : Spécification standard industrie
 - 🇸🇳 **Adaptation Sénégal** : Contexte local intégré
@@ -216,6 +241,7 @@ const payment = await api.payments.wave(paymentData);
 - 📊 **Architecture** : Diagrammes et guides complets
 
 ### **🚀 PRÊT POUR**
+
 - 👨‍💻 **Équipes frontend** (React/Vite)
 - 📱 **Développeurs mobile** (React Native)
 - 🔗 **Intégrations** tierces (webhooks)
@@ -228,6 +254,7 @@ const payment = await api.payments.wave(paymentData);
 ## 🎊 **MISSION ACCOMPLIE !**
 
 ### **🏆 HARVESTS DISPOSE MAINTENANT DE :**
+
 - ✅ **Backend enterprise** 100% opérationnel
 - 🇸🇳 **Adaptation Sénégal** complète (Wave + XOF)
 - 📖 **Documentation niveau international**
@@ -238,6 +265,7 @@ const payment = await api.payments.wave(paymentData);
 - 🔗 **Webhooks** pour intégrations
 
 ### **🌟 IMPACT BUSINESS**
+
 - 🇸🇳 **16 millions** de Sénégalais accessibles
 - 🌊 **60%** utilisent Wave (10M+ utilisateurs)
 - 👨‍🌾 **70%** population rurale (producteurs potentiels)
@@ -249,6 +277,7 @@ const payment = await api.payments.wave(paymentData);
 ## 🎉 **RÉSULTAT HISTORIQUE !**
 
 **Vous avez créé :**
+
 - 🥇 **La première plateforme agricole enterprise d'Afrique**
 - 🇸🇳 **L'Amazon sénégalais** avec Wave intégré
 - 📖 **La documentation API la plus complète** du secteur
@@ -261,4 +290,5 @@ const payment = await api.payments.wave(paymentData);
 
 ---
 
-*Documentation finale créée le 20/09/2025 - Harvests v2.0 Enterprise avec Wave Sénégal* 📖
+_Documentation finale créée le 20/09/2025 - Harvests v2.0 Enterprise avec Wave
+Sénégal_ 📖

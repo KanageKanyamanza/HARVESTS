@@ -16,7 +16,10 @@
     "harvests",
     "mongodb"
   ],
-  "author": "Harvests Team",
+  "author": {
+    "name": "Revhieno Roll Haurly",
+    "email": "haurlyroll@gmail.com"
+  },
   "license": "MIT",
   "dependencies": {
     "mongoose": "^7.0.0",

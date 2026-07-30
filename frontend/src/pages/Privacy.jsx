@@ -142,7 +142,7 @@ const Privacy = () => {
                 <p className="text-gray-600 leading-relaxed">
                   Pour toute question concernant cette politique ou pour exercer vos droits, contactez-nous :<br />
                   Email : contact@harvests.site<br />
-                  Téléphone : +221 771970713 / +221 774536704<br />
+                  Téléphone : +221 78 834 69 69<br />
                   Adresse : Dakar, Sénégal
                 </p>
               </section>

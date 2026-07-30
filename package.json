@@ -24,7 +24,7 @@
     "nodejs",
     "mongodb"
   ],
-  "author": "Équipe Harvests",
+  "author": "Revhieno Roll Haurly <haurlyroll@gmail.com>",
   "license": "MIT",
   "engines": {
     "node": ">=16.0.0"

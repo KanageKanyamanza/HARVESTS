@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowUpRight, ShieldCheck, Truck, Sprout, ShoppingBag, Store, ChevronRight, Building2, Award } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import heroBg1 from "../../assets/images/herobgcar1.webp";
 import heroBg2 from "../../assets/images/herobgcar2.webp";
@@ -9,144 +9,221 @@ import heroBg4 from "../../assets/images/herobgcar4.webp";
 
 const HeroSection = () => {
 	const { isAuthenticated, getDefaultRoute } = useAuth();
-	const slides = useMemo(
-		() => [
-			{
-				id: 0,
-				image: heroBg2,
-				subtitle:
-					"HARVESTS, une place de marché digitale pour les produits agricoles africains",
-			},
-			{
-				id: 1,
-				image: heroBg1,
-				subtitle:
-					"Avec HARVESTS, les hotels et restaurants peuvent acheter des produits agricoles frais et de qualité directement du producteur.",
-			},
-			{
-				id: 2,
-				image: heroBg3,
-				subtitle:
-					"Avec HARVESTS, les restaurateurs peuvent vendre leurs plats directement au consommateur.",
-			},
-			{
-				id: 3,
-				image: heroBg4,
-				subtitle:
-					"HARVESTS inclut la gestion de la chaine d'approvisionnement : Transports des produits du producteur au consommateur.",
-			},
-		],
-		[]
-	);
-
 	const [currentSlide, setCurrentSlide] = useState(0);
-	const position = useMemo(() => {
-		switch (currentSlide) {
-			case 0:
-				return {
-					wrapper:
-						"absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center items-center justify-center px-4 w-full md:px-0 md:left-auto md:right-6 md:top-1/2 md:translate-x-0 md:-translate-y-1/2 md:text-right md:items-end md:w-auto",
-					button: "justify-center md:justify-end",
-					title: "text-center md:text-right",
-				};
-			case 3:
-				return {
-					wrapper:
-						"absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center items-center justify-center px-4 w-full md:left-0 md:bottom-0 md:top-auto md:px-4 md:pb-6 md:translate-x-0 md:translate-y-0 md:text-left md:items-start md:w-auto",
-					button: "justify-center md:justify-start",
-					title: "text-center md:text-left",
-				};
-			case 1:
-			case 2:
-			default:
-				return {
-					wrapper:
-						"absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center items-center justify-center px-4 w-full md:bottom-12 md:top-auto md:translate-y-0 md:px-0 md:w-auto",
-					button: "justify-center",
-					title: "text-center",
-				};
+
+	const slides = [
+		{
+			id: 0,
+			image: heroBg1,
+			badge: "Qualité Certifiée & Direct Producteur",
+			icon: Award,
+			caption: "Plus de 500 producteurs et restaurateurs interconnectés à travers l'Afrique."
+		},
+		{
+			id: 1,
+			image: heroBg2,
+			badge: "Hôtels, Restaurants & Grossistes",
+			icon: Building2,
+			caption: "Approvisionnements réguliers en produits frais au prix direct du champ."
+		},
+		{
+			id: 2,
+			image: heroBg3,
+			badge: "Transformation & Plats Locaux",
+			icon: Store,
+			caption: "Mise en valeur des produits transformés et recettes locales."
+		},
+		{
+			id: 3,
+			image: heroBg4,
+			badge: "Logistique & Chaîne d'Approvisionnement",
+			icon: Truck,
+			caption: "Transport frigorifique et livraison sécurisée du producteur au client."
 		}
-	}, [currentSlide]);
+	];
 
 	useEffect(() => {
-		const interval = setInterval(() => {
+		const timer = setInterval(() => {
 			setCurrentSlide((prev) => (prev + 1) % slides.length);
-		}, 10000);
-
-		return () => clearInterval(interval);
+		}, 5000);
+		return () => clearInterval(timer);
 	}, [slides.length]);
 
-	const slide = slides[currentSlide];
+	const stakeholderCards = [
+		{
+			id: "farmers",
+			title: "Producteurs & Fermiers",
+			subtitle: "Vendez vos récoltes en direct & accédez aux intrants de qualité.",
+			cta: "Espace Producteurs",
+			href: "/producteurs",
+			icon: Sprout,
+			badge: "CF Grower",
+			gradient: "from-[#1A5514] to-[#2E8B22]",
+			bgLight: "bg-[#F3F8F2]",
+			textColor: "text-[#1A5514]"
+		},
+		{
+			id: "buyers",
+			title: "Acheteurs & Restaurateurs",
+			subtitle: "Produits agricoles frais en gros & détail, livrés directement.",
+			cta: "Boutique & Produits",
+			href: "/products",
+			icon: ShoppingBag,
+			badge: "CF Buyer",
+			gradient: "from-[#004D40] to-[#00897B]",
+			bgLight: "bg-[#E0F2F1]",
+			textColor: "text-[#004D40]"
+		},
+		{
+			id: "storefront",
+			title: "Transformateurs & Agrobusiness",
+			subtitle: "Commercialisez vos produits transformés et épices locales.",
+			cta: "Produits Transformés",
+			href: "/transformers",
+			icon: Store,
+			badge: "CF Storefront",
+			gradient: "from-[#B78103] to-[#E6A100]",
+			bgLight: "bg-[#FFFDE7]",
+			textColor: "text-[#855D00]"
+		},
+		{
+			id: "logistics",
+			title: "Transport & Logistique",
+			subtitle: "Gestion de la chaîne du froid et transport du champ à la table.",
+			cta: "Services Transport",
+			href: "/logistics",
+			icon: Truck,
+			badge: "CF Logistics",
+			gradient: "from-[#1E3A8A] to-[#3B82F6]",
+			bgLight: "bg-[#EFF6FF]",
+			textColor: "text-[#1E3A8A]"
+		}
+	];
 
 	return (
-		<section className="relative flex h-screen overflow-hidden text-white">
-			{/* Image de fond optimisée pour LCP */}
-			{slides.map((item, index) => (
-				<img
-					key={item.id}
-					src={item.image}
-					alt="Background"
-					className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-out ${
-						index === currentSlide ? "opacity-100" : "opacity-0"
-					}`}
-					fetchpriority={index === 0 ? "high" : "auto"} // Priorité haute pour la première image (LCP)
-					loading={index === 0 ? "eager" : "lazy"} // Charger immédiatement la première image
-					decoding="async"
-				/>
-			))}
+		<section className="relative bg-[#F8FAF6] pt-0 pb-12 lg:pb-16 overflow-hidden">
+			{/* Décoration d'arrière-plan */}
+			<div className="absolute top-0 right-0 w-1/3 h-96 bg-gradient-to-l from-emerald-100/30 to-transparent rounded-full blur-3xl pointer-events-none" />
 
-			<div className="absolute bg-black inset-0 bg-pattern opacity-50"></div>
-			<div className="relative container-xl flex flex-1 pt-16 pb-40 md:pt-20 md:pb-48">
-				<div
-					className={`flex w-full md:max-w-4xl flex-col gap-6 ${position.wrapper}`}
-				>
-					<h1
-						className={`text-3xl font-display font-bold text-white text-balance ${position.title}`}
-					>
-						{slide.subtitle}
-					</h1>
+			{/* Zone d'en-tête Hero avec Carrousel d'Images (100vh sur mobile) */}
+			<div className="relative mb-12 lg:mb-16 min-h-[calc(100vh-105px)] lg:min-h-[525px] flex items-center">
+				{/* Carrousel d'images de droite (50% largeur & 100% hauteur sans py) */}
+				<div className="absolute top-0 bottom-0 right-0 w-full lg:w-1/2 h-full z-0 overflow-hidden">
+					{slides.map((slide, index) => (
+						<img
+							key={slide.id}
+							src={slide.image}
+							alt={slide.badge}
+							className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-1000 ease-in-out ${
+								index === currentSlide ? "opacity-100 scale-100" : "opacity-0 scale-105 pointer-events-none"
+							}`}
+						/>
+					))}
 
-					<div
-						className={`flex flex-col sm:flex-row gap-4 items-center ${position.button}`}
-					>
-						<Link
-							to="/contact"
-							className="btn-lg bg-primary-600 font-semibold inline-flex items-center text-white hover:bg-primary-600 hover:ring-4 hover:ring-offset-2 hover:ring-primary-200 hover:ring-opacity-50 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-in-out"
-						>
-							Contactez-nous
-						</Link>
-						{/* Bouton Se connecter/Dashboard visible uniquement sur mobile et tablette */}
-						<Link
-							to={
-								isAuthenticated
-									? getDefaultRoute
-										? getDefaultRoute()
-										: "/dashboard"
-									: "/login"
-							}
-							className="btn-lg bg-white/20 backdrop-blur-sm border border-white/40 font-semibold inline-flex items-center text-white hover:bg-white/30 hover:border-white/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 ease-in-out md:hidden"
-						>
-							{isAuthenticated ? "Dashboard" : "Se connecter"}
-						</Link>
+					{/* Fondu subtil uniquement sur desktop (caché sur mobile) */}
+					<div className="hidden lg:block absolute inset-y-0 left-0 w-44 bg-gradient-to-r from-[#F8FAF6] via-[#F8FAF6]/50 to-transparent z-10 pointer-events-none" />
+
+					{/* Assombrissement de l'image uniquement sur mobile (< lg) */}
+					<div className="absolute inset-0 bg-black/60 lg:bg-transparent z-10 pointer-events-none" />
+
+					{/* Badge d'information dynamique avec indicateurs de carrousel (visible uniquement à partir de md) */}
+					<div className="absolute bottom-6 right-6 lg:right-12 z-20 hidden md:block bg-black/45 backdrop-blur-md border border-white/20 p-4 rounded-2xl text-white max-w-xs shadow-xl transition-all duration-500">
+						<div className="flex items-center gap-1.5 mb-1">
+							{React.createElement(slides[currentSlide].icon, { className: "w-4 h-4 text-emerald-400 flex-shrink-0" })}
+							<span className="text-[10px] whitespace-nowrap uppercase tracking-widest text-emerald-300 font-extrabold block">
+								{slides[currentSlide].badge}
+							</span>
+						</div>
+						<p className="text-xs font-semibold opacity-95 leading-snug">
+							{slides[currentSlide].caption}
+						</p>
+
+						{/* Indicateurs de diapositive (Puces) */}
+						<div className="flex items-center gap-1.5 mt-3 pt-2 border-t border-white/20">
+							{slides.map((_, idx) => (
+								<button
+									key={idx}
+									onClick={() => setCurrentSlide(idx)}
+									className={`h-1.5 rounded-full transition-all duration-300 ${
+										idx === currentSlide ? "w-6 bg-[#31BC2E]" : "w-1.5 bg-white/40 hover:bg-white/70"
+									}`}
+									aria-label={`Slide ${idx + 1}`}
+								/>
+							))}
+						</div>
 					</div>
 				</div>
 
-				{/* Lien vers la section vidéo en bas à droite */}
-				<div className="absolute bottom-4 sm:right-24 md:bottom-6 md:right-[80px] z-10">
-					<a
-						href="#why-harvests"
-						onClick={(e) => {
-							e.preventDefault();
-							document.getElementById("why-harvests")?.scrollIntoView({
-								behavior: "smooth",
-								block: "start",
-							});
-						}}
-						className="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm text-white font-semibold rounded-full hover:bg-white/30 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
-					>
-						<span className="mr-2">Pourquoi choisir Harvests ?</span>
-						<ArrowRight className="h-4 w-4" />
-					</a>
+				{/* Contenu Texte à gauche */}
+				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full">
+					<div className="w-full lg:w-1/2 space-y-5 pr-0 lg:pr-8">
+						<h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white lg:text-[#161D14] tracking-tight leading-tight">
+							Une Plateforme Unique. <br className="hidden sm:inline" />
+							<span className="text-emerald-400 lg:text-[#1A5514] lg:bg-gradient-to-r lg:from-[#1A5514] lg:to-[#31BC2E] lg:bg-clip-text lg:text-transparent">
+								Pour Tous les Acteurs Agricoles.
+							</span>
+						</h1>
+						<p className="text-base sm:text-lg text-gray-200 lg:text-gray-600 max-w-lg leading-relaxed">
+							Du champ au consommateur final : achetez, vendez et gérez vos approvisionnements agricoles avec une traçabilité totale et une livraison rapide.
+						</p>
+						<div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-center sm:justify-start gap-3.5">
+							<Link
+								to="/products"
+								className="w-full sm:w-auto px-6 py-3.5 rounded-full bg-[#1A5514] hover:bg-[#144210] text-white font-bold text-sm sm:text-base shadow-lg shadow-emerald-900/20 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
+							>
+								Explorer le Marketplace
+								<ArrowUpRight className="w-5 h-5" />
+							</Link>
+							<Link
+								to="/register"
+								className="w-full sm:w-auto px-6 py-3.5 rounded-full bg-white/90 hover:bg-white text-[#1A5514] border border-emerald-600/30 font-bold text-sm sm:text-base shadow-sm hover:shadow transition-all duration-200 flex items-center justify-center gap-2"
+							>
+								Devenir Vendeur / Producteur
+							</Link>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+
+				{/* 4 Role-Based Stakeholder Cards (Complete Farmer Style Grid) */}
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+					{stakeholderCards.map((card) => {
+						const Icon = card.icon;
+						return (
+							<Link
+								key={card.id}
+								to={card.href}
+								className={`group relative rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border border-gray-200/80 bg-white overflow-hidden flex flex-col justify-between`}
+							>
+								{/* Overlay Gradient on Hover */}
+								<div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br ${card.gradient}`} />
+
+								<div className="relative z-10 space-y-3">
+									<div className="flex items-center justify-between">
+										<div className={`p-3 rounded-xl ${card.bgLight} group-hover:bg-white/20 transition-colors`}>
+											<Icon className={`w-6 h-6 ${card.textColor} group-hover:text-white transition-colors`} />
+										</div>
+										<span className="text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 group-hover:bg-white/20 group-hover:text-white transition-colors">
+											{card.badge}
+										</span>
+									</div>
+									<h3 className="text-base font-bold text-[#161D14] group-hover:text-white transition-colors">
+										{card.title}
+									</h3>
+									<p className="text-xs text-gray-600 group-hover:text-white/90 transition-colors leading-relaxed">
+										{card.subtitle}
+									</p>
+								</div>
+
+								<div className="relative z-10 pt-4 mt-2 border-t border-gray-100 group-hover:border-white/20 flex items-center justify-between font-bold text-xs text-[#1A5514] group-hover:text-white transition-colors">
+									<span>{card.cta}</span>
+									<ArrowUpRight className="w-4 h-4 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+								</div>
+							</Link>
+						);
+					})}
 				</div>
 			</div>
 		</section>
@@ -154,3 +231,4 @@ const HeroSection = () => {
 };
 
 export default HeroSection;
+

@@ -1,6 +1,7 @@
 # 🌾 Harvests Frontend
 
-Interface utilisateur moderne pour la plateforme e-commerce agricole Harvests, construite avec React + Vite + Tailwind CSS.
+Interface utilisateur moderne pour la plateforme e-commerce agricole Harvests,
+construite avec React + Vite + Tailwind CSS.
 
 ## 🚀 Technologies
 
@@ -36,6 +37,7 @@ npm run preview
 ## 🌍 Fonctionnalités
 
 ### ✅ Implémentées
+
 - 🎨 **Design System** complet avec Tailwind CSS
 - 🌐 **Internationalisation** FR/EN avec détection automatique
 - 🧭 **Routing** complet avec routes protégées
@@ -47,6 +49,7 @@ npm run preview
 - 🎯 **TypeScript ready** (configuration prête)
 
 ### 🚧 En développement
+
 - 📝 Formulaires d'authentification complets
 - 🛒 Système de panier
 - 💳 Intégration paiements
@@ -79,12 +82,14 @@ src/
 ## 🎨 Design System
 
 ### Couleurs
+
 - **Primary**: Vert agriculture (#4a9f4a)
-- **Secondary**: Orange terre cuite (#f6781c)  
+- **Secondary**: Orange terre cuite (#f6781c)
 - **Accent**: Jaune doré (#f59e0b)
 - **Success/Warning/Error**: Couleurs sémantiques
 
 ### Composants CSS
+
 ```css
 /* Boutons */
 .btn-primary
@@ -110,54 +115,60 @@ src/
 ## 🌐 Internationalisation
 
 ### Langues supportées
+
 - 🇫🇷 **Français** (défaut)
 - 🇬🇧 **Anglais**
 
 ### Usage
+
 ```jsx
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 
 const Component = () => {
   const { t } = useTranslation();
-  return <h1>{t('navigation.home')}</h1>;
+  return <h1>{t("navigation.home")}</h1>;
 };
 ```
 
 ### Changement de langue
+
 ```jsx
-import { changeLanguage } from './utils/i18n';
+import { changeLanguage } from "./utils/i18n";
 
 // Changer vers l'anglais
-changeLanguage('en');
+changeLanguage("en");
 ```
 
 ## 🔐 Authentification
 
 ### Context API
+
 ```jsx
-import { useAuth } from './store/AuthContext';
+import { useAuth } from "./store/AuthContext";
 
 const Component = () => {
   const { user, isAuthenticated, login, logout } = useAuth();
-  
+
   if (!isAuthenticated) {
     return <LoginForm />;
   }
-  
+
   return <Dashboard user={user} />;
 };
 ```
 
 ### Routes protégées
+
 ```jsx
 <ProtectedRoute requiredAuth={true} requiredVerification={true}>
   <Dashboard />
-</ProtectedRoute>
+</ProtectedRoute>;
 ```
 
 ## 📡 Services API
 
 ### Configuration
+
 ```jsx
 // services/api.js
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -168,8 +179,9 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 ```
 
 ### Usage
+
 ```jsx
-import { productService } from './services/api';
+import { productService } from "./services/api";
 
 // Obtenir les produits
 const products = await productService.getProducts();
@@ -181,6 +193,7 @@ const newProduct = await productService.createProduct(data);
 ## 🎯 Routes
 
 ### Publiques
+
 - `/` - Accueil
 - `/products` - Liste des produits
 - `/products/:id` - Détail produit
@@ -188,6 +201,7 @@ const newProduct = await productService.createProduct(data);
 - `/producers` - Producteurs
 
 ### Authentification
+
 - `/login` - Connexion
 - `/register` - Inscription
 - `/forgot-password` - Mot de passe oublié
@@ -195,6 +209,7 @@ const newProduct = await productService.createProduct(data);
 - `/verify-email/:token` - Vérification email
 
 ### Protégées
+
 - `/dashboard` - Dashboard général
 - `/profile` - Profil utilisateur
 - `/orders` - Commandes
@@ -202,15 +217,17 @@ const newProduct = await productService.createProduct(data);
 - `/settings` - Paramètres
 
 ### Spécialisées
+
 - `/producer/*` - Dashboard producteur
 - `/consumer/*` - Dashboard consommateur
 
 ## 🚀 Déploiement
 
 ### Variables d'environnement
+
 ```bash
 # Développement
-VITE_API_URL=http://localhost:5000/api/v1
+VITE_API_URL=http://localhost:5001/api/v1
 
 # Production
 VITE_API_URL=https://api.harvests.africa/v1
@@ -223,12 +240,14 @@ VITE_STRIPE_PUBLIC_KEY=pk_live_...
 ```
 
 ### Build
+
 ```bash
 npm run build
 # Génère le dossier dist/
 ```
 
 ### Hébergement recommandé
+
 - **Vercel** (recommandé)
 - **Netlify**
 - **AWS S3 + CloudFront**
@@ -237,6 +256,7 @@ npm run build
 ## 📊 Performance
 
 ### Optimisations implémentées
+
 - ⚡ **Vite** pour des builds ultra-rapides
 - 🔄 **Lazy loading** des routes
 - 📦 **Code splitting** automatique
@@ -245,6 +265,7 @@ npm run build
 - 📱 **Images responsives** prêtes
 
 ### Métriques cibles
+
 - **First Contentful Paint**: < 1.5s
 - **Largest Contentful Paint**: < 2.5s
 - **Time to Interactive**: < 3s

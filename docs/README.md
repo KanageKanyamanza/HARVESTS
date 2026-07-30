@@ -1,27 +1,33 @@
 # 📚 Documentation Complète - Harvests Platform
 
-Bienvenue dans la documentation complète de la plateforme **Harvests** - L'Amazon des produits agricoles africains.
+Bienvenue dans la documentation complète de la plateforme **Harvests** -
+L'Amazon des produits agricoles africains.
 
 ## 📖 Table des Matières
 
 ### 🚀 Démarrage Rapide
 
-- [Guide d'Installation](./INSTALLATION.md) - Installation et configuration complète
+- [Guide d'Installation](./INSTALLATION.md) - Installation et configuration
+  complète
 - [Guide de Développement](./DEVELOPMENT.md) - Guide pour les développeurs
 - [Guide de Déploiement](./DEPLOYMENT.md) - Déploiement en production
 
 ### 📡 API Documentation
 
-- [Documentation API Complète](./API_DOCUMENTATION.md) - Tous les endpoints détaillés
+- [Documentation API Complète](./API_DOCUMENTATION.md) - Tous les endpoints
+  détaillés
 - [Guide Swagger](./SWAGGER_GUIDE.md) - Utilisation de Swagger UI
-- [Spécification OpenAPI](./SWAGGER_GUIDE.md#spécification-openapi) - Format JSON/YAML
+- [Spécification OpenAPI](./SWAGGER_GUIDE.md#spécification-openapi) - Format
+  JSON/YAML
 
 ### 🏗️ Architecture
 
-- [Architecture Détaillée](./ARCHITECTURE.md) - Structure complète de l'application
+- [Architecture Détaillée](./ARCHITECTURE.md) - Structure complète de
+  l'application
 - [Modèles de Données](./MODELS.md) - Schémas et relations
 - [Services Centralisés](./CENTRALIZED_SERVICES.md) - Services partagés
-- [Profils et Fonctionnalités](./PROFILS_ET_FONCTIONNALITES.md) - Description détaillée des profils et fonctionnalités
+- [Profils et Fonctionnalités](./PROFILS_ET_FONCTIONNALITES.md) - Description
+  détaillée des profils et fonctionnalités
 
 ### 🔒 Sécurité
 
@@ -31,7 +37,8 @@ Bienvenue dans la documentation complète de la plateforme **Harvests** - L'Amaz
 
 ### 🔄 Migration & Guides
 
-- [Guide de Migration des Profils](./PROFILE_MIGRATION_GUIDE.md) - Migration vers système universel
+- [Guide de Migration des Profils](./PROFILE_MIGRATION_GUIDE.md) - Migration
+  vers système universel
 - [Résumé de Migration](./MIGRATION_SUMMARY.md) - État des migrations
 - [Guide d'Implémentation](./IMPLEMENTATION_SUMMARY.md) - Services centralisés
 
@@ -39,26 +46,29 @@ Bienvenue dans la documentation complète de la plateforme **Harvests** - L'Amaz
 
 ### Documentation Interactive
 
-- **Swagger UI**: <http://localhost:5000/api/docs>
-- **OpenAPI JSON**: <http://localhost:5000/api/docs.json>
+- **Swagger UI**: <http://localhost:5001/api/docs>
+- **OpenAPI JSON**: <http://localhost:5001/api/docs.json>
 
 ### Applications
 
 - **Frontend**: <http://localhost:5173>
-- **Backend API**: <http://localhost:5000>
-- **Health Check**: <http://localhost:5000/api/v1/health>
+- **Backend API**: <http://localhost:5001>
+- **Health Check**: <http://localhost:5001/api/v1/health>
 
 ## 📋 Vue d'Ensemble
 
 ### Qu'est-ce que Harvests ?
 
-Harvests est une plateforme e-commerce moderne connectant producteurs et consommateurs à travers l'Afrique, avec support multilingue et paiements locaux.
+Harvests est une plateforme e-commerce moderne connectant producteurs et
+consommateurs à travers l'Afrique, avec support multilingue et paiements locaux.
 
 ### Fonctionnalités Principales
 
-- ✅ **6 Types d'Utilisateurs**: Producteurs, Transformateurs, Consommateurs, Restaurateurs, Exportateurs, Transporteurs
+- ✅ **6 Types d'Utilisateurs**: Producteurs, Transformateurs, Consommateurs,
+  Restaurateurs, Exportateurs, Transporteurs
 - ✅ **E-commerce Complet**: Catalogue, commandes, paiements, livraisons
-- ✅ **Recherche Intelligente**: Gestion pluriel/singulier + détection géographique
+- ✅ **Recherche Intelligente**: Gestion pluriel/singulier + détection
+  géographique
 - ✅ **Paiements Multiples**: Stripe, PayPal, Wave Money, Orange Money
 - ✅ **Chatbot Intégré**: Assistant virtuel pour recherche et support
 - ✅ **Blog & Contenu**: Système de blog avec visiteurs
@@ -127,14 +137,15 @@ npm run dev
 ### Accès
 
 - 🌐 **Frontend**: <http://localhost:5173>
-- 📡 **Backend**: <http://localhost:5000>
-- 📚 **Swagger**: <http://localhost:5000/api/docs>
+- 📡 **Backend**: <http://localhost:5001>
+- 📚 **Swagger**: <http://localhost:5001/api/docs>
 
 ## 📖 Documentation par Catégorie
 
 ### Pour les Développeurs
 
-1. [Guide de Développement](./DEVELOPMENT.md) - Workflow, conventions, bonnes pratiques
+1. [Guide de Développement](./DEVELOPMENT.md) - Workflow, conventions, bonnes
+   pratiques
 2. [Architecture](./ARCHITECTURE.md) - Structure détaillée du code
 3. [Modèles de Données](./MODELS.md) - Schémas MongoDB
 4. [API Documentation](./API_DOCUMENTATION.md) - Tous les endpoints
@@ -164,15 +175,18 @@ npm run dev
 ### Par Type d'Utilisateur
 
 - **Producteurs**: [API Docs - Producers](./API_DOCUMENTATION.md#producers)
-- **Transformateurs**: [API Docs - Transformers](./API_DOCUMENTATION.md#transformers)
+- **Transformateurs**:
+  [API Docs - Transformers](./API_DOCUMENTATION.md#transformers)
 - **Consommateurs**: [API Docs - Consumers](./API_DOCUMENTATION.md#consumers)
-- **Restaurateurs**: [API Docs - Restaurateurs](./API_DOCUMENTATION.md#restaurateurs)
+- **Restaurateurs**:
+  [API Docs - Restaurateurs](./API_DOCUMENTATION.md#restaurateurs)
 
 ## 📞 Support
 
 - 📧 **Email**: <contact@harvests.site>
 - 🐛 **Issues**: [GitHub Issues](https://github.com/ZooM982/HARVESTS/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/ZooM982/HARVESTS/discussions)
+- 💬 **Discussions**:
+  [GitHub Discussions](https://github.com/ZooM982/HARVESTS/discussions)
 
 ## 📄 License
 
@@ -182,4 +196,4 @@ MIT License - Voir [LICENSE](../LICENSE)
 
 **🌍 Harvests - Révolutionner l'agriculture africaine, un clic à la fois !**
 
-*Made with ❤️ in Africa*
+_Made with ❤️ in Africa_

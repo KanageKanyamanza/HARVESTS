@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { Mail, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
+import { Mail, CheckCircle, AlertCircle, RefreshCw, ShieldCheck } from "lucide-react";
 import { authService } from "../../services";
 import SocialLinks from "../../components/common/SocialLinks";
 import logo from "../../assets/logo.png";
@@ -131,13 +131,11 @@ const EmailVerification = () => {
 		switch (verificationStatus) {
 			case "success":
 			case "already-verified":
-				return <CheckCircle className="h-8 w-8 text-green-600" />;
+				return <CheckCircle className="h-6 w-6 text-[#1A5514]" />;
 			case "error":
-				return <AlertCircle className="h-8 w-8 text-red-600" />;
-			case "pending":
-				return <Mail className="h-8 w-8 text-orange-600" />;
+				return <AlertCircle className="h-6 w-6 text-red-600" />;
 			default:
-				return <Mail className="h-8 w-8 text-blue-600" />;
+				return <Mail className="h-6 w-6 text-[#1A5514]" />;
 		}
 	};
 
@@ -165,7 +163,7 @@ const EmailVerification = () => {
 				backgroundPosition: "center",
 			}}
 		>
-			<div className="w-full flex">
+			<div className="relative w-full flex">
 				{/* Section gauche - Logo et informations */}
 				<div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-center items-center text-white relative">
 					<div className="relative z-10 text-center">
@@ -174,7 +172,10 @@ const EmailVerification = () => {
 							alt="Harvests Logo"
 							className="w-[400px] h-[190px] mx-auto mb-6 drop-shadow-lg"
 						/>
-						<p className="text-green-700 text-lg mb-6"></p>
+						<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0D330A] shadow-md text-white text-xs font-bold uppercase tracking-wider mb-6">
+							<ShieldCheck className="w-4 h-4 text-[#31BC2E]" />
+							<span>Vérification du compte</span>
+						</div>
 
 						{/* Réseaux sociaux */}
 						<div className="mt-8">
@@ -200,114 +201,92 @@ const EmailVerification = () => {
 						</div>
 
 						<div className="text-center mb-5">
-							<h2 className="text-2xl font-bold text-gray-900">
+							<h2 className="text-2xl font-extrabold text-white">
 								{getStatusTitle()}
 							</h2>
 						</div>
 
-						{/* Icône de statut */}
-						<div className="flex justify-center mb-6">
-							<div className="bg-green-100 rounded-full p-4 w-16 h-16 flex items-center justify-center">
-								{verificationStatus === "loading" ? (
-									<Mail className="h-8 w-8 text-green-600" />
-								) : (
-									getStatusIcon()
-								)}
-							</div>
-						</div>
-
-						{/* Message */}
-						{message && (
-							<div
-								className={`mb-6 p-4 rounded-lg ${
-									verificationStatus === "success" ||
-									verificationStatus === "already-verified"
-										? "bg-green-50 border border-green-200 text-green-800"
-										: verificationStatus === "error"
-										? "bg-red-50 border border-red-200 text-red-800"
-										: "bg-blue-50 border border-blue-200 text-blue-800"
-								}`}
-							>
-								<p className="text-sm">{message}</p>
-							</div>
-						)}
-
-						{/* Actions selon le statut */}
-						{verificationStatus === "success" && (
-							<div className="text-center">
-								<Link
-									to="/login"
-									className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-full transition-colors inline-block"
-								>
-									Se connecter
-								</Link>
-							</div>
-						)}
-
-						{verificationStatus === "already-verified" && (
-							<div className="text-center">
-								<Link
-									to="/login"
-									className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-full transition-colors inline-block"
-								>
-									Se connecter
-								</Link>
-							</div>
-						)}
-
-						{/* Section pour renvoyer l'email - toujours visible sauf si succès ou déjà vérifié */}
-						{(verificationStatus === "error" ||
-							verificationStatus === "loading") && (
-							<div className="space-y-4">
-								<div className="text-left">
-									<label className="block text-sm font-medium text-gray-700 mb-2">
-										Email pour renvoyer le lien de vérification :
-									</label>
-									<input
-										type="email"
-										value={email}
-										onChange={(e) => setEmail(e.target.value)}
-										className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-										placeholder="Votre adresse email"
-									/>
+						<div className="space-y-4 px-5 pt-7 pb-5 sm:px-8 sm:pt-9 sm:pb-7 shadow-2xl shadow-black/30 rounded-3xl bg-white border border-emerald-100/80">
+							{/* Icône de statut */}
+							<div className="flex justify-center">
+								<div className="bg-emerald-50 border border-emerald-200/60 rounded-2xl p-4 w-14 h-14 flex items-center justify-center">
+									{getStatusIcon()}
 								</div>
+							</div>
 
-								<button
-									onClick={handleResendVerification}
-									disabled={isResending || !email}
-									className="w-full bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+							{/* Message */}
+							{message && (
+								<div
+									className={`p-3.5 rounded-xl text-xs font-semibold ${
+										verificationStatus === "success" ||
+										verificationStatus === "already-verified"
+											? "bg-emerald-50 border border-emerald-200 text-[#1A5514]"
+											: verificationStatus === "error"
+											? "bg-red-50 border border-red-200 text-red-700"
+											: "bg-blue-50 border border-blue-200 text-blue-700"
+									}`}
 								>
-									{isResending ? (
-										<>
-											<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-											<span className="ml-2">Envoi en cours...</span>
-										</>
-									) : (
-										<>
-											<RefreshCw className="h-4 w-4 mr-2" />
-											Renvoyer l'email de vérification
-										</>
-									)}
-								</button>
-							</div>
-						)}
+									{message}
+								</div>
+							)}
 
-						{verificationStatus === "loading" && (
-							<div className="text-center">
-								<p className="text-gray-600 mb-4">
-									Vérification de votre email en cours...
-								</p>
-							</div>
-						)}
+							{/* Actions selon le statut */}
+							{(verificationStatus === "success" ||
+								verificationStatus === "already-verified") && (
+								<Link
+									to="/login"
+									className="w-full bg-gradient-to-r from-[#1A5514] to-[#31BC2E] hover:shadow-lg shadow-emerald-900/20 text-white font-bold py-3 px-4 rounded-full transition-all flex items-center justify-center"
+								>
+									Se connecter
+								</Link>
+							)}
 
-						{/* Liens de navigation */}
-						<div className="mt-4 text-center">
-							<Link
-								to="/login"
-								className="text-green-600 hover:text-green-700 text-sm underline"
-							>
-								Retour à la connexion
-							</Link>
+							{/* Section pour renvoyer l'email - toujours visible sauf si succès ou déjà vérifié */}
+							{(verificationStatus === "error" ||
+								verificationStatus === "loading") && (
+								<div className="space-y-3">
+									<div className="relative">
+										<div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+											<Mail className="h-4.5 w-4.5 text-gray-400" />
+										</div>
+										<input
+											type="email"
+											value={email}
+											onChange={(e) => setEmail(e.target.value)}
+											placeholder="Votre adresse email"
+											className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] outline-none transition-all text-sm"
+										/>
+									</div>
+
+									<button
+										onClick={handleResendVerification}
+										disabled={isResending || !email}
+										className="w-full bg-gradient-to-r from-[#1A5514] to-[#31BC2E] hover:shadow-lg shadow-emerald-900/20 text-white font-bold py-3 px-4 rounded-full transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+									>
+										{isResending ? (
+											<>
+												<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+												<span>Envoi en cours...</span>
+											</>
+										) : (
+											<>
+												<RefreshCw className="h-4 w-4" />
+												Renvoyer l'email de vérification
+											</>
+										)}
+									</button>
+								</div>
+							)}
+
+							{/* Lien de navigation */}
+							<div className="text-center pt-1">
+								<Link
+									to="/login"
+									className="text-[#1A5514] hover:text-[#31BC2E] text-xs font-bold transition-colors"
+								>
+									Retour à la connexion
+								</Link>
+							</div>
 						</div>
 					</div>
 				</div>

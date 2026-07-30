@@ -12,40 +12,20 @@ const BlogContent = ({
   t
 }) => {
   return (
-    <article className="bg-white rounded-lg shadow-sm p-2 sm:p-8">
-      {/* Image featured en haut - pleine largeur */}
-      {blog.featuredImage?.url && (
-        <div className="mb-8 -mx-2 sm:-mx-8 px-3">
-          <div className="w-full overflow-hidden rounded-lg">
-            <div className="w-full relative">
-              <CloudinaryImage
-                src={blog.featuredImage.url}
-                alt={blog.featuredImage.alt || getLocalizedContent(blog.title, 'Image du blog')}
-                className="w-full h-auto"
-              />
-              {blog.featuredImage.caption && (
-                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-4">
-                  {blog.featuredImage.caption}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Images en haut - pleine largeur */}
+    <article className="bg-white rounded-2xl shadow-sm border border-emerald-100/80 p-5 sm:p-8">
+      {/* Top Images (if specified as position: top) */}
       {blog.images && blog.images.filter(img => img.position === 'top').length > 0 && (
-        <div className="mb-8 -mx-2 sm:-mx-8 px-3">
-          <div className="w-full overflow-hidden rounded-lg">
+        <div className="mb-8">
+          <div className="w-full overflow-hidden rounded-2xl border border-gray-100 space-y-4">
             {blog.images.filter(img => img.position === 'top').map((image, index) => (
               <div key={index} className="w-full relative">
                 <CloudinaryImage
                   src={image.url || image.cloudinaryId}
                   alt={image.alt || `Image ${index + 1}`}
-                  className="w-full h-auto"
+                  className="w-full h-auto rounded-xl max-h-[450px] object-cover"
                 />
                 {image.caption && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-4">
+                  <div className="bg-gray-900/80 text-white text-xs p-2.5 rounded-b-xl">
                     {image.caption}
                   </div>
                 )}
@@ -55,54 +35,47 @@ const BlogContent = ({
         </div>
       )}
 
-      {/* Images au début du contenu */}
+      {/* Start Content Images */}
       {blog.images && blog.images.filter(img => img.position === 'content-start').length > 0 && (
         <div className="mb-8">
           <BlogImageGallery images={blog.images.filter(img => img.position === 'content-start')} />
         </div>
       )}
 
-      {/* Contenu */}
+      {/* Rich Article Body */}
       <div 
-        className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-primary-600 prose-strong:text-gray-900 prose-ul:text-gray-700 prose-ol:text-gray-700"
+        className="prose prose-[#1A5514] prose-lg max-w-none text-[#161D14] leading-relaxed prose-headings:font-extrabold prose-headings:text-[#161D14] prose-a:text-[#1A5514] prose-a:font-bold hover:prose-a:text-[#31BC2E] prose-blockquote:border-l-[#1A5514] prose-blockquote:bg-emerald-50/50 prose-blockquote:p-4 prose-blockquote:rounded-r-xl"
         dangerouslySetInnerHTML={{ 
           __html: markdownToHtml(getLocalizedContent(blog.content, 'Contenu non disponible')) 
         }}
       />
 
-      {/* Images au milieu */}
+      {/* Middle Images */}
       {blog.images && blog.images.filter(img => img.position === 'middle').length > 0 && (
         <div className="my-8">
           <BlogImageGallery images={blog.images.filter(img => img.position === 'middle')} />
         </div>
       )}
 
-      {/* Images en bas */}
+      {/* Bottom Images */}
       {blog.images && blog.images.filter(img => img.position === 'bottom').length > 0 && (
         <div className="mt-8">
           <BlogImageGallery images={blog.images.filter(img => img.position === 'bottom')} />
         </div>
       )}
 
-      {/* Images à la fin du contenu */}
-      {blog.images && blog.images.filter(img => img.position === 'content-end').length > 0 && (
-        <div className="mt-8">
-          <BlogImageGallery images={blog.images.filter(img => img.position === 'content-end')} />
-        </div>
-      )}
-
       {/* Tags */}
-      {normalizedTags.length > 0 && (
-        <div className="mt-8 pt-6 border-t border-gray-200">
-          <h3 className="text-sm font-medium text-gray-900 mb-3">{t('blog.tagsLabel', 'Tags')}</h3>
+      {normalizedTags && normalizedTags.length > 0 && (
+        <div className="mt-8 pt-6 border-t border-gray-100">
+          <h3 className="text-xs font-extrabold text-gray-500 uppercase tracking-wider mb-3">{t('blog.tagsLabel', 'Tags')}</h3>
           <div className="flex flex-wrap gap-2">
             {normalizedTags.map((tag, index) => (
               <span
                 key={index}
-                className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800"
+                className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-100"
               >
-                <Tag className="h-3 w-3 mr-1" />
-                {translateTag(tag)}
+                <Tag className="h-3 w-3 mr-1 text-emerald-600" />
+                #{translateTag(tag)}
               </span>
             ))}
           </div>
@@ -113,4 +86,3 @@ const BlogContent = ({
 };
 
 export default BlogContent;
-

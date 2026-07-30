@@ -51,7 +51,7 @@ const swaggerOptions = {
 		},
 		servers: [
 			{
-				url: "http://localhost:5000/api/v1",
+				url: "http://localhost:5001/api/v1",
 				description: "Serveur de développement",
 			},
 			{
@@ -585,9 +585,9 @@ const setupSwagger = (app) => {
 		res.redirect("/api/docs");
 	});
 
-	console.log("📖 Swagger UI disponible sur: http://localhost:5000/api/docs");
-	console.log("📖 Swagger UI (alternatif): http://localhost:5000/api-docs");
-	console.log("📄 Spécification JSON: http://localhost:5000/api/docs.json");
+	console.log("📖 Swagger UI disponible sur: http://localhost:5001/api/docs");
+	console.log("📖 Swagger UI (alternatif): http://localhost:5001/api-docs");
+	console.log("📄 Spécification JSON: http://localhost:5001/api/docs.json");
 };
 
 module.exports = {

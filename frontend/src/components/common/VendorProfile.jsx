@@ -15,8 +15,10 @@ import {
 	FiPhone,
 	FiMail,
 	FiMessageCircle,
+	FiCheckCircle,
+	FiShield,
 } from "react-icons/fi";
-import { Leaf } from "lucide-react";
+import { Leaf, Award, Sparkles, Store } from "lucide-react";
 import { reviewService } from "../../services";
 import { getCountryName } from "../../utils/countryMapper";
 import LoadingSpinner from "./LoadingSpinner";
@@ -69,55 +71,38 @@ const VendorProfile = ({
 				let vendorResponse = null;
 				let itemsResponse = null;
 
-				// Charger les informations du vendeur
 				try {
 					vendorResponse = await service.getPublic(id);
 
-					if (vendorResponse.data.status === "success") {
+					if (vendorResponse?.data?.status === "success") {
 						const vendorData =
 							vendorResponse.data.data[vendorType] ||
 							vendorResponse.data[vendorType];
 
 						setVendor(vendorData);
 
-						// Pour les transporteurs et exportateurs, charger la flotte depuis les données du vendeur
 						if (vendorType === "transporter" || vendorType === "exporter") {
-							// Vérifier que fleet existe et est un tableau
 							const fleetData = vendorData?.fleet;
-
-							if (Array.isArray(fleetData) && fleetData.length > 0) {
-								setItems(fleetData);
-							} else {
-								// Initialiser avec un tableau vide si pas de flotte
-								setItems([]);
-							}
+							setItems(Array.isArray(fleetData) ? fleetData : []);
 						}
 					}
 				} catch (error) {
-					console.error(`Erreur lors du chargement du ${vendorType}:`, error);
+					console.error(`Erreur chargement ${vendorType}:`, error);
 				}
 
-				// Charger les items (produits/plats pour producteurs/transformateurs/restaurateurs)
 				try {
-					if (vendorType === "transporter" || vendorType === "exporter") {
-						// La flotte est déjà chargée depuis vendor.fleet ci-dessus
-						// Pas besoin de charger depuis une autre API
-					} else {
+					if (vendorType !== "transporter" && vendorType !== "exporter") {
 						itemsResponse = await service.getPublicProducts(id);
 
-						if (itemsResponse.data.status === "success") {
+						if (itemsResponse?.data?.status === "success") {
 							const rawItems =
 								itemsResponse.data.data.products ||
 								itemsResponse.data.data.dishes ||
 								[];
 							const itemsWithRatings = await Promise.all(
 								rawItems.map(async (item) => {
-									if (!item?._id) {
-										return item;
-									}
+									if (!item?._id) return item;
 
-									// Pour les restaurateurs, s'assurer que le champ restaurateur est rempli
-									// Note: vendor peut ne pas être encore chargé, donc on utilise vendorData si disponible
 									const currentVendor =
 										vendorResponse?.data?.data?.[vendorType] ||
 										vendorResponse?.data?.[vendorType];
@@ -152,18 +137,12 @@ const VendorProfile = ({
 											};
 										}
 									} catch (statsError) {
-										console.error(
-											`Erreur lors du chargement des statistiques d'avis du produit ${item._id}:`,
-											statsError,
-										);
+										console.error(`Erreur stats produit ${item._id}:`, statsError);
 									}
 
 									return {
 										...item,
-										ratingStats: {
-											averageRating: 0,
-											totalReviews: 0,
-										},
+										ratingStats: { averageRating: 0, totalReviews: 0 },
 									};
 								}),
 							);
@@ -172,16 +151,13 @@ const VendorProfile = ({
 						}
 					}
 				} catch (error) {
-					console.error(`Erreur lors du chargement des items:`, error);
+					console.error(`Erreur chargement items:`, error);
 				}
 
-				// Charger les avis
 				try {
-					// Essayer d'appeler getReviews directement (gérer l'erreur si elle n'existe pas)
 					if (service && service.getReviews) {
 						try {
 							const reviewsResponse = await service.getReviews(id);
-
 							if (reviewsResponse?.data?.status === "success") {
 								setReviews(
 									reviewsResponse.data.data?.reviews ||
@@ -190,23 +166,12 @@ const VendorProfile = ({
 								);
 							}
 						} catch (reviewError) {
-							// Si l'erreur est 404 ou que la route n'existe pas, c'est normal
-							if (reviewError.response?.status === 404) {
-								setReviews([]);
-							} else {
-								console.error(
-									`Erreur lors du chargement des avis:`,
-									reviewError,
-								);
-								setReviews([]);
-							}
+							setReviews([]);
 						}
 					} else {
 						setReviews([]);
 					}
 				} catch (error) {
-					console.error(`Erreur lors du chargement des avis:`, error);
-					// Ne pas bloquer l'affichage si les avis ne peuvent pas être chargés
 					setReviews([]);
 				}
 			} catch (error) {
@@ -223,28 +188,19 @@ const VendorProfile = ({
 
 	useEffect(() => {
 		const shouldFetchStats = ["producer", "transformer"].includes(vendorType);
-		if (!shouldFetchStats || !vendor?._id) {
-			return;
-		}
+		if (!shouldFetchStats || !vendor?._id) return;
 
 		let isActive = true;
 
 		const loadVendorRatingStats = async () => {
 			try {
-				const statsResponse = await reviewService.getProducerRatingStats(
-					vendor._id,
-				);
+				const statsResponse = await reviewService.getProducerRatingStats(vendor._id);
 				const statsData = statsResponse?.data;
 
-				if (!isActive || !statsData) {
-					return;
-				}
+				if (!isActive || !statsData) return;
 
 				setVendor((prev) => {
-					if (!prev) {
-						return prev;
-					}
-
+					if (!prev) return prev;
 					return {
 						...prev,
 						ratings: {
@@ -261,10 +217,7 @@ const VendorProfile = ({
 					};
 				});
 			} catch (error) {
-				console.error(
-					"Erreur lors du chargement des statistiques d'avis du vendeur:",
-					error,
-				);
+				console.error("Erreur avis vendeur:", error);
 			}
 		};
 
@@ -277,27 +230,28 @@ const VendorProfile = ({
 
 	if (loading) {
 		return (
-			<div className="min-h-screen bg-harvests-light flex items-center justify-center">
-				<LoadingSpinner size="lg" text={`Chargement du ${vendorType}...`} />
+			<div className="min-h-screen bg-[#F8FAF6] flex items-center justify-center">
+				<LoadingSpinner size="lg" text={`Chargement du profil...`} />
 			</div>
 		);
 	}
 
 	if (!vendor) {
 		return (
-			<div className="min-h-screen bg-harvests-light flex items-center justify-center">
-				<div className="text-center">
-					<h1 className="text-2xl font-bold text-gray-900 mb-4">
-						{vendorType} non trouvé
+			<div className="min-h-screen bg-[#F8FAF6] flex items-center justify-center p-4">
+				<div className="text-center bg-white rounded-2xl p-8 border border-emerald-100 shadow-sm max-w-md w-full">
+					<Store className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+					<h1 className="text-xl font-extrabold text-[#161D14] mb-2">
+						Profil non trouvé
 					</h1>
-					<p className="text-gray-600 mb-6">
-						Ce {vendorType} n'existe pas ou n'est plus actif.
+					<p className="text-xs text-gray-500 mb-6">
+						Ce vendeur n'existe pas ou n'est plus disponible.
 					</p>
 					<button
-						onClick={() => navigate("/")}
-						className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+						onClick={() => navigate("/producteurs")}
+						className="bg-[#1A5514] hover:bg-[#31BC2E] text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-md"
 					>
-						Retour à l'accueil
+						Voir les producteurs
 					</button>
 				</div>
 			</div>
@@ -307,157 +261,145 @@ const VendorProfile = ({
 	const stats = getVendorStats(vendor, items, reviews);
 	const tags = getVendorTags(vendor);
 
+	const bannerUrl =
+		vendor.restaurantBanner ? (typeof vendor.restaurantBanner === "string" ? vendor.restaurantBanner : vendor.restaurantBanner.url)
+		: vendor.shopBanner ? (typeof vendor.shopBanner === "string" ? vendor.shopBanner : vendor.shopBanner.url)
+		: vendor.shopLogo ? (typeof vendor.shopLogo === "string" ? vendor.shopLogo : vendor.shopLogo.url)
+		: "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=1200&auto=format&fit=crop";
+
+	const logoUrl =
+		vendor.logo ? (typeof vendor.logo === "string" ? vendor.logo : vendor.logo.url)
+		: vendor.shopLogo ? (typeof vendor.shopLogo === "string" ? vendor.shopLogo : vendor.shopLogo.url)
+		: null;
+
 	return (
-		<div className="min-h-screen bg-harvests-light">
-			{/* Header avec bouton retour */}
-			<div className="bg-white border-b">
-				<div className="container mx-auto px-4 py-4">
+		<div className="min-h-screen bg-[#F8FAF6] pb-16">
+			{/* Top Bar Navigation */}
+			<div className="bg-white/95 backdrop-blur-md border-b border-gray-200/80 sticky top-16 sm:top-20 lg:top-[108px] z-30">
+				<div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
 					<button
 						onClick={() => navigate(-1)}
-						className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+						className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#1A5514] transition-colors"
 					>
-						<FiArrowLeft className="mr-2" />
-						Retour
+						<FiArrowLeft className="w-4 h-4" />
+						<span>Retour</span>
 					</button>
+
+					<div className="flex items-center gap-2">
+						<span className="text-xs font-extrabold text-[#161D14] hidden sm:inline">{getVendorName(vendor)}</span>
+						<span className="bg-emerald-50 text-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-100 uppercase">
+							{vendorType === 'producer' ? 'Producteur' : vendorType === 'transformer' ? 'Transformateur' : 'Vendeur'}
+						</span>
+					</div>
 				</div>
 			</div>
 
-			{/* Contenu principal */}
-			<div className="container mx-auto px-2 pb-8">
-				{/* En-tête avec bannière et photo de profil */}
-				<div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
-					{/* Bannière en arrière-plan */}
-					<div className="relative sm:h-[300px] h-[200px] md:h-[375px] bg-gradient-to-r from-green-400 to-green-600">
-						{/* Extraction de l'URL de la bannière (peut être string ou objet) */}
-						{(() => {
-							let bannerUrl = null;
-							if (vendor.restaurantBanner) {
-								bannerUrl =
-									typeof vendor.restaurantBanner === "string" ?
-										vendor.restaurantBanner
-									:	vendor.restaurantBanner.url;
-							} else if (vendor.shopBanner) {
-								bannerUrl =
-									typeof vendor.shopBanner === "string" ?
-										vendor.shopBanner
-									:	vendor.shopBanner.url;
-							} else if (vendor.shopLogo) {
-								bannerUrl =
-									typeof vendor.shopLogo === "string" ?
-										vendor.shopLogo
-									:	vendor.shopLogo.url;
-							}
-							return bannerUrl ?
-									<img
-										src={bannerUrl}
-										alt={`Bannière de ${getVendorName(vendor)}`}
-										className="w-full h-full object-cover"
-									/>
-								:	<div className="w-full h-full bg-gradient-to-r from-green-400 to-green-600 flex items-center justify-center">
-										<FiPackage className="w-16 h-16 text-white opacity-50" />
-									</div>;
-						})()}
+			<div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 pt-4">
 
-						{/* Overlay pour améliorer la lisibilité */}
-						<div className="absolute inset-0 bg-black bg-opacity-20"></div>
+				{/* Card Profil Vendor Header */}
+				<div className="bg-white rounded-2xl border border-gray-200/90 shadow-sm overflow-hidden mb-6">
+					{/* Banner Container */}
+					<div className="relative h-48 sm:h-64 lg:h-72 bg-gradient-to-r from-emerald-900 to-emerald-700 overflow-hidden">
+						<img
+							src={bannerUrl}
+							alt={`Bannière de ${getVendorName(vendor)}`}
+							className="w-full h-full object-cover"
+						/>
+						<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
 
-						{/* Photo de profil en coin inférieur gauche */}
-						<div className="absolute bottom-5 left-5 transform -translate-x-2 translate-y-2">
-							<div className="w-20 h-20 rounded-full bg-white p-1 shadow-lg">
-								<div className="w-full h-full rounded-full bg-gray-200 overflow-hidden">
-									{(() => {
-										let logoUrl = null;
-										if (vendor.logo) {
-											logoUrl =
-												typeof vendor.logo === "string" ?
-													vendor.logo
-												:	vendor.logo.url;
-										} else if (vendor.shopLogo) {
-											logoUrl =
-												typeof vendor.shopLogo === "string" ?
-													vendor.shopLogo
-												:	vendor.shopLogo.url;
-										}
-										return logoUrl ?
-												<img
-													src={logoUrl}
-													alt={getVendorName(vendor)}
-													className="w-full h-full object-cover"
-												/>
-											:	<div className="w-full h-full bg-green-100 flex items-center justify-center">
-													<span className="text-lg font-bold text-green-600">
-														{getVendorName(vendor)?.[0] ||
-															vendor.firstName?.[0] ||
-															"U"}
-													</span>
-												</div>;
-									})()}
-								</div>
-							</div>
+						{/* Verified Badge Top Right */}
+						<div className="absolute top-4 right-4 bg-[#1A5514] backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-extrabold shadow-md flex items-center gap-1.5 border border-white/20">
+							<FiCheckCircle className="w-4 h-4 text-emerald-400" />
+							<span>Vendeur Vérifié</span>
 						</div>
 					</div>
 
-					{/* Informations en bas */}
-					<div className="p-3 pt-8">
-						<h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-							{getVendorName(vendor)}
-							{vendor.isBio && (
-								<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-									<Leaf className="mr-1 h-3 w-3" />
-									BIO
+					{/* Profile Body with Avatar Overlap */}
+					<div className="px-5 sm:px-8 pb-8 pt-0 relative">
+						<div className="flex flex-wrap items-end justify-between gap-4 -mt-12 sm:-mt-16 mb-4">
+							{/* Avatar */}
+							<div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-white p-1.5 shadow-2xl border-2 border-emerald-400 overflow-hidden flex-shrink-0 relative">
+								{logoUrl ? (
+									<img
+										src={logoUrl}
+										alt={getVendorName(vendor)}
+										className="w-full h-full object-cover rounded-xl"
+									/>
+								) : (
+									<div className="w-full h-full bg-emerald-50 rounded-xl flex items-center justify-center font-black text-2xl text-[#1A5514]">
+										{getVendorName(vendor)?.[0] || "P"}
+									</div>
+								)}
+							</div>
+
+							{/* Action Button */}
+							<div className="flex items-center gap-3">
+								<button
+									onClick={handleContact}
+									className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-extrabold text-white bg-[#1A5514] hover:bg-[#31BC2E] transition-all shadow-md active:scale-95"
+								>
+									<FiMessageCircle className="w-4 h-4" />
+									<span>Contacter le vendeur</span>
+								</button>
+							</div>
+						</div>
+
+						{/* Title & Subtitle cleanly in white section below banner */}
+						<div className="space-y-1 mb-5">
+							<h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#161D14] flex items-center gap-2 leading-tight">
+								<span>{getVendorName(vendor)}</span>
+								{vendor.isBio && (
+									<span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold text-white bg-[#1A5514]">
+										<Leaf className="mr-1 h-3 w-3 text-emerald-400" />
+										BIO
+									</span>
+								)}
+							</h1>
+
+							<p className="text-xs sm:text-sm text-gray-500 font-medium">
+								{getVendorSubtitle(vendor)}
+							</p>
+						</div>
+
+						{/* Location & Meta info */}
+						<div className="flex flex-wrap items-center gap-4 text-xs font-medium text-gray-500 pb-6 border-b border-gray-100">
+							<span className="flex items-center gap-1.5 text-gray-700 font-bold">
+								<FiMapPin className="w-4 h-4 text-emerald-700" />
+								{getCountryName(vendor.country)}
+								{vendor.city && ` • ${vendor.city}`}
+								{vendor.region && ` • ${vendor.region}`}
+							</span>
+
+							{vendor.createdAt && (
+								<span className="flex items-center gap-1 text-gray-400">
+									<FiCalendar className="w-3.5 h-3.5" />
+									Membre depuis {new Date(vendor.createdAt).getFullYear()}
 								</span>
 							)}
-						</h1>
-						<p className="text-gray-600 mb-2">{getVendorSubtitle(vendor)}</p>
-						<div className="flex flex-wrap gap-3 mb-4">
-							<button
-								onClick={handleContact}
-								className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-harvests-green hover:bg-green-700 focus:outline-none transition-colors"
-							>
-								<FiMessageCircle className="mr-2 -ml-1 h-5 w-5" />
-								Envoyer un message
-							</button>
 						</div>
 
-						<div className="flex items-center text-gray-500 mb-6">
-							<FiMapPin className="mr-1" />
-							<span>{getCountryName(vendor.country)}</span>
-							{vendor.city && <span className="ml-2">• {vendor.city}</span>}
-							{vendor.region && <span className="ml-2">• {vendor.region}</span>}
-						</div>
-
-						{/* Statistiques */}
-						<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-							{stats.map((stat, index) => (
-								<div
-									key={index}
-									className="text-center p-4 bg-harvests-light rounded-lg"
-								>
-									<div className="flex items-center justify-center mb-2">
+						{/* Stats Grid */}
+						<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-6">
+							{stats.map((stat, idx) => (
+								<div key={idx} className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-100/80 text-center">
+									<div className="flex justify-center text-[#1A5514] mb-1">
 										{stat.icon}
 									</div>
-									<div className="text-2xl font-bold text-gray-900">
-										{stat.value}
-									</div>
-									<div className="text-sm text-gray-600">{stat.label}</div>
+									<div className="text-lg sm:text-xl font-black text-[#161D14]">{stat.value}</div>
+									<div className="text-[11px] font-bold text-gray-500">{stat.label}</div>
 								</div>
 							))}
 						</div>
 
-						{/* Contact supprimé uniquement */}
-
-						{/* Tags */}
+						{/* Vendor Tags */}
 						{tags.length > 0 && (
-							<div className="mt-6">
-								<h3 className="text-sm font-medium text-gray-900 mb-2">
+							<div className="mt-6 pt-4 border-t border-gray-100">
+								<h3 className="text-xs font-extrabold text-gray-400 uppercase tracking-wider mb-2.5">
 									{tags[0].label}
 								</h3>
 								<div className="flex flex-wrap gap-2">
-									{tags[0].items.map((tag, index) => (
-										<span
-											key={index}
-											className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
-										>
+									{tags[0].items.map((tag, idx) => (
+										<span key={idx} className="px-3 py-1 rounded-lg text-xs font-bold bg-gray-100 text-gray-800 border border-gray-200/80">
 											{tag}
 										</span>
 									))}
@@ -467,28 +409,27 @@ const VendorProfile = ({
 					</div>
 				</div>
 
-				{/* Onglets */}
-				<div className="bg-white rounded-lg shadow-sm">
-					<div className="border-b border-gray-200">
-						<nav className="flex space-x-8 px-6">
+				{/* Tabs & Content */}
+				<div className="bg-white rounded-2xl border border-gray-200/90 shadow-sm overflow-hidden">
+					<div className="border-b border-gray-100 bg-gray-50/50 px-4 sm:px-6">
+						<nav className="flex space-x-6">
 							{tabs.map((tab) => (
 								<button
 									key={tab}
 									onClick={() => setActiveTab(tab)}
-									className={`py-4 px-1 border-b-2 font-medium text-sm ${
-										activeTab === tab ?
-											"border-green-500 text-green-600"
-										:	"border-transparent text-gray-500 hover:text-gray-700"
+									className={`py-4 px-2 font-extrabold text-xs sm:text-sm border-b-2 transition-all ${
+										activeTab === tab 
+											? "border-[#1A5514] text-[#1A5514]" 
+											: "border-transparent text-gray-500 hover:text-gray-900"
 									}`}
 								>
-									{getTabLabel(tab)} ({getTabCount(tab, items, reviews, vendor)}
-									)
+									{getTabLabel(tab)} ({getTabCount(tab, items, reviews, vendor)})
 								</button>
 							))}
 						</nav>
 					</div>
 
-					<div className="p-6">
+					<div className="p-4 sm:p-6">
 						{getTabContent(
 							activeTab,
 							items,
