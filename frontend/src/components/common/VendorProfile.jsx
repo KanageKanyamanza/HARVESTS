@@ -59,9 +59,26 @@ const VendorProfile = ({
 	const [activeTab, setActiveTab] = useState(tabs[0]);
 
 	const handleContact = async () => {
-		if (vendor?._id) {
-			await startConversation(vendor._id);
+		if (!vendor?._id) return;
+
+		if (!user) {
+			navigate("/login", { state: { from: window.location.pathname } });
+			return;
 		}
+
+		// La messagerie repose sur le modèle User ; les comptes Admin (modèle et
+		// authentification distincts) ne peuvent pas y participer. Sans ce garde-fou,
+		// la tentative échoue en 401 et finit par déconnecter l'admin.
+		if (user.role === "admin" || user.userType === "admin") {
+			window.alert(
+				"Les comptes administrateur ne peuvent pas utiliser la messagerie client. Contactez le vendeur depuis un compte standard."
+			);
+			return;
+		}
+
+		const conversation = await startConversation(vendor._id);
+		const userType = user?.userType || "consumer";
+		navigate(`/${userType}/messages${conversation ? `/${conversation._id}` : ""}`);
 	};
 
 	useEffect(() => {

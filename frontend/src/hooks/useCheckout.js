@@ -207,7 +207,7 @@ export const useCheckout = (user, cartItems) => {
 		if (estimation) {
 			return {
 				subtotal: estimation.subtotal ?? subtotal,
-				deliveryFee: estimation.deliveryFee ?? deliveryFeeFallback,
+				deliveryFee: estimation.deliveryFee ?? 0,
 				taxes: estimation.taxes ?? 0,
 				discount: estimation.discount ?? discount,
 				total: estimation.total ?? totalFallback,

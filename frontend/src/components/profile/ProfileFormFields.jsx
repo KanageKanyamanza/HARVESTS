@@ -173,14 +173,19 @@ const ProfileFormFields = ({
 				</div>
 
 				{renderField("Téléphone Mobile", "phone", <Phone />, user.phone, "tel")}
-				{renderField(
-					"Adresse de résidence",
-					"address",
-					<MapPin />,
-					user.address,
+
+				{user?.userType !== "consumer" && (
+					<>
+						{renderField(
+							"Adresse de résidence",
+							"address",
+							<MapPin />,
+							user.address,
+						)}
+						{renderField("Ville / Commune", "city", <MapPin />, user.city)}
+						{renderField("Région / État", "region", <MapPin />, user.region)}
+					</>
 				)}
-				{renderField("Ville / Commune", "city", <MapPin />, user.city)}
-				{renderField("Région / État", "region", <MapPin />, user.region)}
 				{renderField(
 					"Pays d'origine",
 					"country",
@@ -190,6 +195,20 @@ const ProfileFormFields = ({
 					COUNTRIES,
 				)}
 			</div>
+
+			{user?.userType === "consumer" && (
+				<div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 flex items-start gap-3">
+					<Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+					<p className="text-xs text-gray-600 font-medium">
+						Vos adresses de livraison se gèrent depuis{" "}
+						<span className="font-bold text-blue-700">
+							Paramètres → Adresses
+						</span>
+						, où vous pouvez en enregistrer plusieurs et définir celle par
+						défaut.
+					</p>
+				</div>
+			)}
 
 			<div className="space-y-4">
 				<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">

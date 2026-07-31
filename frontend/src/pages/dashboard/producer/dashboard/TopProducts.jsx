@@ -49,7 +49,7 @@ const TopProducts = ({ products = [] }) => {
 				<h3 className="text-base font-black text-gray-900 tracking-tight">
 					Aucun produit
 				</h3>
-				<p className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-widest">
+				<p className="text-[10px] font-bold text-gray-600 mt-1 uppercase tracking-widest">
 					Ajoutez des produits
 				</p>
 			</div>
@@ -63,7 +63,7 @@ const TopProducts = ({ products = [] }) => {
 					<h3 className="text-base font-[1000] text-gray-900 tracking-tight">
 						Produits Performants
 					</h3>
-					<p className="text-[9px] font-black text-gray-400 mt-0.5 uppercase tracking-[0.2em]">
+					<p className="text-[9px] font-black text-gray-600 mt-0.5 uppercase tracking-[0.2em]">
 						Best Sellers
 					</p>
 				</div>
@@ -105,7 +105,7 @@ const TopProducts = ({ products = [] }) => {
 										</h4>
 										<div className="flex items-center space-x-1.5 mt-0.5">
 											<Tag className="w-2.5 h-2.5 text-blue-500" />
-											<span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter truncate max-w-[100px]">
+											<span className="text-[9px] font-black text-gray-600 uppercase tracking-tighter truncate max-w-[100px]">
 												{product.category || "Général"}
 											</span>
 										</div>
@@ -117,7 +117,7 @@ const TopProducts = ({ products = [] }) => {
 										</p>
 										<div className="flex items-center justify-end space-x-1">
 											{/* Simulated sales count if not present */}
-											<p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
+											<p className="text-[8px] font-black text-gray-600 uppercase tracking-widest">
 												{product.sales || 0} ventes
 											</p>
 										</div>

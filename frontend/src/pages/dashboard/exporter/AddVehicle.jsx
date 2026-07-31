@@ -86,7 +86,7 @@ const AddVehicle = () => {
 						<div>
 							<div className="flex items-center gap-2 mb-4">
 								<FiInfo className="text-emerald-500 w-4 h-4" />
-								<h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+								<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">
 									Informations Générales
 								</h3>
 							</div>
@@ -168,7 +168,7 @@ const AddVehicle = () => {
 						<div className="bg-gray-50/50 rounded-3xl p-6 border border-gray-100/50">
 							<div className="flex items-center gap-2 mb-6">
 								<FiZap className="text-emerald-500 w-4 h-4" />
-								<h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+								<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">
 									Spécifications de Charge
 								</h3>
 							</div>
@@ -187,7 +187,7 @@ const AddVehicle = () => {
 						<div>
 							<div className="flex items-center gap-2 mb-4">
 								<div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-								<h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+								<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">
 									Options & Caractéristiques
 								</h3>
 							</div>
@@ -276,7 +276,7 @@ const AddVehicle = () => {
 						<button
 							type="button"
 							onClick={() => navigate(-1)}
-							className="px-8 py-4 bg-white border border-gray-100 rounded-2xl text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] hover:bg-gray-50 hover:text-gray-600 transition-all active:scale-95"
+							className="px-8 py-4 bg-white border border-gray-100 rounded-2xl text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] hover:bg-gray-50 hover:text-gray-600 transition-all active:scale-95"
 						>
 							Annuler
 						</button>

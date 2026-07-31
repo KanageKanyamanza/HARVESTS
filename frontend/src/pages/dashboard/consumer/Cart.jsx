@@ -118,7 +118,7 @@ const Cart = () => {
 										<h4 className="text-base font-[1000] text-gray-900 leading-tight mb-1 truncate">
 											{item.name}
 										</h4>
-										<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">
+										<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-3">
 											Par{" "}
 											{item.producer?.name || item.producerName || "Vendeur"}
 										</p>
@@ -186,7 +186,7 @@ const Cart = () => {
 
 								<div className="space-y-4 mb-10">
 									<div className="flex items-center justify-between">
-										<span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+										<span className="text-xs font-bold text-gray-600 uppercase tracking-widest">
 											Sous-total
 										</span>
 										<span className="text-sm font-bold text-gray-900">
@@ -194,7 +194,7 @@ const Cart = () => {
 										</span>
 									</div>
 									<div className="flex items-center justify-between">
-										<span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+										<span className="text-xs font-bold text-gray-600 uppercase tracking-widest">
 											Livraison
 										</span>
 										<span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100">

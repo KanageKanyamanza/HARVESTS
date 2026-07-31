@@ -218,7 +218,7 @@ const ChatbotManagement = () => {
 				<div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-sm border border-white/60 mb-6 p-4">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center space-x-3">
-							<span className="text-[9px] font-black uppercase text-gray-400">
+							<span className="text-[9px] font-black uppercase text-gray-600">
 								Période d'analyse :
 							</span>
 							<select

@@ -24,7 +24,7 @@ const AdminEditModal = ({
 							<h3 className="text-3xl font-[1000] text-gray-900 tracking-tight leading-none mb-2">
 								Édition <span className="text-green-600">Profil</span>
 							</h3>
-							<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+							<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 								ID: {admin._id?.substring(0, 8)}...
 							</p>
 						</div>
@@ -42,7 +42,7 @@ const AdminEditModal = ({
 					<form onSubmit={onSubmit} className="space-y-4">
 						<div className="grid grid-cols-2 gap-6">
 							<div className="space-y-3">
-								<label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+								<label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">
 									Prénom *
 								</label>
 								<input
@@ -56,7 +56,7 @@ const AdminEditModal = ({
 								/>
 							</div>
 							<div className="space-y-3">
-								<label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+								<label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">
 									Nom *
 								</label>
 								<input
@@ -82,14 +82,14 @@ const AdminEditModal = ({
 								) : (
 									<div className="flex flex-col items-center">
 										<div className="w-6 h-6 rounded-full bg-gray-200"></div>
-										<span className="text-[8px] font-black text-gray-400 mt-2 uppercase">
+										<span className="text-[8px] font-black text-gray-600 mt-2 uppercase">
 											Aperçu
 										</span>
 									</div>
 								)}
 							</div>
 							<div className="space-y-3">
-								<label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+								<label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">
 									URL de la Photo de Profil
 								</label>
 								<input
@@ -105,7 +105,7 @@ const AdminEditModal = ({
 						</div>
 
 						<div className="space-y-3">
-							<label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+							<label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">
 								Adresse Email *
 							</label>
 							<input
@@ -120,7 +120,7 @@ const AdminEditModal = ({
 						</div>
 
 						<div className="space-y-3">
-							<label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+							<label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">
 								Sécurité (Nouveau MDP)
 							</label>
 							<div className="relative group/pass">
@@ -150,7 +150,7 @@ const AdminEditModal = ({
 
 						<div className="grid grid-cols-2 gap-6">
 							<div className="space-y-3">
-								<label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+								<label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">
 									Rôle *
 								</label>
 								<select
@@ -168,7 +168,7 @@ const AdminEditModal = ({
 								</select>
 							</div>
 							<div className="space-y-3">
-								<label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">
+								<label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">
 									Département *
 								</label>
 								<select

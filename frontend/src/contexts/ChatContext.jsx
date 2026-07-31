@@ -27,7 +27,10 @@ export const ChatProvider = ({ children }) => {
 
 	// Charger les conversations
 	const fetchConversations = useCallback(async () => {
-		if (!isAuthenticated || !user || user.role === 'admin' || user.userType === 'admin') return;
+		// La messagerie est basée sur le modèle User ; les comptes Admin (modèle distinct,
+		// authentification séparée) ne peuvent pas y participer et provoquent un 401 qui
+		// finit par effacer la session locale (cf. VendorProfile.handleContact).
+		if (!isAuthenticated || !user || user.role === "admin" || user.userType === "admin") return;
 
 		try {
 			setIsLoading(true);
@@ -56,6 +59,16 @@ export const ChatProvider = ({ children }) => {
 		const interval = setInterval(fetchConversations, 60000);
 		return () => clearInterval(interval);
 	}, [fetchConversations]);
+
+	// Rejoindre les rooms socket de toutes les conversations (nécessaire pour recevoir
+	// les événements temps réel émis par le backend sur `conversation:<id>`)
+	useEffect(() => {
+		if (socket && isConnected && conversations.length > 0) {
+			conversations.forEach((conv) => {
+				socket.emit("join_conversation", conv._id);
+			});
+		}
+	}, [socket, isConnected, conversations]);
 
 	// Écouteurs Socket
 	useEffect(() => {
@@ -102,6 +115,7 @@ export const ChatProvider = ({ children }) => {
 			};
 
 			const handleNewConversation = (conversation) => {
+				socket.emit("join_conversation", conversation._id);
 				setConversations((prev) => [conversation, ...prev]);
 			};
 
@@ -171,6 +185,9 @@ export const ChatProvider = ({ children }) => {
 			const newConv = response.data?.conversation || response.conversation;
 
 			if (newConv) {
+				if (socket && isConnected) {
+					socket.emit("join_conversation", newConv._id);
+				}
 				setConversations((prev) => [newConv, ...prev]);
 				setActiveConversation(newConv);
 				return newConv;

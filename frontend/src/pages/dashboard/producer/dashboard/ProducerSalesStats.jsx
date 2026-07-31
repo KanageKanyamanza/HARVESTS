@@ -15,7 +15,7 @@ const ProducerSalesStats = ({
 						<h3 className="text-sm font-black text-gray-900 tracking-tight leading-none mb-1">
 							Évolution des ventes
 						</h3>
-						<p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+						<p className="text-[9px] font-black text-gray-600 uppercase tracking-widest">
 							Revenus sur les {salesChartData?.length || 12} derniers mois
 						</p>
 					</div>

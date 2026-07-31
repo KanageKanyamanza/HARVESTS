@@ -9,25 +9,39 @@ import {
 	Bell,
 	ShieldCheck,
 	MapPin,
-	User,
 	Edit3,
 	RefreshCw,
 	ChevronRight,
 	Mail,
-	Phone,
-	Globe,
 	Trash2,
 	Plus,
 	Sparkles,
 	Lock,
-	ArrowRight,
 	Check,
+	Eye,
+	EyeOff,
 } from "lucide-react";
 import commonService from "../../../services/commonService";
 
 const SettingsPage = () => {
-	const { user, isAuthenticated, refreshUser } = useAuth();
-	const [activeTab, setActiveTab] = useState("profile");
+	const { user, isAuthenticated, refreshUser, updatePassword } = useAuth();
+	const [activeTab, setActiveTab] = useState("financial");
+
+	// États pour le changement de mot de passe
+	const [showPasswordForm, setShowPasswordForm] = useState(false);
+	const [passwordForm, setPasswordForm] = useState({
+		passwordCurrent: "",
+		password: "",
+		passwordConfirm: "",
+	});
+	const [passwordVisible, setPasswordVisible] = useState({
+		passwordCurrent: false,
+		password: false,
+		passwordConfirm: false,
+	});
+	const [passwordSaving, setPasswordSaving] = useState(false);
+	const [passwordError, setPasswordError] = useState(null);
+	const [passwordSuccess, setPasswordSuccess] = useState(null);
 	const [loading, setLoading] = useState(true);
 
 	// États pour les données
@@ -117,8 +131,64 @@ const SettingsPage = () => {
 		}
 	};
 
+	const handlePasswordFieldChange = (e) => {
+		const { name, value } = e.target;
+		setPasswordForm((prev) => ({ ...prev, [name]: value }));
+	};
+
+	const togglePasswordForm = () => {
+		setShowPasswordForm((prev) => !prev);
+		setPasswordError(null);
+		setPasswordSuccess(null);
+		setPasswordForm({ passwordCurrent: "", password: "", passwordConfirm: "" });
+		setPasswordVisible({ passwordCurrent: false, password: false, passwordConfirm: false });
+	};
+
+	const togglePasswordVisibility = (field) => {
+		setPasswordVisible((prev) => ({ ...prev, [field]: !prev[field] }));
+	};
+
+	const handlePasswordSubmit = async (e) => {
+		e.preventDefault();
+		setPasswordError(null);
+		setPasswordSuccess(null);
+
+		if (passwordForm.password.length < 8) {
+			setPasswordError("Le nouveau mot de passe doit contenir au moins 8 caractères.");
+			return;
+		}
+		if (passwordForm.password !== passwordForm.passwordConfirm) {
+			setPasswordError("Les mots de passe ne correspondent pas.");
+			return;
+		}
+
+		try {
+			setPasswordSaving(true);
+			const result = await updatePassword({
+				passwordCurrent: passwordForm.passwordCurrent,
+				password: passwordForm.password,
+			});
+
+			if (result?.success) {
+				setPasswordSuccess("Mot de passe mis à jour avec succès.");
+				setPasswordForm({ passwordCurrent: "", password: "", passwordConfirm: "" });
+				setTimeout(() => {
+					setShowPasswordForm(false);
+					setPasswordSuccess(null);
+				}, 2000);
+			} else {
+				setPasswordError(result?.error || "Erreur lors de la mise à jour du mot de passe.");
+			}
+		} catch (error) {
+			setPasswordError(
+				error.response?.data?.message || "Erreur lors de la mise à jour du mot de passe."
+			);
+		} finally {
+			setPasswordSaving(false);
+		}
+	};
+
 	const tabs = [
-		{ id: "profile", label: "Profil", icon: User, color: "emerald" },
 		{ id: "financial", label: "Financier", icon: CreditCard, color: "blue" },
 		{ id: "notifications", label: "Alertes", icon: Bell, color: "amber" },
 		{ id: "security", label: "Sécurité", icon: ShieldCheck, color: "indigo" },
@@ -129,7 +199,7 @@ const SettingsPage = () => {
 		return (
 			<div className="min-h-[80vh] flex flex-col items-center justify-center space-y-4">
 				<div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
-				<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+				<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 					{!isAuthenticated || !user ?
 						"Identification en cours..."
 					:	"Chargement des paramètres..."}
@@ -255,121 +325,6 @@ const SettingsPage = () => {
 					{/* Main Content Area */}
 					<div className="lg:col-span-3 min-h-[600px] animate-fade-in-up delay-100">
 						<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] md:rounded-[3rem] p-6 md:p-10 border border-white/60 shadow-sm min-h-full">
-							{/* Tab: Profil */}
-							{activeTab === "profile" && (
-								<div className="space-y-12">
-									<div className="flex items-center justify-between">
-										<div className="flex items-center gap-3 px-2">
-											<User className="h-5 w-5 text-emerald-600/50" />
-											<h2 className="text-sm font-black text-gray-900 uppercase tracking-widest">
-												Informations de base
-											</h2>
-										</div>
-									</div>
-
-									<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-										<div className="space-y-2">
-											<label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">
-												Identité
-											</label>
-											<div className="bg-gray-50/50 px-6 py-4 rounded-2xl border border-gray-100/50 flex items-center gap-4">
-												<div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-gray-400">
-													<User className="h-5 w-5" />
-												</div>
-												<div>
-													<p className="text-sm font-black text-gray-900 uppercase tracking-tighter">
-														{user.firstName} {user.lastName}
-													</p>
-													<p className="text-[10px] font-bold text-gray-400">
-														Nom officiel
-													</p>
-												</div>
-											</div>
-										</div>
-
-										<div className="space-y-2">
-											<label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">
-												Contact
-											</label>
-											<div className="bg-gray-50/50 px-6 py-4 rounded-2xl border border-gray-100/50 flex items-center gap-4">
-												<div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-gray-400">
-													<Mail className="h-5 w-5" />
-												</div>
-												<div>
-													<p className="text-sm font-black text-gray-900">
-														{user.email}
-													</p>
-													<p className="text-[10px] font-bold text-gray-400">
-														Email académique / Pro
-													</p>
-												</div>
-											</div>
-										</div>
-
-										<div className="space-y-2">
-											<label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">
-												Mobile
-											</label>
-											<div className="bg-gray-50/50 px-6 py-4 rounded-2xl border border-gray-100/50 flex items-center gap-4">
-												<div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-gray-400">
-													<Phone className="h-5 w-5" />
-												</div>
-												<div>
-													<p className="text-sm font-black text-gray-900">
-														{user.phone || "Non renseigné"}
-													</p>
-													<p className="text-[10px] font-bold text-gray-400">
-														Contact d'urgence
-													</p>
-												</div>
-											</div>
-										</div>
-
-										<div className="space-y-2">
-											<label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">
-												Région
-											</label>
-											<div className="bg-gray-50/50 px-6 py-4 rounded-2xl border border-gray-100/50 flex items-center gap-4">
-												<div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-gray-400">
-													<Globe className="h-5 w-5" />
-												</div>
-												<div>
-													<p className="text-sm font-black text-gray-900">
-														{user.country || "Non renseigné"}
-													</p>
-													<p className="text-[10px] font-bold text-gray-400">
-														Pays d'opération
-													</p>
-												</div>
-											</div>
-										</div>
-									</div>
-
-									<div className="pt-8 border-t border-gray-100/50">
-										<div className="bg-blue-50/50 p-6 rounded-[2rem] flex items-center justify-between gap-6 border border-blue-100">
-											<div className="flex items-center gap-4">
-												<div className="p-3 bg-blue-100 text-blue-600 rounded-2xl">
-													<Edit3 className="h-6 w-6" />
-												</div>
-												<div>
-													<h4 className="text-sm font-[1000] text-gray-900 uppercase tracking-widest">
-														Informations publiques
-													</h4>
-													<p className="text-xs text-gray-500 font-medium">
-														Pour modifier vos informations publiques et votre
-														image de marque, rendez-vous sur votre profil.
-													</p>
-												</div>
-											</div>
-											<button className="hidden md:flex items-center gap-2 px-6 py-3 bg-white text-blue-600 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-sm hover:shadow-md transition-all active:scale-95">
-												Gérer le Profil
-												<ArrowRight className="h-4 w-4" />
-											</button>
-										</div>
-									</div>
-								</div>
-							)}
-
 							{/* Tab: Financier */}
 							{activeTab === "financial" && (
 								<FinancialInfo
@@ -438,17 +393,112 @@ const SettingsPage = () => {
 												<div className="p-3 bg-gray-50 text-gray-600 rounded-2xl group-hover:bg-gray-900 group-hover:text-white transition-colors">
 													<Lock className="h-6 w-6" />
 												</div>
-												<button className="px-3 py-1 bg-gray-100 text-gray-600 text-[9px] font-black uppercase tracking-widest rounded-full hover:bg-gray-200 transition-colors">
-													Modifier
+												<button
+													onClick={togglePasswordForm}
+													className="px-3 py-1 bg-gray-100 text-gray-600 text-[9px] font-black uppercase tracking-widest rounded-full hover:bg-gray-200 transition-colors"
+												>
+													{showPasswordForm ? "Annuler" : "Modifier"}
 												</button>
 											</div>
 											<h4 className="text-sm font-[1000] text-gray-900 uppercase tracking-widest mb-1">
 												Mot de Passe
 											</h4>
-											<p className="text-xs text-gray-500 font-medium leading-relaxed">
-												Dernière modification :{" "}
-												{new Date().toLocaleDateString("fr-FR")}
-											</p>
+
+											{!showPasswordForm ? (
+												<p className="text-xs text-gray-500 font-medium leading-relaxed">
+													Modifiez votre mot de passe régulièrement pour
+													sécuriser votre compte.
+												</p>
+											) : (
+												<form onSubmit={handlePasswordSubmit} className="space-y-3 mt-4">
+													<div className="relative">
+														<input
+															type={passwordVisible.passwordCurrent ? "text" : "password"}
+															name="passwordCurrent"
+															value={passwordForm.passwordCurrent}
+															onChange={handlePasswordFieldChange}
+															placeholder="Mot de passe actuel"
+															required
+															className="w-full bg-gray-50/50 px-4 py-2.5 pr-11 border-2 border-transparent rounded-xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all"
+														/>
+														<button
+															type="button"
+															onClick={() => togglePasswordVisibility("passwordCurrent")}
+															className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
+															tabIndex={-1}
+														>
+															{passwordVisible.passwordCurrent ? (
+																<EyeOff className="h-4 w-4" />
+															) : (
+																<Eye className="h-4 w-4" />
+															)}
+														</button>
+													</div>
+													<div className="relative">
+														<input
+															type={passwordVisible.password ? "text" : "password"}
+															name="password"
+															value={passwordForm.password}
+															onChange={handlePasswordFieldChange}
+															placeholder="Nouveau mot de passe (maj., min., chiffre, 8+ car.)"
+															required
+															minLength={8}
+															className="w-full bg-gray-50/50 px-4 py-2.5 pr-11 border-2 border-transparent rounded-xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all"
+														/>
+														<button
+															type="button"
+															onClick={() => togglePasswordVisibility("password")}
+															className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
+															tabIndex={-1}
+														>
+															{passwordVisible.password ? (
+																<EyeOff className="h-4 w-4" />
+															) : (
+																<Eye className="h-4 w-4" />
+															)}
+														</button>
+													</div>
+													<div className="relative">
+														<input
+															type={passwordVisible.passwordConfirm ? "text" : "password"}
+															name="passwordConfirm"
+															value={passwordForm.passwordConfirm}
+															onChange={handlePasswordFieldChange}
+															placeholder="Confirmer le nouveau mot de passe"
+															required
+															minLength={8}
+															className="w-full bg-gray-50/50 px-4 py-2.5 pr-11 border-2 border-transparent rounded-xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all"
+														/>
+														<button
+															type="button"
+															onClick={() => togglePasswordVisibility("passwordConfirm")}
+															className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
+															tabIndex={-1}
+														>
+															{passwordVisible.passwordConfirm ? (
+																<EyeOff className="h-4 w-4" />
+															) : (
+																<Eye className="h-4 w-4" />
+															)}
+														</button>
+													</div>
+
+													{passwordError && (
+														<p className="text-xs font-bold text-rose-600">{passwordError}</p>
+													)}
+													{passwordSuccess && (
+														<p className="text-xs font-bold text-emerald-600">{passwordSuccess}</p>
+													)}
+
+													<button
+														type="submit"
+														disabled={passwordSaving}
+														className="w-full py-2.5 bg-gray-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-colors disabled:opacity-50"
+													>
+														{passwordSaving ? "Enregistrement..." : "Enregistrer le nouveau mot de passe"}
+													</button>
+												</form>
+											)}
 										</div>
 									</div>
 
@@ -531,7 +581,7 @@ const SettingsPage = () => {
 													</div>
 
 													<div className="mt-6 pt-6 border-t border-gray-50 flex items-center justify-between">
-														<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+														<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 															{address.city}, {address.country}
 														</p>
 														<div className="flex gap-2">
@@ -547,7 +597,7 @@ const SettingsPage = () => {
 											))
 										:	<div className="md:col-span-2 text-center py-20 px-4 bg-gray-50/50 rounded-[3rem] border-2 border-dashed border-gray-100">
 												<MapPin className="mx-auto h-16 w-16 text-gray-200 mb-6" />
-												<p className="text-sm font-black text-gray-400 uppercase tracking-widest mb-2">
+												<p className="text-sm font-black text-gray-600 uppercase tracking-widest mb-2">
 													Aucune adresse enregistrée
 												</p>
 												<p className="text-xs text-gray-400">

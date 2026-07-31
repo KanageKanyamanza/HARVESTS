@@ -211,7 +211,7 @@ const StatsTab = ({ stats, setActiveTab, setSelectedQuestion }) => {
 											)}
 										</div>
 									</div>
-									<span className="text-xs font-bold text-gray-400 mt-4 uppercase tracking-wider group-hover:text-emerald-600 transition-colors">
+									<span className="text-xs font-bold text-gray-600 mt-4 uppercase tracking-wider group-hover:text-emerald-600 transition-colors">
 										{new Date(day._id).toLocaleDateString("fr-FR", {
 											weekday: "short",
 										})}

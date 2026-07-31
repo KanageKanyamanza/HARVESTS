@@ -209,19 +209,21 @@ const Checkout = () => {
 
 	if (cartItems.length === 0) {
 		return (
-			<div className="p-6 max-w-4xl mx-auto">
-				<div className="text-center py-12">
-					<FiShoppingBag className="mx-auto h-16 w-16 text-gray-400" />
-					<h2 className="mt-4 text-xl font-semibold text-gray-900">
-						Votre panier est vide
-					</h2>
-					<p className="mt-2 text-gray-600">
-						Ajoutez des produits avant de passer commande
-					</p>
-					<div className="mt-6">
+			<div className="min-h-screen bg-[#F8FAF6] py-8">
+				<div className="max-w-3xl mx-auto px-4">
+					<div className="bg-white rounded-3xl shadow-agri-card border border-emerald-100/80 p-10 text-center">
+						<div className="w-20 h-20 mx-auto mb-5 rounded-2xl bg-emerald-50 flex items-center justify-center">
+							<FiShoppingBag className="h-10 w-10 text-[#1A5514]" />
+						</div>
+						<h2 className="text-xl font-extrabold text-[#161D14] mb-2">
+							Votre panier est vide
+						</h2>
+						<p className="text-gray-500 mb-6 text-sm">
+							Ajoutez des produits avant de passer commande
+						</p>
 						<button
 							onClick={() => navigate("/cart")}
-							className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-harvests-green hover:bg-green-600"
+							className="inline-flex items-center bg-gradient-to-r from-[#1A5514] to-[#31BC2E] text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-emerald-900/20 hover:shadow-xl transition-all"
 						>
 							<FiArrowLeft className="mr-2 h-5 w-5" />
 							Retour au panier
@@ -233,29 +235,30 @@ const Checkout = () => {
 	}
 
 	return (
-		<div>
-			<div className="p-6 max-w-7xl mx-auto">
+		<div className="min-h-screen bg-[#F8FAF6] pb-10">
+			<div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-8">
 				{/* Header */}
-				<div className="mb-8">
+				<div className="flex items-center gap-3 mb-6">
 					<button
 						onClick={() => navigate("/cart")}
-						className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4"
+						className="p-2 text-gray-600 hover:text-gray-900 hover:bg-white rounded-full transition-colors"
 					>
-						<FiArrowLeft className="h-4 w-4 mr-2" />
-						Retour au panier
+						<FiArrowLeft className="h-5 w-5" />
 					</button>
-					<h1 className="text-2xl font-bold text-gray-900">
-						Finaliser la commande
-					</h1>
-					<p className="text-gray-600 mt-1">
-						Étape {currentStep} sur 3 • {cartItems.length} article
-						{cartItems.length > 1 ? "s" : ""}
-					</p>
+					<div>
+						<h1 className="text-xl sm:text-2xl font-extrabold text-[#161D14]">
+							Finaliser la commande
+						</h1>
+						<p className="text-xs sm:text-sm text-gray-500 font-medium">
+							Étape {currentStep} sur 3 • {cartItems.length} article
+							{cartItems.length > 1 ? "s" : ""}
+						</p>
+					</div>
 				</div>
 
 				<ProgressSteps currentStep={currentStep} />
 
-				<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-8">
 					<div className="lg:col-span-2">
 						{currentStep === 1 && (
 							<AddressStep
@@ -274,11 +277,11 @@ const Checkout = () => {
 						)}
 
 						{/* Navigation */}
-						<div className="mt-8 flex justify-between">
+						<div className="mt-6 flex justify-between">
 							<button
 								onClick={prevStep}
 								disabled={currentStep === 1}
-								className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-harvests-light disabled:opacity-50 disabled:cursor-not-allowed"
+								className="px-6 py-2.5 border border-gray-200 rounded-full text-sm font-bold text-gray-600 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 							>
 								Précédent
 							</button>
@@ -287,7 +290,7 @@ const Checkout = () => {
 								<button
 									onClick={nextStep}
 									disabled={!validateStep(currentStep)}
-									className="px-6 py-2 bg-harvests-green text-white rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+									className="px-6 py-2.5 bg-gradient-to-r from-[#1A5514] to-[#31BC2E] text-white rounded-full text-sm font-bold shadow-lg shadow-emerald-900/20 hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
 								>
 									Suivant
 								</button>
@@ -300,7 +303,7 @@ const Checkout = () => {
 										handleSubmitOrder();
 									}}
 									disabled={submitting || !validateStep(1) || !validateStep(2)}
-									className="px-6 py-2 bg-harvests-green text-white rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+									className="px-6 py-2.5 bg-gradient-to-r from-[#1A5514] to-[#31BC2E] text-white rounded-full text-sm font-bold shadow-lg shadow-emerald-900/20 hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center"
 								>
 									{submitting ? (
 										<>

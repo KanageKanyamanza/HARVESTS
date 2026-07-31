@@ -93,7 +93,7 @@ const FavoriteCard = ({ favorite, onRemove }) => {
 
 				<div className="mt-4 pt-4 border-t border-gray-100/50 flex items-center justify-between">
 					<div className="flex flex-col">
-						<span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">
+						<span className="text-[9px] font-black text-gray-600 uppercase tracking-widest leading-none mb-1">
 							Prix actuel
 						</span>
 						<span className="text-xl font-[1000] text-gray-900 tracking-tighter">

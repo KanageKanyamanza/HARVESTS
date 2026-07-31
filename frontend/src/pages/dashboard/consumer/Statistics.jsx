@@ -179,11 +179,11 @@ const Statistics = () => {
 									<item.icon className="w-6 h-6" />
 								</div>
 								<div className="flex items-baseline justify-between mb-1">
-									<p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+									<p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">
 										{item.label}
 									</p>
 									{item.trend && (
-										<span className="text-[9px] font-black text-emerald-500">
+										<span className="text-[9px] font-black text-emerald-600">
 											{item.trend}
 										</span>
 									)}
@@ -192,7 +192,7 @@ const Statistics = () => {
 									{item.value}
 								</h3>
 								{item.sub && (
-									<p className="text-[9px] font-bold text-gray-400 mt-1 uppercase tracking-widest">
+									<p className="text-[9px] font-bold text-gray-500 mt-1 uppercase tracking-widest">
 										{item.sub}
 									</p>
 								)}
@@ -213,7 +213,7 @@ const Statistics = () => {
 								<h3 className="text-xl font-[1000] text-gray-900 tracking-tight">
 									Historique d'Activité
 								</h3>
-								<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+								<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 									Récapitulatif de vos interactions
 								</p>
 							</div>
@@ -246,7 +246,7 @@ const Statistics = () => {
 									key={i}
 									className="flex items-center justify-between p-4 rounded-2xl bg-white/40 border border-gray-100/50 hover:bg-white transition-all"
 								>
-									<span className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+									<span className="text-xs font-bold text-gray-600 uppercase tracking-widest">
 										{row.label}
 									</span>
 									<span
@@ -276,13 +276,13 @@ const Statistics = () => {
 									<div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white">
 										<FiAward className="w-5 h-5" />
 									</div>
-									<span className="text-[10px] font-black text-blue-100 uppercase tracking-[0.2em]">
+									<span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
 										Programme Fidélité
 									</span>
 								</div>
 
 								<div className="space-y-1">
-									<p className="text-blue-100/80 font-black text-[10px] uppercase tracking-widest">
+									<p className="text-blue-50 font-black text-[10px] uppercase tracking-widest">
 										Niveau actuel
 									</p>
 									<h2 className="text-4xl font-[1000] text-white tracking-tighter uppercase italic">
@@ -292,7 +292,7 @@ const Statistics = () => {
 
 								<div className="grid grid-cols-2 gap-6 pt-4">
 									<div>
-										<p className="text-blue-100/60 font-black text-[9px] uppercase tracking-widest leading-none mb-1">
+										<p className="text-blue-50 font-black text-[9px] uppercase tracking-widest leading-none mb-1">
 											Points Actuels
 										</p>
 										<p className="text-2xl font-[1000] text-white tracking-tighter">
@@ -300,7 +300,7 @@ const Statistics = () => {
 										</p>
 									</div>
 									<div>
-										<p className="text-blue-100/60 font-black text-[9px] uppercase tracking-widest leading-none mb-1">
+										<p className="text-blue-50 font-black text-[9px] uppercase tracking-widest leading-none mb-1">
 											Total Gagné
 										</p>
 										<p className="text-2xl font-[1000] text-white tracking-tighter">
@@ -331,7 +331,7 @@ const Statistics = () => {
 								<h3 className="text-xl font-[1000] text-gray-900 tracking-tight">
 									Dépenses Mensuelles
 								</h3>
-								<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+								<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 									Analyse financière de vos achats
 								</p>
 							</div>
@@ -371,7 +371,7 @@ const Statistics = () => {
 										<metric.icon className="w-4 h-4" />
 									</div>
 									<div className="min-w-0">
-										<p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5 truncate">
+										<p className="text-[9px] font-black text-gray-600 uppercase tracking-widest mb-0.5 truncate">
 											{metric.label}
 										</p>
 										<p className="text-base font-[1000] text-gray-900 truncate">

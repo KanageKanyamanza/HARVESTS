@@ -288,15 +288,18 @@ const OrderConfirmation = () => {
 
 	if (loading) {
 		return (
-			<div className="p-6 max-w-4xl mx-auto">
-				<div className="animate-pulse">
-					<div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-					<div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+			<div className="min-h-screen bg-[#F8FAF6] py-8">
+				<div className="max-w-4xl mx-auto px-4 animate-pulse">
+					<div className="h-8 bg-gray-200 rounded-full w-1/3 mb-4"></div>
+					<div className="h-4 bg-gray-200 rounded-full w-1/2 mb-8"></div>
 					{[1, 2, 3].map((i) => (
-						<div key={i} className="bg-white rounded-lg shadow p-6 mb-4">
-							<div className="h-6 bg-gray-200 rounded mb-4"></div>
+						<div
+							key={i}
+							className="bg-white rounded-2xl shadow-agri-card border border-emerald-100/80 p-6 mb-4"
+						>
+							<div className="h-6 bg-gray-200 rounded-full mb-4"></div>
 							<div className="space-y-3">
-								<div className="h-4 bg-gray-200 rounded"></div>
+								<div className="h-4 bg-gray-200 rounded-full"></div>
 							</div>
 						</div>
 					))}
@@ -307,46 +310,50 @@ const OrderConfirmation = () => {
 
 	if (error || !order) {
 		return (
-			<div className="p-6 max-w-4xl mx-auto">
-				<div className="text-center py-12">
-					<FiShoppingBag className="mx-auto h-16 w-16 text-gray-400" />
-					<h2 className="mt-4 text-xl font-semibold text-gray-900">
-						{error || "Commande introuvable"}
-					</h2>
-					<p className="mt-2 text-gray-600">
-						Une erreur est survenue lors du chargement de la commande.
-					</p>
-					<div className="mt-6 space-x-4">
-						{error === "Vous devez être connecté pour voir cette commande" ? (
+			<div className="min-h-screen bg-[#F8FAF6] py-8">
+				<div className="max-w-3xl mx-auto px-4">
+					<div className="bg-white rounded-3xl shadow-agri-card border border-emerald-100/80 p-10 text-center">
+						<div className="w-20 h-20 mx-auto mb-5 rounded-2xl bg-emerald-50 flex items-center justify-center">
+							<FiShoppingBag className="h-10 w-10 text-[#1A5514]" />
+						</div>
+						<h2 className="text-xl font-extrabold text-[#161D14] mb-2">
+							{error || "Commande introuvable"}
+						</h2>
+						<p className="text-gray-500 mb-6 text-sm">
+							Une erreur est survenue lors du chargement de la commande.
+						</p>
+						<div className="flex flex-wrap items-center justify-center gap-3">
+							{error === "Vous devez être connecté pour voir cette commande" ? (
+								<button
+									onClick={() => navigate("/login")}
+									className="inline-flex items-center bg-gradient-to-r from-[#1A5514] to-[#31BC2E] text-white px-6 py-3 rounded-full font-bold shadow-lg shadow-emerald-900/20 hover:shadow-xl transition-all"
+								>
+									Se connecter
+								</button>
+							) : (
+								<button
+									onClick={() => {
+										const userType = user?.userType || "consumer";
+										const ordersRoute =
+											userType === "restaurateur"
+												? "/restaurateur/orders"
+												: "/consumer/orders";
+										navigate(ordersRoute);
+									}}
+									className="inline-flex items-center bg-gradient-to-r from-[#1A5514] to-[#31BC2E] text-white px-6 py-3 rounded-full font-bold shadow-lg shadow-emerald-900/20 hover:shadow-xl transition-all"
+								>
+									<FiArrowRight className="mr-2 h-5 w-5" />
+									Voir mes commandes
+								</button>
+							)}
 							<button
-								onClick={() => navigate("/login")}
-								className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-harvests-green hover:bg-green-600"
+								onClick={() => navigate("/")}
+								className="inline-flex items-center px-6 py-3 rounded-full font-bold text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors"
 							>
-								Se connecter
+								<FiHome className="mr-2 h-5 w-5" />
+								Accueil
 							</button>
-						) : (
-							<button
-								onClick={() => {
-									const userType = user?.userType || "consumer";
-									const ordersRoute =
-										userType === "restaurateur"
-											? "/restaurateur/orders"
-											: "/consumer/orders";
-									navigate(ordersRoute);
-								}}
-								className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-harvests-green hover:bg-green-600"
-							>
-								<FiArrowRight className="mr-2 h-5 w-5" />
-								Voir mes commandes
-							</button>
-						)}
-						<button
-							onClick={() => navigate("/")}
-							className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-harvests-light"
-						>
-							<FiHome className="mr-2 h-5 w-5" />
-							Accueil
-						</button>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -375,62 +382,64 @@ const OrderConfirmation = () => {
 	};
 
 	return (
-		<div className="p-6 max-w-4xl mx-auto">
-			<SuccessHeader />
+		<div className="min-h-screen bg-[#F8FAF6] py-6 sm:py-8">
+			<div className="max-w-4xl mx-auto px-3 sm:px-4">
+				<SuccessHeader />
 
-			{isPaypalPending && (
-				<PayPalPaymentSection
-					user={user}
-					paypalClientId={paypalClientId}
-					paypalCurrency={paypalCurrency}
-					orderCurrency={orderCurrency}
-					showCurrencyNotice={showCurrencyNotice}
-					paymentProcessing={paymentProcessing}
-					paymentError={paymentError}
-					createPayPalOrder={createPayPalOrder}
-					handlePayPalApprove={handlePayPalApprove}
-					handlePayPalCancel={handlePayPalCancel}
-					handlePayPalError={handlePayPalError}
-					handleFallbackPayment={handleFallbackPayment}
+				{isPaypalPending && (
+					<PayPalPaymentSection
+						user={user}
+						paypalClientId={paypalClientId}
+						paypalCurrency={paypalCurrency}
+						orderCurrency={orderCurrency}
+						showCurrencyNotice={showCurrencyNotice}
+						paymentProcessing={paymentProcessing}
+						paymentError={paymentError}
+						createPayPalOrder={createPayPalOrder}
+						handlePayPalApprove={handlePayPalApprove}
+						handlePayPalCancel={handlePayPalCancel}
+						handlePayPalError={handlePayPalError}
+						handleFallbackPayment={handleFallbackPayment}
+					/>
+				)}
+
+				<OrderInfoCard
+					order={order}
+					statusConfig={statusConfig}
+					onDownload={handleDownloadInvoice}
+					onShare={handleShareOrder}
+					onViewOrders={() => {
+						const userType = user?.userType || "consumer";
+						const ordersRoute =
+							userType === "restaurateur"
+								? "/restaurateur/orders"
+								: "/consumer/orders";
+						navigate(ordersRoute);
+					}}
 				/>
-			)}
 
-			<OrderInfoCard
-				order={order}
-				statusConfig={statusConfig}
-				onDownload={handleDownloadInvoice}
-				onShare={handleShareOrder}
-				onViewOrders={() => {
-					const userType = user?.userType || "consumer";
-					const ordersRoute =
-						userType === "restaurateur"
-							? "/restaurateur/orders"
-							: "/consumer/orders";
-					navigate(ordersRoute);
-				}}
-			/>
+				<div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+					<OrderItemsCard items={order.items} />
+					<OrderSummaryCard
+						totals={confirmedTotals}
+					/>
+					<DeliveryAddressCard address={order.delivery?.deliveryAddress} />
+					<PaymentInfoCard payment={order.payment} />
+				</div>
 
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				<OrderItemsCard items={order.items} />
-				<OrderSummaryCard
-					totals={confirmedTotals}
+				<NextStepsCard />
+				<ActionButtons
+					onHome={() => navigate("/")}
+					onViewOrders={() => {
+						const userType = user?.userType || "consumer";
+						const ordersRoute =
+							userType === "restaurateur"
+								? "/restaurateur/orders"
+								: "/consumer/orders";
+						navigate(ordersRoute);
+					}}
 				/>
-				<DeliveryAddressCard address={order.delivery?.deliveryAddress} />
-				<PaymentInfoCard payment={order.payment} />
 			</div>
-
-			<NextStepsCard />
-			<ActionButtons
-				onHome={() => navigate("/")}
-				onViewOrders={() => {
-					const userType = user?.userType || "consumer";
-					const ordersRoute =
-						userType === "restaurateur"
-							? "/restaurateur/orders"
-							: "/consumer/orders";
-					navigate(ordersRoute);
-				}}
-			/>
 		</div>
 	);
 };

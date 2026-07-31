@@ -12,7 +12,7 @@ const AdminFilters = ({
 	return (
 		<div className="flex flex-col lg:flex-row items-end gap-3">
 			<div className="flex-1 w-full">
-				<label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">
+				<label className="block text-[8px] font-black text-gray-600 uppercase tracking-widest mb-1.5 ml-1">
 					Recherche Rapide
 				</label>
 				<div className="relative group">
@@ -28,7 +28,7 @@ const AdminFilters = ({
 			</div>
 
 			<div className="w-full lg:w-48">
-				<label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">
+				<label className="block text-[8px] font-black text-gray-600 uppercase tracking-widest mb-1.5 ml-1">
 					Niveau d'accès
 				</label>
 				<select
@@ -45,7 +45,7 @@ const AdminFilters = ({
 			</div>
 
 			<div className="w-full lg:w-48">
-				<label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">
+				<label className="block text-[8px] font-black text-gray-600 uppercase tracking-widest mb-1.5 ml-1">
 					État du compte
 				</label>
 				<select

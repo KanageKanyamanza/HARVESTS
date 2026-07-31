@@ -172,7 +172,7 @@ const AdminOrders = () => {
 								setSearchParams({ page: newPage.toString() });
 							}}
 							disabled={currentPage === 1}
-							className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-400 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50"
+							className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50"
 						>
 							<ChevronLeft className="h-4 w-4" />{" "}
 							<span className="hidden md:block">Précédent</span>
@@ -312,7 +312,7 @@ const AdminOrders = () => {
 								setSearchParams({ page: newPage.toString() });
 							}}
 							disabled={currentPage === totalPages}
-							className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-400 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50"
+							className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50"
 						>
 							<span className="hidden md:block">Suivant</span>{" "}
 							<ChevronRight className="h-4 w-4" />

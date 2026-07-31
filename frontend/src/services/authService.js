@@ -31,8 +31,8 @@ export const authService = {
   resetPassword: (token, password) => apiRequest.patch(`/auth/reset-password/${token}`, { password }),
   
   // Changement de mot de passe
-  changePassword: (currentPassword, newPassword) => 
-    apiRequest.patch('/auth/change-password', { currentPassword, newPassword }),
+  updatePassword: (passwords) =>
+    apiRequest.patch('/auth/update-password', passwords),
   
   // Profil utilisateur
   getProfile: () => apiRequest.get('/users/me'),

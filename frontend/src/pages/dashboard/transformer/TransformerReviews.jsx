@@ -169,7 +169,7 @@ const TransformerReviews = () => {
 							<Sparkles className="h-6 w-6" />
 						</div>
 						<div>
-							<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+							<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 								Satisfaction
 							</p>
 							<div className="flex items-center gap-2">
@@ -226,7 +226,7 @@ const TransformerReviews = () => {
 									<item.icon className="w-5 h-5" />
 								</div>
 							</div>
-							<p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.1em] mb-1">
+							<p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.1em] mb-1">
 								{item.label}
 							</p>
 							<p className="text-2xl font-[1000] text-gray-900 tracking-tighter">
@@ -240,7 +240,7 @@ const TransformerReviews = () => {
 				<div className="bg-white/50 backdrop-blur-xl p-4 rounded-[2.5rem] border border-white/60 shadow-sm flex flex-col md:flex-row gap-4 items-center animate-fade-in-up delay-200">
 					<div className="flex items-center gap-3 px-4 border-r border-gray-100 hidden md:flex">
 						<Filter className="h-4 w-4 text-gray-400" />
-						<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+						<span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 							Filtrer par
 						</span>
 					</div>
@@ -348,7 +348,7 @@ const TransformerReviews = () => {
 													{review.reviewer?.firstName}{" "}
 													{review.reviewer?.lastName}
 												</h4>
-												<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate">
+												<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest truncate">
 													Acheteur Harvests
 												</p>
 											</div>
@@ -388,7 +388,7 @@ const TransformerReviews = () => {
 											)}
 
 											<div className="flex flex-col gap-2">
-												<div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+												<div className="flex items-center gap-2 text-[10px] font-black text-gray-600 uppercase tracking-widest">
 													<Calendar className="h-3 w-3 text-purple-500" />
 													{new Date(review.createdAt).toLocaleDateString(
 														"fr-FR",
@@ -455,7 +455,7 @@ const TransformerReviews = () => {
 											</div>
 										: respondingTo === review._id ?
 											<div className="bg-white/80 rounded-[1.8rem] p-6 border-2 border-purple-500/20 shadow-inner animate-fade-in">
-												<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 ml-2">
+												<label className="block text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-3 ml-2">
 													Rédiger votre réponse
 												</label>
 												<textarea
@@ -472,7 +472,7 @@ const TransformerReviews = () => {
 															setRespondingTo(null);
 															setResponseText("");
 														}}
-														className="px-6 py-2.5 text-[9px] font-black text-gray-400 uppercase tracking-widest hover:text-gray-900 transition-colors"
+														className="px-6 py-2.5 text-[9px] font-black text-gray-600 uppercase tracking-widest hover:text-gray-900 transition-colors"
 													>
 														Annuler
 													</button>
@@ -494,7 +494,7 @@ const TransformerReviews = () => {
 											</div>
 										:	<button
 												onClick={() => setRespondingTo(review._id)}
-												className="w-full py-4 border-2 border-dashed border-gray-200 rounded-[1.8rem] text-gray-400 hover:border-purple-300 hover:text-purple-500 hover:bg-purple-50/50 transition-all font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 group"
+												className="w-full py-4 border-2 border-dashed border-gray-200 rounded-[1.8rem] text-gray-600 hover:border-purple-300 hover:text-purple-500 hover:bg-purple-50/50 transition-all font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 group"
 											>
 												<Reply className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
 												Répondre à cet avis

@@ -184,7 +184,7 @@ const Reviews = () => {
 														review.product?.name ||
 														"Produit inconnu"}
 												</h4>
-												<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+												<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 													{review.producer?.farmName ||
 														review.transformer?.companyName ||
 														"Harvests Seller"}
@@ -218,7 +218,7 @@ const Reviews = () => {
 											<div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
 												<FiClock className="w-3 h-3" />
 											</div>
-											<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+											<span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 												{formatDate(review.createdAt)}
 											</span>
 										</div>

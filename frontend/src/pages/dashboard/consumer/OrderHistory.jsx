@@ -163,7 +163,7 @@ const OrderHistory = () => {
 								>
 									<item.icon className="w-5 h-5" />
 								</div>
-								<p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.1em] mb-1">
+								<p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.1em] mb-1">
 									{item.label}
 								</p>
 								<p className="text-3xl font-[1000] text-gray-900 tracking-tighter leading-none">

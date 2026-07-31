@@ -240,7 +240,7 @@ const DishDetails = () => {
 					<div className="xl:col-span-2 space-y-10 animate-fade-in-up delay-150">
 						{/* Image Principal */}
 						<div className="bg-white/70 backdrop-blur-xl rounded-2xl p-5 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.12)] border border-white/60">
-							<h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-8">
+							<h2 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-8">
 								Visuel du Plat
 							</h2>
 							<div className="aspect-[16/9] md:aspect-[21/9] rounded-[2rem] overflow-hidden border border-gray-100 shadow-2xl relative group">
@@ -284,7 +284,7 @@ const DishDetails = () => {
 						{/* Prix */}
 						<div className="bg-gray-900 rounded-2xl p-8 text-white shadow-2xl relative overflow-hidden group">
 							<div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-all duration-700"></div>
-							<h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6">
+							<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-6">
 								Tarification
 							</h3>
 							<div className="mb-8">
@@ -299,7 +299,7 @@ const DishDetails = () => {
 
 						{/* Restaurateur */}
 						<div className="bg-white/70 backdrop-blur-xl rounded-2xl p-8 shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white/60">
-							<h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-8">
+							<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-8">
 								Restaurateur
 							</h3>
 							<div className="flex items-center gap-6 mb-8 group cursor-pointer">
@@ -311,7 +311,7 @@ const DishDetails = () => {
 										{dish.restaurateur?.restaurantName ||
 											`${dish.restaurateur?.firstName} ${dish.restaurateur?.lastName}`}
 									</p>
-									<p className="text-xs font-bold text-gray-400 uppercase tracking-widest group-hover:text-blue-600 transition-colors">
+									<p className="text-xs font-bold text-gray-600 uppercase tracking-widest group-hover:text-blue-600 transition-colors">
 										Établissement vérifié
 									</p>
 								</div>
@@ -337,7 +337,7 @@ const DishDetails = () => {
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-3">
 									<Calendar className="h-5 w-5 text-gray-400" />
-									<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+									<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 										Ajouté le
 									</p>
 								</div>

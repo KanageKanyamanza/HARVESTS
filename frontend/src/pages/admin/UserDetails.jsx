@@ -262,7 +262,7 @@ const UserDetails = () => {
 								{name}
 							</h3>
 						</div>
-						<span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-gray-100 text-gray-400">
+						<span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-gray-100 text-gray-600">
 							{type}
 						</span>
 					</div>
@@ -506,7 +506,7 @@ const UserDetails = () => {
 								<div className="flex items-center gap-4 p-4 bg-gray-50/50 rounded-2xl border border-transparent hover:border-gray-100 transition-all">
 									<Mail className="h-5 w-5 text-gray-400" />
 									<div>
-										<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+										<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 											Email
 										</p>
 										<p className="text-sm font-bold text-gray-900">
@@ -517,7 +517,7 @@ const UserDetails = () => {
 								<div className="flex items-center gap-4 p-4 bg-gray-50/50 rounded-2xl border border-transparent hover:border-gray-100 transition-all">
 									<Phone className="h-5 w-5 text-gray-400" />
 									<div>
-										<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+										<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 											Téléphone
 										</p>
 										<p className="text-sm font-bold text-gray-900">
@@ -528,7 +528,7 @@ const UserDetails = () => {
 								<div className="flex items-center gap-4 p-4 bg-gray-50/50 rounded-2xl border border-transparent hover:border-gray-100 transition-all">
 									<Globe className="h-5 w-5 text-gray-400" />
 									<div>
-										<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+										<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 											Pays
 										</p>
 										<p className="text-sm font-bold text-gray-900">
@@ -539,7 +539,7 @@ const UserDetails = () => {
 								<div className="flex items-center gap-4 p-4 bg-gray-50/50 rounded-2xl border border-transparent hover:border-gray-100 transition-all">
 									<Calendar className="h-5 w-5 text-gray-400" />
 									<div>
-										<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+										<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 											Membre depuis
 										</p>
 										<p className="text-sm font-bold text-gray-900">
@@ -552,7 +552,7 @@ const UserDetails = () => {
 
 						{/* Statut du Compte */}
 						<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white/60">
-							<h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-8">
+							<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-8">
 								Vérifications
 							</h3>
 							<div className="space-y-4">
@@ -712,7 +712,7 @@ const UserDetails = () => {
 
 								<div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-10">
 									<div>
-										<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 sm:mb-2">
+										<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1 sm:mb-2">
 											Rue
 										</p>
 										<p className="text-base sm:text-lg font-bold text-gray-900">
@@ -720,7 +720,7 @@ const UserDetails = () => {
 										</p>
 									</div>
 									<div>
-										<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 sm:mb-2">
+										<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1 sm:mb-2">
 											Ville
 										</p>
 										<p className="text-base sm:text-lg font-bold text-gray-900">
@@ -728,7 +728,7 @@ const UserDetails = () => {
 										</p>
 									</div>
 									<div>
-										<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 sm:mb-2">
+										<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1 sm:mb-2">
 											Région
 										</p>
 										<p className="text-base sm:text-lg font-bold text-gray-900">
@@ -756,7 +756,7 @@ const UserDetails = () => {
 								<h3 className="text-lg sm:text-2xl font-[1000] text-gray-900 tracking-tighter uppercase line-clamp-1">
 									{previewDoc.name}
 								</h3>
-								<p className="text-[8px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5 sm:mt-1">
+								<p className="text-[8px] sm:text-[10px] font-black text-gray-600 uppercase tracking-widest mt-0.5 sm:mt-1">
 									Aperçu du document officiel
 								</p>
 							</div>

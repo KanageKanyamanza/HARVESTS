@@ -72,7 +72,7 @@ const MainSections = () => {
 					<h3 className="text-2xl font-[1000] text-gray-900 tracking-tight">
 						Sections
 					</h3>
-					<p className="text-[10px] font-black text-gray-400 mt-1 uppercase tracking-[0.2em]">
+					<p className="text-[10px] font-black text-gray-600 mt-1 uppercase tracking-[0.2em]">
 						Management Central
 					</p>
 				</div>
@@ -103,7 +103,7 @@ const MainSections = () => {
 									<p className="text-base font-black text-gray-900 tracking-tight mb-1 group-hover:text-green-600 transition-colors">
 										{section.title}
 									</p>
-									<p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+									<p className="text-[10px] font-bold text-gray-600 uppercase tracking-tighter">
 										{section.description}
 									</p>
 								</div>

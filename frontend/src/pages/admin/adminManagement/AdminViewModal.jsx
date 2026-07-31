@@ -21,7 +21,7 @@ const AdminViewModal = ({
 							<h3 className="text-3xl font-[1000] text-gray-900 tracking-tight leading-none mb-2">
 								Fiche <span className="text-green-600">Détaillée</span>
 							</h3>
-							<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+							<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 								Consultation du dossier administrateur
 							</p>
 						</div>
@@ -61,7 +61,7 @@ const AdminViewModal = ({
 						<div className="grid grid-cols-2 gap-10">
 							<div className="space-y-6">
 								<div>
-									<label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+									<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2">
 										Niveau d'Accès
 									</label>
 									<span
@@ -73,7 +73,7 @@ const AdminViewModal = ({
 									</span>
 								</div>
 								<div>
-									<label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+									<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2">
 										Département
 									</label>
 									<p className="text-sm font-black text-gray-900 uppercase">
@@ -84,7 +84,7 @@ const AdminViewModal = ({
 
 							<div className="space-y-6">
 								<div>
-									<label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+									<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2">
 										Statut Compte
 									</label>
 									<span
@@ -98,7 +98,7 @@ const AdminViewModal = ({
 									</span>
 								</div>
 								<div>
-									<label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+									<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2">
 										Téléphone
 									</label>
 									<p className="text-sm font-black text-gray-900 leading-none">
@@ -110,7 +110,7 @@ const AdminViewModal = ({
 
 						<div className="grid grid-cols-2 gap-10 p-8 bg-gray-900 rounded-[2rem] text-white">
 							<div>
-								<label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">
+								<label className="block text-[9px] font-black text-gray-600 uppercase tracking-widest mb-2">
 									Dernière Connexion
 								</label>
 								<p className="text-xs font-bold">
@@ -118,7 +118,7 @@ const AdminViewModal = ({
 								</p>
 							</div>
 							<div>
-								<label className="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-2">
+								<label className="block text-[9px] font-black text-gray-600 uppercase tracking-widest mb-2">
 									Membre depuis le
 								</label>
 								<p className="text-xs font-bold">

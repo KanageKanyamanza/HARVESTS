@@ -186,16 +186,16 @@ const AdminFaqManager = () => {
 							<table className="w-full">
 								<thead className="bg-gray-50/50 border-b border-gray-100">
 									<tr>
-										<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+										<th className="px-4 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 											Question
 										</th>
-										<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+										<th className="px-4 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 											Réponse
 										</th>
-										<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+										<th className="px-4 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 											Catégorie
 										</th>
-										<th className="px-4 py-3 text-right text-[9px] font-black text-gray-400 uppercase tracking-widest">
+										<th className="px-4 py-3 text-right text-[9px] font-black text-gray-600 uppercase tracking-widest">
 											Actions
 										</th>
 									</tr>

@@ -122,7 +122,7 @@ const Statistics = () => {
 				<div className="animate-fade-in-up">
 					<div className="flex items-center gap-2 mb-4 px-2">
 						<BarChart3 className="w-4 h-4 text-emerald-600" />
-						<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+						<span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 							Vue d'ensemble
 						</span>
 					</div>
@@ -133,7 +133,7 @@ const Statistics = () => {
 				<div className="animate-fade-in-up delay-150">
 					<div className="flex items-center gap-2 mb-4 px-2">
 						<TrendingUp className="w-4 h-4 text-indigo-600" />
-						<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+						<span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 							Indicateurs clés
 						</span>
 					</div>
@@ -144,7 +144,7 @@ const Statistics = () => {
 				<div className="animate-fade-in-up delay-300">
 					<div className="flex items-center gap-2 mb-4 px-2">
 						<BarChart3 className="w-4 h-4 text-blue-600" />
-						<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+						<span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 							Analyse Temporelle
 						</span>
 					</div>

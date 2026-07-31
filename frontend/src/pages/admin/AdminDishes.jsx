@@ -251,7 +251,7 @@ const AdminDishes = () => {
 							<h3 className="text-xl font-[1000] text-gray-900 tracking-tight">
 								Liste des Créations
 							</h3>
-							<p className="text-[9px] font-black text-gray-400 mt-0.5 uppercase tracking-[0.2em]">
+							<p className="text-[9px] font-black text-gray-600 mt-0.5 uppercase tracking-[0.2em]">
 								Total: {dishes.length} plats trouvés
 							</p>
 						</div>
@@ -282,25 +282,25 @@ const AdminDishes = () => {
 											className="w-4 h-4 border-2 border-gray-200 rounded bg-white checked:bg-green-600 checked:border-green-600 transition-all cursor-pointer appearance-none"
 										/>
 									</th>
-									<th className="px-3 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<th className="px-3 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Plat
 									</th>
-									<th className="px-3 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<th className="px-3 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Restaurateur
 									</th>
-									<th className="px-3 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<th className="px-3 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Prix
 									</th>
-									<th className="px-3 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<th className="px-3 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Catégorie
 									</th>
-									<th className="px-3 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<th className="px-3 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Statut
 									</th>
-									<th className="px-3 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<th className="px-3 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Date
 									</th>
-									<th className="px-4 py-3 text-right text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<th className="px-4 py-3 text-right text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Actions
 									</th>
 								</tr>
@@ -394,7 +394,7 @@ const AdminDishes = () => {
 												</span>
 											</td>
 											<td className="px-3 py-2.5">
-												<div className="flex items-center gap-1.5 text-[9px] font-black text-gray-400 uppercase tracking-widest">
+												<div className="flex items-center gap-1.5 text-[9px] font-black text-gray-600 uppercase tracking-widest">
 													<Calendar className="h-2.5 w-2.5" />
 													{formatDate(dish.createdAt)}
 												</div>
@@ -437,7 +437,7 @@ const AdminDishes = () => {
 
 					{/* Pagination Premium */}
 					<div className="p-5 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/30">
-						<p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+						<p className="text-[9px] font-black text-gray-600 uppercase tracking-widest">
 							Page {currentPage} sur {totalPages}
 						</p>
 						<div className="flex items-center gap-1.5">
