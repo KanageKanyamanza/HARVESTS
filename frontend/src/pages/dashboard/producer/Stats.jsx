@@ -83,7 +83,7 @@ const Stats = () => {
 		return (
 			<div className="min-h-[80vh] flex flex-col items-center justify-center space-y-4">
 				<div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
-				<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+				<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 					Analyse des données en cours...
 				</p>
 			</div>
@@ -194,7 +194,7 @@ const Stats = () => {
 									{item.trend}
 								</div>
 							</div>
-							<p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">
+							<p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-1">
 								{item.label}
 							</p>
 							<p className="text-3xl font-[1000] text-gray-900 tracking-tighter">
@@ -217,7 +217,7 @@ const Stats = () => {
 										<h3 className="text-xl font-[1000] text-gray-900 tracking-tight">
 											Ventes Mensuelles
 										</h3>
-										<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+										<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 											Évolution sur 6 mois
 										</p>
 									</div>
@@ -261,7 +261,7 @@ const Stats = () => {
 													></div>
 												</div>
 												<div className="flex justify-between px-2">
-													<span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
+													<span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">
 														{sale.orders} commandes
 													</span>
 													<span className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest">
@@ -273,7 +273,7 @@ const Stats = () => {
 									})
 								:	<div className="text-center py-16">
 										<BarChart3 className="mx-auto h-12 w-12 text-gray-200 mb-4" />
-										<p className="text-gray-400 font-bold text-xs uppercase tracking-widest">
+										<p className="text-gray-600 font-bold text-xs uppercase tracking-widest">
 											Aucune donnée disponible
 										</p>
 									</div>
@@ -291,7 +291,7 @@ const Stats = () => {
 									<h3 className="text-xl font-[1000] text-gray-900 tracking-tight">
 										Best Sellers
 									</h3>
-									<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+									<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 										Produits les plus performants
 									</p>
 								</div>
@@ -311,7 +311,7 @@ const Stats = () => {
 												<p className="text-xs font-black text-gray-900 uppercase tracking-tight truncate mb-0.5">
 													{product.name}
 												</p>
-												<p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+												<p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">
 													{product.category}
 												</p>
 											</div>
@@ -327,7 +327,7 @@ const Stats = () => {
 									))
 								:	<div className="col-span-full py-10 text-center">
 										<Package className="h-10 w-10 text-gray-100 mx-auto mb-3" />
-										<p className="text-gray-400 font-bold text-xs uppercase tracking-widest">
+										<p className="text-gray-600 font-bold text-xs uppercase tracking-widest">
 											Aucun produit vendu
 										</p>
 									</div>
@@ -348,7 +348,7 @@ const Stats = () => {
 									<h3 className="text-xl font-[1000] text-gray-900 tracking-tight">
 										Flux de Commandes
 									</h3>
-									<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+									<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 										Répartition des statuts
 									</p>
 								</div>

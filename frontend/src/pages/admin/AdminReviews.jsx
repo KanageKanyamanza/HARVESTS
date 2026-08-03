@@ -340,7 +340,7 @@ const AdminReviews = () => {
 													{review.reviewer?.firstName || "Utilisateur"}{" "}
 													{review.reviewer?.lastName || ""}
 												</p>
-												<p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
+												<p className="text-[8px] font-black text-gray-600 uppercase tracking-widest">
 													Reviewer
 												</p>
 											</div>
@@ -437,7 +437,7 @@ const AdminReviews = () => {
 						<button
 							onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
 							disabled={currentPage === 1}
-							className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 text-gray-400 rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50"
+							className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 text-gray-600 rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50"
 						>
 							<ChevronLeft className="h-3 w-3" /> Précédent
 						</button>
@@ -459,7 +459,7 @@ const AdminReviews = () => {
 						<button
 							onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
 							disabled={currentPage === totalPages}
-							className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 text-gray-400 rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50"
+							className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 text-gray-600 rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50"
 						>
 							Suivant <ChevronRight className="h-3 w-3" />
 						</button>

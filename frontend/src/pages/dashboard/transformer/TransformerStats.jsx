@@ -82,7 +82,7 @@ const TransformerStats = () => {
 		return (
 			<div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
 				<div className="w-12 h-12 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin"></div>
-				<p className="text-xs font-black text-gray-400 uppercase tracking-widest animate-pulse">
+				<p className="text-xs font-black text-gray-600 uppercase tracking-widest animate-pulse">
 					Analyse de vos performances...
 				</p>
 			</div>
@@ -211,7 +211,7 @@ const TransformerStats = () => {
 										</div>
 									)}
 								</div>
-								<p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">
+								<p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-1">
 									{item.label}
 								</p>
 								<h3 className="text-2xl font-[1000] text-gray-900 tracking-tighter">
@@ -235,7 +235,7 @@ const TransformerStats = () => {
 									<h3 className="text-xl font-[1000] text-gray-900 tracking-tight">
 										Production Quotidienne
 									</h3>
-									<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+									<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 										Commandes traitées par jour
 									</p>
 								</div>
@@ -275,7 +275,7 @@ const TransformerStats = () => {
 								<h3 className="text-xl font-[1000] text-gray-900 tracking-tight">
 									Efficacité
 								</h3>
-								<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+								<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 									Taux de succès global
 								</p>
 							</div>
@@ -322,7 +322,7 @@ const TransformerStats = () => {
 									<span className="text-4xl font-[1000] text-gray-900 tracking-tighter">
 										84%
 									</span>
-									<span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Optimal
 									</span>
 								</div>
@@ -369,7 +369,7 @@ const TransformerStats = () => {
 								<h3 className="text-xl font-[1000] text-gray-900 tracking-tight">
 									Métriques de Traitement
 								</h3>
-								<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+								<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 									Vitesse et qualité de service
 								</p>
 							</div>
@@ -410,7 +410,7 @@ const TransformerStats = () => {
 										<metric.icon className="w-5 h-5" />
 									</div>
 									<div>
-										<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">
+										<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-0.5">
 											{metric.label}
 										</p>
 										<div className="flex items-end gap-2">

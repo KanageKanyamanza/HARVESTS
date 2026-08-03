@@ -276,7 +276,7 @@ const ProductDetails = () => {
 						{/* Galerie Images Modernisée */}
 						{product.images && product.images.length > 0 && (
 							<div className="bg-white/70 backdrop-blur-xl rounded-2xl p-5 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.12)] border border-white/60">
-								<h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-8">
+								<h2 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-8">
 									Galerie Visuelle
 								</h2>
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -372,7 +372,7 @@ const ProductDetails = () => {
 
 						{/* Infos Producteur */}
 						<div className="bg-white/70 backdrop-blur-xl rounded-2xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white/60">
-							<h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-8">
+							<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-8">
 								Origine du Produit
 							</h3>
 							<div className="flex items-center gap-6 mb-8 group cursor-pointer">
@@ -384,7 +384,7 @@ const ProductDetails = () => {
 										{product.producer?.farmName ||
 											`${product.producer?.firstName} ${product.producer?.lastName}`}
 									</p>
-									<p className="text-xs font-bold text-gray-400 uppercase tracking-widest group-hover:text-blue-600 transition-colors">
+									<p className="text-xs font-bold text-gray-600 uppercase tracking-widest group-hover:text-blue-600 transition-colors">
 										Producteur vérifié
 									</p>
 								</div>
@@ -417,7 +417,7 @@ const ProductDetails = () => {
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-3">
 									<Calendar className="h-5 w-5 text-gray-400" />
-									<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+									<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 										Mis en ligne le
 									</p>
 								</div>

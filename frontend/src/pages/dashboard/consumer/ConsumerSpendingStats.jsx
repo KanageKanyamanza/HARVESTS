@@ -30,7 +30,7 @@ const ConsumerSpendingStats = ({ monthlySpentChart, totalSpent }) => {
 						<h3 className="text-xl font-[1000] text-gray-900 tracking-tight">
 							Analyse des Dépenses
 						</h3>
-						<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">
+						<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mt-0.5">
 							Évolution de vos achats mensuels
 						</p>
 					</div>
@@ -38,7 +38,7 @@ const ConsumerSpendingStats = ({ monthlySpentChart, totalSpent }) => {
 
 				<div className="flex items-center gap-4">
 					<div className="text-right">
-						<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">
+						<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1">
 							Ce mois-ci
 						</p>
 						<p className="text-2xl font-[1000] text-gray-900 tracking-tighter">

@@ -75,7 +75,7 @@ const EditVehicle = () => {
 				{/* Back Button */}
 				<button
 					onClick={() => navigate("/transporter/fleet")}
-					className="group inline-flex items-center text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-indigo-600 transition-colors"
+					className="group inline-flex items-center text-[10px] font-black uppercase tracking-widest text-gray-600 hover:text-indigo-600 transition-colors"
 				>
 					<FiArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
 					RETOUR À LA FLOTTE
@@ -110,7 +110,7 @@ const EditVehicle = () => {
 					{/* Left Column - Image & Status */}
 					<div className="lg:col-span-1 space-y-6">
 						<div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-[2.5rem] p-6 shadow-xl shadow-indigo-900/5">
-							<h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6 px-2">
+							<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-6 px-2">
 								Visuel du véhicule
 							</h3>
 							<VehicleImageUpload
@@ -123,7 +123,7 @@ const EditVehicle = () => {
 						</div>
 
 						<div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-[2.5rem] p-6 shadow-xl shadow-indigo-900/5">
-							<h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6 px-2">
+							<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-6 px-2">
 								Disponibilité & État
 							</h3>
 							<VehicleStatus formData={formData} onChange={handleChange} />
@@ -133,7 +133,7 @@ const EditVehicle = () => {
 					{/* Center/Right Column - Details */}
 					<div className="lg:col-span-2 space-y-6">
 						<div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-[2.5rem] p-8 shadow-xl shadow-indigo-900/5">
-							<h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-8 px-2">
+							<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-8 px-2">
 								Détails Techniques
 							</h3>
 
@@ -168,7 +168,7 @@ const EditVehicle = () => {
 								<button
 									type="button"
 									onClick={() => navigate("/transporter/fleet")}
-									className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors"
+									className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-gray-600 hover:text-gray-900 transition-colors"
 								>
 									Annuler les changements
 								</button>

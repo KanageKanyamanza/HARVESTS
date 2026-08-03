@@ -15,7 +15,7 @@ const SalesAndUserStats = ({
 						<h3 className="text-sm font-black text-gray-900 tracking-tight leading-none mb-1">
 							Évolution des ventes
 						</h3>
-						<p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
+						<p className="text-[9px] font-black text-gray-600 uppercase tracking-widest">
 							Revenus sur les {salesChartData?.length || 12} derniers mois
 						</p>
 					</div>
@@ -48,7 +48,7 @@ const SalesAndUserStats = ({
 								<stat.icon className={`w-3.5 h-3.5 ${stat.color}`} />
 							</div>
 							<div className="ml-3 flex-1">
-								<p className="text-[8px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">
+								<p className="text-[8px] font-black text-gray-600 uppercase tracking-widest leading-none mb-1">
 									{stat.title}
 								</p>
 								<div className="flex items-baseline justify-between">

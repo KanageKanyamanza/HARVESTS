@@ -246,7 +246,7 @@ const EditVehicle = () => {
 					<div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-[2.5rem] p-8 md:p-10 shadow-xl shadow-blue-900/5">
 						<div className="flex items-center gap-2 mb-6">
 							<FiActivity className="text-blue-500 w-4 h-4" />
-							<h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+							<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">
 								Visuel de l'unité
 							</h3>
 						</div>
@@ -265,7 +265,7 @@ const EditVehicle = () => {
 						<div className="space-y-6">
 							<div className="flex items-center gap-2">
 								<FiInfo className="text-blue-500 w-4 h-4" />
-								<h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+								<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">
 									Données Générales
 								</h3>
 							</div>
@@ -340,7 +340,7 @@ const EditVehicle = () => {
 						<div className="bg-gray-50/50 rounded-3xl p-6 border border-gray-100/50">
 							<div className="flex items-center gap-2 mb-6">
 								<FiZap className="text-blue-500 w-4 h-4" />
-								<h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+								<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">
 									Spécifications de Charge
 								</h3>
 							</div>
@@ -354,7 +354,7 @@ const EditVehicle = () => {
 						<div>
 							<div className="flex items-center gap-2 mb-4">
 								<FiCpu className="text-blue-500 w-4 h-4" />
-								<h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+								<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">
 									Options Techniques
 								</h3>
 							</div>
@@ -438,7 +438,7 @@ const EditVehicle = () => {
 						<button
 							type="button"
 							onClick={() => navigate("/exporter/fleet")}
-							className="px-8 py-4 bg-white border border-gray-100 rounded-2xl text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] hover:bg-gray-50 hover:text-gray-600 transition-all active:scale-95"
+							className="px-8 py-4 bg-white border border-gray-100 rounded-2xl text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] hover:bg-gray-50 hover:text-gray-600 transition-all active:scale-95"
 						>
 							Annuler
 						</button>

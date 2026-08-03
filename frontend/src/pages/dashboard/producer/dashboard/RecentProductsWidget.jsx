@@ -45,7 +45,7 @@ const RecentProductsWidget = ({ products = [] }) => {
 					<h3 className="text-base font-[1000] text-gray-900 tracking-tight">
 						Mes Produits
 					</h3>
-					<p className="text-[9px] font-black text-gray-400 mt-0.5 uppercase tracking-[0.2em]">
+					<p className="text-[9px] font-black text-gray-600 mt-0.5 uppercase tracking-[0.2em]">
 						Derniers ajouts
 					</p>
 				</div>
@@ -81,7 +81,7 @@ const RecentProductsWidget = ({ products = [] }) => {
 										</h4>
 										<div className="flex items-center space-x-1.5 mt-0.5">
 											<Tag className="w-2.5 h-2.5 text-blue-500" />
-											<span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter truncate max-w-[100px]">
+											<span className="text-[9px] font-black text-gray-600 uppercase tracking-tighter truncate max-w-[100px]">
 												{product.category || "Général"}
 											</span>
 										</div>

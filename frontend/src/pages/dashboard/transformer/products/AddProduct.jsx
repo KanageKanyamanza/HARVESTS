@@ -118,7 +118,7 @@ const NewProduct = () => {
 				<div className="mb-4 animate-fade-in-down">
 					<button
 						onClick={() => navigate(-1)}
-						className="flex items-center text-gray-400 hover:text-gray-900 transition-colors mb-2 text-[10px] font-bold uppercase tracking-widest group"
+						className="flex items-center text-gray-600 hover:text-gray-900 transition-colors mb-2 text-[10px] font-bold uppercase tracking-widest group"
 					>
 						<FiArrowLeft className="mr-2 group-hover:-translate-x-1 transition-transform" />
 						Retour au catalogue
@@ -153,7 +153,7 @@ const NewProduct = () => {
 										<h2 className="text-base font-[900] text-gray-900 leading-tight">
 											Informations Générales
 										</h2>
-										<p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+										<p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">
 											Détails de base
 										</p>
 									</div>
@@ -208,7 +208,7 @@ const NewProduct = () => {
 										<h2 className="text-base font-[900] text-gray-900 leading-tight">
 											Médias
 										</h2>
-										<p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+										<p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">
 											Photos du produit
 										</p>
 									</div>
@@ -238,7 +238,7 @@ const NewProduct = () => {
 										<h2 className="text-base font-[900] text-gray-900 leading-tight">
 											Détails de Vente
 										</h2>
-										<p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+										<p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">
 											Prix et inventaire
 										</p>
 									</div>

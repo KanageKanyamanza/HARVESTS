@@ -16,19 +16,19 @@ const AdminTable = ({
 			<table className="min-w-full divide-y divide-gray-200/50">
 				<thead className="bg-slate-50/50">
 					<tr>
-						<th className="px-5 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+						<th className="px-5 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 							Identité
 						</th>
-						<th className="px-3 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+						<th className="px-3 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 							Rôle
 						</th>
-						<th className="px-3 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+						<th className="px-3 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 							Statut
 						</th>
-						<th className="px-3 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+						<th className="px-3 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 							Département
 						</th>
-						<th className="px-5 py-3 text-right text-[9px] font-black text-gray-400 uppercase tracking-widest">
+						<th className="px-5 py-3 text-right text-[9px] font-black text-gray-600 uppercase tracking-widest">
 							Actions
 						</th>
 					</tr>
@@ -119,7 +119,7 @@ const AdminTable = ({
 										<span className="text-[9px] font-black text-gray-900 uppercase tracking-widest">
 											{getDepartmentLabel(admin.department)}
 										</span>
-										<span className="text-[8px] font-bold text-gray-400 uppercase mt-0.5">
+										<span className="text-[8px] font-bold text-gray-600 uppercase mt-0.5">
 											{formatDate(admin.lastLogin)}
 										</span>
 									</div>

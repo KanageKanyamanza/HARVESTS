@@ -287,7 +287,7 @@ const AdminManagement = () => {
 						<h1 className="text-2xl md:text-3xl font-[1000] text-gray-900 tracking-tighter leading-none mb-1.5">
 							Gestion <span className="text-green-600">Admin</span>
 						</h1>
-						<p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+						<p className="text-xs font-bold text-gray-600 uppercase tracking-widest">
 							Contrôle des accès et privilèges plateforme
 						</p>
 					</div>
@@ -325,7 +325,7 @@ const AdminManagement = () => {
 								<h3 className="text-sm font-[1000] text-gray-900 tracking-tight">
 									Staff Autorisé
 								</h3>
-								<p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-0.5">
+								<p className="text-[9px] font-black text-gray-600 uppercase tracking-widest mt-0.5">
 									{totalItems} administrateurs trouvés
 								</p>
 							</div>

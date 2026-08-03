@@ -65,7 +65,10 @@ const ChatWindow = ({ conversation, currentUser, mobileView, onBack }) => {
 		if (socket && conversation) {
 			const handleNewMessage = (data) => {
 				if (data.conversationId === conversation._id) {
-					setMessages((prev) => [...prev, data.message]);
+					setMessages((prev) => {
+						if (prev.find((m) => m._id === data.message._id)) return prev;
+						return [...prev, data.message];
+					});
 					scrollToBottom();
 
 					// Marquer comme lu

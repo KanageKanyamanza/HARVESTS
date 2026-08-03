@@ -63,7 +63,7 @@ const EditProduct = () => {
 		return (
 			<div className="min-h-[80vh] flex flex-col items-center justify-center space-y-4">
 				<div className="w-12 h-12 border-4 border-purple-500/20 border-t-purple-500 rounded-full animate-spin"></div>
-				<p className="text-xs font-black text-gray-400 uppercase tracking-widest">
+				<p className="text-xs font-black text-gray-600 uppercase tracking-widest">
 					Chargement du produit...
 				</p>
 			</div>
@@ -108,7 +108,7 @@ const EditProduct = () => {
 				<div className="mb-6 animate-fade-in-down">
 					<button
 						onClick={() => navigate(-1)}
-						className="flex items-center text-gray-400 hover:text-gray-900 transition-colors mb-2 text-[10px] font-bold uppercase tracking-widest group"
+						className="flex items-center text-gray-600 hover:text-gray-900 transition-colors mb-2 text-[10px] font-bold uppercase tracking-widest group"
 					>
 						<FiArrowLeft className="mr-2 group-hover:-translate-x-1 transition-transform" />
 						Retour
@@ -153,7 +153,7 @@ const EditProduct = () => {
 										<h2 className="text-base font-[900] text-gray-900 leading-tight">
 											Détails Essentiels
 										</h2>
-										<p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+										<p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">
 											Nom et description
 										</p>
 									</div>
@@ -224,7 +224,7 @@ const EditProduct = () => {
 										<h2 className="text-base font-[900] text-gray-900 leading-tight">
 											Galerie Photo
 										</h2>
-										<p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+										<p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">
 											Jusqu'à 5 images
 										</p>
 									</div>
@@ -311,7 +311,7 @@ const EditProduct = () => {
 										<h2 className="text-base font-[900] text-gray-900 leading-tight">
 											Vente & Stock
 										</h2>
-										<p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+										<p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">
 											Paramètres commerciaux
 										</p>
 									</div>

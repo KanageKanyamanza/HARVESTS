@@ -259,7 +259,7 @@ const Fleet = () => {
 
 										<div className="grid grid-cols-2 gap-3 mb-6">
 											<div className="bg-gray-50/50 rounded-2xl p-3 border border-gray-100">
-												<p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">
+												<p className="text-[9px] font-black text-gray-600 uppercase tracking-widest mb-1">
 													Capacité
 												</p>
 												<p className="text-xs font-bold text-gray-900">
@@ -268,7 +268,7 @@ const Fleet = () => {
 												</p>
 											</div>
 											<div className="bg-gray-50/50 rounded-2xl p-3 border border-gray-100">
-												<p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">
+												<p className="text-[9px] font-black text-gray-600 uppercase tracking-widest mb-1">
 													Volume
 												</p>
 												<p className="text-xs font-bold text-gray-900">

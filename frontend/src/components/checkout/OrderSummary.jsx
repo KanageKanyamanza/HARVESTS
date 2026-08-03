@@ -11,24 +11,24 @@ const OrderSummary = ({ cartItems, totals }) => {
 	const { currency } = useCurrency();
 
 	return (
-		<div className="bg-white rounded-lg shadow p-6 sticky top-6">
-			<h2 className="text-lg font-semibold text-gray-900 mb-6">
+		<div className="bg-white rounded-2xl shadow-agri-card border border-emerald-100/80 p-5 sm:p-6 sticky top-6">
+			<h2 className="font-extrabold text-[#161D14] mb-5">
 				Résumé de la commande
 			</h2>
 
 			{/* Cart Items */}
-			<div className="space-y-3 mb-6">
+			<div className="space-y-3 mb-5 pb-5 border-b border-gray-100">
 				{cartItems.map((item, i) => (
 					<div
 						key={item.productId || item.id || `cart-item-${i}`}
-						className="flex items-center space-x-3"
+						className="flex items-center gap-3"
 					>
-						<div className="h-12 w-12 bg-gray-200 rounded-lg overflow-hidden flex items-center justify-center">
+						<div className="h-12 w-12 bg-gray-50 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0">
 							{item.image ? (
 								<CloudinaryImage
 									src={item.image}
 									alt={item.name}
-									className="h-full w-full object-cover"
+									className="h-full w-full object-contain mix-blend-multiply"
 									width={48}
 									height={48}
 								/>
@@ -37,12 +37,12 @@ const OrderSummary = ({ cartItems, totals }) => {
 							)}
 						</div>
 						<div className="flex-1 min-w-0">
-							<p className="text-sm font-medium text-gray-900 truncate">
+							<p className="text-sm font-bold text-[#161D14] truncate">
 								{item.name}
 							</p>
-							<p className="text-sm text-gray-500">x {item.quantity}</p>
+							<p className="text-xs text-gray-500">x {item.quantity}</p>
 						</div>
-						<p className="text-sm font-medium text-gray-900">
+						<p className="text-sm font-extrabold text-[#1A5514]">
 							{formatPrice(
 								convertPrice(
 									item.price * item.quantity,
@@ -57,10 +57,10 @@ const OrderSummary = ({ cartItems, totals }) => {
 			</div>
 
 			{/* Price Breakdown */}
-			<div className="space-y-3 mb-6">
-				<div className="flex justify-between text-sm">
-					<span className="text-gray-600">Sous-total</span>
-					<span className="font-medium">
+			<div className="space-y-2.5 text-sm text-gray-600 mb-2">
+				<div className="flex justify-between">
+					<span>Sous-total</span>
+					<span className="font-bold text-[#161D14]">
 						{formatPrice(
 							convertPrice(totals.subtotal, DEFAULT_CURRENCY, currency),
 							currency
@@ -68,12 +68,10 @@ const OrderSummary = ({ cartItems, totals }) => {
 					</span>
 				</div>
 
-
-
 				{totals.taxes > 0 && (
-					<div className="flex justify-between text-sm">
-						<span className="text-gray-600">TVA</span>
-						<span className="font-medium">
+					<div className="flex justify-between">
+						<span>TVA</span>
+						<span className="font-bold text-[#161D14]">
 							{formatPrice(
 								convertPrice(totals.taxes, DEFAULT_CURRENCY, currency),
 								currency
@@ -83,9 +81,9 @@ const OrderSummary = ({ cartItems, totals }) => {
 				)}
 
 				{totals.discount > 0 && (
-					<div className="flex justify-between text-sm">
-						<span className="text-green-600">Réduction</span>
-						<span className="font-medium text-green-600">
+					<div className="flex justify-between">
+						<span className="text-emerald-600">Réduction</span>
+						<span className="font-bold text-emerald-600">
 							-
 							{formatPrice(
 								convertPrice(totals.discount, DEFAULT_CURRENCY, currency),
@@ -94,32 +92,30 @@ const OrderSummary = ({ cartItems, totals }) => {
 						</span>
 					</div>
 				)}
-
-				<div className="border-t border-gray-200 pt-3">
-					<div className="flex justify-between">
-						<span className="text-lg font-semibold text-gray-900">Total</span>
-						<span className="text-lg font-semibold text-gray-900">
-							{formatPrice(
-								convertPrice(totals.total, DEFAULT_CURRENCY, currency),
-								currency
-							)}
-						</span>
-					</div>
-				</div>
-
-				{/* Livraison gratuite (frais retirés) */}
-				<p className="text-[10px] text-gray-400 text-right mt-1 italic uppercase font-bold tracking-tighter">
-					Livraison offerte par Harvests
-				</p>
 			</div>
 
+			<div className="flex justify-between items-center py-4 border-t border-gray-100">
+				<span className="font-extrabold text-[#161D14]">Total</span>
+				<span className="font-extrabold text-xl text-[#1A5514]">
+					{formatPrice(
+						convertPrice(totals.total, DEFAULT_CURRENCY, currency),
+						currency
+					)}
+				</span>
+			</div>
+
+			{/* Livraison gratuite (frais retirés) */}
+			<p className="text-[10px] text-gray-400 text-right -mt-2 mb-4 italic uppercase font-bold tracking-tighter">
+				Livraison offerte par Harvests
+			</p>
+
 			{/* Security Info */}
-			<div className="text-center text-xs text-gray-500">
-				<div className="flex items-center justify-center mb-2">
-					<FiShield className="h-4 w-4 mr-1" />
-					<span>Paiement sécurisé</span>
-				</div>
-				<p>Livraison garantie</p>
+			<div className="flex items-center gap-4 pt-4 border-t border-gray-100 text-[10px] text-gray-400 font-semibold">
+				<span className="flex items-center gap-1.5">
+					<FiShield className="h-3.5 w-3.5 text-emerald-500" />
+					Paiement sécurisé
+				</span>
+				<span>Livraison garantie</span>
 			</div>
 		</div>
 	);

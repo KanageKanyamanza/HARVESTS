@@ -12,7 +12,7 @@ const AdminPagination = ({
 
 	return (
 		<div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-			<div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+			<div className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 				Affichage de{" "}
 				<span className="text-gray-900 font-black">
 					{(currentPage - 1) * itemsPerPage + 1}

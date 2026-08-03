@@ -182,7 +182,7 @@ const Statistics = () => {
 				<div className="animate-fade-in-up delay-100">
 					<div className="flex items-center gap-2 mb-6 px-2">
 						<Truck className="w-4 h-4 text-indigo-600" />
-						<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+						<span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 							Performances Générales
 						</span>
 					</div>
@@ -193,7 +193,7 @@ const Statistics = () => {
 				<div className="animate-fade-in-up delay-200">
 					<div className="flex items-center gap-2 mb-6 px-2">
 						<BarChart3 className="w-4 h-4 text-emerald-600" />
-						<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+						<span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 							Métriques de qualité & Revenus
 						</span>
 					</div>

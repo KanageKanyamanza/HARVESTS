@@ -306,7 +306,7 @@ const AdminAnalytics = () => {
 													"Producteur"}
 											</p>
 											<div className="flex items-center gap-1.5">
-												<span className="text-[7px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">
+												<span className="text-[7px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-1">
 													<ShoppingCart className="h-1.5 w-1.5 text-green-500" />
 													{producer.orderCount || 0} ventes
 												</span>
@@ -321,7 +321,7 @@ const AdminAnalytics = () => {
 							) : (
 								<div className="text-center py-4 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
 									<Users className="h-6 w-6 text-gray-200 mx-auto mb-1" />
-									<p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
+									<p className="text-[8px] font-black text-gray-600 uppercase tracking-widest">
 										Aucun producteur actif
 									</p>
 								</div>
@@ -362,7 +362,7 @@ const AdminAnalytics = () => {
 												{toPlainText(product.name, "Produit")}
 											</p>
 											<div className="flex items-center gap-1.5">
-												<span className="text-[7px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">
+												<span className="text-[7px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-1">
 													<ShoppingCart className="h-1.5 w-1.5 text-orange-500" />
 													{product.sales || 0} ventes
 												</span>
@@ -377,7 +377,7 @@ const AdminAnalytics = () => {
 							) : (
 								<div className="text-center py-4 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
 									<Package className="h-6 w-6 text-gray-200 mx-auto mb-1" />
-									<p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
+									<p className="text-[8px] font-black text-gray-600 uppercase tracking-widest">
 										Aucun produit vendu
 									</p>
 								</div>

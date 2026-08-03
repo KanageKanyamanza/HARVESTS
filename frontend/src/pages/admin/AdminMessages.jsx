@@ -274,7 +274,7 @@ const AdminMessages = () => {
 												{message.sender?.firstName || "Utilisateur"}{" "}
 												{message.sender?.lastName || ""}
 											</p>
-											<p className="text-[8px] font-black text-gray-400 uppercase tracking-widest truncate">
+											<p className="text-[8px] font-black text-gray-600 uppercase tracking-widest truncate">
 												{message.sender?.email}
 											</p>
 										</div>
@@ -297,7 +297,7 @@ const AdminMessages = () => {
 											>
 												{getPriorityText(message.priority)}
 											</span>
-											<span className="flex items-center gap-1 text-[8px] font-black text-gray-400 uppercase tracking-widest">
+											<span className="flex items-center gap-1 text-[8px] font-black text-gray-600 uppercase tracking-widest">
 												<Clock className="h-2 w-2" />
 												{formatDate(message.createdAt)}
 											</span>
@@ -371,7 +371,7 @@ const AdminMessages = () => {
 						<button
 							onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
 							disabled={currentPage === 1}
-							className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-400 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50"
+							className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50"
 						>
 							<ChevronLeft className="h-3.5 w-3.5" /> Précédent
 						</button>
@@ -393,7 +393,7 @@ const AdminMessages = () => {
 						<button
 							onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
 							disabled={currentPage === totalPages}
-							className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-400 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50"
+							className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all duration-300 disabled:opacity-50"
 						>
 							Suivant <ChevronRight className="h-3.5 w-3.5" />
 						</button>
@@ -415,7 +415,7 @@ const AdminMessages = () => {
 									<Reply className="h-3.5 w-3.5" />
 									Répondre au support
 								</div>
-								<p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
+								<p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">
 									Destinataire : {selectedMessage.sender?.firstName}{" "}
 									{selectedMessage.sender?.lastName}
 								</p>
@@ -439,7 +439,7 @@ const AdminMessages = () => {
 							</div>
 
 							<div className="space-y-2">
-								<label className="text-[9px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5 ml-1">
+								<label className="text-[9px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-1.5 ml-1">
 									<Send className="h-2.5 w-2.5" /> Votre réponse
 								</label>
 								<textarea
@@ -453,7 +453,7 @@ const AdminMessages = () => {
 							<div className="flex gap-2">
 								<button
 									onClick={() => setSelectedMessage(null)}
-									className="flex-1 py-2 bg-gray-50 text-gray-400 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-gray-100 hover:text-gray-900 transition-all duration-300"
+									className="flex-1 py-2 bg-gray-50 text-gray-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-gray-100 hover:text-gray-900 transition-all duration-300"
 								>
 									Annuler
 								</button>

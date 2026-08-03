@@ -171,25 +171,25 @@ const InteractionsTab = ({
 						<table className="min-w-full">
 							<thead>
 								<tr className="border-b border-gray-100 bg-gray-50/50">
-									<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<th className="px-4 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Date
 									</th>
-									<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<th className="px-4 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Utilisateur
 									</th>
-									<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<th className="px-4 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Question
 									</th>
-									<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<th className="px-4 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Réponse
 									</th>
-									<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<th className="px-4 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Type
 									</th>
-									<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<th className="px-4 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Feedback
 									</th>
-									<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<th className="px-4 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Actions
 									</th>
 								</tr>

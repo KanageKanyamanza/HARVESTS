@@ -159,16 +159,16 @@ const NotificationsPage = () => {
 													<Check className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-3 w-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
 												</div>
 											</th>
-											<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+											<th className="px-4 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 												Notification
 											</th>
-											<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest w-32">
+											<th className="px-4 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest w-32">
 												Catégorie
 											</th>
-											<th className="px-4 py-3 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest w-40">
+											<th className="px-4 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest w-40">
 												Date
 											</th>
-											<th className="px-4 py-3 text-right text-[9px] font-black text-gray-400 uppercase tracking-widest w-20">
+											<th className="px-4 py-3 text-right text-[9px] font-black text-gray-600 uppercase tracking-widest w-20">
 												Actions
 											</th>
 										</tr>

@@ -68,7 +68,7 @@ const ConsumerDashboard = () => {
 							<FiGift className="w-6 h-6" />
 						</div>
 						<div>
-							<p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">
+							<p className="text-[9px] font-black text-gray-600 uppercase tracking-widest leading-none mb-1">
 								Mes Points Fidélité
 							</p>
 							<div className="flex items-baseline gap-1">
@@ -121,7 +121,7 @@ const ConsumerDashboard = () => {
 								<h3 className="text-lg font-[1000] text-gray-900 tracking-tight leading-none mb-1">
 									Mes Favoris
 								</h3>
-								<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">
+								<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mt-0.5">
 									Accès direct
 								</p>
 							</div>
@@ -167,7 +167,7 @@ const ConsumerDashboard = () => {
 									</div>
 								))
 							:	<div className="py-10 text-center">
-									<p className="text-xs text-gray-400 font-bold uppercase tracking-widest">
+									<p className="text-xs text-gray-600 font-bold uppercase tracking-widest">
 										Aucun favori pour le moment
 									</p>
 								</div>

@@ -41,7 +41,7 @@ const QuickActionsWidget = () => {
 				<h3 className="text-lg font-[1000] text-gray-900 tracking-tight leading-none mb-1">
 					Raccourcis
 				</h3>
-				<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">
+				<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mt-0.5">
 					Accès rapide à vos outils
 				</p>
 			</div>

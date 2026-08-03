@@ -398,7 +398,7 @@ const MyProducts = () => {
 										</p>
 
 										<div className="pt-5 border-t border-gray-100 flex items-center justify-between mt-auto">
-											<div className="flex items-center text-gray-400 text-[10px] font-black uppercase tracking-widest">
+											<div className="flex items-center text-gray-600 text-[10px] font-black uppercase tracking-widest">
 												<FiPackage className="w-3.5 h-3.5 mr-1.5 text-purple-500" />
 												<span>
 													Stock:{" "}
@@ -423,7 +423,7 @@ const MyProducts = () => {
 												</button>
 											:	<Link
 													to={`/products/${product.slug || product._id}`}
-													className="text-[10px] text-gray-400 hover:text-purple-600 font-black uppercase tracking-widest transition-all flex items-center gap-1.5"
+													className="text-[10px] text-gray-600 hover:text-purple-600 font-black uppercase tracking-widest transition-all flex items-center gap-1.5"
 												>
 													Détails <FiEye className="w-4 h-4" />
 												</Link>

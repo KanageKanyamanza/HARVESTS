@@ -127,7 +127,7 @@ const DocumentsPage = () => {
 		return (
 			<div className="min-h-[80vh] flex flex-col items-center justify-center space-y-4">
 				<div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
-				<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+				<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 					Chargement de votre coffre-fort...
 				</p>
 			</div>
@@ -167,7 +167,7 @@ const DocumentsPage = () => {
 							<ShieldCheck className="h-6 w-6" />
 						</div>
 						<div>
-							<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+							<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 								Statut Profil
 							</p>
 							<div className="flex items-center gap-2">

@@ -39,7 +39,7 @@ const AddVehicle = () => {
 				{/* Back Button */}
 				<button
 					onClick={() => navigate(-1)}
-					className="group inline-flex items-center text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-indigo-600 transition-colors"
+					className="group inline-flex items-center text-[10px] font-black uppercase tracking-widest text-gray-600 hover:text-indigo-600 transition-colors"
 				>
 					<FiArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
 					RETOUR À LA FLOTTE
@@ -72,7 +72,7 @@ const AddVehicle = () => {
 					{/* Left Column - Image & Status */}
 					<div className="lg:col-span-1 space-y-6">
 						<div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-[2.5rem] p-6 shadow-xl shadow-indigo-900/5">
-							<h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6 px-2">
+							<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-6 px-2">
 								Visuel du véhicule
 							</h3>
 							<VehicleImageUpload
@@ -86,12 +86,12 @@ const AddVehicle = () => {
 						</div>
 
 						<div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-[2.5rem] p-6 shadow-xl shadow-indigo-900/5">
-							<h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6 px-2">
+							<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-6 px-2">
 								Disponibilité & État
 							</h3>
 							<div className="space-y-4 px-2">
 								<div>
-									<label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+									<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2">
 										État Général
 									</label>
 									<select
@@ -129,13 +129,13 @@ const AddVehicle = () => {
 					{/* Center/Right Column - Details */}
 					<div className="lg:col-span-2 space-y-6">
 						<div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-[2.5rem] p-8 shadow-xl shadow-indigo-900/5">
-							<h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-8 px-2">
+							<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-8 px-2">
 								Informations Techniques
 							</h3>
 
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-2">
 								<div className="space-y-2">
-									<label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">
+									<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest">
 										Type de Véhicule <span className="text-red-500">*</span>
 									</label>
 									<select
@@ -160,7 +160,7 @@ const AddVehicle = () => {
 								</div>
 
 								<div className="space-y-2">
-									<label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">
+									<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest">
 										ID / Immatriculation
 									</label>
 									<input
@@ -181,7 +181,7 @@ const AddVehicle = () => {
 								</div>
 
 								<div className="md:col-span-2 pt-4 border-t border-gray-100/50">
-									<label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">
+									<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-4">
 										Équipements & Spécificités
 									</label>
 									<div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -214,7 +214,7 @@ const AddVehicle = () => {
 
 								<div className="md:col-span-2 pt-6 border-t border-gray-100/50 flex flex-col md:flex-row gap-4">
 									<div className="flex-1 space-y-2">
-										<label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-center md:text-left">
+										<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest text-center md:text-left">
 											Dernière Maintenance
 										</label>
 										<input
@@ -226,7 +226,7 @@ const AddVehicle = () => {
 										/>
 									</div>
 									<div className="flex-1 space-y-2">
-										<label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest text-center md:text-left">
+										<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest text-center md:text-left">
 											Prochain RDV
 										</label>
 										<input
@@ -253,7 +253,7 @@ const AddVehicle = () => {
 								<button
 									type="button"
 									onClick={() => navigate(-1)}
-									className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors"
+									className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-gray-600 hover:text-gray-900 transition-colors"
 								>
 									Annuler
 								</button>

@@ -292,7 +292,7 @@ const AdminProducts = () => {
 							<h3 className="text-sm font-[1000] text-gray-900 tracking-tight">
 								Liste des Articles
 							</h3>
-							<p className="text-[8px] font-black text-gray-400 mt-0.5 uppercase tracking-[0.2em]">
+							<p className="text-[8px] font-black text-gray-600 mt-0.5 uppercase tracking-[0.2em]">
 								Total: {products.length} produits trouvés
 							</p>
 						</div>
@@ -323,22 +323,22 @@ const AdminProducts = () => {
 											className="w-3.5 h-3.5 border-2 border-gray-200 rounded-md bg-white checked:bg-green-600 checked:border-green-600 transition-all cursor-pointer appearance-none"
 										/>
 									</th>
-									<th className="px-4 py-2.5 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<th className="px-4 py-2.5 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Produit
 									</th>
-									<th className="px-4 py-2.5 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<th className="px-4 py-2.5 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Producteur
 									</th>
-									<th className="px-4 py-2.5 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<th className="px-4 py-2.5 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Prix
 									</th>
-									<th className="px-4 py-2.5 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<th className="px-4 py-2.5 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Statut
 									</th>
-									<th className="px-4 py-2.5 text-left text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<th className="px-4 py-2.5 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Date
 									</th>
-									<th className="px-4 py-2.5 text-right text-[9px] font-black text-gray-400 uppercase tracking-widest">
+									<th className="px-4 py-2.5 text-right text-[9px] font-black text-gray-600 uppercase tracking-widest">
 										Actions
 									</th>
 								</tr>
@@ -392,7 +392,7 @@ const AdminProducts = () => {
 														<p className="text-xs font-black text-gray-900 tracking-tight leading-tight mb-0.5 group-hover:text-green-600 transition-colors">
 															{getLocalizedText(product.name, "Sans nom")}
 														</p>
-														<span className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
+														<span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">
 															{product.category}
 														</span>
 													</div>
@@ -431,7 +431,7 @@ const AdminProducts = () => {
 												</span>
 											</td>
 											<td className="px-4 py-2">
-												<div className="flex items-center gap-1 text-[8px] font-black text-gray-400 uppercase tracking-widest">
+												<div className="flex items-center gap-1 text-[8px] font-black text-gray-600 uppercase tracking-widest">
 													<Calendar className="h-2.5 w-2.5" />
 													{formatDate(product.createdAt)}
 												</div>
@@ -499,7 +499,7 @@ const AdminProducts = () => {
 
 					{/* Pagination Style Premium */}
 					<div className="p-3 border-t border-gray-100/50 bg-white/30 flex items-center justify-between">
-						<p className="text-[8px] font-black text-gray-400 uppercase tracking-[0.2em]">
+						<p className="text-[8px] font-black text-gray-600 uppercase tracking-[0.2em]">
 							Page{" "}
 							<span className="text-gray-900 font-black">{currentPage}</span>{" "}
 							sur {totalPages}
