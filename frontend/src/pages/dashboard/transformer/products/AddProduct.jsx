@@ -98,7 +98,9 @@ const NewProduct = () => {
 			navigate("/transformer/products");
 		} catch (error) {
 			console.error("Erreur lors de la création du produit:", error);
-			showError("Erreur lors de la création du produit");
+			showError(
+				error.response?.data?.message || "Erreur lors de la création du produit"
+			);
 		} finally {
 			setLoading(false);
 		}
