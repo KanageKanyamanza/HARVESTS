@@ -15,7 +15,7 @@ async function createProduct(producerId, productData) {
   const {
     name, description, shortDescription, category, subcategory,
     tags, price, compareAtPrice, stock, minimumOrderQuantity,
-    maximumOrderQuantity, unit, status, images
+    maximumOrderQuantity, unit, currency, status, images
   } = productData;
 
   if (!name || !description || !category || !price || stock === undefined) {
