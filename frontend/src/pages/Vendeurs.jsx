@@ -25,8 +25,8 @@ import { useApiCache } from "../hooks/useApiCache";
 const Vendeurs = () => {
 	const [vendeurs, setVendeurs] = useState([]);
 	const [loading, setLoading] = useState(true);
-	const [filter, setFilter] = useState("all"); // 'all', 'producers', 'transformers', 'restaurateurs'
 	const [searchParams, setSearchParams] = useSearchParams();
+	const [filter, setFilter] = useState(searchParams.get("type") || "all"); // 'all', 'producer', 'transformer', 'restaurateur'
 	const selectedCountry = searchParams.get("country") || "";
 	const [searchTerm, setSearchTerm] = useState("");
 	
