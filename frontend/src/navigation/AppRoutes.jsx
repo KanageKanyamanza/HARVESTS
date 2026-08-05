@@ -28,6 +28,7 @@ const Categories = React.lazy(() => import("../pages/Categories"));
 const Producers = React.lazy(() => import("../pages/Producers"));
 const ProducerProfile = React.lazy(() => import("../pages/ProducerProfile"));
 const Vendeurs = React.lazy(() => import("../pages/Vendeurs"));
+const Restaurateurs = React.lazy(() => import("../pages/Restaurateurs"));
 const Transformers = React.lazy(() => import("../pages/Transformers"));
 const TransformerProfile = React.lazy(() =>
 	import("../pages/TransformerProfile")
@@ -309,10 +310,26 @@ const AppRoutes = () => {
 				}
 			/>
 			<Route
+				path="/restaurateurs"
+				element={
+					<Layout>
+						<SuspenseRoute element={<Restaurateurs />} />
+					</Layout>
+				}
+			/>
+			<Route
 				path="/restaurateurs/:id"
 				element={
 					<Layout>
 						<SuspenseRoute element={<PublicRestaurateurProfile />} />
+					</Layout>
+				}
+			/>
+			<Route
+				path="/vendeurs"
+				element={
+					<Layout>
+						<SuspenseRoute element={<Vendeurs />} />
 					</Layout>
 				}
 			/>

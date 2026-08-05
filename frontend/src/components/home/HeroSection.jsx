@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, ShieldCheck, Truck, Sprout, ShoppingBag, Store, ChevronRight, Building2, Award } from "lucide-react";
+import { ArrowUpRight, ShieldCheck, Truck, Sprout, ShoppingBag, Store, ChevronRight, Building2, Award, UtensilsCrossed } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import heroBg1 from "../../assets/images/herobgcar1.webp";
 import heroBg2 from "../../assets/images/herobgcar2.webp";
@@ -64,7 +64,7 @@ const HeroSection = () => {
 		},
 		{
 			id: "buyers",
-			title: "Acheteurs & Restaurateurs",
+			title: "Acheteurs",
 			subtitle: "Produits agricoles frais en gros & détail, livrés directement.",
 			cta: "Boutique & Produits",
 			href: "/products",
@@ -87,13 +87,13 @@ const HeroSection = () => {
 			textColor: "text-[#855D00]"
 		},
 		{
-			id: "logistics",
-			title: "Transport & Logistique",
-			subtitle: "Gestion de la chaîne du froid et transport du champ à la table.",
-			cta: "Services Transport",
-			href: "/logistics",
-			icon: Truck,
-			badge: "CF Logistics",
+			id: "restaurateurs",
+			title: "Restaurateurs",
+			subtitle: "Approvisionnez votre établissement en produits frais & locaux.",
+			cta: "Espace Restaurateurs",
+			href: "/restaurateurs",
+			icon: UtensilsCrossed,
+			badge: "CF Kitchen",
 			gradient: "from-[#1E3A8A] to-[#3B82F6]",
 			bgLight: "bg-[#EFF6FF]",
 			textColor: "text-[#1E3A8A]"
