@@ -2,7 +2,7 @@
  * Composant principal pour gérer toutes les routes de l'application
  */
 import React, { Suspense } from "react";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 
@@ -154,6 +154,28 @@ const ProtectedRoute = ({ children, requiredRole, requiredUserType }) => {
 	}
 
 	return children;
+};
+
+/**
+ * Redirige les liens génériques /messages(/:id) (ex: notifications backend) vers
+ * la page de messagerie propre au type d'utilisateur connecté (/{userType}/messages/:id)
+ */
+const MessagesRedirect = () => {
+	const { isAuthenticated, user, isRestoringSession } = useAuth();
+	const { id } = useParams();
+
+	if (isRestoringSession) {
+		return <RouteFallback />;
+	}
+
+	if (!isAuthenticated) {
+		return <Navigate to="/login" replace />;
+	}
+
+	const userType = user?.userType || "consumer";
+	return (
+		<Navigate to={`/${userType}/messages${id ? `/${id}` : ""}`} replace />
+	);
 };
 
 /**
@@ -333,6 +355,8 @@ const AppRoutes = () => {
 					</Layout>
 				}
 			/>
+			<Route path="/messages" element={<MessagesRedirect />} />
+			<Route path="/messages/:id" element={<MessagesRedirect />} />
 			<Route
 				path="/logistics"
 				element={
