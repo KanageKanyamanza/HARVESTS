@@ -1,11 +1,14 @@
-Jour 6 — Pages Producteurs/Transformateurs/Logistique/Fidélité
+Jour 13 — Crash messagerie & diagnostic notifications push en prod
 
-Vue grille/liste des producteurs corrigée (ne changeait rien sur mobile)
-Page Transformateurs entièrement refaite (hero, recherche, cartes)
-Page Transport & Logistique entièrement refaite (mêmes filtres + design)
-Page Programme de Fidélité refaite avec le même langage visuel
-Ajustement du padding du filtre desktop (perdu lors du redesign mobile)
-Harmonisation des couleurs de marque (#1A5514/#31BC2E) sur toutes ces pages
+Fix crash "Cannot read properties of undefined (reading '_id')" dans ChatWindow.jsx : les messages système (ex. création de conversation) n'ont pas d'expéditeur, non géré à l'affichage
+Les messages système s'affichent désormais comme un libellé neutre centré au lieu de planter la page
+Fix 404 sur les liens de notification "Message reçu" : ils pointaient vers /messages/:id, une route sans préfixe de rôle qui n'existe pas
+Ajout d'une redirection générique /messages(/:id) vers /{userType}/messages/:id selon le compte connecté
+Diagnostic complet des notifications push web absentes en production (alors qu'elles arrivent en local) :
+  - Clés VAPID vérifiées identiques entre local et Render
+  - Abonnement de l'utilisateur bien enregistré côté serveur (vérifié en base)
+  - Envoi de test direct depuis un script reproduisant la config prod : succès (notification bien reçue)
+  - Conclusion : le process backend Render tourne avec des variables d'environnement VAPID chargées avant leur configuration -> nécessite un redeploy/redémarrage manuel du service pour les recharger
 
 Jour 7 — Parcours d'authentification
 

@@ -200,14 +200,26 @@ const ChatWindow = ({ conversation, currentUser, mobileView, onBack }) => {
 					</div>
 				:	<>
 						{messages.map((msg, index) => {
+							// Messages système (ex: création de conversation) : pas d'expéditeur, affichage neutre
+							if (!msg.sender) {
+								return (
+									<div key={msg._id} className="flex justify-center">
+										<span className="text-[11px] text-gray-400 bg-white/60 px-3 py-1 rounded-full">
+											{msg.content}
+										</span>
+									</div>
+								);
+							}
+
 							// Vérifier si le message précédent est du même auteur pour le regroupement visuel
+							const prevMsg = index > 0 ? messages[index - 1] : null;
 							const isSequence =
-								index > 0 && messages[index - 1].sender._id === msg.sender._id;
+								prevMsg?.sender && prevMsg.sender._id === msg.sender._id;
 							return (
 								<ChatBubble
 									key={msg._id}
 									message={msg}
-									isOwn={msg.sender._id === currentUser._id}
+									isOwn={msg.sender._id === currentUser?._id}
 									showAvatar={!isSequence}
 									sender={msg.sender}
 								/>
