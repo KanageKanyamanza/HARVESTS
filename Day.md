@@ -10,6 +10,11 @@ Diagnostic complet des notifications push web absentes en production (alors qu'e
   - Envoi de test direct depuis un script reproduisant la config prod : succès (notification bien reçue)
   - Conclusion : le process backend Render tourne avec des variables d'environnement VAPID chargées avant leur configuration -> nécessite un redeploy/redémarrage manuel du service pour les recharger
 
+Jour 14 — Base de conseils agricoles pour les producteurs
+Ajout d'une base de connaissances (cropAdviceData.js) couvrant 20 cultures d'Afrique de l'Ouest (tomate, oignon, manioc, mil, arachide, riz, mangue, niébé, etc.)
+Chaque fiche culture indique : saison de semis/récolte, température idéale, besoins en eau, type de sol, durée de cycle, conseils de culture et conseils de conservation post-récolte
+Fonctions de recherche et de correspondance automatique produit -> fiche conseil (par nom/alias)
+
 Jour 7 — Parcours d'authentification
 
 Refonte de Login et Register (badges, cartes, dégradés de marque)
