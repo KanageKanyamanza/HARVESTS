@@ -104,6 +104,7 @@ const NotificationItem = ({
 				<div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300">
 					{!notification.read && (
 						<button
+							type="button"
 							onClick={onMarkAsRead}
 							className="group/btn p-1.5 rounded-lg hover:bg-emerald-50 text-gray-300 hover:text-emerald-600 transition-all"
 							title="Marquer comme lu"
@@ -112,6 +113,7 @@ const NotificationItem = ({
 						</button>
 					)}
 					<button
+						type="button"
 						onClick={onDelete}
 						className="group/btn p-1.5 rounded-lg hover:bg-rose-50 text-gray-300 hover:text-rose-600 transition-all"
 						title="Supprimer"

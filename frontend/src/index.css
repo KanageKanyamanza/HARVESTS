@@ -28,6 +28,15 @@
 		@apply text-xl md:text-2xl mb-3;
 	}
 
+	/* Empêche le zoom auto iOS/Android quand la police d'un champ est < 16px */
+	@media (max-width: 767px) {
+		input,
+		textarea,
+		select {
+			font-size: 16px !important;
+		}
+	}
+
 	h2 {
 		@apply text-lg md:text-xl mb-2;
 	}

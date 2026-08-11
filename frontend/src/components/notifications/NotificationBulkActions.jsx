@@ -17,12 +17,14 @@ const NotificationBulkActions = ({ selectedCount, onMarkAsRead, onDelete }) => {
 			</div>
 			<div className="flex items-center gap-3">
 				<button
+					type="button"
 					onClick={onMarkAsRead}
 					className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold transition-all shadow-sm shadow-emerald-200"
 				>
 					Marquer comme lu
 				</button>
 				<button
+					type="button"
 					onClick={onDelete}
 					className="px-4 py-2 bg-white text-rose-600 border border-rose-100 hover:bg-rose-50 rounded-xl text-sm font-bold transition-all"
 				>

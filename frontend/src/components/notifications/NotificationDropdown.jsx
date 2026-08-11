@@ -144,6 +144,7 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 		<div className="relative" ref={dropdownRef}>
 			{/* Bouton de notification */}
 			<button
+				type="button"
 				onClick={() => setIsOpen(!isOpen)}
 				className={`relative p-2 rounded-lg transition-colors duration-500 ease-in-out ${
 					shouldBeTransparent
@@ -161,7 +162,7 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 
 			{/* Dropdown des notifications */}
 			{isOpen && (
-				<div className="fixed sm:absolute right-4 sm:right-0 left-4 sm:left-auto mt-2 sm:mt-2 w-auto sm:w-80 max-w-sm bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+				<div className="fixed sm:absolute right-4 sm:right-0 left-4 sm:left-auto mt-2 sm:mt-2 w-auto sm:w-80 max-w-sm bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
 					{/* Header */}
 					<div className="px-5 py-2 border-b border-gray-200 flex items-center justify-between">
 						<h3 className="text-lg font-semibold text-gray-900">
@@ -169,6 +170,7 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 						</h3>
 
 						<button
+							type="button"
 							onClick={() => setIsOpen(false)}
 							className="text-gray-400 hover:text-gray-500 ml-auto"
 						>
@@ -177,6 +179,7 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 					</div>
 					<div className="flex justify-around items-center py-2">
 						<button
+							type="button"
 							onClick={async () => {
 								setIsRefreshing(true);
 								await refreshNotifications();
@@ -192,6 +195,7 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 						</button>
 						{unreadCount > 0 && (
 							<button
+								type="button"
 								onClick={markAllAsRead}
 								className="text-xs text-blue-600 hover:text-blue-700 font-medium"
 							>
@@ -228,8 +232,8 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 
 										{/* Contenu */}
 										<div className="flex-1 min-w-0">
-											<div className="flex items-start justify-between">
-												<div className="flex-1">
+											<div className="flex items-start justify-between gap-2">
+												<div className="flex-1 min-w-0">
 													<h4 className="text-sm font-medium text-gray-900 truncate">
 														{notification.title}
 													</h4>
@@ -242,9 +246,11 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 												</div>
 
 												{/* Actions */}
-												<div className="flex items-center space-x-1 ml-2">
+												<div className="flex items-center space-x-1 ml-2 flex-shrink-0">
 													<button
+														type="button"
 														onClick={(e) => {
+															e.preventDefault();
 															e.stopPropagation();
 															markAsRead(notification.id);
 														}}
@@ -254,7 +260,9 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 														<FiCheck className="h-3 w-3" />
 													</button>
 													<button
+														type="button"
 														onClick={(e) => {
+															e.preventDefault();
 															e.stopPropagation();
 															removeNotification(notification.id);
 														}}
@@ -286,6 +294,7 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 									)}
 								</p>
 								<button
+									type="button"
 									onClick={() => {
 										navigate(getNotificationsRoute(user));
 										setIsOpen(false);
@@ -297,6 +306,7 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 							</div>
 						) : (
 							<button
+								type="button"
 								onClick={() => {
 									navigate(getNotificationsRoute(user));
 									setIsOpen(false);

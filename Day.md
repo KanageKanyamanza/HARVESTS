@@ -15,6 +15,15 @@ Ajout d'une base de connaissances (cropAdviceData.js) couvrant 20 cultures d'Afr
 Chaque fiche culture indique : saison de semis/récolte, température idéale, besoins en eau, type de sol, durée de cycle, conseils de culture et conseils de conservation post-récolte
 Fonctions de recherche et de correspondance automatique produit -> fiche conseil (par nom/alias)
 
+Jour 16 — Corrections UI notifications & redesign des écrans d'erreur/PWA
+Fix zoom auto iOS/Android à l'ouverture d'un champ texte (font-size < 16px forcée à 16px sous 768px)
+Fix débordement du titre dans la cloche de notifications (min-w-0 manquant dans le flex, cause du texte non tronqué)
+Fix bug "Supprimer" redirigeant vers une 404 : ajout de type="button" et preventDefault sur tous les boutons d'action des notifications (cloche + page complète + actions groupées)
+Redesign de la page 404 (NotFound.jsx) : suppression du panneau de debug exposé en prod, nouveau visuel aux couleurs Harvests
+Redesign de l'écran de secours ErrorBoundary.jsx dans le même langage visuel que la 404
+Redesign de la modale d'installation PWA (PWAInstallModal.jsx) : icônes dédiées par avantage, meilleure hiérarchie visuelle
+Fix débordement de la modale PWA sur petits écrans (hauteur max limitée à 90% de l'écran + défilement interne, espacements resserrés)
+
 Jour 7 — Parcours d'authentification
 
 Refonte de Login et Register (badges, cartes, dégradés de marque)

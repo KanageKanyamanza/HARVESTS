@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiAlertCircle, FiRefreshCw } from 'react-icons/fi';
+import { FiAlertTriangle, FiRefreshCw, FiHome } from 'react-icons/fi';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -51,50 +51,63 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
-            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
-              <FiAlertCircle className="w-6 h-6 text-red-600" />
+        <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-4 py-16 bg-white">
+          {/* Fonds décoratifs */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-[-15%] left-[-10%] w-[45%] h-[45%] bg-rose-100/40 rounded-full blur-[120px]" />
+            <div className="absolute bottom-[-15%] right-[-10%] w-[45%] h-[45%] bg-emerald-100/30 rounded-full blur-[120px]" />
+          </div>
+
+          <div className="relative z-10 max-w-md w-full text-center">
+            <div className="flex items-center justify-center gap-2 text-rose-500 font-black text-[10px] uppercase tracking-widest mb-6">
+              <div className="w-6 h-[2px] bg-rose-500" />
+              <span>Harvests</span>
+              <div className="w-6 h-[2px] bg-rose-500" />
             </div>
-            
-            <div className="text-center">
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Oups ! Une erreur s'est produite
-              </h3>
-              
-              <p className="text-sm text-gray-500 mb-6">
-                Nous avons rencontré un problème inattendu. Veuillez réessayer.
-              </p>
-              
-              <div className="space-y-3">
-                <button
-                  onClick={this.handleRetry}
-                  className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <FiRefreshCw className="w-4 h-4 mr-2" />
-                  Réessayer
-                </button>
-                
-                <button
-                  onClick={() => window.location.reload()}
-                  className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  Recharger la page
-                </button>
+
+            <div className="flex items-center justify-center w-16 h-16 mx-auto bg-rose-50 border border-rose-100 rounded-2xl mb-6 shadow-sm">
+              <FiAlertTriangle className="w-7 h-7 text-rose-500" />
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-[1000] text-gray-900 tracking-tight mb-3">
+              Oups, une erreur s'est produite
+            </h1>
+            <p className="text-gray-500 font-medium mb-8 max-w-sm mx-auto">
+              Nous avons rencontré un problème inattendu. Vous pouvez réessayer
+              ou revenir à l'accueil.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                type="button"
+                onClick={this.handleRetry}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-200"
+              >
+                <FiRefreshCw className="h-4 w-4" />
+                Réessayer
+              </button>
+
+              <button
+                type="button"
+                onClick={() => window.location.assign('/')}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 font-bold text-sm hover:bg-gray-50 transition-colors shadow-sm"
+              >
+                <FiHome className="h-4 w-4" />
+                Accueil
+              </button>
+            </div>
+
+            {process.env.NODE_ENV === 'development' && this.state.error && (
+              <div className="mt-8 text-left border-t border-gray-100 pt-6">
+                <h4 className="text-xs font-black uppercase tracking-widest text-rose-500 mb-2">
+                  Détails du crash (développement uniquement)
+                </h4>
+                <pre className="text-xs text-rose-600 bg-rose-50 p-3 rounded-xl overflow-auto max-h-64 border border-rose-100 shadow-inner whitespace-pre-wrap">
+                  <span className="font-bold block mb-1">{this.state.error.toString()}</span>
+                  {this.state.errorInfo?.componentStack}
+                </pre>
               </div>
-              
-              {process.env.NODE_ENV === 'development' && this.state.error && (
-                <div className="mt-6 text-left border-t border-gray-200 pt-4">
-                  <h4 className="text-sm font-bold text-red-600 mb-2">
-                    Détails du Crash (Uniquement en Développement) :
-                  </h4>
-                  <pre className="text-xs text-red-600 bg-red-50 p-3 rounded-lg overflow-auto max-h-64 border border-red-100 shadow-inner whitespace-pre-wrap">
-                    <span className="font-bold block mb-1">{this.state.error.toString()}</span>
-                    {this.state.errorInfo?.componentStack}
-                  </pre>
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
       );
