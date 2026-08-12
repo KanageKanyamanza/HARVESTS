@@ -23,6 +23,7 @@ import {
 	Share2,
 	ChevronDown,
 	Check,
+	Briefcase,
 } from "lucide-react";
 import logo from "../../assets/logo.png";
 
@@ -173,6 +174,12 @@ const Header = () => {
 			href: "/pricing",
 			current: location.pathname === "/pricing",
 			icon: Tag,
+		},
+		{
+			name: "Investisseurs",
+			href: "/investisseurs",
+			current: location.pathname === "/investisseurs",
+			icon: Briefcase,
 		},
 		// { name: 'Contact', href: '/contact', current: location.pathname === '/contact' },
 	];

@@ -24,6 +24,11 @@ Redesign de l'écran de secours ErrorBoundary.jsx dans le même langage visuel q
 Redesign de la modale d'installation PWA (PWAInstallModal.jsx) : icônes dédiées par avantage, meilleure hiérarchie visuelle
 Fix débordement de la modale PWA sur petits écrans (hauteur max limitée à 90% de l'écran + défilement interne, espacements resserrés)
 
+Jour 17 — Rubrique Investisseurs
+Ajout d'une nouvelle page publique Investors.jsx (/investisseurs) : hero Agritech (même style que Pricing/About), points clés (marché, écosystème multi-acteurs, ancrage régional, impact) et coordonnées de contact
+Formulaire "Demander le pitch deck" pré-rempli, réutilisant le service de contact existant (nouveau type "investor" ajouté côté backend pour le libellé de l'email reçu par les admins)
+Entrée "Investisseurs" ajoutée au menu principal du site et au footer
+
 Jour 7 — Parcours d'authentification
 
 Refonte de Login et Register (badges, cartes, dégradés de marque)

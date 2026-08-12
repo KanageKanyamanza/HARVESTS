@@ -38,6 +38,7 @@ const Footer = () => {
 			{ name: "À propos", href: "/about" },
 			{ name: "Contact", href: "/contact" },
 			{ name: "Tarifs", href: "/pricing" },
+			{ name: "Investisseurs", href: "/investisseurs" },
 			{ name: "FAQs", href: "/help" },
 			{ name: "Conditions d'utilisation", href: "/terms" },
 			{ name: "Politique de confidentialité", href: "/privacy" },

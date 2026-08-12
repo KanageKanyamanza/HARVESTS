@@ -79,7 +79,8 @@ exports.sendContactMessage = catchAsync(async (req, res, next) => {
     support: 'Support technique',
     partnership: 'Partenariat',
     complaint: 'Réclamation',
-    suggestion: 'Suggestion'
+    suggestion: 'Suggestion',
+    investor: 'Demande investisseur (pitch deck)'
   };
 
   const typeLabel = typeLabels[type] || 'Question générale';
