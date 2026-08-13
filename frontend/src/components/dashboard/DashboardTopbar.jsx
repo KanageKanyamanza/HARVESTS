@@ -4,6 +4,8 @@ import { useUserType } from "../../hooks/useUserType";
 import { FiMenu } from "react-icons/fi";
 import CloudinaryImage from "../common/CloudinaryImage";
 import NotificationDropdown from "../notifications/NotificationDropdown";
+import WeatherClockWidget from "./WeatherClockWidget";
+import ProducerQuickStats from "./ProducerQuickStats";
 
 const DashboardTopbar = ({ onMenuClick }) => {
 	const { user, userInitials } = useAuth();
@@ -11,6 +13,9 @@ const DashboardTopbar = ({ onMenuClick }) => {
 
 	// Ne pas afficher le menu utilisateur pour l'admin
 	const isAdmin = user?.role === "admin";
+	// Météo/horloge utile en priorité aux producteurs (activité liée au terrain)
+	const showWeather = user?.userType === "producer" || user?.userType === "transformer";
+	const isProducer = user?.userType === "producer";
 
 	return (
 		<div className="h-16 bg-white shadow-sm border-b border-gray-200 flex-shrink-0">
@@ -22,8 +27,12 @@ const DashboardTopbar = ({ onMenuClick }) => {
 					>
 						<FiMenu className="h-6 w-6" />
 					</button>
+					{showWeather && <WeatherClockWidget city={user?.city} />}
 				</div>
-				<div className="flex items-center space-x-4 ">
+				<div className="flex items-center space-x-2 sm:space-x-4">
+					{/* Commandes en attente / stock faible / ajout rapide - producteurs uniquement */}
+					{isProducer && <ProducerQuickStats />}
+
 					{/* Notifications - seulement si pas admin */}
 					{!isAdmin && <NotificationDropdown />}
 

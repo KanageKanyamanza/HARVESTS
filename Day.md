@@ -29,6 +29,14 @@ Ajout d'une nouvelle page publique Investors.jsx (/investisseurs) : hero Agritec
 Formulaire "Demander le pitch deck" pré-rempli, réutilisant le service de contact existant (nouveau type "investor" ajouté côté backend pour le libellé de l'email reçu par les admins)
 Entrée "Investisseurs" ajoutée au menu principal du site et au footer
 
+Jour 18 — Widget météo & horloge dans le dashboard producteur
+Création de WeatherClockWidget.jsx : horloge en direct (heure + date FR) et météo locale (température, humidité, vent) via l'API gratuite Open-Meteo, sans clé API
+Géolocalisation navigateur avec repli automatique sur Dakar si refusée/indisponible, libellé basé sur la ville du profil si renseignée
+Intégré dans DashboardTopbar.jsx, visible pour les producteurs et transformateurs (activités liées au terrain/à la récolte)
+Script utilitaire create-test-producer.js ajouté pour créer/mettre à jour un compte producteur de test en un clic (email vérifié, compte approuvé)
+Version compacte du widget météo/horloge (icône + température + heure) visible sur mobile, en plus de la version complète desktop
+Ajout de ProducerQuickStats.jsx dans la topbar producteur : badge "commandes en attente", badge "produits en stock faible" (seuil 5 unités) et bouton rapide "Ajouter un produit", visibles sur mobile comme desktop
+
 Jour 7 — Parcours d'authentification
 
 Refonte de Login et Register (badges, cartes, dégradés de marque)
