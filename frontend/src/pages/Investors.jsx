@@ -54,7 +54,7 @@ const Investors = () => {
 			icon: FiTrendingUp,
 			title: "Marché en croissance",
 			description:
-				"L'agritech ouest-africaine connecte producteurs et acheteurs sur un marché encore largement informel.",
+				"L'agritech africaine connecte producteurs et acheteurs sur un marché encore largement informel.",
 		},
 		{
 			icon: FiUsers,
@@ -64,9 +64,9 @@ const Investors = () => {
 		},
 		{
 			icon: FiGlobe,
-			title: "Ancrage local, ambition régionale",
+			title: "Ancrage local, ambition continentale",
 			description:
-				"Lancé au Sénégal, pensé dès l'origine pour s'étendre à l'ensemble de l'Afrique de l'Ouest.",
+				"Lancé au Sénégal, pensé dès l'origine pour s'étendre à l'ensemble du continent africain.",
 		},
 		{
 			icon: FiTarget,
@@ -115,7 +115,7 @@ const Investors = () => {
 						</div>
 
 						<h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight mb-4">
-							Investissez dans l'avenir de l'agriculture ouest-africaine
+							Investissez dans l'avenir de l'agriculture africaine
 						</h1>
 
 						<p className="text-emerald-100/90 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto">
