@@ -37,6 +37,11 @@ Script utilitaire create-test-producer.js ajouté pour créer/mettre à jour un 
 Version compacte du widget météo/horloge (icône + température + heure) visible sur mobile, en plus de la version complète desktop
 Ajout de ProducerQuickStats.jsx dans la topbar producteur : badge "commandes en attente", badge "produits en stock faible" (seuil 5 unités) et bouton rapide "Ajouter un produit", visibles sur mobile comme desktop
 
+Jour 19 — Enrichissement des fiches Conseils agricoles
+Ajout d'un champ "equipment" (engins & matériel nécessaires) sur les 20 fiches culture : houe/daba, arrosoir ou irrigation, pulvérisateur, tuteurs, matériel de récolte selon la culture
+Ajout d'un champ "fertilizer" (conseils de fertilisation) adapté à chaque culture (fumier, NPK, besoins spécifiques en azote/phosphore/potasse)
+Nouvelles sections "Engins & matériel nécessaires" et "Fertilisation" affichées sur les cartes de la page Conseils agricoles (CropAdvice.jsx)
+
 Jour 7 — Parcours d'authentification
 
 Refonte de Login et Register (badges, cartes, dégradés de marque)

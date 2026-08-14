@@ -10,6 +10,8 @@ import {
 	FiCheckCircle,
 	FiPackage,
 	FiInfo,
+	FiTool,
+	FiLayers,
 } from "react-icons/fi";
 import { toPlainText } from "../../../utils/textHelpers";
 import {
@@ -64,6 +66,32 @@ const CropAdviceCard = ({ crop }) => (
 				<div className="font-medium text-gray-800 mb-1">Sol recommandé</div>
 				<p className="text-gray-600">{crop.soil}</p>
 			</div>
+
+			{crop.equipment && crop.equipment.length > 0 && (
+				<div className="flex items-start gap-2">
+					<FiTool className="mt-0.5 text-slate-500 flex-shrink-0" />
+					<div>
+						<div className="font-medium text-gray-800 mb-1">
+							Engins & matériel nécessaires
+						</div>
+						<ul className="list-disc list-inside space-y-1 text-gray-600">
+							{crop.equipment.map((item, i) => (
+								<li key={i}>{item}</li>
+							))}
+						</ul>
+					</div>
+				</div>
+			)}
+
+			{crop.fertilizer && (
+				<div className="flex items-start gap-2">
+					<FiLayers className="mt-0.5 text-yellow-700 flex-shrink-0" />
+					<div>
+						<span className="font-medium text-gray-800">Fertilisation : </span>
+						{crop.fertilizer}
+					</div>
+				</div>
+			)}
 
 			<div>
 				<div className="font-medium text-gray-800 mb-1">Conseils de culture</div>
