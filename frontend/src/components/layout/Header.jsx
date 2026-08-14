@@ -176,9 +176,9 @@ const Header = () => {
 			icon: Tag,
 		},
 		{
-			name: "Investisseurs",
-			href: "/investisseurs",
-			current: location.pathname === "/investisseurs",
+			name: "Invest",
+			href: "/invest",
+			current: location.pathname === "/invest",
 			icon: Briefcase,
 		},
 		// { name: 'Contact', href: '/contact', current: location.pathname === '/contact' },

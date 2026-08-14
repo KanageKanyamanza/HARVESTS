@@ -99,7 +99,7 @@ const Investors = () => {
 	return (
 		<div className="min-h-screen bg-[#F8FAF6] pb-16">
 			<SEOHead
-				title="Investisseurs"
+				title="Invest"
 				description="Contactez l'équipe Harvests pour recevoir le pitch deck et échanger sur les opportunités d'investissement."
 			/>
 
@@ -111,7 +111,7 @@ const Investors = () => {
 					<div className="relative z-10 max-w-3xl mx-auto">
 						<div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-4">
 							<Briefcase className="w-4 h-4 text-[#31BC2E]" />
-							<span>Espace Investisseurs</span>
+							<span>Espace Invest</span>
 						</div>
 
 						<h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight mb-4">

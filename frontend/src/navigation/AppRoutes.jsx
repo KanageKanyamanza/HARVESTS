@@ -430,7 +430,7 @@ const AppRoutes = () => {
 				}
 			/>
 			<Route
-				path="/investisseurs"
+				path="/invest"
 				element={
 					<Layout>
 						<SuspenseRoute element={<Investors />} />
