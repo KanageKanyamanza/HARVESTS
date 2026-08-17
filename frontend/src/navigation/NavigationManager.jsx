@@ -33,6 +33,7 @@ import {
 	FiBell,
 	FiFileText,
 	FiMessageCircle,
+	FiSun,
 } from "react-icons/fi";
 import { FaChartBar } from "react-icons/fa";
 
@@ -197,6 +198,11 @@ export const generateSidebarNavigation = (user, icons = {}) => {
 			},
 			{ name: "Commandes", href: getOrdersRoute(user), icon: ShoppingBagIcon },
 			{ name: "Avis reçus", href: "/producer/reviews", icon: StarIcon },
+			{
+				name: "Conseils agricoles",
+				href: "/producer/crop-advice",
+				icon: FiSun,
+			},
 			{ name: "Statistiques", href: "/producer/stats", icon: ChartBarIcon },
 			{
 				name: "Notifications",

@@ -50,6 +50,7 @@ const FAQ = React.lazy(() => import("../pages/FAQ"));
 const Terms = React.lazy(() => import("../pages/Terms"));
 const Privacy = React.lazy(() => import("../pages/Privacy"));
 const Pricing = React.lazy(() => import("../pages/Pricing"));
+const Investors = React.lazy(() => import("../pages/Investors"));
 const LoyaltyProgram = React.lazy(() => import("../pages/LoyaltyProgram"));
 const BlogPage = React.lazy(() => import("../pages/BlogPage"));
 const BlogDetailPage = React.lazy(() => import("../pages/BlogDetailPage"));
@@ -425,6 +426,14 @@ const AppRoutes = () => {
 				element={
 					<Layout>
 						<SuspenseRoute element={<Pricing />} />
+					</Layout>
+				}
+			/>
+			<Route
+				path="/invest"
+				element={
+					<Layout>
+						<SuspenseRoute element={<Investors />} />
 					</Layout>
 				}
 			/>

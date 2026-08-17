@@ -78,6 +78,7 @@ const NotificationCard = ({
           <div className="mt-3 flex items-center justify-end space-x-2 pt-3 border-t border-gray-200">
             {!notification.read && (
               <button
+                type="button"
                 onClick={onMarkAsRead}
                 className="flex items-center px-3 py-1.5 text-sm text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors"
               >
@@ -86,6 +87,7 @@ const NotificationCard = ({
               </button>
             )}
             <button
+              type="button"
               onClick={onDelete}
               className="flex items-center px-3 py-1.5 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
             >

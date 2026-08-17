@@ -41,6 +41,9 @@ const DocumentsPage = React.lazy(
 	() => import("../../../pages/dashboard/common/DocumentsPage"),
 );
 const Messages = React.lazy(() => import("../../../pages/Messages"));
+const CropAdvice = React.lazy(
+	() => import("../../../pages/dashboard/producer/CropAdvice"),
+);
 
 export const producerRoutes = [
 	{
@@ -107,6 +110,11 @@ export const producerRoutes = [
 		path: "/producer/documents",
 		element: <DocumentsPage />,
 		title: "Documents & Certifications",
+	},
+	{
+		path: "/producer/crop-advice",
+		element: <CropAdvice />,
+		title: "Conseils agricoles",
 	},
 	{
 		path: "/producer/messages/:id",

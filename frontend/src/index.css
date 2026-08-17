@@ -28,6 +28,15 @@
 		@apply text-xl md:text-2xl mb-3;
 	}
 
+	/* Empêche le zoom auto iOS/Android quand la police d'un champ est < 16px */
+	@media (max-width: 767px) {
+		input,
+		textarea,
+		select {
+			font-size: 16px !important;
+		}
+	}
+
 	h2 {
 		@apply text-lg md:text-xl mb-2;
 	}
@@ -266,6 +275,34 @@
 
 	.bg-pattern {
 		@apply bg-hero-pattern;
+	}
+
+	/* Scrollbar globale fine et quasi invisible (desktop) */
+	html {
+		scrollbar-width: thin;
+		scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
+	}
+
+	*::-webkit-scrollbar {
+		width: 6px;
+		height: 6px;
+	}
+
+	*::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	*::-webkit-scrollbar-thumb {
+		background-color: rgba(0, 0, 0, 0.12);
+		border-radius: 9999px;
+	}
+
+	*::-webkit-scrollbar-thumb:hover {
+		background-color: rgba(0, 0, 0, 0.28);
+	}
+
+	*::-webkit-scrollbar-corner {
+		background: transparent;
 	}
 
 	/* Scrollbar custom */
