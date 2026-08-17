@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "../../../hooks/useAuth";
 import { producerService } from "../../../services";
 import {
@@ -12,6 +13,8 @@ import {
 	FiInfo,
 	FiTool,
 	FiLayers,
+	FiX,
+	FiChevronRight,
 } from "react-icons/fi";
 import { toPlainText } from "../../../utils/textHelpers";
 import {
@@ -21,8 +24,13 @@ import {
 	searchCropAdvice,
 } from "../../../data/cropAdviceData";
 
-const CropAdviceCard = ({ crop }) => (
-	<div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+// Carte compacte : résumé cliquable pour ouvrir la fiche complète
+const CropAdviceCard = ({ crop, onOpen }) => (
+	<button
+		type="button"
+		onClick={() => onOpen(crop)}
+		className="text-left bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md hover:border-harvests-primary/30 transition-all group"
+	>
 		<div className="flex items-center justify-between mb-3">
 			<h3 className="text-lg font-semibold text-gray-900">{crop.name}</h3>
 			<span className="text-xs px-2 py-1 rounded-full bg-harvests-light text-harvests-primary font-medium">
@@ -31,97 +39,161 @@ const CropAdviceCard = ({ crop }) => (
 			</span>
 		</div>
 
-		<div className="space-y-3 text-sm text-gray-700">
+		<div className="space-y-2 text-sm text-gray-600">
 			<div className="flex items-start gap-2">
 				<FiSun className="mt-0.5 text-amber-500 flex-shrink-0" />
-				<div>
-					<span className="font-medium">{crop.season.label}</span>
-					<div className="text-gray-500">
-						Semis : {crop.season.sowing} · Récolte : {crop.season.harvest}
-					</div>
-					{crop.season.note && (
-						<div className="text-xs text-gray-400 mt-1">{crop.season.note}</div>
-					)}
-				</div>
+				<span>{crop.season.label}</span>
 			</div>
-
 			<div className="flex items-center gap-2">
 				<FiThermometer className="text-red-500 flex-shrink-0" />
 				<span>
-					Température idéale : {crop.idealTemp.min}°C - {crop.idealTemp.max}°C
+					{crop.idealTemp.min}°C - {crop.idealTemp.max}°C
 				</span>
 			</div>
-
-			<div className="flex items-start gap-2">
-				<FiDroplet className="mt-0.5 text-blue-500 flex-shrink-0" />
-				<span>{crop.water}</span>
-			</div>
-
 			<div className="flex items-center gap-2">
-				<FiCalendar className="text-gray-500 flex-shrink-0" />
+				<FiCalendar className="text-gray-400 flex-shrink-0" />
 				<span>Cycle : {crop.cycleDays}</span>
 			</div>
+		</div>
 
-			<div>
-				<div className="font-medium text-gray-800 mb-1">Sol recommandé</div>
-				<p className="text-gray-600">{crop.soil}</p>
-			</div>
+		<div className="mt-4 flex items-center justify-between text-sm font-medium text-harvests-primary">
+			<span>Voir la fiche complète</span>
+			<FiChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+		</div>
+	</button>
+);
 
-			{crop.equipment && crop.equipment.length > 0 && (
-				<div className="flex items-start gap-2">
-					<FiTool className="mt-0.5 text-slate-500 flex-shrink-0" />
+// Modale : détails complets d'une culture
+const CropAdviceModal = ({ crop, onClose }) => {
+	if (!crop) return null;
+
+	return createPortal(
+		<div
+			className="fixed inset-0 z-[9999] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4"
+			onClick={onClose}
+		>
+			<div
+				className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto"
+				onClick={(e) => e.stopPropagation()}
+			>
+				<div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+					<div>
+						<h3 className="text-xl font-bold text-gray-900">{crop.name}</h3>
+						<span className="text-xs px-2 py-0.5 rounded-full bg-harvests-light text-harvests-primary font-medium">
+							{cropCategories.find((c) => c.value === crop.category)?.label ||
+								crop.category}
+						</span>
+					</div>
+					<button
+						type="button"
+						onClick={onClose}
+						className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+						aria-label="Fermer"
+					>
+						<FiX className="h-5 w-5" />
+					</button>
+				</div>
+
+				<div className="p-6 space-y-4 text-sm text-gray-700">
+					<div className="flex items-start gap-2">
+						<FiSun className="mt-0.5 text-amber-500 flex-shrink-0" />
+						<div>
+							<span className="font-medium">{crop.season.label}</span>
+							<div className="text-gray-500">
+								Semis : {crop.season.sowing} · Récolte : {crop.season.harvest}
+							</div>
+							{crop.season.note && (
+								<div className="text-xs text-gray-400 mt-1">
+									{crop.season.note}
+								</div>
+							)}
+						</div>
+					</div>
+
+					<div className="flex items-center gap-2">
+						<FiThermometer className="text-red-500 flex-shrink-0" />
+						<span>
+							Température idéale : {crop.idealTemp.min}°C - {crop.idealTemp.max}°C
+						</span>
+					</div>
+
+					<div className="flex items-start gap-2">
+						<FiDroplet className="mt-0.5 text-blue-500 flex-shrink-0" />
+						<span>{crop.water}</span>
+					</div>
+
+					<div className="flex items-center gap-2">
+						<FiCalendar className="text-gray-500 flex-shrink-0" />
+						<span>Cycle : {crop.cycleDays}</span>
+					</div>
+
+					<div>
+						<div className="font-medium text-gray-800 mb-1">Sol recommandé</div>
+						<p className="text-gray-600">{crop.soil}</p>
+					</div>
+
+					{crop.equipment && crop.equipment.length > 0 && (
+						<div className="flex items-start gap-2">
+							<FiTool className="mt-0.5 text-slate-500 flex-shrink-0" />
+							<div>
+								<div className="font-medium text-gray-800 mb-1">
+									Engins & matériel nécessaires
+								</div>
+								<ul className="list-disc list-inside space-y-1 text-gray-600">
+									{crop.equipment.map((item, i) => (
+										<li key={i}>{item}</li>
+									))}
+								</ul>
+							</div>
+						</div>
+					)}
+
+					{crop.fertilizer && (
+						<div className="flex items-start gap-2">
+							<FiLayers className="mt-0.5 text-yellow-700 flex-shrink-0" />
+							<div>
+								<span className="font-medium text-gray-800">
+									Fertilisation :{" "}
+								</span>
+								{crop.fertilizer}
+							</div>
+						</div>
+					)}
+
 					<div>
 						<div className="font-medium text-gray-800 mb-1">
-							Engins & matériel nécessaires
+							Conseils de culture
 						</div>
 						<ul className="list-disc list-inside space-y-1 text-gray-600">
-							{crop.equipment.map((item, i) => (
-								<li key={i}>{item}</li>
+							{crop.tips.map((tip, i) => (
+								<li key={i}>{tip}</li>
 							))}
 						</ul>
 					</div>
-				</div>
-			)}
 
-			{crop.fertilizer && (
-				<div className="flex items-start gap-2">
-					<FiLayers className="mt-0.5 text-yellow-700 flex-shrink-0" />
-					<div>
-						<span className="font-medium text-gray-800">Fertilisation : </span>
-						{crop.fertilizer}
+					<div className="flex items-start gap-2">
+						<FiCheckCircle className="mt-0.5 text-green-600 flex-shrink-0" />
+						<div>
+							<span className="font-medium text-gray-800">Récolte : </span>
+							{crop.harvestTips}
+						</div>
+					</div>
+
+					<div className="flex items-start gap-2">
+						<FiPackage className="mt-0.5 text-orange-500 flex-shrink-0" />
+						<div>
+							<span className="font-medium text-gray-800">
+								Après récolte :{" "}
+							</span>
+							{crop.postHarvest}
+						</div>
 					</div>
 				</div>
-			)}
-
-			<div>
-				<div className="font-medium text-gray-800 mb-1">Conseils de culture</div>
-				<ul className="list-disc list-inside space-y-1 text-gray-600">
-					{crop.tips.map((tip, i) => (
-						<li key={i}>{tip}</li>
-					))}
-				</ul>
 			</div>
-
-			<div className="flex items-start gap-2">
-				<FiCheckCircle className="mt-0.5 text-green-600 flex-shrink-0" />
-				<div>
-					<span className="font-medium text-gray-800">Récolte : </span>
-					{crop.harvestTips}
-				</div>
-			</div>
-
-			<div className="flex items-start gap-2">
-				<FiPackage className="mt-0.5 text-orange-500 flex-shrink-0" />
-				<div>
-					<span className="font-medium text-gray-800">
-						Après récolte :{" "}
-					</span>
-					{crop.postHarvest}
-				</div>
-			</div>
-		</div>
-	</div>
-);
+		</div>,
+		document.body
+	);
+};
 
 const CropAdvice = () => {
 	const { user } = useAuth();
@@ -129,6 +201,7 @@ const CropAdvice = () => {
 	const [loadingProducts, setLoadingProducts] = useState(true);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [categoryFilter, setCategoryFilter] = useState("all");
+	const [selectedCrop, setSelectedCrop] = useState(null);
 
 	useEffect(() => {
 		const loadProducts = async () => {
@@ -192,7 +265,8 @@ const CropAdvice = () => {
 					</h1>
 					<p className="text-gray-500 mt-1">
 						Saisons, températures et bonnes pratiques pour bien réussir vos
-						cultures et vos récoltes.
+						cultures et vos récoltes. Cliquez sur une carte pour voir la fiche
+						complète.
 					</p>
 				</div>
 
@@ -203,7 +277,11 @@ const CropAdvice = () => {
 						</h2>
 						<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
 							{myProductsAdvice.map((crop) => (
-								<CropAdviceCard key={crop.id} crop={crop} />
+								<CropAdviceCard
+									key={crop.id}
+									crop={crop}
+									onOpen={setSelectedCrop}
+								/>
 							))}
 						</div>
 					</div>
@@ -257,12 +335,18 @@ const CropAdvice = () => {
 						</div>
 					:	<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
 							{filteredCatalog.map((crop) => (
-								<CropAdviceCard key={crop.id} crop={crop} />
+								<CropAdviceCard
+									key={crop.id}
+									crop={crop}
+									onOpen={setSelectedCrop}
+								/>
 							))}
 						</div>
 					}
 				</div>
 			</div>
+
+			<CropAdviceModal crop={selectedCrop} onClose={() => setSelectedCrop(null)} />
 		</div>
 	);
 };

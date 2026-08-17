@@ -42,6 +42,12 @@ Ajout d'un champ "equipment" (engins & matériel nécessaires) sur les 20 fiches
 Ajout d'un champ "fertilizer" (conseils de fertilisation) adapté à chaque culture (fumier, NPK, besoins spécifiques en azote/phosphore/potasse)
 Nouvelles sections "Engins & matériel nécessaires" et "Fertilisation" affichées sur les cartes de la page Conseils agricoles (CropAdvice.jsx)
 
+Jour 20 — Cartes cliquables sur la page Conseils agricoles
+Les cartes de culture affichent désormais un résumé compact (saison, température, cycle) au lieu de toutes les infos d'un coup
+Clic sur une carte pour ouvrir une modale avec la fiche complète (sol, engins, fertilisation, conseils de culture, récolte, conservation)
+Scrollbars globales (site entier, y compris la modale) rendues fines et quasi invisibles : 6px, semi-transparentes, visibles seulement au survol
+Fix modale masquée derrière la topbar du dashboard : rendue désormais via React Portal (createPortal vers document.body) pour échapper au contexte d'empilement du layout, au lieu de dépendre d'un simple z-index
+
 Jour 7 — Parcours d'authentification
 
 Refonte de Login et Register (badges, cartes, dégradés de marque)
