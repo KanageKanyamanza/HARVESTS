@@ -48,6 +48,12 @@ Clic sur une carte pour ouvrir une modale avec la fiche complète (sol, engins, 
 Scrollbars globales (site entier, y compris la modale) rendues fines et quasi invisibles : 6px, semi-transparentes, visibles seulement au survol
 Fix modale masquée derrière la topbar du dashboard : rendue désormais via React Portal (createPortal vers document.body) pour échapper au contexte d'empilement du layout, au lieu de dépendre d'un simple z-index
 
+Jour 21 — Remplacement des modales par des pages dédiées (Conseils agricoles)
+Suppression de la modale CropAdviceModal : chaque carte mène désormais vers une vraie page /producer/crop-advice/:cropId (CropAdviceDetail.jsx)
+Nouvelle route ajoutée dans producerRoutes.jsx
+Page détail avec zone image en haut (bandeau 16:6, placeholder "Image à venir" tant que crop.image n'est pas renseigné) pour préparer l'ajout futur des visuels par culture
+Cartes de la liste également préparées avec une vignette image (16:9, même logique de placeholder)
+
 Jour 7 — Parcours d'authentification
 
 Refonte de Login et Register (badges, cartes, dégradés de marque)
