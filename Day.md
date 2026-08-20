@@ -1,18 +1,7 @@
-Jour 22 — Intégration des vraies images de culture (tomate, oignon, pomme de terre)
-Intégration des images fournies (générées par l'utilisateur) pour les 4 étapes de pousse de la tomate : semis/pépinière, repiquage/tuteurage, floraison/fruits verts, récolte
-Idem pour l'oignon (pépinière, repiquage, bulbification, ressuyage), la pomme de terre (préparation des semences, plantation en billons, floraison/buttage, récolte), le manioc (préparation des boutures, plantation, croissance/développement, récolte), le maïs (semis, croissance/irrigation, floraison/épis, récolte), le mil (semis en poquets, démariage, formation de l'épi, battage) et l'arachide (semis, croissance, floraison/gousses, récolte) — aucun n'avait d'étapes de pousse détaillées auparavant, et les images héros de maïs/mil/arachide (auparavant peu pertinentes) ont aussi été remplacées
-Vérification visuelle systématique de chaque image avant intégration pour écarter les visuels non pertinents (testé aussi via banques libres de droits Openverse/Wikimedia Commons, trop aléatoires pour ce niveau de précision)
-Images d'engins/équipement de la tomate laissées en l'état pour l'instant (non prioritaire), puis finalement fournies et intégrées (houe/daba, tuteurs bambou, goutte-à-goutte, pulvérisateur à dos), remplaçant les anciennes photos de banques libres peu pertinentes
-Cartes "Engins & matériel" et "Étapes de pousse" agrandies sur la page détail : passage à 2 par ligne, image 16:9 avec dégradé et badge (au lieu de petites vignettes 4:3), textes agrandis
-Catalogue d'engins génériques (equipmentCatalog) enrichi avec 6 vraies photos (houe/daba, tuteurs, goutte-à-goutte, motopompe, arrosage/aspersion, pulvérisateur à dos), séparées en catégories distinctes (tuteurs et houe/daba étaient à tort regroupées) — s'appliquent automatiquement à toutes les cultures via la correspondance par mots-clés, sans toucher aux fiches individuelles
-Puis complété avec "Tracteur & Motoculteur" et "Semoir & Matériel de plantation". Il ne manque plus que "Moissonneuse/Batteuse/Faucille" (maïs, mil, arachide, riz, haricot vert, mangue, niébé)
-Nouvelles images héros (vignettes de carte) pour riz, maïs, manioc, mil, oignon et arachide : gros plans produit (grains, épis, gousses, bulbes) remplaçant les photos peu flatteuses issues des banques libres
-
 Jour 23 — Fix déconnexion automatique après actualisation de la page
-Diagnostic : le cookie refreshToken (httpOnly, 7 jours) était configuré en sameSite:"strict", qui bloque son envoi sur toute requête cross-site — or le frontend (harvests.site) et le backend (Render) sont sur des domaines différents en production
-Conséquence : dès que l'access token (15 min) expirait, la tentative de rafraîchissement automatique échouait systématiquement (cookie jamais envoyé), provoquant une déconnexion forcée vers /login, typiquement remarquée après une actualisation de page (restoreSession relance un appel API avec le token expiré)
-Fix : sameSite passe à "none" (associé à secure:true, obligatoire en HTTPS) en production, tout en gardant "lax" en développement local (HTTP, où "none" serait rejeté par le navigateur)
-Correction appliquée à la fois sur le cookie utilisateur (authController.js) et sur le cookie admin (adminAuthController.js)
+Le cookie de session bloquait le renouvellement automatique de connexion car frontend et backend sont sur des domaines différents en production
+Résultat : l'utilisateur était déconnecté de force après 15 minutes, surtout visible après une actualisation de page
+Corrigé en ajustant les réglages du cookie (utilisateur + admin) pour qu'il soit bien transmis entre les deux domaines
 
 Jour 24 — Fix scroll non remis à zéro au changement de page (dashboard)
 Diagnostic : ScrollToTop.jsx existait déjà mais utilise window.scrollTo, qui n'a aucun effet dans le dashboard (producteur, consommateur, etc.) car le contenu défile dans un conteneur dédié (overflow-y-auto) et non dans la fenêtre — la position de scroll restait donc figée en changeant de page (ex: ouvrir le détail d'une culture après avoir scrollé dans la liste)

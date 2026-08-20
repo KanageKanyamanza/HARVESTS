@@ -18,11 +18,14 @@ const signRefreshToken = (id) => {
 };
 
 const setRefreshCookie = (res, req, refreshToken) => {
+  const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
   res.cookie('adminRefreshToken', refreshToken, {
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     httpOnly: true,
-    secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
-    sameSite: 'strict',
+    secure: isSecure,
+    // Frontend et backend sur des domaines différents en prod : 'strict'/'lax'
+    // bloquent l'envoi du cookie cross-site, cassant le refresh silencieux.
+    sameSite: isSecure ? 'none' : 'lax',
     path: '/api/v1/admin/auth/refresh',
   });
 };
