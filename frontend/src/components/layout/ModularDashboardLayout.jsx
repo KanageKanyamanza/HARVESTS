@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import DashboardSidebarFixed from "../dashboard/DashboardSidebarFixed";
@@ -11,6 +11,7 @@ import pushService from "../../services/pushService";
 const ModularDashboardLayout = ({ children, navigationItems, user }) => {
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const location = useLocation();
+	const contentRef = useRef(null);
 	// Charger l'état collapsed depuis localStorage
 	const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
 		const saved = localStorage.getItem("harvests_sidebar_collapsed");
@@ -50,6 +51,13 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
 	// Fermer le sidebar mobile lors d'un changement de route
 	useEffect(() => {
 		setSidebarOpen(false);
+	}, [location.pathname]);
+
+	// Remonter en haut de la zone de contenu à chaque changement de route.
+	// Le scroll global (window.scrollTo dans ScrollToTop) n'a aucun effet ici
+	// car le contenu défile dans ce conteneur dédié, pas dans la fenêtre.
+	useEffect(() => {
+		contentRef.current?.scrollTo(0, 0);
 	}, [location.pathname]);
 
 	const handleLogout = async () => {
@@ -141,6 +149,7 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
 
 			{/* Contenu - SEULE zone scrollable */}
 			<div
+				ref={contentRef}
 				className={`fixed right-0 bottom-0 overflow-y-auto bg-harvests-light transition-all duration-300 ${
 					sidebarCollapsed ? "left-24" : "left-0 lg:left-64"
 				}`}
