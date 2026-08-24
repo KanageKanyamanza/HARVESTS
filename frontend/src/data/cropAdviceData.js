@@ -10,6 +10,111 @@ export const cropCategories = [
 	{ value: "spices", label: "Épices" },
 ];
 
+export const defaultGrowthStages = [
+	{
+		id: "semis",
+		phase: "Étape 1",
+		name: "Semis & Pépinière",
+		period: "Début de cycle (Jours 1 - 25)",
+		image: "/images/stages/semis_pepiniere.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=800&q=80",
+		description: "Sélection des semences saines, préparation des composts/planches et arrosage délicat des jeunes pousses.",
+	},
+	{
+		id: "croissance",
+		phase: "Étape 2",
+		name: "Croissance Végétative",
+		period: "Milieu de cycle (Jours 25 - 60)",
+		image: "/images/stages/croissance_vegetative.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80",
+		description: "Développement actif du feuillage et des racines, sarclage, buttage et apport d'engrais organique.",
+	},
+	{
+		id: "floraison",
+		phase: "Étape 3",
+		name: "Floraison & Fructification",
+		period: "Stade critique (Jours 60 - 90)",
+		image: "/images/stages/floraison_fructification.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=800&q=80",
+		description: "Apparition des fleurs et formation des fruits ou tubercules. Maintien d'une irrigation constante sans excès.",
+	},
+	{
+		id: "recolte",
+		phase: "Étape 4",
+		name: "Récolte & Maturité",
+		period: "Fin de cycle (Jours 90 - 120)",
+		image: "/images/stages/recolte_maturite.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1595855759920-86582396756a?auto=format&fit=crop&w=800&q=80",
+		description: "Collecte manuelle ou mécanique des récoltes mûres à la fraîcheur du matin, suivie du tri et séchage.",
+	},
+];
+
+export const equipmentCatalog = [
+	{
+		keywords: ["houe", "daba", "binette", "machette", "râteau"],
+		name: "Outillage Manuel (Daba & Houe)",
+		category: "Préparation & Entretien",
+		image: "/images/equipment/daba_outils.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=800&q=80",
+	},
+	{
+		keywords: ["tuteur", "tuteurs", "étançon", "étançons"],
+		name: "Tuteurs Bambou & Bois",
+		category: "Support de croissance",
+		image: "/images/equipment/tuteurs.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1561136594-7f68413baa99?auto=format&fit=crop&w=800&q=80",
+	},
+	{
+		keywords: ["goutte-à-goutte", "goutte à goutte"],
+		name: "Système Goutte-à-Goutte",
+		category: "Irrigation localisée",
+		image: "/images/equipment/irrigation_goutte.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1563514227147-6d2ff665a6a0?auto=format&fit=crop&w=800&q=80",
+	},
+	{
+		keywords: ["motopompe"],
+		name: "Motopompe",
+		category: "Pompage de l'eau",
+		image: "/images/equipment/motopompe.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1563514227147-6d2ff665a6a0?auto=format&fit=crop&w=800&q=80",
+	},
+	{
+		keywords: ["aspersion", "arrosoir", "irrigation", "canal"],
+		name: "Système d'Arrosage & Aspersion",
+		category: "Gestion de l'eau",
+		image: "/images/equipment/aspersion.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1563514227147-6d2ff665a6a0?auto=format&fit=crop&w=800&q=80",
+	},
+	{
+		keywords: ["pulvérisateur", "pulverisateur", "traitements"],
+		name: "Pulvérisateur agricole à dos",
+		category: "Protection des Cultures",
+		image: "/images/equipment/pulverisateur.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1589923188900-85dae523342b?auto=format&fit=crop&w=800&q=80",
+	},
+	{
+		keywords: ["tracteur", "motoculteur", "charrue", "labour"],
+		name: "Tracteur & Motoculteur",
+		category: "Motorisation & Labour",
+		image: "/images/equipment/tracteur_motoculteur.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1530267981675-7ab3f16787c8?auto=format&fit=crop&w=800&q=80",
+	},
+	{
+		keywords: ["semoir", "repiqueuse"],
+		name: "Semoir & Matériel de Plantation",
+		category: "Semis & Repiquage",
+		image: "/images/equipment/semoir_charrue.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80",
+	},
+	{
+		keywords: ["moissonneuse", "batteuse", "égrenage", "arracheuse", "faucille", "caisses"],
+		name: "Équipement de Récolte & Battage",
+		category: "Récolte & Conditionnement",
+		image: "/images/equipment/moissonneuse_batteuse.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1592982537447-7440770cbfc9?auto=format&fit=crop&w=800&q=80",
+	},
+];
+
 // idealTemp en °C, cycle en jours
 export const cropAdviceData = [
 	{
@@ -17,6 +122,8 @@ export const cropAdviceData = [
 		name: "Tomate",
 		aliases: ["tomate", "tomates", "tomato"],
 		category: "vegetables",
+		image: "/images/tomate/hero.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=1200&q=80",
 		season: {
 			label: "Saison sèche fraîche (contre-saison)",
 			sowing: "Octobre à Décembre",
@@ -26,11 +133,35 @@ export const cropAdviceData = [
 		idealTemp: { min: 18, max: 27 },
 		water: "Arrosage régulier, sans excès. Pailler le sol pour garder l'humidité et éviter les maladies au contact de la terre.",
 		soil: "Sol meuble, riche en matière organique, bien drainé, pH 6-6.8",
-		equipment: [
-			"Houe/daba pour la préparation du sol",
-			"Arrosoir ou système goutte-à-goutte",
-			"Tuteurs en bois ou bambou",
-			"Pulvérisateur à dos pour les traitements",
+		equipmentDetails: [
+			{
+				name: "Houe & Daba de préparation",
+				category: "Préparation du sol",
+				image: "/images/tomate/equip_daba.jpg",
+				fallbackUrl: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=800&q=80",
+				description: "Confection des billons surélevés et ameublissement profond du sol.",
+			},
+			{
+				name: "Tuteurs Bambou & Bois (1.5m)",
+				category: "Support de croissance",
+				image: "/images/tomate/equip_tuteurs.jpg",
+				fallbackUrl: "https://images.unsplash.com/photo-1561136594-7f68413baa99?auto=format&fit=crop&w=800&q=80",
+				description: "Maintien des tiges verticales pour éviter le contact des fruits avec la terre humide.",
+			},
+			{
+				name: "Système Goutte-à-Goutte",
+				category: "Irrigation localisée",
+				image: "/images/tomate/equip_goutte.jpg",
+				fallbackUrl: "https://images.unsplash.com/photo-1563514227147-6d2ff665a6a0?auto=format&fit=crop&w=800&q=80",
+				description: "Arrosage direct au pied évitant l'aspersion sur les feuilles (anti-mildiou).",
+			},
+			{
+				name: "Pulvérisateur à dos",
+				category: "Protection phytosanitaire",
+				image: "/images/tomate/equip_pulverisateur.jpg",
+				fallbackUrl: "https://images.unsplash.com/photo-1589923188900-85dae523342b?auto=format&fit=crop&w=800&q=80",
+				description: "Traitements préventifs bio (neem, bouillie bordelaise) contre chenilles et mildiou.",
+			},
 		],
 		fertilizer:
 			"Fumier bien décomposé au labour, puis apport NPK équilibré en cours de cycle. Un complément calcique aide à éviter la pourriture apicale des fruits.",
@@ -44,12 +175,52 @@ export const cropAdviceData = [
 			"Récolter quand le fruit change de couleur (vert clair à rouge/orange selon variété), le matin de préférence pour limiter le flétrissement.",
 		postHarvest:
 			"Conserver à l'ombre, ventilé, 8-10°C idéalement. Éviter l'entassement qui accélère le pourrissement.",
+		growthStages: [
+			{
+				id: "semis",
+				phase: "Étape 1",
+				name: "Semis & Pépinière de Tomates",
+				period: "Jour 1 à 25",
+				image: "/images/tomate/stage_semis.jpg",
+				fallbackUrl: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=800&q=80",
+				description: "Semis en caissettes ombragées. Germination des graines et apparition des premières jeunes pousses de tomates.",
+			},
+			{
+				id: "croissance",
+				phase: "Étape 2",
+				name: "Repiquage & Tuteurage",
+				period: "Jour 25 à 55",
+				image: "/images/tomate/stage_croissance.jpg",
+				fallbackUrl: "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=800&q=80",
+				description: "Repiquage au champ à 50 cm d'intervalle. Pose des tuteurs et ébourgeonnage (suppression des gourmands).",
+			},
+			{
+				id: "floraison",
+				phase: "Étape 3",
+				name: "Floraison & Formation des Fruits Verts",
+				period: "Jour 55 à 85",
+				image: "/images/tomate/stage_floraison.jpg",
+				fallbackUrl: "https://images.unsplash.com/photo-1596196507371-209028882583?auto=format&fit=crop&w=800&q=80",
+				description: "Apparition des petites fleurs jaunes et grossissement des grappes de tomates encore vertes.",
+			},
+			{
+				id: "recolte",
+				phase: "Étape 4",
+				name: "Récolte des Tomates Rouges",
+				period: "Jour 85 à 120",
+				image: "/images/tomate/stage_recolte.jpg",
+				fallbackUrl: "https://images.unsplash.com/photo-1576181256399-83563454b679?auto=format&fit=crop&w=800&q=80",
+				description: "Ceuillette manuelle des tomates rouges et fermes. Conditionnement délicat dans des cagettes aérées.",
+			},
+		],
 	},
 	{
 		id: "oignon",
 		name: "Oignon",
 		aliases: ["oignon", "oignons", "onion"],
 		category: "vegetables",
+		image: "/images/crops/oignon.png",
+		fallbackUrl: "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cf?auto=format&fit=crop&w=800&q=80",
 		season: {
 			label: "Saison sèche",
 			sowing: "Octobre à Novembre (pépinière)",
@@ -77,12 +248,48 @@ export const cropAdviceData = [
 			"Récolter quand les feuilles jaunissent et se couchent naturellement.",
 		postHarvest:
 			"Faire sécher (ressuyage) 1 à 2 semaines à l'ombre avant stockage dans un endroit sec, aéré et frais.",
+		growthStages: [
+			{
+				id: "semis",
+				phase: "Étape 1",
+				name: "Pépinière (45 jours)",
+				period: "Octobre - Novembre",
+				image: "/images/oignon/stage_semis.jpg",
+				description: "Semis dense en planches affinées et désinfectées. Arrosage régulier à l'arrosoir fine pomme.",
+			},
+			{
+				id: "croissance",
+				phase: "Étape 2",
+				name: "Repiquage & Feuillage",
+				period: "Décembre - Janvier",
+				image: "/images/oignon/stage_croissance.jpg",
+				description: "Habillage des racines et repiquage en lignes espacées de 15 cm. Sarclages fréquents.",
+			},
+			{
+				id: "floraison",
+				phase: "Étape 3",
+				name: "Bulbification",
+				period: "Février - Mars",
+				image: "/images/oignon/stage_floraison.jpg",
+				description: "Grossissement des bulbes. Arrosage abondant et soutien potassique.",
+			},
+			{
+				id: "recolte",
+				phase: "Étape 4",
+				name: "Maturité & Ressuyage",
+				period: "Mars - Avril",
+				image: "/images/oignon/stage_recolte.jpg",
+				description: "Arrêt de l'arrosage, tombaison des fanes et séchage au soleil avant mise en sacs aérés.",
+			},
+		],
 	},
 	{
 		id: "pomme-de-terre",
 		name: "Pomme de terre",
 		aliases: ["pomme de terre", "pommes de terre", "potato"],
 		category: "tubers",
+		image: "/images/crops/pomme-de-terre.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1590165482129-1b8b27698780?auto=format&fit=crop&w=1200&q=80",
 		season: {
 			label: "Saison sèche fraîche",
 			sowing: "Octobre à Décembre",
@@ -110,12 +317,48 @@ export const cropAdviceData = [
 			"Récolter quand le feuillage jaunit et sèche complètement.",
 		postHarvest:
 			"Stocker au sec, à l'obscurité et au frais (10-15°C) pour éviter la germination et le verdissement.",
+		growthStages: [
+			{
+				id: "semis",
+				phase: "Étape 1",
+				name: "Préparation des semences",
+				period: "Semaine 1",
+				image: "/images/pomme-de-terre/stage_semis.jpg",
+				description: "Sélection de plants germés sains, triés en caisses aérées avant la mise en terre.",
+			},
+			{
+				id: "croissance",
+				phase: "Étape 2",
+				name: "Plantation en billons",
+				period: "Semaines 2 à 4",
+				image: "/images/pomme-de-terre/stage_croissance.jpg",
+				description: "Mise en terre des plants germés en lignes espacées, sur billons pour faciliter le buttage.",
+			},
+			{
+				id: "floraison",
+				phase: "Étape 3",
+				name: "Floraison & Buttage",
+				period: "Semaines 5 à 9",
+				image: "/images/pomme-de-terre/stage_floraison.jpg",
+				description: "Apparition des fleurs blanches, signe de la formation des tubercules. Buttage pour les protéger de la lumière.",
+			},
+			{
+				id: "recolte",
+				phase: "Étape 4",
+				name: "Récolte",
+				period: "Semaines 10 à 16",
+				image: "/images/pomme-de-terre/stage_recolte.jpg",
+				description: "Arrachage des tubercules quand le feuillage jaunit et sèche, tri et mise en caisses aérées.",
+			},
+		],
 	},
 	{
 		id: "manioc",
 		name: "Manioc",
 		aliases: ["manioc", "cassava"],
 		category: "tubers",
+		image: "/images/crops/manioc.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1626200419199-391ae4be7a41?auto=format&fit=crop&w=1200&q=80",
 		season: {
 			label: "Toute l'année (idéalement en début d'hivernage)",
 			sowing: "Mai à Juillet (début des pluies)",
@@ -142,12 +385,48 @@ export const cropAdviceData = [
 			"Récolte échelonnée possible ; test sur un plant pour vérifier la taille des racines.",
 		postHarvest:
 			"Se conserve mal frais (2-4 jours) : transformer rapidement (gari, cossette, farine) ou vendre vite après récolte.",
+		growthStages: [
+			{
+				id: "semis",
+				phase: "Étape 1",
+				name: "Préparation des boutures",
+				period: "Semaine 1",
+				image: "/images/manioc/stage_semis.jpg",
+				description: "Sélection de tiges saines et vigoureuses, découpées en boutures de 20-25 cm à la machette.",
+			},
+			{
+				id: "croissance",
+				phase: "Étape 2",
+				name: "Plantation des boutures",
+				period: "Semaines 1 à 2",
+				image: "/images/manioc/stage_croissance.jpg",
+				description: "Mise en terre en billons, boutures plantées légèrement inclinées pour favoriser l'enracinement.",
+			},
+			{
+				id: "floraison",
+				phase: "Étape 3",
+				name: "Croissance & Développement",
+				period: "Mois 2 à 8",
+				image: "/images/manioc/stage_floraison.jpg",
+				description: "Développement du feuillage et formation des racines tubéreuses sous terre. Sarclages réguliers.",
+			},
+			{
+				id: "recolte",
+				phase: "Étape 4",
+				name: "Récolte",
+				period: "8 à 18 mois selon variété",
+				image: "/images/manioc/stage_recolte.jpg",
+				description: "Arrachage des racines à maturité, tri et transport rapide vers la transformation ou la vente.",
+			},
+		],
 	},
 	{
 		id: "mais",
 		name: "Maïs",
 		aliases: ["mais", "maïs", "corn", "mil maïs"],
 		category: "cereals",
+		image: "/images/mais/hero.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80",
 		season: {
 			label: "Hivernage (saison des pluies)",
 			sowing: "Juin à Juillet",
@@ -175,12 +454,48 @@ export const cropAdviceData = [
 			"Récolter quand les grains sont durs et les spathes/enveloppes sèches.",
 		postHarvest:
 			"Bien sécher les épis avant stockage (humidité <14%) pour éviter moisissures et aflatoxines.",
+		growthStages: [
+			{
+				id: "semis",
+				phase: "Étape 1",
+				name: "Semis",
+				period: "Juin - Juillet",
+				image: "/images/mais/stage_semis.jpg",
+				description: "Semis des grains en poquets après les premières pluies installées, pour sécuriser la levée.",
+			},
+			{
+				id: "croissance",
+				phase: "Étape 2",
+				name: "Croissance & Irrigation",
+				period: "Semaines 3 à 8",
+				image: "/images/mais/stage_croissance.jpg",
+				description: "Développement du feuillage, apport d'azote en couverture au stade 6-8 feuilles, arrosage régulier.",
+			},
+			{
+				id: "floraison",
+				phase: "Étape 3",
+				name: "Floraison & Formation des épis",
+				period: "Semaines 8 à 12",
+				image: "/images/mais/stage_floraison.jpg",
+				description: "Apparition de la panicule mâle et des soies sur l'épi. Stade critique pour le stress hydrique.",
+			},
+			{
+				id: "recolte",
+				phase: "Étape 4",
+				name: "Récolte",
+				period: "Septembre à Novembre",
+				image: "/images/mais/stage_recolte.jpg",
+				description: "Récolte quand les grains sont durs et les spathes sèches, épis triés en cagettes ou paniers.",
+			},
+		],
 	},
 	{
 		id: "mil",
 		name: "Mil",
 		aliases: ["mil", "millet"],
 		category: "cereals",
+		image: "/images/mil/hero.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=800&q=80",
 		season: {
 			label: "Hivernage (saison des pluies)",
 			sowing: "Mai à Juin",
@@ -207,12 +522,48 @@ export const cropAdviceData = [
 			"Couper les épis quand les grains sont durs et le feuillage sec.",
 		postHarvest:
 			"Battre et bien sécher au soleil avant stockage en sac ou grenier ventilé.",
+		growthStages: [
+			{
+				id: "semis",
+				phase: "Étape 1",
+				name: "Semis en poquets",
+				period: "Mai - Juin",
+				image: "/images/mil/stage_semis.jpg",
+				description: "Semis en poquets espacés de 80 cm à 1 m, sur sol sableux préparé.",
+			},
+			{
+				id: "croissance",
+				phase: "Étape 2",
+				name: "Croissance & Démariage",
+				period: "Semaines 3 à 6",
+				image: "/images/mil/stage_croissance.jpg",
+				description: "Démariage (éclaircissage) des plants et irrigation d'appoint si disponible.",
+			},
+			{
+				id: "floraison",
+				phase: "Étape 3",
+				name: "Formation de l'épi",
+				period: "Semaines 7 à 10",
+				image: "/images/mil/stage_floraison.jpg",
+				description: "Formation caractéristique de l'épi cylindrique du mil. Surveillance des oiseaux granivores.",
+			},
+			{
+				id: "recolte",
+				phase: "Étape 4",
+				name: "Récolte & Battage",
+				period: "Septembre - Octobre",
+				image: "/images/mil/stage_recolte.jpg",
+				description: "Coupe des épis à maturité, battage et séchage au soleil avant stockage en grenier ventilé.",
+			},
+		],
 	},
 	{
 		id: "arachide",
 		name: "Arachide",
 		aliases: ["arachide", "arachides", "groundnut", "peanut"],
 		category: "legumes",
+		image: "/images/arachide/hero.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1599599810769-bcde5a160d32?auto=format&fit=crop&w=800&q=80",
 		season: {
 			label: "Hivernage (saison des pluies)",
 			sowing: "Juin à Juillet",
@@ -239,12 +590,48 @@ export const cropAdviceData = [
 			"Arracher quand les feuilles jaunissent et les gousses sont bien formées (vérifier par sondage).",
 		postHarvest:
 			"Sécher au soleil sur bâche ou aire propre plusieurs jours avant stockage, à l'abri de l'humidité.",
+		growthStages: [
+			{
+				id: "semis",
+				phase: "Étape 1",
+				name: "Semis",
+				period: "Juin - Juillet",
+				image: "/images/arachide/stage_semis.jpg",
+				description: "Semis des graines décortiquées en poquets, sur sol sableux léger.",
+			},
+			{
+				id: "croissance",
+				phase: "Étape 2",
+				name: "Croissance végétative",
+				period: "Semaines 3 à 6",
+				image: "/images/arachide/stage_croissance.jpg",
+				description: "Développement du feuillage en rangs. Désherbage et buttage léger.",
+			},
+			{
+				id: "floraison",
+				phase: "Étape 3",
+				name: "Floraison & Formation des gousses",
+				period: "Semaines 6 à 10",
+				image: "/images/arachide/stage_floraison.jpg",
+				description: "Floraison jaune caractéristique, pénétration des gynophores dans le sol pour former les gousses.",
+			},
+			{
+				id: "recolte",
+				phase: "Étape 4",
+				name: "Récolte",
+				period: "Octobre - Novembre",
+				image: "/images/arachide/stage_recolte.jpg",
+				description: "Arrachage quand les feuilles jaunissent, séchage au soleil avant stockage à l'abri de l'humidité.",
+			},
+		],
 	},
 	{
 		id: "riz",
 		name: "Riz",
 		aliases: ["riz", "rice"],
 		category: "cereals",
+		image: "/images/crops/riz.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1586201375761-83865001e8ac?auto=format&fit=crop&w=800&q=80",
 		season: {
 			label: "Hivernage (pluvial) ou toute l'année (irrigué)",
 			sowing: "Juin-Juillet (pluvial) / possible en contre-saison si irrigué",
@@ -278,6 +665,8 @@ export const cropAdviceData = [
 		name: "Igname",
 		aliases: ["igname", "ignames", "yam"],
 		category: "tubers",
+		image: "/images/crops/igname.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80",
 		season: {
 			label: "Hivernage",
 			sowing: "Mars à Mai (buttage et plantation)",
@@ -310,6 +699,8 @@ export const cropAdviceData = [
 		name: "Piment",
 		aliases: ["piment", "piments", "pepper", "chili"],
 		category: "spices",
+		image: "/images/crops/piment.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1588252303782-7ee9a3d46337?auto=format&fit=crop&w=800&q=80",
 		season: {
 			label: "Saison sèche ou hivernage (culture possible presque toute l'année si irrigué)",
 			sowing: "Toute l'année en pépinière si irrigation disponible",
@@ -343,6 +734,8 @@ export const cropAdviceData = [
 		name: "Aubergine",
 		aliases: ["aubergine", "aubergines", "eggplant"],
 		category: "vegetables",
+		image: "/images/crops/aubergine.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=800&q=80",
 		season: {
 			label: "Saison sèche ou hivernage",
 			sowing: "Toute l'année si irrigation disponible",
@@ -376,6 +769,8 @@ export const cropAdviceData = [
 		name: "Gombo",
 		aliases: ["gombo", "gombos", "okra"],
 		category: "vegetables",
+		image: "/images/crops/gombo.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?auto=format&fit=crop&w=800&q=80",
 		season: {
 			label: "Hivernage principalement",
 			sowing: "Mai à Juillet",
@@ -409,6 +804,8 @@ export const cropAdviceData = [
 		name: "Chou",
 		aliases: ["chou", "choux", "cabbage"],
 		category: "vegetables",
+		image: "/images/crops/chou.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1598170845058-12db4576905b?auto=format&fit=crop&w=800&q=80",
 		season: {
 			label: "Saison sèche fraîche",
 			sowing: "Octobre à Décembre",
@@ -442,6 +839,8 @@ export const cropAdviceData = [
 		name: "Carotte",
 		aliases: ["carotte", "carottes", "carrot"],
 		category: "vegetables",
+		image: "/images/crops/carotte.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1447175008436-08417142ea96?auto=format&fit=crop&w=800&q=80",
 		season: {
 			label: "Saison sèche fraîche",
 			sowing: "Octobre à Décembre",
@@ -474,6 +873,8 @@ export const cropAdviceData = [
 		name: "Haricot vert",
 		aliases: ["haricot vert", "haricots verts", "green bean"],
 		category: "legumes",
+		image: "/images/crops/haricot-vert.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?auto=format&fit=crop&w=800&q=80",
 		season: {
 			label: "Saison sèche fraîche",
 			sowing: "Octobre à Décembre",
@@ -507,6 +908,8 @@ export const cropAdviceData = [
 		name: "Banane",
 		aliases: ["banane", "bananes", "banana"],
 		category: "fruits",
+		image: "/images/crops/banane.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1528825871115-3581a5387919?auto=format&fit=crop&w=800&q=80",
 		season: {
 			label: "Production toute l'année (zones irriguées/humides)",
 			sowing: "Plantation en début d'hivernage idéalement",
@@ -540,6 +943,8 @@ export const cropAdviceData = [
 		name: "Mangue",
 		aliases: ["mangue", "mangues", "mango"],
 		category: "fruits",
+		image: "/images/crops/mangue.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=800&q=80",
 		season: {
 			label: "Récolte en saison chaude, avant l'hivernage",
 			sowing: "Culture pérenne (arbre), plantation en début d'hivernage",
@@ -573,6 +978,8 @@ export const cropAdviceData = [
 		name: "Papaye",
 		aliases: ["papaye", "papayes", "papaya"],
 		category: "fruits",
+		image: "/images/crops/papaye.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1617112848923-cc2234396a8d?auto=format&fit=crop&w=800&q=80",
 		season: {
 			label: "Production toute l'année",
 			sowing: "Plantation en début d'hivernage de préférence",
@@ -605,6 +1012,8 @@ export const cropAdviceData = [
 		name: "Pastèque",
 		aliases: ["pasteque", "pastèque", "pasteques", "pastèques", "watermelon"],
 		category: "fruits",
+		image: "/images/crops/pasteque.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1587049352847-4a222e784d38?auto=format&fit=crop&w=800&q=80",
 		season: {
 			label: "Saison sèche ou début d'hivernage",
 			sowing: "Février à Avril (irrigué) ou Juin (pluvial)",
@@ -638,6 +1047,8 @@ export const cropAdviceData = [
 		name: "Niébé (haricot local)",
 		aliases: ["niebe", "niébé", "haricot niebe", "cowpea"],
 		category: "legumes",
+		image: "/images/crops/niebe.jpg",
+		fallbackUrl: "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80",
 		season: {
 			label: "Hivernage",
 			sowing: "Juin à Juillet",
@@ -666,6 +1077,39 @@ export const cropAdviceData = [
 			"Bien sécher avant stockage, traiter contre la bruche (insecte ravageur des graines stockées).",
 	},
 ];
+
+// Helper pour obtenir les étapes de croissance d'une culture avec fallback
+export const getCropGrowthStages = (crop) => {
+	if (crop && Array.isArray(crop.growthStages) && crop.growthStages.length > 0) {
+		return crop.growthStages;
+	}
+	return defaultGrowthStages;
+};
+
+// Helper pour obtenir les détails illustrés des engins et matériel
+export const getCropEquipmentDetails = (crop) => {
+	if (crop && Array.isArray(crop.equipmentDetails) && crop.equipmentDetails.length > 0) {
+		return crop.equipmentDetails;
+	}
+	if (!crop || !Array.isArray(crop.equipment)) return equipmentCatalog.slice(0, 4);
+
+	const matched = [];
+	const lowerEq = crop.equipment.map((e) => e.toLowerCase());
+
+	equipmentCatalog.forEach((item) => {
+		const isMatch = item.keywords.some((kw) =>
+			lowerEq.some((eqStr) => eqStr.includes(kw))
+		);
+		if (isMatch) {
+			matched.push(item);
+		}
+	});
+
+	if (matched.length === 0) {
+		return equipmentCatalog.slice(0, 4);
+	}
+	return matched;
+};
 
 // Cherche une fiche de conseils correspondant à un nom de produit (ex: nom saisi par le producteur)
 export const findCropAdviceByName = (productName = "") => {

@@ -24,11 +24,17 @@ const signRefreshToken = (id) => {
 };
 
 const setRefreshCookie = (res, req, refreshToken) => {
+	const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
 	res.cookie('refreshToken', refreshToken, {
 		expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
 		httpOnly: true,
-		secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
-		sameSite: 'strict',
+		secure: isSecure,
+		// 'strict'/'lax' empêchent l'envoi du cookie sur les requêtes cross-site
+		// (frontend et backend sur des domaines différents en prod) : le refresh
+		// échouait alors systématiquement, déconnectant l'utilisateur dès que
+		// l'access token (15 min) expirait. 'none' nécessite secure:true, donc
+		// uniquement en HTTPS (prod) ; en dev HTTP on garde 'lax'.
+		sameSite: isSecure ? 'none' : 'lax',
 		path: '/api/v1/auth/refresh',
 	});
 };
