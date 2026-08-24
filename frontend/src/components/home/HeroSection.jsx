@@ -178,7 +178,7 @@ const HeroSection = () => {
 								to="/register"
 								className="w-full sm:w-auto px-6 py-3.5 rounded-full bg-white/90 hover:bg-white text-[#1A5514] border border-emerald-600/30 font-bold text-sm sm:text-base shadow-sm hover:shadow transition-all duration-200 flex items-center justify-center gap-2"
 							>
-								Devenir Vendeur / Producteur
+								Devenir Producteur / Partenaire
 							</Link>
 						</div>
 					</div>

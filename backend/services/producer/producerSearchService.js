@@ -16,6 +16,7 @@ function buildAllProducersQuery(queryParams) {
 		"lang",
 		"useLocation",
 		"locationQuery",
+		"namesOnly",
 	];
 	excludedFields.forEach((el) => delete baseQueryObj[el]);
 
@@ -52,8 +53,12 @@ function buildAllProducersQuery(queryParams) {
 	baseQueryObj.isApproved = true;
 	baseQueryObj.isEmailVerified = true;
 	baseQueryObj.isShopVisible = { $ne: false };
-	// Les producteurs doivent avoir une bannière (shopBanner) pour être visibles en public
-	baseQueryObj.shopBanner = { $exists: true, $ne: null };
+	// Les producteurs doivent avoir une bannière (shopBanner) pour être visibles sur la
+	// marketplace (cartes complètes) — sauf pour un simple listing de noms (ex: bandeau
+	// défilant), où exiger une bannière exclurait à tort la plupart des producteurs.
+	if (queryParams.namesOnly !== "true") {
+		baseQueryObj.shopBanner = { $exists: true, $ne: null };
+	}
 
 	return baseQueryObj;
 }

@@ -227,7 +227,7 @@ const Vendeurs = () => {
 	if (loading) {
 		return (
 			<div className="min-h-screen bg-harvests-light flex items-center justify-center">
-				<LoadingSpinner size="lg" text="Chargement des vendeurs..." />
+				<LoadingSpinner size="lg" text="Chargement des partenaires..." />
 			</div>
 		);
 	}
@@ -245,7 +245,7 @@ const Vendeurs = () => {
 				{/* Hero Header Area */}
 				<div className="text-center space-y-3 max-w-2xl mx-auto mb-8 animate-in fade-in duration-700">
 					<h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight leading-none">
-						Découvrez nos <span className="text-emerald-600">Vendeurs Locaux</span>
+						Découvrez nos <span className="text-emerald-600">Partenaires Locaux</span>
 					</h1>
 					<p className="text-xs sm:text-sm text-gray-500 font-medium max-w-md mx-auto">
 						Explorez les producteurs, transformateurs et restaurateurs près de chez vous proposant des produits frais et de qualité supérieure.
@@ -425,7 +425,7 @@ const Vendeurs = () => {
 					<div className="text-center py-20 bg-white/50 backdrop-blur-md rounded-[2rem] border border-gray-100 max-w-lg mx-auto">
 						<FiPackage className="w-12 h-12 text-gray-300 mx-auto mb-4" />
 						<h3 className="text-lg font-[1000] text-gray-900 tracking-tight mb-1">
-							Aucun vendeur trouvé
+							Aucun partenaire trouvé
 						</h3>
 						<p className="text-xs text-gray-500 font-medium px-6">
 							Essayez de modifier vos filtres ou votre recherche pour découvrir d'autres partenaires.

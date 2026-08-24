@@ -287,7 +287,7 @@ const BlogPage = () => {
 				</div>
 
 				{/* Toolbar Sticky (Sous la Navbar 108px) */}
-				<div className="sticky top-16 sm:top-20 lg:top-[116px] z-30 bg-white/95 backdrop-blur-md rounded-2xl shadow-md border border-emerald-100/90 p-3 sm:p-4 mb-6 transition-all">
+				<div className="sticky top-[var(--app-header-height)] z-30 bg-white/95 backdrop-blur-md rounded-2xl shadow-md border border-emerald-100/90 p-3 sm:p-4 mb-6 transition-all">
 					<div className="flex flex-col md:flex-row items-center justify-between gap-3">
 
 						{/* Search Input */}

@@ -26,7 +26,7 @@ const ProductFilters = ({
     priceRange.max;
 
   return (
-    <div className="bg-white rounded-t-3xl md:rounded-2xl md:shadow-sm border border-emerald-100/90 flex flex-col min-h-0 flex-1 md:flex-none md:self-start md:sticky md:top-[140px] md:h-auto shadow-[0_-8px_30px_-8px_rgba(0,0,0,0.15)] md:shadow-sm">
+    <div className="bg-white rounded-t-3xl md:rounded-2xl md:shadow-sm border border-emerald-100/90 flex flex-col min-h-0 flex-1 md:flex-none md:self-start md:sticky md:top-[calc(var(--app-header-height)+32px)] md:h-auto shadow-[0_-8px_30px_-8px_rgba(0,0,0,0.15)] md:shadow-sm">
       {/* Poignée (mobile) */}
       <div className="md:hidden flex justify-center pt-2.5 pb-1 shrink-0">
         <span className="w-10 h-1.5 rounded-full bg-gray-200" />

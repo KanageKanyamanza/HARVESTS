@@ -7,6 +7,9 @@
 	html {
 		font-family: Inter, system-ui, sans-serif;
 		background-color: #ffffff;
+		/* Valeur de repli avant la première mesure JS (Layout.jsx) de la
+		   hauteur réelle du bloc Header + VendorsNewsTicker */
+		--app-header-height: 108px;
 	}
 
 	body {
@@ -35,34 +38,6 @@
 		select {
 			font-size: 16px !important;
 		}
-	}
-
-	h2 {
-		@apply text-lg md:text-xl mb-2;
-	}
-
-	h3 {
-		@apply text-base md:text-lg mb-2;
-	}
-
-	h4 {
-		@apply text-sm md:text-base mb-1;
-	}
-
-	p {
-		@apply text-xs md:text-sm leading-relaxed mb-2;
-	}
-
-	ul {
-		@apply list-disc list-inside mb-2;
-	}
-
-	ol {
-		@apply list-decimal list-inside mb-2;
-	}
-
-	li {
-		@apply text-xs md:text-sm mb-1;
 	}
 }
 
@@ -247,7 +222,7 @@
 
 	/* Dashboard Compact Mode - High Density */
 	.dashboard-compact-mode {
-		zoom: 0.75; /* Requested exactly 75% zoom effect */
+		zoom: 0.80; /* Requested exactly 75% zoom effect */
 	}
 
 	@media (max-width: 1024px) {
@@ -265,6 +240,33 @@
 	to {
 		opacity: 1;
 		transform: translateX(0);
+	}
+}
+
+/* Défilement continu façon bandeau JT (VendorsNewsTicker) */
+@keyframes vendorsTicker {
+	from {
+		transform: translateX(0);
+	}
+	to {
+		transform: translateX(-50%);
+	}
+}
+
+/* Durée par défaut (avant mesure JS) ; VendorsNewsTicker.jsx recalcule
+   ensuite animation-duration en fonction de la largeur réelle du contenu,
+   pour que tous les noms défilent lisiblement quel que soit leur nombre. */
+.animate-vendors-ticker {
+	animation: vendorsTicker 20s linear infinite;
+}
+
+.animate-vendors-ticker:hover {
+	animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.animate-vendors-ticker {
+		animation: none;
 	}
 }
 

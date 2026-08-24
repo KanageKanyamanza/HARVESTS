@@ -120,7 +120,7 @@ const Cart = () => {
 										</h4>
 										<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-3">
 											Par{" "}
-											{item.producer?.name || item.producerName || "Vendeur"}
+											{item.producer?.name || item.producerName || "Partenaire"}
 										</p>
 										<div className="flex items-center gap-3">
 											<span className="text-lg font-[1000] text-blue-600 tracking-tighter">

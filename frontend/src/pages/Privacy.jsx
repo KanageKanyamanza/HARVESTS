@@ -76,7 +76,7 @@ const Privacy = () => {
                   Nous pouvons partager vos données avec :
                 </p>
                 <ul className="list-disc list-inside text-gray-600 space-y-2">
-                  <li><strong>Les vendeurs</strong> : pour le traitement de vos commandes</li>
+                  <li><strong>Les partenaires (producteurs, transformateurs, restaurateurs)</strong> : pour le traitement de vos commandes</li>
                   <li><strong>Les transporteurs</strong> : pour la livraison de vos produits</li>
                   <li><strong>Les prestataires de paiement</strong> : pour le traitement sécurisé des transactions</li>
                   <li><strong>Les autorités légales</strong> : si requis par la loi</li>
