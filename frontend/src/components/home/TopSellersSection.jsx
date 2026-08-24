@@ -131,7 +131,7 @@ const TopSellersSection = () => {
             <span>Producteurs Certifiés & Boutiques</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#161D14]">
-            Vendeurs & Fermes à la Une
+            Producteurs & Fermes à la Une
           </h2>
           <p className="text-sm text-gray-600 mt-0.5">Achetez en direct auprès des meilleurs producteurs vérifiés</p>
         </div>

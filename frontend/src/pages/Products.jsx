@@ -95,7 +95,7 @@ const Products = () => {
 				</div>
 
 				{/* Sticky Toolbar under dual navbar */}
-				<div className="sticky top-16 sm:top-20 lg:top-[108px] z-30 bg-white/95 backdrop-blur-md rounded-2xl border border-gray-200/90 shadow-sm p-3.5 mb-6">
+				<div className="sticky top-[var(--app-header-height)] z-30 bg-white/95 backdrop-blur-md rounded-2xl border border-gray-200/90 shadow-sm p-3.5 mb-6">
 					<div className="flex flex-wrap items-center justify-between gap-3">
 
 						{/* Quick Mobile Filter button & Total counter */}
@@ -161,7 +161,7 @@ const Products = () => {
 				<div className="flex flex-col md:flex-row gap-6">
 
 					{/* Sidebar Filters */}
-					<div className={`w-full md:w-64 lg:w-72 flex-shrink-0 ${showFilters ? "fixed inset-x-0 bottom-0 top-16 z-50 flex flex-col md:static md:top-auto md:z-auto" : "hidden md:block"}`}>
+					<div className={`w-full md:w-64 lg:w-72 flex-shrink-0 ${showFilters ? "fixed inset-x-0 bottom-0 top-[var(--app-header-height)] z-50 flex flex-col md:static md:top-auto md:z-auto" : "hidden md:block"}`}>
 						<ProductFilters
 							showFilters={showFilters}
 							setShowFilters={setShowFilters}

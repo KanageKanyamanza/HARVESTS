@@ -49,7 +49,7 @@ const FAQ = () => {
 				},
 				{
 					q: "Quels sont les frais de livraison ?",
-					a: "Les frais de livraison sont calculés en fonction de la distance et du poids. Ils sont offerts pour toute commande supérieure à 50 000 FCFA (selon le plan du vendeur).",
+					a: "Les frais de livraison sont calculés en fonction de la distance et du poids. Ils sont offerts pour toute commande supérieure à 50 000 FCFA (selon le plan du partenaire).",
 				},
 				{
 					q: "Quels sont les délais de livraison ?",
@@ -79,19 +79,19 @@ const FAQ = () => {
 			],
 		},
 		{
-			category: "Vendeurs",
+			category: "Partenaires",
 			questions: [
 				{
-					q: "Comment devenir vendeur sur Harvests ?",
-					a: "Créez un compte vendeur (producteur, transformateur ou restaurateur), complétez votre profil avec vos informations et documents requis, puis soumettez votre demande de validation.",
+					q: "Comment devenir partenaire sur Harvests ?",
+					a: "Créez un compte partenaire (producteur, transformateur ou restaurateur), complétez votre profil avec vos informations et documents requis, puis soumettez votre demande de validation.",
 				},
 				{
-					q: "Quels sont les frais pour les vendeurs ?",
+					q: "Quels sont les frais pour les partenaires ?",
 					a: "Harvests prélève une commission sur chaque vente. Les taux varient selon le type de compte et le volume de ventes. Consultez nos plans tarifaires pour plus de détails.",
 				},
 				{
 					q: "Comment gérer mes produits ?",
-					a: "Depuis votre tableau de bord vendeur, vous pouvez ajouter, modifier ou supprimer vos produits, gérer vos stocks et suivre vos commandes.",
+					a: "Depuis votre tableau de bord, vous pouvez ajouter, modifier ou supprimer vos produits, gérer vos stocks et suivre vos commandes.",
 				},
 			],
 		},

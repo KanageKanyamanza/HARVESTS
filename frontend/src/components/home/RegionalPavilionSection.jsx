@@ -92,7 +92,7 @@ const RegionalPavilionSection = () => {
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#161D14]">
             Pavillons Régionaux & Monuments
           </h2>
-          <p className="text-sm text-gray-600 mt-1">Explorez les spécialités agricoles et vendeurs certifiés de chaque pays</p>
+          <p className="text-sm text-gray-600 mt-1">Explorez les spécialités agricoles et partenaires certifiés de chaque pays</p>
         </div>
         <Link to="/products" className="hidden md:flex text-xs sm:text-sm font-bold text-[#1A5514] hover:text-[#31BC2E] transition-colors items-center gap-1">
           Voir tous les pays →

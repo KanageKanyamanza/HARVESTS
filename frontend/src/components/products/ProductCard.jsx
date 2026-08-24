@@ -92,8 +92,8 @@ const ProductCard = ({ product, viewMode = "grid" }) => {
 	};
 
 	const getVendorName = (vendor) => {
-		if (!vendor) return "Vendeur";
-		if (typeof vendor === 'string') return "Vendeur local";
+		if (!vendor) return "Partenaire";
+		if (typeof vendor === 'string') return "Partenaire local";
 
 		if (vendor.restaurantName && vendor.restaurantName !== "À compléter") {
 			return vendor.restaurantName;
@@ -111,7 +111,7 @@ const ProductCard = ({ product, viewMode = "grid" }) => {
 			const lastName = vendor.lastName && vendor.lastName !== "À compléter" ? vendor.lastName : "";
 			return `${vendor.firstName} ${lastName}`.trim();
 		}
-		return vendor.user?.companyName || "Vendeur";
+		return vendor.user?.companyName || "Partenaire";
 	};
 
 	/* Mode Liste */

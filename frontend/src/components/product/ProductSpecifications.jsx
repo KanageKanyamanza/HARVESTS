@@ -194,7 +194,7 @@ const ProductSpecifications = ({ product, producer, user, statusConfig }) => {
 				<div className="bg-white rounded-lg p-6 shadow-sm border">
 					<h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
 						<FiUser className="h-5 w-5 mr-2" />
-						Informations du vendeur
+						Informations du partenaire
 					</h3>
 					<div className="space-y-3">
 						<InfoRow label="Nom" value={getVendorName(producer)} />

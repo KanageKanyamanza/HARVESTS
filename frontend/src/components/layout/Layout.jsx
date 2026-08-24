@@ -1,8 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import AOS from "aos";
 import Header from "./Header";
 import Footer from "./Footer";
+import VendorsNewsTicker from "../home/VendorsNewsTicker";
 import MobileBottomNav from "./MobileBottomNav";
 import ChatBot from "../chat/ChatBot";
 import SEOHead from "../seo/SEOHead";
@@ -11,6 +12,28 @@ import { useSEO } from "../../hooks/useSEO";
 const Layout = ({ children, className = "", seo }) => {
 	const location = useLocation();
 	const seoConfig = useSEO(seo);
+	const stickyHeaderRef = useRef(null);
+
+	// Mesure en direct la hauteur réelle du bloc Header + VendorsNewsTicker
+	// (variable : le bandeau ne s'affiche que si des producteurs sont chargés)
+	// et l'expose en variable CSS pour que les barres "sticky" des autres
+	// pages (filtres, toolbars) se calent dessus au lieu d'un offset codé en dur.
+	useEffect(() => {
+		const el = stickyHeaderRef.current;
+		if (!el) return;
+
+		const updateHeight = () => {
+			document.documentElement.style.setProperty(
+				"--app-header-height",
+				`${el.offsetHeight}px`
+			);
+		};
+
+		updateHeight();
+		const observer = new ResizeObserver(updateHeight);
+		observer.observe(el);
+		return () => observer.disconnect();
+	}, []);
 
 	// Sur la page d'accueil, ne pas appliquer de fond pour permettre la navbar transparente
 	const isHomePage = location.pathname === "/";
@@ -50,7 +73,10 @@ const Layout = ({ children, className = "", seo }) => {
 			{/* SEO Head pour toutes les pages publiques */}
 			<SEOHead {...seoConfig} />
 
-			<Header />
+			<div ref={stickyHeaderRef} className="sticky top-0 z-40">
+				<Header />
+				<VendorsNewsTicker />
+			</div>
 
 			<main className={`flex-1 pb-16 md:pb-0 ${className}`}>{children}</main>
 

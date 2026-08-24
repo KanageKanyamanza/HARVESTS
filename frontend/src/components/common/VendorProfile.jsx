@@ -71,7 +71,7 @@ const VendorProfile = ({
 		// la tentative échoue en 401 et finit par déconnecter l'admin.
 		if (user.role === "admin" || user.userType === "admin") {
 			window.alert(
-				"Les comptes administrateur ne peuvent pas utiliser la messagerie client. Contactez le vendeur depuis un compte standard."
+				"Les comptes administrateur ne peuvent pas utiliser la messagerie client. Contactez le partenaire depuis un compte standard."
 			);
 			return;
 		}
@@ -262,7 +262,7 @@ const VendorProfile = ({
 						Profil non trouvé
 					</h1>
 					<p className="text-xs text-gray-500 mb-6">
-						Ce vendeur n'existe pas ou n'est plus disponible.
+						Ce partenaire n'existe pas ou n'est plus disponible.
 					</p>
 					<button
 						onClick={() => navigate("/producteurs")}
@@ -292,7 +292,7 @@ const VendorProfile = ({
 	return (
 		<div className="min-h-screen bg-[#F8FAF6] pb-16">
 			{/* Top Bar Navigation */}
-			<div className="bg-white/95 backdrop-blur-md border-b border-gray-200/80 sticky top-16 sm:top-20 lg:top-[108px] z-30">
+			<div className="bg-white/95 backdrop-blur-md border-b border-gray-200/80 sticky top-[var(--app-header-height)] z-30">
 				<div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
 					<button
 						onClick={() => navigate(-1)}
@@ -305,7 +305,7 @@ const VendorProfile = ({
 					<div className="flex items-center gap-2">
 						<span className="text-xs font-extrabold text-[#161D14] hidden sm:inline">{getVendorName(vendor)}</span>
 						<span className="bg-emerald-50 text-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-100 uppercase">
-							{vendorType === 'producer' ? 'Producteur' : vendorType === 'transformer' ? 'Transformateur' : 'Vendeur'}
+							{vendorType === 'producer' ? 'Producteur' : vendorType === 'transformer' ? 'Transformateur' : 'Partenaire'}
 						</span>
 					</div>
 				</div>
@@ -327,7 +327,7 @@ const VendorProfile = ({
 						{/* Verified Badge Top Right */}
 						<div className="absolute top-4 right-4 bg-[#1A5514] backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-extrabold shadow-md flex items-center gap-1.5 border border-white/20">
 							<FiCheckCircle className="w-4 h-4 text-emerald-400" />
-							<span>Vendeur Vérifié</span>
+							<span>Partenaire Vérifié</span>
 						</div>
 					</div>
 
@@ -356,7 +356,7 @@ const VendorProfile = ({
 									className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-extrabold text-white bg-[#1A5514] hover:bg-[#31BC2E] transition-all shadow-md active:scale-95"
 								>
 									<FiMessageCircle className="w-4 h-4" />
-									<span>Contacter le vendeur</span>
+									<span>Contacter le partenaire</span>
 								</button>
 							</div>
 						</div>

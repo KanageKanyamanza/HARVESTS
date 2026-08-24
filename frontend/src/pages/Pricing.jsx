@@ -22,7 +22,7 @@ const Pricing = () => {
 			description:
 				"Idéal pour les agriculteurs individuels souhaitant tester la visibilité de leurs produits sur le marketplace.",
 			features: [
-				{ text: "Création de profil vendeur certifié", included: true },
+				{ text: "Création de profil partenaire certifié", included: true },
 				{ text: "Mise en ligne de 5 produits max", included: true },
 				{ text: "5 commandes reçues par semaine", included: true },
 				{ text: "Messagerie directe avec acheteurs", included: true },
@@ -116,7 +116,7 @@ const Pricing = () => {
 	return (
 		<div className="min-h-screen bg-[#F8FAF6] pb-16">
 			<SEOHead 
-				title="Formules & Tarifs Vendeurs | Harvests" 
+				title="Formules & Tarifs Partenaires | Harvests"
 				description="Découvrez nos abonnements pour producteurs, coopératives et transformateurs agricoles." 
 			/>
 
@@ -351,7 +351,7 @@ const Pricing = () => {
 						}}
 						className="inline-flex items-center gap-2 bg-[#31BC2E] hover:bg-[#289e26] text-white px-8 py-3.5 rounded-full font-extrabold text-xs sm:text-sm transition-all shadow-lg hover:shadow-xl"
 					>
-						<span>{isAuthenticated ? "Voir mes abonnements" : "Créer mon compte vendeur"}</span>
+						<span>{isAuthenticated ? "Voir mes abonnements" : "Créer mon compte partenaire"}</span>
 						<FiArrowRight className="w-4 h-4" />
 					</button>
 				</div>

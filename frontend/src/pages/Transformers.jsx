@@ -123,7 +123,7 @@ const Transformers = () => {
         </div>
 
         {/* Barre de recherche & filtres de vue */}
-        <div className="sticky top-16 sm:top-20 lg:top-[116px] z-30 bg-white/95 backdrop-blur-md rounded-2xl shadow-md border border-emerald-100/90 p-3 sm:p-4 mb-8 transition-all">
+        <div className="sticky top-[var(--app-header-height)] z-30 bg-white/95 backdrop-blur-md rounded-2xl shadow-md border border-emerald-100/90 p-3 sm:p-4 mb-8 transition-all">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="relative flex-1 w-full">
               <FiSearch className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />

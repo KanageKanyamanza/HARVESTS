@@ -212,7 +212,7 @@ const Header = () => {
 		<header
 			className={`${shouldBeTransparent
 					? "absolute top-0 left-0 right-0 bg-transparent"
-					: "bg-white sticky top-0 border-b border-gray-200"
+					: "bg-white border-b border-gray-200"
 				} z-40 transition-all duration-500 ease-in-out flex flex-col`}
 		>
 			{/* Top Tier */}

@@ -82,10 +82,10 @@ const Terms = () => {
 
 							<section className="mb-8">
 								<h2 className="text-xl font-bold text-gray-900 mb-4">
-									4. Obligations des vendeurs
+									4. Obligations des partenaires
 								</h2>
 								<p className="text-gray-600 leading-relaxed mb-4">
-									Les vendeurs (producteurs, transformateurs, restaurateurs)
+									Les partenaires (producteurs, transformateurs, restaurateurs)
 									s'engagent à :
 								</p>
 								<ul className="list-disc list-inside text-gray-600 space-y-2">
@@ -131,7 +131,7 @@ const Terms = () => {
 								<p className="text-gray-600 leading-relaxed">
 									Harvests prélève une commission sur chaque transaction
 									effectuée sur la plateforme. Les taux de commission sont
-									communiqués aux vendeurs lors de leur inscription ou via leur
+									communiqués aux partenaires lors de leur inscription ou via leur
 									plan de souscription. Les paiements sont sécurisés et traités
 									par nos partenaires de paiement agréés (Orange Money, Wave,
 									PayPal, Cartes Bancaires).
@@ -168,10 +168,10 @@ const Terms = () => {
 									9. Limitation de responsabilité
 								</h2>
 								<p className="text-gray-600 leading-relaxed">
-									Harvests agit en tant qu'intermédiaire entre vendeurs et
+									Harvests agit en tant qu'intermédiaire entre partenaires et
 									acheteurs. Nous ne sommes pas responsables de la qualité des
 									produits vendus, des retards de livraison imputables aux
-									vendeurs ou transporteurs, ni des litiges entre utilisateurs.
+									partenaires ou transporteurs, ni des litiges entre utilisateurs.
 								</p>
 							</section>
 
