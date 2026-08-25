@@ -22,12 +22,17 @@ import {
 	List,
 	Leaf,
 	ExternalLink,
+	UserPlus,
+	X,
+	Copy,
+	Check,
+	KeyRound,
 } from "lucide-react";
 import { adminService } from "../../services/adminService";
 import CloudinaryImage from "../../components/common/CloudinaryImage";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { useDebounce } from "../../hooks/useDebounce";
-import { getCountryName } from "../../utils/countryMapper";
+import { getCountryName, SUPPORTED_COUNTRIES } from "../../utils/countryMapper";
 
 const AdminUsers = () => {
 	const [users, setUsers] = useState([]);
@@ -43,6 +48,13 @@ const AdminUsers = () => {
 	const [viewMode, setViewMode] = useState(() => {
 		return localStorage.getItem("adminUsersViewMode") || "table";
 	});
+	// null = modale fermée ; {} = création ; objet utilisateur = édition
+	const [formModalUser, setFormModalUser] = useState(null);
+	const [formSubmitting, setFormSubmitting] = useState(false);
+	const [formError, setFormError] = useState("");
+	// Affiché une seule fois juste après une création sans mot de passe fourni
+	// (le mot de passe généré n'est jamais récupérable ensuite)
+	const [generatedCredentials, setGeneratedCredentials] = useState(null);
 
 	const handleViewModeChange = (mode) => {
 		setViewMode(mode);
@@ -197,6 +209,31 @@ const AdminUsers = () => {
 		}
 	};
 
+	const handleFormSubmit = async (formData) => {
+		setFormSubmitting(true);
+		setFormError("");
+		try {
+			if (formModalUser?._id) {
+				await adminService.updateUser(formModalUser._id, formData);
+			} else {
+				const result = await adminService.createUser(formData);
+				const generatedPassword = result?.data?.generatedPassword;
+				if (generatedPassword) {
+					setGeneratedCredentials({ email: formData.email, password: generatedPassword });
+				}
+			}
+			setFormModalUser(null);
+			loadUsers();
+		} catch (error) {
+			setFormError(
+				error.response?.data?.message ||
+					"Une erreur est survenue. Vérifiez les champs et réessayez.",
+			);
+		} finally {
+			setFormSubmitting(false);
+		}
+	};
+
 	const formatDate = (date) => {
 		return new Date(date).toLocaleDateString("fr-FR", {
 			year: "numeric",
@@ -311,6 +348,18 @@ const AdminUsers = () => {
 							<Mail className="w-4 h-4 text-emerald-600 relative z-10" />
 							<span className="text-[10px] font-[1000] uppercase tracking-widest text-gray-900 relative z-10">
 								Relancer Profils
+							</span>
+						</button>
+						<button
+							onClick={() => {
+								setFormError("");
+								setFormModalUser({});
+							}}
+							className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gray-900 rounded-2xl shadow-sm hover:shadow-lg hover:bg-emerald-600 transition-all duration-300"
+						>
+							<UserPlus className="w-4 h-4 text-white" />
+							<span className="text-[10px] font-[1000] uppercase tracking-widest text-white">
+								Nouvel utilisateur
 							</span>
 						</button>
 					</div>
@@ -543,6 +592,16 @@ const AdminUsers = () => {
 													>
 														<Eye className="h-3 w-3" />
 													</Link>
+													<button
+														onClick={() => {
+															setFormError("");
+															setFormModalUser(user);
+														}}
+														className="p-1.5 bg-gray-50 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all duration-300 border border-transparent hover:border-amber-100"
+														title="Modifier"
+													>
+														<Edit className="h-3 w-3" />
+													</button>
 													{user.status !== "Vérifié" && (
 														<button
 															onClick={() => handleVerifyUser(user._id)}
@@ -703,6 +762,16 @@ const AdminUsers = () => {
 													>
 														<Eye className="h-3.5 w-3.5" />
 													</Link>
+													<button
+														onClick={() => {
+															setFormError("");
+															setFormModalUser(user);
+														}}
+														className="p-1.5 bg-gray-50 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all duration-300 border border-transparent hover:border-amber-100"
+														title="Modifier"
+													>
+														<Edit className="h-3.5 w-3.5" />
+													</button>
 													{user.status !== "Vérifié" && (
 														<button
 															onClick={() => handleVerifyUser(user._id)}
@@ -762,6 +831,303 @@ const AdminUsers = () => {
 						</div>
 					</div>
 				</div>
+			</div>
+
+			{formModalUser && (
+				<UserFormModal
+					user={formModalUser}
+					submitting={formSubmitting}
+					error={formError}
+					onCancel={() => setFormModalUser(null)}
+					onSubmit={handleFormSubmit}
+				/>
+			)}
+
+			{generatedCredentials && (
+				<GeneratedPasswordModal
+					credentials={generatedCredentials}
+					onClose={() => setGeneratedCredentials(null)}
+				/>
+			)}
+		</div>
+	);
+};
+
+const ROLE_OPTIONS = [
+	{ value: "producer", label: "Producteur" },
+	{ value: "consumer", label: "Consommateur" },
+	{ value: "transformer", label: "Transformateur" },
+	{ value: "restaurateur", label: "Restaurateur" },
+	{ value: "exporter", label: "Exportateur" },
+	{ value: "transporter", label: "Transporteur" },
+];
+
+// Modale unique pour créer ou éditer un utilisateur : `user` vide ({}) = création,
+// objet avec `_id` = édition (le rôle et le mot de passe ne sont alors plus modifiables
+// ici — le mot de passe suit le flux dédié "mot de passe oublié").
+const UserFormModal = ({ user, submitting, error, onCancel, onSubmit }) => {
+	const isEdit = Boolean(user?._id);
+	const [form, setForm] = useState({
+		firstName: user.firstName || "",
+		lastName: user.lastName === "À compléter" ? "" : user.lastName || "",
+		email: user.email || "",
+		phone: user.phone || "",
+		userType: user.userType || "producer",
+		country: user.country || "Sénégal",
+		password: "",
+	});
+
+	const handleChange = (field) => (e) =>
+		setForm((prev) => ({ ...prev, [field]: e.target.value }));
+
+	const handleSubmit = (e) => {
+		e.preventDefault();
+		const payload = {
+			firstName: form.firstName,
+			lastName: form.lastName,
+			email: form.email,
+			phone: form.phone,
+			country: form.country,
+		};
+		if (!isEdit) {
+			payload.userType = form.userType;
+			if (form.password) payload.password = form.password;
+		}
+		onSubmit(payload);
+	};
+
+	return (
+		<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-fade-in">
+			<div
+				className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
+				onClick={submitting ? undefined : onCancel}
+			></div>
+			<form
+				onSubmit={handleSubmit}
+				className="relative w-full max-w-lg bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-scale-in"
+			>
+				<div className="flex items-center justify-between p-6 border-b border-gray-100">
+					<h2 className="text-lg font-[1000] text-gray-900 tracking-tight">
+						{isEdit ? "Modifier l'utilisateur" : "Nouvel utilisateur"}
+					</h2>
+					<button
+						type="button"
+						onClick={onCancel}
+						disabled={submitting}
+						className="p-2 bg-gray-50 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all"
+					>
+						<X className="h-4 w-4" />
+					</button>
+				</div>
+
+				<div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+					{error && (
+						<div className="p-3 bg-rose-50 border border-rose-100 text-rose-600 rounded-xl text-xs font-bold">
+							{error}
+						</div>
+					)}
+
+					<div className="grid grid-cols-2 gap-3">
+						<div>
+							<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1.5">
+								Prénom
+							</label>
+							<input
+								type="text"
+								required
+								value={form.firstName}
+								onChange={handleChange("firstName")}
+								className="w-full px-3.5 py-2.5 bg-gray-50 border border-transparent focus:border-emerald-200 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 rounded-xl transition-all font-bold text-sm text-gray-900"
+							/>
+						</div>
+						<div>
+							<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1.5">
+								Nom
+							</label>
+							<input
+								type="text"
+								required={form.userType === "consumer"}
+								value={form.lastName}
+								onChange={handleChange("lastName")}
+								className="w-full px-3.5 py-2.5 bg-gray-50 border border-transparent focus:border-emerald-200 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 rounded-xl transition-all font-bold text-sm text-gray-900"
+							/>
+						</div>
+					</div>
+
+					<div>
+						<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1.5">
+							Email
+						</label>
+						<input
+							type="email"
+							required
+							value={form.email}
+							onChange={handleChange("email")}
+							className="w-full px-3.5 py-2.5 bg-gray-50 border border-transparent focus:border-emerald-200 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 rounded-xl transition-all font-bold text-sm text-gray-900"
+						/>
+					</div>
+
+					<div className="grid grid-cols-2 gap-3">
+						<div>
+							<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1.5">
+								Téléphone
+							</label>
+							<input
+								type="tel"
+								value={form.phone}
+								onChange={handleChange("phone")}
+								className="w-full px-3.5 py-2.5 bg-gray-50 border border-transparent focus:border-emerald-200 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 rounded-xl transition-all font-bold text-sm text-gray-900"
+							/>
+						</div>
+						<div>
+							<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1.5">
+								Pays
+							</label>
+							<select
+								value={form.country}
+								onChange={handleChange("country")}
+								className="w-full px-3.5 py-2.5 bg-gray-50 border border-transparent focus:border-emerald-200 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 rounded-xl transition-all font-bold text-sm text-gray-900 appearance-none cursor-pointer"
+							>
+								{SUPPORTED_COUNTRIES.map((c) => (
+									<option key={c.code} value={c.name}>
+										{c.flag} {c.name}
+									</option>
+								))}
+							</select>
+						</div>
+					</div>
+
+					{!isEdit && (
+						<>
+							<div>
+								<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1.5">
+									Rôle
+								</label>
+								<select
+									value={form.userType}
+									onChange={handleChange("userType")}
+									className="w-full px-3.5 py-2.5 bg-gray-50 border border-transparent focus:border-emerald-200 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 rounded-xl transition-all font-bold text-sm text-gray-900 appearance-none cursor-pointer"
+								>
+									{ROLE_OPTIONS.map((r) => (
+										<option key={r.value} value={r.value}>
+											{r.label}
+										</option>
+									))}
+								</select>
+							</div>
+							<div>
+								<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1.5">
+									Mot de passe (optionnel)
+								</label>
+								<input
+									type="text"
+									value={form.password}
+									onChange={handleChange("password")}
+									placeholder="Généré automatiquement si laissé vide"
+									className="w-full px-3.5 py-2.5 bg-gray-50 border border-transparent focus:border-emerald-200 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 rounded-xl transition-all font-bold text-sm text-gray-900 placeholder:font-medium placeholder:text-gray-400"
+								/>
+								<p className="text-[10px] text-gray-400 font-medium mt-1.5">
+									Le compte est créé actif et vérifié. Sans mot de passe défini,
+									l'utilisateur devra passer par "mot de passe oublié" pour se
+									connecter.
+								</p>
+							</div>
+						</>
+					)}
+				</div>
+
+				<div className="flex items-center gap-3 p-6 border-t border-gray-100 bg-gray-50/50">
+					<button
+						type="button"
+						onClick={onCancel}
+						disabled={submitting}
+						className="flex-1 py-3 bg-white text-gray-600 border border-gray-200 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-all"
+					>
+						Annuler
+					</button>
+					<button
+						type="submit"
+						disabled={submitting}
+						className="flex-1 py-3 bg-gray-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-all disabled:opacity-60"
+					>
+						{submitting ? "Enregistrement..." : isEdit ? "Enregistrer" : "Créer"}
+					</button>
+				</div>
+			</form>
+		</div>
+	);
+};
+
+// Affichée une seule fois juste après la création : le mot de passe généré
+// n'est renvoyé par le backend qu'à cet instant (seul son hash est stocké).
+const GeneratedPasswordModal = ({ credentials, onClose }) => {
+	const [copied, setCopied] = useState(false);
+
+	const handleCopy = async () => {
+		try {
+			await navigator.clipboard.writeText(credentials.password);
+			setCopied(true);
+			setTimeout(() => setCopied(false), 2000);
+		} catch {
+			// Presse-papiers indisponible (contexte non sécurisé, permissions...) : rien à faire
+		}
+	};
+
+	return (
+		<div className="fixed inset-0 z-[110] flex items-center justify-center p-4 animate-fade-in">
+			<div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={onClose}></div>
+			<div className="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-scale-in p-6">
+				<div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 border border-emerald-100 mb-4">
+					<KeyRound className="h-6 w-6" />
+				</div>
+				<h2 className="text-lg font-[1000] text-gray-900 tracking-tight mb-1.5">
+					Compte créé — mot de passe généré
+				</h2>
+				<p className="text-xs text-gray-500 font-medium mb-5">
+					Transmets ces identifiants à {credentials.email}. Ce mot de passe ne
+					sera plus jamais affiché après fermeture de cette fenêtre.
+				</p>
+
+				<div className="space-y-3">
+					<div>
+						<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1.5">
+							Email
+						</label>
+						<div className="px-3.5 py-2.5 bg-gray-50 rounded-xl font-bold text-sm text-gray-900 break-all">
+							{credentials.email}
+						</div>
+					</div>
+					<div>
+						<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1.5">
+							Mot de passe
+						</label>
+						<div className="flex items-center gap-2">
+							<div className="flex-1 px-3.5 py-2.5 bg-gray-50 rounded-xl font-mono font-bold text-sm text-gray-900 break-all">
+								{credentials.password}
+							</div>
+							<button
+								type="button"
+								onClick={handleCopy}
+								className={`p-2.5 rounded-xl border transition-all flex-shrink-0 ${
+									copied
+										? "bg-emerald-50 border-emerald-100 text-emerald-600"
+										: "bg-gray-50 border-transparent text-gray-500 hover:bg-gray-100"
+								}`}
+								title="Copier"
+							>
+								{copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<button
+					type="button"
+					onClick={onClose}
+					className="w-full mt-6 py-3 bg-gray-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-all"
+				>
+					J'ai transmis les identifiants
+				</button>
 			</div>
 		</div>
 	);

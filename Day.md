@@ -1,6 +1,7 @@
-Jour 25 — Bandeau défilant "Nos Producteurs" façon JT
-Nouveau bandeau (VendorsNewsTicker.jsx) affiché sous le menu sur tout le site : noms de tous les producteurs qui défilent en continu, chacun cliquable vers son profil
-Plusieurs ajustements après retours : vitesse de défilement, badge plus compact sur mobile, bandeau bien fixe au scroll, et la liste chargée corrigée pour afficher vraiment tous les producteurs (pas seulement quelques-uns)
-Effet de bord réglé : la hauteur du menu ayant changé avec le nouveau bandeau, les barres de filtres "collantes" de 8 pages produits/catégories ont été recalées automatiquement au lieu d'un espacement codé en dur
-Remplacement de "vendeur" par "partenaire" dans les textes visibles du site public (terme plus juste : couvre producteurs, transformateurs et restaurateurs)
-Fix bandeau qui semblait "recommencer" après 8-10 noms : la durée de l'animation était fixe (8s), donc avec 74 producteurs le défilement était trop rapide pour être lu en entier avant la boucle. Durée recalculée dynamiquement à partir de la largeur réelle du contenu (vitesse constante en px/s) : tous les noms défilent maintenant lisiblement quel que soit leur nombre
+Jour 26 — Bandeau producteurs : la vraie cause du "redémarrage" trouvée
+Le bandeau "recommençait" après quelques noms malgré le fix de vitesse : cause réelle trouvée en scrutant l'animation image par image — translateX(-50%) se résolvait sur la largeur du conteneur (pas du contenu réel), donc ne parcourait qu'une fraction du trajet avant de sauter au début. Corrigé avec w-max sur le conteneur défilant, vitesse encore ajustée ensuite sur retour utilisateur.
+
+Jour 27 — CRUD complet utilisateurs (admin) et filtrage des boutiques vides
+Le compte de test "Ferme Test Harvests" masqué du public (isShopVisible: false) sans le supprimer, pour ne pas casser les autres tests dessus.
+Ajout du CRUD complet des utilisateurs côté admin : la création manquait entièrement (backend + UI), le bouton "Modifier" existait dans le code mais n'était jamais branché. Mot de passe généré automatiquement renvoyé une seule fois à la création (avec copie rapide), impossible à récupérer ensuite.
+Les producteurs sans aucun produit publié n'apparaissent plus dans les listings publics (bandeau, page /producteurs, recherche, par région/culture) — seule la fiche détail reste accessible par lien direct.
