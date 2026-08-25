@@ -95,6 +95,9 @@ router.get(
 // Obtenir tous les utilisateurs
 router.get("/users", adminUserController.getAllUsers);
 
+// Créer un utilisateur
+router.post("/users", adminUserController.createUser);
+
 // Relancer les profils incomplets
 router.post(
 	"/users/remind-incomplete",

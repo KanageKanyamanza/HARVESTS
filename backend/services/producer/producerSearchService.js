@@ -6,6 +6,18 @@ const Review = require("../../models/Review");
  * Service pour la recherche et l'affichage public des producteurs
  */
 
+// IDs des producteurs ayant au moins un produit publié (approuvé + actif).
+// Utilisé pour exclure des listings publics les comptes producteurs qui
+// n'ont encore rien à vendre (boutique vide) — que ce soit le bandeau,
+// la recherche, ou les listes par région/culture.
+async function getProducerIdsWithProducts() {
+	return Product.distinct("producer", {
+		producer: { $ne: null },
+		status: "approved",
+		isActive: true,
+	});
+}
+
 function buildAllProducersQuery(queryParams) {
 	const baseQueryObj = { ...queryParams };
 	const excludedFields = [
@@ -66,6 +78,7 @@ function buildAllProducersQuery(queryParams) {
 async function getAllProducers(queryParams, userLocation = null) {
 	const Producer = require("../../models/Producer");
 	let queryObj = buildAllProducersQuery(queryParams);
+	queryObj._id = { $in: await getProducerIdsWithProducts() };
 
 	if (userLocation && queryParams.locationQuery) {
 		if (
@@ -131,6 +144,7 @@ function buildSearchQuery(queryParams) {
 
 async function searchProducers(queryParams) {
 	const searchQuery = buildSearchQuery(queryParams);
+	searchQuery._id = { $in: await getProducerIdsWithProducts() };
 	const producers = await Producer.find(searchQuery)
 		.sort("-salesStats.averageRating -salesStats.totalOrders")
 		.limit(50);
@@ -145,6 +159,7 @@ async function getProducersByRegion(region) {
 		isEmailVerified: true,
 		// Les producteurs doivent avoir une bannière (shopBanner) pour être visibles en public
 		shopBanner: { $exists: true, $ne: null },
+		_id: { $in: await getProducerIdsWithProducts() },
 	}).sort("-salesStats.averageRating");
 	return producers;
 }
@@ -157,6 +172,7 @@ async function getProducersByCrop(crop) {
 		isEmailVerified: true,
 		// Les producteurs doivent avoir une bannière (shopBanner) pour être visibles en public
 		shopBanner: { $exists: true, $ne: null },
+		_id: { $in: await getProducerIdsWithProducts() },
 	}).sort("-salesStats.averageRating");
 	return producers;
 }

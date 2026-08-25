@@ -1,4 +1,5 @@
 const axios = require("axios");
+const crypto = require("crypto");
 const cloudinary = require("cloudinary").v2;
 const User = require("../../models/User");
 const Product = require("../../models/Product");
@@ -94,6 +95,86 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
 	});
 });
 
+// @desc    Créer un utilisateur
+// @route   POST /api/v1/admin/users
+// @access  Admin
+exports.createUser = catchAsync(async (req, res, next) => {
+	const validUserTypes = [
+		"producer",
+		"transformer",
+		"consumer",
+		"restaurateur",
+		"exporter",
+		"transporter",
+	];
+	const { userType, email, firstName } = req.body;
+
+	if (!validUserTypes.includes(userType)) {
+		return next(new AppError("Type d'utilisateur invalide", 400));
+	}
+	if (!email || !firstName) {
+		return next(new AppError("Prénom et email requis", 400));
+	}
+
+	const existingUser = await User.findOne({ email });
+	if (existingUser) {
+		return next(
+			new AppError("Un utilisateur avec cet email existe déjà", 400),
+		);
+	}
+
+	// Un compte créé par un admin est actif et vérifié d'office : pas besoin
+	// de faire repasser l'utilisateur par le flux d'inscription/vérification.
+	const generatedPassword = req.body.password
+		? null
+		: crypto.randomBytes(6).toString("hex");
+	const userData = {
+		firstName,
+		lastName:
+			userType === "consumer" ? req.body.lastName : req.body.lastName || "À compléter",
+		email,
+		// Mot de passe temporaire si non fourni : renvoyé une seule fois dans la
+		// réponse (ci-dessous) pour que l'admin puisse le transmettre — il n'est
+		// plus jamais récupérable ensuite (seul son hash est stocké).
+		password: req.body.password || generatedPassword,
+		phone: req.body.phone,
+		userType,
+		preferredLanguage: req.body.preferredLanguage || "fr",
+		country: req.body.country || "Sénégal",
+		isActive: true,
+		isApproved: true,
+		isEmailVerified: true,
+	};
+
+	if (userType === "consumer" && !userData.lastName) {
+		return next(new AppError("Le nom est requis pour les consommateurs", 400));
+	}
+	if (req.body.farmName) userData.farmName = req.body.farmName;
+	if (req.body.companyName) userData.companyName = req.body.companyName;
+	if (req.body.restaurantName)
+		userData.restaurantName = req.body.restaurantName;
+	if (req.body.businessName) userData.businessName = req.body.businessName;
+
+	const newUser = await User.create(userData);
+
+	await logAudit({
+		userId: req.admin._id,
+		action: AUDIT_ACTIONS.USER_CREATED,
+		targetType: "User",
+		targetId: newUser._id,
+		details: { createdUserEmail: newUser.email, userType: newUser.userType },
+	});
+
+	const userObj = newUser.toObject();
+	delete userObj.password;
+
+	res.status(201).json({
+		status: "success",
+		message: "Utilisateur créé avec succès",
+		data: { user: userObj, generatedPassword },
+	});
+});
+
 // @desc    Obtenir un utilisateur par ID
 exports.getUserById = catchAsync(async (req, res, next) => {
 	const user = await User.findById(req.params.id).select(
@@ -129,6 +210,7 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 		email,
 		phone,
 		address,
+		country,
 		isActive,
 		isEmailVerified,
 		isBio,
@@ -139,6 +221,7 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 		email,
 		phone,
 		address,
+		country,
 		isActive,
 		isBio,
 	};

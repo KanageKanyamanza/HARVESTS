@@ -51,6 +51,11 @@ export const getUserById = async (id) => {
 	return response.data;
 };
 
+export const createUser = async (userData) => {
+	const response = await api.post("/admin/users", userData);
+	return response.data;
+};
+
 // Service pour la gestion des souscriptions
 export const getSubscriptions = async (params = {}) => {
 	const response = await api.get("/subscriptions/admin", { params });
@@ -422,6 +427,7 @@ export const adminService = {
 	// Users
 	getUsers,
 	getUserById,
+	createUser,
 	getSubscriptions,
 	getSubscriptionStats,
 	updateSubscriptionStatus,
