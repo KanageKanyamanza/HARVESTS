@@ -1,7 +1,14 @@
-Jour 26 — Bandeau producteurs : la vraie cause du "redémarrage" trouvée
-Le bandeau "recommençait" après quelques noms malgré le fix de vitesse : cause réelle trouvée en scrutant l'animation image par image — translateX(-50%) se résolvait sur la largeur du conteneur (pas du contenu réel), donc ne parcourait qu'une fraction du trajet avant de sauter au début. Corrigé avec w-max sur le conteneur défilant, vitesse encore ajustée ensuite sur retour utilisateur.
+--- Plan de mise en conformité (données personnelles) ---
+Suite à l'audit RGPD/loi 2008-12 : tout validé sauf l'âge minimum (hors périmètre, volontairement écarté).
 
-Jour 27 — CRUD complet utilisateurs (admin) et filtrage des boutiques vides
-Le compte de test "Ferme Test Harvests" masqué du public (isShopVisible: false) sans le supprimer, pour ne pas casser les autres tests dessus.
-Ajout du CRUD complet des utilisateurs côté admin : la création manquait entièrement (backend + UI), le bouton "Modifier" existait dans le code mais n'était jamais branché. Mot de passe généré automatiquement renvoyé une seule fois à la création (avec copie rapide), impossible à récupérer ensuite.
-Les producteurs sans aucun produit publié n'apparaissent plus dans les listings publics (bandeau, page /producteurs, recherche, par région/culture) — seule la fiche détail reste accessible par lien direct.
+Jour 29 — Suppression de compte en libre-service
+Bouton "Supprimer mon compte" dans les paramètres, avec confirmation (mot de passe ou saisie de l'email). Le point d'API delete-me ne fait plus que désactiver le compte : il anonymise/supprime réellement les données personnelles, en gardant l'intégrité référentielle des commandes existantes.
+
+Jour 30 — Export de mes données
+Nouveau point d'API en libre-service pour télécharger ses propres données (profil, commandes, produits/avis selon le type de compte) dans un format structuré. Bouton "Télécharger mes données" dans les paramètres.
+
+Jour 31 — Cookies (fait, en avance) + documents sensibles (reste à faire)
+Bandeau de consentement cookies mis en place (essentiels toujours actifs, performance/préférence en opt-in), rejouable via "Gérer les cookies" en pied de page. Politique de Confidentialité mise à jour : section Cookies alignée sur le vrai mécanisme, nouvelle section Transferts internationaux ajoutée. Reste à faire : l'aperçu des pièces d'identité côté admin doit encore passer par la route de téléchargement signée existante au lieu de l'URL Cloudinary directe.
+
+Jour 32 — Démarche CDP (hors code)
+Pas de développement ce jour-là : vérifier le statut de la déclaration auprès de la Commission de protection des Données personnelles du Sénégal, idéalement avec un juriste habilité, vu le traitement de données sensibles (pièces d'identité, informations bancaires). Résultat à documenter ici une fois la démarche faite.

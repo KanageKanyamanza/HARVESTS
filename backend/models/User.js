@@ -218,6 +218,9 @@ const baseUserSchema = new mongoose.Schema(
 		phoneVerifiedAt: Date,
 		identityVerifiedAt: Date,
 		businessVerifiedAt: Date,
+
+		// Preuve du consentement aux CGU/Politique de Confidentialité à l'inscription
+		termsAcceptedAt: Date,
 		passwordResetToken: String,
 		passwordResetExpires: Date,
 		loginAttempts: {
@@ -319,7 +322,8 @@ const baseUserSchema = new mongoose.Schema(
 			email: {
 				orders: { type: Boolean, default: true },
 				payments: { type: Boolean, default: true },
-				promotions: { type: Boolean, default: true },
+				// Prospection directe : opt-in, pas opt-out (aligné sur push/sms)
+				promotions: { type: Boolean, default: false },
 				updates: { type: Boolean, default: true },
 			},
 			push: {
