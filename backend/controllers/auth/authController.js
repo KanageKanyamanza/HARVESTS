@@ -115,6 +115,15 @@ exports.signup = catchAsync(async (req, res, next) => {
 		return next(new AppError("Type d'utilisateur invalide", 400));
 	}
 
+	if (req.body.acceptedTerms !== true) {
+		return next(
+			new AppError(
+				"Vous devez accepter les Conditions d'Utilisation et la Politique de Confidentialité",
+				400,
+			),
+		);
+	}
+
 	// Vérifier si l'email existe déjà
 	const existingUser = await User.findOne({ email: req.body.email });
 	if (existingUser) {
@@ -137,6 +146,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 		preferredLanguage: req.body.preferredLanguage || "fr",
 		country: req.body.country || "Sénégal",
 		referredBy: req.body.referredBy || req.body.commercial || null,
+		termsAcceptedAt: new Date(),
 	};
 
 	// Ajouter les champs d'identification spécifiques s'ils sont fournis

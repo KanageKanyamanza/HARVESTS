@@ -22,7 +22,8 @@ export const useRegisterForm = () => {
     userType: '',
     country: 'Sénégal',
     preferredLanguage: 'fr',
-    referredBy: commercial
+    referredBy: commercial,
+    acceptedTerms: false
   });
 
 
@@ -63,6 +64,20 @@ export const useRegisterForm = () => {
     }
   };
 
+  const toggleAcceptedTerms = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      acceptedTerms: e.target.checked
+    }));
+
+    if (errors.acceptedTerms) {
+      setErrors(prev => ({
+        ...prev,
+        acceptedTerms: ''
+      }));
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       fullName: '',
@@ -78,7 +93,8 @@ export const useRegisterForm = () => {
       userType: '',
       country: 'Sénégal',
       preferredLanguage: 'fr',
-      referredBy: commercial
+      referredBy: commercial,
+      acceptedTerms: false
     });
 
     setErrors({});
@@ -108,6 +124,7 @@ export const useRegisterForm = () => {
     setIsDropdownOpen,
     handleChange,
     setUserType,
+    toggleAcceptedTerms,
     resetForm
   };
 };

@@ -53,7 +53,11 @@ export const validateRegisterForm = (formData) => {
   if (!formData.country?.trim()) {
     newErrors.country = 'Le pays est requis';
   }
-  
+
+  if (!formData.acceptedTerms) {
+    newErrors.acceptedTerms = 'Vous devez accepter les Conditions d\'Utilisation et la Politique de Confidentialité';
+  }
+
   return newErrors;
 };
 

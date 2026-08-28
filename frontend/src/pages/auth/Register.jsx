@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { Mail, Lock, UserPlus } from "lucide-react";
 import SocialLinks from "../../components/common/SocialLinks";
@@ -11,8 +11,6 @@ import logo from "../../assets/logo.png";
 import authbg from "../../assets/images/authbg.webp";
 
 const Register = () => {
-	const [rememberMe, setRememberMe] = useState(false);
-
 	// Hooks personnalisés
 	const {
 		formData,
@@ -26,6 +24,7 @@ const Register = () => {
 		setIsDropdownOpen,
 		handleChange,
 		setUserType,
+		toggleAcceptedTerms,
 		resetForm,
 	} = useRegisterForm();
 
@@ -152,20 +151,44 @@ const Register = () => {
 									</Link>
 								</div>
 
-								{/* Remember me */}
-								<label className="flex items-center justify-center gap-2 pt-1 cursor-pointer select-none">
-									<input
-										id="remember-me"
-										name="remember-me"
-										type="checkbox"
-										checked={rememberMe}
-										onChange={(e) => setRememberMe(e.target.checked)}
-										className="h-4 w-4 rounded border-gray-300 text-[#1A5514] focus:ring-[#1A5514]"
-									/>
-									<span className="text-xs text-gray-600 font-medium">
-										Se souvenir de moi
-									</span>
-								</label>
+								{/* Consentement CGU / Politique de Confidentialité */}
+								<div>
+									<label className="flex items-start gap-2 pt-1 cursor-pointer select-none">
+										<input
+											id="accepted-terms"
+											name="acceptedTerms"
+											type="checkbox"
+											checked={formData.acceptedTerms}
+											onChange={toggleAcceptedTerms}
+											className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#1A5514] focus:ring-[#1A5514] flex-shrink-0"
+										/>
+										<span className="text-xs text-gray-600 font-medium leading-snug">
+											J'ai lu et j'accepte les{" "}
+											<Link
+												to="/terms"
+												target="_blank"
+												rel="noopener noreferrer"
+												className="text-[#1A5514] hover:text-[#31BC2E] font-bold underline"
+											>
+												Conditions d'Utilisation
+											</Link>{" "}
+											et la{" "}
+											<Link
+												to="/privacy"
+												target="_blank"
+												rel="noopener noreferrer"
+												className="text-[#1A5514] hover:text-[#31BC2E] font-bold underline"
+											>
+												Politique de Confidentialité
+											</Link>
+										</span>
+									</label>
+									{errors.acceptedTerms && (
+										<p className="text-red-600 text-xs font-semibold mt-1 ml-6">
+											{errors.acceptedTerms}
+										</p>
+									)}
+								</div>
 
 								{/* Bouton d'inscription */}
 								<button
