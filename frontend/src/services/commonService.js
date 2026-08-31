@@ -44,6 +44,9 @@ const commonService = {
 	deleteVerificationDocument: (docId) =>
 		api.delete(`/users/me/verification-documents/${docId}`),
 
+	// Suppression du compte en libre-service
+	deleteAccount: (data) => api.delete("/users/delete-me", { data }),
+
 	// Adresses de livraison (pour consommateurs)
 	getDeliveryAddresses: () => api.get("/users/me/delivery-addresses"),
 	addDeliveryAddress: (data) => api.post("/users/me/delivery-addresses", data),

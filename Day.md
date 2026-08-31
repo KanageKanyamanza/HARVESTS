@@ -1,8 +1,8 @@
 --- Plan de mise en conformité (données personnelles) ---
 Suite à l'audit RGPD/loi 2008-12 : tout validé sauf l'âge minimum (hors périmètre, volontairement écarté).
 
-Jour 29 — Suppression de compte en libre-service
-Bouton "Supprimer mon compte" dans les paramètres, avec confirmation (mot de passe ou saisie de l'email). Le point d'API delete-me ne fait plus que désactiver le compte : il anonymise/supprime réellement les données personnelles, en gardant l'intégrité référentielle des commandes existantes.
+Jour 29 — Suppression de compte en libre-service (fait)
+Bouton "Supprimer mon compte" dans les paramètres (zone dangereuse de l'onglet Sécurité), avec confirmation par mot de passe ou par saisie de l'email du compte. Le point d'API delete-me ne fait plus que désactiver le compte : il anonymise les données personnelles (nom, email, téléphone, adresse, bio, avatar, coordonnées bancaires, tokens push...) et désactive le compte, tout en conservant le document utilisateur pour préserver l'intégrité référentielle des commandes existantes. Les produits publiés par le compte sont masqués. Testé en direct contre la base (comptes jetables) : rejet sans confirmation, rejet si mot de passe/email incorrect, anonymisation effective et session invalidée immédiatement après suppression.
 Par ailleurs (fait) : nettoyage des 18 comptes producteurs de la coopérative wendpenga restés au placeholder "À compléter" depuis leur inscription fin juillet — renommés d'après le préfixe de leur email (script scripts/rename-placeholder-cooperative-users.js), pour qu'ils cessent de s'afficher sans nom dans les listings publics.
 
 Jour 30 — Export de mes données

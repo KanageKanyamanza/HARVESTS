@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 import FinancialInfo from "../../../components/common/FinancialInfo";
@@ -20,12 +21,22 @@ import {
 	Check,
 	Eye,
 	EyeOff,
+	AlertTriangle,
+	X,
 } from "lucide-react";
 import commonService from "../../../services/commonService";
 
 const SettingsPage = () => {
-	const { user, isAuthenticated, refreshUser, updatePassword } = useAuth();
+	const { user, isAuthenticated, refreshUser, updatePassword, logout } = useAuth();
+	const navigate = useNavigate();
 	const [activeTab, setActiveTab] = useState("financial");
+
+	// États pour la suppression de compte
+	const [showDeleteModal, setShowDeleteModal] = useState(false);
+	const [deleteMethod, setDeleteMethod] = useState("password");
+	const [deleteValue, setDeleteValue] = useState("");
+	const [deleteError, setDeleteError] = useState(null);
+	const [deleteLoading, setDeleteLoading] = useState(false);
 
 	// États pour le changement de mot de passe
 	const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -185,6 +196,40 @@ const SettingsPage = () => {
 			);
 		} finally {
 			setPasswordSaving(false);
+		}
+	};
+
+	const closeDeleteModal = () => {
+		setShowDeleteModal(false);
+		setDeleteMethod("password");
+		setDeleteValue("");
+		setDeleteError(null);
+	};
+
+	const handleDeleteAccount = async (e) => {
+		e.preventDefault();
+		setDeleteError(null);
+
+		if (!deleteValue.trim()) {
+			setDeleteError(
+				deleteMethod === "password" ?
+					"Veuillez saisir votre mot de passe."
+				:	"Veuillez saisir votre email.",
+			);
+			return;
+		}
+
+		try {
+			setDeleteLoading(true);
+			await commonService.deleteAccount({ [deleteMethod]: deleteValue });
+			await logout();
+			navigate("/");
+		} catch (error) {
+			setDeleteError(
+				error.response?.data?.message || "Erreur lors de la suppression du compte.",
+			);
+		} finally {
+			setDeleteLoading(false);
 		}
 	};
 
@@ -534,6 +579,33 @@ const SettingsPage = () => {
 											</div>
 										</div>
 									</div>
+
+									{/* Zone dangereuse */}
+									<div className="p-6 md:p-8 bg-rose-50/50 border-2 border-dashed border-rose-200 rounded-3xl">
+										<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+											<div className="flex items-start gap-3">
+												<div className="p-3 bg-rose-100 text-rose-600 rounded-2xl flex-shrink-0">
+													<AlertTriangle className="h-5 w-5" />
+												</div>
+												<div>
+													<h4 className="text-sm font-[1000] text-rose-900 uppercase tracking-widest mb-1">
+														Supprimer mon compte
+													</h4>
+													<p className="text-xs text-rose-700/80 font-medium leading-relaxed max-w-md">
+														Action définitive : vos données personnelles seront
+														anonymisées et votre compte désactivé. Vos commandes
+														existantes sont conservées pour des raisons légales.
+													</p>
+												</div>
+											</div>
+											<button
+												onClick={() => setShowDeleteModal(true)}
+												className="flex-shrink-0 px-6 py-3 bg-rose-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-rose-700 transition-all active:scale-95"
+											>
+												Supprimer mon compte
+											</button>
+										</div>
+									</div>
 								</div>
 							)}
 
@@ -612,6 +684,94 @@ const SettingsPage = () => {
 					</div>
 				</div>
 			</div>
+
+			{/* Modal de confirmation de suppression de compte */}
+			{showDeleteModal && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+					<div className="w-full max-w-md bg-white rounded-[2rem] p-8 shadow-2xl relative">
+						<button
+							onClick={closeDeleteModal}
+							className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-colors"
+						>
+							<X className="h-4 w-4" />
+						</button>
+
+						<div className="p-3 bg-rose-100 text-rose-600 rounded-2xl w-fit mb-4">
+							<AlertTriangle className="h-6 w-6" />
+						</div>
+						<h3 className="text-lg font-[1000] text-gray-900 uppercase tracking-tight mb-2">
+							Confirmer la suppression
+						</h3>
+						<p className="text-xs text-gray-500 font-medium leading-relaxed mb-6">
+							Cette action est irréversible. Confirmez votre identité avec votre
+							mot de passe ou l'email de votre compte pour continuer.
+						</p>
+
+						<form onSubmit={handleDeleteAccount} className="space-y-4">
+							<div className="flex gap-2 p-1 bg-gray-100 rounded-xl w-fit">
+								<button
+									type="button"
+									onClick={() => {
+										setDeleteMethod("password");
+										setDeleteValue("");
+									}}
+									className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors ${
+										deleteMethod === "password" ?
+											"bg-gray-900 text-white"
+										:	"text-gray-500 hover:text-gray-900"
+									}`}
+								>
+									Mot de passe
+								</button>
+								<button
+									type="button"
+									onClick={() => {
+										setDeleteMethod("email");
+										setDeleteValue("");
+									}}
+									className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors ${
+										deleteMethod === "email" ?
+											"bg-gray-900 text-white"
+										:	"text-gray-500 hover:text-gray-900"
+									}`}
+								>
+									Email
+								</button>
+							</div>
+
+							<input
+								type={deleteMethod === "password" ? "password" : "email"}
+								value={deleteValue}
+								onChange={(e) => setDeleteValue(e.target.value)}
+								placeholder={deleteMethod === "password" ? "Votre mot de passe" : "Votre email"}
+								required
+								className="w-full bg-gray-50/50 px-4 py-3 border-2 border-transparent rounded-xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-400 transition-all"
+							/>
+
+							{deleteError && (
+								<p className="text-xs font-bold text-rose-600">{deleteError}</p>
+							)}
+
+							<div className="flex gap-3 pt-2">
+								<button
+									type="button"
+									onClick={closeDeleteModal}
+									className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-200 transition-colors"
+								>
+									Annuler
+								</button>
+								<button
+									type="submit"
+									disabled={deleteLoading}
+									className="flex-1 py-3 bg-rose-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-700 transition-colors disabled:opacity-50"
+								>
+									{deleteLoading ? "Suppression..." : "Supprimer définitivement"}
+								</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 };

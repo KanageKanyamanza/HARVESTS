@@ -221,6 +221,9 @@ const baseUserSchema = new mongoose.Schema(
 
 		// Preuve du consentement aux CGU/Politique de Confidentialité à l'inscription
 		termsAcceptedAt: Date,
+
+		// Horodatage de la suppression en libre-service (anonymisation), pour audit
+		deletedAt: Date,
 		passwordResetToken: String,
 		passwordResetExpires: Date,
 		loginAttempts: {

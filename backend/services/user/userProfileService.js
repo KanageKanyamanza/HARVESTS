@@ -1,5 +1,7 @@
+const crypto = require("crypto");
 const User = require("../../models/User");
 const Consumer = require("../../models/Consumer");
+const Product = require("../../models/Product");
 
 // Mapping des modèles par type d'utilisateur
 const userModels = {
@@ -130,6 +132,64 @@ async function deactivateAccount(userId) {
 }
 
 /**
+ * Suppression en libre-service : anonymise les données personnelles et
+ * désactive le compte, sans supprimer le document pour préserver
+ * l'intégrité référentielle des commandes existantes (Order.seller/buyer,
+ * Product.producer, etc. continuent de pointer vers un utilisateur valide).
+ * Masque aussi les produits publiés par ce compte (producteur/transformateur/
+ * restaurateur), qui ne doivent plus apparaître publiquement.
+ */
+async function anonymizeAndDeleteAccount(userId) {
+	const user = await User.findById(userId);
+	if (!user) {
+		throw new Error("Utilisateur non trouvé");
+	}
+
+	const anonymousId = crypto.randomBytes(8).toString("hex");
+
+	user.firstName = "Utilisateur";
+	user.lastName = "Supprimé";
+	user.companyName = undefined;
+	user.farmName = undefined;
+	user.restaurantName = undefined;
+	user.email = `deleted-${anonymousId}@deleted.harvests.bf`;
+	user.phone = undefined;
+	user.address = undefined;
+	user.city = undefined;
+	user.region = undefined;
+	user.postalCode = undefined;
+	user.bio = undefined;
+	user.coordinates = undefined;
+	user.avatar = null;
+	user.shopBanner = null;
+	user.shopLogo = null;
+	user.bankAccount = undefined;
+	user.paymentMethods = [];
+	user.webPushSubscriptions = [];
+	user.fcmTokens = [];
+	user.referredBy = null;
+	user.isActive = false;
+	user.isShopVisible = false;
+	user.isApproved = false;
+	user.deletedAt = new Date();
+
+	await user.save({ validateBeforeSave: false });
+
+	await Product.updateMany(
+		{
+			$or: [
+				{ producer: userId },
+				{ transformer: userId },
+				{ restaurateur: userId },
+			],
+		},
+		{ $set: { isActive: false, status: "inactive" } },
+	);
+
+	return true;
+}
+
+/**
  * Obtenir les adresses de l'utilisateur
  */
 async function getUserAddresses(userId) {
@@ -250,6 +310,7 @@ module.exports = {
 	getCurrentUser,
 	updateProfile,
 	deactivateAccount,
+	anonymizeAndDeleteAccount,
 	getUserAddresses,
 	addAddress,
 	updateAddress,
