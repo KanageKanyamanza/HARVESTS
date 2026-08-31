@@ -3,6 +3,7 @@ Suite à l'audit RGPD/loi 2008-12 : tout validé sauf l'âge minimum (hors péri
 
 Jour 29 — Suppression de compte en libre-service
 Bouton "Supprimer mon compte" dans les paramètres, avec confirmation (mot de passe ou saisie de l'email). Le point d'API delete-me ne fait plus que désactiver le compte : il anonymise/supprime réellement les données personnelles, en gardant l'intégrité référentielle des commandes existantes.
+Par ailleurs (fait) : nettoyage des 18 comptes producteurs de la coopérative wendpenga restés au placeholder "À compléter" depuis leur inscription fin juillet — renommés d'après le préfixe de leur email (script scripts/rename-placeholder-cooperative-users.js), pour qu'ils cessent de s'afficher sans nom dans les listings publics.
 
 Jour 30 — Export de mes données
 Nouveau point d'API en libre-service pour télécharger ses propres données (profil, commandes, produits/avis selon le type de compte) dans un format structuré. Bouton "Télécharger mes données" dans les paramètres.
