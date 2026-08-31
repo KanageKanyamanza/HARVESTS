@@ -68,12 +68,27 @@ router.patch('/update-me', userController.updateMe);
  * /api/v1/users/delete-me:
  *   delete:
  *     summary: Supprimer mon compte
+ *     description: Anonymise les données personnelles et désactive le compte. Nécessite une confirmation par mot de passe ou par email.
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               password:
+ *                 type: string
+ *               email:
+ *                 type: string
  *     responses:
- *       204:
+ *       200:
  *         description: Compte supprimé
+ *       400:
+ *         description: Aucune confirmation fournie
+ *       401:
+ *         description: Mot de passe ou email de confirmation incorrect
  */
 router.delete('/delete-me', userController.deleteMe);
 

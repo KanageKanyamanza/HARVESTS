@@ -1,5 +1,6 @@
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
+const User = require('../../models/User');
 const userProfileService = require('../../services/user/userProfileService');
 
 // Middleware pour récupérer l'utilisateur actuel
@@ -39,13 +40,36 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   }
 });
 
-// Désactiver le compte de l'utilisateur actuel
+// Suppression du compte de l'utilisateur actuel (libre-service), avec
+// confirmation par mot de passe ou par saisie de l'email du compte
 exports.deleteMe = catchAsync(async (req, res, next) => {
-  try {
-    await userProfileService.deactivateAccount(req.user.id);
+  const { password, email } = req.body;
 
-    res.status(204).json({
+  if (!password && !email) {
+    return next(
+      new AppError(
+        'Veuillez confirmer la suppression avec votre mot de passe ou votre email',
+        400
+      )
+    );
+  }
+
+  const user = await User.findById(req.user.id).select('+password');
+
+  if (password) {
+    if (!(await user.comparePassword(password))) {
+      return next(new AppError('Mot de passe incorrect', 401));
+    }
+  } else if (email.trim().toLowerCase() !== user.email.toLowerCase()) {
+    return next(new AppError("L'email ne correspond pas à votre compte", 401));
+  }
+
+  try {
+    await userProfileService.anonymizeAndDeleteAccount(req.user.id);
+
+    res.status(200).json({
       status: 'success',
+      message: 'Votre compte a été supprimé',
       data: null,
     });
   } catch (error) {
