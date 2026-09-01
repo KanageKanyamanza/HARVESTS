@@ -125,12 +125,16 @@ router.get('/:id', transformerController.getTransformer);
 // Toutes les routes suivantes nécessitent une authentification
 router.use(authMiddleware.protect);
 router.use(authMiddleware.restrictTo('transformer'));
+
+// Consultation et mise à jour des informations de base du profil, autorisées
+// sans vérification d'email (cf. allowedActions du middleware requireVerification)
+router.get('/me/profile', transformerController.getMyProfile);
+router.patch('/me/profile', transformerController.updateMyProfile);
+
 router.use(authMiddleware.requireVerification);
 router.use(authMiddleware.checkApprovalStatus); // Vérifier le statut d'approbation
 
 // Routes accessibles même sans approbation (dashboard, profil)
-router.get('/me/profile', transformerController.getMyProfile);
-router.patch('/me/profile', transformerController.updateMyProfile);
 router.get('/me/business-stats', transformerController.getBusinessStats);
 router.get('/me/stats', transformerController.getBusinessStats); // Alias pour compatibilité avec GenericDashboard
 router.get('/me/production-analytics', transformerController.getProductionAnalytics);

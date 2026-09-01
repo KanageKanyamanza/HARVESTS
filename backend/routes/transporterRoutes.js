@@ -159,8 +159,6 @@ router.post('/calculate-rate', transporterController.calculateShippingRate);
 // Toutes les routes suivantes nécessitent une authentification
 router.use(authMiddleware.protect);
 router.use(authMiddleware.restrictTo('transporter'));
-router.use(authMiddleware.requireVerification);
-router.use(authMiddleware.requireApproval); // Les transporteurs doivent être approuvés
 
 /**
  * @swagger
@@ -189,6 +187,9 @@ router.use(authMiddleware.requireApproval); // Les transporteurs doivent être a
  */
 router.get('/me/profile', transporterController.getMyProfile);
 router.patch('/me/profile', transporterController.updateMyProfile);
+
+router.use(authMiddleware.requireVerification);
+router.use(authMiddleware.requireApproval); // Les transporteurs doivent être approuvés
 
 // Gestion de la flotte de véhicules
 router.route('/me/fleet')
