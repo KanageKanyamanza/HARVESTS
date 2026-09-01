@@ -47,6 +47,9 @@ const commonService = {
 	// Suppression du compte en libre-service
 	deleteAccount: (data) => api.delete("/users/delete-me", { data }),
 
+	// Export en libre-service de mes données personnelles
+	exportMyData: () => api.get("/users/me/export-data", { responseType: "blob" }),
+
 	// Adresses de livraison (pour consommateurs)
 	getDeliveryAddresses: () => api.get("/users/me/delivery-addresses"),
 	addDeliveryAddress: (data) => api.post("/users/me/delivery-addresses", data),

@@ -92,6 +92,21 @@ router.patch('/update-me', userController.updateMe);
  */
 router.delete('/delete-me', userController.deleteMe);
 
+/**
+ * @swagger
+ * /api/v1/users/me/export-data:
+ *   get:
+ *     summary: Télécharger mes données personnelles
+ *     description: Exporte le profil, les commandes, les produits et les avis liés au compte connecté, au format JSON.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Fichier JSON téléchargé
+ */
+router.get('/me/export-data', userController.exportMyData);
+
 // Import des services centralisés
 const profileImageService = require('../services/profileImageService');
 const profileService = require('../services/profileService');

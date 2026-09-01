@@ -1,8 +1,8 @@
 --- Plan de mise en conformité (données personnelles) ---
 Suite à l'audit RGPD/loi 2008-12 : tout validé sauf l'âge minimum (hors périmètre, volontairement écarté).
 
-Jour 30 — Export de mes données
-Nouveau point d'API en libre-service pour télécharger ses propres données (profil, commandes, produits/avis selon le type de compte) dans un format structuré. Bouton "Télécharger mes données" dans les paramètres.
+Jour 30 — Export de mes données (fait)
+Nouveau point d'API en libre-service (GET /users/me/export-data) qui télécharge un fichier JSON structuré : profil (sans champs sensibles), commandes (en tant qu'acheteur et/ou vendeur), produits publiés et avis (rédigés et reçus), selon ce qui s'applique au type de compte. Bouton "Télécharger mes données" dans les paramètres (onglet Sécurité). Testé en direct contre la base avec un compte jetable : export récupéré avec le bon Content-Disposition et la structure attendue.
 Par ailleurs (fait) : les 19 comptes producteurs de la coopérative wendpenga affichaient encore "Coopérative wendpenga..." en public au lieu de leur nom (le nom de ferme prime sur prénom/nom dans l'affichage). Champ farmName remplacé par le nom personnel de chaque producteur (ex. "Marguerite Kabore", "Zebre", "Ouedraogo"). Plus aucun compte n'a "coopérative" dans son nom de ferme/société/restaurant (vérifié en base).
 
 Jour 31 — Cookies (fait, en avance) + documents sensibles (reste à faire)
