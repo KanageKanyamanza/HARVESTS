@@ -109,8 +109,6 @@ router.get('/:id', exporterController.getExporter);
 // Toutes les routes suivantes nécessitent une authentification
 router.use(authMiddleware.protect);
 router.use(authMiddleware.restrictTo('exporter'));
-router.use(authMiddleware.requireVerification);
-router.use(authMiddleware.requireApproval); // Les exportateurs doivent être approuvés
 
 /**
  * @swagger
@@ -139,6 +137,9 @@ router.use(authMiddleware.requireApproval); // Les exportateurs doivent être ap
  */
 router.get('/me/profile', exporterController.getMyProfile);
 router.patch('/me/profile', exporterController.updateMyProfile);
+
+router.use(authMiddleware.requireVerification);
+router.use(authMiddleware.requireApproval); // Les exportateurs doivent être approuvés
 
 // Gestion des licences d'exportation
 router.route('/me/export-licenses')

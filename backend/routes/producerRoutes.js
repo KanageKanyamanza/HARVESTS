@@ -205,14 +205,16 @@ router.get('/me/products', producerController.getMyProducts);
  */
 router.get('/me/orders', producerController.getMyOrders);
 
+// Gestion du profil producteur : consultation et mise à jour des informations
+// de base autorisées sans vérification d'email (cf. allowedActions du
+// middleware requireVerification, qui liste explicitement ces actions)
+router.get('/me/profile', producerController.getMyProfile);
+router.patch('/me/profile', producerController.updateMyProfile);
+
 // Toutes les autres routes nécessitent une vérification d'email
 router.use(authMiddleware.requireVerification);
 
 // Routes protégées pour les producteurs connectés (/me/*)
-
-// Gestion du profil producteur
-router.get('/me/profile', producerController.getMyProfile);
-router.patch('/me/profile', producerController.updateMyProfile);
 
 
 // Gestion des certifications

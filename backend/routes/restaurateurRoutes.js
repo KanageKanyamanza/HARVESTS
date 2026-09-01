@@ -179,6 +179,11 @@ router.use('/me', (req, res, next) => {
   if (req.path === '/orders' && req.method === 'POST') {
     return next();
   }
+  // Permettre la mise à jour des informations de base du profil sans
+  // vérification d'email (cf. allowedActions du middleware requireVerification)
+  if (req.path === '/profile' && req.method === 'PATCH') {
+    return next();
+  }
   return authMiddleware.requireVerification(req, res, next);
 });
 

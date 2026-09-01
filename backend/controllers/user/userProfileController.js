@@ -77,6 +77,21 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
   }
 });
 
+// Export en libre-service de mes données personnelles (profil, commandes,
+// produits, avis), téléchargé sous forme de fichier JSON
+exports.exportMyData = catchAsync(async (req, res, next) => {
+  try {
+    const data = await userProfileService.exportUserData(req.user.id);
+    const filename = `harvests-mes-donnees-${new Date().toISOString().slice(0, 10)}.json`;
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.status(200).send(JSON.stringify(data, null, 2));
+  } catch (error) {
+    return next(new AppError(error.message, 500));
+  }
+});
+
 // Gestion des adresses utilisateur
 exports.getMyAddresses = catchAsync(async (req, res, next) => {
   try {

@@ -2,6 +2,8 @@ const crypto = require("crypto");
 const User = require("../../models/User");
 const Consumer = require("../../models/Consumer");
 const Product = require("../../models/Product");
+const Order = require("../../models/Order");
+const Review = require("../../models/Review");
 
 // Mapping des modèles par type d'utilisateur
 const userModels = {
@@ -306,11 +308,53 @@ async function deleteAddress(userId, addressId) {
 	return true;
 }
 
+/**
+ * Export en libre-service de toutes les données personnelles du compte :
+ * profil, commandes (en tant qu'acheteur et/ou vendeur), produits publiés
+ * et avis (rédigés et reçus), selon ce qui s'applique au type de compte.
+ */
+async function exportUserData(userId) {
+	const user = await User.findById(userId);
+	if (!user) {
+		throw new Error("Utilisateur non trouvé");
+	}
+
+	const [ordersAsBuyer, ordersAsSeller, products, reviewsWritten, reviewsReceived] =
+		await Promise.all([
+			Order.find({ buyer: userId }).lean(),
+			Order.find({ seller: userId }).lean(),
+			Product.find({
+				$or: [
+					{ producer: userId },
+					{ transformer: userId },
+					{ restaurateur: userId },
+				],
+			}).lean(),
+			Review.find({ reviewer: userId }).lean(),
+			Review.find({ producer: userId }).lean(),
+		]);
+
+	return {
+		exportedAt: new Date().toISOString(),
+		profile: user.toJSON(),
+		orders: {
+			asBuyer: ordersAsBuyer,
+			asSeller: ordersAsSeller,
+		},
+		products,
+		reviews: {
+			written: reviewsWritten,
+			received: reviewsReceived,
+		},
+	};
+}
+
 module.exports = {
 	getCurrentUser,
 	updateProfile,
 	deactivateAccount,
 	anonymizeAndDeleteAccount,
+	exportUserData,
 	getUserAddresses,
 	addAddress,
 	updateAddress,

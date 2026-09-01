@@ -23,6 +23,7 @@ import {
 	EyeOff,
 	AlertTriangle,
 	X,
+	Download,
 } from "lucide-react";
 import commonService from "../../../services/commonService";
 
@@ -37,6 +38,10 @@ const SettingsPage = () => {
 	const [deleteValue, setDeleteValue] = useState("");
 	const [deleteError, setDeleteError] = useState(null);
 	const [deleteLoading, setDeleteLoading] = useState(false);
+
+	// État pour l'export de mes données
+	const [exportLoading, setExportLoading] = useState(false);
+	const [exportError, setExportError] = useState(null);
 
 	// États pour le changement de mot de passe
 	const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -230,6 +235,29 @@ const SettingsPage = () => {
 			);
 		} finally {
 			setDeleteLoading(false);
+		}
+	};
+
+	const handleExportData = async () => {
+		setExportError(null);
+		try {
+			setExportLoading(true);
+			const response = await commonService.exportMyData();
+			const blob = new Blob([response.data], { type: "application/json" });
+			const url = window.URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			link.href = url;
+			link.download = `harvests-mes-donnees-${new Date().toISOString().slice(0, 10)}.json`;
+			document.body.appendChild(link);
+			link.click();
+			link.remove();
+			window.URL.revokeObjectURL(url);
+		} catch (error) {
+			setExportError(
+				error.response?.data?.message || "Erreur lors de l'export de vos données.",
+			);
+		} finally {
+			setExportLoading(false);
 		}
 	};
 
@@ -577,6 +605,38 @@ const SettingsPage = () => {
 													</div>
 												</div>
 											</div>
+										</div>
+									</div>
+
+									{/* Export de mes données */}
+									<div className="p-6 md:p-8 bg-white border border-gray-100 rounded-3xl">
+										<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+											<div className="flex items-start gap-3">
+												<div className="p-3 bg-gray-50 text-gray-600 rounded-2xl flex-shrink-0">
+													<Download className="h-5 w-5" />
+												</div>
+												<div>
+													<h4 className="text-sm font-[1000] text-gray-900 uppercase tracking-widest mb-1">
+														Télécharger mes données
+													</h4>
+													<p className="text-xs text-gray-500 font-medium leading-relaxed max-w-md">
+														Exportez une copie de vos données personnelles (profil,
+														commandes, produits et avis selon votre type de compte) au
+														format JSON.
+													</p>
+													{exportError && (
+														<p className="text-xs font-bold text-rose-600 mt-2">{exportError}</p>
+													)}
+												</div>
+											</div>
+											<button
+												onClick={handleExportData}
+												disabled={exportLoading}
+												className="flex-shrink-0 flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-emerald-600 transition-all active:scale-95 disabled:opacity-50"
+											>
+												<Download className="h-4 w-4" />
+												{exportLoading ? "Préparation..." : "Télécharger mes données"}
+											</button>
 										</div>
 									</div>
 

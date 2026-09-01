@@ -15,6 +15,7 @@ module.exports = {
   getMe: userProfileController.getMe,
   updateMe: userProfileController.updateMe,
   deleteMe: userProfileController.deleteMe,
+  exportMyData: userProfileController.exportMyData,
   getMyAddresses: userProfileController.getMyAddresses,
   addAddress: userProfileController.addAddress,
   updateAddress: userProfileController.updateAddress,

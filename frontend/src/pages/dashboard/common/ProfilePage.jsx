@@ -10,6 +10,7 @@ import {
 	ArrowRight,
 } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
+import { useNotifications } from "../../../hooks/useNotifications";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 import {
 	ProfileHeader,
@@ -33,6 +34,7 @@ import {
 const ProfilePage = () => {
 	const { user, isAuthenticated, refreshUser, updateProfile, setUser } =
 		useAuth();
+	const { showSuccess, showError } = useNotifications();
 	const [saving, setSaving] = useState(false);
 	const [editing, setEditing] = useState(false);
 	const [formData, setFormData] = useState({});
@@ -139,9 +141,13 @@ const ProfilePage = () => {
 
 			setEditing(false);
 			setFormData({});
-			// Success feedback could be improved with a toast
+			showSuccess("Profil mis à jour avec succès");
 		} catch (error) {
 			console.error("Erreur sauvegarde:", error);
+			showError(
+				error.response?.data?.message ||
+					"Erreur lors de la sauvegarde du profil. Vérifiez les champs et réessayez.",
+			);
 		} finally {
 			setSaving(false);
 		}
