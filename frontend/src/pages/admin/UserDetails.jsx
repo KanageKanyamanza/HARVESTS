@@ -36,8 +36,9 @@ const UserDetails = () => {
 	const [user, setUser] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [actionLoading, setActionLoading] = useState(false);
-	const [previewDoc, setPreviewDoc] = useState(null); // { url, name, type }
+	const [previewDoc, setPreviewDoc] = useState(null); // { url, name, type, originalUrl, blobUrl, loading, error }
 	const [previewPage, setPreviewPage] = useState(1);
+	const [downloadingDoc, setDownloadingDoc] = useState(null);
 
 	useEffect(() => {
 		loadUser();
@@ -144,6 +145,45 @@ const UserDetails = () => {
 		}
 	};
 
+	const handleDownload = async (url, filename) => {
+		try {
+			setDownloadingDoc(url);
+			const blob = await adminService.downloadDocumentProxy(url, filename);
+			const blobUrl = window.URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			link.href = blobUrl;
+			link.download = filename || "document";
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			window.URL.revokeObjectURL(blobUrl);
+		} catch (error) {
+			console.error("Erreur lors du téléchargement:", error);
+		} finally {
+			setDownloadingDoc(null);
+		}
+	};
+
+	const handlePreview = async (url, name) => {
+		setPreviewPage(1);
+		setPreviewDoc({ url, name, type: isPdf(url) ? "pdf" : "image", originalUrl: url, loading: true });
+		try {
+			const blob = await adminService.downloadDocumentProxy(url, name);
+			const blobUrl = window.URL.createObjectURL(blob);
+			setPreviewDoc({ url, name, type: isPdf(url) ? "pdf" : "image", originalUrl: url, blobUrl, loading: false });
+		} catch (error) {
+			console.error("Erreur lors du chargement de l'aperçu:", error);
+			setPreviewDoc({ url, name, type: isPdf(url) ? "pdf" : "image", originalUrl: url, error: true, loading: false });
+		}
+	};
+
+	const closePreview = () => {
+		if (previewDoc?.blobUrl) {
+			window.URL.revokeObjectURL(previewDoc.blobUrl);
+		}
+		setPreviewDoc(null);
+	};
+
 	const handleToggleShopVisibility = async () => {
 		const isVisible = user.isShopVisible !== false;
 		const confirmMsg = isVisible
@@ -172,28 +212,6 @@ const UserDetails = () => {
 	const isImage = (url) =>
 		/\.(jpg|jpeg|png|webp|gif|svg)$/i.test(url) ||
 		(url?.includes("/image/upload/") && !url?.toLowerCase().includes(".pdf"));
-
-	const getDownloadUrl = (url) => {
-		if (!url) return "";
-		if (url.includes("cloudinary.com")) {
-			let cleanUrl = url.replace(/\/fl_[^/]+/, "");
-			if (cleanUrl.includes("/upload/")) {
-				return cleanUrl.replace("/upload/", "/upload/fl_attachment/");
-			}
-		}
-		return url;
-	};
-
-	const getPdfPreviewUrl = (url, page = 1) => {
-		if (!url || !url.toLowerCase().includes(".pdf")) return url;
-		if (url.includes("cloudinary.com")) {
-			return url
-				.toLowerCase()
-				.replace(".pdf", ".jpg")
-				.replace("/upload/", `/upload/w_1200,f_auto,q_auto,pg_${page}/`);
-		}
-		return url;
-	};
 
 	const getStatusColor = (status) => {
 		const colors = {
@@ -300,27 +318,27 @@ const UserDetails = () => {
 
 				<div className="pt-4 border-t border-gray-100 flex flex-wrap gap-2 items-center relative z-10">
 					<button
-						onClick={() => {
-							setPreviewPage(1);
-							setPreviewDoc({
-								url: url,
-								name: name,
-								type: isPdf(url) ? "pdf" : "image",
-								originalUrl: url,
-							});
-						}}
+						onClick={() => handlePreview(url, name)}
+						disabled={previewDoc?.loading}
 						className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gray-900 text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-green-600 transition-all duration-300 shadow-lg hover:shadow-green-100"
 					>
 						<Eye className="h-3 w-3" /> Preview
 					</button>
-					<a
-						href={getDownloadUrl(url)}
-						target="_blank"
-						rel="noopener noreferrer"
-						className="p-2.5 bg-gray-100 text-gray-600 rounded-xl hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-200 transition-all duration-300"
+					<button
+						onClick={() => handleDownload(url, name)}
+						disabled={downloadingDoc === url}
+						className={`p-2.5 rounded-xl border transition-all duration-300 ${
+							downloadingDoc === url 
+							? "bg-gray-200 text-gray-400 border-transparent" 
+							: "bg-gray-100 text-gray-600 hover:bg-white hover:shadow-sm border-transparent hover:border-gray-200"
+						}`}
 					>
-						<Download className="h-4 w-4" />
-					</a>
+						{downloadingDoc === url ? (
+							<Clock className="h-4 w-4 animate-spin" />
+						) : (
+							<Download className="h-4 w-4" />
+						)}
+					</button>
 
 					{docKey && !isVerified && (
 						<div className="flex gap-2 w-full mt-2">
@@ -747,7 +765,7 @@ const UserDetails = () => {
 				<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 animate-fade-in">
 					<div
 						className="absolute inset-0 bg-gray-900/95 backdrop-blur-2xl"
-						onClick={() => setPreviewDoc(null)}
+						onClick={closePreview}
 					></div>
 					<div className="relative w-full max-w-6xl h-full flex flex-col bg-white rounded-[3rem] overflow-hidden shadow-2xl animate-scale-in">
 						{/* Modal Header */}
@@ -761,16 +779,19 @@ const UserDetails = () => {
 								</p>
 							</div>
 							<div className="flex items-center gap-2 sm:gap-4">
-								<a
-									href={getDownloadUrl(previewDoc.originalUrl)}
-									target="_blank"
-									rel="noopener noreferrer"
+								<button
+									onClick={() => handleDownload(previewDoc.originalUrl, previewDoc.name)}
+									disabled={downloadingDoc === previewDoc.originalUrl}
 									className="p-2 sm:p-4 bg-gray-100 text-gray-600 rounded-xl sm:rounded-2xl hover:bg-gray-200 transition-all"
 								>
-									<Download className="h-4 w-4 sm:h-5 sm:w-5" />
-								</a>
+									{downloadingDoc === previewDoc.originalUrl ? (
+										<Clock className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+									) : (
+										<Download className="h-4 w-4 sm:h-5 sm:w-5" />
+									)}
+								</button>
 								<button
-									onClick={() => setPreviewDoc(null)}
+									onClick={closePreview}
 									className="p-2 sm:p-4 bg-gray-900 text-white rounded-xl sm:rounded-2xl hover:bg-rose-600 transition-all shadow-xl shadow-gray-200"
 								>
 									<X className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -779,40 +800,35 @@ const UserDetails = () => {
 						</div>
 
 						{/* Modal Content */}
-						<div className="flex-1 overflow-auto bg-gray-50/50 p-8 flex items-start justify-center">
-							{previewDoc.type === "pdf" ? (
-								<div className="w-full max-w-3xl flex flex-col items-center gap-8">
-									<div className="bg-white p-4 rounded-[2rem] shadow-2xl border border-white">
-										<img
-											src={getPdfPreviewUrl(previewDoc.url, previewPage)}
-											alt="PDF Page"
-											className="w-full h-auto rounded-xl"
+						<div className="flex-1 overflow-hidden bg-gray-50/50 p-4 sm:p-8 flex items-center justify-center">
+							{previewDoc.loading ? (
+								<div className="flex flex-col items-center gap-4">
+									<LoadingSpinner size="lg" text="Chargement du document..." />
+								</div>
+							) : previewDoc.error ? (
+								<div className="flex flex-col items-center gap-4 text-rose-500">
+									<XCircle className="h-16 w-16" />
+									<p className="font-bold text-lg">Impossible de charger l'aperçu</p>
+								</div>
+							) : previewDoc.type === "pdf" ? (
+								<div className="w-full h-full flex flex-col items-center">
+									<div className="bg-white p-2 rounded-[1.5rem] shadow-2xl border border-white w-full h-full">
+										<iframe
+											src={previewDoc.blobUrl}
+											title="PDF Preview"
+											className="w-full h-full rounded-xl border-0"
 										/>
-									</div>
-									<div className="flex items-center gap-6 bg-gray-900 text-white p-4 rounded-[2rem] shadow-xl">
-										<button
-											onClick={() => setPreviewPage((p) => Math.max(1, p - 1))}
-											className="p-2 hover:bg-white/10 rounded-full transition-colors"
-										>
-											<ChevronLeft />
-										</button>
-										<span className="font-black text-sm uppercase tracking-widest">
-											Page {previewPage}
-										</span>
-										<button
-											onClick={() => setPreviewPage((p) => p + 1)}
-											className="p-2 hover:bg-white/10 rounded-full transition-colors"
-										>
-											<ChevronRight />
-										</button>
 									</div>
 								</div>
 							) : (
-								<img
-									src={previewDoc.url}
-									alt="Document"
-									className="max-w-full h-auto rounded-[2rem] shadow-2xl border border-white p-2 bg-white"
-								/>
+								<div className="relative max-w-full max-h-full">
+									<div className="absolute inset-0 bg-gray-900/5 rounded-[2rem] blur-xl transform scale-95 translate-y-4"></div>
+									<img
+										src={previewDoc.blobUrl}
+										alt="Document Preview"
+										className="relative max-w-full max-h-[80vh] object-contain rounded-[2rem] border-8 border-white shadow-2xl"
+									/>
+								</div>
 							)}
 						</div>
 					</div>
