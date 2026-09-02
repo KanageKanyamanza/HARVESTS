@@ -7,6 +7,7 @@ import VendorsNewsTicker from "../home/VendorsNewsTicker";
 import MobileBottomNav from "./MobileBottomNav";
 import ChatBot from "../chat/ChatBot";
 import SEOHead from "../seo/SEOHead";
+import CookieConsentBanner from "../common/CookieConsentBanner";
 import { useSEO } from "../../hooks/useSEO";
 
 const Layout = ({ children, className = "", seo }) => {
@@ -83,6 +84,7 @@ const Layout = ({ children, className = "", seo }) => {
 			<Footer />
 			<ChatBot />
 			<MobileBottomNav />
+			<CookieConsentBanner />
 		</div>
 	);
 };

@@ -2,7 +2,7 @@ import React from 'react';
 import Layout from '../components/layout/Layout';
 
 const Privacy = () => {
-  const lastUpdated = '26 novembre 2025';
+  const lastUpdated = '27 août 2026';
 
   return (
     <Layout>
@@ -87,36 +87,43 @@ const Privacy = () => {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">5. Sécurité des données</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">5. Transferts internationaux</h2>
+                <p className="text-gray-600 leading-relaxed">
+                  Certains de nos prestataires techniques (hébergement de la base de données, stockage des images et documents) traitent des données en dehors du Sénégal. Nous exigeons de ces prestataires un niveau de protection de vos données conforme à nos obligations légales. Si vous êtes situé dans un autre pays d'Afrique de l'Ouest ou Centrale, le droit local de votre pays de résidence peut également s'appliquer en complément.
+                </p>
+              </section>
+
+              <section className="mb-8">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">6. Sécurité des données</h2>
                 <p className="text-gray-600 leading-relaxed">
                   Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles pour protéger vos données : chiffrement SSL/TLS, stockage sécurisé, accès restreint aux données, et audits de sécurité réguliers.
                 </p>
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">6. Conservation des données</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">7. Conservation des données</h2>
                 <p className="text-gray-600 leading-relaxed">
                   Vos données sont conservées pendant la durée de votre utilisation de nos services et pour une période supplémentaire conformément aux obligations légales (généralement 5 ans pour les données de transaction). Vous pouvez demander la suppression de votre compte et de vos données à tout moment.
                 </p>
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">7. Cookies</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">8. Cookies</h2>
                 <p className="text-gray-600 leading-relaxed mb-4">
-                  Nous utilisons des cookies pour :
+                  Un bandeau vous permet de choisir, dès votre première visite, les cookies que vous acceptez :
                 </p>
                 <ul className="list-disc list-inside text-gray-600 space-y-2">
-                  <li><strong>Cookies essentiels</strong> : nécessaires au fonctionnement du site</li>
-                  <li><strong>Cookies de performance</strong> : pour analyser l'utilisation du site</li>
-                  <li><strong>Cookies de préférence</strong> : pour mémoriser vos choix</li>
+                  <li><strong>Cookies essentiels</strong> : nécessaires au fonctionnement du site (connexion, sécurité, panier). Toujours actifs.</li>
+                  <li><strong>Cookies de performance</strong> : pour analyser l'utilisation du site. Désactivés tant que vous ne les acceptez pas.</li>
+                  <li><strong>Cookies de préférence</strong> : pour mémoriser vos choix (langue, devise).</li>
                 </ul>
                 <p className="text-gray-600 leading-relaxed mt-4">
-                  Vous pouvez gérer vos préférences de cookies dans les paramètres de votre navigateur.
+                  Vous pouvez revenir sur votre choix à tout moment via le lien « Gérer les cookies » en bas de chaque page.
                 </p>
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">8. Vos droits</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">9. Vos droits</h2>
                 <p className="text-gray-600 leading-relaxed mb-4">
                   Conformément à la réglementation applicable, vous disposez des droits suivants :
                 </p>
@@ -131,14 +138,14 @@ const Privacy = () => {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">9. Modifications</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">10. Modifications</h2>
                 <p className="text-gray-600 leading-relaxed">
                   Nous pouvons mettre à jour cette politique de confidentialité. Toute modification sera publiée sur cette page avec une nouvelle date de mise à jour. Nous vous encourageons à consulter régulièrement cette page.
                 </p>
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">10. Contact</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">11. Contact</h2>
                 <p className="text-gray-600 leading-relaxed">
                   Pour toute question concernant cette politique ou pour exercer vos droits, contactez-nous :<br />
                   Email : contact@harvests.site<br />
