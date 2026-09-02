@@ -15,7 +15,12 @@ const getDisplayName = (p) =>
 // fixe faisait "boucler" trop tôt visuellement dès qu'il y avait peu de noms).
 // MAX_DURATION plafonne la boucle : avec 100+ producteurs, PX_PER_SECOND seul
 // donnait un tour complet de plusieurs minutes (quasi imperceptible à l'oeil).
-const PX_PER_SECOND = 65;
+// Sur mobile l'écran est plus étroit : à px/s égal, le bandeau traverse la
+// largeur visible bien plus vite qu'sur desktop, donc il paraît beaucoup
+// plus rapide à l'œil même si la vitesse réelle en px/s est identique.
+const PX_PER_SECOND_DESKTOP = 65;
+const PX_PER_SECOND_MOBILE = 32;
+const MOBILE_BREAKPOINT = 640; // aligné sur le "sm" de Tailwind
 const MIN_DURATION = 12;
 const MAX_DURATION = 90;
 
@@ -71,7 +76,9 @@ const VendorsNewsTicker = () => {
 			const el = trackRef.current;
 			if (!el) return;
 			const halfWidth = el.scrollWidth / 2;
-			const computed = Math.min(MAX_DURATION, Math.max(MIN_DURATION, halfWidth / PX_PER_SECOND));
+			const pxPerSecond =
+				window.innerWidth < MOBILE_BREAKPOINT ? PX_PER_SECOND_MOBILE : PX_PER_SECOND_DESKTOP;
+			const computed = Math.min(MAX_DURATION, Math.max(MIN_DURATION, halfWidth / pxPerSecond));
 			setDuration(computed);
 		};
 		// Deux rAF : laisse le DOM peindre le nouveau contenu (et les polices

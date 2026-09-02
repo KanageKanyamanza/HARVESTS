@@ -5,6 +5,7 @@ import SocialLinks from "../common/SocialLinks";
 import { getConfig } from "../../config/production";
 import { useAuth } from "../../hooks/useAuth";
 import { productService } from "../../services/productService";
+import { openCookiePreferences } from "../../utils/cookieConsent";
 import logo from "../../assets/logo.png";
 
 const CATEGORY_LABELS = {
@@ -330,8 +331,13 @@ const Footer = () => {
 						<div className="flex flex-wrap justify-center gap-4 text-xs text-gray-300">
 							<Link to="/terms" className="hover:underline">Conditions générales de vente</Link>
 							<Link to="/privacy" className="hover:underline">Vos informations personnelles</Link>
-							<Link to="/cookies" className="hover:underline">Cookies</Link>
-							<Link to="/ads" className="hover:underline">Annonces basées sur vos centres d'intérêt</Link>
+							<button
+								type="button"
+								onClick={openCookiePreferences}
+								className="hover:underline"
+							>
+								Gérer les cookies
+							</button>
 						</div>
 						<div className="text-xs text-gray-400 flex flex-col md:flex-row items-center gap-2">
 							<span>© {currentYear} Harvests. Tous droits réservés.</span>

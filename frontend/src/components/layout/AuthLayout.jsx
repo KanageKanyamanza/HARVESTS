@@ -1,10 +1,9 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ArrowLeft, Globe } from 'lucide-react';
 import { changeLanguage, getCurrentLanguage, getLanguageInfo } from '../../utils/i18n';
 
 const AuthLayout = ({ children, showBackButton = true }) => {
-  const navigate = useNavigate();
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = React.useState(false);
 
   const currentLanguage = getCurrentLanguage();
@@ -32,7 +31,7 @@ const AuthLayout = ({ children, showBackButton = true }) => {
         <div className="flex items-center">
           {showBackButton && (
             <Link
-              onClick={() => navigate(-1)}
+              to="/"
               className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
