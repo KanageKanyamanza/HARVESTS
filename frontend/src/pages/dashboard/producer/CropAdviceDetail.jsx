@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
 	FiArrowLeft,
@@ -12,6 +12,7 @@ import {
 	FiLayers,
 	FiCheck,
 	FiShield,
+	FiChevronDown,
 } from "react-icons/fi";
 import { Sprout } from "lucide-react";
 import {
@@ -26,9 +27,37 @@ const CropAdviceDetail = () => {
 	const navigate = useNavigate();
 	const crop = cropAdviceData.find((c) => c.id === cropId);
 
+	const handleBack = () => {
+		navigate("/producer/crop-advice");
+	};
+
 	const [heroImgSrc, setHeroImgSrc] = useState(
 		crop ? crop.image || crop.fallbackUrl : null
 	);
+
+	const [expandedMetrics, setExpandedMetrics] = useState({ season: false, water: false });
+	const toggleMetric = (key) =>
+		setExpandedMetrics((prev) => ({ ...prev, [key]: !prev[key] }));
+
+	const seasonTextRef = useRef(null);
+	const waterTextRef = useRef(null);
+	const [truncatedMetrics, setTruncatedMetrics] = useState({ season: false, water: false });
+
+	useLayoutEffect(() => {
+		const checkTruncation = () => {
+			setTruncatedMetrics({
+				season: seasonTextRef.current
+					? seasonTextRef.current.scrollHeight > seasonTextRef.current.clientHeight + 1
+					: false,
+				water: waterTextRef.current
+					? waterTextRef.current.scrollHeight > waterTextRef.current.clientHeight + 1
+					: false,
+			});
+		};
+		checkTruncation();
+		window.addEventListener("resize", checkTruncation);
+		return () => window.removeEventListener("resize", checkTruncation);
+	}, [crop]);
 
 	if (!crop) {
 		return (
@@ -65,7 +94,7 @@ const CropAdviceDetail = () => {
 				{/* Bouton retour */}
 				<button
 					type="button"
-					onClick={() => navigate("/producer/crop-advice")}
+					onClick={handleBack}
 					className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-harvests-primary bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm transition-all duration-200 hover:-translate-x-0.5"
 				>
 					<FiArrowLeft className="h-4 w-4" />
@@ -116,13 +145,30 @@ const CropAdviceDetail = () => {
 
 				{/* Cartes métriques rapides */}
 				<div className="grid grid-cols lg:grid-cols-4 gap-4">
-					<div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
-						<div className="p-3 rounded-xl bg-amber-50 text-amber-500">
+					<div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3">
+						<div className="p-3 rounded-xl bg-amber-50 text-amber-500 shrink-0">
 							<FiSun className="h-6 w-6" />
 						</div>
-						<div>
+						<div className="min-w-0 flex-1">
 							<span className="text-xs text-gray-400 font-medium block">Saison</span>
-							<span className="text-sm font-bold text-gray-800 line-clamp-1">{crop.season.label}</span>
+							<span
+								ref={seasonTextRef}
+								className={`text-sm font-bold text-gray-800 block ${expandedMetrics.season ? "" : "line-clamp-1"}`}
+							>
+								{crop.season.label}
+							</span>
+							{truncatedMetrics.season && (
+								<button
+									type="button"
+									onClick={() => toggleMetric("season")}
+									className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-harvests-primary hover:underline"
+								>
+									{expandedMetrics.season ? "Voir moins" : "Voir plus"}
+									<FiChevronDown
+										className={`h-3 w-3 transition-transform duration-200 ${expandedMetrics.season ? "rotate-180" : ""}`}
+									/>
+								</button>
+							)}
 						</div>
 					</div>
 
@@ -136,13 +182,30 @@ const CropAdviceDetail = () => {
 						</div>
 					</div>
 
-					<div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
-						<div className="p-3 rounded-xl bg-blue-50 text-blue-500">
+					<div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3">
+						<div className="p-3 rounded-xl bg-blue-50 text-blue-500 shrink-0">
 							<FiDroplet className="h-6 w-6" />
 						</div>
-						<div>
+						<div className="min-w-0 flex-1">
 							<span className="text-xs text-gray-400 font-medium block">Besoin en eau</span>
-							<span className="text-xs font-semibold text-gray-800 line-clamp-2">{crop.water}</span>
+							<span
+								ref={waterTextRef}
+								className={`text-xs font-semibold text-gray-800 block ${expandedMetrics.water ? "" : "line-clamp-2"}`}
+							>
+								{crop.water}
+							</span>
+							{truncatedMetrics.water && (
+								<button
+									type="button"
+									onClick={() => toggleMetric("water")}
+									className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-harvests-primary hover:underline"
+								>
+									{expandedMetrics.water ? "Voir moins" : "Voir plus"}
+									<FiChevronDown
+										className={`h-3 w-3 transition-transform duration-200 ${expandedMetrics.water ? "rotate-180" : ""}`}
+									/>
+								</button>
+							)}
 						</div>
 					</div>
 

@@ -76,14 +76,14 @@ const CropAdviceCard = ({ crop }) => {
 						<FiSun className="mt-0.5 text-amber-500 flex-shrink-0" />
 						<span className="font-medium text-gray-800 line-clamp-1">{crop.season.label}</span>
 					</div>
-					<div className="flex items-center justify-between text-xs text-gray-500 pt-1 border-t border-gray-100">
-						<div className="flex items-center gap-1.5">
+					<div className="flex items-center justify-between gap-2 text-xs text-gray-500 pt-1 border-t border-gray-100">
+						<div className="flex items-center gap-1.5 min-w-0">
 							<FiThermometer className="text-red-500 flex-shrink-0" />
-							<span>{crop.idealTemp.min}°C à {crop.idealTemp.max}°C</span>
+							<span className="truncate">{crop.idealTemp.min}°C à {crop.idealTemp.max}°C</span>
 						</div>
-						<div className="flex items-center gap-1.5">
+						<div className="flex items-center gap-1.5 min-w-0">
 							<FiCalendar className="text-emerald-600 flex-shrink-0" />
-							<span>{crop.cycleDays}</span>
+							<span className="truncate">{crop.cycleDays}</span>
 						</div>
 					</div>
 				</div>
