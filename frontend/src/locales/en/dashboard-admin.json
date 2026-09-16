@@ -1,0 +1,68 @@
+{
+	"dashboard": {
+		"title": "Admin dashboard",
+		"welcome": "Welcome to administration",
+		"overview": "Overview",
+		"statistics": "Statistics",
+		"recentActivity": "Recent activity",
+		"quickActions": "Quick actions"
+	},
+	"users": {
+		"title": "User management",
+		"allUsers": "All users",
+		"activeUsers": "Active users",
+		"pendingUsers": "Pending users",
+		"bannedUsers": "Banned users",
+		"userDetails": "User details",
+		"editUser": "Edit user",
+		"banUser": "Ban user",
+		"unbanUser": "Unban user",
+		"verifyUser": "Verify user",
+		"userType": "User type",
+		"registrationDate": "Registration date",
+		"lastLogin": "Last login",
+		"status": "Status",
+		"actions": "Actions"
+	},
+	"products": {
+		"title": "Product management",
+		"allProducts": "All products",
+		"pendingProducts": "Pending products",
+		"approvedProducts": "Approved products",
+		"rejectedProducts": "Rejected products",
+		"productDetails": "Product details",
+		"approveProduct": "Approve product",
+		"rejectProduct": "Reject product",
+		"featureProduct": "Feature product",
+		"unfeatureProduct": "Unfeature product",
+		"rejectionReason": "Rejection reason",
+		"moderationNotes": "Moderation notes"
+	},
+	"orders": {
+		"title": "Order management",
+		"allOrders": "All orders",
+		"pendingOrders": "Pending orders",
+		"processingOrders": "Processing orders",
+		"completedOrders": "Completed orders",
+		"cancelledOrders": "Cancelled orders",
+		"orderDetails": "Order details",
+		"updateStatus": "Update status",
+		"orderNumber": "Order number",
+		"customer": "Customer",
+		"total": "Total",
+		"date": "Date",
+		"status": "Status"
+	},
+	"analytics": {
+		"title": "Analytics",
+		"overview": "Overview",
+		"sales": "Sales",
+		"users": "Users",
+		"products": "Products",
+		"revenue": "Revenue",
+		"growth": "Growth",
+		"topProducts": "Top products",
+		"topProducers": "Top producers",
+		"recentActivity": "Recent activity"
+	}
+}

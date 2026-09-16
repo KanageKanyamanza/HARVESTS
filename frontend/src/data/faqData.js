@@ -1106,7 +1106,6 @@ const detectSpecificIssues = (normalizedMessage) => {
 export const findBestAnswer = (userMessage) => {
 	// Normaliser le message utilisateur (enlever accents, etc.)
 	const normalizedMessage = normalizeText(userMessage);
-	const message = userMessage.toLowerCase().trim();
 
 	// Détecter d'abord les problèmes spécifiques (priorité haute)
 	const specificIssue = detectSpecificIssues(normalizedMessage);
@@ -1137,7 +1136,6 @@ export const findBestAnswer = (userMessage) => {
 	let bestMatch = null;
 	let highestScore = 0;
 	let secondBestScore = 0;
-	let secondBestMatch = null;
 
 	for (const faq of faqData.faqs) {
 		let score = 0;
@@ -1147,7 +1145,6 @@ export const findBestAnswer = (userMessage) => {
 		for (const keyword of faq.keywords) {
 			// Normaliser le mot-clé pour la comparaison
 			const normalizedKeyword = normalizeText(keyword);
-			const kw = keyword.toLowerCase();
 
 			// Vérifier les correspondances exactes de phrases (priorité maximale)
 			if (normalizedKeyword.includes(" ")) {
@@ -1238,12 +1235,10 @@ export const findBestAnswer = (userMessage) => {
 		// Garder trace du meilleur et deuxième meilleur match
 		if (score > highestScore) {
 			secondBestScore = highestScore;
-			secondBestMatch = bestMatch;
 			highestScore = score;
 			bestMatch = faq;
 		} else if (score > secondBestScore) {
 			secondBestScore = score;
-			secondBestMatch = faq;
 		}
 	}
 

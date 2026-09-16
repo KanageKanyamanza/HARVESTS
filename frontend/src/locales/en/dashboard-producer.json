@@ -1,0 +1,58 @@
+{
+	"dashboard": {
+		"title": "Producer dashboard",
+		"welcome": "Welcome",
+		"overview": "Overview",
+		"myProducts": "My products",
+		"recentOrders": "Recent orders",
+		"statistics": "Statistics",
+		"quickActions": "Quick actions"
+	},
+	"products": {
+		"title": "My products",
+		"addProduct": "Add product",
+		"editProduct": "Edit product",
+		"deleteProduct": "Delete product",
+		"productDetails": "Product details",
+		"productStatus": "Product status",
+		"inventory": "Inventory",
+		"pricing": "Pricing",
+		"images": "Images",
+		"variants": "Variants",
+		"noProducts": "No products",
+		"noProductsDescription": "You don't have any products yet"
+	},
+	"orders": {
+		"title": "My orders",
+		"incomingOrders": "Incoming orders",
+		"orderHistory": "Order history",
+		"orderDetails": "Order details",
+		"updateOrderStatus": "Update order status",
+		"markAsShipped": "Mark as shipped",
+		"markAsDelivered": "Mark as delivered",
+		"orderNumber": "Order number",
+		"customer": "Customer",
+		"orderDate": "Order date",
+		"total": "Total",
+		"status": "Status"
+	},
+	"profile": {
+		"title": "My producer profile",
+		"businessInfo": "Business information",
+		"farmInfo": "Farm information",
+		"certifications": "Certifications",
+		"documents": "Documents",
+		"bankingInfo": "Banking information",
+		"shippingInfo": "Shipping information"
+	},
+	"analytics": {
+		"title": "My analytics",
+		"salesOverview": "Sales overview",
+		"productPerformance": "Product performance",
+		"customerInsights": "Customer insights",
+		"revenue": "Revenue",
+		"orders": "Orders",
+		"views": "Views",
+		"conversion": "Conversion"
+	}
+}

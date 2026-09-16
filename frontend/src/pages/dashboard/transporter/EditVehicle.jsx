@@ -39,7 +39,6 @@ const EditVehicle = () => {
 		vehicleImage,
 		uploadingImage,
 		fileInputRef,
-		vehicleId,
 		handleChange,
 		handleCapacityChange,
 		handleFeatureToggle,

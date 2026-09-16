@@ -4,6 +4,7 @@ import { AuthContext } from "../store/AuthContext";
 
 const SocketContext = createContext();
 
+// eslint-disable-next-line react-refresh/only-export-components -- hook stable, motif context+hook+provider standard du projet
 export const useSocket = () => {
 	return useContext(SocketContext);
 };
@@ -12,7 +13,6 @@ export const SocketProvider = ({ children }) => {
 	const { user, isAuthenticated } = useContext(AuthContext);
 	const [socket, setSocket] = useState(null);
 	const [isConnected, setIsConnected] = useState(false);
-	const [activeUsers, setActiveUsers] = useState([]);
 
 	// URL du serveur (sans le chemin /api/v1)
 	const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -68,7 +68,6 @@ export const SocketProvider = ({ children }) => {
 	const value = {
 		socket,
 		isConnected,
-		activeUsers,
 	};
 
 	return (

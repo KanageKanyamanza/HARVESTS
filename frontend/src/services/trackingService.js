@@ -1,6 +1,8 @@
 /**
  * Service de tracking pour les visites de blog
  */
+import { getConfig } from '../config/production';
+
 class TrackingService {
   constructor() {
     this.visitId = null;
@@ -138,7 +140,6 @@ class TrackingService {
 
       // Essayer d'envoyer avec sendBeacon
       if (navigator.sendBeacon) {
-        const { getConfig } = require('../config/production');
         const appConfig = getConfig();
         navigator.sendBeacon(
           `${appConfig.API_BASE_URL}/blogs/track`,

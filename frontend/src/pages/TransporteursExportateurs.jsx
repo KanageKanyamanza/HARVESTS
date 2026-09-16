@@ -113,7 +113,7 @@ const TransporteursExportateurs = () => {
 
 	return (
 		<div className="min-h-screen bg-[#F8FAF6] pb-16">
-			<SEOHead title="Transport & Logistique | Harvests" description="Découvrez nos partenaires logistiques pour vos besoins de transport local et d'export international." />
+			<SEOHead />
 
 			<div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 pt-3 sm:pt-4">
 

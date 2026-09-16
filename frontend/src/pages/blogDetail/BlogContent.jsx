@@ -67,7 +67,7 @@ const BlogContent = ({
       {/* Tags */}
       {normalizedTags && normalizedTags.length > 0 && (
         <div className="mt-8 pt-6 border-t border-gray-100">
-          <h3 className="text-xs font-extrabold text-gray-500 uppercase tracking-wider mb-3">{t('blog.tagsLabel', 'Tags')}</h3>
+          <h3 className="text-xs font-extrabold text-gray-500 uppercase tracking-wider mb-3">{t('tagsLabel', 'Tags')}</h3>
           <div className="flex flex-wrap gap-2">
             {normalizedTags.map((tag, index) => (
               <span

@@ -16,7 +16,7 @@ import {
 	getProductAverageRating,
 	getProductReviewCount,
 } from "../../utils/vendorRatings";
-import { convertPrice, formatPrice } from "../../utils/currencyUtils";
+import { convertPrice } from "../../utils/currencyUtils";
 import { useCurrency } from "../../contexts/CurrencyContext";
 import { normalizeUnit } from "../../utils/productUtils";
 

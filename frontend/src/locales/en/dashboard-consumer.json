@@ -1,0 +1,54 @@
+{
+	"dashboard": {
+		"title": "My dashboard",
+		"welcome": "Welcome",
+		"overview": "Overview",
+		"recentOrders": "Recent orders",
+		"favorites": "My favorites",
+		"recommendations": "Recommendations",
+		"quickActions": "Quick actions"
+	},
+	"profile": {
+		"title": "My profile",
+		"personalInfo": "Personal information",
+		"contactInfo": "Contact information",
+		"preferences": "Preferences",
+		"security": "Security",
+		"notifications": "Notifications",
+		"privacy": "Privacy"
+	},
+	"orders": {
+		"title": "My orders",
+		"orderHistory": "Order history",
+		"currentOrders": "Current orders",
+		"orderDetails": "Order details",
+		"trackOrder": "Track order",
+		"cancelOrder": "Cancel order",
+		"reorder": "Reorder",
+		"orderNumber": "Order number",
+		"orderDate": "Order date",
+		"total": "Total",
+		"status": "Status"
+	},
+	"favorites": {
+		"title": "My favorites",
+		"savedProducts": "Saved products",
+		"savedProducers": "Saved producers",
+		"addToFavorites": "Add to favorites",
+		"removeFromFavorites": "Remove from favorites",
+		"noFavorites": "No favorites",
+		"noFavoritesDescription": "You don't have any favorites yet"
+	},
+	"cart": {
+		"title": "My cart",
+		"items": "Items",
+		"subtotal": "Subtotal",
+		"shipping": "Shipping",
+		"tax": "Tax",
+		"total": "Total",
+		"checkout": "Checkout",
+		"emptyCart": "Empty cart",
+		"emptyCartDescription": "Your cart is empty",
+		"continueShopping": "Continue shopping"
+	}
+}

@@ -1,10 +1,9 @@
 import React from 'react';
 import { FiFilter, FiChevronDown, FiX, FiMapPin } from 'react-icons/fi';
-import { getCategoryLabel, getSortOptions } from '../../utils/productHelpers';
+import { getCategoryLabel } from '../../utils/productHelpers';
 import { SUPPORTED_COUNTRIES, REGIONAL_ZONES } from '../../utils/countryMapper';
 
 const ProductFilters = ({
-  showFilters,
   setShowFilters,
   searchQuery,
   setSearchQuery,

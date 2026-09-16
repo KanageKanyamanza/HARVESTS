@@ -4,10 +4,9 @@ import StarRating from '../reviews/StarRating';
 import { reviewService } from '../../services';
 
 const ReviewStats = ({ 
-  userId, 
-  userType = 'producer', 
-  showDetailed = false,
-  className = '' 
+  userId,
+  userType = 'producer',
+  className = ''
 }) => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -77,10 +76,6 @@ const ReviewStats = ({
 
   const getTotalReviews = () => {
     return stats.totalReviews || 0;
-  };
-
-  const getDetailedStats = () => {
-    return stats.averageDetailedRatings || null;
   };
 
   const getRatingDistribution = () => {

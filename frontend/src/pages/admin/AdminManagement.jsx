@@ -198,7 +198,7 @@ const AdminManagement = () => {
 			const response = await adminService.getAdminById(admin._id);
 			setSelectedAdmin(response.data?.admin || response.admin || admin);
 			setShowViewModal(true);
-		} catch (error) {
+		} catch {
 			setError("Erreur lors du chargement des détails");
 			setSelectedAdmin(admin);
 			setShowViewModal(true);

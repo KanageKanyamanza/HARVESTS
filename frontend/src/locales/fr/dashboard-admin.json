@@ -1,0 +1,68 @@
+{
+	"dashboard": {
+		"title": "Tableau de bord administrateur",
+		"welcome": "Bienvenue dans l'administration",
+		"overview": "Vue d'ensemble",
+		"statistics": "Statistiques",
+		"recentActivity": "Activité récente",
+		"quickActions": "Actions rapides"
+	},
+	"users": {
+		"title": "Gestion des utilisateurs",
+		"allUsers": "Tous les utilisateurs",
+		"activeUsers": "Utilisateurs actifs",
+		"pendingUsers": "Utilisateurs en attente",
+		"bannedUsers": "Utilisateurs bannis",
+		"userDetails": "Détails utilisateur",
+		"editUser": "Modifier l'utilisateur",
+		"banUser": "Bannir l'utilisateur",
+		"unbanUser": "Débannir l'utilisateur",
+		"verifyUser": "Vérifier l'utilisateur",
+		"userType": "Type d'utilisateur",
+		"registrationDate": "Date d'inscription",
+		"lastLogin": "Dernière connexion",
+		"status": "Statut",
+		"actions": "Actions"
+	},
+	"products": {
+		"title": "Gestion des produits",
+		"allProducts": "Tous les produits",
+		"pendingProducts": "Produits en attente",
+		"approvedProducts": "Produits approuvés",
+		"rejectedProducts": "Produits rejetés",
+		"productDetails": "Détails du produit",
+		"approveProduct": "Approuver le produit",
+		"rejectProduct": "Rejeter le produit",
+		"featureProduct": "Mettre en vedette",
+		"unfeatureProduct": "Retirer de la vedette",
+		"rejectionReason": "Raison du rejet",
+		"moderationNotes": "Notes de modération"
+	},
+	"orders": {
+		"title": "Gestion des commandes",
+		"allOrders": "Toutes les commandes",
+		"pendingOrders": "Commandes en attente",
+		"processingOrders": "Commandes en cours",
+		"completedOrders": "Commandes terminées",
+		"cancelledOrders": "Commandes annulées",
+		"orderDetails": "Détails de la commande",
+		"updateStatus": "Mettre à jour le statut",
+		"orderNumber": "Numéro de commande",
+		"customer": "Client",
+		"total": "Total",
+		"date": "Date",
+		"status": "Statut"
+	},
+	"analytics": {
+		"title": "Analytiques",
+		"overview": "Vue d'ensemble",
+		"sales": "Ventes",
+		"users": "Utilisateurs",
+		"products": "Produits",
+		"revenue": "Revenus",
+		"growth": "Croissance",
+		"topProducts": "Produits populaires",
+		"topProducers": "Producteurs populaires",
+		"recentActivity": "Activité récente"
+	}
+}

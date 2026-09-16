@@ -98,7 +98,7 @@ const Transformers = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAF6] pb-16">
-      <SEOHead title="Transformateurs & Agrobusiness | Harvests" description="Découvrez les entreprises de transformation qui valorisent les produits frais en produits transformés et épices locales." />
+      <SEOHead />
 
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 pt-3 sm:pt-4">
 

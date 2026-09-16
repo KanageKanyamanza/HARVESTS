@@ -111,7 +111,7 @@ export const useVehicleForm = (service, userTypeKey, basePath, defaultWeightUnit
         setVehicleImage({ url: response.data.url, public_id: response.data.public_id, alt: 'Véhicule' });
         showSuccess('Image téléchargée');
       }
-    } catch (error) {
+    } catch {
       showError('Erreur lors du téléchargement');
     } finally {
       setUploadingImage(false);

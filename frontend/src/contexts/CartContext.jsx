@@ -4,7 +4,6 @@ import React, {
 	useReducer,
 	useEffect,
 	useState,
-	useCallback,
 } from "react";
 import { useAuth } from "../hooks/useAuth";
 import {
@@ -89,6 +88,7 @@ export const CartProvider = ({ children }) => {
 	return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components -- hook stable, motif context+hook+provider standard du projet
 export const useCart = () => {
 	const context = useContext(CartContext);
 	if (!context) {

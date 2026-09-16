@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { productService } from '../services';
-import { useAuth } from './useAuth';
 
 /**
  * Hook personnalisé pour récupérer les produits basés sur la localisation
@@ -18,7 +17,6 @@ export const useLocationBasedProducts = (options = {}) => {
     radius = null
   } = options;
 
-  const { user } = useAuth();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);

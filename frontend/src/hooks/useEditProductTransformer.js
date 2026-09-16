@@ -185,7 +185,6 @@ export const useEditProductTransformer = () => {
 				description: toPlainText(formData.description, ""),
 				shortDescription: deriveShortDescription(formData.description, ""),
 				price: parseFloat(formData.price),
-				currency: formData.currency,
 				category: formData.category,
 				subcategory: formData.category,
 				inventory: {

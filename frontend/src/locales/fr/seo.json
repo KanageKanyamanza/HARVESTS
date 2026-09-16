@@ -1,0 +1,124 @@
+{
+	"default": {
+		"title": "Harvests | Marketplace Agroalimentaire & Logistique au Sénégal",
+		"description": "Plateforme agritech leader au Sénégal connectant producteurs locaux, restaurateurs et transporteurs. Produits frais, bio et circuits courts.",
+		"keywords": "Harvests, marketplace agroalimentaire, agritech Sénégal, produits frais, agriculture locale, logistique agricole Afrique, circuit court, producteurs locaux, vente directe ferme, alimentation saine Sénégal"
+	},
+	"home": {
+		"title": "Harvests | De la Ferme à votre Table | Marketplace Agroalimentaire",
+		"description": "Commandez des produits frais en direct des producteurs locaux au Sénégal. Profitez d'une logistique fiable et rapide pour vos approvisionnements alimentaires.",
+		"keywords": "acheter produits frais en ligne, livraison légumes Sénégal, fruits de saison Afrique, marketplace agricole, logistique dernier kilomètre, agro-industrie Sénégal, circuit court alimentaire"
+	},
+	"products": {
+		"title": "Catalogue Produits Frais | Fruits, Légumes & Viandes | Harvests",
+		"description": "Découvrez notre large sélection de produits frais : fruits, légumes, viandes, riz local et produits laitiers. Qualité garantie en direct des fermes sénégalaises.",
+		"keywords": "riz local Sénégal, oignons de Podor, fruits exotiques, viande bio, légumes frais Dakar, commande en gros agroalimentaire",
+		"catalogTitle": "Catalogue des Produits Agricoles",
+		"catalogDescription": "Parcourez tous les produits agricoles Harvests : fraîcheur, traçabilité et livraison directe.",
+		"featuredTitle": "Produits mis en avant",
+		"featuredDescription": "Nos produits mis en avant : qualité, fraîcheur et livraison rapide avec Harvests.",
+		"byCategoryTitle": "Produits : {{category}}",
+		"byCategoryDescription": "Découvrez notre sélection de {{category}} : produits frais, circuits courts et logistique fiable.",
+		"byCountryTitle": "Produits au {{country}}"
+	},
+	"blog": {
+		"title": "Actualités Agricoles & Agritech Afrique | Blog Harvests",
+		"description": "Restez informé des dernières tendances de l'agriculture au Sénégal, des innovations agritech et des conseils pour optimiser votre logistique alimentaire.",
+		"keywords": "blog agriculture Sénégal, innovation agritech Afrique, conseils logistique, tendances marché alimentaire, développement rural"
+	},
+	"about": {
+		"title": "Notre Mission | Révolutionner la Chaîne Alimentaire | Harvests",
+		"description": "Harvests s'engage pour une agriculture durable et une rémunération juste des producteurs au Sénégal grâce à la technologie et l'innovation.",
+		"keywords": "mission Harvests, agriculture durable Afrique, agritech impact social, équipe Harvests, histoire agriculture Sénégal"
+	},
+	"contact": {
+		"title": "Contactez l'Équipe Harvests | Support & Assistance",
+		"description": "Besoin d'aide pour vos commandes ou pour rejoindre la plateforme ? Contactez le support Harvests disponible 7j/7 pour vous accompagner.",
+		"keywords": "contact Harvests, support client agriculture, assistance transporteur, rejoindre Harvests, service client Sénégal"
+	},
+	"faq": {
+		"title": "Aide & FAQ | Tout savoir sur Harvests",
+		"description": "Comment commander ? Comment devenir vendeur ? Trouvez toutes les réponses à vos questions sur le fonctionnement de la marketplace Harvests.",
+		"keywords": "aide Harvests, fonctionnement marketplace, devenir fournisseur, questions livraison, paiement sécurisé Sénégal"
+	},
+	"terms": {
+		"title": "Conditions Générales d'Utilisation | Harvests",
+		"description": "Consultez nos conditions d'utilisation pour une collaboration transparente entre producteurs, transporteurs et acheteurs sur Harvests.",
+		"keywords": "CGU Harvests, mentions légales, conditions de vente, réglementation agricole Sénégal"
+	},
+	"privacy": {
+		"title": "Protection des Données & Confidentialité | Harvests",
+		"description": "Découvrez comment nous protégeons vos données personnelles et garantissons la sécurité de vos transactions sur notre plateforme.",
+		"keywords": "confidentialité des données, RGPD Sénégal, sécurité paiements, protection vie privée"
+	},
+	"pricing": {
+		"title": "Tarifs & Plans d'Abonnement | Boostez votre Activité | Harvests",
+		"description": "Choisissez le plan adapté à vos besoins : Gratuit, Standard ou Premium. Augmentez vos ventes et optimisez votre logistique dès aujourd'hui.",
+		"keywords": "tarifs abonnement agriculture, prix marketplace, forfait producteur, plan transporteur, services premium Harvests"
+	},
+	"loyalty": {
+		"title": "Programme Fidélité Harvests | Gagnez des Récompenses",
+		"description": "Cumulez des points à chaque commande et profitez de réductions exclusives. Plus vous utilisez Harvests, plus vous économisez !",
+		"keywords": "programme fidélité, points récompense, réductions agriculture, avantages clients Harvests"
+	},
+	"producers": {
+		"title": "Nos Producteurs Partenaires | Le Meilleur du Terroir Sénégalais",
+		"description": "Rencontrez les agriculteurs passionnés derrière vos produits frais. Soutenez l'économie locale en achetant directement à la source.",
+		"keywords": "producteurs locaux Sénégal, annuaire agriculteurs, fermes locales, soutenir agriculture Afrique"
+	},
+	"transformers": {
+		"title": "Produits Transformés Locaux | Qualité & Savoir-faire | Harvests",
+		"description": "Découvrez nos produits transformés : huiles artisanales, jus naturels, céréales locales et bien plus encore, fabriqués au Sénégal.",
+		"keywords": "agro-transformation Sénégal, produits locaux transformés, céréales locales, huiles naturelles Afrique"
+	},
+	"logistics": {
+		"title": "Solutions Logistiques & Transport | Livraisons Rapides",
+		"description": "Trouvez des transporteurs certifiés pour vos produits périssables. Une logistique frigorifique et sécurisée pour garantir la fraîcheur.",
+		"keywords": "transport frigorifique Sénégal, logistique produits frais, livraison express agroalimentaire, réseau transporteurs"
+	},
+	"categories": {
+		"title": "Toutes nos Catégories | De l'Essentiel aux Spécialités",
+		"description": "Explorez notre catalogue par catégorie : Céréales, Fruits, Légumes, Agrumes, Épices et Produits de la Mer.",
+		"keywords": "catégories produits alimentaires, fruits légumes en ligne, épices Sénégal, produits mer Dakar"
+	},
+	"vendeurs": {
+		"title": "Nos Vendeurs | Producteurs & Artisans du Terroir | Harvests",
+		"description": "Découvrez tous les vendeurs partenaires de Harvests : producteurs locaux, transformateurs et artisans agroalimentaires au Sénégal.",
+		"keywords": "vendeurs Harvests, boutiques producteurs, artisans agroalimentaires Sénégal, vente directe producteur"
+	},
+	"restaurateurs": {
+		"title": "Nos Restaurateurs | Cuisine Locale & Traditionnelle | Harvests",
+		"description": "Parcourez les restaurants et traiteurs partenaires de Harvests. Commandez des plats locaux préparés avec des ingrédients frais du terroir sénégalais.",
+		"keywords": "restaurateurs Sénégal, cuisine traditionnelle africaine, commande plats locaux, traiteurs Dakar, food sénégalais"
+	},
+	"productDetail": {
+		"title": "Produit | Harvests",
+		"description": "Détails, prix et disponibilité du produit sur la marketplace Harvests.",
+		"keywords": "produit, achat, prix, disponibilité, Harvests"
+	},
+	"blogDetail": {
+		"title": "Article | Blog Harvests",
+		"description": "Article du blog Harvests sur l'agriculture, la logistique et les circuits courts en Afrique.",
+		"keywords": "article, blog, agriculture, logistique, Harvests"
+	},
+	"producerProfile": {
+		"title": "Profil producteur | Harvests",
+		"description": "Découvrez ce producteur local, ses produits et ses disponibilités sur Harvests.",
+		"keywords": "producteur, profil, produits locaux, Harvests"
+	},
+	"transformerProfile": {
+		"title": "Profil transformateur | Harvests",
+		"description": "Découvrez ce transformateur, ses produits et ses spécialités sur Harvests.",
+		"keywords": "transformateur, profil, produits transformés, Harvests"
+	},
+	"restaurateurProfile": {
+		"title": "Profil restaurateur | Harvests",
+		"description": "Découvrez ce restaurateur partenaire de Harvests.",
+		"keywords": "restaurateur, profil, restaurant, Harvests"
+	},
+	"invest": {
+		"title": "Investir dans Harvests | Opportunités d'Investissement Agritech",
+		"description": "Rejoignez les investisseurs qui soutiennent la révolution agritech en Afrique. Contactez notre équipe pour recevoir le pitch deck et échanger sur les opportunités d'investissement.",
+		"keywords": "investir agritech Afrique, opportunités investissement Sénégal, pitch deck Harvests, startup agroalimentaire, investisseurs impact"
+	}
+}

@@ -151,7 +151,7 @@ export const chatService = {
 		try {
 			const response = await api.get("/products/suggestions");
 			return response.data?.data?.products || [];
-		} catch (error) {
+		} catch {
 			// Fallback: produits populaires
 			try {
 				const fallback = await api.get("/products", {

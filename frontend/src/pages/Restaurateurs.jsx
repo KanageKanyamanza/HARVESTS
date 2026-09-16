@@ -102,7 +102,7 @@ const Restaurateurs = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAF6] pb-16">
-      <SEOHead title="Restaurateurs | Harvests" description="Découvrez les restaurateurs qui s'approvisionnent en produits frais et locaux directement auprès des producteurs." />
+      <SEOHead />
 
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 pt-3 sm:pt-4">
 

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../../../hooks/useAuth";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 import TransporterStatsOverview from "../../../components/dashboard/transporter/TransporterStatsOverview";
 import OrdersSection from "../../../components/dashboard/sections/OrdersSection";
@@ -11,7 +10,6 @@ import { FiPackage, FiTruck, FiStar } from "react-icons/fi";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
 
 const TransporterDashboard = () => {
-	const { user } = useAuth();
 	const [stats, setStats] = useState(null);
 	const [loading, setLoading] = useState(true);
 

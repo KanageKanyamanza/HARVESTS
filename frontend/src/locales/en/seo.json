@@ -1,0 +1,124 @@
+{
+	"default": {
+		"title": "Harvests | Agrifood and Logistics Marketplace",
+		"description": "Order fresh products, work with local producers and enjoy reliable logistics with Harvests.",
+		"keywords": "Harvests, marketplace, fresh products, agriculture, logistics, Senegal"
+	},
+	"home": {
+		"title": "Harvests | From Farm to Table | Agrifood Marketplace",
+		"description": "Order fresh produce straight from local farmers in Senegal. Enjoy fast, reliable logistics for all your food sourcing needs.",
+		"keywords": "buy fresh produce online, vegetable delivery Senegal, seasonal fruit Africa, agricultural marketplace, last-mile logistics, Senegal agribusiness, short food supply chain"
+	},
+	"products": {
+		"title": "Fresh Produce Catalog | Fruits, Vegetables & Meat | Harvests",
+		"description": "Explore our wide selection of fresh products: fruits, vegetables, meat, local rice and dairy. Quality guaranteed straight from Senegalese farms.",
+		"keywords": "local rice Senegal, Podor onions, exotic fruit, organic meat, fresh vegetables Dakar, wholesale agrifood order",
+		"catalogTitle": "Agricultural Products Catalog",
+		"catalogDescription": "Browse all Harvests agricultural products: freshness, traceability and direct delivery.",
+		"featuredTitle": "Featured Products",
+		"featuredDescription": "Our featured products: quality, freshness and fast delivery with Harvests.",
+		"byCategoryTitle": "Products: {{category}}",
+		"byCategoryDescription": "Discover our selection of {{category}}: fresh products, short circuits and reliable logistics.",
+		"byCountryTitle": "Products in {{country}}"
+	},
+	"blog": {
+		"title": "Agricultural & Agritech News Africa | Harvests Blog",
+		"description": "Stay up to date on the latest farming trends in Senegal, agritech innovations, and tips to optimize your food logistics.",
+		"keywords": "Senegal agriculture blog, African agritech innovation, logistics tips, food market trends, rural development"
+	},
+	"about": {
+		"title": "Our Mission | Transforming the Food Chain | Harvests",
+		"description": "Harvests is committed to sustainable agriculture and fair pay for producers in Senegal through technology and innovation.",
+		"keywords": "Harvests mission, sustainable agriculture Africa, agritech social impact, Harvests team, Senegal agriculture story"
+	},
+	"contact": {
+		"title": "Contact the Harvests Team | Support & Assistance",
+		"description": "Need help with your orders or want to join the platform? Contact Harvests support, available 7 days a week.",
+		"keywords": "contact Harvests, agriculture customer support, transporter assistance, join Harvests, Senegal customer service"
+	},
+	"faq": {
+		"title": "FAQ | Harvests",
+		"description": "Find answers to frequently asked questions about Harvests, our services and our platform.",
+		"keywords": "FAQ, frequent questions, help, support"
+	},
+	"terms": {
+		"title": "Terms of Use | Harvests",
+		"description": "Consult our general terms of use for the Harvests platform.",
+		"keywords": "terms of use, terms, Harvests"
+	},
+	"privacy": {
+		"title": "Privacy Policy | Harvests",
+		"description": "Find out how Harvests protects your personal data and respects your privacy.",
+		"keywords": "privacy, data protection, GDPR, private life"
+	},
+	"pricing": {
+		"title": "Pricing & Subscription Plans | Grow Your Business | Harvests",
+		"description": "Choose the plan that fits your needs: Free, Standard or Premium. Boost your sales and streamline your logistics today.",
+		"keywords": "agriculture subscription pricing, marketplace pricing, producer plan, transporter plan, Harvests premium services"
+	},
+	"loyalty": {
+		"title": "Harvests Loyalty Program | Earn Rewards",
+		"description": "Earn points with every order and enjoy exclusive discounts. The more you use Harvests, the more you save!",
+		"keywords": "loyalty program, reward points, agriculture discounts, Harvests customer benefits"
+	},
+	"producers": {
+		"title": "Our Partner Producers | The Best of Senegalese Terroir",
+		"description": "Meet the passionate farmers behind your fresh produce. Support the local economy by buying directly from the source.",
+		"keywords": "local producers Senegal, farmer directory, local farms, support African agriculture"
+	},
+	"transformers": {
+		"title": "Local Processed Foods | Quality & Craftsmanship | Harvests",
+		"description": "Discover our processed products: artisanal oils, natural juices, local grains and more, made in Senegal.",
+		"keywords": "Senegal food processing, local processed products, local grains, natural African oils"
+	},
+	"logistics": {
+		"title": "Logistics & Transport Solutions | Fast Deliveries",
+		"description": "Find certified transporters for your perishable goods. Secure cold-chain logistics to guarantee freshness.",
+		"keywords": "cold-chain transport Senegal, fresh produce logistics, express agrifood delivery, transporter network"
+	},
+	"categories": {
+		"title": "All Categories | From Staples to Specialties | Harvests",
+		"description": "Browse our catalog by category: Grains, Fruits, Vegetables, Citrus, Spices and Seafood.",
+		"keywords": "food product categories, fruits vegetables online, spices Senegal, seafood Dakar"
+	},
+	"vendeurs": {
+		"title": "Our Sellers | Producers & Artisans | Harvests",
+		"description": "Discover all partner sellers on Harvests: local producers, transformers and agrifood artisans.",
+		"keywords": "sellers, Harvests, producer shops, agrifood artisans"
+	},
+	"restaurateurs": {
+		"title": "Our Restaurateurs | Local & Traditional Cuisine | Harvests",
+		"description": "Browse Harvests' partner restaurants and caterers. Order local dishes prepared with fresh ingredients from Senegalese terroir.",
+		"keywords": "Senegal restaurateurs, traditional African cuisine, order local dishes, Dakar caterers, Senegalese food"
+	},
+	"productDetail": {
+		"title": "Product | Harvests",
+		"description": "Details, price and availability of the product on the Harvests marketplace.",
+		"keywords": "product, buy, price, availability, Harvests"
+	},
+	"blogDetail": {
+		"title": "Article | Harvests Blog",
+		"description": "Harvests blog article about agriculture, logistics and short circuits in Africa.",
+		"keywords": "article, blog, agriculture, logistics, Harvests"
+	},
+	"producerProfile": {
+		"title": "Producer Profile | Harvests",
+		"description": "Discover this local producer, their products and availability on Harvests.",
+		"keywords": "producer, profile, local products, Harvests"
+	},
+	"transformerProfile": {
+		"title": "Transformer Profile | Harvests",
+		"description": "Discover this transformer, their products and specialties on Harvests.",
+		"keywords": "transformer, profile, processed products, Harvests"
+	},
+	"restaurateurProfile": {
+		"title": "Restaurateur Profile | Harvests",
+		"description": "Discover this Harvests partner restaurateur.",
+		"keywords": "restaurateur, profile, restaurant, Harvests"
+	},
+	"invest": {
+		"title": "Invest in Harvests | Agritech Investment Opportunities",
+		"description": "Join the investors backing Africa's agritech revolution. Contact our team to receive the pitch deck and discuss investment opportunities.",
+		"keywords": "invest African agritech, Senegal investment opportunities, Harvests pitch deck, agrifood startup, impact investors"
+	}
+}

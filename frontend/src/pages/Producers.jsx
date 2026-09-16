@@ -24,7 +24,6 @@ const Producers = () => {
   };
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedCountry = searchParams.get("country") || "";
@@ -64,7 +63,6 @@ const Producers = () => {
           if (cached) {
             setProducers(cached.producers || []);
             setTotalPages(cached.totalPages || 1);
-            setTotalCount(cached.totalCount || 0);
             setLoading(false);
             return;
           }
@@ -138,7 +136,6 @@ const Producers = () => {
 
         setProducers(withRatings);
         setTotalPages(pages);
-        setTotalCount(count || withRatings.length);
         setCachedData(cacheKey, { producers: withRatings, totalPages: pages, totalCount: count || withRatings.length });
       } catch (error) {
         console.error("Erreur lors du chargement des producteurs:", error);
@@ -169,7 +166,7 @@ const Producers = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAF6] pb-16">
-      <SEOHead title="Producteurs Agricoles Certifiés | Harvests" description="Découvrez les exploitations agricoles et fermes locales certifiées." />
+      <SEOHead />
       
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 pt-3 sm:pt-4">
 

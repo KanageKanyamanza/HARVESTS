@@ -12,7 +12,7 @@ import {
 	Check,
 } from "lucide-react";
 
-const ProducerFields = ({ formData, editing, onInputChange, safeDisplay }) => {
+const ProducerFields = ({ formData, editing, onInputChange }) => {
 	const FARMING_TYPES = [
 		{ value: "organic", label: "Biologique" },
 		{ value: "conventional", label: "Conventionnel" },

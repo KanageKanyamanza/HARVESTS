@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+ 
 import api from "./api";
 
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY?.trim();

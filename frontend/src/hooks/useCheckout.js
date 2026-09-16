@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { authService, orderService } from "../services";
-import { estimateDeliveryFee } from "../utils/shippingUtils";
 import { getCountryName } from "../utils/countryMapper";
 import { CURRENCIES, DEFAULT_CURRENCY } from "../config/currencies";
 

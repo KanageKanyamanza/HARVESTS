@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { consumerService } from "../../../services/genericService";
-import commonService from "../../../services/commonService";
 
 export const useConsumerDashboardStats = () => {
 	const [stats, setStats] = useState({

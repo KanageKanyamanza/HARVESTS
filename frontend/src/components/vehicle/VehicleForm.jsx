@@ -6,11 +6,8 @@ import VehicleFormFields from './VehicleFormFields';
 
 const VehicleForm = ({
   formData,
-  setFormData,
   vehicleImage,
-  setVehicleImage,
   uploadingImage,
-  setUploadingImage,
   errors,
   handleInputChange,
   handleFileSelect,

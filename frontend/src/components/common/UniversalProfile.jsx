@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNotifications } from '../../hooks/useNotifications';
 import ModularDashboardLayout from '../layout/ModularDashboardLayout';
 import CloudinaryImage from './CloudinaryImage';
 import ImageUpload from './ImageUpload';
-import { uploadService } from '../../services';
 import {
   FiEdit,
   FiSave,
@@ -90,6 +89,45 @@ const UniversalProfile = ({ userType, service, profileFields, tabs }) => {
 
   const config = userConfig[userType] || userConfig.producer;
 
+  // Charger le profil
+  const loadProfile = useCallback(async () => {
+    try {
+      setLoading(true);
+      // Gérer les différentes conventions de nommage des services
+      const getProfileMethod = service.getMyProfile || service.getProfile;
+      const response = await getProfileMethod();
+      const profileData = response.data?.data?.[userType] || response.data?.[userType] || response.data?.data?.user || response.data?.user || {};
+
+      // Convertir cuisineTypes de tableau en texte pour l'affichage
+      const processedProfileData = { ...profileData };
+      if (Array.isArray(processedProfileData.cuisineTypes)) {
+        processedProfileData.cuisineTypes = processedProfileData.cuisineTypes.join(', ');
+      }
+
+      setProfile(prev => ({
+        ...prev,
+        ...processedProfileData,
+        address: {
+          ...prev.address,
+          ...processedProfileData.address
+        },
+        operatingHours: {
+          ...prev.operatingHours,
+          ...processedProfileData.operatingHours
+        },
+        additionalServices: {
+          ...prev.additionalServices,
+          ...processedProfileData.additionalServices
+        }
+      }));
+    } catch (error) {
+      console.error('Erreur lors du chargement du profil:', error);
+      showError('Erreur lors du chargement du profil');
+    } finally {
+      setLoading(false);
+    }
+  }, [service, userType, showError]);
+
   // Fonctions d'upload d'images
   const handleAvatarChange = async (imageUrl) => {
     setProfile(prev => ({ ...prev, avatar: imageUrl }));
@@ -119,48 +157,9 @@ const UniversalProfile = ({ userType, service, profileFields, tabs }) => {
     loadProfile();
   };
 
-  // Charger le profil
   useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        setLoading(true);
-        // Gérer les différentes conventions de nommage des services
-        const getProfileMethod = service.getMyProfile || service.getProfile;
-        const response = await getProfileMethod();
-        const profileData = response.data?.data?.[userType] || response.data?.[userType] || response.data?.data?.user || response.data?.user || {};
-        
-        // Convertir cuisineTypes de tableau en texte pour l'affichage
-        const processedProfileData = { ...profileData };
-        if (Array.isArray(processedProfileData.cuisineTypes)) {
-          processedProfileData.cuisineTypes = processedProfileData.cuisineTypes.join(', ');
-        }
-        
-        setProfile(prev => ({
-          ...prev,
-          ...processedProfileData,
-          address: {
-            ...prev.address,
-            ...processedProfileData.address
-          },
-          operatingHours: {
-            ...prev.operatingHours,
-            ...processedProfileData.operatingHours
-          },
-          additionalServices: {
-            ...prev.additionalServices,
-            ...processedProfileData.additionalServices
-          }
-        }));
-      } catch (error) {
-        console.error('Erreur lors du chargement du profil:', error);
-        showError('Erreur lors du chargement du profil');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadProfile();
-  }, [service, userType]);
+  }, [loadProfile]);
 
   // Gérer les changements d'input
   const handleInputChange = (e) => {

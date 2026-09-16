@@ -96,7 +96,7 @@ const LoyaltyProgram = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAF6] pb-16">
-      <SEOHead title="Programme de Fidélité | Harvests" description="Gagnez des points à chaque achat et débloquez des avantages exclusifs sur Harvests." />
+      <SEOHead />
 
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 pt-3 sm:pt-4">
 

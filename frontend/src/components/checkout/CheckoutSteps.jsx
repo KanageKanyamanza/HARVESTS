@@ -8,7 +8,6 @@ import {
 	FiInfo,
 	FiShield,
 } from "react-icons/fi";
-import { useCartCalculations } from "../../hooks/useCartCalculations";
 import { convertPrice, formatPrice } from "../../utils/currencyUtils";
 import { useCurrency } from "../../contexts/CurrencyContext.jsx";
 import { DEFAULT_CURRENCY } from "../../config/currencies";

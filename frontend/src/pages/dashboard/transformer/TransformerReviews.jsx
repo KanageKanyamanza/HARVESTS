@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
-import { useAuth } from "../../../hooks/useAuth";
 import { useNotifications } from "../../../hooks/useNotifications";
 import { transformerService, reviewService } from "../../../services";
 import StarRating from "../../../components/reviews/StarRating";
@@ -23,7 +22,6 @@ import {
 } from "lucide-react";
 
 const TransformerReviews = () => {
-	const { user } = useAuth();
 	const { showSuccess, showError } = useNotifications();
 
 	const [reviews, setReviews] = useState([]);
@@ -41,20 +39,9 @@ const TransformerReviews = () => {
 	const loadReviews = useCallback(async () => {
 		try {
 			setLoading(true);
-			const [reviewsResponse, statsResponse] = await Promise.all([
-				reviewService.getReceivedReviews(filters),
-				// Assuming transformerService or reviewService has a similar stats endpoint
-				// If reviewService.getProducerRatingStats is generic enough it might work,
-				// otherwise we might need a specific one for transformers.
-				// Based on previous file content, we'll try to calculate or fetch stats.
-				// reviewService.getProducerRatingStats might be backend agnostic or we might need to rely on what available.
-				// Let's assume we can fetch similar stats or calculate them from reviews for now if no endpoint exists,
-				// but preferably use an endpoint if available. The previous file calculated them manually.
-				// Let's try to fetch reviews and calculate stats locally if needed or reuse the previous logic slightly adapted.
-				reviewService.getReceivedReviews(filters), // Just fetching reviews for now
-			]);
+			const reviewsResponse = await reviewService.getReceivedReviews(filters);
 
-			// Recalculate stats from reviews manually to be safe as per previous implementation
+			// Recalculer les stats à partir des avis reçus (pas d'endpoint de stats dédié pour les transformateurs)
 			const reviewsData =
 				reviewsResponse.data.reviews ||
 				reviewsResponse.data?.data?.reviews ||

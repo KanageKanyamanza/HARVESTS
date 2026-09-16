@@ -12,9 +12,8 @@ import {
 } from "../../services";
 import { adminService } from "../../services/adminService";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
-import OrderStatusBadge, {
-	getStatusConfig,
-} from "../../components/orders/OrderStatusBadge";
+import OrderStatusBadge from "../../components/orders/OrderStatusBadge";
+import { getStatusConfig } from "../../utils/orderStatusBadgeHelpers";
 import OrderActions from "../../components/orders/OrderActions";
 import OrderItemsList from "../../components/orders/OrderItemsList";
 import {

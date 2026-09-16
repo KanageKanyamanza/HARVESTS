@@ -24,25 +24,25 @@ export const getTypeIcon = (type) => {
 // Obtenir le label du type
 export const getTypeLabel = (type, t) => {
   const typeLabels = {
-    'article': t('blog.types.article', 'Article'),
-    'etude-cas': t('blog.types.etude-cas', 'Étude de cas'),
-    'tutoriel': t('blog.types.tutoriel', 'Tutoriel'),
-    'actualite': t('blog.types.actualite', 'Actualité'),
-    'temoignage': t('blog.types.temoignage', 'Témoignage')
+    'article': t('types.article', 'Article'),
+    'etude-cas': t('types.etude-cas', 'Étude de cas'),
+    'tutoriel': t('types.tutoriel', 'Tutoriel'),
+    'actualite': t('types.actualite', 'Actualité'),
+    'temoignage': t('types.temoignage', 'Témoignage')
   };
-  return typeLabels[type] || t('blog.types.article', 'Article');
+  return typeLabels[type] || t('types.article', 'Article');
 };
 
 // Obtenir le label de la catégorie
 export const getCategoryLabel = (category, t) => {
   const categoryLabels = {
-    'strategie': t('blog.categories.strategie', 'Stratégie'),
-    'technologie': t('blog.categories.technologie', 'Technologie'),
-    'finance': t('blog.categories.finance', 'Finance'),
-    'ressources-humaines': t('blog.categories.ressources-humaines', 'Ressources Humaines'),
-    'marketing': t('blog.categories.marketing', 'Marketing'),
-    'operations': t('blog.categories.operations', 'Opérations'),
-    'gouvernance': t('blog.categories.gouvernance', 'Gouvernance')
+    'strategie': t('categories.strategie', 'Stratégie'),
+    'technologie': t('categories.technologie', 'Technologie'),
+    'finance': t('categories.finance', 'Finance'),
+    'ressources-humaines': t('categories.ressources-humaines', 'Ressources Humaines'),
+    'marketing': t('categories.marketing', 'Marketing'),
+    'operations': t('categories.operations', 'Opérations'),
+    'gouvernance': t('categories.gouvernance', 'Gouvernance')
   };
   return categoryLabels[category] || category;
 };
@@ -50,7 +50,7 @@ export const getCategoryLabel = (category, t) => {
 // Traduire un tag
 export const translateTag = (tag, t) => {
   try {
-    const translation = t(`blog.tags.${tag}`, tag);
+    const translation = t(`tags.${tag}`, tag);
     return translation;
   } catch (err) {
     console.log('Error translating tag:', err);
@@ -101,21 +101,7 @@ export const markdownToHtml = (markdown) => {
   }
   
   let html = markdown;
-  
-  // Fonction pour échapper le HTML (sauf les balises déjà créées)
-  const escapeHtml = (text) => {
-    // Ne pas échapper si le texte contient déjà des balises HTML valides
-    if (text.match(/<[^>]+>/)) {
-      return text;
-    }
-    return text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-  };
-  
+
   // Diviser en lignes pour traiter ligne par ligne
   const lines = html.split('\n');
   const processedLines = [];
@@ -230,7 +216,11 @@ export const markdownToHtml = (markdown) => {
   
   // Nettoyer les balises vides
   html = html.replace(/<p class="mb-4">\s*<\/p>/g, '');
-  
-  return html;
+
+  // Le texte brut (titres, paragraphes...) n'est jamais échappé pendant la
+  // construction ci-dessus : on sanitise le résultat final pour retirer tout
+  // HTML dangereux qui aurait pu se glisser dans le markdown source, comme
+  // pour la branche HTML structuré ci-dessus.
+  return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
 };
 

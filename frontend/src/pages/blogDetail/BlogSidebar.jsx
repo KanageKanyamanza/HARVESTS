@@ -54,7 +54,6 @@ const getBlogImageUrl = (blog) => {
 
 const BlogSidebar = ({
   isPreviewMode,
-  blog,
   relatedBlogs,
   liked,
   handleLike,
@@ -72,7 +71,7 @@ const BlogSidebar = ({
       {/* Actions card */}
       {!isPreviewMode && (
         <div className="bg-white rounded-2xl shadow-sm border border-emerald-100/80 p-5 space-y-3">
-          <h3 className="text-sm font-extrabold text-[#161D14] uppercase tracking-wider">{t('blog.actions', 'Interagir')}</h3>
+          <h3 className="text-sm font-extrabold text-[#161D14] uppercase tracking-wider">{t('actions', 'Interagir')}</h3>
           
           <button
             onClick={handleLike}
@@ -84,7 +83,7 @@ const BlogSidebar = ({
             }`}
           >
             <Heart className={`h-4 w-4 mr-2 ${liked ? 'fill-current' : ''}`} />
-            {liked ? t('blog.thankYou', 'Merci pour votre soutien !') : t('blog.likeArticle', 'J\'aime cet article')}
+            {liked ? t('thankYou', 'Merci pour votre soutien !') : t('likeArticle', 'J\'aime cet article')}
           </button>
           
           <button
@@ -92,7 +91,7 @@ const BlogSidebar = ({
             className="w-full flex items-center justify-center px-4 py-2.5 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 bg-white hover:bg-gray-50 transition-all shadow-sm"
           >
             <Share2 className="h-4 w-4 mr-2 text-emerald-700" />
-            {t('blog.share', 'Partager l\'article')}
+            {t('share', 'Partager l\'article')}
           </button>
         </div>
       )}
@@ -100,7 +99,7 @@ const BlogSidebar = ({
       {/* Articles similaires */}
       {relatedBlogs && relatedBlogs.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm border border-emerald-100/80 p-5 space-y-4">
-          <h3 className="text-sm font-extrabold text-[#161D14] uppercase tracking-wider">{t('blog.relatedArticles', 'Articles similaires')}</h3>
+          <h3 className="text-sm font-extrabold text-[#161D14] uppercase tracking-wider">{t('relatedArticles', 'Articles similaires')}</h3>
           <div className="space-y-3">
             {relatedBlogs.map((relatedBlog) => {
               const RelatedTypeIcon = getTypeIcon ? getTypeIcon(relatedBlog.type) : null;

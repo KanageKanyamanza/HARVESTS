@@ -208,10 +208,15 @@ const SEOHead = ({
       <meta name="robots" content={noindex ? "noindex, nofollow" : "index, follow"} />
       <meta name="author" content="Harvests" />
 
-      {/* Canonical + hreflang */}
+      {/* Canonical.
+          Pas de hreflang="fr"/"en" alternates : fr et en sont servis sur la
+          MÊME URL (bascule client-side, pas de préfixe /en/ — décision Jour
+          33), donc il n'existe pas de paire d'URLs distinctes à relier.
+          Google ignore/déconseille hreflang dans ce cas (il sert à relier des
+          URLs différentes par langue, pas à marquer la langue d'une page
+          unique — <html lang> + og:locale s'en chargent déjà). x-default
+          reste correct : il pointe simplement vers "la" version de la page. */}
       <link rel="canonical" href={canonicalUrl} />
-      <link rel="alternate" hreflang="fr" href={canonicalUrl} />
-      <link rel="alternate" hreflang="en" href={canonicalUrl} />
       <link rel="alternate" hreflang="x-default" href={canonicalUrl} />
 
       {/* Open Graph */}

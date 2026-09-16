@@ -14,7 +14,6 @@ import {
 } from "react-icons/fi";
 
 const CertificationManager = ({
-	productId,
 	certifications = [],
 	onUpdate,
 	isAdmin = false,

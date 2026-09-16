@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import SEOHead from "../components/seo/SEOHead";
 import ProductCard from "../components/products/ProductCard";
 import ProductFilters from "../components/products/ProductFilters";
@@ -10,7 +10,8 @@ import { FiPackage, FiGrid, FiList, FiFilter, FiSearch, FiSliders } from "react-
 import { Sparkles, ShoppingBag, Utensils } from "lucide-react";
 
 const Products = () => {
-	const navigate = useNavigate();
+	const { t, i18n } = useTranslation("seo");
+	const language = i18n.language || "fr";
 	const [showFilters, setShowFilters] = useState(false);
 	const [viewMode, setViewMode] = useState(() => {
 		return localStorage.getItem('preferred_view_mode') || 'grid';
@@ -47,18 +48,20 @@ const Products = () => {
 		clearFilters();
 	};
 
+	const categoryLabel = selectedCategory ? getCategoryLabel(selectedCategory, language) : "";
+
 	const pageTitle =
-		selectedCategory ? `Produits : ${getCategoryLabel(selectedCategory)}`
-		: selectedCountry ? `Produits au ${selectedCountry}`
-		: isFeatured ? "Produits mis en avant"
-		: "Catalogue des Produits Agricoles";
+		selectedCategory ? t('products.byCategoryTitle', 'Produits : {{category}}', { category: categoryLabel })
+		: selectedCountry ? t('products.byCountryTitle', 'Produits au {{country}}', { country: selectedCountry })
+		: isFeatured ? t('products.featuredTitle', 'Produits mis en avant')
+		: t('products.catalogTitle', 'Catalogue des Produits Agricoles');
 
 	const pageDescription =
 		selectedCategory ?
-			`Découvrez notre sélection de ${getCategoryLabel(selectedCategory).toLowerCase()} : produits frais, circuits courts et logistique fiable.`
+			t('products.byCategoryDescription', 'Découvrez notre sélection de {{category}} : produits frais, circuits courts et logistique fiable.', { category: categoryLabel.toLowerCase() })
 		: isFeatured ?
-			"Nos produits mis en avant : qualité, fraîcheur et livraison rapide avec Harvests."
-		:	"Parcourez tous les produits agricoles Harvests : fraîcheur, traçabilité et livraison directe.";
+			t('products.featuredDescription', 'Nos produits mis en avant : qualité, fraîcheur et livraison rapide avec Harvests.')
+		:	t('products.catalogDescription', 'Parcourez tous les produits agricoles Harvests : fraîcheur, traçabilité et livraison directe.');
 
 	if (loading && products.length === 0) {
 		return (

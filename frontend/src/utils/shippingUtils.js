@@ -14,9 +14,9 @@ const LOCAL_FEES = {
 const STANDARD_FALLBACK = LOCAL_FEES['standard-delivery'] ?? 2000;
 
 export const estimateDeliveryFee = (
-  cartItems = [],
-  deliveryMethod = 'standard-delivery',
-  deliveryAddress = null
+  _cartItems = [],
+  _deliveryMethod = 'standard-delivery',
+  _deliveryAddress = null
 ) => {
   return 0;
 };

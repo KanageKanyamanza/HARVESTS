@@ -21,8 +21,8 @@ const AdminFaqManager = () => {
 	const [loading, setLoading] = useState(true);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [categoryFilter, setCategoryFilter] = useState("all");
-	const [currentPage, setCurrentPage] = useState(1);
-	const [totalPages, setTotalPages] = useState(1);
+	const [currentPage] = useState(1);
+	const [, setTotalPages] = useState(1);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [editingFaq, setEditingFaq] = useState(null);
 	const [formData, setFormData] = useState({

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../../../hooks/useAuth";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 import ExporterStatsOverview from "../../../components/dashboard/exporter/ExporterStatsOverview";
 import ExporterCharts from "../../../components/dashboard/exporter/ExporterCharts";
@@ -12,7 +11,6 @@ import { FiPackage, FiTruck, FiStar } from "react-icons/fi";
 import LoadingSpinner from "../../../components/common/LoadingSpinner";
 
 const ExporterDashboard = () => {
-	const { user } = useAuth();
 	const [exporterStats, setExporterStats] = useState(null);
 	const [loading, setLoading] = useState(true);
 

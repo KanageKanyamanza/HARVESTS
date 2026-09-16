@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useChat } from "../contexts/ChatContext";
 import ChatList from "../components/chat/ChatList";
 import ChatWindow from "../components/chat/ChatWindow";
@@ -8,7 +8,6 @@ import { FiMessageSquare } from "react-icons/fi";
 
 const Messages = () => {
 	const { id } = useParams();
-	const navigate = useNavigate();
 	const {
 		conversations,
 		activeConversation,

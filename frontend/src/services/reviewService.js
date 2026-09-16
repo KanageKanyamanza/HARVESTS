@@ -24,13 +24,8 @@ const service = {
 
 	// Créer un avis
 	createReview: async (reviewData) => {
-		try {
-			const response = await api.post("/reviews", reviewData);
-			return response.data;
-		} catch (error) {
-			// Propager l'erreur avec le message du backend
-			throw error;
-		}
+		const response = await api.post("/reviews", reviewData);
+		return response.data;
 	},
 
 	// Obtenir mes avis (consommateur)

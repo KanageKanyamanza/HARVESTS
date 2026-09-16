@@ -19,7 +19,7 @@ const OrdersList = () => {
 	const { user } = useAuth();
 	const [orders, setOrders] = useState([]);
 	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState(null);
+	const [, setError] = useState(null);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [statusFilter, setStatusFilter] = useState("all");
 	const [orderTypeFilter, setOrderTypeFilter] = useState("all"); // 'all', 'received', 'placed'
@@ -99,7 +99,7 @@ const OrdersList = () => {
 				showSuccess(`Statut mis à jour avec succès`);
 				await loadOrders();
 			}
-		} catch (error) {
+		} catch {
 			showError("Erreur lors de la mise à jour");
 		} finally {
 			setUpdatingOrders((prev) => {

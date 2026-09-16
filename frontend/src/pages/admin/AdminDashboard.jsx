@@ -11,7 +11,6 @@ import { useDashboardStats } from "./adminDashboard/dashboardHooks";
 import {
 	createStatCards,
 	createMarketplaceStats,
-	createQuickActions,
 } from "./adminDashboard/dashboardUtils";
 
 const AdminDashboard = () => {
@@ -35,7 +34,6 @@ const AdminDashboard = () => {
 
 	const statCards = createStatCards(stats);
 	const marketplaceStats = createMarketplaceStats(stats);
-	const quickActions = createQuickActions(stats);
 
 	return (
 		<div className="min-h-screen md:pl-3 pb-20 relative overflow-hidden">

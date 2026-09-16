@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, ShieldCheck, Truck, Sprout, ShoppingBag, Store, ChevronRight, Building2, Award, UtensilsCrossed } from "lucide-react";
-import { useAuth } from "../../hooks/useAuth";
 import heroBg1 from "../../assets/images/herobgcar1.webp";
 import heroBg2 from "../../assets/images/herobgcar2.webp";
 import heroBg3 from "../../assets/images/herobgcar3.webp";
 import heroBg4 from "../../assets/images/herobgcar4.webp";
 
 const HeroSection = () => {
-	const { isAuthenticated, getDefaultRoute } = useAuth();
 	const [currentSlide, setCurrentSlide] = useState(0);
 
 	const slides = [
@@ -169,14 +167,14 @@ const HeroSection = () => {
 						<div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-center sm:justify-start gap-3.5">
 							<Link
 								to="/products"
-								className="w-full sm:w-auto px-6 py-3.5 rounded-full bg-[#1A5514] hover:bg-[#144210] text-white font-bold text-sm sm:text-base shadow-lg shadow-emerald-900/20 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
+								className="w-full whitespace-nowrap sm:w-auto px-6 py-3.5 rounded-full bg-[#1A5514] hover:bg-[#144210] text-white font-bold text-sm sm:text-base shadow-lg shadow-emerald-900/20 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
 							>
 								Explorer le Marketplace
 								<ArrowUpRight className="w-5 h-5" />
 							</Link>
 							<Link
 								to="/register"
-								className="w-full sm:w-auto px-6 py-3.5 rounded-full bg-white/90 hover:bg-white text-[#1A5514] border border-emerald-600/30 font-bold text-sm sm:text-base shadow-sm hover:shadow transition-all duration-200 flex items-center justify-center gap-2"
+								className="w-full whitespace-nowrap sm:w-auto px-6 py-3.5 rounded-full bg-white/90 hover:bg-white text-[#1A5514] border border-emerald-600/30 font-bold text-sm sm:text-base shadow-sm hover:shadow transition-all duration-200 flex items-center justify-center gap-2"
 							>
 								Devenir Producteur / Partenaire
 							</Link>

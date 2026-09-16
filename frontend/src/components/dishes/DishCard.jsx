@@ -14,7 +14,7 @@ import CloudinaryImage from "../common/CloudinaryImage";
 import { getDishImageUrl } from "../../utils/dishImageUtils";
 import { formatPrice } from "../../utils/currencyUtils";
 
-export const getStatusBadge = (dish) => {
+const getStatusBadge = (dish) => {
 	const normalized = dish.status || "pending-review";
 	const map = {
 		approved: { label: "Approuvé", classes: "bg-green-100 text-green-700" },
@@ -28,7 +28,7 @@ export const getStatusBadge = (dish) => {
 	return map[normalized] || map["pending-review"];
 };
 
-export const getCategoryLabel = (category) => {
+const getCategoryLabel = (category) => {
 	const categories = {
 		entree: "Entrée",
 		plat: "Plat principal",

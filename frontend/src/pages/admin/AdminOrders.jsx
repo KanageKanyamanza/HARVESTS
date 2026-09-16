@@ -25,7 +25,6 @@ const AdminOrders = () => {
 	const [totalPages, setTotalPages] = useState(1);
 	const [totalOrders, setTotalOrders] = useState(0);
 	const [confirmingPayment, setConfirmingPayment] = useState(null);
-	const [selectedOrder, setSelectedOrder] = useState(null);
 
 	const loadOrders = useCallback(async () => {
 		try {
