@@ -42,8 +42,8 @@ const Orders = () => {
 	const handleUpdateStatus = async (
 		order,
 		newStatus,
-		segmentId = null,
-		options = {},
+		_segmentId = null,
+		_options = {},
 	) => {
 		if (updatingOrders.has(order._id)) return;
 

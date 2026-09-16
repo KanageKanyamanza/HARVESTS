@@ -65,16 +65,6 @@ export const useUserType = () => {
         permissions: ['manage_menu', 'view_orders', 'manage_inventory', 'create_orders', 'view_products', 'create_reviews'],
         features: ['menu_management', 'inventory', 'table_management', 'order_management', 'shopping_cart', 'order_history', 'favorites', 'reviews']
       },
-      exporter: {
-        label: 'Exportateur',
-        labelEn: 'Exporter',
-        description: 'Exporte des produits agricoles',
-        color: 'indigo',
-        icon: '🚢',
-        dashboardRoute: '/exporter/dashboard',
-        permissions: ['manage_exports', 'view_orders', 'manage_logistics'],
-        features: ['export_management', 'logistics', 'documentation', 'order_management']
-      },
       transporter: {
         label: 'Transporteur',
         labelEn: 'Transporter',

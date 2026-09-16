@@ -9,8 +9,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "build": "node scripts/set-sw-version.js && vite build",
-    "lint": "eslint .",
+    "check:i18n-parity": "node scripts/check-i18n-parity.js",
+    "check:i18n-hardcoded": "node scripts/check-hardcoded-french.js",
+    "build": "node scripts/check-i18n-parity.js && node scripts/set-sw-version.js && vite build",
+    "lint": "eslint . && node scripts/check-hardcoded-french.js",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -44,6 +46,7 @@
     "@vitejs/plugin-react": "^5.0.2",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.35.0",
+    "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.4.0",

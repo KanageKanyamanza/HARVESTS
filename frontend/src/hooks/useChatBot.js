@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { faqData, findBestAnswer } from "../data/faqData";
+import { faqData } from "../data/faqData";
 import { chatService } from "../services/chatService";
 
 const STORAGE_KEY = "harvests_chat";

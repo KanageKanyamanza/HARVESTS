@@ -2,7 +2,6 @@ import React from "react";
 import { Check, Trash2, Clock } from "lucide-react";
 import {
 	getNotificationIcon,
-	getNotificationColor,
 	formatNotificationDate,
 } from "../../utils/notificationHelpers";
 

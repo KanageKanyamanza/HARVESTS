@@ -3,7 +3,6 @@ import SalesChart from "../../../../components/admin/SalesChart";
 
 const ProducerSalesStats = ({
 	salesChartData,
-	monthlyRevenue,
 	monthlyGrowth,
 }) => {
 	return (

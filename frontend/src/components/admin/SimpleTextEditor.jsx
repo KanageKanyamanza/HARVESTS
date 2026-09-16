@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useRef } from "react";
 import {
 	Bold,
 	Italic,
@@ -15,7 +15,6 @@ const SimpleTextEditor = ({
 	onChange,
 	placeholder = "Rédigez votre contenu...",
 	className = "",
-	editorId = "simple-editor",
 }) => {
 	const textareaRef = useRef(null);
 

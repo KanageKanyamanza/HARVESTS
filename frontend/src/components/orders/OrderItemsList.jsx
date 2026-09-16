@@ -3,11 +3,9 @@ import { Package, CheckCircle, Info, Tag } from "lucide-react";
 import CloudinaryImage from "../common/CloudinaryImage";
 import { parseProductName } from "../../utils/productUtils";
 import { DEFAULT_CURRENCY } from "../../config/currencies";
-import { useNavigate } from "react-router-dom";
 import { useCurrency } from "../../contexts/CurrencyContext";
 import { convertPrice, formatPrice } from "../../utils/currencyUtils";
-import { getDishImageUrl } from "../../utils/dishImageUtils";
-import { getItemStatusConfig } from "./OrderStatusBadge";
+import { getItemStatusConfig } from "../../utils/orderStatusBadgeHelpers";
 
 const getImageUrl = (productImages, productName) => {
 	if (!productImages?.length) return { url: null, alt: null };

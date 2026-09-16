@@ -32,8 +32,8 @@ const formatDate = (dateString, language = "fr") => {
 };
 
 const BlogPage = () => {
-	const { t, i18n } = useTranslation();
-	const [searchParams, setSearchParams] = useSearchParams();
+	const { t, i18n } = useTranslation(["blog", "seo"]);
+	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
 	const location = useLocation();
 
@@ -73,13 +73,13 @@ const BlogPage = () => {
 	}, []);
 
 	const seoConfig = useMemo(() => {
-		const title = t("seo.blog.title", "Actualités & Blog Agricole | Harvests");
+		const title = t("seo:blog.title", "Actualités & Blog Agricole | Harvests");
 		const description = t(
-			"seo.blog.description",
+			"seo:blog.description",
 			"Découvrez nos articles, études de cas et conseils sur l'agriculture, la logistique et les circuits courts.",
 		);
 		const keywords = t(
-			"seo.blog.keywords",
+			"seo:blog.keywords",
 			"blog agriculture, actualités agritech, circuits courts, logistique agricole, Sénégal",
 		);
 
@@ -137,7 +137,7 @@ const BlogPage = () => {
 				}
 			} catch (err) {
 				console.error("Erreur lors du chargement des blogs:", err);
-				setError("Erreur lors du chargement des articles");
+				setError(t("loadError", "Erreur lors du chargement des articles"));
 			} finally {
 				setLoading(false);
 			}
@@ -245,14 +245,30 @@ const BlogPage = () => {
 		return content?.[language] || content?.fr || content?.en || fallback || "";
 	};
 
-	const translateTag = (tag) => t(`blog.tags.${tag}`, tag);
-	const getTypeLabel = (type) => t(`blog.types.${type}`, type);
-	const getCategoryLabel = (category) => t(`blog.categories.${category}`, category);
+	const translateTag = (tag) => t(`tags.${tag}`, tag);
+	const getTypeLabel = (type) => t(`types.${type}`, type);
+	const getCategoryLabel = (category) => t(`categories.${category}`, category);
 
 	if (loading && blogs.length === 0) {
 		return (
 			<div className="min-h-screen bg-[#F8FAF6] flex items-center justify-center">
 				<LoadingSpinner size="lg" text="Chargement du blog..." />
+			</div>
+		);
+	}
+
+	if (error && blogs.length === 0) {
+		return (
+			<div className="min-h-screen bg-[#F8FAF6] flex items-center justify-center px-4">
+				<div className="text-center max-w-sm">
+					<p className="text-gray-700 font-medium mb-4">{error}</p>
+					<button
+						onClick={() => loadBlogs(true)}
+						className="px-4 py-2 rounded-full text-sm font-bold text-white bg-[#1A5514] hover:bg-[#153f0f] transition-colors"
+					>
+						{t("retry", "Réessayer")}
+					</button>
+				</div>
 			</div>
 		);
 	}
@@ -273,7 +289,7 @@ const BlogPage = () => {
 					<div className="relative z-10 max-w-2xl">
 						<div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-3">
 							<Newspaper className="w-4 h-4 text-[#31BC2E]" />
-							<span>Actualités & Tendances Agricoles</span>
+							<span>{t("heroTag", "Actualités & Tendances Agricoles")}</span>
 						</div>
 
 						<h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight mb-3">
@@ -297,7 +313,7 @@ const BlogPage = () => {
 								type="text"
 								value={searchTerm}
 								onChange={(e) => setSearchTerm(e.target.value)}
-								placeholder={t("blog.searchPlaceholder", "Rechercher un article, un sujet, un mot-clé...")}
+								placeholder={t("searchPlaceholder", "Rechercher un article, un sujet, un mot-clé...")}
 								className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm border border-gray-200/90 rounded-xl focus:ring-2 focus:ring-[#1A5514] focus:border-transparent outline-none transition-all shadow-sm"
 							/>
 							{searchTerm && (
@@ -317,12 +333,12 @@ const BlogPage = () => {
 								onChange={(e) => { setSelectedType(e.target.value); setCurrentPage(1); }}
 								className="py-2 px-3 bg-white border border-gray-200/90 rounded-xl text-xs font-bold text-gray-800 focus:ring-2 focus:ring-[#1A5514] cursor-pointer"
 							>
-								<option value="">{t("blog.types.all", "Tous les formats")}</option>
-								<option value="article">Article</option>
-								<option value="etude-cas">Étude de cas</option>
-								<option value="tutoriel">Tutoriel</option>
-								<option value="actualite">Actualité</option>
-								<option value="temoignage">Témoignage</option>
+								<option value="">{t("types.all", "Tous les formats")}</option>
+								<option value="article">{t("types.article", "Article")}</option>
+								<option value="etude-cas">{t("types.etude-cas", "Étude de cas")}</option>
+								<option value="tutoriel">{t("types.tutoriel", "Tutoriel")}</option>
+								<option value="actualite">{t("types.actualite", "Actualité")}</option>
+								<option value="temoignage">{t("types.temoignage", "Témoignage")}</option>
 							</select>
 
 							<select
@@ -330,13 +346,13 @@ const BlogPage = () => {
 								onChange={(e) => { setSelectedCategory(e.target.value); setCurrentPage(1); }}
 								className="py-2 px-3 bg-white border border-gray-200/90 rounded-xl text-xs font-bold text-gray-800 focus:ring-2 focus:ring-[#1A5514] cursor-pointer"
 							>
-								<option value="">{t("blog.categories.all", "Toutes catégories")}</option>
-								<option value="strategie">Stratégie</option>
+								<option value="">{t("categories.all", "Toutes catégories")}</option>
+								<option value="strategie">{t("categories.strategie", "Stratégie")}</option>
 								<option value="technologie">Technologie</option>
 								<option value="finance">Finance</option>
 								<option value="ressources-humaines">RH</option>
 								<option value="marketing">Marketing</option>
-								<option value="operations">Opérations</option>
+								<option value="operations">{t("categories.operations", "Opérations")}</option>
 								<option value="gouvernance">Gouvernance</option>
 							</select>
 
@@ -386,7 +402,7 @@ const BlogPage = () => {
 
 							<div className="absolute top-3 left-3 bg-[#1A5514] text-white px-3 py-1 rounded-full text-xs font-extrabold shadow-md uppercase tracking-wider flex items-center gap-1.5 z-10">
 								<Sparkles className="w-3.5 h-3.5 text-yellow-400" />
-								<span>À la Une</span>
+								<span>{t("featuredBadge", "À la Une")}</span>
 							</div>
 
 							{featuredBlog.featuredImage?.caption && (
@@ -561,10 +577,10 @@ const BlogPage = () => {
 					<div className="text-center py-16 bg-white rounded-2xl border border-emerald-100 shadow-sm">
 						<BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
 						<h3 className="text-base font-extrabold text-[#161D14] mb-1">
-							{t("blog.noBlogs", "Aucun article trouvé")}
+							{t("noBlogs", "Aucun article trouvé")}
 						</h3>
 						<p className="text-xs text-gray-500 max-w-sm mx-auto mb-4">
-							{t("blog.noBlogsDescription", "Aucun article ne correspond à vos filtres.")}
+							{t("noBlogsDescription", "Aucun article ne correspond à vos filtres.")}
 						</p>
 					</div>
 				)}

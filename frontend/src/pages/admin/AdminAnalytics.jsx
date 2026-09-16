@@ -79,14 +79,6 @@ const AdminAnalytics = () => {
 		return new Intl.NumberFormat("fr-FR").format(num);
 	};
 
-	const getGrowthColor = (growth) => {
-		return growth >= 0 ? "text-green-600" : "text-red-600";
-	};
-
-	const getGrowthBg = (growth) => {
-		return growth >= 0 ? "bg-green-50" : "bg-red-50";
-	};
-
 	const getGrowthIcon = (growth) => {
 		return growth >= 0 ? TrendingUp : TrendingDown;
 	};

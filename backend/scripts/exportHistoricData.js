@@ -24,9 +24,6 @@ const UserSchema = new mongoose.Schema(
 
 const User = mongoose.models.User || mongoose.model("User", UserSchema, "users");
 
-// URI par défaut de production (fourni par l'utilisateur)
-const PROD_DATABASE = "mongodb+srv://harvests_db:B3OHy5tFnCSbRh1c@cluster0.mr1qd38.mongodb.net/?appName=Cluster0";
-
 function cleanName(str) {
 	if (!str) return "";
 	const s = str.toString().trim();
@@ -66,9 +63,13 @@ function getUserDisplayName(user) {
 
 async function exportData() {
 	try {
+		const uri = process.argv[2] || process.env.DATABASE_URL || process.env.DATABASE?.replace("<PASSWORD>", process.env.DATABASE_PASSWORD);
+		if (!uri) {
+			console.error("❌ DATABASE_URL (ou DATABASE + DATABASE_PASSWORD, ou un URI en argument) non défini");
+			process.exit(1);
+		}
 		console.log("🔄 Connexion à la base de données...");
-		const uri = process.argv[2] || process.env.DATABASE?.replace("<PASSWORD>", process.env.DATABASE_PASSWORD) || PROD_DATABASE;
-		
+
 		await mongoose.connect(uri, {
 			useNewUrlParser: true,
 			useUnifiedTopology: true,

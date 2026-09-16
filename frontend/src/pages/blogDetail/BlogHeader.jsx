@@ -76,7 +76,7 @@ const BlogHeader = ({
           className="inline-flex items-center text-xs font-bold text-emerald-300 hover:text-white bg-white/10 hover:bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full transition-all mb-6 border border-white/10"
         >
           <ArrowLeft className="h-4 w-4 mr-1.5" />
-          {isPreviewMode ? 'Fermer la prévisualisation' : t('blog.backToBlog', 'Retour au journal')}
+          {isPreviewMode ? 'Fermer la prévisualisation' : t('backToBlog', 'Retour au journal')}
         </button>
 
         {/* Métadonnées & Badges */}
@@ -115,7 +115,7 @@ const BlogHeader = ({
           <div className="flex items-center space-x-4">
             <div className="flex items-center text-emerald-200 font-semibold">
               <User className="h-4 w-4 mr-1.5 text-emerald-400" />
-              <span>{blog.author?.name || blog.author?.firstName || t('blog.unknownAuthor', 'Équipe Harvests')}</span>
+              <span>{blog.author?.name || blog.author?.firstName || t('unknownAuthor', 'Équipe Harvests')}</span>
             </div>
             <div className="flex items-center text-emerald-100/80 font-medium">
               <Eye className="h-4 w-4 mr-1.5 text-emerald-400" />
@@ -143,7 +143,7 @@ const BlogHeader = ({
                 className="flex items-center px-4 py-1.5 rounded-full text-xs font-bold text-white bg-white/10 hover:bg-white/20 border border-white/10 transition-all"
               >
                 <Share2 className="h-4 w-4 mr-1.5" />
-                <span>{t('blog.share', 'Partager')}</span>
+                <span>{t('share', 'Partager')}</span>
               </button>
             </div>
           )}

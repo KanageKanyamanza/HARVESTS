@@ -1,0 +1,23 @@
+{
+	"home": "Accueil",
+	"products": "Produits",
+	"categories": "Catégories",
+	"producers": "Producteurs",
+	"orders": "Commandes",
+	"profile": "Profil",
+	"dashboard": "Tableau de bord",
+	"settings": "Paramètres",
+	"help": "Aide",
+	"contact": "Contact",
+	"about": "À propos",
+	"login": "Connexion",
+	"messages": "Messages",
+	"register": "Inscription",
+	"logout": "Déconnexion",
+	"admin": "Administration",
+	"myAccount": "Mon compte",
+	"notifications": "Notifications",
+	"favorites": "Favoris",
+	"cart": "Panier",
+	"checkout": "Commander"
+}

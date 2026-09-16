@@ -1,12 +1,19 @@
 const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+const path = require('path');
 const Producer = require('./models/Producer');
 const Restaurateur = require('./models/Restaurateur');
 
-// Utiliser la vraie URI MongoDB Atlas
-const mongoUri = 'mongodb+srv://harvests_db:B3OHy5tFnCSbRh1c@cluster0.mr1qd38.mongodb.net/?appName=Cluster0';
+dotenv.config({ path: path.join(__dirname, '.env') });
+
+const mongoUri = process.env.DATABASE_URL || process.env.DATABASE?.replace('<PASSWORD>', process.env.DATABASE_PASSWORD);
 
 (async () => {
   try {
+    if (!mongoUri) {
+      console.error('❌ DATABASE_URL (ou DATABASE + DATABASE_PASSWORD) non défini dans .env');
+      process.exit(1);
+    }
     await mongoose.connect(mongoUri);
     console.log('✅ Connecté à MongoDB Atlas');
     

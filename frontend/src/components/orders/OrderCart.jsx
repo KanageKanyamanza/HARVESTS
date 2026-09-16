@@ -1,6 +1,5 @@
 import React from 'react';
 import { FiPlus, FiMinus } from 'react-icons/fi';
-import { FiPlus, FiMinus } from 'react-icons/fi';
 import { toPlainText } from '../../utils/textHelpers';
 import { useCurrency } from '../../contexts/CurrencyContext';
 import { convertPrice, formatPrice } from '../../utils/currencyUtils';
@@ -11,8 +10,7 @@ const OrderCart = ({
   onUpdateQuantity, 
   onRemoveFromCart, 
   onCalculateTotal,
-  onBackToSuppliers 
-  onBackToSuppliers 
+  onBackToSuppliers
 }) => {
   const { currency } = useCurrency();
   return (

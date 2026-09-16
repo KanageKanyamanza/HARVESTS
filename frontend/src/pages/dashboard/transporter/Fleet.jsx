@@ -35,7 +35,7 @@ const Fleet = () => {
 		};
 
 		loadFleet();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		 
 	}, [user?.userType, user?.id]);
 
 	const handleDeleteVehicle = useCallback(

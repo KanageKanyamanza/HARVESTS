@@ -62,7 +62,7 @@ const TopSellersSection = () => {
   const [sellers, setSellers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isLocal, setIsLocal] = useState(false);
-  const { countryCode, countryName, detected, loading: geoLoading } = useGeoLocation();
+  const { countryCode, detected, loading: geoLoading } = useGeoLocation();
 
   useEffect(() => {
     if (!geoLoading) {
@@ -98,7 +98,7 @@ const TopSellersSection = () => {
                 ...producer,
                 ratingStats: statsResponse?.data || { averageRating: 4.8, totalReviews: 12 }
               };
-            } catch (e) {
+            } catch {
               return { ...producer, ratingStats: { averageRating: 4.8, totalReviews: 12 } };
             }
           })

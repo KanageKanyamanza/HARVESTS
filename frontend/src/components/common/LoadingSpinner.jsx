@@ -1,8 +1,6 @@
 import React from 'react';
-import { useTranslation } from 'react-i18next';
 
 const LoadingSpinner = ({ size = 'md', text = null, className = '' }) => {
-  const { t } = useTranslation();
 
   const sizeClasses = {
     sm: 'w-4 h-4',

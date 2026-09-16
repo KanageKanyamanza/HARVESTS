@@ -7,7 +7,6 @@ const StatCard = ({
 	subtitle,
 	icon: Icon,
 	trend,
-	color,
 	gradient,
 }) => (
 	<div

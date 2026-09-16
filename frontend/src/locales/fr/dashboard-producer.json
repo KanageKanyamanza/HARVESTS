@@ -1,0 +1,58 @@
+{
+	"dashboard": {
+		"title": "Tableau de bord producteur",
+		"welcome": "Bienvenue",
+		"overview": "Vue d'ensemble",
+		"myProducts": "Mes produits",
+		"recentOrders": "Commandes récentes",
+		"statistics": "Statistiques",
+		"quickActions": "Actions rapides"
+	},
+	"products": {
+		"title": "Mes produits",
+		"addProduct": "Ajouter un produit",
+		"editProduct": "Modifier le produit",
+		"deleteProduct": "Supprimer le produit",
+		"productDetails": "Détails du produit",
+		"productStatus": "Statut du produit",
+		"inventory": "Inventaire",
+		"pricing": "Tarification",
+		"images": "Images",
+		"variants": "Variantes",
+		"noProducts": "Aucun produit",
+		"noProductsDescription": "Vous n'avez pas encore de produits"
+	},
+	"orders": {
+		"title": "Mes commandes",
+		"incomingOrders": "Commandes entrantes",
+		"orderHistory": "Historique des commandes",
+		"orderDetails": "Détails de la commande",
+		"updateOrderStatus": "Mettre à jour le statut",
+		"markAsShipped": "Marquer comme expédié",
+		"markAsDelivered": "Marquer comme livré",
+		"orderNumber": "Numéro de commande",
+		"customer": "Client",
+		"orderDate": "Date de commande",
+		"total": "Total",
+		"status": "Statut"
+	},
+	"profile": {
+		"title": "Mon profil producteur",
+		"businessInfo": "Informations commerciales",
+		"farmInfo": "Informations de la ferme",
+		"certifications": "Certifications",
+		"documents": "Documents",
+		"bankingInfo": "Informations bancaires",
+		"shippingInfo": "Informations de livraison"
+	},
+	"analytics": {
+		"title": "Mes statistiques",
+		"salesOverview": "Vue d'ensemble des ventes",
+		"productPerformance": "Performance des produits",
+		"customerInsights": "Insights clients",
+		"revenue": "Revenus",
+		"orders": "Commandes",
+		"views": "Vues",
+		"conversion": "Conversion"
+	}
+}

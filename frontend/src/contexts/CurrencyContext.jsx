@@ -3,6 +3,7 @@ import { CURRENCIES, DEFAULT_CURRENCY } from "../config/currencies";
 
 const CurrencyContext = createContext();
 
+// eslint-disable-next-line react-refresh/only-export-components -- hook stable, motif context+hook+provider standard du projet
 export const useCurrency = () => {
 	const context = useContext(CurrencyContext);
 	if (!context) {

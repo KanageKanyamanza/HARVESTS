@@ -27,7 +27,6 @@ import {
 const DocumentsPage = () => {
 	const { user, isAuthenticated, refreshUser, setUser, updateProfile } =
 		useAuth();
-	const [loading, setLoading] = useState(false);
 	const [saving, setSaving] = useState(false);
 	const [documents, setDocuments] = useState({});
 	const [certifications, setCertifications] = useState([]);

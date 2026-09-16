@@ -8,21 +8,17 @@ export const useTransformerService = () => {
 
   // Wrapper pour les méthodes de mise à jour qui déclenchent refreshUser
   const updateWithRefresh = useCallback(async (updateFunction, ...args) => {
+    const result = await updateFunction(...args);
+
+    // Mettre à jour automatiquement les données utilisateur après une mise à jour
     try {
-      const result = await updateFunction(...args);
-      
-      // Mettre à jour automatiquement les données utilisateur après une mise à jour
-      try {
-        await refreshUser();
-      } catch (refreshError) {
-        console.warn('Erreur lors de la mise à jour des données utilisateur:', refreshError);
-        // Ne pas bloquer l'opération si la mise à jour échoue
-      }
-      
-      return result;
-    } catch (error) {
-      throw error;
+      await refreshUser();
+    } catch (refreshError) {
+      console.warn('Erreur lors de la mise à jour des données utilisateur:', refreshError);
+      // Ne pas bloquer l'opération si la mise à jour échoue
     }
+
+    return result;
   }, [refreshUser]);
 
   // Retourner le service avec les méthodes de mise à jour wrappées

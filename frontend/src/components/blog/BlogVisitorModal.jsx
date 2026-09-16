@@ -7,15 +7,12 @@ import { useAuth } from '../../hooks/useAuth';
 const BlogVisitorModal = ({
   isOpen,
   onClose,
-  blogId,
-  blogTitle,
-  blogSlug,
   isReturningVisitor = false,
   visitorData = null,
   isAuthenticatedUser = false,
   onFormSubmit
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('blog');
   const { showSuccess, showError } = useNotifications();
   const { user, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
@@ -56,7 +53,7 @@ const BlogVisitorModal = ({
     e.preventDefault();
     
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.country) {
-      showError(t('blog.modal.validationError', 'Veuillez remplir tous les champs'));
+      showError(t('modal.validationError', 'Veuillez remplir tous les champs'));
       return;
     }
 
@@ -67,14 +64,14 @@ const BlogVisitorModal = ({
       
       showSuccess(
         isReturningVisitor 
-          ? t('blog.modal.welcomeBackSuccess', 'Bienvenue de retour !')
-          : t('blog.modal.submitSuccess', 'Merci pour votre inscription !')
+          ? t('modal.welcomeBackSuccess', 'Bienvenue de retour !')
+          : t('modal.submitSuccess', 'Merci pour votre inscription !')
       );
       
       onClose();
     } catch (error) {
       console.error('Erreur lors de la soumission:', error);
-      showError(t('blog.modal.submitError', 'Une erreur est survenue'));
+      showError(t('modal.submitError', 'Une erreur est survenue'));
     } finally {
       setIsSubmitting(false);
     }
@@ -89,10 +86,10 @@ const BlogVisitorModal = ({
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-2xl font-bold text-gray-900">
             {isAuthenticatedUser
-              ? t('blog.modal.welcomeTitle', 'Bienvenue !')
+              ? t('modal.welcomeTitle', 'Bienvenue !')
               : isReturningVisitor 
-              ? t('blog.modal.welcomeBackTitle', 'Bon retour !')
-              : t('blog.modal.title', 'Bienvenue !')
+              ? t('modal.welcomeBackTitle', 'Bon retour !')
+              : t('modal.title', 'Bienvenue !')
             }
           </h2>
           {(isReturningVisitor || isAuthenticatedUser) && (
@@ -110,25 +107,25 @@ const BlogVisitorModal = ({
           {isAuthenticatedUser ? (
             <div className="text-center">
               <p className="text-gray-700 mb-4">
-                {t('blog.modal.authenticatedMessage', {
+                {t('modal.authenticatedMessage', {
                   firstName: user?.firstName || user?.name?.split(' ')[0] || 'Utilisateur',
                   defaultValue: `Bonjour ${user?.firstName || user?.name?.split(' ')[0] || 'Utilisateur'} !`
                 })}
               </p>
               <p className="text-sm text-gray-500">
-                {t('blog.modal.authenticatedInfo', 'Vos informations ont été enregistrées automatiquement.')}
+                {t('modal.authenticatedInfo', 'Vos informations ont été enregistrées automatiquement.')}
               </p>
             </div>
           ) : isReturningVisitor ? (
             <div className="text-center">
               <p className="text-gray-700 mb-4">
-                {t('blog.modal.welcomeBackMessage', {
+                {t('modal.welcomeBackMessage', {
                   firstName: visitorData?.firstName || 'Visiteur',
                   defaultValue: `Bon retour, ${visitorData?.firstName || 'Visiteur'} !`
                 })}
               </p>
               <p className="text-sm text-gray-500">
-                {t('blog.modal.returningVisitorInfo', 'Vous avez visité {count} articles', {
+                {t('modal.returningVisitorInfo', 'Vous avez visité {count} articles', {
                   count: visitorData?.totalBlogsVisited || 0
                 })}
               </p>
@@ -136,13 +133,13 @@ const BlogVisitorModal = ({
           ) : (
             <>
               <p className="text-gray-700 mb-6">
-                {t('blog.modal.description', 'Remplissez ce formulaire pour continuer à lire nos articles et recevoir nos dernières actualités.')}
+                {t('modal.description', 'Remplissez ce formulaire pour continuer à lire nos articles et recevoir nos dernières actualités.')}
               </p>
               
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('blog.modal.firstName', 'Prénom')} *
+                    {t('modal.firstName', 'Prénom')} *
                   </label>
                   <input
                     type="text"
@@ -157,7 +154,7 @@ const BlogVisitorModal = ({
 
                 <div>
                   <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('blog.modal.lastName', 'Nom')} *
+                    {t('modal.lastName', 'Nom')} *
                   </label>
                   <input
                     type="text"
@@ -172,7 +169,7 @@ const BlogVisitorModal = ({
 
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('blog.modal.email', 'Email')} *
+                    {t('modal.email', 'Email')} *
                   </label>
                   <input
                     type="email"
@@ -187,7 +184,7 @@ const BlogVisitorModal = ({
 
                 <div>
                   <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-1">
-                    {t('blog.modal.country', 'Pays')} *
+                    {t('modal.country', 'Pays')} *
                   </label>
                   <input
                     type="text"
@@ -206,8 +203,8 @@ const BlogVisitorModal = ({
                   className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting 
-                    ? t('blog.modal.submitting', 'Envoi...')
-                    : t('blog.modal.submit', 'Continuer')
+                    ? t('modal.submitting', 'Envoi...')
+                    : t('modal.submit', 'Continuer')
                   }
                 </button>
               </form>

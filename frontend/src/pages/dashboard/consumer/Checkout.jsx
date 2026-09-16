@@ -4,7 +4,6 @@ import { useAuth } from "../../../hooks/useAuth";
 import { useCart } from "../../../contexts/CartContext";
 import { useCheckout } from "../../../hooks/useCheckout";
 import {
-	consumerService,
 	orderService,
 	restaurateurService,
 } from "../../../services";

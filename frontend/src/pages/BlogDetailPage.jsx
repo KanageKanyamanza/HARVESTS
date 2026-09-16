@@ -26,7 +26,7 @@ import {
 const BlogDetailPage = () => {
 	const { slug } = useParams();
 	const navigate = useNavigate();
-	const { t, i18n } = useTranslation();
+	const { t, i18n } = useTranslation('blog');
 	const { showSuccess, showError } = useNotifications();
 	const [searchParams] = useSearchParams();
 
@@ -126,7 +126,7 @@ const BlogDetailPage = () => {
 			}
 		} catch (err) {
 			console.error("Error loading blog:", err);
-			showError(t("blog.articleNotFound", "Article non trouvé"));
+			showError(t("articleNotFound", "Article non trouvé"));
 			if (!isPreviewMode) {
 				navigate("/blog");
 			}
@@ -179,7 +179,7 @@ const BlogDetailPage = () => {
 			setLiked(isLiked);
 
 			if (isLiked) {
-				showSuccess(t("blog.likeSuccess", "Merci pour votre like !"));
+				showSuccess(t("likeSuccess", "Merci pour votre like !"));
 			}
 		} catch (error) {
 			console.error("Error liking blog:", error);
@@ -191,7 +191,7 @@ const BlogDetailPage = () => {
 					)
 				);
 			} else {
-				showError(t("blog.likeError", "Erreur lors du like"));
+				showError(t("likeError", "Erreur lors du like"));
 			}
 		}
 	};
@@ -211,7 +211,7 @@ const BlogDetailPage = () => {
 		} else {
 			// Fallback: copier le lien
 			navigator.clipboard.writeText(window.location.href);
-			showSuccess(t("blog.shareSuccess", "Lien copié dans le presse-papier !"));
+			showSuccess(t("shareSuccess", "Lien copié dans le presse-papier !"));
 		}
 	};
 
@@ -233,14 +233,14 @@ const BlogDetailPage = () => {
 			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
 				<div className="text-center">
 					<h1 className="text-2xl font-bold text-gray-900 mb-4">
-						{t("blog.articleNotFound", "Article non trouvé")}
+						{t("articleNotFound", "Article non trouvé")}
 					</h1>
 					<button
 						onClick={() => navigate("/blog")}
 						className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
 					>
 						<ArrowLeft className="h-4 w-4 mr-2" />
-						{t("blog.backToBlog", "Retour au blog")}
+						{t("backToBlog", "Retour au blog")}
 					</button>
 				</div>
 			</div>
@@ -273,7 +273,7 @@ const BlogDetailPage = () => {
 		description:
 			localizedExcerpt ||
 			localizedContent?.substring(0, 160) ||
-			t("blog.defaultDescription", "Découvrez cet article sur Harvests"),
+			t("defaultDescription", "Découvrez cet article sur Harvests"),
 		keywords: blog.tags?.join(", ") || "",
 		image: blogImage,
 		type: "article",

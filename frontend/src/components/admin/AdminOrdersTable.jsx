@@ -14,7 +14,7 @@ import {
 import { parseProductName } from "../../utils/productUtils";
 import CloudinaryImage from "../common/CloudinaryImage";
 
-export const getStatusColor = (status) => {
+const getStatusColor = (status) => {
 	const colors = {
 		pending: "text-amber-600 bg-amber-50 border-amber-100",
 		confirmed: "text-blue-600 bg-blue-50 border-blue-100",
@@ -28,7 +28,7 @@ export const getStatusColor = (status) => {
 	return colors[status] || "text-gray-600 bg-gray-50 border-gray-100";
 };
 
-export const getStatusText = (status) => {
+const getStatusText = (status) => {
 	const statusMap = {
 		pending: "En attente",
 		confirmed: "Confirmée",
@@ -43,7 +43,7 @@ export const getStatusText = (status) => {
 	return statusMap[status] || status;
 };
 
-export const getPaymentStatusColor = (status) => {
+const getPaymentStatusColor = (status) => {
 	const colors = {
 		pending: "text-amber-600 bg-amber-50 border-amber-100",
 		paid: "text-emerald-600 bg-emerald-50 border-emerald-100",
@@ -54,7 +54,7 @@ export const getPaymentStatusColor = (status) => {
 	return colors[status] || "text-gray-600 bg-gray-50 border-gray-100";
 };
 
-export const getPaymentStatusText = (status) => {
+const getPaymentStatusText = (status) => {
 	const statusMap = {
 		pending: "En attente",
 		paid: "Payé",
@@ -65,7 +65,7 @@ export const getPaymentStatusText = (status) => {
 	return statusMap[status] || status;
 };
 
-export const formatDate = (date) =>
+const formatDate = (date) =>
 	new Date(date).toLocaleDateString("fr-FR", {
 		year: "numeric",
 		month: "short",
@@ -73,7 +73,7 @@ export const formatDate = (date) =>
 		hour: "2-digit",
 		minute: "2-digit",
 	});
-export const formatPrice = (price, currency = "XOF") =>
+const formatPrice = (price, currency = "XOF") =>
 	new Intl.NumberFormat("fr-FR", {
 		style: "currency",
 		currency: currency,

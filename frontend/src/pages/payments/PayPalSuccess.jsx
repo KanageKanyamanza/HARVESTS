@@ -1,16 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { FiCheckCircle, FiHome } from 'react-icons/fi';
 import { paymentService } from '../../services';
 
 const PayPalSuccess = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
   const orderId = params.get('orderId') || params.get('paymentId');
   const paypalToken = params.get('token') || params.get('paypalOrderId');
   const paymentIdParam = params.get('paymentId');
-  const reloadTimerRef = useRef(null);
   const redirectTimerRef = useRef(null);
   const hasClickedRef = useRef(false);
 

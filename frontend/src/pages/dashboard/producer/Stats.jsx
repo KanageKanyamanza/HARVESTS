@@ -23,7 +23,7 @@ const Stats = () => {
 	const { user } = useAuth();
 	const [stats, setStats] = useState(null);
 	const [salesAnalytics, setSalesAnalytics] = useState(null);
-	const [revenueAnalytics, setRevenueAnalytics] = useState(null);
+	const [, setRevenueAnalytics] = useState(null);
 	const [orders, setOrders] = useState([]);
 	const [loading, setLoading] = useState(true);
 

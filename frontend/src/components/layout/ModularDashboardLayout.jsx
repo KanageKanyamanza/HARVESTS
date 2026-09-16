@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import DashboardSidebarFixed from "../dashboard/DashboardSidebarFixed";
@@ -56,7 +56,10 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
 	// Remonter en haut de la zone de contenu à chaque changement de route.
 	// Le scroll global (window.scrollTo dans ScrollToTop) n'a aucun effet ici
 	// car le contenu défile dans ce conteneur dédié, pas dans la fenêtre.
-	useEffect(() => {
+	// useLayoutEffect (et non useEffect) pour appliquer le reset avant le paint
+	// du navigateur : sinon l'ancienne position de scroll est visible une frame
+	// avant le correctif, ce qui donne l'impression d'un saut vers le haut.
+	useLayoutEffect(() => {
 		contentRef.current?.scrollTo(0, 0);
 	}, [location.pathname]);
 
@@ -150,6 +153,7 @@ const ModularDashboardLayout = ({ children, navigationItems, user }) => {
 			{/* Contenu - SEULE zone scrollable */}
 			<div
 				ref={contentRef}
+				id="dashboard-content-scroll"
 				className={`fixed right-0 bottom-0 overflow-y-auto bg-harvests-light transition-all duration-300 ${
 					sidebarCollapsed ? "left-24" : "left-0 lg:left-64"
 				}`}

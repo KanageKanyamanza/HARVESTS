@@ -32,6 +32,7 @@ import { useCart } from "../../contexts/CartContext";
 import { useCurrency } from "../../contexts/CurrencyContext.jsx";
 import NotificationDropdown from "../notifications/NotificationDropdown";
 import SearchModal from "../common/SearchModal";
+import LanguageSelector from "../common/LanguageSelector";
 import { generateUserNavigation } from "../../navigation";
 import { getCategoryLabel } from "../../utils/productUtils";
 
@@ -49,7 +50,6 @@ const Header = () => {
 
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 	const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-	const [isScrolled, setIsScrolled] = useState(false);
 	const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [selectedCategory, setSelectedCategory] = useState("all");
@@ -128,20 +128,6 @@ const Header = () => {
 
 		document.addEventListener("click", handleClickOutside);
 		return () => document.removeEventListener("click", handleClickOutside);
-	}, []);
-
-	// Détecter le scroll pour changer l'apparence de la navbar
-	React.useEffect(() => {
-		const handleScroll = () => {
-			const scrollTop = window.scrollY;
-			setIsScrolled(scrollTop > 50);
-		};
-
-		// Vérifier l'état initial du scroll
-		handleScroll();
-
-		window.addEventListener("scroll", handleScroll);
-		return () => window.removeEventListener("scroll", handleScroll);
 	}, []);
 
 	// Navbar toujours solide avec fond blanc et barres de navigation lisibles
@@ -346,6 +332,11 @@ const Header = () => {
 
 					{/* Actions utilisateur */}
 					<div className="flex items-center space-x-2 sm:space-x-4">
+						{/* Sélecteur de langue fr/en */}
+						<div className="hidden md:flex items-center">
+							<LanguageSelector />
+						</div>
+
 						{/* Sélecteur de devise */}
 						<div className="hidden md:flex items-center">
 							<select
@@ -548,11 +539,12 @@ const Header = () => {
 							<p className="px-5 pb-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
 								Aide &amp; Paramètres
 							</p>
-							<div className="px-5 py-2 flex items-center">
+							<div className="px-5 py-2 flex items-center gap-3">
+								<LanguageSelector className="shrink-0" />
 								<select
 									value={currency}
 									onChange={(e) => setCurrency(e.target.value)}
-									className="bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] cursor-pointer text-gray-700 w-full px-3 py-2"
+									className="bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] cursor-pointer text-gray-700 flex-1 px-3 py-2"
 								>
 									{currencies.map((c) => (
 										<option key={c.code} value={c.code}>Devise: {c.code}</option>

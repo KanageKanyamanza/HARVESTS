@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { transformerService } from "../../../services";
 import { transformerService as genericTransformerService } from "../../../services/genericService";
 import { useNotifications } from "../../../hooks/useNotifications";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
@@ -27,7 +26,7 @@ import {
 const TransformerStats = () => {
 	const { showError } = useNotifications();
 	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState(null);
+	const [, setError] = useState(null);
 	const [stats, setStats] = useState({
 		businessStats: {},
 		productionAnalytics: {},

@@ -14,7 +14,6 @@ const ChatDetailsModal = ({
 	selectedInteraction,
 	chatHistory,
 	loadingHistory,
-	formatDate,
 	formatTime,
 	onClose,
 }) => {

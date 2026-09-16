@@ -28,12 +28,6 @@ const Footer = () => {
 
 	const currentYear = new Date().getFullYear();
 
-	const contactInfo = {
-		address: "Dakar, Sénégal",
-		email: "contact@harvests.site",
-		phones: ["+221 78 834 69 69"],
-	};
-
 	const footerLinks = {
 		help: [
 			{ name: "À propos", href: "/about" },
@@ -74,7 +68,7 @@ const Footer = () => {
 				setSubscribeStatus("error");
 				setSubscribeMessage(data.message || "Une erreur est survenue.");
 			}
-		} catch (error) {
+		} catch {
 			setSubscribeStatus("error");
 			setSubscribeMessage("Erreur de connexion.");
 		}

@@ -53,7 +53,7 @@ export const formatPrice = (price, currency = DEFAULT_CURRENCY) => {
 		})
 			.format(price)
 			.replace("XOF", "FCFA");
-	} catch (error) {
+	} catch {
 		console.warn(
 			`Invalid currency code: ${currency}, falling back to ${DEFAULT_CURRENCY}`
 		);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Wheat, Carrot, Apple, Bean, Flame, Leaf, Sprout, Milk, Beef, Drumstick, Fish, Archive, CupSoda, Package, ArrowRight, Grid } from "lucide-react";
 import CloudinaryImage from "../common/CloudinaryImage";

@@ -10,7 +10,7 @@ export const formatPrice = (price, currency = DEFAULT_CURRENCY) => {
 			currency: currency,
 			minimumFractionDigits: 0,
 		}).format(price);
-	} catch (error) {
+	} catch {
 		return new Intl.NumberFormat("fr-FR", {
 			style: "currency",
 			currency: DEFAULT_CURRENCY,

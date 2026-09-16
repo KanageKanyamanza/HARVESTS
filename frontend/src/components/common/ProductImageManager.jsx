@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { FiImage, FiX } from 'react-icons/fi';
 import CloudinaryImage from './CloudinaryImage';
 import ProductImageUpload from './ProductImageUpload';

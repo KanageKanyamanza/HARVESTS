@@ -1,0 +1,23 @@
+{
+	"home": "Home",
+	"products": "Products",
+	"categories": "Categories",
+	"producers": "Producers",
+	"orders": "Orders",
+	"profile": "Profile",
+	"dashboard": "Dashboard",
+	"settings": "Settings",
+	"help": "Help",
+	"contact": "Contact",
+	"about": "About",
+	"login": "Login",
+	"messages": "Messages",
+	"register": "Register",
+	"logout": "Logout",
+	"admin": "Administration",
+	"myAccount": "My Account",
+	"notifications": "Notifications",
+	"favorites": "Favorites",
+	"cart": "Cart",
+	"checkout": "Checkout"
+}

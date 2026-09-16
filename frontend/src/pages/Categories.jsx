@@ -146,7 +146,7 @@ const Categories = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAF6] pb-16">
-      <SEOHead title="Filières & Catégories Agricoles | Harvests" description="Explorez nos catégories de produits agricoles de qualité en direct des producteurs." />
+      <SEOHead />
       
       <div className="max-w-7xl mx-auto px-2 sm:px-3 lg:px-4 pt-2 sm:pt-3">
 

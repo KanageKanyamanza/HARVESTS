@@ -1,0 +1,54 @@
+{
+	"dashboard": {
+		"title": "Mon tableau de bord",
+		"welcome": "Bienvenue",
+		"overview": "Vue d'ensemble",
+		"recentOrders": "Commandes récentes",
+		"favorites": "Mes favoris",
+		"recommendations": "Recommandations",
+		"quickActions": "Actions rapides"
+	},
+	"profile": {
+		"title": "Mon profil",
+		"personalInfo": "Informations personnelles",
+		"contactInfo": "Informations de contact",
+		"preferences": "Préférences",
+		"security": "Sécurité",
+		"notifications": "Notifications",
+		"privacy": "Confidentialité"
+	},
+	"orders": {
+		"title": "Mes commandes",
+		"orderHistory": "Historique des commandes",
+		"currentOrders": "Commandes en cours",
+		"orderDetails": "Détails de la commande",
+		"trackOrder": "Suivre la commande",
+		"cancelOrder": "Annuler la commande",
+		"reorder": "Commander à nouveau",
+		"orderNumber": "Numéro de commande",
+		"orderDate": "Date de commande",
+		"total": "Total",
+		"status": "Statut"
+	},
+	"favorites": {
+		"title": "Mes favoris",
+		"savedProducts": "Produits sauvegardés",
+		"savedProducers": "Producteurs sauvegardés",
+		"addToFavorites": "Ajouter aux favoris",
+		"removeFromFavorites": "Retirer des favoris",
+		"noFavorites": "Aucun favori",
+		"noFavoritesDescription": "Vous n'avez pas encore de favoris"
+	},
+	"cart": {
+		"title": "Mon panier",
+		"items": "Articles",
+		"subtotal": "Sous-total",
+		"shipping": "Livraison",
+		"tax": "Taxe",
+		"total": "Total",
+		"checkout": "Commander",
+		"emptyCart": "Panier vide",
+		"emptyCartDescription": "Votre panier est vide",
+		"continueShopping": "Continuer les achats"
+	}
+}

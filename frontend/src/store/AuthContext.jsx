@@ -6,7 +6,7 @@ import {
 } from "../utils/authUtils";
 import { initialState, AUTH_ACTIONS } from "./authTypes";
 import { authReducer } from "./authReducer";
-import { saveAuthData, clearAuthData } from "./auth/authStorage";
+import { clearAuthData } from "./auth/authStorage";
 import {
 	login as authLogin,
 	register as authRegister,
@@ -155,6 +155,7 @@ export const AuthProvider = ({ children }) => {
 export { AuthContext };
 
 // Hook personnalisé pour utiliser le contexte d'authentification
+// eslint-disable-next-line react-refresh/only-export-components -- hook stable, motif context+hook+provider standard du projet
 export const useAuth = () => {
 	const context = React.useContext(AuthContext);
 	if (!context) {

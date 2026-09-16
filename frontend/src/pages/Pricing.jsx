@@ -115,10 +115,7 @@ const Pricing = () => {
 
 	return (
 		<div className="min-h-screen bg-[#F8FAF6] pb-16">
-			<SEOHead 
-				title="Formules & Tarifs Partenaires | Harvests"
-				description="Découvrez nos abonnements pour producteurs, coopératives et transformateurs agricoles." 
-			/>
+			<SEOHead />
 
 			<div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 pt-3 sm:pt-4">
 

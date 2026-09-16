@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Mail, Save, X, Smartphone, BellRing, Sparkles } from "lucide-react";
 import PushNotificationToggle from "../../common/PushNotificationToggle";
 import { notificationService } from "../../../services/notificationService";

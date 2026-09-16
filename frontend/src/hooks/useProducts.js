@@ -33,7 +33,7 @@ export const useProducts = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isSearching, setIsSearching] = useState(false);
+  const [isSearching] = useState(false);
 
   // Filtres et recherche (initialisés depuis l'URL)
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");

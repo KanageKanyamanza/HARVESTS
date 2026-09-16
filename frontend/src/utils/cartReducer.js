@@ -10,7 +10,7 @@ export const CART_ACTIONS = {
 // Reducer pour gérer l'état du panier
 export const cartReducer = (state, action) => {
   switch (action.type) {
-    case CART_ACTIONS.ADD_ITEM:
+    case CART_ACTIONS.ADD_ITEM: {
       const existingItem = state.items.find(
         (item) =>
           item.productId === action.payload.productId &&
@@ -33,6 +33,7 @@ export const cartReducer = (state, action) => {
         ...state,
         items: [...state.items, action.payload],
       };
+    }
 
     case CART_ACTIONS.REMOVE_ITEM:
       return {

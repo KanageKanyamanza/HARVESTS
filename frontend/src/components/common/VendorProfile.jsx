@@ -182,13 +182,13 @@ const VendorProfile = ({
 										[],
 								);
 							}
-						} catch (reviewError) {
+						} catch {
 							setReviews([]);
 						}
 					} else {
 						setReviews([]);
 					}
-				} catch (error) {
+				} catch {
 					setReviews([]);
 				}
 			} catch (error) {

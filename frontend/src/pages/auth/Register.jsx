@@ -16,8 +16,6 @@ const Register = () => {
 		formData,
 		showPassword,
 		setShowPassword,
-		showConfirmPassword,
-		setShowConfirmPassword,
 		errors,
 		setErrors,
 		isDropdownOpen,

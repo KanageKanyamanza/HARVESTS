@@ -11,7 +11,7 @@ const Transformer = require('./models/Transformer');
 const User = require('./models/User');
 
 const localUri = process.env.DATABASE_LOCAL || 'mongodb://localhost:27017/harvests';
-const atlasUri = 'mongodb+srv://harvests_db:B3OHy5tFnCSbRh1c@cluster0.mr1qd38.mongodb.net/?appName=Cluster0';
+const atlasUri = process.env.DATABASE_URL || process.env.DATABASE?.replace('<PASSWORD>', process.env.DATABASE_PASSWORD);
 
 async function cleanupBanners(uri, label) {
   console.log(`Connexion à ${label}...`);
@@ -63,7 +63,11 @@ async function cleanupBanners(uri, label) {
   // Nettoyer la base locale
   await cleanupBanners(localUri, 'MongoDB Local');
   // Nettoyer la base Atlas
-  await cleanupBanners(atlasUri, 'MongoDB Atlas (Production)');
+  if (atlasUri) {
+    await cleanupBanners(atlasUri, 'MongoDB Atlas (Production)');
+  } else {
+    console.log('ℹ️ DATABASE_URL (ou DATABASE + DATABASE_PASSWORD) non défini, base Atlas ignorée.');
+  }
   console.log('Nettoyage des bannières terminé !');
   process.exit(0);
 })();

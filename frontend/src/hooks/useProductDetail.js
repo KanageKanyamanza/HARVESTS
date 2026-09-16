@@ -49,7 +49,7 @@ export const useProductDetail = (id, user) => {
 					) {
 						try {
 							productResponse = await producerService.getProduct(id);
-						} catch (privateError) {
+						} catch {
 							throw publicError;
 						}
 					} else {
@@ -98,8 +98,6 @@ export const useProductDetail = (id, user) => {
 							productId &&
 							(productId.toString() === product._id.toString() ||
 								productId === product._id);
-						if (matches) {
-						}
 						return matches;
 					});
 

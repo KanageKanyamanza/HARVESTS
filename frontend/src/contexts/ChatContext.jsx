@@ -11,6 +11,7 @@ import { useAuth } from "../store/AuthContext";
 
 const ChatContext = createContext();
 
+// eslint-disable-next-line react-refresh/only-export-components -- hook stable, motif context+hook+provider standard du projet
 export const useChat = () => {
 	return useContext(ChatContext);
 };

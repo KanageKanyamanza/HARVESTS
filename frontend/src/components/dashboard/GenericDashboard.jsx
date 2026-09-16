@@ -5,7 +5,7 @@ import React, {
 	useCallback,
 	useMemo,
 } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { useOrderNotifications } from "../../hooks/useOrderNotifications";
 import ModularDashboardLayout from "../layout/ModularDashboardLayout";
@@ -32,9 +32,6 @@ const EmailVerificationBanner = ({ userEmail }) => {
 		const minInterval = 30 * 1000; // 30 secondes
 
 		if (timeSinceLastResend < minInterval && lastResendTime > 0) {
-			const remainingTime = Math.ceil(
-				(minInterval - timeSinceLastResend) / 1000,
-			);
 			setResendStatus("wait");
 			setTimeout(() => setResendStatus(null), 2000);
 			return;
@@ -146,7 +143,6 @@ const GenericDashboard = ({
 	loading: externalLoading,
 }) => {
 	const { user, isAuthenticated } = useAuth();
-	const navigate = useNavigate();
 	const { notifyNewOrder } = useOrderNotifications();
 
 	// États communs

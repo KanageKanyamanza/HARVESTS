@@ -37,7 +37,6 @@ const UserDetails = () => {
 	const [loading, setLoading] = useState(true);
 	const [actionLoading, setActionLoading] = useState(false);
 	const [previewDoc, setPreviewDoc] = useState(null); // { url, name, type, originalUrl, blobUrl, loading, error }
-	const [previewPage, setPreviewPage] = useState(1);
 	const [downloadingDoc, setDownloadingDoc] = useState(null);
 
 	useEffect(() => {
@@ -165,7 +164,6 @@ const UserDetails = () => {
 	};
 
 	const handlePreview = async (url, name) => {
-		setPreviewPage(1);
 		setPreviewDoc({ url, name, type: isPdf(url) ? "pdf" : "image", originalUrl: url, loading: true });
 		try {
 			const blob = await adminService.downloadDocumentProxy(url, name);
@@ -209,9 +207,6 @@ const UserDetails = () => {
 
 
 	const isPdf = (url) => url?.toLowerCase().includes(".pdf");
-	const isImage = (url) =>
-		/\.(jpg|jpeg|png|webp|gif|svg)$/i.test(url) ||
-		(url?.includes("/image/upload/") && !url?.toLowerCase().includes(".pdf"));
 
 	const getStatusColor = (status) => {
 		const colors = {
@@ -457,13 +452,22 @@ const UserDetails = () => {
 
 					<div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
 						{user.status !== "Vérifié" && (
-							<button
-								onClick={handleVerifyUser}
-								disabled={actionLoading}
-								className="flex-1 sm:flex-none px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 text-white rounded-[2.5rem] font-black text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-all duration-500 shadow-xl hover:shadow-emerald-100"
-							>
-								Vérifier le profil
-							</button>
+							<>
+								<button
+									onClick={handleVerifyUser}
+									disabled={actionLoading}
+									className="flex-1 sm:flex-none px-6 sm:px-8 py-3 sm:py-4 bg-gray-900 text-white rounded-[2.5rem] font-black text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-all duration-500 shadow-xl hover:shadow-emerald-100"
+								>
+									Vérifier le profil
+								</button>
+								<button
+									onClick={handleRejectVerification}
+									disabled={actionLoading}
+									className="flex-1 sm:flex-none px-6 sm:px-8 py-3 sm:py-4 bg-red-50 text-red-600 border border-red-100 rounded-[2.5rem] font-black text-[9px] sm:text-[10px] uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all duration-500"
+								>
+									Rejeter la vérification
+								</button>
+							</>
 						)}
 						{isSellerType && (
 							user.isShopVisible !== false ? (

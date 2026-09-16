@@ -68,7 +68,7 @@ const OrderHistory = () => {
 				cancelled: orders.filter((o) => o?.status === "cancelled").length,
 			};
 			return stats;
-		} catch (error) {
+		} catch {
 			return { total: 0, pending: 0, confirmed: 0, delivered: 0, cancelled: 0 };
 		}
 	};

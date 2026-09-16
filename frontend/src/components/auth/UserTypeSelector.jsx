@@ -88,5 +88,4 @@ const UserTypeSelector = ({
 };
 
 export default UserTypeSelector;
-export { userTypes };
 

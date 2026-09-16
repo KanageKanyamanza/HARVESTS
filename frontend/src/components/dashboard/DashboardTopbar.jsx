@@ -3,6 +3,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useUserType } from "../../hooks/useUserType";
 import { FiMenu } from "react-icons/fi";
 import CloudinaryImage from "../common/CloudinaryImage";
+import LanguageSelector from "../common/LanguageSelector";
 import NotificationDropdown from "../notifications/NotificationDropdown";
 import WeatherClockWidget from "./WeatherClockWidget";
 import ProducerQuickStats from "./ProducerQuickStats";
@@ -32,6 +33,9 @@ const DashboardTopbar = ({ onMenuClick }) => {
 				<div className="flex items-center space-x-2 sm:space-x-4">
 					{/* Commandes en attente / stock faible / ajout rapide - producteurs uniquement */}
 					{isProducer && <ProducerQuickStats />}
+
+					{/* Sélecteur de langue fr/en - visible pour tous, y compris admin */}
+					<LanguageSelector />
 
 					{/* Notifications - seulement si pas admin */}
 					{!isAdmin && <NotificationDropdown />}

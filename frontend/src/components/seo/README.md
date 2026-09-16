@@ -145,10 +145,11 @@ Les routes suivantes ont des meta tags pré-configurés :
 
 ## Traduction
 
-Les meta tags sont automatiquement traduits selon la langue de l'utilisateur via `react-i18next` :
+Les meta tags sont automatiquement traduits selon la langue de l'utilisateur via `react-i18next`. Les clés SEO vivent dans leur propre namespace (`frontend/src/locales/{fr,en}/seo.json`) depuis le découpage du Jour 34 :
 
 ```javascript
-title: t('seo.home.title', 'Harvests | Marketplace')
+const { t } = useTranslation('seo');
+title: t('home.title', 'Harvests | Marketplace')
 ```
 
 ## Bonnes pratiques

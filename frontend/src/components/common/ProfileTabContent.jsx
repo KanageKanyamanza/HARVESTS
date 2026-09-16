@@ -41,7 +41,7 @@ const FormField = ({ field, value, onChange, disabled = false }) => {
           </select>
         );
 
-      case 'multiselect':
+      case 'multiselect': {
         const selectedValues = Array.isArray(value) ? value : [];
         return (
           <div className="space-y-2">
@@ -72,6 +72,7 @@ const FormField = ({ field, value, onChange, disabled = false }) => {
             ))}
           </div>
         );
+      }
 
       case 'checkbox':
         return (
@@ -393,7 +394,7 @@ export const NotificationsContent = ({ profile, onChange }) => {
 };
 
 // Contenu produits (producteur)
-export const ProductsContent = ({ profile }) => (
+export const ProductsContent = () => (
   <div className="space-y-6">
     <div className="text-center py-8">
       <FiPackage className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -404,7 +405,7 @@ export const ProductsContent = ({ profile }) => (
 );
 
 // Contenu certifications
-export const CertificationsContent = ({ profile }) => (
+export const CertificationsContent = () => (
   <div className="space-y-6">
     <div className="text-center py-8">
       <FiAward className="h-12 w-12 text-gray-400 mx-auto mb-4" />

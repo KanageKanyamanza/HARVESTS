@@ -41,7 +41,7 @@ const StarRating = ({
     }
   };
 
-  const handleMouseEnter = (starRating) => {
+  const handleMouseEnter = (_starRating) => {
     if (interactive) {
       // Effet de survol pour l'interactivité
     }
@@ -53,8 +53,7 @@ const StarRating = ({
         {Array.from({ length: maxRating }, (_, index) => {
           const starRating = index + 1;
           const isFilled = starRating <= rating;
-          const isHalf = starRating === Math.ceil(rating) && rating % 1 !== 0;
-          
+
           return (
             <button
               key={index}

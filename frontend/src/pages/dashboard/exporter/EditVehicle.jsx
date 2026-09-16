@@ -26,7 +26,6 @@ const EditVehicle = () => {
 
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
-	const [errors, setErrors] = useState({});
 	const [uploadingImage, setUploadingImage] = useState(false);
 	const [vehicleImage, setVehicleImage] = useState(null);
 	const fileInputRef = useRef(null);
@@ -170,7 +169,7 @@ const EditVehicle = () => {
 				});
 				showSuccess("Image mise à jour");
 			}
-		} catch (error) {
+		} catch {
 			showError("Erreur lors de l'upload");
 		} finally {
 			setUploadingImage(false);
