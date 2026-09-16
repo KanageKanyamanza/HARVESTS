@@ -9,6 +9,7 @@ const { logAudit, AUDIT_ACTIONS } = require("../../utils/auditLogger");
 const adminNotifications = require("../../utils/adminNotifications");
 const emailQueue = require("../../services/emailQueueService");
 const { getMissingFields } = require("../../middleware/profileCheck");
+const excelSyncService = require("../../services/excelSyncService");
 
 // @desc    Obtenir tous les utilisateurs
 // @route   GET /api/v1/admin/users
@@ -228,12 +229,24 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 	if (isEmailVerified !== undefined)
 		updateData.isEmailVerified = isEmailVerified;
 
+	const previousUser = await User.findById(req.params.id).select("email");
+	if (!previousUser) return next(new AppError("Utilisateur non trouvé", 404));
+
 	const user = await User.findByIdAndUpdate(req.params.id, updateData, {
 		new: true,
 		runValidators: true,
 	}).select("-password -passwordResetToken -passwordResetExpires");
 
 	if (!user) return next(new AppError("Utilisateur non trouvé", 404));
+
+	const touchesSheetSync = ["firstName", "lastName", "email", "phone"].some(
+		(field) => req.body[field] !== undefined,
+	);
+	if (touchesSheetSync) {
+		excelSyncService.syncUserUpdate(user, previousUser.email).catch((err) => {
+			console.error("❌ Erreur de synchro Excel (édition admin) :", err.message);
+		});
+	}
 
 	res.status(200).json({
 		status: "success",

@@ -69,6 +69,27 @@ class ExcelSyncService {
 	}
 
 	/**
+	 * Construit le payload commun envoyé au Google Apps Script
+	 */
+	buildPayload(user, action) {
+		const name = this.getUserDisplayName(user);
+		return {
+			action,
+			date: this.formatDate(user.createdAt),
+			commercial: user.referredBy || "",
+			producteurs: user.userType === "producer" ? name : "",
+			transformateurs: user.userType === "transformer" ? name : "",
+			restaurateurs: user.userType === "restaurateur" ? name : "",
+			exportateurs: user.userType === "exporter" ? name : "",
+			transporteurs: user.userType === "transporter" ? name : "",
+			consommateurs: user.userType === "consumer" ? name : "",
+			email: user.email || "",
+			telephone: user.phone || "",
+			total: 1
+		};
+	}
+
+	/**
 	 * Synchronise en temps réel une inscription individuelle
 	 * @param {Object} user - L'utilisateur MongoDB créé
 	 */
@@ -78,20 +99,9 @@ class ExcelSyncService {
 		}
 
 		try {
-			const name = this.getUserDisplayName(user);
-			const payload = {
-				date: this.formatDate(user.createdAt),
-				commercial: user.referredBy || "",
-				producteurs: user.userType === "producer" ? name : "",
-				transformateurs: user.userType === "transformer" ? name : "",
-				restaurateurs: user.userType === "restaurateur" ? name : "",
-				exportateurs: user.userType === "exporter" ? name : "",
-				transporteurs: user.userType === "transporter" ? name : "",
-				consommateurs: user.userType === "consumer" ? name : "",
-				total: 1
-			};
+			const payload = this.buildPayload(user, "create");
 
-			console.log(`[ExcelSync] Envoi en temps réel pour l'utilisateur ${user.email} (Nom: ${name})`);
+			console.log(`[ExcelSync] Envoi en temps réel pour l'utilisateur ${user.email} (Nom: ${payload.producteurs || payload.transformateurs || payload.restaurateurs || payload.exportateurs || payload.transporteurs || payload.consommateurs})`);
 			// maxRedirects:20 is needed because Google Apps Script returns a 302 redirect
 			// before executing the script; axios drops POST body on redirect by default
 			await axios.post(this.webhookUrl, payload, {
@@ -100,6 +110,35 @@ class ExcelSyncService {
 			});
 		} catch (error) {
 			console.error("[ExcelSync] Erreur lors de la synchronisation en temps réel :", error.message);
+		}
+	}
+
+	/**
+	 * Synchronise la modification d'un utilisateur existant (nom, e-mail, téléphone...).
+	 * Le Google Apps Script retrouve la ligne via `lookupEmail` (l'e-mail avant
+	 * modification, identique à l'e-mail actuel si celui-ci n'a pas changé) et
+	 * met à jour la ligne en place plutôt que d'en ajouter une nouvelle.
+	 * @param {Object} user - L'utilisateur MongoDB à jour (après sauvegarde)
+	 * @param {string} [previousEmail] - E-mail de l'utilisateur avant la modification
+	 */
+	async syncUserUpdate(user, previousEmail) {
+		if (!this.webhookUrl) {
+			return;
+		}
+
+		try {
+			const payload = {
+				...this.buildPayload(user, "update"),
+				lookupEmail: previousEmail || user.email,
+			};
+
+			console.log(`[ExcelSync] Mise à jour de la ligne pour ${payload.lookupEmail}`);
+			await axios.post(this.webhookUrl, payload, {
+				timeout: 30000,
+				maxRedirects: 20,
+			});
+		} catch (error) {
+			console.error("[ExcelSync] Erreur lors de la synchronisation de mise à jour :", error.message);
 		}
 	}
 

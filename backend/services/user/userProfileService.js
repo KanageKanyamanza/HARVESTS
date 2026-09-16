@@ -4,6 +4,18 @@ const Consumer = require("../../models/Consumer");
 const Product = require("../../models/Product");
 const Order = require("../../models/Order");
 const Review = require("../../models/Review");
+const excelSyncService = require("../excelSyncService");
+
+// Champs dont la modification doit déclencher une resynchronisation du
+// tableau Google Sheets (nom affiché, e-mail, téléphone)
+const SHEET_SYNC_FIELDS = [
+	"firstName",
+	"lastName",
+	"companyName",
+	"farmName",
+	"restaurantName",
+	"phone",
+];
 
 // Mapping des modèles par type d'utilisateur
 const userModels = {
@@ -85,6 +97,11 @@ async function updateProfile(userId, userType, updateData, file = null) {
 		}
 	}
 
+	const previousEmail = user.email;
+	const touchesSheetSync = Object.keys(filteredBody).some((key) =>
+		SHEET_SYNC_FIELDS.includes(key),
+	);
+
 	// Mettre à jour les champs autorisés
 	Object.keys(filteredBody).forEach((key) => {
 		// On fait confiance à filteredBody qui a déjà été filtré par allowedFields
@@ -93,6 +110,12 @@ async function updateProfile(userId, userType, updateData, file = null) {
 	});
 
 	const updatedUser = await user.save({ validateBeforeSave: false });
+
+	if (touchesSheetSync) {
+		excelSyncService.syncUserUpdate(updatedUser, previousEmail).catch((err) => {
+			console.error("❌ Erreur de synchro Excel (mise à jour profil) :", err.message);
+		});
+	}
 
 	// Filtrer les données utilisateur pour ne retourner que les champs nécessaires
 	return {
