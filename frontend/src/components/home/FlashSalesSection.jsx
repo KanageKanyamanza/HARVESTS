@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ProductCard from '../products/ProductCard';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { productService } from '../../services';
@@ -7,6 +8,7 @@ import { FiClock, FiMapPin } from 'react-icons/fi';
 import { useGeoLocation } from '../../hooks/useGeoLocation';
 
 const FlashSalesSection = () => {
+  const { t } = useTranslation('public');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isLocal, setIsLocal] = useState(false);
@@ -71,7 +73,7 @@ const FlashSalesSection = () => {
         <div className="flex items-center gap-4">
           <div>
             <h2 className="text-xl md:text-2xl font-bold text-red-600 flex items-center">
-              Ventes Flash
+              {t('home.flashSales.title')}
             </h2>
             {isLocal && countryName && (
               <span className="inline-flex items-center gap-1 mt-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
@@ -101,7 +103,7 @@ const FlashSalesSection = () => {
           to="/products"
           className="text-sm font-medium text-red-600 hover:text-red-800 hover:underline"
         >
-          Voir toutes les offres
+          {t('home.flashSales.viewAll')}
         </Link>
       </div>
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Wheat, Carrot, Apple, Bean, Flame, Leaf, Sprout, Milk, Beef, Drumstick, Fish, Archive, CupSoda, Package, ArrowRight, Grid } from "lucide-react";
 import CloudinaryImage from "../common/CloudinaryImage";
 import LoadingSpinner from "../common/LoadingSpinner";
@@ -10,14 +11,6 @@ const ALL_CATEGORIES = [
 	"poultry", "processed-foods", "legumes", "tubers", "spices",
 	"herbs", "nuts", "seeds", "beverages", "other",
 ];
-
-const LABELS = {
-	cereals: "Céréales & Grains", vegetables: "Légumes Frais", fruits: "Fruits de Saison",
-	legumes: "Légumineuses", tubers: "Tubercules & Racines", spices: "Épices Locales",
-	herbs: "Herbes Aromatiques", nuts: "Noix & Anacarde", seeds: "Graines & Semences", dairy: "Produits Laitiers",
-	meat: "Viande Bovine & Ovine", poultry: "Volaille Bio", fish: "Poisson & Halieutique",
-	"processed-foods": "Produits Transformés", beverages: "Jus & Boissons", other: "Épicerie & Produits Divers",
-};
 
 const ICONS = {
 	cereals: Wheat, vegetables: Carrot, fruits: Apple, legumes: Bean,
@@ -45,6 +38,8 @@ const CACHE_DURATION = 5 * 60 * 1000;
 let sectionCache = null;
 
 const CategoriesSection = () => {
+	const { t } = useTranslation("public");
+	const LABELS = t("home.categories.labels", { returnObjects: true });
 	const [visibleCategories, setVisibleCategories] = useState([]);
 	const [categoryProducts, setCategoryProducts] = useState({});
 	const [loading, setLoading] = useState(true);
@@ -130,15 +125,15 @@ const CategoriesSection = () => {
 				<div>
 					<div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1A5514] uppercase tracking-wider mb-1">
 						<Grid className="w-4 h-4 text-[#31BC2E]" />
-						<span>Filières Agricoles & Produits</span>
+						<span>{t("home.categories.eyebrow")}</span>
 					</div>
 					<h2 className="text-2xl sm:text-3xl font-extrabold text-[#161D14]">
-						Catégories Populaires du Marketplace
+						{t("home.categories.title")}
 					</h2>
-					<p className="text-sm text-gray-600 mt-0.5">Découvrez nos produits classés par filière d'approvisionnement</p>
+					<p className="text-sm text-gray-600 mt-0.5">{t("home.categories.subtitle")}</p>
 				</div>
 				<Link to="/categories" className="hidden md:flex text-xs sm:text-sm font-bold text-[#1A5514] hover:text-[#31BC2E] transition-colors items-center gap-1">
-					Voir toutes les catégories →
+					{t("home.categories.viewAll")}
 				</Link>
 			</div>
 
@@ -179,7 +174,7 @@ const CategoriesSection = () => {
 							</div>
 
 							<div className="p-3.5 bg-white flex items-center justify-between font-bold text-xs text-[#1A5514] group-hover:text-[#31BC2E]">
-								<span>Découvrir la filière</span>
+								<span>{t("home.categories.discover")}</span>
 								<ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
 							</div>
 						</Link>
@@ -192,7 +187,7 @@ const CategoriesSection = () => {
 					to="/categories"
 					className="text-xs sm:text-sm font-bold text-white hover:text-[#31BC2E] transition-colors bg-[#1A5514] rounded-full p-3 w-64 mx-auto flex items-center justify-center gap-1"
 				>
-					Voir toutes les catégories →
+					{t("home.categories.viewAll")}
 				</Link>
 			</div>
 		</section>

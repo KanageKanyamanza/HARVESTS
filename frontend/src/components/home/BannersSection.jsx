@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowRight } from "lucide-react";
 import Banner54 from "../../assets/images/Bannar-54.webp";
 import Banner55 from "../../assets/images/Bannar-55.webp";
 
 const BannersSection = () => {
+	const { t } = useTranslation("public");
 	const [timeLeft, setTimeLeft] = useState({
 		days: 0,
 		hours: 2,
@@ -55,10 +57,10 @@ const BannersSection = () => {
 						<div className="absolute inset-0 bg-gradient-to-b from-blue-900/50 via-transparent to-transparent"></div>
 						<div className="relative h-full flex flex-col justify-start p-8 pt-10">
 							<p className="text-white/90 text-sm font-medium mb-2 uppercase tracking-wider">
-								Best Deals
+								{t("home.banners.bestDeals")}
 							</p>
 							<h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-								Sale of the Month
+								{t("home.banners.saleOfMonth")}
 							</h2>
 
 							{/* Compte à rebours */}
@@ -69,7 +71,7 @@ const BannersSection = () => {
 											{formatTime(timeLeft.days)}
 										</span>
 									</div>
-									<span className="text-white text-xs uppercase">Jours</span>
+									<span className="text-white text-xs uppercase">{t("home.banners.days")}</span>
 								</div>
 								<div className="text-center">
 									<div className="bg-white rounded-lg w-14 h-14 flex items-center justify-center mb-1">
@@ -77,7 +79,7 @@ const BannersSection = () => {
 											{formatTime(timeLeft.hours)}
 										</span>
 									</div>
-									<span className="text-white text-xs uppercase">Heures</span>
+									<span className="text-white text-xs uppercase">{t("home.banners.hours")}</span>
 								</div>
 								<div className="text-center">
 									<div className="bg-white rounded-lg w-14 h-14 flex items-center justify-center mb-1">
@@ -85,7 +87,7 @@ const BannersSection = () => {
 											{formatTime(timeLeft.minutes)}
 										</span>
 									</div>
-									<span className="text-white text-xs uppercase">Mins</span>
+									<span className="text-white text-xs uppercase">{t("home.banners.minutes")}</span>
 								</div>
 								<div className="text-center">
 									<div className="bg-white rounded-lg w-14 h-14 flex items-center justify-center mb-1">
@@ -93,7 +95,7 @@ const BannersSection = () => {
 											{formatTime(timeLeft.seconds)}
 										</span>
 									</div>
-									<span className="text-white text-xs uppercase">Secs</span>
+									<span className="text-white text-xs uppercase">{t("home.banners.seconds")}</span>
 								</div>
 							</div>
 
@@ -101,7 +103,7 @@ const BannersSection = () => {
 								to="/products"
 								className="inline-flex mx-auto items-center justify-center px-8 py-3 bg-white text-gray-900 font-semibold rounded-full hover:bg-primary-500 hover:text-white transition-all duration-300 group-hover:scale-105 w-fit"
 							>
-								Shop Now
+								{t("home.banners.shopNow")}
 								<ArrowRight className="ml-2 h-5 w-5" />
 							</Link>
 						</div>
@@ -116,15 +118,15 @@ const BannersSection = () => {
 						<div className="absolute inset-0 bg-gradient-to-b from-yellow-400/30 via-transparent to-transparent"></div>
 						<div className="relative h-full flex flex-col justify-start p-8 pt-10">
 							<p className="text-gray-800 text-sm font-medium mb-2 uppercase tracking-wider">
-								Summer Sale
+								{t("home.banners.summerSale")}
 							</p>
 							<h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-								100% Fresh Fruit
+								{t("home.banners.freshFruit")}
 							</h2>
 							<p className="text-gray-700 mb-6 text-lg">
-								Jusqu'à{" "}
+								{t("home.banners.discountPrefix")}{" "}
 								<span className="text-primary-500 font-bold text-2xl">
-									64% OFF
+									{t("home.banners.discountValue")}
 								</span>
 							</p>
 
@@ -132,7 +134,7 @@ const BannersSection = () => {
 								to="/products?category=fruits"
 								className="inline-flex mx-auto items-center justify-center px-8 py-3 bg-primary-500 text-white font-semibold rounded-full hover:bg-primary-600 transition-all duration-300 group-hover:scale-105 w-fit"
 							>
-								Shop Now
+								{t("home.banners.shopNow")}
 								<ArrowRight className="ml-2 h-5 w-5" />
 							</Link>
 						</div>

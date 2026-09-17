@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
 	Menu,
 	X,
@@ -34,7 +35,6 @@ import NotificationDropdown from "../notifications/NotificationDropdown";
 import SearchModal from "../common/SearchModal";
 import LanguageSelector from "../common/LanguageSelector";
 import { generateUserNavigation } from "../../navigation";
-import { getCategoryLabel } from "../../utils/productUtils";
 
 const SEARCH_CATEGORIES = [
 	"vegetables", "fruits", "cereals", "meat", "dairy", "fish",
@@ -43,6 +43,7 @@ const SEARCH_CATEGORIES = [
 ];
 
 const Header = () => {
+	const { t } = useTranslation(["navigation", "public"]);
 	const location = useLocation();
 	const navigate = useNavigate();
 	const { isAuthenticated, user, logout } = useAuth();
@@ -57,9 +58,10 @@ const Header = () => {
 	const categoryDropdownRef = React.useRef(null);
 	const { currency, setCurrency, currencies } = useCurrency();
 
+	const categoryLabels = t("products.categories", { ns: "public", returnObjects: true });
 	const searchCategoryOptions = [
-		{ value: "all", label: "Toutes catégories" },
-		...SEARCH_CATEGORIES.map((slug) => ({ value: slug, label: getCategoryLabel(slug) })),
+		{ value: "all", label: categoryLabels.all },
+		...SEARCH_CATEGORIES.map((slug) => ({ value: slug, label: categoryLabels[slug] || slug })),
 	];
 
 	React.useEffect(() => {
@@ -87,7 +89,7 @@ const Header = () => {
 	const handleShare = async () => {
 		const shareData = {
 			title: "Harvests",
-			text: "Découvrez Harvests, la marketplace agricole",
+			text: t("header.shareText", { ns: "navigation" }),
 			url: window.location.href,
 		};
 		if (navigator.share) {
@@ -135,34 +137,34 @@ const Header = () => {
 
 	// Navigation principale
 	const mainNavigation = [
-		{ name: "Accueil", href: "/", current: location.pathname === "/", icon: Home },
+		{ name: t("home", { ns: "navigation" }), href: "/", current: location.pathname === "/", icon: Home },
 		{
-			name: "Produits",
+			name: t("products", { ns: "navigation" }),
 			href: "/products",
 			current: location.pathname === "/products",
 			icon: Package,
 		},
 		{
-			name: "Catégories",
+			name: t("categories", { ns: "navigation" }),
 			href: "/categories",
 			current: location.pathname === "/categories",
 			icon: Grid,
 		},
 		{
-			name: "Nos Producteurs",
+			name: t("ourProducers", { ns: "navigation" }),
 			href: "/producteurs",
 			current: location.pathname === "/producteurs",
 			icon: Sprout,
 		},
-		{ name: "Blog", href: "/blog", current: location.pathname === "/blog", icon: Newspaper },
+		{ name: t("blog", { ns: "navigation" }), href: "/blog", current: location.pathname === "/blog", icon: Newspaper },
 		{
-			name: "Tarifs",
+			name: t("pricing", { ns: "navigation" }),
 			href: "/pricing",
 			current: location.pathname === "/pricing",
 			icon: Tag,
 		},
 		{
-			name: "Invest",
+			name: t("invest", { ns: "navigation" }),
 			href: "/invest",
 			current: location.pathname === "/invest",
 			icon: Briefcase,
@@ -240,7 +242,7 @@ const Header = () => {
 									onClick={() => setIsCategoryOpen((o) => !o)}
 									className="h-full flex items-center gap-1.5 bg-gray-50 text-gray-800 text-xs font-bold px-3 py-2 border-r border-gray-200 outline-none cursor-pointer hover:bg-gray-100 rounded-l-full transition-colors whitespace-nowrap"
 								>
-									{searchCategoryOptions.find((o) => o.value === selectedCategory)?.label || "Toutes catégories"}
+									{searchCategoryOptions.find((o) => o.value === selectedCategory)?.label || t("header.allCategories", { ns: "navigation" })}
 									<ChevronDown className={`h-3.5 w-3.5 text-gray-500 transition-transform ${isCategoryOpen ? "rotate-180" : ""}`} />
 								</button>
 
@@ -269,12 +271,12 @@ const Header = () => {
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
 								className="flex-1 min-w-0 px-4 py-2 outline-none text-gray-900 bg-white text-sm placeholder-gray-400"
-								placeholder="Rechercher des produits agricoles, céréales, fruits, engrais, producteurs..."
+								placeholder={t("header.searchPlaceholder", { ns: "navigation" })}
 							/>
 							<button
 								type="submit"
 								className="bg-[#FF9900] hover:bg-[#e68a00] text-gray-900 px-6 py-2 transition-colors flex items-center justify-center font-bold rounded-r-full"
-								aria-label="Rechercher"
+								aria-label={t("header.searchAriaLabel", { ns: "navigation" })}
 							>
 								<Search className="h-5 w-5 text-gray-900" />
 							</button>
@@ -293,7 +295,7 @@ const Header = () => {
 									? "text-white hover:text-primary-200"
 									: "text-gray-700 hover:text-primary-600"
 								} transition-colors duration-500 ease-in-out p-2 hover:bg-gray-100 rounded-lg`}
-							aria-label="Rechercher"
+							aria-label={t("header.searchAriaLabel", { ns: "navigation" })}
 						>
 							<Search className="h-5 w-5 sm:h-6 sm:w-6" />
 						</button>
@@ -305,7 +307,7 @@ const Header = () => {
 								<Link
 									to="/cart"
 									className="flex items-center text-gray-800 hover:text-[#1A5514] transition-colors relative p-2 gap-1.5 rounded-lg hover:bg-gray-100"
-									title="Mon panier"
+									title={t("header.myCart", { ns: "navigation" })}
 								>
 									<div className="relative">
 										<ShoppingCart className="h-6 w-6 sm:h-7 sm:w-7 text-gray-800" />
@@ -313,7 +315,7 @@ const Header = () => {
 											{totalItems}
 										</span>
 									</div>
-									<span className="hidden md:inline font-bold text-xs sm:text-sm text-[#161D14] ml-1">Panier</span>
+									<span className="hidden md:inline font-bold text-xs sm:text-sm text-[#161D14] ml-1">{t("cart", { ns: "navigation" })}</span>
 								</Link>
 							)}
 
@@ -324,8 +326,8 @@ const Header = () => {
 									? "text-white hover:text-primary-200"
 									: "text-gray-700 hover:text-primary-600"
 								} transition-colors duration-500 ease-in-out p-2 hover:bg-gray-100 rounded-lg`}
-							aria-label="Partager"
-							title="Partager"
+							aria-label={t("header.share", { ns: "navigation" })}
+							title={t("header.share", { ns: "navigation" })}
 						>
 							<Share2 className="h-5 w-5 sm:h-6 sm:w-6" />
 						</button>
@@ -369,8 +371,8 @@ const Header = () => {
 										className="flex items-center space-x-2 text-gray-800 hover:text-[#1A5514] transition-colors"
 									>
 										<div className="text-left hidden md:block">
-											<div className="text-xs text-gray-600">Bonjour, {user?.firstName}</div>
-											<div className="text-sm font-bold text-[#161D14]">Compte et Listes ▼</div>
+											<div className="text-xs text-gray-600">{t("header.hello", { ns: "navigation", name: user?.firstName })}</div>
+											<div className="text-sm font-bold text-[#161D14]">{t("header.accountAndLists", { ns: "navigation" })} ▼</div>
 										</div>
 										<div className="w-8 h-8 md:hidden bg-emerald-100 rounded-full flex items-center justify-center">
 											<img
@@ -407,25 +409,25 @@ const Header = () => {
 								<button
 									onClick={handleLogout}
 									className="hidden sm:inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-white bg-red-600 hover:bg-red-700 px-3 sm:px-4 py-2 rounded-full transition-colors shadow-sm"
-									title="Déconnexion"
+									title={t("logout", { ns: "navigation" })}
 								>
 									<LogOut className="h-4 w-4" />
-									<span className="hidden lg:inline">Déconnexion</span>
+									<span className="hidden lg:inline">{t("logout", { ns: "navigation" })}</span>
 								</button>
 							</>
 						) : (
 							<div className="flex items-center gap-3">
 								<Link to="/login" className="hidden md:flex flex-col text-left text-gray-800 hover:text-[#1A5514] transition-colors">
-									<span className="text-[11px] text-gray-500 font-medium">Bonjour, Identifiez-vous</span>
-									<span className="text-xs sm:text-sm font-extrabold text-[#161D14]">Compte & Listes ▼</span>
+									<span className="text-[11px] text-gray-500 font-medium">{t("header.helloLogin", { ns: "navigation" })}</span>
+									<span className="text-xs sm:text-sm font-extrabold text-[#161D14]">{t("header.accountListsShort", { ns: "navigation" })} ▼</span>
 								</Link>
 								<Link
 									to="/login"
 									className="flex lg:hidden items-center gap-1.5 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-[#1A5514] to-[#31BC2E] hover:shadow-lg px-3 sm:px-4 py-2 rounded-full transition-all shadow-sm shadow-emerald-900/20"
-									title="Connexion"
+									title={t("login", { ns: "navigation" })}
 								>
 									<LogIn className="h-4 w-4" />
-									<span className="hidden sm:inline">Connexion</span>
+									<span className="hidden sm:inline">{t("login", { ns: "navigation" })}</span>
 								</Link>
 							</div>
 						)}
@@ -439,13 +441,18 @@ const Header = () => {
 				<nav className="flex items-center space-x-1 sm:space-x-2">
 					<span className="bg-[#31BC2E] text-white px-2.5 py-1 rounded-full font-bold text-xs mr-2 flex items-center gap-1.5 shadow-sm">
 						<Leaf className="w-3.5 h-3.5" />
-						Harvests Agritech
+						{t("header.brandBadge", { ns: "navigation" })}
 					</span>
 					{mainNavigation.map((item) => (
 						<Link
 							key={item.name}
 							to={item.href}
-							className="px-3 py-1.5 hover:bg-white/15 rounded-full transition-all duration-200 whitespace-nowrap"
+							aria-current={item.current ? "page" : undefined}
+							className={`px-3 py-1.5 rounded-full transition-all duration-200 whitespace-nowrap ${
+								item.current
+									? "bg-white text-[#1A5514] font-bold shadow-sm"
+									: "hover:bg-white/15"
+							}`}
 						>
 							{item.name}
 						</Link>
@@ -454,12 +461,12 @@ const Header = () => {
 				<div className="flex items-center space-x-4 text-xs">
 					<Link to="/producteurs" className="hover:text-emerald-300 transition-colors flex items-center gap-1.5">
 						<Sprout className="w-3.5 h-3.5 text-emerald-400" />
-						Espace Producteurs
+						{t("header.producerSpace", { ns: "navigation" })}
 					</Link>
 					<span className="opacity-40">|</span>
 					<Link to="/pricing" className="hover:text-emerald-300 transition-colors flex items-center gap-1.5">
 						<TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-						Ventes en Gros (B2B)
+						{t("header.wholesaleB2B", { ns: "navigation" })}
 					</Link>
 				</div>
 			</div>
@@ -492,9 +499,9 @@ const Header = () => {
 										<User className="h-5 w-5 text-white" />
 									</div>
 									<div>
-										<p className="text-[11px] font-semibold text-white/80">Bonjour</p>
+										<p className="text-[11px] font-semibold text-white/80">{t("header.helloShort", { ns: "navigation" })}</p>
 										<p className="font-extrabold leading-tight">
-											{isAuthenticated ? user?.firstName : "Identifiez-vous"}
+											{isAuthenticated ? user?.firstName : t("header.loginPrompt", { ns: "navigation" })}
 										</p>
 									</div>
 								</Link>
@@ -509,7 +516,7 @@ const Header = () => {
 
 						<div className="py-3 flex-1">
 							<p className="px-5 pt-1 pb-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-								Navigation
+								{t("header.mobileNavSection", { ns: "navigation" })}
 							</p>
 							{mainNavigation.map((item) => {
 								const Icon = item.icon;
@@ -537,7 +544,7 @@ const Header = () => {
 							<hr className="my-3 border-gray-100" />
 
 							<p className="px-5 pb-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-								Aide &amp; Paramètres
+								{t("header.mobileHelpSection", { ns: "navigation" })}
 							</p>
 							<div className="px-5 py-2 flex items-center gap-3">
 								<LanguageSelector className="shrink-0" />
@@ -547,7 +554,7 @@ const Header = () => {
 									className="bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] cursor-pointer text-gray-700 flex-1 px-3 py-2"
 								>
 									{currencies.map((c) => (
-										<option key={c.code} value={c.code}>Devise: {c.code}</option>
+										<option key={c.code} value={c.code}>{t("header.currencyOption", { ns: "navigation", code: c.code })}</option>
 									))}
 								</select>
 							</div>
@@ -559,7 +566,7 @@ const Header = () => {
 										onClick={() => setIsMobileMenuOpen(false)}
 									>
 										<LogIn className="h-4 w-4" />
-										Connexion
+										{t("login", { ns: "navigation" })}
 									</Link>
 								</div>
 							) : (
@@ -573,7 +580,7 @@ const Header = () => {
 									<div className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shrink-0">
 										<LogOut className="h-4 w-4" />
 									</div>
-									Déconnexion
+									{t("logout", { ns: "navigation" })}
 								</button>
 							)}
 						</div>

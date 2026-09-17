@@ -10,7 +10,7 @@ import { FiPackage, FiGrid, FiList, FiFilter, FiSearch, FiSliders } from "react-
 import { Sparkles, ShoppingBag, Utensils } from "lucide-react";
 
 const Products = () => {
-	const { t, i18n } = useTranslation("seo");
+	const { t, i18n } = useTranslation(["seo", "public"]);
 	const language = i18n.language || "fr";
 	const [showFilters, setShowFilters] = useState(false);
 	const [viewMode, setViewMode] = useState(() => {
@@ -84,7 +84,7 @@ const Products = () => {
 					<div className="relative z-10 max-w-3xl">
 						<div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-4">
 							<ShoppingBag className="w-4 h-4 text-[#31BC2E]" />
-							<span>Marché Direct & Circuits Courts</span>
+							<span>{t("products.heroEyebrow", { ns: "public" })}</span>
 						</div>
 
 						<h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight mb-3">
@@ -108,15 +108,12 @@ const Products = () => {
 								className="md:hidden inline-flex items-center gap-2 px-3.5 py-2 text-xs font-extrabold text-white bg-[#1A5514] rounded-xl shadow-sm hover:bg-[#31BC2E] transition-colors"
 							>
 								<FiFilter className="w-4 h-4" />
-								<span>Filtres</span>
+								<span>{t("products.filtersLabel", { ns: "public" })}</span>
 							</button>
 
 							<span className="text-xs font-extrabold text-[#161D14]">
-								{totalProducts > 0 
-									? `${totalProducts} produit${totalProducts > 1 ? 's' : ''} trouvé${totalProducts > 1 ? 's' : ''}` 
-									: "Aucun produit"
-								}
-								{searchQuery && <span className="text-emerald-700 font-bold ml-1">pour "{searchQuery}"</span>}
+								{t("products.resultsCount", { ns: "public", count: totalProducts })}
+								{searchQuery && <span className="text-emerald-700 font-bold ml-1">{t("products.resultsForQuery", { ns: "public", query: searchQuery })}</span>}
 							</span>
 						</div>
 
@@ -127,33 +124,33 @@ const Products = () => {
 								<button
 									onClick={() => handleViewModeChange('grid')}
 									className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-xs font-bold ${viewMode === 'grid' ? 'bg-[#1A5514] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-									title="Vue en grille"
+									title={t("products.gridView", { ns: "public" })}
 								>
 									<FiGrid className="h-4 w-4" />
-									<span className="">Grille</span>
+									<span className="">{t("products.gridViewShort", { ns: "public" })}</span>
 								</button>
 								<button
 									onClick={() => handleViewModeChange('list')}
 									className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-xs font-bold ${viewMode === 'list' ? 'bg-[#1A5514] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-									title="Vue en liste"
+									title={t("products.listView", { ns: "public" })}
 								>
 									<FiList className="h-4 w-4" />
-									<span className="">Liste</span>
+									<span className="">{t("products.listViewShort", { ns: "public" })}</span>
 								</button>
 							</div>
 
 							{/* Sort Select */}
 							<div className="flex items-center gap-1.5">
-								<span className="text-xs font-bold text-gray-500 hidden sm:inline">Trier par :</span>
+								<span className="text-xs font-bold text-gray-500 hidden sm:inline">{t("products.sortSelect.label", { ns: "public" })}</span>
 								<select
 									value={sortBy}
 									onChange={(e) => handleFilterChange("sort", e.target.value)}
 									className="py-1.5 px-3 bg-white border border-gray-200/90 rounded-xl text-xs font-bold text-gray-800 focus:ring-2 focus:ring-[#1A5514] cursor-pointer"
 								>
-									<option value="newest">Nouveautés</option>
-									<option value="price_asc">Prix: Croissant</option>
-									<option value="price_desc">Prix: Décroissant</option>
-									<option value="rating">Avis clients</option>
+									<option value="newest">{t("products.sortSelect.newest", { ns: "public" })}</option>
+									<option value="price_asc">{t("products.sortSelect.price_asc", { ns: "public" })}</option>
+									<option value="price_desc">{t("products.sortSelect.price_desc", { ns: "public" })}</option>
+									<option value="rating">{t("products.sortSelect.rating", { ns: "public" })}</option>
 								</select>
 							</div>
 						</div>
@@ -196,7 +193,7 @@ const Products = () => {
 						{isSearching && (
 							<div className="flex items-center text-xs text-emerald-800 font-bold mb-4 bg-emerald-50 p-3 rounded-xl border border-emerald-100">
 								<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-600 mr-2" />
-								Recherche des produits en cours...
+								{t("products.searchingInProgress", { ns: "public" })}
 							</div>
 						)}
 
@@ -205,7 +202,7 @@ const Products = () => {
 							<div className="mb-8">
 								{products.length > 0 ? (
 									<>
-										<div className={viewMode === 'grid' ? "grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4" : "grid gap-3 grid-cols-1 sm:grid-cols-2"}>
+										<div className={viewMode === 'grid' ? "grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4" : "grid gap-3 grid-cols-1 sm:grid-cols-2"}>
 											{products.map((product) => (
 												<ProductCard key={product._id} product={product} viewMode={viewMode} />
 											))}
@@ -238,7 +235,7 @@ const Products = () => {
 								) : (
 									<div className="text-center py-12 bg-white rounded-2xl border border-emerald-100/90 shadow-sm p-6">
 										<FiPackage className="mx-auto h-12 w-12 text-gray-300 mb-3" />
-										<p className="text-sm font-extrabold text-[#161D14]">Aucun produit de producteur trouvé</p>
+										<p className="text-sm font-extrabold text-[#161D14]">{t("products.producerSectionEmpty", { ns: "public" })}</p>
 									</div>
 								)}
 							</div>
@@ -250,7 +247,7 @@ const Products = () => {
 								<div className="flex items-center gap-2 mb-6">
 									<Utensils className="w-5 h-5 text-emerald-700" />
 									<h2 className="text-lg font-black text-[#161D14]">
-										Plats des Restaurateurs
+										{t("products.dishesSectionTitle", { ns: "public" })}
 									</h2>
 								</div>
 
@@ -267,10 +264,10 @@ const Products = () => {
 							<div className="text-center py-16 bg-white rounded-2xl border border-emerald-100/90 shadow-sm p-8">
 								<FiPackage className="mx-auto h-14 w-14 text-gray-300 mb-4" />
 								<h3 className="text-lg font-black text-[#161D14] mb-2">
-									Aucun produit trouvé
+									{t("products.noProductsFound", { ns: "public" })}
 								</h3>
 								<p className="text-xs text-gray-500 mb-6 max-w-md mx-auto">
-									Nous n'avons trouvé aucun produit correspondant à vos critères de recherche.
+									{t("products.noProductsDescription", { ns: "public" })}
 								</p>
 								{(searchQuery ||
 									selectedCategory ||
@@ -281,7 +278,7 @@ const Products = () => {
 										onClick={clearFilters}
 										className="px-6 py-2.5 bg-[#1A5514] hover:bg-[#31BC2E] text-white font-extrabold text-xs rounded-xl shadow-md transition-all"
 									>
-										Effacer tous les filtres
+										{t("products.clearAllFilters", { ns: "public" })}
 									</button>
 								)}
 							</div>

@@ -1,6 +1,8 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const ProductPagination = ({ currentPage, totalPages, onPageChange }) => {
+  const { t } = useTranslation('public');
   if (totalPages <= 1) return null;
 
   return (
@@ -14,7 +16,7 @@ const ProductPagination = ({ currentPage, totalPages, onPageChange }) => {
           disabled={currentPage === 1}
           className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-harvests-light disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Précédent
+          {t('products.pagination.previous')}
         </button>
 
         {[...Array(totalPages)].map((_, i) => {
@@ -60,7 +62,7 @@ const ProductPagination = ({ currentPage, totalPages, onPageChange }) => {
           disabled={currentPage === totalPages}
           className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-harvests-light disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Suivant
+          {t('products.pagination.next')}
         </button>
       </nav>
     </div>

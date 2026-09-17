@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Radio, Sprout } from "lucide-react";
 import { producerService } from "../../services";
 
@@ -7,7 +8,7 @@ const getDisplayName = (p) =>
 	p.shopInfo?.shopName ||
 	(p.farmName && p.farmName !== "À compléter" ? p.farmName : null) ||
 	`${p.firstName || ""} ${p.lastName && p.lastName !== "À compléter" ? p.lastName : ""}`.trim() ||
-	"Producteur Harvests";
+	null;
 
 // Vitesse constante (px/s) : la durée de l'animation est calculée à partir de
 // la largeur réelle du contenu, pour que TOUS les noms défilent lisiblement
@@ -25,6 +26,7 @@ const MIN_DURATION = 12;
 const MAX_DURATION = 90;
 
 const VendorsNewsTicker = () => {
+	const { t } = useTranslation("navigation");
 	const [vendors, setVendors] = useState([]);
 	// null tant que la durée n'a pas été mesurée : l'animation ne démarre
 	// qu'une fois cette valeur connue, pour ne jamais la modifier sur une
@@ -107,8 +109,8 @@ const VendorsNewsTicker = () => {
 				{/* Badge "EN DIRECT" façon JT */}
 				<div className="flex-shrink-0 flex items-center gap-1.5 sm:gap-2 bg-[#31BC2E] text-[#0D1A0B] px-2.5 sm:px-5 py-2 font-black text-[9px] sm:text-xs uppercase tracking-wider sm:tracking-widest">
 					<Radio className="w-3 h-3 sm:w-3.5 sm:h-3.5 animate-pulse flex-shrink-0" />
-					<span className="sm:hidden">Prod.</span>
-					<span className="hidden sm:inline">Nos Producteurs</span>
+					<span className="sm:hidden">{t("ticker.badgeShort")}</span>
+					<span className="hidden sm:inline">{t("ticker.badge")}</span>
 				</div>
 
 				{/* Bandeau défilant */}
@@ -135,7 +137,7 @@ const VendorsNewsTicker = () => {
 								className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-sm font-semibold text-emerald-50/90 hover:text-white transition-colors"
 							>
 								<Sprout className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#31BC2E] flex-shrink-0" />
-								{vendor.name}
+								{vendor.name || t("ticker.fallbackVendorName")}
 								<span className="text-emerald-700 ml-3 sm:ml-6">●</span>
 							</Link>
 						))}

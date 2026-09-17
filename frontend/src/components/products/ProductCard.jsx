@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import CloudinaryImage from "../common/CloudinaryImage";
 import {
 	FiStar,
@@ -21,6 +22,7 @@ import { useCurrency } from "../../contexts/CurrencyContext";
 import { normalizeUnit } from "../../utils/productUtils";
 
 const ProductCard = ({ product, viewMode = "grid" }) => {
+	const { t } = useTranslation("public");
 	const { addToCart } = useCart();
 	const { currency } = useCurrency();
 	const [isAdded, setIsAdded] = useState(false);
@@ -92,8 +94,8 @@ const ProductCard = ({ product, viewMode = "grid" }) => {
 	};
 
 	const getVendorName = (vendor) => {
-		if (!vendor) return "Partenaire";
-		if (typeof vendor === 'string') return "Partenaire local";
+		if (!vendor) return t("products.card.defaultVendor");
+		if (typeof vendor === 'string') return t("products.card.defaultVendorLocal");
 
 		if (vendor.restaurantName && vendor.restaurantName !== "À compléter") {
 			return vendor.restaurantName;
@@ -111,7 +113,7 @@ const ProductCard = ({ product, viewMode = "grid" }) => {
 			const lastName = vendor.lastName && vendor.lastName !== "À compléter" ? vendor.lastName : "";
 			return `${vendor.firstName} ${lastName}`.trim();
 		}
-		return vendor.user?.companyName || "Partenaire";
+		return vendor.user?.companyName || t("products.card.defaultVendor");
 	};
 
 	/* Mode Liste */
@@ -137,7 +139,7 @@ const ProductCard = ({ product, viewMode = "grid" }) => {
 
 					{product.isFeatured && (
 						<div className="absolute top-1.5 left-1.5 bg-[#FF9900] text-gray-900 px-1.5 py-0.5 text-[9px] font-extrabold rounded-full shadow-md">
-							Choix
+							{t("products.card.featuredBadge")}
 						</div>
 					)}
 				</Link>
@@ -152,7 +154,7 @@ const ProductCard = ({ product, viewMode = "grid" }) => {
 							{(product.producer?.isBio || product.transformer?.isBio) && (
 								<span className="inline-flex items-center px-1.5 py-0.5 text-[9px] font-extrabold text-white bg-[#1A5514] rounded-md flex-shrink-0">
 									<Leaf className="w-2.5 h-2.5 mr-0.5 text-emerald-400" />
-									BIO
+									{t("products.card.bioBadge")}
 								</span>
 							)}
 						</div>
@@ -162,11 +164,11 @@ const ProductCard = ({ product, viewMode = "grid" }) => {
 							<FiStar className="h-3.5 w-3.5 fill-current text-amber-500" />
 							<span className="text-gray-400">({ratingStats.totalReviews || 0})</span>
 							<span className="text-gray-300">•</span>
-							<span className="text-gray-500 truncate">Vendu par <strong className="text-emerald-800">{getVendorName(product.producer || product.transformer || product.restaurateur)}</strong></span>
+							<span className="text-gray-500 truncate">{t("products.card.soldBy")} <strong className="text-emerald-800">{getVendorName(product.producer || product.transformer || product.restaurateur)}</strong></span>
 						</div>
 
 						<div className="text-xs font-semibold text-emerald-700">
-							{product.inventory?.quantity > 0 ? "En stock - Livraison rapide" : <span className="text-red-600">En rupture</span>}
+							{product.inventory?.quantity > 0 ? t("products.card.inStock") : <span className="text-red-600">{t("products.card.outOfStockShort")}</span>}
 						</div>
 					</div>
 
@@ -192,10 +194,10 @@ const ProductCard = ({ product, viewMode = "grid" }) => {
 							}`}
 						>
 							{isAdded ?
-								<><FiCheck className="h-4 w-4" /> <span>Ajouté</span></>
+								<><FiCheck className="h-4 w-4" /> <span>{t("products.card.added")}</span></>
 							: product.inventory?.quantity <= 0 ?
-								"Indisponible"
-							: <><FiShoppingCart className="h-4 w-4" /><span>Ajouter</span></>}
+								t("products.card.unavailable")
+							: <><FiShoppingCart className="h-4 w-4" /><span>{t("products.card.addToCart")}</span></>}
 						</button>
 					</div>
 				</div>
@@ -226,8 +228,8 @@ const ProductCard = ({ product, viewMode = "grid" }) => {
 
 					{/* Badge Featured */}
 					{product.isFeatured && (
-						<div className="absolute top-2 left-2 bg-[#FF9900] text-gray-900 px-2.5 py-0.5 text-[10px] font-extrabold rounded-full shadow-md">
-							Choix Harvests
+						<div className="absolute top-2 left-2 bg-[#FF9900] text-gray-900 px-2.5 py-0.5 text-[10px] font-extrabold rounded-full shadow-md whitespace-nowrap">
+							{t("products.card.featuredBadgeFull")}
 						</div>
 					)}
 				</div>
@@ -238,9 +240,9 @@ const ProductCard = ({ product, viewMode = "grid" }) => {
 						{productName}
 					</h3>
 					
-					{/* Ligne Meta : Badge BIO & Notes sur la même ligne */}
-					<div className="flex items-center justify-between pt-1 min-h-[1.5rem]">
-						<div className="flex items-center space-x-1">
+					{/* Ligne Meta : Badge BIO & Notes */}
+					<div className="flex items-center flex-wrap gap-x-2 gap-y-1 justify-between pt-1 min-h-[1.5rem]">
+						<div className="flex items-center space-x-1 whitespace-nowrap">
 							<span className="text-xs font-bold text-amber-600">{formatAverageRating(ratingStats.average)}</span>
 							<div className="flex text-amber-500">
 								<FiStar className="h-3 w-3 fill-current" />
@@ -251,9 +253,9 @@ const ProductCard = ({ product, viewMode = "grid" }) => {
 						</div>
 
 						{(product.producer?.isBio || product.transformer?.isBio) && (
-							<span className="inline-flex items-center px-1.5 py-0.5 text-[9px] font-extrabold text-white bg-[#1A5514] rounded-md shadow-sm">
-								<Leaf className="w-2.5 h-2.5 mr-1 text-emerald-400" />
-								CERTIFIÉ BIO
+							<span className="inline-flex items-center whitespace-nowrap px-1.5 py-0.5 text-[9px] font-extrabold text-white bg-[#1A5514] rounded-md shadow-sm">
+								<Leaf className="w-2.5 h-2.5 mr-1 text-emerald-400 shrink-0" />
+								{t("products.card.bioBadgeFull")}
 							</span>
 						)}
 					</div>
@@ -273,13 +275,13 @@ const ProductCard = ({ product, viewMode = "grid" }) => {
 						{product.inventory?.quantity > 0 ? (
 							<div className="text-emerald-700 font-semibold text-[11px] flex items-center gap-1">
 								<span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-								En stock - Livraison rapide
+								{t("products.card.inStock")}
 							</div>
 						) : (
-							<div className="text-red-600 font-semibold text-[11px]">En rupture temporaire</div>
+							<div className="text-red-600 font-semibold text-[11px]">{t("products.card.outOfStockFull")}</div>
 						)}
 						<div className="truncate text-gray-500">
-							<span>Vendu par : </span>
+							<span>{t("products.card.soldBy")} : </span>
 							<span className="text-[#1A5514] font-semibold hover:underline">{getVendorName(product.producer || product.transformer || product.restaurateur)}</span>
 						</div>
 					</div>
@@ -300,10 +302,10 @@ const ProductCard = ({ product, viewMode = "grid" }) => {
 					}`}
 				>
 					{isAdded ?
-						<><FiCheck className="h-4 w-4" /> <span>Ajouté <span className="hidden sm:inline">au panier</span></span></>
+						<><FiCheck className="h-4 w-4" /> <span>{t("products.card.added")} <span className="hidden sm:inline">{t("products.card.toCartSuffix")}</span></span></>
 					: product.inventory?.quantity <= 0 ?
-						"Indisponible"
-					: <><FiShoppingCart className="h-4 w-4" /><span>Ajouter <span className="hidden sm:inline">au panier</span></span></>}
+						t("products.card.unavailable")
+					: <><FiShoppingCart className="h-4 w-4" /><span>{t("products.card.addToCart")} <span className="hidden sm:inline">{t("products.card.toCartSuffix")}</span></span></>}
 				</button>
 			</div>
 		</div>

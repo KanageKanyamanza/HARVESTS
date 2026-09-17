@@ -1,14 +1,140 @@
 {
 	"home": {
-		"title": "Bienvenue sur Harvests",
-		"subtitle": "Découvrez des produits frais et de qualité directement des producteurs locaux",
-		"cta": "Commencer à explorer",
-		"featuredProducts": "Produits en vedette",
-		"featuredProducers": "Producteurs recommandés",
-		"categories": "Nos catégories",
-		"whyChooseUs": "Pourquoi nous choisir",
-		"testimonials": "Témoignages",
-		"newsletter": "Newsletter"
+		"hero": {
+			"title1": "Une Plateforme Unique.",
+			"titleHighlight": "Pour Tous les Acteurs Agricoles.",
+			"subtitle": "Du champ au consommateur final : achetez, vendez et gérez vos approvisionnements agricoles avec une traçabilité totale et une livraison rapide.",
+			"ctaPrimary": "Explorer le Marketplace",
+			"ctaSecondary": "Devenir Producteur / Partenaire",
+			"slideLabel": "Diapositive {{n}}",
+			"slides": [
+				{ "badge": "Qualité Certifiée & Direct Producteur", "caption": "Plus de 500 producteurs et restaurateurs interconnectés à travers l'Afrique." },
+				{ "badge": "Hôtels, Restaurants & Grossistes", "caption": "Approvisionnements réguliers en produits frais au prix direct du champ." },
+				{ "badge": "Transformation & Plats Locaux", "caption": "Mise en valeur des produits transformés et recettes locales." },
+				{ "badge": "Logistique & Chaîne d'Approvisionnement", "caption": "Transport frigorifique et livraison sécurisée du producteur au client." }
+			],
+			"stakeholders": [
+				{ "title": "Producteurs & Fermiers", "subtitle": "Vendez vos récoltes en direct & accédez aux intrants de qualité.", "cta": "Espace Producteurs" },
+				{ "title": "Acheteurs", "subtitle": "Produits agricoles frais en gros & détail, livrés directement.", "cta": "Boutique & Produits" },
+				{ "title": "Transformateurs & Agrobusiness", "subtitle": "Commercialisez vos produits transformés et épices locales.", "cta": "Produits Transformés" },
+				{ "title": "Restaurateurs", "subtitle": "Approvisionnez votre établissement en produits frais & locaux.", "cta": "Espace Restaurateurs" }
+			]
+		},
+		"trustBadges": {
+			"items": [
+				{ "title": "Livraison Rapide & Suivie", "description": "Chaîne du froid et logistique directe du champ à votre porte" },
+				{ "title": "Producteurs Certifiés", "description": "Récoltes 100% traçables sans intermédiaires inutiles" },
+				{ "title": "Paiement 100% Sécurisé", "description": "Mobile Money (Orange, Wave, MTN), PayPal & Cartes" },
+				{ "title": "Garantie Fraîcheur & Qualité", "description": "Remboursement ou remplacement garanti sous 48h" }
+			]
+		},
+		"flashSales": {
+			"title": "Ventes Flash",
+			"viewAll": "Voir toutes les offres"
+		},
+		"categories": {
+			"eyebrow": "Filières Agricoles & Produits",
+			"title": "Catégories Populaires de la Marketplace",
+			"subtitle": "Découvrez nos produits classés par filière d'approvisionnement",
+			"viewAll": "Voir toutes les catégories →",
+			"discover": "Découvrir la filière",
+			"labels": {
+				"cereals": "Céréales & Grains",
+				"vegetables": "Légumes Frais",
+				"fruits": "Fruits de Saison",
+				"legumes": "Légumineuses",
+				"tubers": "Tubercules & Racines",
+				"spices": "Épices Locales",
+				"herbs": "Herbes Aromatiques",
+				"nuts": "Noix & Anacarde",
+				"seeds": "Graines & Semences",
+				"dairy": "Produits Laitiers",
+				"meat": "Viande Bovine & Ovine",
+				"poultry": "Volaille Bio",
+				"fish": "Poisson & Halieutique",
+				"processed-foods": "Produits Transformés",
+				"beverages": "Jus & Boissons",
+				"other": "Épicerie & Produits Divers"
+			}
+		},
+		"topSellers": {
+			"eyebrow": "Producteurs Certifiés & Boutiques",
+			"title": "Producteurs & Fermes à la Une",
+			"subtitle": "Achetez en direct auprès des meilleurs producteurs vérifiés",
+			"viewAll": "Découvrir tous les producteurs →",
+			"visitShop": "Visiter la boutique",
+			"bioBadge": "BIO"
+		},
+		"regionalPavilion": {
+			"eyebrow": "Sourcing Transfrontalier",
+			"title": "Pavillons Régionaux & Monuments",
+			"subtitle": "Explorez les spécialités agricoles et partenaires certifiés de chaque pays",
+			"viewAll": "Voir tous les pays →",
+			"certifiedProducts": "Produits certifiés →",
+			"countries": {
+				"BF": "Burkina Faso",
+				"SN": "Sénégal",
+				"CI": "Côte d'Ivoire",
+				"CM": "Cameroun",
+				"ML": "Mali",
+				"GH": "Ghana",
+				"NG": "Nigeria",
+				"BJ": "Bénin"
+			}
+		},
+		"featuredProducts": {
+			"title": "Produits en Vedette",
+			"subtitle": "Découvrez notre sélection de produits d'exception, choisis pour leur qualité et leur fraîcheur",
+			"viewAll": "Voir Tous",
+			"retry": "Réessayer",
+			"error": "Impossible de charger les produits mis en avant"
+		},
+		"products": {
+			"eyebrow": "Récoltes Fraîches & Direct Producteur",
+			"title": "Produits Agricoles & Récoltes de Saison",
+			"localSourcing": "Sourcing Local : {{country}}",
+			"viewAll": "Voir tout le catalogue →",
+			"retry": "Réessayer"
+		},
+		"becomeSeller": {
+			"title": "Développez votre activité avec Harvests",
+			"subtitle": "Rejoignez des milliers de producteurs et transformateurs qui vendent déjà leurs produits à une clientèle internationale.",
+			"cta": "Commencer à vendre",
+			"globalReach": { "title": "Portée Mondiale", "description": "Vendez à des clients du monde entier" },
+			"growth": { "title": "Croissance", "description": "Augmentez vos ventes facilement" },
+			"securePayment": { "title": "Paiement Sécurisé", "description": "Transactions 100% garanties" }
+		},
+		"banners": {
+			"bestDeals": "Meilleures Offres",
+			"saleOfMonth": "Vente du Mois",
+			"days": "Jours",
+			"hours": "Heures",
+			"minutes": "Mins",
+			"seconds": "Secs",
+			"shopNow": "Achetez Maintenant",
+			"summerSale": "Soldes d'Été",
+			"freshFruit": "100% Fruits Frais",
+			"discountPrefix": "Jusqu'à",
+			"discountValue": "64% de réduction"
+		},
+		"discountBanner": {
+			"title": "Pourquoi choisir Harvests ?",
+			"subtitle": "Découvrez notre vision et notre engagement pour une agriculture durable et connectée",
+			"heading": "Votre Partenaire Agricole de Confiance",
+			"description": "Rejoignez une communauté qui valorise la qualité, la durabilité et la connexion directe entre producteurs et consommateurs.",
+			"points": [
+				"Agriculture durable et respectueuse",
+				"Connexion directe producteur-consommateur",
+				"Qualité garantie et produits frais"
+			],
+			"cta": "Découvrir nos Produits",
+			"videoFallback": "Votre navigateur ne supporte pas la lecture de vidéos."
+		},
+		"loyaltyProgram": {
+			"title": "Programme de Fidélité Harvests",
+			"subtitle": "Gagnez des points à chaque achat et profitez de récompenses exclusives",
+			"cta": "Découvrir le Programme"
+		}
 	},
 	"products": {
 		"title": "Nos Produits",
@@ -21,8 +147,26 @@
 		"gridView": "Vue en grille",
 		"listView": "Vue en liste",
 		"noProductsFound": "Aucun produit trouvé",
-		"noProductsDescription": "Aucun produit disponible pour le moment",
+		"noProductsDescription": "Nous n'avons trouvé aucun produit correspondant à vos critères de recherche.",
 		"tryDifferentSearch": "Essayez de modifier vos critères de recherche",
+		"clearAllFilters": "Effacer tous les filtres",
+		"heroEyebrow": "Marché Direct & Circuits Courts",
+		"producerSectionEmpty": "Aucun produit de producteur trouvé",
+		"dishesSectionTitle": "Plats des Restaurateurs",
+		"searchingInProgress": "Recherche des produits en cours...",
+		"resultsCount_zero": "Aucun produit",
+		"resultsCount_one": "{{count}} produit trouvé",
+		"resultsCount_other": "{{count}} produits trouvés",
+		"resultsForQuery": "pour \"{{query}}\"",
+		"gridViewShort": "Grille",
+		"listViewShort": "Liste",
+		"sortSelect": {
+			"label": "Trier par :",
+			"newest": "Nouveautés",
+			"price_asc": "Prix: Croissant",
+			"price_desc": "Prix: Décroissant",
+			"rating": "Avis clients"
+		},
 		"categories": {
 			"all": "Toutes les catégories",
 			"cereals": "Céréales",
@@ -56,13 +200,42 @@
 		"filters": {
 			"priceMin": "Prix minimum (XOF)",
 			"priceMax": "Prix maximum (XOF)",
-			"producer": "Producteur"
+			"producer": "Producteur",
+			"sectionSearchTitle": "Recherche",
+			"searchPlaceholder": "Chercher...",
+			"sectionCategoryTitle": "Catégorie",
+			"sectionCountryTitle": "Pays de provenance",
+			"myZone": "Ma zone",
+			"allCountries": "Tous les pays",
+			"zonesGroup": "Zones",
+			"countriesGroup": "Pays",
+			"sectionPriceTitle": "Prix (XOF)",
+			"pricePlaceholderMin": "Min",
+			"pricePlaceholderMax": "Max",
+			"bioLabel": "Produits Certifiés BIO",
+			"applyFilters": "Appliquer les filtres"
 		},
 		"pagination": {
 			"previous": "Précédent",
 			"next": "Suivant",
 			"page": "Page",
 			"of": "sur"
+		},
+		"card": {
+			"featuredBadge": "Choix",
+			"featuredBadgeFull": "Choix Harvests",
+			"bioBadge": "BIO",
+			"bioBadgeFull": "CERTIFIÉ BIO",
+			"inStock": "En stock - Livraison rapide",
+			"outOfStockShort": "En rupture",
+			"outOfStockFull": "En rupture temporaire",
+			"soldBy": "Vendu par",
+			"added": "Ajouté",
+			"addToCart": "Ajouter",
+			"toCartSuffix": "au panier",
+			"unavailable": "Indisponible",
+			"defaultVendor": "Partenaire",
+			"defaultVendorLocal": "Partenaire local"
 		}
 	},
 	"categories": {
