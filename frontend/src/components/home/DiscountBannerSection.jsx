@@ -1,10 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowRight, Leaf, Handshake, Star } from "lucide-react";
 import DiscountBanner from "../../assets/images/Discount-Bannar.webp";
 import harvestIntroVideo from "../../assets/videos/harvestintro.mp4";
 
 const DiscountBannerSection = () => {
+	const { t } = useTranslation("public");
+	const points = t("home.discountBanner.points", { returnObjects: true });
 	return (
 		<section
 			id="why-harvests"
@@ -18,15 +21,14 @@ const DiscountBannerSection = () => {
 						className="text-4xl md:text-5xl font-display font-bold text-gray-900 mb-4"
 						data-aos="fade-up"
 					>
-						Pourquoi choisir Harvests ?
+						{t("home.discountBanner.title")}
 					</h2>
 					<p
 						className="text-xl text-gray-600 max-w-3xl mx-auto"
 						data-aos="fade-up"
 						data-aos-delay="100"
 					>
-						Découvrez notre vision et notre engagement pour une agriculture
-						durable et connectée
+						{t("home.discountBanner.subtitle")}
 					</p>
 				</div>
 
@@ -44,12 +46,10 @@ const DiscountBannerSection = () => {
 						<div className="flex-1 flex flex-col justify-center p-6 md:p-12 text-white">
 							<div className="max-w-lg">
 								<h3 className="text-3xl md:text-4xl text-white font-bold mb-6">
-									Votre Partenaire Agricole de Confiance
+									{t("home.discountBanner.heading")}
 								</h3>
 								<p className="text-lg md:text-xl mb-8 text-white/90">
-									Rejoignez une communauté qui valorise la qualité, la
-									durabilité et la connexion directe entre producteurs et
-									consommateurs.
+									{t("home.discountBanner.description")}
 								</p>
 
 								{/* Points clés */}
@@ -59,7 +59,7 @@ const DiscountBannerSection = () => {
 											<Leaf className="w-5 h-5 text-white" />
 										</div>
 										<span className="text-lg">
-											Agriculture durable et respectueuse
+											{points[0]}
 										</span>
 									</div>
 									<div className="flex items-center">
@@ -67,7 +67,7 @@ const DiscountBannerSection = () => {
 											<Handshake className="w-5 h-5 text-white" />
 										</div>
 										<span className="text-lg">
-											Connexion directe producteur-consommateur
+											{points[1]}
 										</span>
 									</div>
 									<div className="flex items-center">
@@ -75,7 +75,7 @@ const DiscountBannerSection = () => {
 											<Star className="w-5 h-5 text-white" />
 										</div>
 										<span className="text-lg">
-											Qualité garantie et produits frais
+											{points[2]}
 										</span>
 									</div>
 								</div>
@@ -84,7 +84,7 @@ const DiscountBannerSection = () => {
 									to="/products"
 									className="inline-flex items-center px-8 py-4 bg-primary-500 text-white font-semibold rounded-full hover:bg-primary-600 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
 								>
-									Découvrir nos Produits
+									{t("home.discountBanner.cta")}
 									<ArrowRight className="ml-2 h-5 w-5" />
 								</Link>
 							</div>
@@ -103,7 +103,7 @@ const DiscountBannerSection = () => {
 									}}
 								>
 									<source src={harvestIntroVideo} type="video/mp4" />
-									Votre navigateur ne supporte pas la lecture de vidéos.
+									{t("home.discountBanner.videoFallback")}
 								</video>
 							</div>
 						</div>

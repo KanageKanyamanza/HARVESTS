@@ -9,7 +9,7 @@
 		background-color: #ffffff;
 		/* Valeur de repli avant la première mesure JS (Layout.jsx) de la
 		   hauteur réelle du bloc Header + VendorsNewsTicker */
-		--app-header-height: 108px;
+		--app-header-height: 130px;
 	}
 
 	body {

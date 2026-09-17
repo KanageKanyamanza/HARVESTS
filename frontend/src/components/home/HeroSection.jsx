@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowUpRight, ShieldCheck, Truck, Sprout, ShoppingBag, Store, ChevronRight, Building2, Award, UtensilsCrossed } from "lucide-react";
 import heroBg1 from "../../assets/images/herobgcar1.webp";
 import heroBg2 from "../../assets/images/herobgcar2.webp";
@@ -7,38 +8,17 @@ import heroBg3 from "../../assets/images/herobgcar3.webp";
 import heroBg4 from "../../assets/images/herobgcar4.webp";
 
 const HeroSection = () => {
+	const { t } = useTranslation("public");
 	const [currentSlide, setCurrentSlide] = useState(0);
 
-	const slides = [
-		{
-			id: 0,
-			image: heroBg1,
-			badge: "Qualité Certifiée & Direct Producteur",
-			icon: Award,
-			caption: "Plus de 500 producteurs et restaurateurs interconnectés à travers l'Afrique."
-		},
-		{
-			id: 1,
-			image: heroBg2,
-			badge: "Hôtels, Restaurants & Grossistes",
-			icon: Building2,
-			caption: "Approvisionnements réguliers en produits frais au prix direct du champ."
-		},
-		{
-			id: 2,
-			image: heroBg3,
-			badge: "Transformation & Plats Locaux",
-			icon: Store,
-			caption: "Mise en valeur des produits transformés et recettes locales."
-		},
-		{
-			id: 3,
-			image: heroBg4,
-			badge: "Logistique & Chaîne d'Approvisionnement",
-			icon: Truck,
-			caption: "Transport frigorifique et livraison sécurisée du producteur au client."
-		}
+	const slideMeta = [
+		{ id: 0, image: heroBg1, icon: Award },
+		{ id: 1, image: heroBg2, icon: Building2 },
+		{ id: 2, image: heroBg3, icon: Store },
+		{ id: 3, image: heroBg4, icon: Truck }
 	];
+	const slideContent = t("home.hero.slides", { returnObjects: true });
+	const slides = slideMeta.map((meta, i) => ({ ...meta, ...slideContent[i] }));
 
 	useEffect(() => {
 		const timer = setInterval(() => {
@@ -47,56 +27,14 @@ const HeroSection = () => {
 		return () => clearInterval(timer);
 	}, [slides.length]);
 
-	const stakeholderCards = [
-		{
-			id: "farmers",
-			title: "Producteurs & Fermiers",
-			subtitle: "Vendez vos récoltes en direct & accédez aux intrants de qualité.",
-			cta: "Espace Producteurs",
-			href: "/producteurs",
-			icon: Sprout,
-			badge: "CF Grower",
-			gradient: "from-[#1A5514] to-[#2E8B22]",
-			bgLight: "bg-[#F3F8F2]",
-			textColor: "text-[#1A5514]"
-		},
-		{
-			id: "buyers",
-			title: "Acheteurs",
-			subtitle: "Produits agricoles frais en gros & détail, livrés directement.",
-			cta: "Boutique & Produits",
-			href: "/products",
-			icon: ShoppingBag,
-			badge: "CF Buyer",
-			gradient: "from-[#004D40] to-[#00897B]",
-			bgLight: "bg-[#E0F2F1]",
-			textColor: "text-[#004D40]"
-		},
-		{
-			id: "storefront",
-			title: "Transformateurs & Agrobusiness",
-			subtitle: "Commercialisez vos produits transformés et épices locales.",
-			cta: "Produits Transformés",
-			href: "/transformers",
-			icon: Store,
-			badge: "CF Storefront",
-			gradient: "from-[#B78103] to-[#E6A100]",
-			bgLight: "bg-[#FFFDE7]",
-			textColor: "text-[#855D00]"
-		},
-		{
-			id: "restaurateurs",
-			title: "Restaurateurs",
-			subtitle: "Approvisionnez votre établissement en produits frais & locaux.",
-			cta: "Espace Restaurateurs",
-			href: "/restaurateurs",
-			icon: UtensilsCrossed,
-			badge: "CF Kitchen",
-			gradient: "from-[#1E3A8A] to-[#3B82F6]",
-			bgLight: "bg-[#EFF6FF]",
-			textColor: "text-[#1E3A8A]"
-		}
+	const stakeholderMeta = [
+		{ id: "farmers", href: "/producteurs", icon: Sprout, badge: "CF Grower", gradient: "from-[#1A5514] to-[#2E8B22]", bgLight: "bg-[#F3F8F2]", textColor: "text-[#1A5514]" },
+		{ id: "buyers", href: "/products", icon: ShoppingBag, badge: "CF Buyer", gradient: "from-[#004D40] to-[#00897B]", bgLight: "bg-[#E0F2F1]", textColor: "text-[#004D40]" },
+		{ id: "storefront", href: "/transformers", icon: Store, badge: "CF Storefront", gradient: "from-[#B78103] to-[#E6A100]", bgLight: "bg-[#FFFDE7]", textColor: "text-[#855D00]" },
+		{ id: "restaurateurs", href: "/restaurateurs", icon: UtensilsCrossed, badge: "CF Kitchen", gradient: "from-[#1E3A8A] to-[#3B82F6]", bgLight: "bg-[#EFF6FF]", textColor: "text-[#1E3A8A]" }
 	];
+	const stakeholderContent = t("home.hero.stakeholders", { returnObjects: true });
+	const stakeholderCards = stakeholderMeta.map((meta, i) => ({ ...meta, ...stakeholderContent[i] }));
 
 	return (
 		<section className="relative bg-[#F8FAF6] pt-0 pb-12 lg:pb-16 overflow-hidden">
@@ -145,7 +83,7 @@ const HeroSection = () => {
 									className={`h-1.5 rounded-full transition-all duration-300 ${
 										idx === currentSlide ? "w-6 bg-[#31BC2E]" : "w-1.5 bg-white/40 hover:bg-white/70"
 									}`}
-									aria-label={`Slide ${idx + 1}`}
+									aria-label={t("home.hero.slideLabel", { n: idx + 1 })}
 								/>
 							))}
 						</div>
@@ -156,27 +94,27 @@ const HeroSection = () => {
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full">
 					<div className="w-full lg:w-1/2 space-y-5 pr-0 lg:pr-8">
 						<h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white lg:text-[#161D14] tracking-tight leading-tight">
-							Une Plateforme Unique. <br className="hidden sm:inline" />
+							{t("home.hero.title1")} <br className="hidden sm:inline" />
 							<span className="text-emerald-400 lg:text-[#1A5514] lg:bg-gradient-to-r lg:from-[#1A5514] lg:to-[#31BC2E] lg:bg-clip-text lg:text-transparent">
-								Pour Tous les Acteurs Agricoles.
+								{t("home.hero.titleHighlight")}
 							</span>
 						</h1>
 						<p className="text-base sm:text-lg text-gray-200 lg:text-gray-600 max-w-lg leading-relaxed">
-							Du champ au consommateur final : achetez, vendez et gérez vos approvisionnements agricoles avec une traçabilité totale et une livraison rapide.
+							{t("home.hero.subtitle")}
 						</p>
 						<div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-center sm:justify-start gap-3.5">
 							<Link
 								to="/products"
 								className="w-full whitespace-nowrap sm:w-auto px-6 py-3.5 rounded-full bg-[#1A5514] hover:bg-[#144210] text-white font-bold text-sm sm:text-base shadow-lg shadow-emerald-900/20 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2"
 							>
-								Explorer le Marketplace
+								{t("home.hero.ctaPrimary")}
 								<ArrowUpRight className="w-5 h-5" />
 							</Link>
 							<Link
 								to="/register"
 								className="w-full whitespace-nowrap sm:w-auto px-6 py-3.5 rounded-full bg-white/90 hover:bg-white text-[#1A5514] border border-emerald-600/30 font-bold text-sm sm:text-base shadow-sm hover:shadow transition-all duration-200 flex items-center justify-center gap-2"
 							>
-								Devenir Producteur / Partenaire
+								{t("home.hero.ctaSecondary")}
 							</Link>
 						</div>
 					</div>

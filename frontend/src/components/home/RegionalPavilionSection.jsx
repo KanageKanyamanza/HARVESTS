@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { FiMapPin } from 'react-icons/fi';
 import { Globe } from 'lucide-react';
 import { useGeoLocation } from '../../hooks/useGeoLocation';
@@ -13,59 +14,21 @@ import ghanaImg from '../../assets/images/pavilions/ghana.jpg';
 import nigeriaImg from '../../assets/images/pavilions/nigeria.jpg';
 import beninImg from '../../assets/images/pavilions/benin.jpg';
 
-const initialRegions = [
-  {
-    id: 'BF',
-    name: 'Burkina Faso',
-    image: burkinaImg,
-    color: 'from-red-600/80 to-yellow-500/80'
-  },
-  {
-    id: 'SN',
-    name: 'Sénégal',
-    image: senegalImg,
-    color: 'from-orange-500/80 to-yellow-500/80'
-  },
-  {
-    id: 'CI',
-    name: "Côte d'Ivoire",
-    image: coteDivoireImg,
-    color: 'from-emerald-600/80 to-green-400/80'
-  },
-  {
-    id: 'CM',
-    name: 'Cameroun',
-    image: camerounImg,
-    color: 'from-green-700/80 to-red-500/80'
-  },
-  {
-    id: 'ML',
-    name: 'Mali',
-    image: maliImg,
-    color: 'from-yellow-600/80 to-red-600/80'
-  },
-  {
-    id: 'GH',
-    name: 'Ghana',
-    image: ghanaImg,
-    color: 'from-yellow-500/80 to-red-600/80'
-  },
-  {
-    id: 'NG',
-    name: 'Nigeria',
-    image: nigeriaImg,
-    color: 'from-green-700/80 to-green-500/80'
-  },
-  {
-    id: 'BJ',
-    name: 'Bénin',
-    image: beninImg,
-    color: 'from-green-600/80 to-yellow-500/80'
-  }
+const REGION_META = [
+  { id: 'BF', image: burkinaImg, color: 'from-red-600/80 to-yellow-500/80' },
+  { id: 'SN', image: senegalImg, color: 'from-orange-500/80 to-yellow-500/80' },
+  { id: 'CI', image: coteDivoireImg, color: 'from-emerald-600/80 to-green-400/80' },
+  { id: 'CM', image: camerounImg, color: 'from-green-700/80 to-red-500/80' },
+  { id: 'ML', image: maliImg, color: 'from-yellow-600/80 to-red-600/80' },
+  { id: 'GH', image: ghanaImg, color: 'from-yellow-500/80 to-red-600/80' },
+  { id: 'NG', image: nigeriaImg, color: 'from-green-700/80 to-green-500/80' },
+  { id: 'BJ', image: beninImg, color: 'from-green-600/80 to-yellow-500/80' }
 ];
 
 const RegionalPavilionSection = () => {
-  const [regions, setRegions] = useState(initialRegions);
+  const { t } = useTranslation('public');
+  const countryNames = t('home.regionalPavilion.countries', { returnObjects: true });
+  const [regions, setRegions] = useState(REGION_META);
   const { countryCode } = useGeoLocation();
 
   useEffect(() => {
@@ -87,15 +50,15 @@ const RegionalPavilionSection = () => {
         <div>
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1A5514] uppercase tracking-wider mb-1">
             <Globe className="w-4 h-4 text-[#31BC2E]" />
-            <span>Sourcing Transfrontalier</span>
+            <span>{t('home.regionalPavilion.eyebrow')}</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#161D14]">
-            Pavillons Régionaux & Monuments
+            {t('home.regionalPavilion.title')}
           </h2>
-          <p className="text-sm text-gray-600 mt-1">Explorez les spécialités agricoles et partenaires certifiés de chaque pays</p>
+          <p className="text-sm text-gray-600 mt-1">{t('home.regionalPavilion.subtitle')}</p>
         </div>
         <Link to="/products" className="hidden md:flex text-xs sm:text-sm font-bold text-[#1A5514] hover:text-[#31BC2E] transition-colors items-center gap-1">
-          Voir tous les pays →
+          {t('home.regionalPavilion.viewAll')}
         </Link>
       </div>
 
@@ -108,7 +71,7 @@ const RegionalPavilionSection = () => {
           >
             <img
               src={region.image}
-              alt={region.name}
+              alt={countryNames[region.id]}
               className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
             />
             {/* Gradient Overlay */}
@@ -120,10 +83,10 @@ const RegionalPavilionSection = () => {
                 <span>{region.id}</span>
               </div>
               <h3 className="text-white font-extrabold text-sm sm:text-base drop-shadow-md leading-snug">
-                {region.name}
+                {countryNames[region.id]}
               </h3>
               <span className="text-[10px] text-white/80 font-medium group-hover:text-emerald-300 transition-colors flex items-center gap-1">
-                Produits certifiés →
+                {t('home.regionalPavilion.certifiedProducts')}
               </span>
             </div>
           </Link>
@@ -135,7 +98,7 @@ const RegionalPavilionSection = () => {
           to="/products"
           className="text-xs sm:text-sm font-bold text-white hover:text-[#31BC2E] transition-colors bg-[#1A5514] rounded-full p-3 w-64 mx-auto flex items-center justify-center gap-1"
         >
-          Voir tous les pays →
+          {t('home.regionalPavilion.viewAll')}
         </Link>
       </div>
     </section>

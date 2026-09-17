@@ -1,25 +1,20 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Mail, MapPin, Phone, ArrowRight, Loader2 } from "lucide-react";
 import SocialLinks from "../common/SocialLinks";
+import LanguageSelector from "../common/LanguageSelector";
 import { getConfig } from "../../config/production";
 import { useAuth } from "../../hooks/useAuth";
+import { useCurrency } from "../../contexts/CurrencyContext";
 import { productService } from "../../services/productService";
 import { openCookiePreferences } from "../../utils/cookieConsent";
 import logo from "../../assets/logo.png";
 
-const CATEGORY_LABELS = {
-	fruits: "Fruits",
-	vegetables: "Légumes",
-	cereals: "Céréales",
-	meat: "Viande",
-	dairy: "Produits Laitiers",
-	processed: "Produits Transformés",
-	spices: "Épices",
-};
-
 const Footer = () => {
+	const { t } = useTranslation(["navigation", "public"]);
 	const { user, isAuthenticated } = useAuth();
+	const { currency, setCurrency, currencies } = useCurrency();
 	const [categories, setCategories] = useState([]);
 	const [categoryIndex, setCategoryIndex] = useState(0);
 	const [email, setEmail] = useState("");
@@ -27,16 +22,17 @@ const Footer = () => {
 	const [subscribeMessage, setSubscribeMessage] = useState("");
 
 	const currentYear = new Date().getFullYear();
+	const categoryLabels = t("products.categories", { ns: "public", returnObjects: true });
 
 	const footerLinks = {
 		help: [
-			{ name: "À propos", href: "/about" },
-			{ name: "Contact", href: "/contact" },
-			{ name: "Tarifs", href: "/pricing" },
-			{ name: "Invest", href: "/invest" },
-			{ name: "FAQs", href: "/help" },
-			{ name: "Conditions d'utilisation", href: "/terms" },
-			{ name: "Politique de confidentialité", href: "/privacy" },
+			{ name: t("about", { ns: "navigation" }), href: "/about" },
+			{ name: t("contact", { ns: "navigation" }), href: "/contact" },
+			{ name: t("pricing", { ns: "navigation" }), href: "/pricing" },
+			{ name: t("invest", { ns: "navigation" }), href: "/invest" },
+			{ name: t("footer.faqs", { ns: "navigation" }), href: "/help" },
+			{ name: t("footer.terms", { ns: "navigation" }), href: "/terms" },
+			{ name: t("footer.privacy", { ns: "navigation" }), href: "/privacy" },
 		],
 	};
 
@@ -66,20 +62,20 @@ const Footer = () => {
 				}, 5000);
 			} else {
 				setSubscribeStatus("error");
-				setSubscribeMessage(data.message || "Une erreur est survenue.");
+				setSubscribeMessage(data.message || t("footer.subscribeError", { ns: "navigation" }));
 			}
 		} catch {
 			setSubscribeStatus("error");
-			setSubscribeMessage("Erreur de connexion.");
+			setSubscribeMessage(t("footer.connectionError", { ns: "navigation" }));
 		}
 	};
 
 	const myAccountLinks = useMemo(() => {
 		if (!isAuthenticated) {
 			return [
-				{ name: "Connexion", href: "/login" },
-				{ name: "Inscription", href: "/register" },
-				{ name: "Panier", href: "/cart" },
+				{ name: t("login", { ns: "navigation" }), href: "/login" },
+				{ name: t("footer.register", { ns: "navigation" }), href: "/register" },
+				{ name: t("cart", { ns: "navigation" }), href: "/cart" },
 			];
 		}
 
@@ -87,8 +83,8 @@ const Footer = () => {
 		const basePath = `/${userType}/dashboard`;
 
 		const commonLinks = [
-			{ name: "Mon Compte", href: basePath },
-			{ name: "Profil", href: `${basePath}/profile` },
+			{ name: t("footer.myAccount", { ns: "navigation" }), href: basePath },
+			{ name: t("footer.profile", { ns: "navigation" }), href: `${basePath}/profile` },
 		];
 
 		switch (userType) {
@@ -96,30 +92,30 @@ const Footer = () => {
 			case "transformer":
 				return [
 					...commonLinks,
-					{ name: "Mes Produits", href: `${basePath}/products` },
-					{ name: "Mes Commandes", href: `${basePath}/orders` },
+					{ name: t("footer.myProducts", { ns: "navigation" }), href: `${basePath}/products` },
+					{ name: t("footer.myOrders", { ns: "navigation" }), href: `${basePath}/orders` },
 				];
 			case "restaurateur":
 				return [
 					...commonLinks,
-					{ name: "Mes Plats", href: `${basePath}/dishes` },
-					{ name: "Mes Commandes", href: `${basePath}/orders` },
+					{ name: t("footer.myDishes", { ns: "navigation" }), href: `${basePath}/dishes` },
+					{ name: t("footer.myOrders", { ns: "navigation" }), href: `${basePath}/orders` },
 				];
 			case "transporter":
 				return [
 					...commonLinks,
-					{ name: "Mes Livraisons", href: `${basePath}/deliveries` },
+					{ name: t("footer.myDeliveries", { ns: "navigation" }), href: `${basePath}/deliveries` },
 				];
 			case "consumer":
 			default:
 				return [
 					...commonLinks,
-					{ name: "Mes Commandes", href: `${basePath}/orders` },
-					{ name: "Panier", href: "/cart" },
-					{ name: "Favoris", href: "/favorites" },
+					{ name: t("footer.myOrders", { ns: "navigation" }), href: `${basePath}/orders` },
+					{ name: t("cart", { ns: "navigation" }), href: "/cart" },
+					{ name: t("footer.favorites", { ns: "navigation" }), href: "/favorites" },
 				];
 		}
-	}, [isAuthenticated, user?.userType]);
+	}, [isAuthenticated, user?.userType, t]);
 
 	useEffect(() => {
 		const loadCategories = async () => {
@@ -148,10 +144,10 @@ const Footer = () => {
 	const displayedCategories = useMemo(() => {
 		if (categories.length === 0) {
 			return [
-				{ name: "Fruits", slug: "fruits" },
-				{ name: "Légumes", slug: "vegetables" },
-				{ name: "Céréales", slug: "cereals" },
-				{ name: "Viande", slug: "meat" },
+				{ name: categoryLabels.fruits, slug: "fruits" },
+				{ name: categoryLabels.vegetables, slug: "vegetables" },
+				{ name: categoryLabels.cereals, slug: "cereals" },
+				{ name: categoryLabels.meat, slug: "meat" },
 			];
 		}
 		const result = [];
@@ -159,12 +155,12 @@ const Footer = () => {
 			const idx = (categoryIndex + i) % categories.length;
 			const cat = categories[idx];
 			result.push({
-				name: CATEGORY_LABELS[cat] || cat.charAt(0).toUpperCase() + cat.slice(1),
+				name: categoryLabels[cat] || cat.charAt(0).toUpperCase() + cat.slice(1),
 				slug: cat,
 			});
 		}
 		return result;
-	}, [categories, categoryIndex]);
+	}, [categories, categoryIndex, categoryLabels]);
 
 	return (
 		<footer className="bg-black text-white mb-14 md:mb-0">
@@ -173,7 +169,7 @@ const Footer = () => {
 				className="bg-gray-800 hover:bg-gray-700 text-center py-4 cursor-pointer text-sm font-medium transition-colors"
 				onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
 			>
-				Retour en haut
+				{t("footer.backToTop", { ns: "navigation" })}
 			</div>
 
 			<div className="container-xl mx-auto">
@@ -186,7 +182,7 @@ const Footer = () => {
 						<ul className="space-y-3">
 							<li className="flex items-start text-gray-400 text-sm">
 								<MapPin className="h-5 w-5 mr-3 shrink-0" />
-								<span>Dakar, Sénégal</span>
+								<span>{t("footer.companyAddress", { ns: "navigation" })}</span>
 							</li>
 							<li className="text-gray-400 text-sm ml-8">
 								RCCM : SN.DKR.2026.B.1650
@@ -207,18 +203,18 @@ const Footer = () => {
 
 					{/* Column 2: Gagnez de l'argent avec nous */}
 					<div>
-						<h3 className="font-bold text-white text-base mb-4">Gagnez de l'argent avec nous</h3>
+						<h3 className="font-bold text-white text-base mb-4">{t("footer.earnWithUs", { ns: "navigation" })}</h3>
 						<ul className="space-y-2">
-							<li><Link to="/register" className="text-gray-300 hover:underline text-sm">Devenir Producteur</Link></li>
-							<li><Link to="/register" className="text-gray-300 hover:underline text-sm">Devenir Transporteur</Link></li>
-							<li><Link to="/producteurs" className="text-gray-300 hover:underline text-sm">Nos partenaires</Link></li>
-							<li><Link to="/pricing" className="text-gray-300 hover:underline text-sm">Tarifs et commissions</Link></li>
+							<li><Link to="/register" className="text-gray-300 hover:underline text-sm">{t("footer.becomeProducer", { ns: "navigation" })}</Link></li>
+							<li><Link to="/register" className="text-gray-300 hover:underline text-sm">{t("footer.becomeTransporter", { ns: "navigation" })}</Link></li>
+							<li><Link to="/producteurs" className="text-gray-300 hover:underline text-sm">{t("footer.ourPartners", { ns: "navigation" })}</Link></li>
+							<li><Link to="/pricing" className="text-gray-300 hover:underline text-sm">{t("footer.pricingCommissions", { ns: "navigation" })}</Link></li>
 						</ul>
 					</div>
 
 					{/* Column 3: Catégories & Découverte */}
 					<div>
-						<h3 className="font-bold text-white text-base mb-4">Catégories & Découverte</h3>
+						<h3 className="font-bold text-white text-base mb-4">{t("footer.categoriesDiscovery", { ns: "navigation" })}</h3>
 						<ul className="space-y-2">
 							{displayedCategories.map((cat) => (
 								<li key={cat.slug}>
@@ -230,13 +226,13 @@ const Footer = () => {
 									</Link>
 								</li>
 							))}
-							<li><Link to="/categories" className="text-gray-300 hover:underline text-sm">Voir toutes les catégories</Link></li>
+							<li><Link to="/categories" className="text-gray-300 hover:underline text-sm">{t("footer.viewAllCategories", { ns: "navigation" })}</Link></li>
 						</ul>
 					</div>
 
 					{/* Column 4: Besoin d'aide ? */}
 					<div>
-						<h3 className="font-bold text-white text-base mb-4">Besoin d'aide ?</h3>
+						<h3 className="font-bold text-white text-base mb-4">{t("footer.needHelp", { ns: "navigation" })}</h3>
 						<ul className="space-y-2">
 							{myAccountLinks.map((link) => (
 								<li key={link.name}>
@@ -271,19 +267,23 @@ const Footer = () => {
 							</Link>
 							
 							<div className="flex items-center gap-4">
-								<div className="border border-gray-500 rounded px-3 py-2 flex items-center cursor-pointer hover:border-white transition-colors">
-									<span className="text-sm text-gray-300">Français</span>
-								</div>
-								<div className="border border-gray-500 rounded px-3 py-2 flex items-center cursor-pointer hover:border-white transition-colors">
-									<span className="text-sm text-gray-300 font-bold">FCFA - Franc CFA</span>
-								</div>
+								<LanguageSelector buttonClassName="flex items-center gap-1.5 border border-gray-500 hover:border-white bg-transparent text-sm text-gray-300 rounded px-3 py-2 transition-colors" />
+								<select
+									value={currency}
+									onChange={(e) => setCurrency(e.target.value)}
+									className="appearance-none bg-transparent border border-gray-500 hover:border-white rounded px-3 py-2 text-sm text-gray-300 font-bold cursor-pointer outline-none transition-colors [&>option]:text-gray-900"
+								>
+									{currencies.map((c) => (
+										<option key={c.code} value={c.code}>{c.symbol} - {c.code}</option>
+									))}
+									</select>
 							</div>
 						</div>
 
 						{/* Newsletter (moved below selectors) */}
 						<div className="w-full max-w-md">
 							<h4 className="text-sm font-semibold mb-2 text-center text-white">
-								Restez informé(e) de nos actualités
+								{t("footer.newsletterTitle", { ns: "navigation" })}
 							</h4>
 							<form onSubmit={handleSubscribe} className="relative">
 								<div className="flex">
@@ -291,7 +291,7 @@ const Footer = () => {
 										type="email"
 										value={email}
 										onChange={(e) => setEmail(e.target.value)}
-										placeholder="Votre adresse e-mail"
+										placeholder={t("footer.emailPlaceholder", { ns: "navigation" })}
 										className="w-full bg-white text-black text-sm px-4 py-2 rounded-l focus:outline-none focus:ring-2 focus:ring-primary-500 border-none"
 										required
 									/>
@@ -302,7 +302,7 @@ const Footer = () => {
 									>
 										{subscribeStatus === "loading" ?
 											<Loader2 className="h-4 w-4 animate-spin" />
-										:	"S'inscrire"}
+										:	t("footer.subscribe", { ns: "navigation" })}
 									</button>
 								</div>
 								{subscribeMessage && (
@@ -323,20 +323,20 @@ const Footer = () => {
 				<div className="bg-black py-6 px-4 sm:px-6 lg:px-8 border-t border-gray-800">
 					<div className="flex flex-col items-center gap-4 text-center">
 						<div className="flex flex-wrap justify-center gap-4 text-xs text-gray-300">
-							<Link to="/terms" className="hover:underline">Conditions générales de vente</Link>
-							<Link to="/privacy" className="hover:underline">Vos informations personnelles</Link>
+							<Link to="/terms" className="hover:underline">{t("footer.termsOfSale", { ns: "navigation" })}</Link>
+							<Link to="/privacy" className="hover:underline">{t("footer.personalData", { ns: "navigation" })}</Link>
 							<button
 								type="button"
 								onClick={openCookiePreferences}
 								className="hover:underline"
 							>
-								Gérer les cookies
+								{t("footer.manageCookies", { ns: "navigation" })}
 							</button>
 						</div>
 						<div className="text-xs text-gray-400 flex flex-col md:flex-row items-center gap-2">
-							<span>© {currentYear} Harvests. Tous droits réservés.</span>
+							<span>{t("footer.copyright", { ns: "navigation", year: currentYear })}</span>
 							<span className="hidden md:inline">|</span>
-							<span className="flex items-center">Un produit de <span className="text-yellow-200 font-bold ml-1"> UBB </span></span>
+							<span className="flex items-center">{t("footer.productOf", { ns: "navigation" })} <span className="text-yellow-200 font-bold ml-1"> UBB </span></span>
 						</div>
 					</div>
 				</div>

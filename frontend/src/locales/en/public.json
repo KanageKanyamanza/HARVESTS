@@ -1,14 +1,140 @@
 {
 	"home": {
-		"title": "Welcome to Harvests",
-		"subtitle": "Discover fresh and quality products directly from local producers",
-		"cta": "Start exploring",
-		"featuredProducts": "Featured products",
-		"featuredProducers": "Recommended producers",
-		"categories": "Our categories",
-		"whyChooseUs": "Why choose us",
-		"testimonials": "Testimonials",
-		"newsletter": "Newsletter"
+		"hero": {
+			"title1": "One Platform.",
+			"titleHighlight": "For Every Agricultural Player.",
+			"subtitle": "From field to consumer: buy, sell and manage your agricultural supplies with full traceability and fast delivery.",
+			"ctaPrimary": "Explore the Marketplace",
+			"ctaSecondary": "Become a Producer / Partner",
+			"slideLabel": "Slide {{n}}",
+			"slides": [
+				{ "badge": "Certified Quality & Direct from Producers", "caption": "Over 500 producers and restaurateurs connected across Africa." },
+				{ "badge": "Hotels, Restaurants & Wholesalers", "caption": "Regular supplies of fresh produce at direct farm prices." },
+				{ "badge": "Processing & Local Dishes", "caption": "Showcasing processed products and local recipes." },
+				{ "badge": "Logistics & Supply Chain", "caption": "Refrigerated transport and secure delivery from producer to customer." }
+			],
+			"stakeholders": [
+				{ "title": "Producers & Farmers", "subtitle": "Sell your harvests directly & access quality inputs.", "cta": "Producer Space" },
+				{ "title": "Buyers", "subtitle": "Fresh agricultural products wholesale & retail, delivered directly.", "cta": "Shop & Products" },
+				{ "title": "Processors & Agribusiness", "subtitle": "Sell your processed products and local spices.", "cta": "Processed Products" },
+				{ "title": "Restaurateurs", "subtitle": "Supply your establishment with fresh, local products.", "cta": "Restaurateur Space" }
+			]
+		},
+		"trustBadges": {
+			"items": [
+				{ "title": "Fast & Tracked Delivery", "description": "Cold chain and direct logistics from the field to your door" },
+				{ "title": "Certified Producers", "description": "100% traceable harvests with no unnecessary middlemen" },
+				{ "title": "100% Secure Payment", "description": "Mobile Money (Orange, Wave, MTN), PayPal & Cards" },
+				{ "title": "Freshness & Quality Guarantee", "description": "Refund or replacement guaranteed within 48h" }
+			]
+		},
+		"flashSales": {
+			"title": "Flash Sales",
+			"viewAll": "View all offers"
+		},
+		"categories": {
+			"eyebrow": "Agricultural Value Chains & Products",
+			"title": "Popular Marketplace Categories",
+			"subtitle": "Discover our products sorted by supply chain",
+			"viewAll": "View all categories →",
+			"discover": "Discover the category",
+			"labels": {
+				"cereals": "Cereals & Grains",
+				"vegetables": "Fresh Vegetables",
+				"fruits": "Seasonal Fruits",
+				"legumes": "Legumes",
+				"tubers": "Tubers & Roots",
+				"spices": "Local Spices",
+				"herbs": "Aromatic Herbs",
+				"nuts": "Nuts & Cashews",
+				"seeds": "Seeds",
+				"dairy": "Dairy Products",
+				"meat": "Beef & Lamb",
+				"poultry": "Organic Poultry",
+				"fish": "Fish & Seafood",
+				"processed-foods": "Processed Products",
+				"beverages": "Juices & Beverages",
+				"other": "Grocery & Other Products"
+			}
+		},
+		"topSellers": {
+			"eyebrow": "Certified Producers & Shops",
+			"title": "Featured Producers & Farms",
+			"subtitle": "Buy directly from the best verified producers",
+			"viewAll": "Discover all producers →",
+			"visitShop": "Visit shop",
+			"bioBadge": "ORGANIC"
+		},
+		"regionalPavilion": {
+			"eyebrow": "Cross-Border Sourcing",
+			"title": "Regional Pavilions & Landmarks",
+			"subtitle": "Explore the agricultural specialties and certified partners of each country",
+			"viewAll": "View all countries →",
+			"certifiedProducts": "Certified products →",
+			"countries": {
+				"BF": "Burkina Faso",
+				"SN": "Senegal",
+				"CI": "Ivory Coast",
+				"CM": "Cameroon",
+				"ML": "Mali",
+				"GH": "Ghana",
+				"NG": "Nigeria",
+				"BJ": "Benin"
+			}
+		},
+		"featuredProducts": {
+			"title": "Featured Products",
+			"subtitle": "Discover our selection of exceptional products, chosen for their quality and freshness",
+			"viewAll": "View All",
+			"retry": "Retry",
+			"error": "Unable to load featured products"
+		},
+		"products": {
+			"eyebrow": "Fresh Harvests, Direct from Producers",
+			"title": "Agricultural Products & Seasonal Harvests",
+			"localSourcing": "Local Sourcing: {{country}}",
+			"viewAll": "View the full catalog →",
+			"retry": "Retry"
+		},
+		"becomeSeller": {
+			"title": "Grow your business with Harvests",
+			"subtitle": "Join thousands of producers and processors already selling their products to an international customer base.",
+			"cta": "Start selling",
+			"globalReach": { "title": "Global Reach", "description": "Sell to customers around the world" },
+			"growth": { "title": "Growth", "description": "Increase your sales with ease" },
+			"securePayment": { "title": "Secure Payment", "description": "100% guaranteed transactions" }
+		},
+		"banners": {
+			"bestDeals": "Best Deals",
+			"saleOfMonth": "Sale of the Month",
+			"days": "Days",
+			"hours": "Hours",
+			"minutes": "Mins",
+			"seconds": "Secs",
+			"shopNow": "Shop Now",
+			"summerSale": "Summer Sale",
+			"freshFruit": "100% Fresh Fruit",
+			"discountPrefix": "Up to",
+			"discountValue": "64% off"
+		},
+		"discountBanner": {
+			"title": "Why choose Harvests?",
+			"subtitle": "Discover our vision and commitment to sustainable, connected agriculture",
+			"heading": "Your Trusted Agricultural Partner",
+			"description": "Join a community that values quality, sustainability and the direct connection between producers and consumers.",
+			"points": [
+				"Sustainable, responsible agriculture",
+				"Direct producer-consumer connection",
+				"Guaranteed quality and fresh products"
+			],
+			"cta": "Discover our Products",
+			"videoFallback": "Your browser does not support video playback."
+		},
+		"loyaltyProgram": {
+			"title": "Harvests Loyalty Program",
+			"subtitle": "Earn points on every purchase and enjoy exclusive rewards",
+			"cta": "Discover the Program"
+		}
 	},
 	"products": {
 		"title": "Our Products",
@@ -21,8 +147,26 @@
 		"gridView": "Grid view",
 		"listView": "List view",
 		"noProductsFound": "No products found",
-		"noProductsDescription": "No products available at the moment",
+		"noProductsDescription": "We couldn't find any products matching your search criteria.",
 		"tryDifferentSearch": "Try modifying your search criteria",
+		"clearAllFilters": "Clear all filters",
+		"heroEyebrow": "Direct Market & Short Supply Chains",
+		"producerSectionEmpty": "No producer products found",
+		"dishesSectionTitle": "Restaurateur Dishes",
+		"searchingInProgress": "Searching for products...",
+		"resultsCount_zero": "No products",
+		"resultsCount_one": "{{count}} product found",
+		"resultsCount_other": "{{count}} products found",
+		"resultsForQuery": "for \"{{query}}\"",
+		"gridViewShort": "Grid",
+		"listViewShort": "List",
+		"sortSelect": {
+			"label": "Sort by:",
+			"newest": "Newest",
+			"price_asc": "Price: Ascending",
+			"price_desc": "Price: Descending",
+			"rating": "Customer reviews"
+		},
 		"categories": {
 			"all": "All categories",
 			"cereals": "Cereals",
@@ -56,13 +200,42 @@
 		"filters": {
 			"priceMin": "Minimum price (XOF)",
 			"priceMax": "Maximum price (XOF)",
-			"producer": "Producer"
+			"producer": "Producer",
+			"sectionSearchTitle": "Search",
+			"searchPlaceholder": "Search...",
+			"sectionCategoryTitle": "Category",
+			"sectionCountryTitle": "Country of origin",
+			"myZone": "My zone",
+			"allCountries": "All countries",
+			"zonesGroup": "Zones",
+			"countriesGroup": "Countries",
+			"sectionPriceTitle": "Price (XOF)",
+			"pricePlaceholderMin": "Min",
+			"pricePlaceholderMax": "Max",
+			"bioLabel": "Certified Organic Products",
+			"applyFilters": "Apply filters"
 		},
 		"pagination": {
 			"previous": "Previous",
 			"next": "Next",
 			"page": "Page",
 			"of": "of"
+		},
+		"card": {
+			"featuredBadge": "Choice",
+			"featuredBadgeFull": "Harvests Choice",
+			"bioBadge": "ORGANIC",
+			"bioBadgeFull": "CERTIFIED ORGANIC",
+			"inStock": "In stock - Fast delivery",
+			"outOfStockShort": "Out of stock",
+			"outOfStockFull": "Temporarily out of stock",
+			"soldBy": "Sold by",
+			"added": "Added",
+			"addToCart": "Add",
+			"toCartSuffix": "to cart",
+			"unavailable": "Unavailable",
+			"defaultVendor": "Partner",
+			"defaultVendorLocal": "Local partner"
 		}
 	},
 	"categories": {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { FiFilter, FiChevronDown, FiX, FiMapPin } from 'react-icons/fi';
 import { getCategoryLabel } from '../../utils/productHelpers';
 import { SUPPORTED_COUNTRIES, REGIONAL_ZONES } from '../../utils/countryMapper';
@@ -17,6 +18,7 @@ const ProductFilters = ({
   onPageReset,
   selectedCountry
 }) => {
+  const { t, i18n } = useTranslation('public');
   const hasActiveFilters = selectedCategory ||
     selectedCountry ||
     sortBy !== "newest" ||
@@ -33,7 +35,7 @@ const ProductFilters = ({
 
       {/* Header Mobile */}
       <div className="flex items-center justify-between px-5 mb-2 md:hidden pb-4 border-b border-gray-100 shrink-0">
-        <h2 className="text-lg font-extrabold text-[#161D14]">Filtres</h2>
+        <h2 className="text-lg font-extrabold text-[#161D14]">{t('products.filtersLabel')}</h2>
         <button
           onClick={() => setShowFilters(false)}
           className="p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors"
@@ -45,7 +47,7 @@ const ProductFilters = ({
       <div className="overflow-y-auto px-5 pb-5 md:pt-5 flex-1 min-h-0">
         {/* Search Filter */}
         <div className="mb-4">
-          <h3 className="font-bold text-[#161D14] mb-2 text-sm">Recherche</h3>
+          <h3 className="font-bold text-[#161D14] mb-2 text-sm">{t('products.filters.sectionSearchTitle')}</h3>
           <div className="relative">
             <input
               type="text"
@@ -54,7 +56,7 @@ const ProductFilters = ({
                 setSearchQuery(e.target.value);
                 onPageReset();
               }}
-              placeholder="Chercher..."
+              placeholder={t('products.filters.searchPlaceholder')}
               className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] transition-all"
             />
             <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -65,7 +67,7 @@ const ProductFilters = ({
 
         {/* Category Filter */}
         <div className="mb-4">
-          <h3 className="font-bold text-[#161D14] mb-2 text-sm">Catégorie</h3>
+          <h3 className="font-bold text-[#161D14] mb-2 text-sm">{t('products.filters.sectionCategoryTitle')}</h3>
           <div className="relative">
             <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600 h-4 w-4 pointer-events-none" />
             <select
@@ -73,10 +75,10 @@ const ProductFilters = ({
               onChange={(e) => onFilterChange("category", e.target.value)}
               className="w-full pl-9 pr-8 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] appearance-none transition-all"
             >
-              <option value="">Toutes les catégories</option>
+              <option value="">{t('products.categories.all')}</option>
               {categories.map((category) => (
                 <option key={category} value={category}>
-                  {getCategoryLabel(category)}
+                  {getCategoryLabel(category, i18n.language)}
                 </option>
               ))}
             </select>
@@ -86,7 +88,7 @@ const ProductFilters = ({
 
         {/* Country Filter */}
         <div className="mb-4">
-          <h3 className="font-bold text-[#161D14] mb-2 text-sm">Pays de provenance</h3>
+          <h3 className="font-bold text-[#161D14] mb-2 text-sm">{t('products.filters.sectionCountryTitle')}</h3>
           <div className="relative">
             <FiMapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600 h-4 w-4 pointer-events-none" />
             <select
@@ -94,14 +96,14 @@ const ProductFilters = ({
               onChange={(e) => onFilterChange("country", e.target.value)}
               className="w-full pl-9 pr-8 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] appearance-none transition-all"
             >
-              <option value="MY_ZONE">Ma zone</option>
-              <option value="">Tous les pays</option>
-              <optgroup label="Zones">
+              <option value="MY_ZONE">{t('products.filters.myZone')}</option>
+              <option value="">{t('products.filters.allCountries')}</option>
+              <optgroup label={t('products.filters.zonesGroup')}>
                 {REGIONAL_ZONES.map(z => (
                   <option key={z.id} value={z.id}>{z.label}</option>
                 ))}
               </optgroup>
-              <optgroup label="Pays">
+              <optgroup label={t('products.filters.countriesGroup')}>
                 {SUPPORTED_COUNTRIES.map(c => (
                   <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
                 ))}
@@ -113,13 +115,13 @@ const ProductFilters = ({
 
         {/* Price Filter */}
         <div className="mb-4">
-          <h3 className="font-bold text-[#161D14] mb-2 text-sm">Prix (XOF)</h3>
+          <h3 className="font-bold text-[#161D14] mb-2 text-sm">{t('products.filters.sectionPriceTitle')}</h3>
           <div className="flex items-center gap-2">
             <input
               type="number"
               value={priceRange.min}
               onChange={(e) => onFilterChange("priceMin", e.target.value)}
-              placeholder="Min"
+              placeholder={t('products.filters.pricePlaceholderMin')}
               className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] transition-all"
             />
             <span className="text-gray-400 font-bold">-</span>
@@ -127,7 +129,7 @@ const ProductFilters = ({
               type="number"
               value={priceRange.max}
               onChange={(e) => onFilterChange("priceMax", e.target.value)}
-              placeholder="Max"
+              placeholder={t('products.filters.pricePlaceholderMax')}
               className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] transition-all"
             />
           </div>
@@ -137,7 +139,7 @@ const ProductFilters = ({
         <div className="mb-4">
           <label className="flex items-center justify-between p-3 bg-gray-50 rounded-xl cursor-pointer group border border-transparent has-[:checked]:border-emerald-200 has-[:checked]:bg-emerald-50 transition-all">
             <span className="text-sm font-bold text-gray-700 group-hover:text-[#1A5514] transition-colors">
-              Produits Certifiés BIO
+              {t('products.filters.bioLabel')}
             </span>
             <div className="relative flex items-center">
               <input
@@ -170,7 +172,7 @@ const ProductFilters = ({
             className="w-full flex items-center justify-center px-4 py-2.5 text-sm font-bold border border-gray-200 rounded-xl text-gray-600 bg-white hover:bg-gray-50 transition-colors"
           >
             <FiX className="h-4 w-4 mr-1.5" />
-            Effacer les filtres
+            {t('products.clearFilters')}
           </button>
         )}
       </div>
@@ -181,7 +183,7 @@ const ProductFilters = ({
           onClick={() => setShowFilters(false)}
           className="w-full flex items-center justify-center px-4 py-3.5 text-sm font-bold rounded-xl text-white bg-gradient-to-r from-[#1A5514] to-[#31BC2E] shadow-lg shadow-emerald-900/20 hover:shadow-xl transition-all"
         >
-          Appliquer les filtres
+          {t('products.filters.applyFilters')}
         </button>
       </div>
     </div>

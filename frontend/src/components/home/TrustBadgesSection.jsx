@@ -1,41 +1,17 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Truck, Headphones, ShieldCheck, RotateCcw, Sprout, Award } from 'lucide-react';
 
 const TrustBadgesSection = () => {
-  const badges = [
-    {
-      icon: Truck,
-      title: 'Livraison Rapide & Suivie',
-      description: 'Chaîne du froid et logistique directe du champ à votre porte',
-      accent: 'from-[#1A5514] to-[#31BC2E]',
-      iconColor: 'text-[#1A5514]',
-      badgeBg: 'bg-emerald-50'
-    },
-    {
-      icon: Award,
-      title: 'Producteurs Certifiés',
-      description: 'Récoltes 100% traçables sans intermédiaires inutiles',
-      accent: 'from-[#004D40] to-[#00897B]',
-      iconColor: 'text-[#004D40]',
-      badgeBg: 'bg-teal-50'
-    },
-    {
-      icon: ShieldCheck,
-      title: 'Paiement 100% Sécurisé',
-      description: 'Mobile Money (Orange, Wave, MTN), PayPal & Cartes',
-      accent: 'from-[#B78103] to-[#FF9900]',
-      iconColor: 'text-[#B78103]',
-      badgeBg: 'bg-amber-50'
-    },
-    {
-      icon: RotateCcw,
-      title: 'Garantie Fraîcheur & Qualité',
-      description: 'Remboursement ou remplacement garanti sous 48h',
-      accent: 'from-[#1E3A8A] to-[#3B82F6]',
-      iconColor: 'text-[#1E3A8A]',
-      badgeBg: 'bg-blue-50'
-    }
+  const { t } = useTranslation('public');
+  const badgeMeta = [
+    { icon: Truck, accent: 'from-[#1A5514] to-[#31BC2E]', iconColor: 'text-[#1A5514]', badgeBg: 'bg-emerald-50' },
+    { icon: Award, accent: 'from-[#004D40] to-[#00897B]', iconColor: 'text-[#004D40]', badgeBg: 'bg-teal-50' },
+    { icon: ShieldCheck, accent: 'from-[#B78103] to-[#FF9900]', iconColor: 'text-[#B78103]', badgeBg: 'bg-amber-50' },
+    { icon: RotateCcw, accent: 'from-[#1E3A8A] to-[#3B82F6]', iconColor: 'text-[#1E3A8A]', badgeBg: 'bg-blue-50' }
   ];
+  const badgeContent = t('home.trustBadges.items', { returnObjects: true });
+  const badges = badgeMeta.map((meta, i) => ({ ...meta, ...badgeContent[i] }));
 
   return (
     <section className="my-6 px-0 sm:px-6 lg:px-8 max-w-7xl mx-auto relative z-10" data-aos="fade-up">

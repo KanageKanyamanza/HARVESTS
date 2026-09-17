@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { producerService, reviewService } from '../../services';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { FiStar, FiArrowRight, FiMapPin } from 'react-icons/fi';
@@ -59,6 +60,7 @@ const CACHE_DURATION = 5 * 60 * 1000;
 let sectionCache = null;
 
 const TopSellersSection = () => {
+  const { t } = useTranslation('public');
   const [sellers, setSellers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isLocal, setIsLocal] = useState(false);
@@ -128,18 +130,18 @@ const TopSellersSection = () => {
         <div>
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1A5514] uppercase tracking-wider mb-1">
             <Store className="w-4 h-4 text-[#31BC2E]" />
-            <span>Producteurs Certifiés & Boutiques</span>
+            <span>{t('home.topSellers.eyebrow')}</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#161D14]">
-            Producteurs & Fermes à la Une
+            {t('home.topSellers.title')}
           </h2>
-          <p className="text-sm text-gray-600 mt-0.5">Achetez en direct auprès des meilleurs producteurs vérifiés</p>
+          <p className="text-sm text-gray-600 mt-0.5">{t('home.topSellers.subtitle')}</p>
         </div>
         <Link
           to={isLocal && countryCode ? `/producteurs?country=${countryCode}` : '/producers'}
           className="hidden md:flex text-xs sm:text-sm font-bold text-[#1A5514] hover:text-[#31BC2E] transition-colors items-center gap-1"
         >
-          Découvrir tous les producteurs →
+          {t('home.topSellers.viewAll')}
         </Link>
       </div>
 
@@ -168,7 +170,7 @@ const TopSellersSection = () => {
                   {seller.isBio ? (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500 text-white shadow-md">
                       <Leaf className="w-3 h-3" />
-                      BIO
+                      {t('home.topSellers.bioBadge')}
                     </span>
                   ) : <div />}
 
@@ -211,7 +213,7 @@ const TopSellersSection = () => {
 
                 {/* Bouton d'action */}
                 <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-[#1A5514] group-hover:text-[#31BC2E] transition-colors">
-                  <span>Visiter la boutique</span>
+                  <span>{t('home.topSellers.visitShop')}</span>
                   <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
@@ -225,7 +227,7 @@ const TopSellersSection = () => {
           to={isLocal && countryCode ? `/producteurs?country=${countryCode}` : '/producers'}
           className="text-xs sm:text-sm font-bold text-white hover:text-[#31BC2E] transition-colors bg-[#1A5514] rounded-full p-3 w-64 mx-auto flex items-center justify-center gap-1"
         >
-          Découvrir tous les producteurs →
+          {t('home.topSellers.viewAll')}
         </Link>
       </div>
     </section>

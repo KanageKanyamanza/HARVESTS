@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowRight, ShoppingBag } from 'lucide-react';
 import { FiMapPin } from 'react-icons/fi';
 import ProductCard from '../products/ProductCard';
@@ -115,6 +116,7 @@ const CACHE_DURATION = 5 * 60 * 1000;
 let sectionCache = null;
 
 const ProductsSection = () => {
+  const { t } = useTranslation('public');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -222,15 +224,15 @@ const ProductsSection = () => {
         <div>
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1A5514] uppercase tracking-wider mb-1">
             <ShoppingBag className="w-4 h-4 text-[#31BC2E]" />
-            <span>Récoltes Fraîches & Direct Producteur</span>
+            <span>{t('home.products.eyebrow')}</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-[#161D14]">
-            Produits Agricoles & Récoltes de Saison
+            {t('home.products.title')}
           </h2>
           {isLocal && countryName && (
             <span className="inline-flex items-center gap-1.5 mt-1 text-xs font-bold text-emerald-800 bg-emerald-100/80 border border-emerald-300/60 rounded-full px-3 py-1">
               <FiMapPin className="h-3 w-3 text-emerald-600" />
-              Sourcing Local : {countryName}
+              {t('home.products.localSourcing', { country: countryName })}
             </span>
           )}
         </div>
@@ -238,7 +240,7 @@ const ProductsSection = () => {
           to="/products"
           className="hidden md:flex text-xs sm:text-sm font-bold text-[#1A5514] hover:text-[#31BC2E] transition-colors flex items-center gap-1"
         >
-          Voir tout le catalogue →
+          {t('home.products.viewAll')}
         </Link>
       </div>
 
@@ -254,7 +256,7 @@ const ProductsSection = () => {
             onClick={loadProducts}
             className="btn bg-primary-500 text-white hover:bg-primary-600"
           >
-            Réessayer
+            {t('home.products.retry')}
           </button>
         </div>
       ) : (
@@ -272,7 +274,7 @@ const ProductsSection = () => {
           to="/products"
           className="text-xs sm:text-sm font-bold text-white hover:text-[#31BC2E] transition-colors bg-[#1A5514] rounded-full p-3 w-64 mx-auto flex items-center justify-center gap-1"
         >
-          Voir tout le catalogue →
+          {t('home.products.viewAll')}
         </Link>
       </div>
     </section>

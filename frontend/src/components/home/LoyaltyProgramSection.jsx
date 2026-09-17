@@ -1,8 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Award, ArrowRight } from 'lucide-react';
 
 const LoyaltyProgramSection = () => {
+  const { t } = useTranslation('public');
   return (
     <section className="py-20 bg-gradient-to-br from-primary-500 to-primary-700 text-white" data-aos="fade-up">
       <div className="container-xl">
@@ -12,10 +14,10 @@ const LoyaltyProgramSection = () => {
             <Award className="h-8 w-8 text-white" />
           </div>
           <h2 className="text-3xl md:text-5xl font-display font-bold mb-4" data-aos="fade-up" data-aos-delay="100">
-            Programme de Fidélité Harvests
+            {t('home.loyaltyProgram.title')}
           </h2>
           <p className="text-xl text-white/90 mb-8" data-aos="fade-up" data-aos-delay="200">
-            Gagnez des points à chaque achat et profitez de récompenses exclusives
+            {t('home.loyaltyProgram.subtitle')}
           </p>
 
           {/* CTA */}
@@ -25,7 +27,7 @@ const LoyaltyProgramSection = () => {
             data-aos="fade-up"
             data-aos-delay="300"
           >
-            Découvrir le Programme
+            {t('home.loyaltyProgram.cta')}
             <ArrowRight className="ml-2 h-5 w-5" />
           </Link>
         </div>

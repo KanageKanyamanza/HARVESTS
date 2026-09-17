@@ -11,7 +11,9 @@ import {
 // dans le header public. Suit le même motif "dropdown maison" (useState +
 // clic extérieur) que les autres menus déroulants du projet (pas de
 // dépendance headless supplémentaire).
-const LanguageSelector = ({ className = "" }) => {
+const DEFAULT_BUTTON_CLASSES = "flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 text-xs font-bold border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 transition-colors";
+
+const LanguageSelector = ({ className = "", buttonClassName = DEFAULT_BUTTON_CLASSES }) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [language, setLanguage] = useState(getCurrentLanguage());
 	const dropdownRef = useRef(null);
@@ -39,7 +41,7 @@ const LanguageSelector = ({ className = "" }) => {
 			<button
 				type="button"
 				onClick={() => setIsOpen((prev) => !prev)}
-				className="flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 text-xs font-bold border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 transition-colors"
+				className={buttonClassName}
 				aria-label="Changer de langue"
 			>
 				<Globe className="h-3.5 w-3.5" />

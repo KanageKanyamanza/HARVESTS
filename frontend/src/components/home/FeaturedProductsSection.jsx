@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowRight } from "lucide-react";
 import { FiMapPin } from "react-icons/fi";
 import ProductCard from "../products/ProductCard";
@@ -12,6 +13,7 @@ const CACHE_DURATION = 5 * 60 * 1000;
 let sectionCache = null;
 
 const FeaturedProductsSection = () => {
+	const { t } = useTranslation("public");
 	const [products, setProducts] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
@@ -74,7 +76,7 @@ const FeaturedProductsSection = () => {
 				"Erreur lors du chargement des produits mis en avant:",
 				err
 			);
-			setError("Impossible de charger les produits mis en avant");
+			setError(t("home.featuredProducts.error"));
 		} finally {
 			setLoading(false);
 		}
@@ -92,7 +94,7 @@ const FeaturedProductsSection = () => {
 				<div className="flex justify-between items-center mb-5">
 					<div>
 						<h2 className="text-3xl md:text-4xl font-display font-bold text-gray-900">
-							Featured Products
+							{t("home.featuredProducts.title")}
 						</h2>
 						{isLocal && countryName && (
 							<span className="inline-flex items-center gap-1 mt-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
@@ -107,15 +109,14 @@ const FeaturedProductsSection = () => {
 							to="/products?featured=true"
 							className="font-semibold inline-flex items-center text-primary-500 hover:text-primary-600 hover:underline hover:-translate-y-1 transition-all duration-300 ease-in-out"
 						>
-							Voir Tous
+							{t("home.featuredProducts.viewAll")}
 							<ArrowRight className="ml-2 h-5 w-5" />
 						</Link>
 					</div>
 				</div>
 				<div className="mb-5 text-center">
 					<p className="text-sm text-gray-600">
-						Découvrez notre sélection de produits d'exception, choisis pour leur
-						qualité et leur fraîcheur
+						{t("home.featuredProducts.subtitle")}
 					</p>
 				</div>
 
@@ -131,7 +132,7 @@ const FeaturedProductsSection = () => {
 							onClick={loadFeaturedProducts}
 							className="btn bg-primary-500 text-white hover:bg-primary-600"
 						>
-							Réessayer
+							{t("home.featuredProducts.retry")}
 						</button>
 					</div>
 				) : (
