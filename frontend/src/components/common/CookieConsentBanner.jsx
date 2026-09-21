@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Cookie, ChevronDown, ChevronUp } from "lucide-react";
 import {
 	COOKIE_CATEGORIES,
@@ -9,6 +10,7 @@ import {
 } from "../../utils/cookieConsent";
 
 const CookieConsentBanner = () => {
+	const { t } = useTranslation("common");
 	const [visible, setVisible] = useState(false);
 	const [expanded, setExpanded] = useState(false);
 	const [choices, setChoices] = useState({ performance: false, preference: false });
@@ -46,11 +48,9 @@ const CookieConsentBanner = () => {
 					<div className="flex items-start gap-2.5 mb-3">
 						<Cookie className="w-5 h-5 text-[#31BC2E] flex-shrink-0 mt-0.5" />
 						<p className="text-[13px] sm:text-sm text-emerald-50/90 leading-relaxed">
-							Nous utilisons des cookies essentiels au fonctionnement de Harvests, et
-							quelques cookies facultatifs pour améliorer le site. Vous choisissez
-							lesquels accepter — voir notre{" "}
+							{t("cookies.message")}{" "}
 							<Link to="/privacy" className={`underline hover:text-white ${focusRing} rounded`}>
-								Politique de Confidentialité
+								{t("cookies.privacyLink")}
 							</Link>
 							.
 						</p>
@@ -63,7 +63,7 @@ const CookieConsentBanner = () => {
 							onClick={() => save({ performance: true, preference: true })}
 							className={`w-full px-4 py-2.5 text-xs font-bold bg-[#31BC2E] text-[#0D1A0B] rounded-full hover:bg-[#3ed13a] transition-colors ${focusRing}`}
 						>
-							Tout accepter
+							{t("cookies.acceptAll")}
 						</button>
 						<div className="grid grid-cols-2 gap-2">
 							<button
@@ -71,7 +71,7 @@ const CookieConsentBanner = () => {
 								onClick={() => save({ performance: false, preference: false })}
 								className={`px-3 py-2.5 text-xs font-bold text-emerald-100 border border-emerald-800 rounded-full hover:bg-emerald-950 transition-colors ${focusRing}`}
 							>
-								Essentiels seulement
+								{t("cookies.essentialOnly")}
 							</button>
 							<button
 								type="button"
@@ -79,7 +79,7 @@ const CookieConsentBanner = () => {
 								aria-expanded={expanded}
 								className={`flex items-center justify-center gap-1 px-3 py-2.5 text-xs font-bold text-emerald-100 border border-emerald-800 rounded-full hover:bg-emerald-950 transition-colors ${focusRing}`}
 							>
-								Personnaliser
+								{t("cookies.customize")}
 								{expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
 							</button>
 						</div>
@@ -93,7 +93,7 @@ const CookieConsentBanner = () => {
 							aria-expanded={expanded}
 							className={`flex items-center gap-1 px-3 py-2 text-xs font-bold text-emerald-100 hover:text-white transition-colors rounded-full ${focusRing}`}
 						>
-							Personnaliser
+							{t("cookies.customize")}
 							{expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
 						</button>
 						<button
@@ -101,14 +101,14 @@ const CookieConsentBanner = () => {
 							onClick={() => save({ performance: false, preference: false })}
 							className={`px-3.5 py-2 text-xs font-bold text-emerald-100 border border-emerald-800 rounded-full hover:bg-emerald-950 transition-colors ${focusRing}`}
 						>
-							Essentiels seulement
+							{t("cookies.essentialOnly")}
 						</button>
 						<button
 							type="button"
 							onClick={() => save({ performance: true, preference: true })}
 							className={`px-3.5 py-2 text-xs font-bold bg-[#31BC2E] text-[#0D1A0B] rounded-full hover:bg-[#3ed13a] transition-colors ${focusRing}`}
 						>
-							Tout accepter
+							{t("cookies.acceptAll")}
 						</button>
 					</div>
 				</div>
@@ -130,8 +130,8 @@ const CookieConsentBanner = () => {
 									className={`mt-1 h-4 w-4 rounded border-emerald-700 text-[#31BC2E] flex-shrink-0 ${focusRing}`}
 								/>
 								<span>
-									<span className="block text-xs font-bold text-white">{cat.label}</span>
-									<span className="block text-[11px] text-emerald-100/70">{cat.description}</span>
+									<span className="block text-xs font-bold text-white">{t(`cookies.categories.${cat.id}.label`)}</span>
+									<span className="block text-[11px] text-emerald-100/70">{t(`cookies.categories.${cat.id}.description`)}</span>
 								</span>
 							</label>
 						))}
@@ -141,7 +141,7 @@ const CookieConsentBanner = () => {
 								onClick={() => save(choices)}
 								className={`w-full sm:w-auto px-4 py-2.5 sm:py-2 text-xs font-bold bg-[#31BC2E] text-[#0D1A0B] rounded-full hover:bg-[#3ed13a] transition-colors ${focusRing}`}
 							>
-								Enregistrer mes choix
+								{t("cookies.save")}
 							</button>
 						</div>
 					</div>

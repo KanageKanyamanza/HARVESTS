@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import SEOHead from "../components/seo/SEOHead";
 import {
 	Check,
@@ -15,79 +16,15 @@ import {
 } from "lucide-react";
 import logo from "../assets/logo.png";
 
+// Icônes des 10 valeurs, dans le même ordre que about.values (locales)
+const VALUE_ICONS = [Heart, Target, Shield, Zap, Layers, Eye, Scale, Users, Heart, Lightbulb];
+
 const About = () => {
-	const values = [
-		{
-			icon: Heart,
-			title: "Ubuntu",
-			subtitle: "Humanité, Solidarité",
-			description:
-				"Nous croyons en la force de la communauté et en l'entraide mutuelle pour créer un impact positif.",
-		},
-		{
-			icon: Target,
-			title: "Excellence",
-			subtitle: "",
-			description:
-				"Nous visons l'excellence dans tout ce que nous faisons, en offrant des produits et services de la plus haute qualité.",
-		},
-		{
-			icon: Shield,
-			title: "Intégrité & Transparence",
-			subtitle: "",
-			description:
-				"Nous agissons avec honnêteté, transparence et éthique dans toutes nos relations et transactions.",
-		},
-		{
-			icon: Zap,
-			title: "Pragmatisme & Simplicité",
-			subtitle: "",
-			description:
-				"Nous privilégions des solutions simples, pratiques et efficaces qui répondent aux besoins réels.",
-		},
-		{
-			icon: Layers,
-			title: "Discipline & Structure",
-			subtitle: "",
-			description:
-				"Nous maintenons une approche structurée et disciplinée pour assurer la qualité et la cohérence.",
-		},
-		{
-			icon: Eye,
-			title: "Leadership & Vision",
-			subtitle: "",
-			description:
-				"Nous menons avec vision et innovation pour transformer l'agriculture africaine.",
-		},
-		{
-			icon: Scale,
-			title: "Justice & Équité",
-			subtitle: "",
-			description:
-				"Nous promouvons la justice et l'équité pour tous les acteurs de la chaîne agricole.",
-		},
-		{
-			icon: Users,
-			title: "Responsabilité & Impact",
-			subtitle: "",
-			description:
-				"Nous assumons nos responsabilités et mesurons notre impact positif sur les communautés et l'environnement.",
-		},
-		{
-			icon: Heart,
-			title: "Collaboration & Partenariat",
-			subtitle: "",
-			description:
-				"Nous croyons en la force du travail d'équipe et des partenariats stratégiques pour atteindre nos objectifs.",
-		},
-		{
-			icon: Lightbulb,
-			title: "Innovation & Modernisation",
-			subtitle: "",
-			description:
-				"Nous embrassons l'innovation et la modernisation pour améliorer continuellement nos services.",
-		},
-	];
+	const { t } = useTranslation("public");
+	const values = t("about.values", { returnObjects: true }).map((value, index) => ({
+		...value,
+		icon: VALUE_ICONS[index],
+	}));
 
 	return (
 		<div className="min-h-screen bg-gradient-to-b from-harvests-light to-white">
@@ -104,23 +41,21 @@ const About = () => {
 							data-aos="fade-up"
 							data-aos-delay="100"
 						>
-							À Propos de Harvests
+							{t("about.heroTitle")}
 						</h1>
 						<p
 							className="text-xl md:text-2xl text-primary-100 mb-8"
 							data-aos="fade-up"
 							data-aos-delay="200"
 						>
-							L'Amazon des Produits Agricoles Africains
+							{t("about.heroTagline")}
 						</p>
 						<p
 							className="text-lg text-primary-200 max-w-2xl mx-auto"
 							data-aos="fade-up"
 							data-aos-delay="300"
 						>
-							Une plateforme e-commerce moderne connectant producteurs et
-							consommateurs à travers l'Afrique, avec support multilingue et
-							paiements locaux.
+							{t("about.heroDescription")}
 						</p>
 					</div>
 				</div>
@@ -134,19 +69,14 @@ const About = () => {
 							className="text-3xl font-bold text-gray-900 mb-6 text-center"
 							data-aos="fade-up"
 						>
-							Notre Mission
+							{t("about.missionTitle")}
 						</h2>
 						<div className="prose prose-lg max-w-none text-gray-700 text-center space-y-4">
 							<p data-aos="fade-up" data-aos-delay="100">
-								Harvests a pour mission de révolutionner le commerce agricole en
-								Afrique en créant une plateforme digitale qui connecte
-								directement les producteurs aux consommateurs, en éliminant les
-								intermédiaires et en garantissant des prix équitables pour tous.
+								{t("about.missionP1")}
 							</p>
 							<p data-aos="fade-up" data-aos-delay="200">
-								Nous nous engageons à promouvoir l'agriculture durable, à
-								soutenir les petits producteurs et à faciliter l'accès aux
-								produits agricoles frais et de qualité pour tous les Africains.
+								{t("about.missionP2")}
 							</p>
 						</div>
 					</div>
@@ -161,15 +91,14 @@ const About = () => {
 							className="text-3xl font-bold text-gray-900 mb-4 text-center"
 							data-aos="fade-up"
 						>
-							Nos Valeurs
+							{t("about.valuesTitle")}
 						</h2>
 						<p
 							className="text-center text-gray-600 mb-12 max-w-2xl mx-auto"
 							data-aos="fade-up"
 							data-aos-delay="100"
 						>
-							Ces principes fondamentaux guident chacune de nos actions et
-							décisions
+							{t("about.valuesSubtitle")}
 						</p>
 
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -221,19 +150,14 @@ const About = () => {
 							className="text-3xl font-bold text-gray-900 mb-6 text-center"
 							data-aos="fade-up"
 						>
-							Notre Vision
+							{t("about.visionTitle")}
 						</h2>
 						<div className="prose prose-lg max-w-none text-gray-700 text-center space-y-4">
 							<p data-aos="fade-up" data-aos-delay="100">
-								Nous aspirons à devenir la plateforme de référence pour le
-								commerce agricole en Afrique, en connectant des millions de
-								producteurs et de consommateurs à travers le continent.
+								{t("about.visionP1")}
 							</p>
 							<p data-aos="fade-up" data-aos-delay="200">
-								Notre vision est de créer un écosystème agricole numérique
-								prospère qui valorise les producteurs locaux, améliore la
-								sécurité alimentaire et contribue au développement économique
-								durable de l'Afrique.
+								{t("about.visionP2")}
 							</p>
 						</div>
 					</div>
@@ -245,7 +169,7 @@ const About = () => {
 				<div className="container-xl px-4">
 					<div className="max-w-4xl mx-auto text-center">
 						<h3 className="text-lg font-semibold text-gray-900 mb-4">
-							Informations Institutionnelles
+							{t("about.corporateTitle")}
 						</h3>
 						<div className="space-y-2 text-gray-600">
 							<p className="font-bold text-primary-700">
@@ -262,8 +186,7 @@ const About = () => {
 								</p>
 							</div>
 							<p className="text-sm mt-4 italic text-gray-500">
-								Harvests est une marque déposée de Ubuntu Business Builders
-								SARL.
+								{t("about.trademark")}
 							</p>
 						</div>
 					</div>
@@ -275,16 +198,14 @@ const About = () => {
 				<div className="container-xl px-4">
 					<div className="max-w-4xl mx-auto text-center">
 						<h2 className="text-3xl font-bold mb-4" data-aos="fade-up">
-							Rejoignez la Révolution Agricole
+							{t("about.ctaTitle")}
 						</h2>
 						<p
 							className="text-xl text-primary-100 mb-8"
 							data-aos="fade-up"
 							data-aos-delay="100"
 						>
-							Que vous soyez producteur, transformateur, restaurateur,
-							transporteur ou consommateur, Harvests est votre partenaire de
-							confiance.
+							{t("about.ctaDescription")}
 						</p>
 						<div
 							className="flex flex-wrap justify-center gap-4"
@@ -295,13 +216,13 @@ const About = () => {
 								to="/register"
 								className="bg-white text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
 							>
-								Créer un compte
+								{t("about.ctaRegister")}
 							</Link>
 							<Link
 								to="/contact"
 								className="bg-primary-700 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-800 transition-colors border border-primary-500"
 							>
-								Nous contacter
+								{t("about.ctaContact")}
 							</Link>
 						</div>
 					</div>

@@ -1,8 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import Layout from '../components/layout/Layout';
 
 const Privacy = () => {
-  const lastUpdated = '27 août 2026';
+  const { t } = useTranslation('public');
+  const sections = t('privacy.sections', { returnObjects: true });
 
   return (
     <Layout>
@@ -12,145 +14,61 @@ const Privacy = () => {
             {/* Header */}
             <div className="text-center mb-12">
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Politique de Confidentialité
+                {t('privacy.title')}
               </h1>
               <p className="text-gray-500">
-                Dernière mise à jour : {lastUpdated}
+                {t('privacy.lastUpdatedLabel')} {t('privacy.lastUpdatedDate')}
               </p>
             </div>
 
             {/* Content */}
             <div className="bg-white rounded-2xl shadow-sm p-6 md:p-10 prose prose-gray max-w-none">
+              {sections.map((section) => (
+                <section key={section.title} className="mb-8">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">{section.title}</h2>
+                  {section.intro && (
+                    <p className="text-gray-600 leading-relaxed mb-4">{section.intro}</p>
+                  )}
+                  {section.groups && section.groups.map((group) => (
+                    <React.Fragment key={group.heading}>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">{group.heading}</h3>
+                      <ul className="list-disc list-inside text-gray-600 space-y-1 mb-4 last:mb-0">
+                        {group.items.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </React.Fragment>
+                  ))}
+                  {section.items && (
+                    <ul className="list-disc list-inside text-gray-600 space-y-2">
+                      {section.items.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  )}
+                  {section.leadItems && (
+                    <ul className="list-disc list-inside text-gray-600 space-y-2">
+                      {section.leadItems.map((item) => (
+                        <li key={item.lead}><strong>{item.lead}</strong>{item.text}</li>
+                      ))}
+                    </ul>
+                  )}
+                  {section.text && (
+                    <p className="text-gray-600 leading-relaxed">{section.text}</p>
+                  )}
+                  {section.outro && (
+                    <p className="text-gray-600 leading-relaxed mt-4">{section.outro}</p>
+                  )}
+                </section>
+              ))}
+
               <section className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">1. Introduction</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">{t('privacy.contactTitle')}</h2>
                 <p className="text-gray-600 leading-relaxed">
-                  Chez Harvests, nous accordons une grande importance à la protection de vos données personnelles. Cette politique de confidentialité explique comment nous collectons, utilisons, stockons et protégeons vos informations lorsque vous utilisez notre plateforme.
-                </p>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">2. Données collectées</h2>
-                <p className="text-gray-600 leading-relaxed mb-4">
-                  Nous collectons les types de données suivants :
-                </p>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Données d'identification</h3>
-                <ul className="list-disc list-inside text-gray-600 space-y-1 mb-4">
-                  <li>Nom et prénom</li>
-                  <li>Adresse email</li>
-                  <li>Numéro de téléphone</li>
-                  <li>Adresse postale</li>
-                </ul>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Données de transaction</h3>
-                <ul className="list-disc list-inside text-gray-600 space-y-1 mb-4">
-                  <li>Historique des commandes</li>
-                  <li>Informations de paiement (cryptées)</li>
-                  <li>Adresses de livraison</li>
-                </ul>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Données techniques</h3>
-                <ul className="list-disc list-inside text-gray-600 space-y-1">
-                  <li>Adresse IP</li>
-                  <li>Type de navigateur</li>
-                  <li>Données de navigation (cookies)</li>
-                </ul>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">3. Utilisation des données</h2>
-                <p className="text-gray-600 leading-relaxed mb-4">
-                  Vos données sont utilisées pour :
-                </p>
-                <ul className="list-disc list-inside text-gray-600 space-y-2">
-                  <li>Créer et gérer votre compte utilisateur</li>
-                  <li>Traiter vos commandes et paiements</li>
-                  <li>Assurer la livraison de vos produits</li>
-                  <li>Vous envoyer des notifications sur vos commandes</li>
-                  <li>Améliorer nos services et votre expérience utilisateur</li>
-                  <li>Vous envoyer des communications marketing (avec votre consentement)</li>
-                  <li>Prévenir la fraude et assurer la sécurité</li>
-                </ul>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">4. Partage des données</h2>
-                <p className="text-gray-600 leading-relaxed mb-4">
-                  Nous pouvons partager vos données avec :
-                </p>
-                <ul className="list-disc list-inside text-gray-600 space-y-2">
-                  <li><strong>Les partenaires (producteurs, transformateurs, restaurateurs)</strong> : pour le traitement de vos commandes</li>
-                  <li><strong>Les transporteurs</strong> : pour la livraison de vos produits</li>
-                  <li><strong>Les prestataires de paiement</strong> : pour le traitement sécurisé des transactions</li>
-                  <li><strong>Les autorités légales</strong> : si requis par la loi</li>
-                </ul>
-                <p className="text-gray-600 leading-relaxed mt-4">
-                  Nous ne vendons jamais vos données personnelles à des tiers.
-                </p>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">5. Transferts internationaux</h2>
-                <p className="text-gray-600 leading-relaxed">
-                  Certains de nos prestataires techniques (hébergement de la base de données, stockage des images et documents) traitent des données en dehors du Sénégal. Nous exigeons de ces prestataires un niveau de protection de vos données conforme à nos obligations légales. Si vous êtes situé dans un autre pays d'Afrique de l'Ouest ou Centrale, le droit local de votre pays de résidence peut également s'appliquer en complément.
-                </p>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">6. Sécurité des données</h2>
-                <p className="text-gray-600 leading-relaxed">
-                  Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles pour protéger vos données : chiffrement SSL/TLS, stockage sécurisé, accès restreint aux données, et audits de sécurité réguliers.
-                </p>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">7. Conservation des données</h2>
-                <p className="text-gray-600 leading-relaxed">
-                  Vos données sont conservées pendant la durée de votre utilisation de nos services et pour une période supplémentaire conformément aux obligations légales (généralement 5 ans pour les données de transaction). Vous pouvez demander la suppression de votre compte et de vos données à tout moment.
-                </p>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">8. Cookies</h2>
-                <p className="text-gray-600 leading-relaxed mb-4">
-                  Un bandeau vous permet de choisir, dès votre première visite, les cookies que vous acceptez :
-                </p>
-                <ul className="list-disc list-inside text-gray-600 space-y-2">
-                  <li><strong>Cookies essentiels</strong> : nécessaires au fonctionnement du site (connexion, sécurité, panier). Toujours actifs.</li>
-                  <li><strong>Cookies de performance</strong> : pour analyser l'utilisation du site. Désactivés tant que vous ne les acceptez pas.</li>
-                  <li><strong>Cookies de préférence</strong> : pour mémoriser vos choix (langue, devise).</li>
-                </ul>
-                <p className="text-gray-600 leading-relaxed mt-4">
-                  Vous pouvez revenir sur votre choix à tout moment via le lien « Gérer les cookies » en bas de chaque page.
-                </p>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">9. Vos droits</h2>
-                <p className="text-gray-600 leading-relaxed mb-4">
-                  Conformément à la réglementation applicable, vous disposez des droits suivants :
-                </p>
-                <ul className="list-disc list-inside text-gray-600 space-y-2">
-                  <li><strong>Droit d'accès</strong> : obtenir une copie de vos données</li>
-                  <li><strong>Droit de rectification</strong> : corriger vos données inexactes</li>
-                  <li><strong>Droit à l'effacement</strong> : demander la suppression de vos données</li>
-                  <li><strong>Droit à la portabilité</strong> : recevoir vos données dans un format structuré</li>
-                  <li><strong>Droit d'opposition</strong> : vous opposer au traitement de vos données</li>
-                  <li><strong>Droit de retrait du consentement</strong> : retirer votre consentement à tout moment</li>
-                </ul>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">10. Modifications</h2>
-                <p className="text-gray-600 leading-relaxed">
-                  Nous pouvons mettre à jour cette politique de confidentialité. Toute modification sera publiée sur cette page avec une nouvelle date de mise à jour. Nous vous encourageons à consulter régulièrement cette page.
-                </p>
-              </section>
-
-              <section className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">11. Contact</h2>
-                <p className="text-gray-600 leading-relaxed">
-                  Pour toute question concernant cette politique ou pour exercer vos droits, contactez-nous :<br />
-                  Email : contact@harvests.site<br />
-                  Téléphone : +221 78 834 69 69<br />
-                  Adresse : Dakar, Sénégal
+                  {t('privacy.contactIntro')}<br />
+                  {t('privacy.emailLabel')} contact@harvests.site<br />
+                  {t('privacy.phoneLabel')} +221 78 834 69 69<br />
+                  {t('privacy.addressLabel')} {t('privacy.address')}
                 </p>
               </section>
             </div>
@@ -162,4 +80,3 @@ const Privacy = () => {
 };
 
 export default Privacy;
-

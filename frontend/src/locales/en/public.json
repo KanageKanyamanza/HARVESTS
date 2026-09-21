@@ -306,5 +306,820 @@
 		"draft": "Draft",
 		"rejected": "Rejected",
 		"unavailable": "Unavailable"
+	},
+	"notFound": {
+		"title": "This page took a different harvest route",
+		"description": "The page you are looking for does not exist or has been moved. Get back to safety with the links below.",
+		"back": "Back",
+		"home": "Home",
+		"viewProducts": "View all products"
+	},
+	"faq": {
+		"title": "Frequently Asked Questions",
+		"description": "Quickly find answers to your questions. If you can't find what you're looking for, feel free to contact us.",
+		"notFoundQuestion": "Didn't find the answer to your question?",
+		"contactUs": "Contact us",
+		"sections": [
+			{
+				"category": "General",
+				"questions": [
+					{
+						"q": "What is Harvests?",
+						"a": "Harvests is a digital marketplace that connects African farmers with consumers, restaurateurs and other buyers. We make it easy to buy fresh produce directly from local producers."
+					},
+					{
+						"q": "In which countries is Harvests available?",
+						"a": "Harvests is currently available in Senegal and is gradually expanding to other African countries. Check our website for updates on our expansion."
+					},
+					{
+						"q": "How can I contact support?",
+						"a": "You can reach us by email at contact@harvests.site, by phone at +221 78 834 69 69, or through the contact page on our website."
+					}
+				]
+			},
+			{
+				"category": "Account & Registration",
+				"questions": [
+					{
+						"q": "How do I create an account?",
+						"a": "Click 'Register' at the top of the page, choose your account type (consumer, producer, restaurateur, etc.), fill in the form and verify your email."
+					},
+					{
+						"q": "What account types are available?",
+						"a": "We offer several account types: Consumer (to buy), Producer (to sell agricultural products), Processor (to sell processed products), Restaurateur (to sell dishes), and Transporter (to deliver)."
+					},
+					{
+						"q": "I forgot my password, what should I do?",
+						"a": "Click 'Forgot password' on the login page, enter your email and follow the instructions sent to reset your password."
+					}
+				]
+			},
+			{
+				"category": "Orders & Delivery",
+				"questions": [
+					{
+						"q": "How do I place an order?",
+						"a": "Browse the products, add them to your cart, then proceed to payment. You can choose your delivery method and track your order from your dashboard."
+					},
+					{
+						"q": "What are the delivery fees?",
+						"a": "Delivery fees are calculated based on distance and weight. They are free for any order over 50,000 FCFA (depending on the partner's plan)."
+					},
+					{
+						"q": "What are the delivery times?",
+						"a": "Delivery times vary depending on your location and the producer. In general, allow 1 to 3 days for urban areas. Exact times are shown when you place your order."
+					},
+					{
+						"q": "Can I cancel my order?",
+						"a": "You can cancel your order as long as it has not been shipped. Go to 'My Orders' and click 'Cancel'. Once shipped, contact support."
+					}
+				]
+			},
+			{
+				"category": "Payment",
+				"questions": [
+					{
+						"q": "Which payment methods do you accept?",
+						"a": "We accept Mobile Money payments (Orange Money, Wave, Free Money), bank cards (Visa, Mastercard) and PayPal."
+					},
+					{
+						"q": "Are my payments secure?",
+						"a": "Yes, all payments are secure and encrypted. We use standard security protocols to protect your financial information."
+					},
+					{
+						"q": "How do I get a refund?",
+						"a": "If there is a problem with your order, contact support within 48 hours. After verification, the refund will be issued within 5 to 10 business days."
+					}
+				]
+			},
+			{
+				"category": "Partners",
+				"questions": [
+					{
+						"q": "How do I become a partner on Harvests?",
+						"a": "Create a partner account (producer, processor or restaurateur), complete your profile with your information and required documents, then submit your validation request."
+					},
+					{
+						"q": "What are the fees for partners?",
+						"a": "Harvests takes a commission on each sale. Rates vary depending on the account type and sales volume. See our pricing plans for more details."
+					},
+					{
+						"q": "How do I manage my products?",
+						"a": "From your dashboard, you can add, edit or delete your products, manage your stock and track your orders."
+					}
+				]
+			}
+		]
+	},
+	"terms": {
+		"title": "Terms of Use",
+		"lastUpdatedLabel": "Last updated:",
+		"lastUpdatedDate": "November 26, 2025",
+		"sections": [
+			{
+				"title": "1. Acceptance of the terms",
+				"text": "By accessing and using the Harvests platform, you agree to be bound by these Terms of Use. If you do not accept these terms, please do not use our platform."
+			},
+			{
+				"title": "2. Description of the service",
+				"intro": "Harvests is an online marketplace that connects:",
+				"items": [
+					"Agricultural producers and their products",
+					"Processors and their processed products",
+					"Restaurateurs and their dishes",
+					"Consumers looking for fresh, local products",
+					"Transporters for order delivery"
+				]
+			},
+			{
+				"title": "3. Registration and user account",
+				"intro": "To use certain features of Harvests, you must create an account. You agree to:",
+				"items": [
+					"Provide accurate and complete information when registering",
+					"Keep your login credentials confidential",
+					"Be responsible for all activity carried out under your account",
+					"Inform us immediately of any unauthorized use"
+				]
+			},
+			{
+				"title": "4. Partner obligations",
+				"intro": "Partners (producers, processors, restaurateurs) agree to:",
+				"items": [
+					"Offer products that match their descriptions and images",
+					"Comply with food hygiene and safety standards",
+					"Fulfill orders within the announced timeframes",
+					"Respond to customer complaints professionally",
+					"Hold all necessary legal authorizations"
+				]
+			},
+			{
+				"title": "5. Buyer obligations",
+				"intro": "Buyers agree to:",
+				"items": [
+					"Provide accurate delivery information",
+					"Make payments within the allotted time",
+					"Receive orders at the agreed time slots",
+					"Report any problem within 48 hours of receipt"
+				]
+			},
+			{
+				"title": "6. Payments and commissions",
+				"text": "Harvests takes a commission on each transaction made on the platform. Commission rates are communicated to partners when they register or through their subscription plan. Payments are secured and processed by our approved payment partners (Orange Money, Wave, PayPal, bank cards)."
+			},
+			{
+				"title": "7. Cancellation and refunds",
+				"text": "Cancellation and refund conditions vary depending on the type of product and the timing of the cancellation. In general, an order can be cancelled free of charge as long as it has not been prepared or shipped. Refunds are processed within 5 to 10 business days."
+			},
+			{
+				"title": "8. Intellectual property",
+				"text": "All content on Harvests (logos, texts, images, software) is protected by intellectual property law. Any unauthorized reproduction or use is prohibited."
+			},
+			{
+				"title": "9. Limitation of liability",
+				"text": "Harvests acts as an intermediary between partners and buyers. We are not responsible for the quality of the products sold, for delivery delays attributable to partners or transporters, or for disputes between users."
+			},
+			{
+				"title": "10. Changes to the terms",
+				"text": "Harvests reserves the right to modify these terms at any time. Users will be informed of changes by email or notification on the platform. Continued use of the platform after a change constitutes acceptance of the new terms."
+			}
+		],
+		"contactTitle": "11. Contact",
+		"contactIntro": "For any question about these terms, contact us at:",
+		"emailLabel": "Email:",
+		"phoneLabel": "Phone:"
+	},
+	"privacy": {
+		"title": "Privacy Policy",
+		"lastUpdatedLabel": "Last updated:",
+		"lastUpdatedDate": "August 27, 2026",
+		"sections": [
+			{
+				"title": "1. Introduction",
+				"text": "At Harvests, we place great importance on protecting your personal data. This privacy policy explains how we collect, use, store and protect your information when you use our platform."
+			},
+			{
+				"title": "2. Data collected",
+				"intro": "We collect the following types of data:",
+				"groups": [
+					{
+						"heading": "Identification data",
+						"items": [
+							"First and last name",
+							"Email address",
+							"Phone number",
+							"Postal address"
+						]
+					},
+					{
+						"heading": "Transaction data",
+						"items": [
+							"Order history",
+							"Payment information (encrypted)",
+							"Delivery addresses"
+						]
+					},
+					{
+						"heading": "Technical data",
+						"items": [
+							"IP address",
+							"Browser type",
+							"Browsing data (cookies)"
+						]
+					}
+				]
+			},
+			{
+				"title": "3. Use of data",
+				"intro": "Your data is used to:",
+				"items": [
+					"Create and manage your user account",
+					"Process your orders and payments",
+					"Ensure the delivery of your products",
+					"Send you notifications about your orders",
+					"Improve our services and your user experience",
+					"Send you marketing communications (with your consent)",
+					"Prevent fraud and ensure security"
+				]
+			},
+			{
+				"title": "4. Data sharing",
+				"intro": "We may share your data with:",
+				"leadItems": [
+					{
+						"lead": "Partners (producers, processors, restaurateurs)",
+						"text": ": to process your orders"
+					},
+					{
+						"lead": "Transporters",
+						"text": ": to deliver your products"
+					},
+					{
+						"lead": "Payment providers",
+						"text": ": for secure transaction processing"
+					},
+					{
+						"lead": "Legal authorities",
+						"text": ": if required by law"
+					}
+				],
+				"outro": "We never sell your personal data to third parties."
+			},
+			{
+				"title": "5. International transfers",
+				"text": "Some of our technical providers (database hosting, image and document storage) process data outside Senegal. We require these providers to protect your data at a level consistent with our legal obligations. If you are located in another West or Central African country, the local law of your country of residence may also apply in addition."
+			},
+			{
+				"title": "6. Data security",
+				"text": "We implement technical and organizational security measures to protect your data: SSL/TLS encryption, secure storage, restricted data access, and regular security audits."
+			},
+			{
+				"title": "7. Data retention",
+				"text": "Your data is kept for as long as you use our services and for an additional period in accordance with legal obligations (generally 5 years for transaction data). You may request the deletion of your account and data at any time."
+			},
+			{
+				"title": "8. Cookies",
+				"intro": "A banner lets you choose, from your first visit, which cookies you accept:",
+				"leadItems": [
+					{
+						"lead": "Essential cookies",
+						"text": ": required for the site to work (login, security, cart). Always active."
+					},
+					{
+						"lead": "Performance cookies",
+						"text": ": to analyze how the site is used. Disabled until you accept them."
+					},
+					{
+						"lead": "Preference cookies",
+						"text": ": to remember your choices (language, currency)."
+					}
+				],
+				"outro": "You can change your choice at any time via the \"Manage cookies\" link at the bottom of every page."
+			},
+			{
+				"title": "9. Your rights",
+				"intro": "In accordance with applicable regulations, you have the following rights:",
+				"leadItems": [
+					{
+						"lead": "Right of access",
+						"text": ": obtain a copy of your data"
+					},
+					{
+						"lead": "Right to rectification",
+						"text": ": correct inaccurate data"
+					},
+					{
+						"lead": "Right to erasure",
+						"text": ": request the deletion of your data"
+					},
+					{
+						"lead": "Right to portability",
+						"text": ": receive your data in a structured format"
+					},
+					{
+						"lead": "Right to object",
+						"text": ": object to the processing of your data"
+					},
+					{
+						"lead": "Right to withdraw consent",
+						"text": ": withdraw your consent at any time"
+					}
+				]
+			},
+			{
+				"title": "10. Changes",
+				"text": "We may update this privacy policy. Any change will be published on this page with a new update date. We encourage you to review this page regularly."
+			}
+		],
+		"contactTitle": "11. Contact",
+		"contactIntro": "For any question about this policy or to exercise your rights, contact us:",
+		"emailLabel": "Email:",
+		"phoneLabel": "Phone:",
+		"addressLabel": "Address:",
+		"address": "Dakar, Senegal"
+	},
+	"about": {
+		"heroTitle": "About Harvests",
+		"heroTagline": "The Amazon of African Agricultural Products",
+		"heroDescription": "A modern e-commerce platform connecting producers and consumers across Africa, with multilingual support and local payments.",
+		"missionTitle": "Our Mission",
+		"missionP1": "Harvests' mission is to revolutionize agricultural trade in Africa by building a digital platform that connects producers directly with consumers, eliminating intermediaries and guaranteeing fair prices for everyone.",
+		"missionP2": "We are committed to promoting sustainable agriculture, supporting small producers and making fresh, quality agricultural products accessible to all Africans.",
+		"valuesTitle": "Our Values",
+		"valuesSubtitle": "These core principles guide each of our actions and decisions",
+		"values": [
+			{
+				"title": "Ubuntu",
+				"subtitle": "Humanity, Solidarity",
+				"description": "We believe in the strength of community and mutual support to create a positive impact."
+			},
+			{
+				"title": "Excellence",
+				"subtitle": "",
+				"description": "We strive for excellence in everything we do, offering products and services of the highest quality."
+			},
+			{
+				"title": "Integrity & Transparency",
+				"subtitle": "",
+				"description": "We act with honesty, transparency and ethics in all our relationships and transactions."
+			},
+			{
+				"title": "Pragmatism & Simplicity",
+				"subtitle": "",
+				"description": "We favor simple, practical and effective solutions that meet real needs."
+			},
+			{
+				"title": "Discipline & Structure",
+				"subtitle": "",
+				"description": "We maintain a structured and disciplined approach to ensure quality and consistency."
+			},
+			{
+				"title": "Leadership & Vision",
+				"subtitle": "",
+				"description": "We lead with vision and innovation to transform African agriculture."
+			},
+			{
+				"title": "Justice & Fairness",
+				"subtitle": "",
+				"description": "We promote justice and fairness for every player in the agricultural chain."
+			},
+			{
+				"title": "Responsibility & Impact",
+				"subtitle": "",
+				"description": "We take responsibility and measure our positive impact on communities and the environment."
+			},
+			{
+				"title": "Collaboration & Partnership",
+				"subtitle": "",
+				"description": "We believe in the power of teamwork and strategic partnerships to reach our goals."
+			},
+			{
+				"title": "Innovation & Modernization",
+				"subtitle": "",
+				"description": "We embrace innovation and modernization to continuously improve our services."
+			}
+		],
+		"visionTitle": "Our Vision",
+		"visionP1": "We aspire to become the reference platform for agricultural trade in Africa, connecting millions of producers and consumers across the continent.",
+		"visionP2": "Our vision is to build a thriving digital agricultural ecosystem that values local producers, improves food security and contributes to Africa's sustainable economic development.",
+		"corporateTitle": "Corporate Information",
+		"trademark": "Harvests is a registered trademark of Ubuntu Business Builders SARL.",
+		"ctaTitle": "Join the Agricultural Revolution",
+		"ctaDescription": "Whether you are a producer, processor, restaurateur, transporter or consumer, Harvests is your trusted partner.",
+		"ctaRegister": "Create an account",
+		"ctaContact": "Contact us"
+	},
+	"contact": {
+		"title": "Contact us",
+		"description": "We are here to help. Feel free to contact us with any question, suggestion or request for assistance.",
+		"detailsTitle": "Our contact details",
+		"info": [
+			{
+				"title": "Email",
+				"details": [
+					"contact@harvests.site"
+				],
+				"description": "We usually reply within 24 hours"
+			},
+			{
+				"title": "Phone",
+				"details": [
+					"+221 78 834 69 69"
+				],
+				"description": "Mon-Fri: 8am-6pm, Sat: 9am-1pm"
+			},
+			{
+				"title": "Address",
+				"details": [
+					"Dakar, Senegal"
+				],
+				"description": "Main office"
+			},
+			{
+				"title": "Legal Information",
+				"details": [
+					"UBUNTU BUSINESS BUILDERS (UBB) – SARL",
+					"RCCM : SN.DKR.2026.B.1650",
+					"NINEA : 012753069"
+				],
+				"description": "Official registration"
+			},
+			{
+				"title": "Opening hours",
+				"details": [
+					"Mon-Fri: 8:00am-6:00pm",
+					"Saturday: 9:00am-1:00pm"
+				],
+				"description": "Closed on Sundays"
+			}
+		],
+		"quickFaqTitle": "Frequently asked questions",
+		"quickFaq": [
+			{
+				"q": "How do I create an account?",
+				"a": "Click \"Register\" and choose your account type."
+			},
+			{
+				"q": "How do I sell my products?",
+				"a": "Create a producer account and add your products."
+			},
+			{
+				"q": "How do I order?",
+				"a": "Create a consumer account and add products to your cart."
+			}
+		],
+		"formTitle": "Send us a message",
+		"success": "Your message has been sent successfully! We will reply as soon as possible.",
+		"error": "An error occurred while sending. Please try again.",
+		"nameLabel": "Full name *",
+		"namePlaceholder": "Your full name",
+		"emailLabel": "Email *",
+		"emailPlaceholder": "your@email.com",
+		"typeLabel": "Request type *",
+		"types": {
+			"general": "General question",
+			"support": "Technical support",
+			"partnership": "Partnership",
+			"complaint": "Complaint",
+			"suggestion": "Suggestion"
+		},
+		"subjectLabel": "Subject *",
+		"subjectPlaceholder": "Summary of your request",
+		"messageLabel": "Message *",
+		"messagePlaceholder": "Describe your request in detail...",
+		"requiredFields": "* Required fields",
+		"sending": "Sending...",
+		"send": "Send message",
+		"communityTitle": "Join our community",
+		"communityDescription": "Follow us on social media to stay up to date with the latest news"
+	},
+	"pricing": {
+		"badge": "Plans & Transparency",
+		"heroTitle": "Plans tailored to your Harvests",
+		"heroDescription": "Whether you are an independent producer or a structured cooperative, choose the plan that fits your volume and grow your direct sales.",
+		"billingMonthly": "Monthly Billing",
+		"billingAnnual": "Annual Billing",
+		"saveAnnual": "Save 25%",
+		"popularRibbon": "Most popular plan",
+		"perMonth": "/ month",
+		"billedAnnually": "Billed {{amount}} FCFA / year",
+		"subscribeNow": "Subscribe now",
+		"includedTitle": "Included in this plan:",
+		"plans": {
+			"gratuit": {
+				"name": "Discovery",
+				"badge": "Free",
+				"subtitle": "To get started with no commitment",
+				"description": "Ideal for individual farmers who want to test the visibility of their products on the marketplace.",
+				"cta": "Start for free",
+				"features": [
+					"Certified partner profile creation",
+					"Up to 5 products online",
+					"5 orders received per week",
+					"Direct messaging with buyers",
+					"Basic WhatsApp assistance",
+					"Customized shop page",
+					"Verified Producer badge",
+					"Featured on the home page",
+					"B2B & Export network access",
+					"Advanced sales statistics"
+				]
+			},
+			"standard": {
+				"name": "Professional",
+				"badge": "Standard",
+				"subtitle": "For small producers & cooperatives",
+				"description": "Grow your local customer base and increase your order volume with a certified profile.",
+				"cta": "Choose the Standard plan",
+				"features": [
+					"Up to 15 products online",
+					"15 orders received per week",
+					"Customized shop page & logo",
+					"Official \"Verified Producer\" badge",
+					"Featured in categories",
+					"Basic view statistics",
+					"Priority WhatsApp support 7 days a week",
+					"Unlimited products & orders",
+					"Featured on the home page",
+					"B2B & Export network access"
+				]
+			},
+			"premium": {
+				"name": "Export & Growth",
+				"badge": "Recommended",
+				"subtitle": "For cooperatives & processors",
+				"description": "Unlimited volume, priority visibility on the home page and direct connection with B2B buyers and exporters.",
+				"cta": "Activate the Premium plan",
+				"features": [
+					"Unlimited products online",
+					"Unlimited weekly orders",
+					"Trust badge & Quality Label",
+					"Featured on the home page",
+					"B2B, Hotels & Export networking",
+					"Advanced sales statistics",
+					"Custom shop URL",
+					"Access to trade shows & campaigns",
+					"Dedicated VIP support (WhatsApp & Phone)"
+				]
+			}
+		},
+		"comparisonTitle": "Detailed feature comparison",
+		"colFeature": "Features",
+		"colFree": "Discovery (Free)",
+		"colStandard": "Standard (3,000 FCFA)",
+		"colPremium": "Premium (10,000 FCFA)",
+		"comparison": [
+			{
+				"feature": "Publishable products",
+				"gratuit": "5 max",
+				"standard": "15 max",
+				"premium": "Unlimited"
+			},
+			{
+				"feature": "Weekly orders",
+				"gratuit": "5 max",
+				"standard": "15 max",
+				"premium": "Unlimited"
+			},
+			{
+				"feature": "Shop page",
+				"gratuit": "Basic",
+				"standard": "Customized",
+				"premium": "Dedicated URL + Gallery"
+			},
+			{
+				"feature": "Trust badge",
+				"gratuit": "No",
+				"standard": "Yes (Verified)",
+				"premium": "Yes + Premium Label"
+			},
+			{
+				"feature": "Visibility boost",
+				"gratuit": "No",
+				"standard": "Categories",
+				"premium": "Home Page + Social"
+			},
+			{
+				"feature": "B2B Network access",
+				"gratuit": "Limited",
+				"standard": "Medium",
+				"premium": "Priority Access"
+			},
+			{
+				"feature": "Sales statistics",
+				"gratuit": "No",
+				"standard": "Basic",
+				"premium": "Full dashboard"
+			},
+			{
+				"feature": "Customer support",
+				"gratuit": "Standard",
+				"standard": "Priority WhatsApp",
+				"premium": "Dedicated VIP Support"
+			}
+		],
+		"profilesTitle": "Which plan is right for you?",
+		"recommended": "Recommended: {{plan}}",
+		"profiles": [
+			{
+				"title": "Individual producer",
+				"plan": "Free or Standard",
+				"desc": "Try the app or sell your local harvests without high fees."
+			},
+			{
+				"title": "Agricultural cooperative",
+				"plan": "Standard or Premium",
+				"desc": "Pool your members' harvests and benefit from a visual shop."
+			},
+			{
+				"title": "Agro-processor",
+				"plan": "Premium",
+				"desc": "Showcase your processed products with the certification badge."
+			},
+			{
+				"title": "Exporter & Wholesaler",
+				"plan": "Premium Pro",
+				"desc": "Get priority access to the full catalog of producers across the continent."
+			}
+		],
+		"ctaTitle": "Ready to speed up sales of your products?",
+		"ctaDescription": "Join thousands of producers and buyers connected across the continent on Harvests.",
+		"ctaViewSubscriptions": "View my subscriptions",
+		"ctaCreateAccount": "Create my partner account"
+	},
+	"investors": {
+		"badge": "Invest Space",
+		"heroTitle": "Invest in the future of African agriculture",
+		"heroDescription": "Harvests connects producers, processors and buyers on a single platform. Contact us to receive our pitch deck and discuss investment opportunities.",
+		"defaultSubject": "Pitch deck request",
+		"defaultMessage": "Hello,\n\nI would like to receive the Harvests pitch deck and any additional information for a possible follow-up.\n\nBest regards,",
+		"mailSubject": "Harvests pitch deck request",
+		"highlights": [
+			{
+				"title": "Growing market",
+				"description": "African agritech connects producers and buyers in a market that is still largely informal."
+			},
+			{
+				"title": "Multi-stakeholder ecosystem",
+				"description": "Producers, processors, restaurateurs, transporters and exporters brought together on a single platform."
+			},
+			{
+				"title": "Local roots, continental ambition",
+				"description": "Launched in Senegal, designed from the start to expand across the entire African continent."
+			},
+			{
+				"title": "Measurable impact",
+				"description": "Fewer intermediaries, better income for producers, traceability from harvest to sale."
+			}
+		],
+		"emailLabel": "Email",
+		"phoneLabel": "Phone",
+		"addressLabel": "Address",
+		"address": "Dakar, Senegal",
+		"receiveTitle": "Receive the pitch deck",
+		"receiveDescription": "Contact the founding team directly, or use the form alongside.",
+		"formTitle": "Request the pitch deck",
+		"success": "Your request has been sent. Our team will get back to you with the pitch deck as soon as possible.",
+		"error": "An error occurred while sending. You can also write to us directly at contact@harvests.site.",
+		"nameLabel": "Full name *",
+		"namePlaceholder": "Your full name",
+		"emailFieldLabel": "Email *",
+		"emailPlaceholder": "your@email.com",
+		"subjectLabel": "Subject *",
+		"messageLabel": "Message *",
+		"requiredFields": "* Required fields",
+		"sending": "Sending...",
+		"send": "Send request"
+	},
+	"loyalty": {
+		"badge": "Rewards & Loyalty",
+		"heroTitle": "Harvests Loyalty Program",
+		"heroDescription": "Earn points on every purchase and unlock exclusive benefits, from the producer to your table.",
+		"viewMyProgram": "View My Program",
+		"joinNow": "Join Now",
+		"howTitle": "How does it work?",
+		"howSubtitle": "A simple and transparent program to reward your loyalty",
+		"steps": [
+			{
+				"title": "Shop",
+				"description": "Shop as usual on our platform"
+			},
+			{
+				"title": "Earn Points",
+				"description": "Receive points for every purchase (1 point = 100 XAF)"
+			},
+			{
+				"title": "Level Up",
+				"description": "The more points you earn, the higher your level"
+			},
+			{
+				"title": "Enjoy the Benefits",
+				"description": "Use your points and enjoy exclusive benefits"
+			}
+		],
+		"tiersTitle": "Loyalty Tiers",
+		"tiersSubtitle": "Progress through the tiers and unlock ever more attractive benefits",
+		"pointsSuffix": "points",
+		"benefitsLabel": "Benefits:",
+		"tiers": [
+			{
+				"benefits": [
+					"1 point for every 100 XAF spent",
+					"Exclusive discounts",
+					"Access to flash sales",
+					"Monthly newsletter"
+				]
+			},
+			{
+				"benefits": [
+					"1 point for every 100 XAF spent",
+					"All Bronze benefits",
+					"Free delivery on orders > 10,000 XAF",
+					"Priority access to new products",
+					"Birthday gift"
+				]
+			},
+			{
+				"benefits": [
+					"1.5 points for every 100 XAF spent",
+					"All Silver benefits",
+					"Unlimited free delivery",
+					"Exclusive quarterly gifts",
+					"Free returns",
+					"Priority customer service"
+				]
+			},
+			{
+				"benefits": [
+					"2 points for every 100 XAF spent",
+					"All Gold benefits",
+					"24/7 VIP support",
+					"Access to exclusive events",
+					"Free consultation with producers",
+					"Order customization",
+					"Premium monthly gifts"
+				]
+			}
+		],
+		"whyTitle": "Why join our program?",
+		"why": [
+			{
+				"title": "Instant Rewards",
+				"desc": "Your points are credited immediately after each purchase"
+			},
+			{
+				"title": "Clear Progress",
+				"desc": "Easily track your progress and points in your dashboard"
+			},
+			{
+				"title": "Exclusive Benefits",
+				"desc": "Access offers and products reserved for loyal members"
+			},
+			{
+				"title": "No Fees",
+				"desc": "Program membership is free and automatic"
+			}
+		],
+		"examplesTitle": "Rewards example",
+		"examplePurchase": "Purchase of 50,000 XAF",
+		"exampleBronze": "Bronze tier: +500 points",
+		"examplePlatinum": "Platinum tier: +1,000 points",
+		"exampleSavings": "Possible savings",
+		"exampleSavings1": "500 points = 500 XAF discount",
+		"exampleSavings2": "1,000 points = 1,000 XAF discount",
+		"exampleBonus": "Platinum member bonus",
+		"exampleBonus1": "Unlimited free delivery",
+		"exampleBonus2": "Premium monthly gifts",
+		"faqTitle": "Frequently Asked Questions",
+		"faq": [
+			{
+				"question": "How do I earn points?",
+				"answer": "You automatically earn points on every purchase. The number of points depends on your tier: Bronze and Silver (1 pt/100 XAF), Gold (1.5 pts/100 XAF), Platinum (2 pts/100 XAF)."
+			},
+			{
+				"question": "How do I use my points?",
+				"answer": "At checkout, you can choose to use your points. Each point is worth 1 XAF off your order. You decide how many points to use."
+			},
+			{
+				"question": "Do points expire?",
+				"answer": "Points are valid for 12 months from the date they are earned. You will receive an email notification 30 days before they expire."
+			},
+			{
+				"question": "How do I move up a tier?",
+				"answer": "Your tier is automatically updated based on your current points balance: Bronze (0-999), Silver (1000-4999), Gold (5000-9999), Platinum (10000+)."
+			},
+			{
+				"question": "Can I lose my tier?",
+				"answer": "Your tier depends on your current points balance. If you use a lot of points and your balance drops below the threshold, your tier may change."
+			},
+			{
+				"question": "Is there a fee to join?",
+				"answer": "No, the loyalty program is completely free. You are automatically enrolled with your first order as a Bronze member."
+			}
+		],
+		"ctaTitle": "Ready to get started?",
+		"ctaDescription": "Join thousands of members already enjoying the Harvests loyalty program",
+		"ctaAccess": "Go to My Loyalty Program",
+		"ctaCreate": "Create an Account",
+		"ctaLogin": "Log In"
 	}
 }

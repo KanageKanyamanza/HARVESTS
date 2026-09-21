@@ -1,13 +1,15 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from './useAuth';
 
 /**
  * Hook personnalisé pour gérer les types d'utilisateurs et leurs propriétés
  */
 export const useUserType = () => {
-  const { 
-    user, 
-    userType, 
+  const { i18n, t } = useTranslation('navigation');
+  const {
+    user,
+    userType,
     isProducer, 
     isConsumer, 
     isTransformer, 
@@ -257,7 +259,9 @@ export const useUserType = () => {
     isProfileComplete: isProfileComplete(),
     
     // Données enrichies
-    displayLabel: userTypeInfo?.label || 'Utilisateur',
+    displayLabel:
+      (i18n.language === 'en' ? userTypeInfo?.labelEn : userTypeInfo?.label) ||
+      t('sidebar.defaultUserName', 'Utilisateur'),
     displayIcon: userTypeInfo?.icon || '👤',
     dashboardRoute: userTypeInfo?.dashboardRoute || '/dashboard'
   };

@@ -43,7 +43,7 @@ import { FaChartBar } from "react-icons/fa";
  * @param {Object} icons - Les icônes à utiliser
  * @returns {Array} - La navigation pour ce type d'utilisateur
  */
-export const generateUserNavigation = (user, icons = {}) => {
+export const generateUserNavigation = (user, icons = {}, t = (key, fallback) => fallback) => {
 	const {
 		Package = "Package",
 		MessageCircle = "MessageCircle",
@@ -53,17 +53,17 @@ export const generateUserNavigation = (user, icons = {}) => {
 	} = icons;
 
 	const baseNavigation = [
-		{ name: "Tableau de bord", href: getDashboardRoute(user), icon: Package },
-		{ name: "Commandes", href: getOrdersRoute(user), icon: Package },
-		{ name: "Messages", href: getMessagesRoute(user), icon: MessageCircle },
-		{ name: "Profil", href: getProfileRoute(user), icon: User },
-		{ name: "Paramètres", href: getSettingsRoute(user), icon: Settings },
+		{ name: t("dashboard", "Tableau de bord"), href: getDashboardRoute(user), icon: Package },
+		{ name: t("orders", "Commandes"), href: getOrdersRoute(user), icon: Package },
+		{ id: "messages", name: t("messages", "Messages"), href: getMessagesRoute(user), icon: MessageCircle },
+		{ name: t("profile", "Profil"), href: getProfileRoute(user), icon: User },
+		{ name: t("settings", "Paramètres"), href: getSettingsRoute(user), icon: Settings },
 	];
 
 	// Ajouter le lien admin si l'utilisateur est admin
 	if (user?.role === "admin") {
 		baseNavigation.unshift({
-			name: "Administration",
+			name: t("admin", "Administration"),
 			href: "/admin",
 			icon: Shield,
 		});
@@ -78,7 +78,7 @@ export const generateUserNavigation = (user, icons = {}) => {
  * @param {Object} icons - Les icônes à utiliser
  * @returns {Array} - La navigation sidebar pour ce type d'utilisateur
  */
-export const generateSidebarNavigation = (user, icons = {}) => {
+export const generateSidebarNavigation = (user, icons = {}, t = (key, fallback) => fallback) => {
 	const {
 		FiHome: HomeIcon = FiHome,
 		FiUser: UserIcon = FiUser,
@@ -111,244 +111,244 @@ export const generateSidebarNavigation = (user, icons = {}) => {
 	if (user?.userType === "consumer") {
 		return [
 			{
-				name: "Tableau de bord",
+				name: t("dashboard", "Tableau de bord"),
 				href: getDashboardRoute(user),
 				icon: HomeIcon,
 			},
 			{
-				name: "Messages",
+				id: "messages", name: t("messages", "Messages"),
 				href: getMessagesRoute(user),
 				icon: FiMessageCircle,
 			},
-			{ name: "Panier", href: "/consumer/cart", icon: ShoppingCartIcon },
-			{ name: "Mes favoris", href: "/consumer/favorites", icon: HeartIcon },
+			{ name: t("cart", "Panier"), href: "/consumer/cart", icon: ShoppingCartIcon },
+			{ name: t("sidebar.myFavorites", "Mes favoris"), href: "/consumer/favorites", icon: HeartIcon },
 			{
-				name: "Mes commandes",
+				name: t("sidebar.myOrders", "Mes commandes"),
 				href: "/consumer/orders",
 				icon: ShoppingBagIcon,
 			},
-			{ name: "Mes avis", href: "/consumer/reviews", icon: StarIcon },
+			{ name: t("sidebar.myReviews", "Mes avis"), href: "/consumer/reviews", icon: StarIcon },
 			{
-				name: "Statistiques",
+				name: t("sidebar.statistics", "Statistiques"),
 				href: "/consumer/statistics",
 				icon: TrendingUpIcon,
 			},
 			{
-				name: "Notifications",
+				name: t("notifications", "Notifications"),
 				href: getNotificationsRoute(user),
 				icon: BellIcon,
 			},
-			{ name: "Profil", href: getProfileRoute(user), icon: UserIcon },
-			{ name: "Paramètres", href: getSettingsRoute(user), icon: SettingsIcon },
+			{ name: t("profile", "Profil"), href: getProfileRoute(user), icon: UserIcon },
+			{ name: t("settings", "Paramètres"), href: getSettingsRoute(user), icon: SettingsIcon },
 		];
 	}
 
 	if (user?.userType === "explorer") {
 		return [
 			{
-				name: "Tableau de bord",
+				name: t("dashboard", "Tableau de bord"),
 				href: getDashboardRoute(user),
 				icon: HomeIcon,
 			},
 			{
-				name: "Messages",
+				id: "messages", name: t("messages", "Messages"),
 				href: getMessagesRoute(user),
 				icon: FiMessageCircle,
 			},
-			{ name: "Explorer", href: "/explorer/discover", icon: FiCompass },
-			{ name: "Mes favoris", href: "/explorer/favorites", icon: HeartIcon },
+			{ name: t("sidebar.explore", "Explorer"), href: "/explorer/discover", icon: FiCompass },
+			{ name: t("sidebar.myFavorites", "Mes favoris"), href: "/explorer/favorites", icon: HeartIcon },
 			{
-				name: "Mes commandes",
+				name: t("sidebar.myOrders", "Mes commandes"),
 				href: "/explorer/orders",
 				icon: ShoppingBagIcon,
 			},
-			{ name: "Mes avis", href: "/explorer/reviews", icon: StarIcon },
+			{ name: t("sidebar.myReviews", "Mes avis"), href: "/explorer/reviews", icon: StarIcon },
 			{
-				name: "Statistiques",
+				name: t("sidebar.statistics", "Statistiques"),
 				href: "/explorer/statistics",
 				icon: TrendingUpIcon,
 			},
 			{
-				name: "Notifications",
+				name: t("notifications", "Notifications"),
 				href: getNotificationsRoute(user),
 				icon: BellIcon,
 			},
-			{ name: "Profil", href: getProfileRoute(user), icon: UserIcon },
-			{ name: "Paramètres", href: getSettingsRoute(user), icon: SettingsIcon },
+			{ name: t("profile", "Profil"), href: getProfileRoute(user), icon: UserIcon },
+			{ name: t("settings", "Paramètres"), href: getSettingsRoute(user), icon: SettingsIcon },
 		];
 	}
 
 	if (user?.userType === "producer") {
 		return [
 			{
-				name: "Tableau de bord",
+				name: t("dashboard", "Tableau de bord"),
 				href: getDashboardRoute(user),
 				icon: HomeIcon,
 			},
 			{
-				name: "Messages",
+				id: "messages", name: t("messages", "Messages"),
 				href: getMessagesRoute(user),
 				icon: FiMessageCircle,
 			},
-			{ name: "Mes produits", href: getProductsRoute(user), icon: PackageIcon },
+			{ name: t("sidebar.myProducts", "Mes Produits"), href: getProductsRoute(user), icon: PackageIcon },
 			{
-				name: "Ajouter produit",
+				name: t("sidebar.addProduct", "Ajouter produit"),
 				href: getAddProductRoute(user),
 				icon: PlusIcon,
 			},
-			{ name: "Commandes", href: getOrdersRoute(user), icon: ShoppingBagIcon },
-			{ name: "Avis reçus", href: "/producer/reviews", icon: StarIcon },
+			{ name: t("orders", "Commandes"), href: getOrdersRoute(user), icon: ShoppingBagIcon },
+			{ name: t("sidebar.reviewsReceived", "Avis reçus"), href: "/producer/reviews", icon: StarIcon },
 			{
-				name: "Conseils agricoles",
+				name: t("sidebar.cropAdvice", "Conseils agricoles"),
 				href: "/producer/crop-advice",
 				icon: FiSun,
 			},
-			{ name: "Statistiques", href: "/producer/stats", icon: ChartBarIcon },
+			{ name: t("sidebar.statistics", "Statistiques"), href: "/producer/stats", icon: ChartBarIcon },
 			{
-				name: "Notifications",
+				name: t("notifications", "Notifications"),
 				href: getNotificationsRoute(user),
 				icon: BellIcon,
 			},
-			{ name: "Documents", href: "/producer/documents", icon: FileTextIcon },
-			{ name: "Profil", href: getProfileRoute(user), icon: UserIcon },
-			{ name: "Paramètres", href: getSettingsRoute(user), icon: SettingsIcon },
+			{ name: t("sidebar.documents", "Documents"), href: "/producer/documents", icon: FileTextIcon },
+			{ name: t("profile", "Profil"), href: getProfileRoute(user), icon: UserIcon },
+			{ name: t("settings", "Paramètres"), href: getSettingsRoute(user), icon: SettingsIcon },
 		];
 	}
 
 	if (user?.userType === "transformer") {
 		return [
 			{
-				name: "Tableau de bord",
+				name: t("dashboard", "Tableau de bord"),
 				href: getDashboardRoute(user),
 				icon: HomeIcon,
 			},
 			{
-				name: "Messages",
+				id: "messages", name: t("messages", "Messages"),
 				href: getMessagesRoute(user),
 				icon: FiMessageCircle,
 			},
-			{ name: "Commandes", href: getOrdersRoute(user), icon: ShoppingBagIcon },
-			{ name: "Mes Produits", href: getProductsRoute(user), icon: PackageIcon },
-			{ name: "Avis reçus", href: "/transformer/reviews", icon: StarIcon },
-			{ name: "Statistiques", href: "/transformer/stats", icon: ChartBarIcon },
+			{ name: t("orders", "Commandes"), href: getOrdersRoute(user), icon: ShoppingBagIcon },
+			{ name: t("sidebar.myProducts", "Mes Produits"), href: getProductsRoute(user), icon: PackageIcon },
+			{ name: t("sidebar.reviewsReceived", "Avis reçus"), href: "/transformer/reviews", icon: StarIcon },
+			{ name: t("sidebar.statistics", "Statistiques"), href: "/transformer/stats", icon: ChartBarIcon },
 			{
-				name: "Notifications",
+				name: t("notifications", "Notifications"),
 				href: getNotificationsRoute(user),
 				icon: BellIcon,
 			},
-			{ name: "Documents", href: "/transformer/documents", icon: FileTextIcon },
-			{ name: "Profil", href: getProfileRoute(user), icon: UserIcon },
-			{ name: "Paramètres", href: getSettingsRoute(user), icon: SettingsIcon },
+			{ name: t("sidebar.documents", "Documents"), href: "/transformer/documents", icon: FileTextIcon },
+			{ name: t("profile", "Profil"), href: getProfileRoute(user), icon: UserIcon },
+			{ name: t("settings", "Paramètres"), href: getSettingsRoute(user), icon: SettingsIcon },
 		];
 	}
 
 	if (user?.userType === "restaurateur") {
 		return [
 			{
-				name: "Tableau de bord",
+				name: t("dashboard", "Tableau de bord"),
 				href: getDashboardRoute(user),
 				icon: HomeIcon,
 			},
 			{
-				name: "Messages",
+				id: "messages", name: t("messages", "Messages"),
 				href: getMessagesRoute(user),
 				icon: FiMessageCircle,
 			},
 			{
-				name: "Mon panier",
+				name: t("sidebar.myCart", "Mon panier"),
 				href: "/restaurateur/cart",
 				icon: ShoppingCartIcon,
 			},
 			{
-				name: "Mes commandes",
+				name: t("sidebar.myOrders", "Mes commandes"),
 				href: getOrdersRoute(user),
 				icon: ShoppingBagIcon,
 			},
-			{ name: "Mes plats", href: getProductsRoute(user), icon: PackageIcon },
-			{ name: "Avis reçus", href: "/restaurateur/reviews", icon: StarIcon },
-			{ name: "Statistiques", href: "/restaurateur/stats", icon: ChartBarIcon },
+			{ name: t("sidebar.myDishes", "Mes plats"), href: getProductsRoute(user), icon: PackageIcon },
+			{ name: t("sidebar.reviewsReceived", "Avis reçus"), href: "/restaurateur/reviews", icon: StarIcon },
+			{ name: t("sidebar.statistics", "Statistiques"), href: "/restaurateur/stats", icon: ChartBarIcon },
 			{
-				name: "Notifications",
+				name: t("notifications", "Notifications"),
 				href: getNotificationsRoute(user),
 				icon: BellIcon,
 			},
 			{
-				name: "Documents",
+				name: t("sidebar.documents", "Documents"),
 				href: "/restaurateur/documents",
 				icon: FileTextIcon,
 			},
-			{ name: "Profil", href: getProfileRoute(user), icon: UserIcon },
-			{ name: "Paramètres", href: getSettingsRoute(user), icon: SettingsIcon },
+			{ name: t("profile", "Profil"), href: getProfileRoute(user), icon: UserIcon },
+			{ name: t("settings", "Paramètres"), href: getSettingsRoute(user), icon: SettingsIcon },
 		];
 	}
 
 	if (user?.userType === "exporter") {
 		return [
 			{
-				name: "Tableau de bord",
+				name: t("dashboard", "Tableau de bord"),
 				href: getDashboardRoute(user),
 				icon: HomeIcon,
 			},
 			{
-				name: "Messages",
+				id: "messages", name: t("messages", "Messages"),
 				href: getMessagesRoute(user),
 				icon: FiMessageCircle,
 			},
 			{
-				name: "Commandes d'export",
+				name: t("sidebar.exportOrders", "Commandes d'export"),
 				href: getOrdersRoute(user),
 				icon: ShoppingBagIcon,
 			},
-			{ name: "Ma flotte", href: "/exporter/fleet", icon: TruckIcon },
+			{ name: t("sidebar.myFleet", "Ma flotte"), href: "/exporter/fleet", icon: TruckIcon },
 			{
-				name: "Statistiques",
+				name: t("sidebar.statistics", "Statistiques"),
 				href: "/exporter/statistics",
 				icon: ChartBarIcon,
 			},
 			{
-				name: "Notifications",
+				name: t("notifications", "Notifications"),
 				href: getNotificationsRoute(user),
 				icon: BellIcon,
 			},
-			{ name: "Documents", href: "/exporter/documents", icon: FileTextIcon },
-			{ name: "Profil", href: getProfileRoute(user), icon: UserIcon },
-			{ name: "Paramètres", href: getSettingsRoute(user), icon: SettingsIcon },
+			{ name: t("sidebar.documents", "Documents"), href: "/exporter/documents", icon: FileTextIcon },
+			{ name: t("profile", "Profil"), href: getProfileRoute(user), icon: UserIcon },
+			{ name: t("settings", "Paramètres"), href: getSettingsRoute(user), icon: SettingsIcon },
 		];
 	}
 
 	if (user?.userType === "transporter") {
 		return [
 			{
-				name: "Tableau de bord",
+				name: t("dashboard", "Tableau de bord"),
 				href: getDashboardRoute(user),
 				icon: HomeIcon,
 			},
 			{
-				name: "Messages",
+				id: "messages", name: t("messages", "Messages"),
 				href: getMessagesRoute(user),
 				icon: FiMessageCircle,
 			},
-			{ name: "Commandes", href: getOrdersRoute(user), icon: ShoppingBagIcon },
-			{ name: "Ma flotte", href: getProductsRoute(user), icon: PackageIcon },
+			{ name: t("orders", "Commandes"), href: getOrdersRoute(user), icon: ShoppingBagIcon },
+			{ name: t("sidebar.myFleet", "Ma flotte"), href: getProductsRoute(user), icon: PackageIcon },
 			{
-				name: "Statistiques",
+				name: t("sidebar.statistics", "Statistiques"),
 				href: "/transporter/statistics",
 				icon: ChartBarIcon,
 			},
 			{
-				name: "Notifications",
+				name: t("notifications", "Notifications"),
 				href: getNotificationsRoute(user),
 				icon: BellIcon,
 			},
-			{ name: "Documents", href: "/transporter/documents", icon: FileTextIcon },
-			{ name: "Profil", href: getProfileRoute(user), icon: UserIcon },
-			{ name: "Paramètres", href: getSettingsRoute(user), icon: SettingsIcon },
+			{ name: t("sidebar.documents", "Documents"), href: "/transporter/documents", icon: FileTextIcon },
+			{ name: t("profile", "Profil"), href: getProfileRoute(user), icon: UserIcon },
+			{ name: t("settings", "Paramètres"), href: getSettingsRoute(user), icon: SettingsIcon },
 		];
 	}
 
 	return [
-		{ name: "Tableau de bord", href: getDashboardRoute(user), icon: HomeIcon },
-		{ name: "Messages", href: getMessagesRoute(user), icon: FiMessageCircle },
+		{ name: t("dashboard", "Tableau de bord"), href: getDashboardRoute(user), icon: HomeIcon },
+		{ id: "messages", name: t("messages", "Messages"), href: getMessagesRoute(user), icon: FiMessageCircle },
 	];
 };
 

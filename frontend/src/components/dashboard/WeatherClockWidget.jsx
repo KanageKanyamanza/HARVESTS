@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
 	Sun,
 	Cloud,
@@ -15,24 +16,30 @@ import {
 const DEFAULT_COORDS = { latitude: 14.6928, longitude: -17.4467 };
 const DEFAULT_CITY = "Dakar";
 
-// Mappe les codes météo WMO (Open-Meteo) vers icône + libellé FR
+// Mappe les codes météo WMO (Open-Meteo) vers icône + clé de libellé i18n
 const getWeatherInfo = (code) => {
-	if (code === 0) return { label: "Ciel dégagé", Icon: Sun, color: "text-amber-500" };
-	if ([1, 2].includes(code)) return { label: "Peu nuageux", Icon: Sun, color: "text-amber-400" };
-	if (code === 3) return { label: "Nuageux", Icon: Cloud, color: "text-gray-400" };
-	if ([45, 48].includes(code)) return { label: "Brumeux", Icon: CloudFog, color: "text-gray-400" };
-	if ([51, 53, 55, 56, 57].includes(code)) return { label: "Bruine", Icon: CloudDrizzle, color: "text-sky-500" };
-	if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return { label: "Pluie", Icon: CloudRain, color: "text-sky-600" };
-	if ([71, 73, 75, 77, 85, 86].includes(code)) return { label: "Neige", Icon: CloudSnow, color: "text-sky-300" };
-	if ([95, 96, 99].includes(code)) return { label: "Orage", Icon: CloudLightning, color: "text-purple-500" };
-	return { label: "Ensoleillé", Icon: Sun, color: "text-amber-500" };
+	if (code === 0) return { labelKey: "clearSky", Icon: Sun, color: "text-amber-500" };
+	if ([1, 2].includes(code)) return { labelKey: "mostlyClear", Icon: Sun, color: "text-amber-400" };
+	if (code === 3) return { labelKey: "cloudy", Icon: Cloud, color: "text-gray-400" };
+	if ([45, 48].includes(code)) return { labelKey: "foggy", Icon: CloudFog, color: "text-gray-400" };
+	if ([51, 53, 55, 56, 57].includes(code)) return { labelKey: "drizzle", Icon: CloudDrizzle, color: "text-sky-500" };
+	if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return { labelKey: "rain", Icon: CloudRain, color: "text-sky-600" };
+	if ([71, 73, 75, 77, 85, 86].includes(code)) return { labelKey: "snow", Icon: CloudSnow, color: "text-sky-300" };
+	if ([95, 96, 99].includes(code)) return { labelKey: "thunderstorm", Icon: CloudLightning, color: "text-purple-500" };
+	return { labelKey: "sunny", Icon: Sun, color: "text-amber-500" };
 };
 
 const WeatherClockWidget = ({ city }) => {
+	const { t, i18n } = useTranslation("navigation");
 	const [now, setNow] = useState(new Date());
 	const [weather, setWeather] = useState(null);
 	const [weatherError, setWeatherError] = useState(false);
-	const [locationLabel, setLocationLabel] = useState(city || DEFAULT_CITY);
+	// true seulement quand la géolocalisation navigateur a résolu une position
+	// sans nom de ville fourni en prop — permet de calculer le libellé au
+	// rendu (donc réactif à un changement de langue) plutôt que de figer une
+	// chaîne traduite dans le state au moment de la résolution.
+	const [usingGeolocation, setUsingGeolocation] = useState(false);
+	const locationLabel = city || (usingGeolocation ? t("topbar.yourLocation", "Votre position") : DEFAULT_CITY);
 
 	// Horloge en direct
 	useEffect(() => {
@@ -64,25 +71,19 @@ const WeatherClockWidget = ({ city }) => {
 			}
 		};
 
-		if (city) {
-			setLocationLabel(city);
-		}
-
 		if (navigator.geolocation) {
 			navigator.geolocation.getCurrentPosition(
 				(pos) => {
 					fetchWeather(pos.coords.latitude, pos.coords.longitude);
-					if (!city) setLocationLabel("Votre position");
+					if (!city) setUsingGeolocation(true);
 				},
 				() => {
 					fetchWeather(DEFAULT_COORDS.latitude, DEFAULT_COORDS.longitude);
-					if (!city) setLocationLabel(DEFAULT_CITY);
 				},
 				{ timeout: 6000, maximumAge: 15 * 60 * 1000 }
 			);
 		} else {
 			fetchWeather(DEFAULT_COORDS.latitude, DEFAULT_COORDS.longitude);
-			if (!city) setLocationLabel(DEFAULT_CITY);
 		}
 
 		return () => {
@@ -90,19 +91,21 @@ const WeatherClockWidget = ({ city }) => {
 		};
 	}, [city]);
 
-	const timeLabel = now.toLocaleTimeString("fr-FR", {
+	const dateLocale = i18n.language === "en" ? "en-US" : "fr-FR";
+	const timeLabel = now.toLocaleTimeString(dateLocale, {
 		hour: "2-digit",
 		minute: "2-digit",
 	});
-	const dateLabel = now.toLocaleDateString("fr-FR", {
+	const dateLabel = now.toLocaleDateString(dateLocale, {
 		weekday: "short",
 		day: "numeric",
 		month: "short",
 	});
 
-	const { Icon, color, label } = weather
+	const { Icon, color, labelKey } = weather
 		? getWeatherInfo(weather.code)
-		: { Icon: Sun, color: "text-gray-300", label: "" };
+		: { Icon: Sun, color: "text-gray-300", labelKey: null };
+	const label = labelKey ? t(`topbar.weather.${labelKey}`) : "";
 
 	return (
 		<>
@@ -140,9 +143,9 @@ const WeatherClockWidget = ({ city }) => {
 								</span>
 							</>
 						) : weatherError ? (
-							<span className="text-[11px] text-gray-400">Météo indisponible</span>
+							<span className="text-[11px] text-gray-400">{t("topbar.weatherUnavailable", "Météo indisponible")}</span>
 						) : (
-							<span className="text-[11px] text-gray-400">Chargement météo…</span>
+							<span className="text-[11px] text-gray-400">{t("topbar.weatherLoading", "Chargement météo…")}</span>
 						)}
 					</div>
 				</div>

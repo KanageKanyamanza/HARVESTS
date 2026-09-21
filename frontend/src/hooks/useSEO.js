@@ -100,7 +100,7 @@ export const useSEO = (customSEO = {}) => {
         description: t('contact.description', 'Contactez notre équipe pour toute question ou demande de partenariat.'),
         keywords: t('contact.keywords', 'contact, support, assistance, partenariat, Harvests'),
       },
-      '/help': {
+      '/faq': {
         title: t('faq.title', 'Aide & FAQ | Harvests'),
         description: t('faq.description', 'Trouvez les réponses aux questions fréquentes sur la plateforme Harvests, la commande, la livraison et les paiements.'),
         keywords: t('faq.keywords', 'FAQ, aide, questions fréquentes, support, commande, livraison'),

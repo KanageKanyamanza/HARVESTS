@@ -27,10 +27,8 @@ const Footer = () => {
 	const footerLinks = {
 		help: [
 			{ name: t("about", { ns: "navigation" }), href: "/about" },
-			{ name: t("contact", { ns: "navigation" }), href: "/contact" },
-			{ name: t("pricing", { ns: "navigation" }), href: "/pricing" },
 			{ name: t("invest", { ns: "navigation" }), href: "/invest" },
-			{ name: t("footer.faqs", { ns: "navigation" }), href: "/help" },
+			{ name: t("footer.faqs", { ns: "navigation" }), href: "/faq" },
 			{ name: t("footer.terms", { ns: "navigation" }), href: "/terms" },
 			{ name: t("footer.privacy", { ns: "navigation" }), href: "/privacy" },
 		],
@@ -72,11 +70,7 @@ const Footer = () => {
 
 	const myAccountLinks = useMemo(() => {
 		if (!isAuthenticated) {
-			return [
-				{ name: t("login", { ns: "navigation" }), href: "/login" },
-				{ name: t("footer.register", { ns: "navigation" }), href: "/register" },
-				{ name: t("cart", { ns: "navigation" }), href: "/cart" },
-			];
+			return [];
 		}
 
 		const userType = user?.userType || "consumer";
@@ -244,7 +238,7 @@ const Footer = () => {
 									</Link>
 								</li>
 							))}
-							{footerLinks.help.slice(3).map((link) => ( // FAQs, Conditions, Privacy
+							{footerLinks.help.map((link) => (
 								<li key={link.name}>
 									<Link
 										to={link.href}

@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../hooks/useAuth";
 import { useUserType } from "../../hooks/useUserType";
 import { useChat } from "../../contexts/ChatContext";
@@ -45,6 +46,7 @@ const DashboardSidebarFixed = ({
 	navigationItems,
 	user: propUser,
 }) => {
+	const { t } = useTranslation("navigation");
 	const { user: authUser, userDisplayName } = useAuth();
 	const { displayLabel, displayIcon } = useUserType();
 	const { unreadCount } = useChat();
@@ -78,129 +80,129 @@ const DashboardSidebarFixed = ({
 		if (user?.userType === "consumer") {
 			return [
 				{
-					name: "Tableau de bord",
+					name: t("dashboard", "Tableau de bord"),
 					href: getDashboardRoute(user),
 					icon: FiHome,
 				},
-				{ name: "Mes commandes", href: "/order-history", icon: FiShoppingBag },
-				{ name: "Mes favoris", href: "/consumer/favorites", icon: FiHeart },
-				{ name: "Mes avis", href: "/consumer/reviews", icon: FiStar },
+				{ name: t("sidebar.myOrders", "Mes commandes"), href: "/order-history", icon: FiShoppingBag },
+				{ name: t("sidebar.myFavorites", "Mes favoris"), href: "/consumer/favorites", icon: FiHeart },
+				{ name: t("sidebar.myReviews", "Mes avis"), href: "/consumer/reviews", icon: FiStar },
 				{
-					name: "Statistiques",
+					name: t("sidebar.statistics", "Statistiques"),
 					href: "/consumer/statistics",
 					icon: FiTrendingUp,
 				},
-				{ name: "Panier", href: "consumer/cart", icon: FiShoppingCart },
-				{ name: "Profil", href: getProfileRoute(user), icon: FiUser },
-				{ name: "Paramètres", href: getSettingsRoute(user), icon: FiSettings },
+				{ name: t("cart", "Panier"), href: "consumer/cart", icon: FiShoppingCart },
+				{ name: t("profile", "Profil"), href: getProfileRoute(user), icon: FiUser },
+				{ name: t("settings", "Paramètres"), href: getSettingsRoute(user), icon: FiSettings },
 			];
 		}
 
 		if (user?.userType === "producer") {
 			return [
 				{
-					name: "Tableau de bord",
+					name: t("dashboard", "Tableau de bord"),
 					href: getDashboardRoute(user),
 					icon: FiHome,
 				},
-				{ name: "Mes produits", href: getProductsRoute(user), icon: FiPackage },
+				{ name: t("sidebar.myProducts", "Mes Produits"), href: getProductsRoute(user), icon: FiPackage },
 				// { name: 'Ajouter produit', href: getAddProductRoute(user), icon: FiPlus },
-				{ name: "Commandes", href: getOrdersRoute(user), icon: FiShoppingBag },
-				{ name: "Avis reçus", href: "/producer/reviews", icon: FiStar },
-				{ name: "Statistiques", href: "/producer/stats", icon: FaChartBar },
-				{ name: "Profil", href: getProfileRoute(user), icon: FiUser },
-				{ name: "Documents", href: getDocumentsRoute(user), icon: FiFileText },
-				{ name: "Paramètres", href: getSettingsRoute(user), icon: FiSettings },
+				{ name: t("orders", "Commandes"), href: getOrdersRoute(user), icon: FiShoppingBag },
+				{ name: t("sidebar.reviewsReceived", "Avis reçus"), href: "/producer/reviews", icon: FiStar },
+				{ name: t("sidebar.statistics", "Statistiques"), href: "/producer/stats", icon: FaChartBar },
+				{ name: t("profile", "Profil"), href: getProfileRoute(user), icon: FiUser },
+				{ name: t("sidebar.documents", "Documents"), href: getDocumentsRoute(user), icon: FiFileText },
+				{ name: t("settings", "Paramètres"), href: getSettingsRoute(user), icon: FiSettings },
 			];
 		}
 
 		if (user?.userType === "transformer") {
 			return [
 				{
-					name: "Tableau de bord",
+					name: t("dashboard", "Tableau de bord"),
 					href: getDashboardRoute(user),
 					icon: FiHome,
 				},
-				{ name: "Mes Produits", href: getProductsRoute(user), icon: FiPackage },
-				{ name: "Commandes", href: getOrdersRoute(user), icon: FiShoppingBag },
-				{ name: "Avis reçus", href: "/transformer/reviews", icon: FiStar },
-				{ name: "Statistiques", href: "/transformer/stats", icon: FaChartBar },
-				{ name: "Profil", href: getProfileRoute(user), icon: FiUser },
-				{ name: "Documents", href: getDocumentsRoute(user), icon: FiFileText },
-				{ name: "Paramètres", href: getSettingsRoute(user), icon: FiSettings },
+				{ name: t("sidebar.myProducts", "Mes Produits"), href: getProductsRoute(user), icon: FiPackage },
+				{ name: t("orders", "Commandes"), href: getOrdersRoute(user), icon: FiShoppingBag },
+				{ name: t("sidebar.reviewsReceived", "Avis reçus"), href: "/transformer/reviews", icon: FiStar },
+				{ name: t("sidebar.statistics", "Statistiques"), href: "/transformer/stats", icon: FaChartBar },
+				{ name: t("profile", "Profil"), href: getProfileRoute(user), icon: FiUser },
+				{ name: t("sidebar.documents", "Documents"), href: getDocumentsRoute(user), icon: FiFileText },
+				{ name: t("settings", "Paramètres"), href: getSettingsRoute(user), icon: FiSettings },
 			];
 		}
 
 		if (user?.userType === "restaurateur") {
 			return [
 				{
-					name: "Tableau de bord",
+					name: t("dashboard", "Tableau de bord"),
 					href: getDashboardRoute(user),
 					icon: FiHome,
 				},
 				{
-					name: "Mon panier",
+					name: t("sidebar.myCart", "Mon panier"),
 					href: "/restaurateur/cart",
 					icon: FiShoppingCart,
 				},
 				{
-					name: "Mes commandes",
+					name: t("sidebar.myOrders", "Mes commandes"),
 					href: getOrdersRoute(user),
 					icon: FiShoppingBag,
 				},
-				{ name: "Mes plats", href: getProductsRoute(user), icon: FiPackage },
-				{ name: "Statistiques", href: "/restaurateur/stats", icon: FaChartBar },
-				{ name: "Profil", href: getProfileRoute(user), icon: FiUser },
-				{ name: "Documents", href: getDocumentsRoute(user), icon: FiFileText },
-				{ name: "Paramètres", href: getSettingsRoute(user), icon: FiSettings },
+				{ name: t("sidebar.myDishes", "Mes plats"), href: getProductsRoute(user), icon: FiPackage },
+				{ name: t("sidebar.statistics", "Statistiques"), href: "/restaurateur/stats", icon: FaChartBar },
+				{ name: t("profile", "Profil"), href: getProfileRoute(user), icon: FiUser },
+				{ name: t("sidebar.documents", "Documents"), href: getDocumentsRoute(user), icon: FiFileText },
+				{ name: t("settings", "Paramètres"), href: getSettingsRoute(user), icon: FiSettings },
 			];
 		}
 		if (user?.userType === "transporter") {
 			return [
 				{
-					name: "Tableau de bord",
+					name: t("dashboard", "Tableau de bord"),
 					href: getDashboardRoute(user),
 					icon: FiHome,
 				},
-				{ name: "Commandes", href: getOrdersRoute(user), icon: FiShoppingBag },
-				{ name: "Ma flotte", href: getProductsRoute(user), icon: FiTruck },
+				{ name: t("orders", "Commandes"), href: getOrdersRoute(user), icon: FiShoppingBag },
+				{ name: t("sidebar.myFleet", "Ma flotte"), href: getProductsRoute(user), icon: FiTruck },
 				{
-					name: "Statistiques",
+					name: t("sidebar.statistics", "Statistiques"),
 					href: "/transporter/statistics",
 					icon: FaChartBar,
 				},
-				{ name: "Profil", href: getProfileRoute(user), icon: FiUser },
-				{ name: "Documents", href: getDocumentsRoute(user), icon: FiFileText },
-				{ name: "Paramètres", href: getSettingsRoute(user), icon: FiSettings },
+				{ name: t("profile", "Profil"), href: getProfileRoute(user), icon: FiUser },
+				{ name: t("sidebar.documents", "Documents"), href: getDocumentsRoute(user), icon: FiFileText },
+				{ name: t("settings", "Paramètres"), href: getSettingsRoute(user), icon: FiSettings },
 			];
 		}
 
 		if (user?.userType === "exporter") {
 			return [
 				{
-					name: "Tableau de bord",
+					name: t("dashboard", "Tableau de bord"),
 					href: getDashboardRoute(user),
 					icon: FiHome,
 				},
 				{
-					name: "Commandes d'export",
+					name: t("sidebar.exportOrders", "Commandes d'export"),
 					href: getOrdersRoute(user),
 					icon: FiShoppingBag,
 				},
-				{ name: "Ma flotte", href: "/exporter/fleet", icon: FiTruck },
+				{ name: t("sidebar.myFleet", "Ma flotte"), href: "/exporter/fleet", icon: FiTruck },
 				{
-					name: "Statistiques",
+					name: t("sidebar.statistics", "Statistiques"),
 					href: "/exporter/statistics",
 					icon: FaChartBar,
 				},
-				{ name: "Profil", href: getProfileRoute(user), icon: FiUser },
-				{ name: "Documents", href: getDocumentsRoute(user), icon: FiFileText },
-				{ name: "Paramètres", href: getSettingsRoute(user), icon: FiSettings },
+				{ name: t("profile", "Profil"), href: getProfileRoute(user), icon: FiUser },
+				{ name: t("sidebar.documents", "Documents"), href: getDocumentsRoute(user), icon: FiFileText },
+				{ name: t("settings", "Paramètres"), href: getSettingsRoute(user), icon: FiSettings },
 			];
 		}
 
 		return [
-			{ name: "Tableau de bord", href: getDashboardRoute(user), icon: FiHome },
+			{ name: t("dashboard", "Tableau de bord"), href: getDashboardRoute(user), icon: FiHome },
 		];
 	};
 
@@ -323,7 +325,7 @@ const DashboardSidebarFixed = ({
 												:	"bg-gray-100 text-gray-600 border-gray-200"
 											}`}
 										>
-											{user.subscriptionFeatures.planId}
+											{t(`sidebar.planLabels.${user.subscriptionFeatures.planId}`, user.subscriptionFeatures.planId)}
 										</span>
 									</div>
 								)}
@@ -377,7 +379,7 @@ const DashboardSidebarFixed = ({
 								)}
 
 								{/* Notification Badge for Messages */}
-								{item.name === "Messages" && unreadCount > 0 && (
+								{item.id === "messages" && unreadCount > 0 && (
 									<span
 										className={`absolute ${collapsed ? "-top-1 -right-1" : "right-2"} bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] rounded-full flex items-center justify-center border-2 border-white`}
 									>
@@ -404,7 +406,7 @@ const DashboardSidebarFixed = ({
 							} text-gray-400 group-hover:text-blue-500`}
 						/>
 						{!collapsed && (
-							<span className="whitespace-nowrap">Voir le site</span>
+							<span className="whitespace-nowrap">{t("sidebar.viewSite", "Voir le site")}</span>
 						)}
 					</Link>
 
@@ -421,7 +423,7 @@ const DashboardSidebarFixed = ({
 							} text-gray-400 group-hover:text-rose-500`}
 						/>
 						{!collapsed && (
-							<span className="whitespace-nowrap">Déconnexion</span>
+							<span className="whitespace-nowrap">{t("logout", "Déconnexion")}</span>
 						)}
 					</button>
 				</div>

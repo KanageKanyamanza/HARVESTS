@@ -3,6 +3,7 @@
  */
 import React, { Suspense } from "react";
 import { Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../hooks/useAuth";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 
@@ -107,6 +108,7 @@ const RouteFallback = () => (
 // Composant wrapper pour les routes avec ModularDashboardLayout
 const DashboardRouteWrapper = ({ children }) => {
 	const { user } = useAuth();
+	const { t } = useTranslation("navigation");
 	const navigationItems = generateSidebarNavigation(user, {
 		// Icons pour la navigation
 		FiHome,
@@ -116,7 +118,7 @@ const DashboardRouteWrapper = ({ children }) => {
 		FiUser,
 		FiSettings,
 		FaChartBar,
-	});
+	}, t);
 
 	return (
 		<ModularDashboardLayout navigationItems={navigationItems} user={user}>
@@ -415,7 +417,7 @@ const AppRoutes = () => {
 					</Layout>
 				}
 			/>
-			<Route path="/help" element={<SuspenseRoute element={<FAQ />} />} />
+			<Route path="/faq" element={<SuspenseRoute element={<FAQ />} />} />
 			<Route path="/terms" element={<SuspenseRoute element={<Terms />} />} />
 			<Route
 				path="/privacy"
