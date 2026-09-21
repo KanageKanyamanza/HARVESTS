@@ -24,6 +24,48 @@
 	"blog": "Blog",
 	"invest": "Invest",
 	"ourProducers": "Our Producers",
+	"sidebar": {
+		"myOrders": "My orders",
+		"myFavorites": "My favorites",
+		"myReviews": "My reviews",
+		"statistics": "Statistics",
+		"explore": "Explore",
+		"myProducts": "My Products",
+		"addProduct": "Add product",
+		"reviewsReceived": "Reviews received",
+		"cropAdvice": "Crop advice",
+		"documents": "Documents",
+		"myCart": "My cart",
+		"myDishes": "My dishes",
+		"exportOrders": "Export orders",
+		"myFleet": "My fleet",
+		"viewSite": "View site",
+		"defaultUserName": "User",
+		"planLabels": {
+			"gratuit": "Free",
+			"standard": "Standard",
+			"premium": "Premium"
+		}
+	},
+	"topbar": {
+		"weatherUnavailable": "Weather unavailable",
+		"weatherLoading": "Loading weather…",
+		"yourLocation": "Your location",
+		"weather": {
+			"clearSky": "Clear sky",
+			"mostlyClear": "Mostly clear",
+			"cloudy": "Cloudy",
+			"foggy": "Foggy",
+			"drizzle": "Drizzle",
+			"rain": "Rain",
+			"snow": "Snow",
+			"thunderstorm": "Thunderstorm",
+			"sunny": "Sunny"
+		},
+		"pendingOrders": "Pending orders",
+		"lowStockProducts": "Low stock products",
+		"addProduct": "Add a product"
+	},
 	"ticker": {
 		"badge": "Our Producers",
 		"badgeShort": "Prod.",
@@ -70,7 +112,6 @@
 		"myDishes": "My Dishes",
 		"myDeliveries": "My Deliveries",
 		"favorites": "Favorites",
-		"register": "Register",
 		"newsletterTitle": "Stay up to date with our news",
 		"emailPlaceholder": "Your email address",
 		"subscribe": "Subscribe",

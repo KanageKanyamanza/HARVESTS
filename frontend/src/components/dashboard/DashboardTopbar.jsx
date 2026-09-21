@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../hooks/useAuth";
 import { useUserType } from "../../hooks/useUserType";
 import { FiMenu } from "react-icons/fi";
@@ -9,6 +10,7 @@ import WeatherClockWidget from "./WeatherClockWidget";
 import ProducerQuickStats from "./ProducerQuickStats";
 
 const DashboardTopbar = ({ onMenuClick }) => {
+	const { t } = useTranslation("navigation");
 	const { user, userInitials } = useAuth();
 	const { displayIcon } = useUserType();
 
@@ -66,7 +68,7 @@ const DashboardTopbar = ({ onMenuClick }) => {
 									<div className="flex items-center space-x-1">
 										<span className="text-xs">{displayIcon}</span>
 										<span className="text-sm font-medium">
-											{user?.firstName || "Utilisateur"}
+											{user?.firstName || t("sidebar.defaultUserName", "Utilisateur")}
 										</span>
 									</div>
 									{user?.subscriptionFeatures?.planId && (
@@ -80,7 +82,7 @@ const DashboardTopbar = ({ onMenuClick }) => {
 													:	"bg-gray-100 text-gray-500"
 												}`}
 											>
-												{user.subscriptionFeatures.planId}
+												{t(`sidebar.planLabels.${user.subscriptionFeatures.planId}`, user.subscriptionFeatures.planId)}
 											</span>
 										</div>
 									)}

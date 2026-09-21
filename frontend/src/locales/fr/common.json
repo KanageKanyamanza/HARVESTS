@@ -68,5 +68,49 @@
 		"madeWith": "Fait avec",
 		"in": "en",
 		"africa": "Afrique"
+	},
+	"cookies": {
+		"message": "Nous utilisons des cookies essentiels au fonctionnement de Harvests, et quelques cookies facultatifs pour améliorer le site. Vous choisissez lesquels accepter — voir notre",
+		"privacyLink": "Politique de Confidentialité",
+		"acceptAll": "Tout accepter",
+		"essentialOnly": "Essentiels seulement",
+		"customize": "Personnaliser",
+		"save": "Enregistrer mes choix",
+		"categories": {
+			"essential": {
+				"label": "Essentiels",
+				"description": "Nécessaires au fonctionnement du site (connexion, sécurité, panier). Toujours actifs."
+			},
+			"performance": {
+				"label": "Performance",
+				"description": "Nous aident à comprendre l'usage du site pour l'améliorer. Désactivés tant que vous ne les acceptez pas."
+			},
+			"preference": {
+				"label": "Préférence",
+				"description": "Mémorisent vos choix (langue, devise) d'une visite à l'autre."
+			}
+		}
+	},
+	"pwaInstall": {
+		"close": "Fermer",
+		"title": "Installer Harvests",
+		"description": "Installez l'application pour une expérience optimale et un accès rapide à vos produits locaux.",
+		"features": [
+			"Accès rapide depuis l'écran d'accueil",
+			"Fonctionnement hors ligne",
+			"Notifications push",
+			"Expérience optimisée"
+		],
+		"iosTitle": "Pour installer Harvests sur iOS :",
+		"iosStep1Prefix": "Appuyez sur le bouton",
+		"iosStep1Strong": "Partager",
+		"iosStep1Suffix": "",
+		"iosStep2Prefix": "Sélectionnez",
+		"iosStep2Strong": "« Sur l'écran d'accueil »",
+		"iosStep3Prefix": "Appuyez sur",
+		"iosStep3Strong": "« Ajouter »",
+		"installNow": "Installer maintenant",
+		"later": "Plus tard",
+		"dontShowAgain": "Ne plus afficher"
 	}
 }

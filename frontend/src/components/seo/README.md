@@ -133,7 +133,7 @@ Les routes suivantes ont des meta tags pré-configurés :
 - `/blog` - Liste des articles
 - `/about` - À propos
 - `/contact` - Contact
-- `/help` - FAQ
+- `/faq` - FAQ
 - `/terms` - Conditions d'utilisation
 - `/privacy` - Politique de confidentialité
 - `/pricing` - Tarifs

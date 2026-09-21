@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
 	FiMail,
 	FiPhone,
@@ -12,7 +13,12 @@ import SocialLinks from "../components/common/SocialLinks";
 import { contactService } from "../services/contactService";
 import SEOHead from "../components/seo/SEOHead";
 
+// Icônes des 5 blocs de coordonnées, dans le même ordre que contact.info (locales)
+const INFO_ICONS = [FiMail, FiPhone, FiMapPin, FiCheckCircle, FiClock];
+const CONTACT_TYPE_VALUES = ["general", "support", "partnership", "complaint", "suggestion"];
+
 const Contact = () => {
+	const { t } = useTranslation("public");
 	const [formData, setFormData] = useState({
 		name: "",
 		email: "",
@@ -55,50 +61,16 @@ const Contact = () => {
 		}
 	};
 
-	const contactInfo = [
-		{
-			icon: <FiMail className="w-6 h-6" />,
-			title: "Email",
-			details: ["contact@harvests.site"],
-			description: "Nous répondons généralement dans les 24h",
-		},
-		{
-			icon: <FiPhone className="w-6 h-6" />,
-			title: "Téléphone",
-			details: ["+221 78 834 69 69"],
-			description: "Lun-Ven: 8h-18h, Sam: 9h-13h",
-		},
-		{
-			icon: <FiMapPin className="w-6 h-6" />,
-			title: "Adresse",
-			details: ["Dakar, Sénégal"],
-			description: "Bureau principal",
-		},
-		{
-			icon: <FiCheckCircle className="w-6 h-6" />,
-			title: "Informations Légales",
-			details: [
-				"UBUNTU BUSINESS BUILDERS (UBB) – SARL",
-				"RCCM : SN.DKR.2026.B.1650",
-				"NINEA : 012753069",
-			],
-			description: "Enregistrement officiel",
-		},
-		{
-			icon: <FiClock className="w-6 h-6" />,
-			title: "Horaires",
-			details: ["Lun-Ven: 8h00-18h00", "Samedi: 9h00-13h00"],
-			description: "Fermé le dimanche",
-		},
-	];
+	const contactInfo = t("contact.info", { returnObjects: true }).map((info, index) => {
+		const Icon = INFO_ICONS[index];
+		return { ...info, icon: <Icon className="w-6 h-6" /> };
+	});
+	const quickFaq = t("contact.quickFaq", { returnObjects: true });
 
-	const contactTypes = [
-		{ value: "general", label: "Question générale" },
-		{ value: "support", label: "Support technique" },
-		{ value: "partnership", label: "Partenariat" },
-		{ value: "complaint", label: "Réclamation" },
-		{ value: "suggestion", label: "Suggestion" },
-	];
+	const contactTypes = CONTACT_TYPE_VALUES.map((value) => ({
+		value,
+		label: t(`contact.types.${value}`),
+	}));
 
 	return (
 		<div className="min-h-screen bg-gray-50 py-12">
@@ -110,15 +82,14 @@ const Contact = () => {
 						className="text-4xl font-bold text-gray-900 mb-4"
 						data-aos="fade-up"
 					>
-						Contactez-nous
+						{t("contact.title")}
 					</h1>
 					<p
 						className="text-xl text-gray-600 max-w-3xl mx-auto"
 						data-aos="fade-up"
 						data-aos-delay="100"
 					>
-						Nous sommes là pour vous aider. N'hésitez pas à nous contacter pour
-						toute question, suggestion ou demande d'assistance.
+						{t("contact.description")}
 					</p>
 				</div>
 
@@ -127,7 +98,7 @@ const Contact = () => {
 					<div className="lg:col-span-1" data-aos="fade-right">
 						<div className="bg-white rounded-lg shadow-sm p-6">
 							<h2 className="text-2xl font-semibold text-gray-900 mb-6">
-								Nos coordonnées
+								{t("contact.detailsTitle")}
 							</h2>
 
 							<div className="space-y-6">
@@ -156,35 +127,17 @@ const Contact = () => {
 							{/* FAQ rapide */}
 							<div className="mt-8 pt-6 border-t border-gray-200">
 								<h3 className="text-lg font-medium text-gray-900 mb-4">
-									Questions fréquentes
+									{t("contact.quickFaqTitle")}
 								</h3>
 								<div className="space-y-3">
-									<div>
-										<h4 className="text-sm font-medium text-gray-900">
-											Comment créer un compte ?
-										</h4>
-										<p className="text-sm text-gray-600">
-											Cliquez sur "S'inscrire" et choisissez votre type de
-											compte.
-										</p>
-									</div>
-									<div>
-										<h4 className="text-sm font-medium text-gray-900">
-											Comment vendre mes produits ?
-										</h4>
-										<p className="text-sm text-gray-600">
-											Créez un compte producteur et ajoutez vos produits.
-										</p>
-									</div>
-									<div>
-										<h4 className="text-sm font-medium text-gray-900">
-											Comment commander ?
-										</h4>
-										<p className="text-sm text-gray-600">
-											Créez un compte consommateur et ajoutez des produits au
-											panier.
-										</p>
-									</div>
+									{quickFaq.map((item) => (
+										<div key={item.q}>
+											<h4 className="text-sm font-medium text-gray-900">
+												{item.q}
+											</h4>
+											<p className="text-sm text-gray-600">{item.a}</p>
+										</div>
+									))}
 								</div>
 							</div>
 						</div>
@@ -194,26 +147,20 @@ const Contact = () => {
 					<div className="lg:col-span-2" data-aos="fade-left">
 						<div className="bg-white rounded-lg shadow-sm p-6">
 							<h2 className="text-2xl font-semibold text-gray-900 mb-6">
-								Envoyez-nous un message
+								{t("contact.formTitle")}
 							</h2>
 
 							{submitStatus === "success" && (
 								<div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center">
 									<FiCheckCircle className="w-5 h-5 text-green-500 mr-3" />
-									<p className="text-green-700">
-										Votre message a été envoyé avec succès ! Nous vous
-										répondrons dans les plus brefs délais.
-									</p>
+									<p className="text-green-700">{t("contact.success")}</p>
 								</div>
 							)}
 
 							{submitStatus === "error" && (
 								<div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center">
 									<FiAlertCircle className="w-5 h-5 text-red-500 mr-3" />
-									<p className="text-red-700">
-										Une erreur s'est produite lors de l'envoi. Veuillez
-										réessayer.
-									</p>
+									<p className="text-red-700">{t("contact.error")}</p>
 								</div>
 							)}
 
@@ -224,7 +171,7 @@ const Contact = () => {
 											htmlFor="name"
 											className="block text-sm font-medium text-gray-700 mb-2"
 										>
-											Nom complet *
+											{t("contact.nameLabel")}
 										</label>
 										<input
 											type="text"
@@ -234,7 +181,7 @@ const Contact = () => {
 											onChange={handleInputChange}
 											required
 											className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-harvests-green focus:border-transparent"
-											placeholder="Votre nom complet"
+											placeholder={t("contact.namePlaceholder")}
 										/>
 									</div>
 
@@ -243,7 +190,7 @@ const Contact = () => {
 											htmlFor="email"
 											className="block text-sm font-medium text-gray-700 mb-2"
 										>
-											Email *
+											{t("contact.emailLabel")}
 										</label>
 										<input
 											type="email"
@@ -253,7 +200,7 @@ const Contact = () => {
 											onChange={handleInputChange}
 											required
 											className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-harvests-green focus:border-transparent"
-											placeholder="votre@email.com"
+											placeholder={t("contact.emailPlaceholder")}
 										/>
 									</div>
 								</div>
@@ -263,7 +210,7 @@ const Contact = () => {
 										htmlFor="type"
 										className="block text-sm font-medium text-gray-700 mb-2"
 									>
-										Type de demande *
+										{t("contact.typeLabel")}
 									</label>
 									<select
 										id="type"
@@ -286,7 +233,7 @@ const Contact = () => {
 										htmlFor="subject"
 										className="block text-sm font-medium text-gray-700 mb-2"
 									>
-										Sujet *
+										{t("contact.subjectLabel")}
 									</label>
 									<input
 										type="text"
@@ -296,7 +243,7 @@ const Contact = () => {
 										onChange={handleInputChange}
 										required
 										className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-harvests-green focus:border-transparent"
-										placeholder="Résumé de votre demande"
+										placeholder={t("contact.subjectPlaceholder")}
 									/>
 								</div>
 
@@ -305,7 +252,7 @@ const Contact = () => {
 										htmlFor="message"
 										className="block text-sm font-medium text-gray-700 mb-2"
 									>
-										Message *
+										{t("contact.messageLabel")}
 									</label>
 									<textarea
 										id="message"
@@ -315,12 +262,12 @@ const Contact = () => {
 										required
 										rows={6}
 										className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-harvests-green focus:border-transparent resize-none"
-										placeholder="Décrivez votre demande en détail..."
+										placeholder={t("contact.messagePlaceholder")}
 									/>
 								</div>
 
 								<div className="flex items-center justify-between">
-									<p className="text-sm text-gray-500">* Champs obligatoires</p>
+									<p className="text-sm text-gray-500">{t("contact.requiredFields")}</p>
 									<button
 										type="submit"
 										disabled={isSubmitting}
@@ -329,11 +276,11 @@ const Contact = () => {
 										{isSubmitting ?
 											<>
 												<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-												Envoi en cours...
+												{t("contact.sending")}
 											</>
 										:	<>
 												<FiSend className="w-4 h-4 mr-2" />
-												Envoyer le message
+												{t("contact.send")}
 											</>
 										}
 									</button>
@@ -346,11 +293,10 @@ const Contact = () => {
 				{/* Section supplémentaire */}
 				<div className="mt-12 bg-harvests-green rounded-lg p-8 text-center text-white">
 					<h2 className="text-2xl font-bold mb-4">
-						Rejoignez notre communauté
+						{t("contact.communityTitle")}
 					</h2>
 					<p className="text-lg mb-6 opacity-90">
-						Suivez-nous sur les réseaux sociaux pour rester informé des
-						dernières actualités
+						{t("contact.communityDescription")}
 					</p>
 					<div className="flex justify-center">
 						<SocialLinks

@@ -306,5 +306,820 @@
 		"draft": "Brouillon",
 		"rejected": "Rejeté",
 		"unavailable": "Indisponible"
+	},
+	"notFound": {
+		"title": "Cette page a pris un autre chemin de récolte",
+		"description": "La page que vous cherchez n'existe pas ou a été déplacée. Revenez en lieu sûr avec les liens ci-dessous.",
+		"back": "Retour",
+		"home": "Accueil",
+		"viewProducts": "Voir tous les produits"
+	},
+	"faq": {
+		"title": "Questions Fréquentes",
+		"description": "Trouvez rapidement des réponses à vos questions. Si vous ne trouvez pas ce que vous cherchez, n'hésitez pas à nous contacter.",
+		"notFoundQuestion": "Vous n'avez pas trouvé la réponse à votre question ?",
+		"contactUs": "Contactez-nous",
+		"sections": [
+			{
+				"category": "Général",
+				"questions": [
+					{
+						"q": "Qu'est-ce que Harvests ?",
+						"a": "Harvests est une plateforme de marché digitale qui connecte les producteurs agricoles africains aux consommateurs, restaurateurs et autres acheteurs. Nous facilitons l'achat de produits frais directement auprès des producteurs locaux."
+					},
+					{
+						"q": "Dans quels pays Harvests est-il disponible ?",
+						"a": "Harvests est actuellement disponible au Sénégal et s'étend progressivement à d'autres pays africains. Consultez notre site pour les mises à jour sur notre expansion."
+					},
+					{
+						"q": "Comment puis-je contacter le support ?",
+						"a": "Vous pouvez nous contacter par email à contact@harvests.site, par téléphone au +221 78 834 69 69, ou via notre page de contact sur le site."
+					}
+				]
+			},
+			{
+				"category": "Compte & Inscription",
+				"questions": [
+					{
+						"q": "Comment créer un compte ?",
+						"a": "Cliquez sur 'Inscription' en haut de la page, choisissez votre type de compte (consommateur, producteur, restaurateur, etc.), remplissez le formulaire et validez votre email."
+					},
+					{
+						"q": "Quels types de comptes sont disponibles ?",
+						"a": "Nous proposons plusieurs types de comptes : Consommateur (pour acheter), Producteur (pour vendre des produits agricoles), Transformateur (pour vendre des produits transformés), Restaurateur (pour vendre des plats), et Transporteur (pour livrer)."
+					},
+					{
+						"q": "J'ai oublié mon mot de passe, que faire ?",
+						"a": "Cliquez sur 'Mot de passe oublié' sur la page de connexion, entrez votre email et suivez les instructions envoyées pour réinitialiser votre mot de passe."
+					}
+				]
+			},
+			{
+				"category": "Commandes & Livraison",
+				"questions": [
+					{
+						"q": "Comment passer une commande ?",
+						"a": "Parcourez les produits, ajoutez-les à votre panier, puis procédez au paiement. Vous pouvez choisir votre mode de livraison et suivre votre commande depuis votre tableau de bord."
+					},
+					{
+						"q": "Quels sont les frais de livraison ?",
+						"a": "Les frais de livraison sont calculés en fonction de la distance et du poids. Ils sont offerts pour toute commande supérieure à 50 000 FCFA (selon le plan du partenaire)."
+					},
+					{
+						"q": "Quels sont les délais de livraison ?",
+						"a": "Les délais varient selon votre localisation et le producteur. En général, comptez 1 à 3 jours pour les zones urbaines. Les délais exacts sont indiqués lors de la commande."
+					},
+					{
+						"q": "Puis-je annuler ma commande ?",
+						"a": "Vous pouvez annuler votre commande tant qu'elle n'a pas été expédiée. Rendez-vous dans 'Mes Commandes' et cliquez sur 'Annuler'. Après expédition, contactez le support."
+					}
+				]
+			},
+			{
+				"category": "Paiement",
+				"questions": [
+					{
+						"q": "Quels modes de paiement acceptez-vous ?",
+						"a": "Nous acceptons les paiements par Mobile Money (Orange Money, Wave, Free Money), cartes bancaires (Visa, Mastercard) et PayPal."
+					},
+					{
+						"q": "Mes paiements sont-ils sécurisés ?",
+						"a": "Oui, tous les paiements sont sécurisés et cryptés. Nous utilisons des protocoles de sécurité standards pour protéger vos informations financières."
+					},
+					{
+						"q": "Comment obtenir un remboursement ?",
+						"a": "En cas de problème avec votre commande, contactez le support dans les 48h. Après vérification, le remboursement sera effectué sous 5 à 10 jours ouvrés."
+					}
+				]
+			},
+			{
+				"category": "Partenaires",
+				"questions": [
+					{
+						"q": "Comment devenir partenaire sur Harvests ?",
+						"a": "Créez un compte partenaire (producteur, transformateur ou restaurateur), complétez votre profil avec vos informations et documents requis, puis soumettez votre demande de validation."
+					},
+					{
+						"q": "Quels sont les frais pour les partenaires ?",
+						"a": "Harvests prélève une commission sur chaque vente. Les taux varient selon le type de compte et le volume de ventes. Consultez nos plans tarifaires pour plus de détails."
+					},
+					{
+						"q": "Comment gérer mes produits ?",
+						"a": "Depuis votre tableau de bord, vous pouvez ajouter, modifier ou supprimer vos produits, gérer vos stocks et suivre vos commandes."
+					}
+				]
+			}
+		]
+	},
+	"terms": {
+		"title": "Conditions Générales d'Utilisation",
+		"lastUpdatedLabel": "Dernière mise à jour :",
+		"lastUpdatedDate": "26 novembre 2025",
+		"sections": [
+			{
+				"title": "1. Acceptation des conditions",
+				"text": "En accédant et en utilisant la plateforme Harvests, vous acceptez d'être lié par les présentes Conditions Générales d'Utilisation. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser notre plateforme."
+			},
+			{
+				"title": "2. Description du service",
+				"intro": "Harvests est une plateforme de marché en ligne qui met en relation :",
+				"items": [
+					"Les producteurs agricoles et leurs produits",
+					"Les transformateurs et leurs produits transformés",
+					"Les restaurateurs et leurs plats",
+					"Les consommateurs à la recherche de produits frais et locaux",
+					"Les transporteurs pour la livraison des commandes"
+				]
+			},
+			{
+				"title": "3. Inscription et compte utilisateur",
+				"intro": "Pour utiliser certaines fonctionnalités de Harvests, vous devez créer un compte. Vous vous engagez à :",
+				"items": [
+					"Fournir des informations exactes et complètes lors de l'inscription",
+					"Maintenir la confidentialité de vos identifiants de connexion",
+					"Être responsable de toutes les activités effectuées sous votre compte",
+					"Nous informer immédiatement de toute utilisation non autorisée"
+				]
+			},
+			{
+				"title": "4. Obligations des partenaires",
+				"intro": "Les partenaires (producteurs, transformateurs, restaurateurs) s'engagent à :",
+				"items": [
+					"Proposer des produits conformes aux descriptions et images",
+					"Respecter les normes d'hygiène et de sécurité alimentaire",
+					"Honorer les commandes dans les délais annoncés",
+					"Répondre aux réclamations des clients de manière professionnelle",
+					"Disposer de toutes les autorisations légales nécessaires"
+				]
+			},
+			{
+				"title": "5. Obligations des acheteurs",
+				"intro": "Les acheteurs s'engagent à :",
+				"items": [
+					"Fournir des informations de livraison exactes",
+					"Effectuer les paiements dans les délais impartis",
+					"Réceptionner les commandes aux créneaux convenus",
+					"Signaler tout problème dans les 48 heures suivant la réception"
+				]
+			},
+			{
+				"title": "6. Paiements et commissions",
+				"text": "Harvests prélève une commission sur chaque transaction effectuée sur la plateforme. Les taux de commission sont communiqués aux partenaires lors de leur inscription ou via leur plan de souscription. Les paiements sont sécurisés et traités par nos partenaires de paiement agréés (Orange Money, Wave, PayPal, Cartes Bancaires)."
+			},
+			{
+				"title": "7. Annulation et remboursement",
+				"text": "Les conditions d'annulation et de remboursement varient selon le type de produit et le moment de l'annulation. En général, une commande peut être annulée sans frais tant qu'elle n'a pas été préparée ou expédiée. Les remboursements sont traités sous 5 à 10 jours ouvrés."
+			},
+			{
+				"title": "8. Propriété intellectuelle",
+				"text": "Tous les contenus présents sur Harvests (logos, textes, images, logiciels) sont protégés par le droit de la propriété intellectuelle. Toute reproduction ou utilisation non autorisée est interdite."
+			},
+			{
+				"title": "9. Limitation de responsabilité",
+				"text": "Harvests agit en tant qu'intermédiaire entre partenaires et acheteurs. Nous ne sommes pas responsables de la qualité des produits vendus, des retards de livraison imputables aux partenaires ou transporteurs, ni des litiges entre utilisateurs."
+			},
+			{
+				"title": "10. Modification des conditions",
+				"text": "Harvests se réserve le droit de modifier ces conditions à tout moment. Les utilisateurs seront informés des modifications par email ou notification sur la plateforme. L'utilisation continue de la plateforme après modification vaut acceptation des nouvelles conditions."
+			}
+		],
+		"contactTitle": "11. Contact",
+		"contactIntro": "Pour toute question concernant ces conditions, contactez-nous à :",
+		"emailLabel": "Email :",
+		"phoneLabel": "Téléphone :"
+	},
+	"privacy": {
+		"title": "Politique de Confidentialité",
+		"lastUpdatedLabel": "Dernière mise à jour :",
+		"lastUpdatedDate": "27 août 2026",
+		"sections": [
+			{
+				"title": "1. Introduction",
+				"text": "Chez Harvests, nous accordons une grande importance à la protection de vos données personnelles. Cette politique de confidentialité explique comment nous collectons, utilisons, stockons et protégeons vos informations lorsque vous utilisez notre plateforme."
+			},
+			{
+				"title": "2. Données collectées",
+				"intro": "Nous collectons les types de données suivants :",
+				"groups": [
+					{
+						"heading": "Données d'identification",
+						"items": [
+							"Nom et prénom",
+							"Adresse email",
+							"Numéro de téléphone",
+							"Adresse postale"
+						]
+					},
+					{
+						"heading": "Données de transaction",
+						"items": [
+							"Historique des commandes",
+							"Informations de paiement (cryptées)",
+							"Adresses de livraison"
+						]
+					},
+					{
+						"heading": "Données techniques",
+						"items": [
+							"Adresse IP",
+							"Type de navigateur",
+							"Données de navigation (cookies)"
+						]
+					}
+				]
+			},
+			{
+				"title": "3. Utilisation des données",
+				"intro": "Vos données sont utilisées pour :",
+				"items": [
+					"Créer et gérer votre compte utilisateur",
+					"Traiter vos commandes et paiements",
+					"Assurer la livraison de vos produits",
+					"Vous envoyer des notifications sur vos commandes",
+					"Améliorer nos services et votre expérience utilisateur",
+					"Vous envoyer des communications marketing (avec votre consentement)",
+					"Prévenir la fraude et assurer la sécurité"
+				]
+			},
+			{
+				"title": "4. Partage des données",
+				"intro": "Nous pouvons partager vos données avec :",
+				"leadItems": [
+					{
+						"lead": "Les partenaires (producteurs, transformateurs, restaurateurs)",
+						"text": " : pour le traitement de vos commandes"
+					},
+					{
+						"lead": "Les transporteurs",
+						"text": " : pour la livraison de vos produits"
+					},
+					{
+						"lead": "Les prestataires de paiement",
+						"text": " : pour le traitement sécurisé des transactions"
+					},
+					{
+						"lead": "Les autorités légales",
+						"text": " : si requis par la loi"
+					}
+				],
+				"outro": "Nous ne vendons jamais vos données personnelles à des tiers."
+			},
+			{
+				"title": "5. Transferts internationaux",
+				"text": "Certains de nos prestataires techniques (hébergement de la base de données, stockage des images et documents) traitent des données en dehors du Sénégal. Nous exigeons de ces prestataires un niveau de protection de vos données conforme à nos obligations légales. Si vous êtes situé dans un autre pays d'Afrique de l'Ouest ou Centrale, le droit local de votre pays de résidence peut également s'appliquer en complément."
+			},
+			{
+				"title": "6. Sécurité des données",
+				"text": "Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles pour protéger vos données : chiffrement SSL/TLS, stockage sécurisé, accès restreint aux données, et audits de sécurité réguliers."
+			},
+			{
+				"title": "7. Conservation des données",
+				"text": "Vos données sont conservées pendant la durée de votre utilisation de nos services et pour une période supplémentaire conformément aux obligations légales (généralement 5 ans pour les données de transaction). Vous pouvez demander la suppression de votre compte et de vos données à tout moment."
+			},
+			{
+				"title": "8. Cookies",
+				"intro": "Un bandeau vous permet de choisir, dès votre première visite, les cookies que vous acceptez :",
+				"leadItems": [
+					{
+						"lead": "Cookies essentiels",
+						"text": " : nécessaires au fonctionnement du site (connexion, sécurité, panier). Toujours actifs."
+					},
+					{
+						"lead": "Cookies de performance",
+						"text": " : pour analyser l'utilisation du site. Désactivés tant que vous ne les acceptez pas."
+					},
+					{
+						"lead": "Cookies de préférence",
+						"text": " : pour mémoriser vos choix (langue, devise)."
+					}
+				],
+				"outro": "Vous pouvez revenir sur votre choix à tout moment via le lien « Gérer les cookies » en bas de chaque page."
+			},
+			{
+				"title": "9. Vos droits",
+				"intro": "Conformément à la réglementation applicable, vous disposez des droits suivants :",
+				"leadItems": [
+					{
+						"lead": "Droit d'accès",
+						"text": " : obtenir une copie de vos données"
+					},
+					{
+						"lead": "Droit de rectification",
+						"text": " : corriger vos données inexactes"
+					},
+					{
+						"lead": "Droit à l'effacement",
+						"text": " : demander la suppression de vos données"
+					},
+					{
+						"lead": "Droit à la portabilité",
+						"text": " : recevoir vos données dans un format structuré"
+					},
+					{
+						"lead": "Droit d'opposition",
+						"text": " : vous opposer au traitement de vos données"
+					},
+					{
+						"lead": "Droit de retrait du consentement",
+						"text": " : retirer votre consentement à tout moment"
+					}
+				]
+			},
+			{
+				"title": "10. Modifications",
+				"text": "Nous pouvons mettre à jour cette politique de confidentialité. Toute modification sera publiée sur cette page avec une nouvelle date de mise à jour. Nous vous encourageons à consulter régulièrement cette page."
+			}
+		],
+		"contactTitle": "11. Contact",
+		"contactIntro": "Pour toute question concernant cette politique ou pour exercer vos droits, contactez-nous :",
+		"emailLabel": "Email :",
+		"phoneLabel": "Téléphone :",
+		"addressLabel": "Adresse :",
+		"address": "Dakar, Sénégal"
+	},
+	"about": {
+		"heroTitle": "À Propos de Harvests",
+		"heroTagline": "L'Amazon des Produits Agricoles Africains",
+		"heroDescription": "Une plateforme e-commerce moderne connectant producteurs et consommateurs à travers l'Afrique, avec support multilingue et paiements locaux.",
+		"missionTitle": "Notre Mission",
+		"missionP1": "Harvests a pour mission de révolutionner le commerce agricole en Afrique en créant une plateforme digitale qui connecte directement les producteurs aux consommateurs, en éliminant les intermédiaires et en garantissant des prix équitables pour tous.",
+		"missionP2": "Nous nous engageons à promouvoir l'agriculture durable, à soutenir les petits producteurs et à faciliter l'accès aux produits agricoles frais et de qualité pour tous les Africains.",
+		"valuesTitle": "Nos Valeurs",
+		"valuesSubtitle": "Ces principes fondamentaux guident chacune de nos actions et décisions",
+		"values": [
+			{
+				"title": "Ubuntu",
+				"subtitle": "Humanité, Solidarité",
+				"description": "Nous croyons en la force de la communauté et en l'entraide mutuelle pour créer un impact positif."
+			},
+			{
+				"title": "Excellence",
+				"subtitle": "",
+				"description": "Nous visons l'excellence dans tout ce que nous faisons, en offrant des produits et services de la plus haute qualité."
+			},
+			{
+				"title": "Intégrité & Transparence",
+				"subtitle": "",
+				"description": "Nous agissons avec honnêteté, transparence et éthique dans toutes nos relations et transactions."
+			},
+			{
+				"title": "Pragmatisme & Simplicité",
+				"subtitle": "",
+				"description": "Nous privilégions des solutions simples, pratiques et efficaces qui répondent aux besoins réels."
+			},
+			{
+				"title": "Discipline & Structure",
+				"subtitle": "",
+				"description": "Nous maintenons une approche structurée et disciplinée pour assurer la qualité et la cohérence."
+			},
+			{
+				"title": "Leadership & Vision",
+				"subtitle": "",
+				"description": "Nous menons avec vision et innovation pour transformer l'agriculture africaine."
+			},
+			{
+				"title": "Justice & Équité",
+				"subtitle": "",
+				"description": "Nous promouvons la justice et l'équité pour tous les acteurs de la chaîne agricole."
+			},
+			{
+				"title": "Responsabilité & Impact",
+				"subtitle": "",
+				"description": "Nous assumons nos responsabilités et mesurons notre impact positif sur les communautés et l'environnement."
+			},
+			{
+				"title": "Collaboration & Partenariat",
+				"subtitle": "",
+				"description": "Nous croyons en la force du travail d'équipe et des partenariats stratégiques pour atteindre nos objectifs."
+			},
+			{
+				"title": "Innovation & Modernisation",
+				"subtitle": "",
+				"description": "Nous embrassons l'innovation et la modernisation pour améliorer continuellement nos services."
+			}
+		],
+		"visionTitle": "Notre Vision",
+		"visionP1": "Nous aspirons à devenir la plateforme de référence pour le commerce agricole en Afrique, en connectant des millions de producteurs et de consommateurs à travers le continent.",
+		"visionP2": "Notre vision est de créer un écosystème agricole numérique prospère qui valorise les producteurs locaux, améliore la sécurité alimentaire et contribue au développement économique durable de l'Afrique.",
+		"corporateTitle": "Informations Institutionnelles",
+		"trademark": "Harvests est une marque déposée de Ubuntu Business Builders SARL.",
+		"ctaTitle": "Rejoignez la Révolution Agricole",
+		"ctaDescription": "Que vous soyez producteur, transformateur, restaurateur, transporteur ou consommateur, Harvests est votre partenaire de confiance.",
+		"ctaRegister": "Créer un compte",
+		"ctaContact": "Nous contacter"
+	},
+	"contact": {
+		"title": "Contactez-nous",
+		"description": "Nous sommes là pour vous aider. N'hésitez pas à nous contacter pour toute question, suggestion ou demande d'assistance.",
+		"detailsTitle": "Nos coordonnées",
+		"info": [
+			{
+				"title": "Email",
+				"details": [
+					"contact@harvests.site"
+				],
+				"description": "Nous répondons généralement dans les 24h"
+			},
+			{
+				"title": "Téléphone",
+				"details": [
+					"+221 78 834 69 69"
+				],
+				"description": "Lun-Ven: 8h-18h, Sam: 9h-13h"
+			},
+			{
+				"title": "Adresse",
+				"details": [
+					"Dakar, Sénégal"
+				],
+				"description": "Bureau principal"
+			},
+			{
+				"title": "Informations Légales",
+				"details": [
+					"UBUNTU BUSINESS BUILDERS (UBB) – SARL",
+					"RCCM : SN.DKR.2026.B.1650",
+					"NINEA : 012753069"
+				],
+				"description": "Enregistrement officiel"
+			},
+			{
+				"title": "Horaires",
+				"details": [
+					"Lun-Ven: 8h00-18h00",
+					"Samedi: 9h00-13h00"
+				],
+				"description": "Fermé le dimanche"
+			}
+		],
+		"quickFaqTitle": "Questions fréquentes",
+		"quickFaq": [
+			{
+				"q": "Comment créer un compte ?",
+				"a": "Cliquez sur \"S'inscrire\" et choisissez votre type de compte."
+			},
+			{
+				"q": "Comment vendre mes produits ?",
+				"a": "Créez un compte producteur et ajoutez vos produits."
+			},
+			{
+				"q": "Comment commander ?",
+				"a": "Créez un compte consommateur et ajoutez des produits au panier."
+			}
+		],
+		"formTitle": "Envoyez-nous un message",
+		"success": "Votre message a été envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.",
+		"error": "Une erreur s'est produite lors de l'envoi. Veuillez réessayer.",
+		"nameLabel": "Nom complet *",
+		"namePlaceholder": "Votre nom complet",
+		"emailLabel": "Email *",
+		"emailPlaceholder": "votre@email.com",
+		"typeLabel": "Type de demande *",
+		"types": {
+			"general": "Question générale",
+			"support": "Support technique",
+			"partnership": "Partenariat",
+			"complaint": "Réclamation",
+			"suggestion": "Suggestion"
+		},
+		"subjectLabel": "Sujet *",
+		"subjectPlaceholder": "Résumé de votre demande",
+		"messageLabel": "Message *",
+		"messagePlaceholder": "Décrivez votre demande en détail...",
+		"requiredFields": "* Champs obligatoires",
+		"sending": "Envoi en cours...",
+		"send": "Envoyer le message",
+		"communityTitle": "Rejoignez notre communauté",
+		"communityDescription": "Suivez-nous sur les réseaux sociaux pour rester informé des dernières actualités"
+	},
+	"pricing": {
+		"badge": "Abonnements & Transparence",
+		"heroTitle": "Formules adaptées à vos Récoltes",
+		"heroDescription": "Que vous soyez un producteur indépendant ou une coopérative structurée, choisissez le plan qui correspond à votre volume et développez vos ventes directes.",
+		"billingMonthly": "Paiement Mensuel",
+		"billingAnnual": "Paiement Annuel",
+		"saveAnnual": "Économisez 25%",
+		"popularRibbon": "Formule la plus populaire",
+		"perMonth": "/ mois",
+		"billedAnnually": "Facturé {{amount}} FCFA / an",
+		"subscribeNow": "Souscrire maintenant",
+		"includedTitle": "Inclus dans cette formule :",
+		"plans": {
+			"gratuit": {
+				"name": "Découverte",
+				"badge": "Gratuit",
+				"subtitle": "Pour débuter sans engagement",
+				"description": "Idéal pour les agriculteurs individuels souhaitant tester la visibilité de leurs produits sur le marketplace.",
+				"cta": "Démarrer gratuitement",
+				"features": [
+					"Création de profil partenaire certifié",
+					"Mise en ligne de 5 produits max",
+					"5 commandes reçues par semaine",
+					"Messagerie directe avec acheteurs",
+					"Assistance WhatsApp de base",
+					"Page boutique personnalisée",
+					"Badge Producteur Vérifié",
+					"Mise en avant sur l'accueil",
+					"Accès réseau B2B & Export",
+					"Statistiques avancées de ventes"
+				]
+			},
+			"standard": {
+				"name": "Professionnel",
+				"badge": "Standard",
+				"subtitle": "Pour petits producteurs & coopératives",
+				"description": "Développez votre clientèle locale et augmentez le volume de vos commandes avec un profil certifié.",
+				"cta": "Choisir le plan Standard",
+				"features": [
+					"Mise en ligne de 15 produits max",
+					"15 commandes reçues par semaine",
+					"Fiche boutique personnalisée & logo",
+					"Badge officiel \"Producteur Vérifié\"",
+					"Mise en avant dans les catégories",
+					"Statistiques de consultation basiques",
+					"Support prioritaire WhatsApp 7j/7",
+					"Produits & commandes illimités",
+					"Mise en avant sur la page d'accueil",
+					"Accès réseau B2B & Export"
+				]
+			},
+			"premium": {
+				"name": "Export & Croissance",
+				"badge": "Recommandé",
+				"subtitle": "Pour coopératives & transformateurs",
+				"description": "Volume illimité, visibilité prioritaire sur la page d'accueil et mise en relation directe avec les acheteurs B2B et exportateurs.",
+				"cta": "Activer le plan Premium",
+				"features": [
+					"Produits en ligne illimités",
+					"Commandes hebdomadaires illimitées",
+					"Badge de confiance & Label Qualité",
+					"Mise en avant sur la page d'accueil",
+					"Mise en relation B2B, Hôtels & Export",
+					"Statistiques de ventes avancées",
+					"URL boutique personnalisée",
+					"Accès aux salons & campagnes",
+					"Support VIP dédié (WhatsApp & Tél)"
+				]
+			}
+		},
+		"comparisonTitle": "Comparatif détaillé des fonctionnalités",
+		"colFeature": "Fonctionnalités",
+		"colFree": "Découverte (Gratuit)",
+		"colStandard": "Standard (3 000 FCFA)",
+		"colPremium": "Premium (10 000 FCFA)",
+		"comparison": [
+			{
+				"feature": "Produits publiables",
+				"gratuit": "5 max",
+				"standard": "15 max",
+				"premium": "Illimité"
+			},
+			{
+				"feature": "Commandes hebdomadaires",
+				"gratuit": "5 max",
+				"standard": "15 max",
+				"premium": "Illimité"
+			},
+			{
+				"feature": "Page boutique",
+				"gratuit": "Basique",
+				"standard": "Personnalisée",
+				"premium": "URL dédiée + Galerie"
+			},
+			{
+				"feature": "Badge de confiance",
+				"gratuit": "Non",
+				"standard": "Oui (Vérifié)",
+				"premium": "Oui + Label Premium"
+			},
+			{
+				"feature": "Mise en avant",
+				"gratuit": "Non",
+				"standard": "Catégories",
+				"premium": "Page Accueil + Réseaux"
+			},
+			{
+				"feature": "Accès Réseau B2B",
+				"gratuit": "Limité",
+				"standard": "Moyen",
+				"premium": "Accès Prioritaire"
+			},
+			{
+				"feature": "Statistiques de ventes",
+				"gratuit": "Non",
+				"standard": "Basiques",
+				"premium": "Tableau de bord complet"
+			},
+			{
+				"feature": "Support client",
+				"gratuit": "Standard",
+				"standard": "Prioritaire WhatsApp",
+				"premium": "Support Dédié VIP"
+			}
+		],
+		"profilesTitle": "Quel abonnement est fait pour vous ?",
+		"recommended": "Recommandé : {{plan}}",
+		"profiles": [
+			{
+				"title": "Producteur individuel",
+				"plan": "Gratuit ou Standard",
+				"desc": "Testez l'application ou vendez vos récoltes locales sans frais élevés."
+			},
+			{
+				"title": "Coopérative agricole",
+				"plan": "Standard ou Premium",
+				"desc": "Regroupez les récoltes de vos membres et profitez d'une boutique visuelle."
+			},
+			{
+				"title": "Transformateur agro",
+				"plan": "Premium",
+				"desc": "Mettez en avant vos produits transformés avec le badge de certification."
+			},
+			{
+				"title": "Exportateur & Grossiste",
+				"plan": "Premium Pro",
+				"desc": "Accédez en priorité au catalogue complet des producteurs du continent."
+			}
+		],
+		"ctaTitle": "Prêt à accélérer la vente de vos produits ?",
+		"ctaDescription": "Rejoignez des milliers de producteurs et acheteurs interconnectés à travers le continent sur Harvests.",
+		"ctaViewSubscriptions": "Voir mes abonnements",
+		"ctaCreateAccount": "Créer mon compte partenaire"
+	},
+	"investors": {
+		"badge": "Espace Invest",
+		"heroTitle": "Investissez dans l'avenir de l'agriculture africaine",
+		"heroDescription": "Harvests connecte producteurs, transformateurs et acheteurs sur une même plateforme. Contactez-nous pour recevoir notre pitch deck et discuter des opportunités d'investissement.",
+		"defaultSubject": "Demande de pitch deck",
+		"defaultMessage": "Bonjour,\n\nJe souhaiterais recevoir le pitch deck de Harvests ainsi que toute information complémentaire pour une éventuelle prise de contact.\n\nCordialement,",
+		"mailSubject": "Demande de pitch deck Harvests",
+		"highlights": [
+			{
+				"title": "Marché en croissance",
+				"description": "L'agritech africaine connecte producteurs et acheteurs sur un marché encore largement informel."
+			},
+			{
+				"title": "Écosystème multi-acteurs",
+				"description": "Producteurs, transformateurs, restaurateurs, transporteurs et exportateurs réunis sur une seule plateforme."
+			},
+			{
+				"title": "Ancrage local, ambition continentale",
+				"description": "Lancé au Sénégal, pensé dès l'origine pour s'étendre à l'ensemble du continent africain."
+			},
+			{
+				"title": "Impact mesurable",
+				"description": "Réduction des intermédiaires, meilleurs revenus pour les producteurs, traçabilité de la récolte à la vente."
+			}
+		],
+		"emailLabel": "Email",
+		"phoneLabel": "Téléphone",
+		"addressLabel": "Adresse",
+		"address": "Dakar, Sénégal",
+		"receiveTitle": "Recevoir le pitch deck",
+		"receiveDescription": "Contactez directement l'équipe fondatrice, ou passez par le formulaire ci-contre.",
+		"formTitle": "Demander le pitch deck",
+		"success": "Votre demande a bien été envoyée. Notre équipe vous recontactera avec le pitch deck dans les meilleurs délais.",
+		"error": "Une erreur s'est produite lors de l'envoi. Vous pouvez aussi nous écrire directement à contact@harvests.site.",
+		"nameLabel": "Nom complet *",
+		"namePlaceholder": "Votre nom complet",
+		"emailFieldLabel": "Email *",
+		"emailPlaceholder": "votre@email.com",
+		"subjectLabel": "Sujet *",
+		"messageLabel": "Message *",
+		"requiredFields": "* Champs obligatoires",
+		"sending": "Envoi en cours...",
+		"send": "Envoyer la demande"
+	},
+	"loyalty": {
+		"badge": "Récompenses & Fidélité",
+		"heroTitle": "Programme de Fidélité Harvests",
+		"heroDescription": "Gagnez des points à chaque achat et débloquez des avantages exclusifs, du producteur jusqu'à votre table.",
+		"viewMyProgram": "Voir Mon Programme",
+		"joinNow": "Rejoindre Maintenant",
+		"howTitle": "Comment ça marche ?",
+		"howSubtitle": "Un programme simple et transparent pour récompenser votre fidélité",
+		"steps": [
+			{
+				"title": "Achetez",
+				"description": "Faites vos achats normalement sur notre plateforme"
+			},
+			{
+				"title": "Gagnez des Points",
+				"description": "Recevez des points pour chaque achat (1 point = 100 XAF)"
+			},
+			{
+				"title": "Montez de Niveau",
+				"description": "Plus vous gagnez de points, plus vous montez de niveau"
+			},
+			{
+				"title": "Profitez des Avantages",
+				"description": "Utilisez vos points et profitez d'avantages exclusifs"
+			}
+		],
+		"tiersTitle": "Niveaux de Fidélité",
+		"tiersSubtitle": "Progressez dans les niveaux et débloquez des avantages toujours plus intéressants",
+		"pointsSuffix": "points",
+		"benefitsLabel": "Avantages :",
+		"tiers": [
+			{
+				"benefits": [
+					"1 point pour chaque 100 XAF dépensé",
+					"Réductions exclusives",
+					"Accès aux ventes flash",
+					"Newsletter mensuelle"
+				]
+			},
+			{
+				"benefits": [
+					"1 point pour chaque 100 XAF dépensé",
+					"Tous les avantages Bronze",
+					"Livraison gratuite sur commandes > 10,000 XAF",
+					"Accès prioritaire aux nouveaux produits",
+					"Cadeau d'anniversaire"
+				]
+			},
+			{
+				"benefits": [
+					"1.5 points pour chaque 100 XAF dépensé",
+					"Tous les avantages Silver",
+					"Livraison gratuite illimitée",
+					"Cadeaux exclusifs trimestriels",
+					"Retours gratuits",
+					"Service client prioritaire"
+				]
+			},
+			{
+				"benefits": [
+					"2 points pour chaque 100 XAF dépensé",
+					"Tous les avantages Gold",
+					"Support VIP 24/7",
+					"Accès aux événements exclusifs",
+					"Consultation gratuite avec producteurs",
+					"Personnalisation des commandes",
+					"Cadeaux mensuels premium"
+				]
+			}
+		],
+		"whyTitle": "Pourquoi rejoindre notre programme ?",
+		"why": [
+			{
+				"title": "Récompenses Instantanées",
+				"desc": "Vos points sont crédités immédiatement après chaque achat"
+			},
+			{
+				"title": "Progression Claire",
+				"desc": "Suivez facilement votre progression et vos points dans votre dashboard"
+			},
+			{
+				"title": "Avantages Exclusifs",
+				"desc": "Accédez à des offres et produits réservés aux membres fidèles"
+			},
+			{
+				"title": "Sans Frais",
+				"desc": "L'adhésion au programme est gratuite et automatique"
+			}
+		],
+		"examplesTitle": "Exemple de récompenses",
+		"examplePurchase": "Achat de 50,000 XAF",
+		"exampleBronze": "Niveau Bronze : +500 points",
+		"examplePlatinum": "Niveau Platinum : +1,000 points",
+		"exampleSavings": "Économies possibles",
+		"exampleSavings1": "500 points = 500 XAF de réduction",
+		"exampleSavings2": "1,000 points = 1,000 XAF de réduction",
+		"exampleBonus": "Bonus membre Platinum",
+		"exampleBonus1": "Livraison gratuite illimitée",
+		"exampleBonus2": "Cadeaux mensuels premium",
+		"faqTitle": "Questions Fréquentes",
+		"faq": [
+			{
+				"question": "Comment gagner des points ?",
+				"answer": "Vous gagnez automatiquement des points à chaque achat. Le nombre de points dépend de votre niveau : Bronze et Silver (1 pt/100 XAF), Gold (1.5 pts/100 XAF), Platinum (2 pts/100 XAF)."
+			},
+			{
+				"question": "Comment utiliser mes points ?",
+				"answer": "Lors du checkout, vous pouvez choisir d'utiliser vos points. Chaque point vaut 1 XAF de réduction sur votre commande. Vous décidez du nombre de points à utiliser."
+			},
+			{
+				"question": "Les points expirent-ils ?",
+				"answer": "Les points sont valables pendant 12 mois à partir de la date d'acquisition. Vous recevrez une notification par email 30 jours avant leur expiration."
+			},
+			{
+				"question": "Comment monter de niveau ?",
+				"answer": "Votre niveau est automatiquement mis à jour en fonction de votre solde de points actuel : Bronze (0-999), Silver (1000-4999), Gold (5000-9999), Platinum (10000+)."
+			},
+			{
+				"question": "Puis-je perdre mon niveau ?",
+				"answer": "Votre niveau dépend de votre solde de points actuel. Si vous utilisez beaucoup de points et que votre solde descend en dessous du seuil, vous pouvez changer de niveau."
+			},
+			{
+				"question": "Y a-t-il des frais pour rejoindre ?",
+				"answer": "Non, le programme de fidélité est totalement gratuit. Vous êtes automatiquement inscrit dès votre première commande en tant que membre Bronze."
+			}
+		],
+		"ctaTitle": "Prêt à commencer ?",
+		"ctaDescription": "Rejoignez des milliers de membres qui profitent déjà du programme de fidélité Harvests",
+		"ctaAccess": "Accéder à Mon Programme de Fidélité",
+		"ctaCreate": "Créer un Compte",
+		"ctaLogin": "Se Connecter"
 	}
 }

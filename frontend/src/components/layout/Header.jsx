@@ -179,7 +179,7 @@ const Header = () => {
 		User,
 		Settings,
 		Shield,
-	});
+	}, t);
 
 	const handleProductClick = (product) => {
 		// Fermer le menu mobile si ouvert

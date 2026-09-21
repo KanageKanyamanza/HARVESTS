@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Download, Smartphone, Share, Check, Zap, WifiOff, Bell, Sparkles } from "lucide-react";
 
 /**
  * Modal pour inviter l'utilisateur à installer la PWA
  */
 const PWAInstallModal = () => {
+  const { t } = useTranslation('common');
   const [showModal, setShowModal] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -119,12 +121,11 @@ const PWAInstallModal = () => {
     return null;
   }
 
-  const features = [
-    { icon: Zap, label: "Accès rapide depuis l'écran d'accueil" },
-    { icon: WifiOff, label: 'Fonctionnement hors ligne' },
-    { icon: Bell, label: 'Notifications push' },
-    { icon: Sparkles, label: 'Expérience optimisée' },
-  ];
+  const featureIcons = [Zap, WifiOff, Bell, Sparkles];
+  const features = t('pwaInstall.features', { returnObjects: true }).map((label, index) => ({
+    icon: featureIcons[index],
+    label,
+  }));
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4">
@@ -139,7 +140,7 @@ const PWAInstallModal = () => {
           type="button"
           onClick={handleDismiss}
           className="absolute top-3 right-3 z-10 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-          aria-label="Fermer"
+          aria-label={t('pwaInstall.close')}
         >
           <X className="w-5 h-5" />
         </button>
@@ -156,31 +157,30 @@ const PWAInstallModal = () => {
               <Smartphone className="w-6 h-6 text-white" />
             </div>
             <h2 className="text-xl font-[1000] text-gray-900 tracking-tight mb-1.5">
-              Installer Harvests
+              {t('pwaInstall.title')}
             </h2>
             <p className="text-gray-500 font-medium text-xs max-w-xs mx-auto">
-              Installez l'application pour une expérience optimale et un accès
-              rapide à vos produits locaux.
+              {t('pwaInstall.description')}
             </p>
           </div>
 
           {isIOS ? (
             <div className="mb-4 bg-gray-50 border border-gray-100 rounded-xl p-3">
               <p className="text-sm font-bold text-gray-700 mb-2">
-                Pour installer Harvests sur iOS :
+                {t('pwaInstall.iosTitle')}
               </p>
               <ol className="space-y-2 text-sm text-gray-600">
                 <li className="flex items-center gap-2">
                   <span className="flex-shrink-0 w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">1</span>
-                  Appuyez sur le bouton <strong>Partager</strong> <Share className="inline w-4 h-4" />
+                  {t('pwaInstall.iosStep1Prefix')} <strong>{t('pwaInstall.iosStep1Strong')}</strong>{t('pwaInstall.iosStep1Suffix') && ` ${t('pwaInstall.iosStep1Suffix')}`} <Share className="inline w-4 h-4" />
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="flex-shrink-0 w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">2</span>
-                  Sélectionnez <strong>« Sur l'écran d'accueil »</strong>
+                  {t('pwaInstall.iosStep2Prefix')} <strong>{t('pwaInstall.iosStep2Strong')}</strong>
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="flex-shrink-0 w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center">3</span>
-                  Appuyez sur <strong>« Ajouter »</strong>
+                  {t('pwaInstall.iosStep3Prefix')} <strong>{t('pwaInstall.iosStep3Strong')}</strong>
                 </li>
               </ol>
             </div>
@@ -209,7 +209,7 @@ const PWAInstallModal = () => {
                 className="w-full bg-emerald-600 text-white py-2.5 px-6 rounded-xl font-bold text-sm hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 shadow-sm shadow-emerald-200"
               >
                 <Download className="w-4 h-4" />
-                Installer maintenant
+                {t('pwaInstall.installNow')}
               </button>
             )}
             <button
@@ -217,14 +217,14 @@ const PWAInstallModal = () => {
               onClick={handleDismiss}
               className="w-full bg-gray-100 text-gray-700 py-2.5 px-6 rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors"
             >
-              Plus tard
+              {t('pwaInstall.later')}
             </button>
             <button
               type="button"
               onClick={handleDontShowAgain}
               className="w-full text-gray-400 text-xs font-medium py-1 hover:text-gray-600 transition-colors"
             >
-              Ne plus afficher
+              {t('pwaInstall.dontShowAgain')}
             </button>
           </div>
         </div>

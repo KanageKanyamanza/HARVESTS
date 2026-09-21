@@ -1,98 +1,65 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 import { Award, Gift, TrendingUp, Star, ArrowRight, ShoppingBag, Coins, Crown, Sparkles, Medal, Trophy, Gem, ShoppingCart } from 'lucide-react';
 import SEOHead from '../components/seo/SEOHead';
 
-const LoyaltyProgram = () => {
-  const { isAuthenticated, userType } = useAuth();
-  const tiers = [
-    {
-      name: 'Bronze',
-      icon: <Medal className="w-12 h-12 mx-auto text-orange-500" />,
-      color: 'from-orange-400 to-orange-600',
-      bgColor: 'bg-orange-50',
-      borderColor: 'border-orange-200',
-      points: '0 - 999',
-      benefits: [
-        '1 point pour chaque 100 XAF dépensé',
-        'Réductions exclusives',
-        'Accès aux ventes flash',
-        'Newsletter mensuelle'
-      ]
-    },
-    {
-      name: 'Silver',
-      icon: <Medal className="w-12 h-12 mx-auto text-gray-400" />,
-      color: 'from-gray-400 to-gray-600',
-      bgColor: 'bg-gray-50',
-      borderColor: 'border-gray-200',
-      points: '1,000 - 4,999',
-      benefits: [
-        '1 point pour chaque 100 XAF dépensé',
-        'Tous les avantages Bronze',
-        'Livraison gratuite sur commandes > 10,000 XAF',
-        'Accès prioritaire aux nouveaux produits',
-        'Birthday rewards'
-      ]
-    },
-    {
-      name: 'Gold',
-      icon: <Trophy className="w-12 h-12 mx-auto text-yellow-500" />,
-      color: 'from-yellow-400 to-yellow-600',
-      bgColor: 'bg-yellow-50',
-      borderColor: 'border-yellow-200',
-      points: '5,000 - 9,999',
-      benefits: [
-        '1.5 points pour chaque 100 XAF dépensé',
-        'Tous les avantages Silver',
-        'Livraison gratuite illimitée',
-        'Cadeaux exclusifs trimestriels',
-        'Retours gratuits',
-        'Service client prioritaire'
-      ]
-    },
-    {
-      name: 'Platinum',
-      icon: <Gem className="w-12 h-12 mx-auto text-purple-500" />,
-      color: 'from-purple-400 to-purple-600',
-      bgColor: 'bg-purple-50',
-      borderColor: 'border-purple-200',
-      points: '10,000+',
-      benefits: [
-        '2 points pour chaque 100 XAF dépensé',
-        'Tous les avantages Gold',
-        'Support VIP 24/7',
-        'Accès aux événements exclusifs',
-        'Consultation gratuite avec producteurs',
-        'Personnalisation des commandes',
-        'Cadeaux mensuels premium'
-      ]
-    }
-  ];
+// Partie non textuelle des niveaux (les avantages viennent de loyalty.tiers dans les locales,
+// dans le même ordre : Bronze, Silver, Gold, Platinum).
+const TIER_META = [
+  {
+    name: 'Bronze',
+    icon: <Medal className="w-12 h-12 mx-auto text-orange-500" />,
+    color: 'from-orange-400 to-orange-600',
+    bgColor: 'bg-orange-50',
+    borderColor: 'border-orange-200',
+    points: '0 - 999',
+  },
+  {
+    name: 'Silver',
+    icon: <Medal className="w-12 h-12 mx-auto text-gray-400" />,
+    color: 'from-gray-400 to-gray-600',
+    bgColor: 'bg-gray-50',
+    borderColor: 'border-gray-200',
+    points: '1,000 - 4,999',
+  },
+  {
+    name: 'Gold',
+    icon: <Trophy className="w-12 h-12 mx-auto text-yellow-500" />,
+    color: 'from-yellow-400 to-yellow-600',
+    bgColor: 'bg-yellow-50',
+    borderColor: 'border-yellow-200',
+    points: '5,000 - 9,999',
+  },
+  {
+    name: 'Platinum',
+    icon: <Gem className="w-12 h-12 mx-auto text-purple-500" />,
+    color: 'from-purple-400 to-purple-600',
+    bgColor: 'bg-purple-50',
+    borderColor: 'border-purple-200',
+    points: '10,000+',
+  },
+];
 
-  const howItWorks = [
-    {
-      icon: ShoppingBag,
-      title: 'Achetez',
-      description: 'Faites vos achats normalement sur notre plateforme',
-    },
-    {
-      icon: Coins,
-      title: 'Gagnez des Points',
-      description: 'Recevez des points pour chaque achat (1 point = 100 XAF)',
-    },
-    {
-      icon: Crown,
-      title: 'Montez de Niveau',
-      description: 'Plus vous gagnez de points, plus vous montez de niveau',
-    },
-    {
-      icon: Sparkles,
-      title: 'Profitez des Avantages',
-      description: 'Utilisez vos points et profitez d\'avantages exclusifs',
-    }
-  ];
+const STEP_ICONS = [ShoppingBag, Coins, Crown, Sparkles];
+const WHY_ICONS = [Gift, TrendingUp, Star, Award];
+
+const LoyaltyProgram = () => {
+  const { t } = useTranslation('public');
+  const { isAuthenticated, userType } = useAuth();
+
+  const tierTexts = t('loyalty.tiers', { returnObjects: true });
+  const tiers = TIER_META.map((meta, index) => ({ ...meta, benefits: tierTexts[index].benefits }));
+  const howItWorks = t('loyalty.steps', { returnObjects: true }).map((step, index) => ({
+    ...step,
+    icon: STEP_ICONS[index],
+  }));
+  const whyItems = t('loyalty.why', { returnObjects: true }).map((item, index) => ({
+    ...item,
+    icon: WHY_ICONS[index],
+  }));
+  const faqItems = t('loyalty.faq', { returnObjects: true });
 
   return (
     <div className="min-h-screen bg-[#F8FAF6] pb-16">
@@ -107,15 +74,15 @@ const LoyaltyProgram = () => {
           <div className="relative z-10 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-4">
               <Award className="w-4 h-4 text-[#31BC2E]" />
-              <span>Récompenses & Fidélité</span>
+              <span>{t('loyalty.badge')}</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight mb-4">
-              Programme de Fidélité Harvests
+              {t('loyalty.heroTitle')}
             </h1>
 
             <p className="text-emerald-100/90 text-sm sm:text-base leading-relaxed mb-6">
-              Gagnez des points à chaque achat et débloquez des avantages exclusifs, du producteur jusqu'à votre table.
+              {t('loyalty.heroDescription')}
             </p>
 
             {isAuthenticated && userType === 'consumer' ? (
@@ -123,7 +90,7 @@ const LoyaltyProgram = () => {
                 to="/consumer/loyalty"
                 className="inline-flex items-center px-6 py-3 bg-white text-[#1A5514] font-bold rounded-full hover:shadow-xl shadow-lg transition-all duration-300"
               >
-                Voir Mon Programme
+                {t('loyalty.viewMyProgram')}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             ) : (
@@ -131,7 +98,7 @@ const LoyaltyProgram = () => {
                 to="/register"
                 className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-[#31BC2E] to-[#1A5514] text-white font-bold rounded-full hover:shadow-xl shadow-lg transition-all duration-300"
               >
-                Rejoindre Maintenant
+                {t('loyalty.joinNow')}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             )}
@@ -142,10 +109,10 @@ const LoyaltyProgram = () => {
         <div className="bg-white rounded-2xl border border-emerald-100/80 shadow-sm p-5 sm:p-8 mb-8">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-[#161D14] mb-2">
-              Comment ça marche ?
+              {t('loyalty.howTitle')}
             </h2>
             <p className="text-gray-500 text-sm max-w-2xl mx-auto">
-              Un programme simple et transparent pour récompenser votre fidélité
+              {t('loyalty.howSubtitle')}
             </p>
           </div>
 
@@ -178,10 +145,10 @@ const LoyaltyProgram = () => {
         <div className="mb-8">
           <div className="text-center mb-6">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-[#161D14] mb-2">
-              Niveaux de Fidélité
+              {t('loyalty.tiersTitle')}
             </h2>
             <p className="text-gray-500 text-sm max-w-2xl mx-auto">
-              Progressez dans les niveaux et débloquez des avantages toujours plus intéressants
+              {t('loyalty.tiersSubtitle')}
             </p>
           </div>
 
@@ -197,12 +164,12 @@ const LoyaltyProgram = () => {
                   <div className="flex justify-center mb-2">{tier.icon}</div>
                   <h4 className="font-extrabold text-xl mb-2 text-[#161D14]">{tier.name}</h4>
                   <div className={`inline-block px-3 py-1 ${tier.bgColor} rounded-full`}>
-                    <p className="text-xs font-bold text-gray-700">{tier.points} points</p>
+                    <p className="text-xs font-bold text-gray-700">{tier.points} {t('loyalty.pointsSuffix')}</p>
                   </div>
                 </div>
 
                 <div className="space-y-2.5">
-                  <h5 className="font-bold text-xs text-gray-400 uppercase tracking-wider mb-2">Avantages :</h5>
+                  <h5 className="font-bold text-xs text-gray-400 uppercase tracking-wider mb-2">{t('loyalty.benefitsLabel')}</h5>
                   {tier.benefits.map((benefit, idx) => (
                     <div key={idx} className="flex items-start gap-2">
                       <span className="text-[#1A5514] mt-0.5 flex-shrink-0 text-sm">✓</span>
@@ -219,15 +186,10 @@ const LoyaltyProgram = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch mb-8">
           <div className="bg-white rounded-2xl border border-emerald-100/80 shadow-sm p-5 sm:p-8">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-[#161D14] mb-6">
-              Pourquoi rejoindre notre programme ?
+              {t('loyalty.whyTitle')}
             </h2>
             <div className="space-y-5">
-              {[
-                { icon: Gift, title: 'Récompenses Instantanées', desc: 'Vos points sont crédités immédiatement après chaque achat' },
-                { icon: TrendingUp, title: 'Progression Claire', desc: 'Suivez facilement votre progression et vos points dans votre dashboard' },
-                { icon: Star, title: 'Avantages Exclusifs', desc: 'Accédez à des offres et produits réservés aux membres fidèles' },
-                { icon: Award, title: 'Sans Frais', desc: "L'adhésion au programme est gratuite et automatique" },
-              ].map(({ icon: Icon, title, desc }) => (
+              {whyItems.map(({ icon: Icon, title, desc }) => (
                 <div key={title} className="flex gap-4">
                   <div className="flex-shrink-0">
                     <div className="w-11 h-11 bg-emerald-50 border border-emerald-200/60 rounded-xl flex items-center justify-center">
@@ -245,38 +207,38 @@ const LoyaltyProgram = () => {
 
           <div className="bg-gradient-to-br from-[#161D14] via-[#1A5514] to-[#0D330A] rounded-2xl p-5 sm:p-8 text-white relative overflow-hidden">
             <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
-            <h3 className="text-xl font-extrabold mb-5 relative z-10">Exemple de récompenses</h3>
+            <h3 className="text-xl font-extrabold mb-5 relative z-10">{t('loyalty.examplesTitle')}</h3>
             <div className="space-y-3 relative z-10">
               <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-4">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-bold text-sm">Achat de 50,000 XAF</span>
+                  <span className="font-bold text-sm">{t('loyalty.examplePurchase')}</span>
                   <ShoppingCart className="w-5 h-5 text-emerald-300" />
                 </div>
                 <div className="text-xs text-white/70 leading-relaxed">
-                  Niveau Bronze : +500 points<br/>
-                  Niveau Platinum : +1,000 points
+                  {t('loyalty.exampleBronze')}<br/>
+                  {t('loyalty.examplePlatinum')}
                 </div>
               </div>
 
               <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-4">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-bold text-sm">Économies possibles</span>
+                  <span className="font-bold text-sm">{t('loyalty.exampleSavings')}</span>
                   <Coins className="w-5 h-5 text-emerald-300" />
                 </div>
                 <div className="text-xs text-white/70 leading-relaxed">
-                  500 points = 500 XAF de réduction<br/>
-                  1,000 points = 1,000 XAF de réduction
+                  {t('loyalty.exampleSavings1')}<br/>
+                  {t('loyalty.exampleSavings2')}
                 </div>
               </div>
 
               <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-4">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="font-bold text-sm">Bonus membre Platinum</span>
+                  <span className="font-bold text-sm">{t('loyalty.exampleBonus')}</span>
                   <Gem className="w-5 h-5 text-emerald-300" />
                 </div>
                 <div className="text-xs text-white/70 leading-relaxed">
-                  Livraison gratuite illimitée<br/>
-                  Cadeaux mensuels premium
+                  {t('loyalty.exampleBonus1')}<br/>
+                  {t('loyalty.exampleBonus2')}
                 </div>
               </div>
             </div>
@@ -287,37 +249,12 @@ const LoyaltyProgram = () => {
         <div className="bg-white rounded-2xl border border-emerald-100/80 shadow-sm p-5 sm:p-8 mb-8">
           <div className="text-center mb-6">
             <h2 className="text-2xl sm:text-3xl font-extrabold text-[#161D14]">
-              Questions Fréquentes
+              {t('loyalty.faqTitle')}
             </h2>
           </div>
 
           <div className="space-y-3 max-w-4xl mx-auto">
-            {[
-              {
-                question: 'Comment gagner des points ?',
-                answer: 'Vous gagnez automatiquement des points à chaque achat. Le nombre de points dépend de votre niveau : Bronze et Silver (1 pt/100 XAF), Gold (1.5 pts/100 XAF), Platinum (2 pts/100 XAF).'
-              },
-              {
-                question: 'Comment utiliser mes points ?',
-                answer: 'Lors du checkout, vous pouvez choisir d\'utiliser vos points. Chaque point vaut 1 XAF de réduction sur votre commande. Vous décidez du nombre de points à utiliser.'
-              },
-              {
-                question: 'Les points expirent-ils ?',
-                answer: 'Les points sont valables pendant 12 mois à partir de la date d\'acquisition. Vous recevrez une notification par email 30 jours avant leur expiration.'
-              },
-              {
-                question: 'Comment monter de niveau ?',
-                answer: 'Votre niveau est automatiquement mis à jour en fonction de votre solde de points actuel : Bronze (0-999), Silver (1000-4999), Gold (5000-9999), Platinum (10000+).'
-              },
-              {
-                question: 'Puis-je perdre mon niveau ?',
-                answer: 'Votre niveau dépend de votre solde de points actuel. Si vous utilisez beaucoup de points et que votre solde descend en dessous du seuil, vous pouvez changer de niveau.'
-              },
-              {
-                question: 'Y a-t-il des frais pour rejoindre ?',
-                answer: 'Non, le programme de fidélité est totalement gratuit. Vous êtes automatiquement inscrit dès votre première commande en tant que membre Bronze.'
-              }
-            ].map((faq, index) => (
+            {faqItems.map((faq, index) => (
               <div key={index} className="bg-[#F8FAF6] rounded-2xl p-5 border border-emerald-100/60 hover:border-emerald-300 transition-colors">
                 <h3 className="font-extrabold text-sm text-[#161D14] mb-1.5">
                   {faq.question}
@@ -335,10 +272,10 @@ const LoyaltyProgram = () => {
           <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
           <div className="relative z-10">
             <h2 className="text-2xl sm:text-3xl font-black mb-3">
-              Prêt à commencer ?
+              {t('loyalty.ctaTitle')}
             </h2>
             <p className="text-emerald-100/90 text-sm sm:text-base mb-6 max-w-2xl mx-auto">
-              Rejoignez des milliers de membres qui profitent déjà du programme de fidélité Harvests
+              {t('loyalty.ctaDescription')}
             </p>
 
             {isAuthenticated && userType === 'consumer' ? (
@@ -346,7 +283,7 @@ const LoyaltyProgram = () => {
                 to="/consumer/loyalty"
                 className="inline-flex items-center px-6 py-3 bg-white text-[#1A5514] font-bold rounded-full hover:shadow-xl shadow-lg transition-all duration-300"
               >
-                Accéder à Mon Programme de Fidélité
+                {t('loyalty.ctaAccess')}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             ) : (
@@ -355,14 +292,14 @@ const LoyaltyProgram = () => {
                   to="/register"
                   className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-[#31BC2E] to-[#1A5514] text-white font-bold rounded-full hover:shadow-xl shadow-lg transition-all duration-300"
                 >
-                  Créer un Compte
+                  {t('loyalty.ctaCreate')}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
                 <Link
                   to="/login"
                   className="inline-flex items-center justify-center px-6 py-3 bg-white/10 text-white font-bold rounded-full hover:bg-white/20 border border-white/30 transition-all duration-300"
                 >
-                  Se Connecter
+                  {t('loyalty.ctaLogin')}
                 </Link>
               </div>
             )}

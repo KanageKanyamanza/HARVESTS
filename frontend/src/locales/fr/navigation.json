@@ -24,6 +24,48 @@
 	"blog": "Blog",
 	"invest": "Invest",
 	"ourProducers": "Nos Producteurs",
+	"sidebar": {
+		"myOrders": "Mes commandes",
+		"myFavorites": "Mes favoris",
+		"myReviews": "Mes avis",
+		"statistics": "Statistiques",
+		"explore": "Explorer",
+		"myProducts": "Mes Produits",
+		"addProduct": "Ajouter produit",
+		"reviewsReceived": "Avis reçus",
+		"cropAdvice": "Conseils agricoles",
+		"documents": "Documents",
+		"myCart": "Mon panier",
+		"myDishes": "Mes plats",
+		"exportOrders": "Commandes d'export",
+		"myFleet": "Ma flotte",
+		"viewSite": "Voir le site",
+		"defaultUserName": "Utilisateur",
+		"planLabels": {
+			"gratuit": "Gratuit",
+			"standard": "Standard",
+			"premium": "Premium"
+		}
+	},
+	"topbar": {
+		"weatherUnavailable": "Météo indisponible",
+		"weatherLoading": "Chargement météo…",
+		"yourLocation": "Votre position",
+		"weather": {
+			"clearSky": "Ciel dégagé",
+			"mostlyClear": "Peu nuageux",
+			"cloudy": "Nuageux",
+			"foggy": "Brumeux",
+			"drizzle": "Bruine",
+			"rain": "Pluie",
+			"snow": "Neige",
+			"thunderstorm": "Orage",
+			"sunny": "Ensoleillé"
+		},
+		"pendingOrders": "Commandes en attente",
+		"lowStockProducts": "Produits en stock faible",
+		"addProduct": "Ajouter un produit"
+	},
 	"ticker": {
 		"badge": "Nos Producteurs",
 		"badgeShort": "Prod.",
@@ -70,7 +112,6 @@
 		"myDishes": "Mes Plats",
 		"myDeliveries": "Mes Livraisons",
 		"favorites": "Favoris",
-		"register": "Inscription",
 		"newsletterTitle": "Restez informé(e) de nos actualités",
 		"emailPlaceholder": "Votre adresse e-mail",
 		"subscribe": "S'inscrire",

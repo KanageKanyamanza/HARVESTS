@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ShoppingBag, AlertTriangle, Plus } from "lucide-react";
 import { producerService } from "../../services";
 
@@ -24,6 +25,7 @@ const IconBadge = ({ Icon, count, tone, title, onClick }) => (
 );
 
 const ProducerQuickStats = () => {
+	const { t } = useTranslation("navigation");
 	const navigate = useNavigate();
 	const [pendingOrders, setPendingOrders] = useState(0);
 	const [lowStockCount, setLowStockCount] = useState(0);
@@ -75,20 +77,20 @@ const ProducerQuickStats = () => {
 				Icon={ShoppingBag}
 				count={pendingOrders}
 				tone="bg-orange-500"
-				title="Commandes en attente"
+				title={t("topbar.pendingOrders", "Commandes en attente")}
 				onClick={() => navigate("/producer/orders")}
 			/>
 			<IconBadge
 				Icon={AlertTriangle}
 				count={lowStockCount}
 				tone="bg-rose-500"
-				title="Produits en stock faible"
+				title={t("topbar.lowStockProducts", "Produits en stock faible")}
 				onClick={() => navigate("/producer/products")}
 			/>
 			<button
 				type="button"
 				onClick={() => navigate("/producer/products/add")}
-				title="Ajouter un produit"
+				title={t("topbar.addProduct", "Ajouter un produit")}
 				className="p-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
 			>
 				<Plus className="h-5 w-5" />

@@ -41,7 +41,7 @@ Allow: /blog/
 Allow: /about
 Allow: /a-propos
 Allow: /contact
-Allow: /help
+Allow: /faq
 Allow: /terms
 Allow: /privacy
 Allow: /pricing
