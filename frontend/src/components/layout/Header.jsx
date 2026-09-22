@@ -348,7 +348,7 @@ const Header = () => {
 					{/* Actions utilisateur */}
 					<div className="flex items-center space-x-2 sm:space-x-4">
 						{/* Sélecteur de langue fr/en */}
-						<div className="hidden md:flex items-center">
+						<div className="flex items-center">
 							<LanguageSelector />
 						</div>
 
@@ -549,7 +549,6 @@ const Header = () => {
 								{t("header.mobileHelpSection", { ns: "navigation" })}
 							</p>
 							<div className="px-5 py-2 flex items-center gap-3">
-								<LanguageSelector className="shrink-0" />
 								<select
 									value={currency}
 									onChange={(e) => setCurrency(e.target.value)}
