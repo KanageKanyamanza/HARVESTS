@@ -1,11 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { FiUser, FiArrowRight } from 'react-icons/fi';
 import CloudinaryImage from '../common/CloudinaryImage';
 import { getVendorName, getVendorLogo, getVendorProfileRoute } from '../../utils/productUtils';
 
 const VendorCard = ({ vendor }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation('public');
 
   if (!vendor) return null;
 
@@ -33,7 +35,7 @@ const VendorCard = ({ vendor }) => {
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Vendu par</p>
+        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{t('productDetail.soldBy')}</p>
         <h3 className="font-bold text-[#161D14] truncate text-sm">{name}</h3>
       </div>
       <FiArrowRight className="h-4 w-4 text-[#1A5514] shrink-0 group-hover:translate-x-1 transition-transform" />

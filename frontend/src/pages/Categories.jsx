@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { productService } from '../services';
 import CloudinaryImage from '../components/common/CloudinaryImage';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -16,34 +17,6 @@ const ALL_CATEGORIES = [
   "poultry", "processed-foods", "legumes", "tubers", "spices",
   "herbs", "nuts", "seeds", "beverages", "other",
 ];
-
-const LABELS = {
-  cereals: 'Céréales & Grains', vegetables: 'Légumes Frais', fruits: 'Fruits de Saison',
-  legumes: 'Légumineuses', tubers: 'Tubercules & Racines', spices: 'Épices Locales',
-  herbs: 'Herbes Aromatiques', grains: 'Grains', nuts: 'Noix & Anacarde', seeds: 'Graines & Semences',
-  dairy: 'Produits Laitiers', meat: 'Viande Bovine & Ovine', poultry: 'Volaille Bio',
-  fish: 'Poisson & Halieutique', 'processed-foods': 'Produits Transformés',
-  beverages: 'Jus & Boissons', other: 'Épicerie & Divers',
-};
-
-const DESCRIPTIONS = {
-  cereals: 'Riz de vallée, maïs blanc/jaune, mil, sorgho et céréales locales',
-  vegetables: 'Tomates mûres, choux, oignons, épinards et légumes maraîchers',
-  fruits: 'Mangues fraîches, ananas sucrés, bananes et fruits tropicaux',
-  legumes: 'Haricots niébé, pois de terre, lentilles et légumineuses',
-  tubers: 'Manioc, ignames fraîches, patates douces et tubercules',
-  spices: 'Soumbala bio, piment rouge, gingembre et condiments authentiques',
-  herbs: 'Moringa pur, menthe fraîche et herbes aromatiques locales',
-  nuts: 'Noix de cajou brutes et transformées, arachides de qualité',
-  seeds: 'Semences certifiées et graines oléagineuses',
-  dairy: 'Lait frais local, beurre de karité et produits laitiers',
-  meat: 'Viande bovine, ovine et caprine issue d\'élevages durables',
-  poultry: 'Poulets fermiers bio, pintades et œufs frais de ferme',
-  fish: 'Poissons d\'eau douce, capitaine, tilapias et produits halieutiques',
-  'processed-foods': 'Farines locales, huiles pressées à froid et conserve artisanale',
-  beverages: 'Jus naturels de bissap, gingembre, tamarin et baobab',
-  other: 'Produits agricoles divers et spécialités régionales',
-};
 
 const ICONS = {
   cereals: Wheat, vegetables: Carrot, fruits: Apple, legumes: Bean,
@@ -65,6 +38,7 @@ const CATEGORY_FALLBACK_IMAGES = {
 };
 
 const Categories = () => {
+  const { t } = useTranslation('public');
   const [visibleCategories, setVisibleCategories] = useState([]);
   const [categoryProducts, setCategoryProducts] = useState({});
   const [loading, setLoading] = useState(true);
@@ -116,7 +90,7 @@ const Categories = () => {
       setVisibleCategories(visible);
     } catch (err) {
       console.error('Erreur lors du chargement des catégories:', err);
-      setError('Erreur lors du chargement des catégories');
+      setError(t('categories.loadError'));
     } finally {
       setLoading(false);
     }
@@ -133,7 +107,9 @@ const Categories = () => {
   const filteredCategories = visibleCategories.filter((cat) => {
     if (!searchQuery) return true;
     const term = searchQuery.toLowerCase();
-    return (LABELS[cat] || cat).toLowerCase().includes(term) || (DESCRIPTIONS[cat] || '').toLowerCase().includes(term);
+    const label = t(`categories.labels.${cat}`, cat);
+    const description = t(`categories.descriptions.${cat}`, '');
+    return label.toLowerCase().includes(term) || description.toLowerCase().includes(term);
   });
 
   if (loading) {
@@ -157,15 +133,15 @@ const Categories = () => {
           <div className="relative z-10 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-4">
               <Grid className="w-4 h-4 text-[#31BC2E]" />
-              <span>Filières & Sourcing Direct</span>
+              <span>{t('categories.heroBadge')}</span>
             </div>
-            
+
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight mb-4">
-              Catégories & Récoltes de la Marketplace
+              {t('categories.heroTitle')}
             </h1>
-            
+
             <p className="text-emerald-100/90 text-sm sm:text-base leading-relaxed">
-              Accédez aux meilleures filières agricoles africaines : fruits, légumes frais, tubercules, céréales, épices et produits transformés 100% traçables.
+              {t('categories.heroDescription')}
             </p>
           </div>
         </div>
@@ -179,40 +155,40 @@ const Categories = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Rechercher une filière (ex: Légumes, Épices, Céréales)..."
+                placeholder={t('categories.searchPlaceholder')}
                 className="w-full pl-11 pr-4 py-3 text-sm border border-gray-200/90 rounded-xl focus:ring-2 focus:ring-[#1A5514] focus:border-transparent outline-none transition-all shadow-sm"
               />
               {searchQuery && (
-                <button 
+                <button
                   onClick={() => setSearchQuery('')}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs font-bold text-gray-400 hover:text-gray-600 bg-gray-100 px-2 py-1 rounded-md"
                 >
-                  Effacer
+                  {t('categories.clearSearch')}
                 </button>
               )}
             </div>
 
             <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
               <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                {filteredCategories.length} Catégorie{filteredCategories.length > 1 ? 's' : ''}
+                {t('categories.resultCount', { count: filteredCategories.length })}
               </span>
 
               <div className="flex items-center bg-gray-100 p-1 rounded-xl gap-1 border border-gray-200">
                 <button
                   onClick={() => handleViewModeChange('grid')}
                   className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-xs font-bold ${viewMode === 'grid' ? 'bg-[#1A5514] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-                  title="Vue en grille"
+                  title={t('categories.gridViewTitle')}
                 >
                   <FiGrid className="h-4 w-4" />
-                  <span>Grille</span>
+                  <span>{t('categories.grid')}</span>
                 </button>
                 <button
                   onClick={() => handleViewModeChange('list')}
                   className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-xs font-bold ${viewMode === 'list' ? 'bg-[#1A5514] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-                  title="Vue en liste"
+                  title={t('categories.listViewTitle')}
                 >
                   <FiList className="h-4 w-4" />
-                  <span>Liste</span>
+                  <span>{t('categories.list')}</span>
                 </button>
               </div>
             </div>
@@ -224,7 +200,7 @@ const Categories = () => {
           <div className="text-center py-16 bg-white rounded-2xl border border-emerald-100 shadow-sm">
             <div className="text-red-600 font-bold mb-4">{error}</div>
             <button onClick={loadCategories} className="px-6 py-2.5 bg-[#1A5514] text-white font-bold rounded-full hover:bg-[#144210]">
-              Réessayer
+              {t('categories.retry')}
             </button>
           </div>
         ) : filteredCategories.length > 0 ? (
@@ -249,17 +225,17 @@ const Categories = () => {
                             </div>
                             <div>
                               <h3 className="text-base font-extrabold text-[#161D14] group-hover:text-[#1A5514] transition-colors leading-snug">
-                                {LABELS[category] || category}
+                                {t(`categories.labels.${category}`, category)}
                               </h3>
                               <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full inline-block mt-0.5">
-                                {products.length > 0 ? `${products.length} produit${products.length > 1 ? 's' : ''}` : 'Disponible'}
+                                {products.length > 0 ? t('categories.productCount', { count: products.length }) : t('categories.available')}
                               </span>
                             </div>
                           </div>
                         </div>
 
                         <p className="text-xs text-gray-500 leading-relaxed mb-3 line-clamp-2">
-                          {DESCRIPTIONS[category] || 'Produits agricoles de qualité en direct des producteurs.'}
+                          {t(`categories.descriptions.${category}`, t('categories.defaultDescription'))}
                         </p>
                       </div>
 
@@ -267,7 +243,7 @@ const Categories = () => {
                       {products.length > 0 && (
                         <div className="mt-3 pt-3 border-t border-gray-100">
                           <span className="text-[10px] font-extrabold text-[#1A5514] uppercase tracking-wider block mb-2">
-                            Produits phares de la filière
+                            {t('categories.featuredProducts')}
                           </span>
                           <div className="grid grid-cols-4 gap-2">
                             {products.slice(0, 4).map((product) => {
@@ -304,7 +280,7 @@ const Categories = () => {
                       to={`/categories/${category}`}
                       className="p-3.5 bg-[#F8FAF6] group-hover:bg-emerald-50/70 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-[#1A5514] group-hover:text-[#31BC2E] transition-colors"
                     >
-                      <span>Explorer toute la filière</span>
+                      <span>{t('categories.exploreCategory')}</span>
                       <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
                     </Link>
                   </div>
@@ -330,14 +306,14 @@ const Categories = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
                           <h3 className="text-base sm:text-lg font-extrabold text-[#161D14] group-hover:text-[#1A5514] transition-colors">
-                            {LABELS[category] || category}
+                            {t(`categories.labels.${category}`, category)}
                           </h3>
                           <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
-                            {products.length} produit{products.length > 1 ? 's' : ''}
+                            {t('categories.productCount', { count: products.length })}
                           </span>
                         </div>
                         <p className="text-xs text-gray-500 leading-relaxed max-w-xl">
-                          {DESCRIPTIONS[category] || 'Produits agricoles de qualité en direct des producteurs.'}
+                          {t(`categories.descriptions.${category}`, t('categories.defaultDescription'))}
                         </p>
 
                         {/* Thumbnails en ligne dans la vue liste */}
@@ -365,7 +341,7 @@ const Categories = () => {
                         to={`/categories/${category}`}
                         className="bg-[#1A5514] hover:bg-[#31BC2E] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2 group-hover:shadow-md"
                       >
-                        <span>Explorer la filière</span>
+                        <span>{t('categories.exploreCategoryShort')}</span>
                         <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
                       </Link>
                     </div>
@@ -377,16 +353,16 @@ const Categories = () => {
         ) : (
           <div className="text-center py-16 bg-white rounded-2xl border border-emerald-100 shadow-sm">
             <FiPackage className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-            <h3 className="text-lg font-extrabold text-[#161D14] mb-2">Aucune catégorie trouvée</h3>
+            <h3 className="text-lg font-extrabold text-[#161D14] mb-2">{t('categories.noCategoriesFound')}</h3>
             <p className="text-xs text-gray-500 mb-6 max-w-sm mx-auto">
-              {searchQuery ? `Aucune filière ne correspond à "${searchQuery}".` : 'Aucune catégorie disponible.'}
+              {searchQuery ? t('categories.noSearchResults', { query: searchQuery }) : t('categories.noCategoriesAvailable')}
             </p>
             {searchQuery && (
-              <button 
-                onClick={() => setSearchQuery('')} 
+              <button
+                onClick={() => setSearchQuery('')}
                 className="px-6 py-2.5 bg-[#1A5514] text-white font-bold rounded-full hover:bg-[#144210] text-xs transition-colors"
               >
-                Effacer la recherche
+                {t('categories.clearSearchAction')}
               </button>
             )}
           </div>

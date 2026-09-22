@@ -311,14 +311,6 @@ const AppRoutes = () => {
 				}
 			/>
 			<Route
-				path="/producteurs"
-				element={
-					<Layout>
-						<SuspenseRoute element={<Producers />} />
-					</Layout>
-				}
-			/>
-			<Route
 				path="/transformers"
 				element={
 					<Layout>
@@ -395,14 +387,6 @@ const AppRoutes = () => {
 			<Route path="/checkout" element={<CheckoutGateway />} />
 			<Route
 				path="/about"
-				element={
-					<Layout>
-						<SuspenseRoute element={<About />} />
-					</Layout>
-				}
-			/>
-			<Route
-				path="/a-propos"
 				element={
 					<Layout>
 						<SuspenseRoute element={<About />} />

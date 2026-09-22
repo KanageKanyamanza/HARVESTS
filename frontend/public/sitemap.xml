@@ -62,7 +62,7 @@
 
   <!-- Transporteurs et Exportateurs -->
   <url>
-    <loc>https://www.harvests.site/transporteurs-exportateurs</loc>
+    <loc>https://www.harvests.site/logistics</loc>
     <lastmod>2026-06-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -98,13 +98,6 @@
     <lastmod>2026-06-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
-  </url>
-
-  <url>
-    <loc>https://www.harvests.site/a-propos</loc>
-    <lastmod>2026-06-09</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
   </url>
 
   <!-- Contact -->

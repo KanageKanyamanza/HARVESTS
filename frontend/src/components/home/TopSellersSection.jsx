@@ -138,7 +138,7 @@ const TopSellersSection = () => {
           <p className="text-sm text-gray-600 mt-0.5">{t('home.topSellers.subtitle')}</p>
         </div>
         <Link
-          to={isLocal && countryCode ? `/producteurs?country=${countryCode}` : '/producers'}
+          to={isLocal && countryCode ? `/producers?country=${countryCode}` : '/producers'}
           className="hidden md:flex text-xs sm:text-sm font-bold text-[#1A5514] hover:text-[#31BC2E] transition-colors items-center gap-1"
         >
           {t('home.topSellers.viewAll')}
@@ -224,7 +224,7 @@ const TopSellersSection = () => {
 
       <div className="md:hidden mx-auto text-center p-2 my-5">
         <Link
-          to={isLocal && countryCode ? `/producteurs?country=${countryCode}` : '/producers'}
+          to={isLocal && countryCode ? `/producers?country=${countryCode}` : '/producers'}
           className="text-xs sm:text-sm font-bold text-white hover:text-[#31BC2E] transition-colors bg-[#1A5514] rounded-full p-3 w-64 mx-auto flex items-center justify-center gap-1"
         >
           {t('home.topSellers.viewAll')}

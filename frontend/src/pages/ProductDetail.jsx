@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import SEOHead from "../components/seo/SEOHead";
 import { useAuth } from "../hooks/useAuth";
 import { useCart } from "../contexts/CartContext";
@@ -35,6 +36,7 @@ import {
 import { Leaf } from "lucide-react";
 
 const ProductDetail = () => {
+	const { t } = useTranslation("public");
 	const { id } = useParams();
 	const { user } = useAuth();
 	const { addToCart } = useCart();
@@ -70,10 +72,8 @@ const ProductDetail = () => {
 		if (product) {
 			addToCart({ ...product, quantity });
 			showSuccess(
-				`${quantity} article${quantity > 1 ? "s" : ""} ajouté${
-					quantity > 1 ? "s" : ""
-				} au panier`,
-				"Produit ajouté",
+				t("productDetail.addedToCartToast", { count: quantity }),
+				t("productDetail.addedToCartTitle"),
 			);
 			setShowAddedToCart(true);
 			setTimeout(() => setShowAddedToCart(false), 3000);
@@ -83,7 +83,7 @@ const ProductDetail = () => {
 	const handleToggleFavorite = async () => {
 		if (!user || user.userType !== "consumer" || !product?._id) {
 			showError(
-				"Vous devez être connecté en tant que consommateur pour gérer vos favoris",
+				t("productDetail.mustBeConsumerFavorite"),
 			);
 			return;
 		}
@@ -92,7 +92,7 @@ const ProductDetail = () => {
 				await consumerService.removeFavorite(product._id);
 				setIsFavorite(false);
 				setFavoritesCount((prev) => Math.max(0, prev - 1));
-				showSuccess("Produit retiré de vos favoris");
+				showSuccess(t("productDetail.removedFromFavorites"));
 				// Déclencher un événement pour rafraîchir les favoris dans le dashboard
 				window.dispatchEvent(new Event("favoriteChanged"));
 			} else {
@@ -103,11 +103,11 @@ const ProductDetail = () => {
 					response.data?.message?.includes("déjà")
 				) {
 					setIsFavorite(true);
-					showSuccess("Produit déjà dans vos favoris");
+					showSuccess(t("productDetail.alreadyInFavorites"));
 				} else {
 					setIsFavorite(true);
 					setFavoritesCount((prev) => prev + 1);
-					showSuccess("Produit ajouté à vos favoris");
+					showSuccess(t("productDetail.addedToFavorites"));
 				}
 				// Déclencher un événement pour rafraîchir les favoris dans le dashboard
 				window.dispatchEvent(new Event("favoriteChanged"));
@@ -140,9 +140,9 @@ const ProductDetail = () => {
 			const msg = error.response?.data?.message;
 			if (msg?.includes("déjà dans vos favoris")) {
 				setIsFavorite(true);
-				showError("Ce produit est déjà dans vos favoris");
+				showError(t("productDetail.alreadyInFavoritesError"));
 			} else {
-				showError(msg || "Erreur lors de la gestion des favoris");
+				showError(msg || t("productDetail.favoritesError"));
 			}
 		}
 	};
@@ -184,7 +184,7 @@ const ProductDetail = () => {
 				productId: product._id,
 				producer: producer?._id,
 			});
-			showSuccess("Votre avis a été publié avec succès !");
+			showSuccess(t("productDetail.reviewSubmitted"));
 			setShowReviewForm(false);
 			loadReviews();
 			// Déclencher un événement pour rafraîchir les avis dans le dashboard
@@ -192,13 +192,13 @@ const ProductDetail = () => {
 		} catch (error) {
 			let msg =
 				error.response?.data?.message ||
-				"Erreur lors de la publication de l'avis";
+				t("productDetail.reviewErrorDefault");
 			if (msg.includes("Vous devez avoir acheté"))
-				msg = "Vous devez avoir acheté ce produit pour laisser un avis";
+				msg = t("productDetail.reviewErrorMustHavePurchased");
 			else if (msg.includes("pas encore complétée"))
-				msg = "Votre commande n'est pas encore complétée.";
+				msg = t("productDetail.reviewErrorOrderIncomplete");
 			else if (msg.includes("déjà laissé un avis"))
-				msg = "Vous avez déjà laissé un avis pour cette commande";
+				msg = t("productDetail.reviewErrorAlreadyReviewed");
 			showError(msg);
 		}
 	};
@@ -206,7 +206,7 @@ const ProductDetail = () => {
 	if (loading) {
 		return (
 			<div className="min-h-screen bg-[#F8FAF6] flex items-center justify-center">
-				<LoadingSpinner size="lg" text="Chargement du produit..." />
+				<LoadingSpinner size="lg" text={t("productDetail.loadingText")} />
 			</div>
 		);
 	}
@@ -216,17 +216,17 @@ const ProductDetail = () => {
 			<div className="min-h-screen bg-[#F8FAF6] flex items-center justify-center px-4">
 				<div className="text-center bg-white rounded-3xl shadow-agri-card border border-emerald-100/80 p-10 max-w-md">
 					<h1 className="text-xl font-extrabold text-[#161D14] mb-2">
-						Produit non trouvé
+						{t("productDetail.productNotFound")}
 					</h1>
 					<p className="text-gray-500 mb-6 text-sm">
-						Le produit n'existe pas ou n'est plus disponible
+						{t("productDetail.productNotFoundDescription")}
 					</p>
 					<button
 						onClick={() => navigate("/products")}
 						className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-[#1A5514] to-[#31BC2E] text-white rounded-full font-bold shadow-lg shadow-emerald-900/20"
 					>
 						<FiArrowLeft className="h-4 w-4 mr-2" />
-						Retour
+						{t("productDetail.back")}
 					</button>
 				</div>
 			</div>
@@ -238,24 +238,24 @@ const ProductDetail = () => {
 			<div className="min-h-screen bg-[#F8FAF6] flex items-center justify-center px-4">
 				<div className="text-center bg-white rounded-3xl shadow-agri-card border border-emerald-100/80 p-10 max-w-md">
 					<h1 className="text-xl font-extrabold text-[#161D14] mb-2">
-						Accès non autorisé
+						{t("productDetail.unauthorizedTitle")}
 					</h1>
 					<p className="text-gray-500 mb-6 text-sm">
-						Ce produit n'est pas encore approuvé.
+						{t("productDetail.unauthorizedDescription")}
 					</p>
 					<button
 						onClick={() => navigate("/products")}
 						className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-[#1A5514] to-[#31BC2E] text-white rounded-full font-bold shadow-lg shadow-emerald-900/20"
 					>
 						<FiArrowLeft className="h-4 w-4 mr-2" />
-						Retour aux produits
+						{t("productDetail.backToProducts")}
 					</button>
 				</div>
 			</div>
 		);
 	}
 
-	const productName = toPlainText(product.name, "Produit");
+	const productName = toPlainText(product.name, t("productDetail.genericName"));
 	const productDescription = toPlainText(product.description, "");
 	const statusConfig = getStatusConfig(product.status);
 	const StatusIcon =
@@ -277,7 +277,7 @@ const ProductDetail = () => {
 			<SEOHead
 				title={productName}
 				description={
-					productDescription || "Découvrez ce produit disponible sur Harvests."
+					productDescription || t("productDetail.defaultSeoDescription")
 				}
 				image={imageUrl}
 				type="product"
@@ -289,7 +289,7 @@ const ProductDetail = () => {
 					className="inline-flex items-center text-gray-600 hover:text-[#1A5514] mb-4 text-sm font-bold transition-colors"
 				>
 					<FiArrowLeft className="h-4 w-4 mr-1.5" />
-					Retour
+					{t("productDetail.back")}
 				</button>
 
 				<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -323,7 +323,7 @@ const ProductDetail = () => {
 								</div>
 								{reviewStats?.totalReviews > 0 && (
 									<span className="text-xs text-gray-500">
-										({reviewStats.totalReviews} évaluations)
+										{t("productDetail.reviewsCountLabel", { count: reviewStats.totalReviews })}
 									</span>
 								)}
 							</div>
@@ -336,7 +336,7 @@ const ProductDetail = () => {
 								{(producer?.isBio || product.transformer?.isBio) && (
 									<span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
 										<Leaf className="mr-1 h-3 w-3" />
-										Certifié BIO
+										{t("productDetail.certifiedBio")}
 									</span>
 								)}
 							</div>
@@ -353,7 +353,7 @@ const ProductDetail = () => {
 
 							{/* Description courte */}
 							<div className="border-t border-gray-100 pt-4">
-								<h3 className="font-bold text-[#161D14] mb-2 text-sm">À propos de cet article</h3>
+								<h3 className="font-bold text-[#161D14] mb-2 text-sm">{t("productDetail.aboutThisItem")}</h3>
 								<p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line line-clamp-4">
 									{productDescription}
 								</p>
@@ -370,7 +370,7 @@ const ProductDetail = () => {
 
 							<div className="text-sm mb-4 flex items-center gap-1.5">
 								<FiPackage className="h-4 w-4 text-[#1A5514]" />
-								<span className="font-bold text-emerald-700">En stock</span>
+								<span className="font-bold text-emerald-700">{t("productDetail.inStock")}</span>
 							</div>
 
 							<ProductActions
@@ -386,14 +386,14 @@ const ProductDetail = () => {
 							{showAddedToCart && (
 								<div className="mt-3 bg-emerald-50 text-emerald-700 whitespace-nowrap px-3 py-2 rounded-xl border border-emerald-200 text-sm flex items-center font-semibold">
 									<FiCheckCircle className="h-4 w-4 mr-2" />
-									Ajouté au panier
+									{t("productDetail.addedToCart")}
 								</div>
 							)}
 
 							<div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
 								<div className="text-xs text-gray-500 flex items-center gap-1.5 font-medium">
 									<FiShield className="h-3.5 w-3.5 text-emerald-500" />
-									Paiement sécurisé
+									{t("productDetail.securePayment")}
 								</div>
 								<VendorCard vendor={producer} />
 							</div>
@@ -416,10 +416,10 @@ const ProductDetail = () => {
 									}`}
 								>
 									{tab === "description" ?
-										"Description"
+										t("productDetail.description")
 									: tab === "specifications" ?
-										"Spécifications"
-									:	`Avis (${reviews.length})`}
+										t("productDetail.specifications")
+									:	t("productDetail.reviewsCount", { count: reviews.length })}
 								</button>
 							))}
 						</nav>
@@ -445,10 +445,10 @@ const ProductDetail = () => {
 									<div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
 										<div>
 											<h3 className="text-sm font-extrabold text-[#1A5514]">
-												Avez-vous acheté ce produit ?
+												{t("productDetail.haveYouBought")}
 											</h3>
 											<p className="text-emerald-700/80 text-xs mt-0.5">
-												Partagez votre expérience
+												{t("productDetail.shareExperience")}
 											</p>
 										</div>
 										<button
@@ -456,7 +456,7 @@ const ProductDetail = () => {
 											className="inline-flex items-center justify-center px-4 py-2.5 bg-[#1A5514] text-white rounded-full text-sm font-bold hover:bg-emerald-800 transition-colors shrink-0"
 										>
 											<FiStar className="h-4 w-4 mr-2" />
-											Laisser un avis
+											{t("productDetail.leaveReview")}
 										</button>
 									</div>
 								)}
@@ -464,7 +464,7 @@ const ProductDetail = () => {
 									<div className="bg-white border border-gray-100 rounded-2xl p-5 sm:p-6 shadow-sm">
 										<div className="flex items-center justify-between mb-4">
 											<h3 className="text-base font-extrabold text-[#161D14]">
-												Laisser un avis
+												{t("productDetail.leaveReview")}
 											</h3>
 											<button
 												onClick={() => setShowReviewForm(false)}
@@ -501,13 +501,13 @@ const ProductDetail = () => {
 				{showAddedToCart ? (
 					<div className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white py-3.5 rounded-full font-bold">
 						<FiCheckCircle className="h-5 w-5" />
-						Ajouté au panier
+						{t("productDetail.addedToCart")}
 					</div>
 				) : (
 					<div className="flex items-center gap-2">
 						<button
 							onClick={handleToggleFavorite}
-							aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+							aria-label={isFavorite ? t("productDetail.removeFromFavorites") : t("productDetail.addToFavorites")}
 							className={`h-12 w-12 shrink-0 rounded-full border flex items-center justify-center transition-colors ${
 								isFavorite ? "bg-red-50 border-red-200 text-red-600" : "bg-white border-gray-200 text-gray-600"
 							}`}
@@ -535,7 +535,7 @@ const ProductDetail = () => {
 						>
 							<FiShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
 							<span className="truncate">
-								Ajouter — {formatPrice(product.price * quantity, product.currency)}
+								{t("productDetail.addWithPrice", { price: formatPrice(product.price * quantity, product.currency) })}
 							</span>
 						</button>
 					</div>

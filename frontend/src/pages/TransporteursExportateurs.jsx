@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
 	exporterService,
 	transporterService,
@@ -18,9 +19,11 @@ import {
 import { Truck as TruckIcon, ShieldCheck } from "lucide-react";
 import { getCountryName } from "../utils/countryMapper";
 import LoadingSpinner from "../components/common/LoadingSpinner";
+import CloudinaryImage from "../components/common/CloudinaryImage";
 import SEOHead from "../components/seo/SEOHead";
 
 const TransporteursExportateurs = () => {
+	const { t } = useTranslation("public");
 	const [logistics, setLogistics] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [filter, setFilter] = useState("all"); // 'all', 'exporters', 'transporters'
@@ -58,7 +61,7 @@ const TransporteursExportateurs = () => {
 						...exporters.map((exporter) => ({
 							...exporter,
 							type: "exporter",
-							displayName: exporter.companyName || "Exportateur",
+							displayName: exporter.companyName || t("logistics.exporter"),
 							profileUrl: `/exporters/${exporter._id}`,
 							shopBanner: exporter.shopBanner,
 							logo: exporter.shopLogo,
@@ -70,13 +73,13 @@ const TransporteursExportateurs = () => {
 				const transportersLocal = transportersLocalResp.status === "fulfilled" && transportersLocalResp.value.data.status === "success" ? transportersLocalResp.value.data.data.transporters || [] : [];
 				const seen = new Set();
 				const mergedTransporters = [];
-				for (const t of transportersLocal) { mergedTransporters.push(t); seen.add(t._id); }
-				for (const t of transportersAll) { if (!seen.has(t._id)) mergedTransporters.push(t); }
+				for (const tr of transportersLocal) { mergedTransporters.push(tr); seen.add(tr._id); }
+				for (const tr of transportersAll) { if (!seen.has(tr._id)) mergedTransporters.push(tr); }
 
 				allLogistics.push(...mergedTransporters.map((transporter) => ({
 					...transporter,
 					type: "transporter",
-					displayName: transporter.companyName || "Transporteur",
+					displayName: transporter.companyName || t("logistics.transporter"),
 					profileUrl: `/transporters/${transporter._id}`,
 					shopBanner: transporter.shopBanner,
 					logo: transporter.shopLogo,
@@ -106,7 +109,7 @@ const TransporteursExportateurs = () => {
 	if (loading) {
 		return (
 			<div className="min-h-screen bg-[#F8FAF6] flex items-center justify-center">
-				<LoadingSpinner size="lg" text="Chargement des transporteurs et exportateurs..." />
+				<LoadingSpinner size="lg" text={t("logistics.loadingText")} />
 			</div>
 		);
 	}
@@ -124,15 +127,15 @@ const TransporteursExportateurs = () => {
 					<div className="relative z-10 max-w-2xl">
 						<div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-4">
 							<TruckIcon className="w-4 h-4 text-[#31BC2E]" />
-							<span>Transport & Chaîne du Froid</span>
+							<span>{t("logistics.heroBadge")}</span>
 						</div>
 
 						<h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight mb-4">
-							Transporteurs & Exportateurs
+							{t("logistics.heroTitle")}
 						</h1>
 
 						<p className="text-emerald-100/90 text-sm sm:text-base leading-relaxed">
-							Découvrez nos partenaires logistiques pour vos besoins de transport local et d'export international, du champ à la table.
+							{t("logistics.heroDescription")}
 						</p>
 					</div>
 				</div>
@@ -146,7 +149,7 @@ const TransporteursExportateurs = () => {
 								type="text"
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
-								placeholder="Rechercher un partenaire logistique (nom, ville, pays)..."
+								placeholder={t("logistics.searchPlaceholder")}
 								className="w-full pl-11 pr-4 py-3 text-sm border border-gray-200/90 rounded-xl focus:ring-2 focus:ring-[#1A5514] focus:border-transparent outline-none transition-all shadow-sm"
 							/>
 							{searchQuery && (
@@ -154,32 +157,32 @@ const TransporteursExportateurs = () => {
 									onClick={() => setSearchQuery('')}
 									className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs font-bold text-gray-400 hover:text-gray-600 bg-gray-100 px-2 py-1 rounded-md"
 								>
-									Effacer
+									{t("logistics.clearSearch")}
 								</button>
 							)}
 						</div>
 
 						<div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
 							<span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-								{filteredLogistics.length} Partenaire{filteredLogistics.length > 1 ? 's' : ''}
+								{t("logistics.resultCount", { count: filteredLogistics.length })}
 							</span>
 
 							<div className="flex items-center bg-gray-100 p-1 rounded-xl gap-1 border border-gray-200">
 								<button
 									onClick={() => handleViewModeChange('grid')}
 									className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-xs font-bold ${viewMode === 'grid' ? 'bg-[#1A5514] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-									title="Vue en grille"
+									title={t("logistics.gridViewTitle")}
 								>
 									<FiGrid className="h-4 w-4" />
-									<span className="hidden sm:inline">Grille</span>
+									<span className="hidden sm:inline">{t("logistics.grid")}</span>
 								</button>
 								<button
 									onClick={() => handleViewModeChange('list')}
 									className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-xs font-bold ${viewMode === 'list' ? 'bg-[#1A5514] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-									title="Vue en liste"
+									title={t("logistics.listViewTitle")}
 								>
 									<FiList className="h-4 w-4" />
-									<span className="hidden sm:inline">Liste</span>
+									<span className="hidden sm:inline">{t("logistics.list")}</span>
 								</button>
 							</div>
 						</div>
@@ -188,9 +191,9 @@ const TransporteursExportateurs = () => {
 					{/* Filtres de type */}
 					<div className="flex items-center gap-2">
 						{[
-							{ id: "all", label: "Tous" },
-							{ id: "exporter", label: "Exportateurs" },
-							{ id: "transporter", label: "Transporteurs" },
+							{ id: "all", label: t("logistics.filterAll") },
+							{ id: "exporter", label: t("logistics.filterExporters") },
+							{ id: "transporter", label: t("logistics.filterTransporters") },
 						].map((f) => (
 							<button
 								key={f.id}
@@ -224,10 +227,12 @@ const TransporteursExportateurs = () => {
 										{/* Banner */}
 										<div className="h-32 bg-gradient-to-r from-emerald-900 to-emerald-700 relative overflow-hidden">
 											{item.shopBanner ? (
-												<img
+												<CloudinaryImage
 													src={item.shopBanner}
 													alt={item.displayName}
 													className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+													width={400}
+													height={128}
 												/>
 											) : (
 												<div className="w-full h-full opacity-20 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
@@ -235,7 +240,7 @@ const TransporteursExportateurs = () => {
 
 											<div className="absolute top-2.5 left-2.5 bg-[#1A5514]/90 backdrop-blur-md border border-emerald-500/40 text-white px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-sm z-10">
 												{isExporter ? <FiGlobe className="w-3.5 h-3.5 text-[#31BC2E]" /> : <FiTruck className="w-3.5 h-3.5 text-[#31BC2E]" />}
-												<span>{isExporter ? "Exportateur" : "Transporteur"}</span>
+												<span>{isExporter ? t("logistics.exporter") : t("logistics.transporter")}</span>
 											</div>
 
 											{rating > 0 && (
@@ -250,7 +255,7 @@ const TransporteursExportateurs = () => {
 										<div className="px-4 -mt-7 flex items-end justify-between relative z-10">
 											<div className="w-14 h-14 rounded-xl bg-white p-0.5 border border-gray-200/90 shadow-md overflow-hidden flex-shrink-0">
 												{item.logo ? (
-													<img src={item.logo} alt={item.displayName} className="w-full h-full object-cover rounded-lg" />
+													<CloudinaryImage src={item.logo} alt={item.displayName} className="w-full h-full object-cover rounded-lg" width={56} height={56} />
 												) : (
 													<div className="w-full h-full rounded-lg bg-emerald-50 text-[#1A5514] font-black flex items-center justify-center text-lg">
 														{item.displayName?.[0] || item.firstName?.[0] || 'L'}
@@ -259,7 +264,7 @@ const TransporteursExportateurs = () => {
 											</div>
 											<div className="bg-emerald-50 border border-emerald-200 text-emerald-800 px-2 py-0.5 rounded-md text-[10px] font-extrabold flex items-center gap-1">
 												<ShieldCheck className="w-3 h-3 text-emerald-600" />
-												<span>Vérifié</span>
+												<span>{t("logistics.verified")}</span>
 											</div>
 										</div>
 
@@ -281,14 +286,14 @@ const TransporteursExportateurs = () => {
 
 												<span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
 													{isExporter ? <FiGlobe className="w-3 h-3" /> : <FiTruck className="w-3 h-3" />}
-													{isExporter ? "Export International" : "Livraison Locale"}
+													{isExporter ? t("logistics.internationalExport") : t("logistics.localDelivery")}
 												</span>
 											</div>
 
 											<div className="pt-2 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-[#1A5514] group-hover:text-[#31BC2E] transition-colors">
 												<span className="flex items-center gap-1">
 													<FiPackage className="w-3.5 h-3.5" />
-													{isExporter ? "Flotte" : "Véhicules"}
+													{isExporter ? t("logistics.fleet") : t("logistics.vehicles")}
 												</span>
 												<FiArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
 											</div>
@@ -312,7 +317,7 @@ const TransporteursExportateurs = () => {
 										<div className="flex items-center gap-3.5 flex-1 min-w-0">
 											<div className="w-14 h-14 rounded-xl bg-white p-0.5 border border-gray-200/90 shadow-md overflow-hidden flex-shrink-0">
 												{item.logo ? (
-													<img src={item.logo} alt={item.displayName} className="w-full h-full object-cover rounded-lg" />
+													<CloudinaryImage src={item.logo} alt={item.displayName} className="w-full h-full object-cover rounded-lg" width={56} height={56} />
 												) : (
 													<div className="w-full h-full rounded-lg bg-emerald-50 text-[#1A5514] font-black flex items-center justify-center text-lg">
 														{item.displayName?.[0] || item.firstName?.[0] || 'L'}
@@ -327,7 +332,7 @@ const TransporteursExportateurs = () => {
 													</h3>
 													<span className="hidden sm:flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 flex-shrink-0">
 														<ShieldCheck className="w-3 h-3 text-[#31BC2E]" />
-														Vérifié
+														{t("logistics.verified")}
 													</span>
 												</div>
 												<div className="flex items-center gap-3 text-xs text-gray-500 font-medium">
@@ -346,14 +351,14 @@ const TransporteursExportateurs = () => {
 												</div>
 												<span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
 													{isExporter ? <FiGlobe className="w-3 h-3" /> : <FiTruck className="w-3 h-3" />}
-													{isExporter ? "Export International" : "Livraison Locale"}
+													{isExporter ? t("logistics.internationalExport") : t("logistics.localDelivery")}
 												</span>
 											</div>
 										</div>
 
 										<div className="flex-shrink-0 self-end md:self-center">
 											<span className="bg-[#1A5514] group-hover:bg-[#31BC2E] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2">
-												Voir le profil
+												{t("logistics.viewProfile")}
 												<FiArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
 											</span>
 										</div>
@@ -366,17 +371,17 @@ const TransporteursExportateurs = () => {
 					<div className="text-center py-16 bg-white rounded-2xl border border-emerald-100 shadow-sm">
 						<FiTruck className="mx-auto h-12 w-12 text-gray-300 mb-4" />
 						<h3 className="text-lg font-extrabold text-[#161D14] mb-2">
-							Aucun partenaire trouvé
+							{t("logistics.noResultsFound")}
 						</h3>
 						<p className="text-xs text-gray-500 mb-6 max-w-sm mx-auto">
-							{searchQuery ? `Aucun partenaire ne correspond à "${searchQuery}".` : "Revenez plus tard pour découvrir nos partenaires logistiques."}
+							{searchQuery ? t("logistics.noSearchResults", { query: searchQuery }) : t("logistics.noResultsDefault")}
 						</p>
 						{searchQuery && (
 							<button
 								onClick={() => setSearchQuery('')}
 								className="px-6 py-2.5 bg-[#1A5514] text-white font-bold rounded-full hover:bg-[#144210] text-xs transition-colors"
 							>
-								Effacer la recherche
+								{t("logistics.clearSearchAction")}
 							</button>
 						)}
 					</div>

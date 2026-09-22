@@ -27,6 +27,7 @@ const Footer = () => {
 	const footerLinks = {
 		help: [
 			{ name: t("about", { ns: "navigation" }), href: "/about" },
+			{ name: t("contact", { ns: "navigation" }), href: "/contact" },
 			{ name: t("invest", { ns: "navigation" }), href: "/invest" },
 			{ name: t("footer.faqs", { ns: "navigation" }), href: "/faq" },
 			{ name: t("footer.terms", { ns: "navigation" }), href: "/terms" },
@@ -201,7 +202,7 @@ const Footer = () => {
 						<ul className="space-y-2">
 							<li><Link to="/register" className="text-gray-300 hover:underline text-sm">{t("footer.becomeProducer", { ns: "navigation" })}</Link></li>
 							<li><Link to="/register" className="text-gray-300 hover:underline text-sm">{t("footer.becomeTransporter", { ns: "navigation" })}</Link></li>
-							<li><Link to="/producteurs" className="text-gray-300 hover:underline text-sm">{t("footer.ourPartners", { ns: "navigation" })}</Link></li>
+							<li><Link to="/producers" className="text-gray-300 hover:underline text-sm">{t("footer.ourPartners", { ns: "navigation" })}</Link></li>
 							<li><Link to="/pricing" className="text-gray-300 hover:underline text-sm">{t("footer.pricingCommissions", { ns: "navigation" })}</Link></li>
 						</ul>
 					</div>

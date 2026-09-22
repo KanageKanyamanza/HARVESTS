@@ -5,7 +5,7 @@ import { Package, Grid, Sprout, Newspaper, TrendingUp } from "lucide-react";
 const navItems = [
 	{ name: "Produits", href: "/products", icon: Package },
 	{ name: "Catégories", href: "/categories", icon: Grid },
-	{ name: "Producteurs", href: "/producteurs", icon: Sprout },
+	{ name: "Producteurs", href: "/producers", icon: Sprout },
 	{ name: "Blog", href: "/blog", icon: Newspaper },
 	{ name: "Tarifs", href: "/pricing", icon: TrendingUp },
 ];

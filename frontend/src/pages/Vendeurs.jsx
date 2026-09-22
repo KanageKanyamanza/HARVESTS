@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
 	producerService,
 	transformerService,
@@ -20,9 +21,11 @@ import { Leaf, Search } from "lucide-react";
 import { buildVendorRating } from "../utils/vendorRatings";
 import { getCountryName } from "../utils/countryMapper";
 import LoadingSpinner from "../components/common/LoadingSpinner";
+import CloudinaryImage from "../components/common/CloudinaryImage";
 import { useApiCache } from "../hooks/useApiCache";
 
 const Vendeurs = () => {
+	const { t } = useTranslation("public");
 	const [vendeurs, setVendeurs] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -227,7 +230,7 @@ const Vendeurs = () => {
 	if (loading) {
 		return (
 			<div className="min-h-screen bg-harvests-light flex items-center justify-center">
-				<LoadingSpinner size="lg" text="Chargement des partenaires..." />
+				<LoadingSpinner size="lg" text={t("vendeurs.loadingText")} />
 			</div>
 		);
 	}
@@ -245,10 +248,10 @@ const Vendeurs = () => {
 				{/* Hero Header Area */}
 				<div className="text-center space-y-3 max-w-2xl mx-auto mb-8 animate-in fade-in duration-700">
 					<h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight leading-none">
-						Découvrez nos <span className="text-emerald-600">Partenaires Locaux</span>
+						{t("vendeurs.heroTitlePrefix")} <span className="text-emerald-600">{t("vendeurs.heroTitleHighlight")}</span>
 					</h1>
 					<p className="text-xs sm:text-sm text-gray-500 font-medium max-w-md mx-auto">
-						Explorez les producteurs, transformateurs et restaurateurs près de chez vous proposant des produits frais et de qualité supérieure.
+						{t("vendeurs.heroDescription")}
 					</p>
 				</div>
 
@@ -261,7 +264,7 @@ const Vendeurs = () => {
 						</div>
 						<input
 							type="text"
-							placeholder="Rechercher par nom, ville, région..."
+							placeholder={t("vendeurs.searchPlaceholder")}
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
 							className="w-full pl-10 pr-10 py-2.5 bg-transparent border-none focus:outline-none text-gray-900 placeholder:text-gray-400 text-xs font-semibold"
@@ -286,20 +289,20 @@ const Vendeurs = () => {
 							onChange={(e) => handleCountryChange(e.target.value)}
 							className="w-full pl-10 pr-8 py-2.5 bg-transparent border-none focus:outline-none appearance-none text-gray-700 font-bold cursor-pointer text-xs"
 						>
-							<option value="MY_ZONE">Ma zone</option>
-							<option value="">Tous les pays / zones</option>
-							<optgroup label="Zones">
-								<option value="West Africa">Afrique de l'Ouest</option>
-								<option value="Central Africa">Afrique Centrale</option>
+							<option value="MY_ZONE">{t("vendeurs.myZone")}</option>
+							<option value="">{t("vendeurs.allCountriesZones")}</option>
+							<optgroup label={t("vendeurs.zonesGroup")}>
+								<option value="West Africa">{t("vendeurs.westAfrica")}</option>
+								<option value="Central Africa">{t("vendeurs.centralAfrica")}</option>
 							</optgroup>
-							<optgroup label="Pays">
-								<option value="SN">Sénégal</option>
-								<option value="CM">Cameroun</option>
-								<option value="CI">Côte d'Ivoire</option>
-								<option value="BF">Burkina Faso</option>
-								<option value="ML">Mali</option>
-								<option value="GH">Ghana</option>
-								<option value="NG">Nigeria</option>
+							<optgroup label={t("vendeurs.countriesGroup")}>
+								<option value="SN">{getCountryName("SN")}</option>
+								<option value="CM">{getCountryName("CM")}</option>
+								<option value="CI">{getCountryName("CI")}</option>
+								<option value="BF">{getCountryName("BF")}</option>
+								<option value="ML">{getCountryName("ML")}</option>
+								<option value="GH">{getCountryName("GH")}</option>
+								<option value="NG">{getCountryName("NG")}</option>
 							</optgroup>
 						</select>
 						<div className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">
@@ -309,7 +312,7 @@ const Vendeurs = () => {
 							<button
 								onClick={() => handleCountryChange("")}
 								className="absolute right-8 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-500 transition-colors"
-								title="Effacer le filtre"
+								title={t("vendeurs.clearFilter")}
 							>
 								<FiX className="h-3.5 w-3.5" />
 							</button>
@@ -320,10 +323,10 @@ const Vendeurs = () => {
 				{/* Type tabs - Separate and smaller */}
 				<div className="flex flex-wrap justify-center gap-1.5 mb-8 animate-slide-up">
 					{[
-						{ id: "all", label: "Tous", color: "bg-emerald-600 text-white" },
-						{ id: "producer", label: "Producteurs", color: "bg-green-600 text-white" },
-						{ id: "transformer", label: "Transformateurs", color: "bg-purple-600 text-white" },
-						{ id: "restaurateur", label: "Restaurateurs", color: "bg-orange-600 text-white" }
+						{ id: "all", label: t("vendeurs.tabAll"), color: "bg-emerald-600 text-white" },
+						{ id: "producer", label: t("vendeurs.tabProducers"), color: "bg-green-600 text-white" },
+						{ id: "transformer", label: t("vendeurs.tabTransformers"), color: "bg-purple-600 text-white" },
+						{ id: "restaurateur", label: t("vendeurs.tabRestaurateurs"), color: "bg-orange-600 text-white" }
 					].map((tab) => {
 						const isActive = filter === tab.id;
 						return (
@@ -358,10 +361,12 @@ const Vendeurs = () => {
 										{/* Bannière en arrière-plan */}
 										<div className="relative h-32 bg-gradient-to-r from-emerald-900 to-emerald-700 overflow-hidden">
 											{vendeur.shopBanner ? (
-												<img
+												<CloudinaryImage
 													src={vendeur.shopBanner}
 													alt={vendeur.displayName}
 													className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+													width={400}
+													height={128}
 												/>
 											) : (
 												<div className="w-full h-full opacity-20 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
@@ -376,7 +381,7 @@ const Vendeurs = () => {
 
 											{/* Type Badge top left */}
 											<div className="absolute top-2.5 left-2.5 bg-emerald-600/90 backdrop-blur-md text-white px-2 py-0.5 rounded-full text-[10px] font-extrabold shadow-sm uppercase">
-												{vendeur.type === 'producer' ? 'Producteur' : vendeur.type === 'transformer' ? 'Transformateur' : 'Restaurateur'}
+												{vendeur.type === 'producer' ? t("vendeurs.typeProducer") : vendeur.type === 'transformer' ? t("vendeurs.typeTransformer") : t("vendeurs.typeRestaurateur")}
 											</div>
 										</div>
 
@@ -384,10 +389,12 @@ const Vendeurs = () => {
 										<div className="px-4 -mt-7 flex items-end justify-between relative z-10">
 											<div className="w-14 h-14 rounded-xl bg-white p-0.5 border border-gray-200/90 shadow-md overflow-hidden flex-shrink-0">
 												{vendeur.logo || vendeur.avatar ? (
-													<img
+													<CloudinaryImage
 														src={vendeur.logo || vendeur.avatar}
 														alt={vendeur.displayName}
 														className="w-full h-full object-cover rounded-lg"
+														width={56}
+														height={56}
 													/>
 												) : (
 													<div className="w-full h-full rounded-lg bg-emerald-50 text-[#1A5514] font-black flex items-center justify-center text-lg">
@@ -414,7 +421,7 @@ const Vendeurs = () => {
 
 									{/* CTA Footer */}
 									<div className="m-4 mt-0 pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-[#1A5514] group-hover:text-[#31BC2E] transition-colors">
-										<span>Visiter la boutique</span>
+										<span>{t("vendeurs.visitShop")}</span>
 										<FiArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
 									</div>
 								</Link>
@@ -425,10 +432,10 @@ const Vendeurs = () => {
 					<div className="text-center py-20 bg-white/50 backdrop-blur-md rounded-[2rem] border border-gray-100 max-w-lg mx-auto">
 						<FiPackage className="w-12 h-12 text-gray-300 mx-auto mb-4" />
 						<h3 className="text-lg font-[1000] text-gray-900 tracking-tight mb-1">
-							Aucun partenaire trouvé
+							{t("vendeurs.noResultsFound")}
 						</h3>
 						<p className="text-xs text-gray-500 font-medium px-6">
-							Essayez de modifier vos filtres ou votre recherche pour découvrir d'autres partenaires.
+							{t("vendeurs.noResultsDescription")}
 						</p>
 					</div>
 				)}

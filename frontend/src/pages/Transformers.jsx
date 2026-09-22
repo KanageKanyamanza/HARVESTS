@@ -1,22 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { transformerService } from '../services';
 import { FiMapPin, FiStar, FiTool, FiArrowRight, FiAward, FiSearch, FiGrid, FiList } from 'react-icons/fi';
 import { Factory, ShieldCheck } from 'lucide-react';
 import { getCountryName } from '../utils/countryMapper';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import CloudinaryImage from '../components/common/CloudinaryImage';
 import SEOHead from '../components/seo/SEOHead';
 import { useApiCache } from '../hooks/useApiCache';
 
-const TRANSFORMATION_TYPE_LABELS = {
-  processing: 'Transformation',
-  packaging: 'Emballage',
-  preservation: 'Conservation',
-  manufacturing: 'Fabrication',
-  mixed: 'Mixte',
-};
-
 const Transformers = () => {
+  const { t } = useTranslation('public');
   const [transformers, setTransformers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -61,8 +56,8 @@ const Transformers = () => {
 
         const seen = new Set();
         const merged = [];
-        for (const t of localList) { merged.push(t); seen.add(t._id); }
-        for (const t of allList) { if (!seen.has(t._id)) merged.push(t); }
+        for (const tr of localList) { merged.push(tr); seen.add(tr._id); }
+        for (const tr of allList) { if (!seen.has(tr._id)) merged.push(tr); }
 
         setTransformers(merged);
         setCachedData(cacheKey, merged);
@@ -77,21 +72,21 @@ const Transformers = () => {
     loadTransformers();
   }, [getCachedData, setCachedData]);
 
-  const getTransformationTypeLabel = (type) => TRANSFORMATION_TYPE_LABELS[type] || type;
+  const getTransformationTypeLabel = (type) => t(`transformers.transformationTypes.${type}`, type);
 
-  const filteredTransformers = transformers.filter((t) => {
+  const filteredTransformers = transformers.filter((tr) => {
     if (!searchQuery.trim()) return true;
     const term = searchQuery.toLowerCase().trim();
-    const name = (t.companyName || `${t.firstName} ${t.lastName}`).toLowerCase();
-    const city = (t.address?.city || '').toLowerCase();
-    const country = getCountryName(t.country).toLowerCase();
+    const name = (tr.companyName || `${tr.firstName} ${tr.lastName}`).toLowerCase();
+    const city = (tr.address?.city || '').toLowerCase();
+    const country = getCountryName(tr.country).toLowerCase();
     return name.includes(term) || city.includes(term) || country.includes(term);
   });
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#F8FAF6] flex items-center justify-center">
-        <LoadingSpinner size="lg" text="Chargement des transformateurs..." />
+        <LoadingSpinner size="lg" text={t('transformers.loadingText')} />
       </div>
     );
   }
@@ -109,15 +104,15 @@ const Transformers = () => {
           <div className="relative z-10 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-4">
               <Factory className="w-4 h-4 text-[#31BC2E]" />
-              <span>Transformation & Agrobusiness</span>
+              <span>{t('transformers.heroBadge')}</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight mb-4">
-              Transformateurs & Agrobusiness
+              {t('transformers.heroTitle')}
             </h1>
 
             <p className="text-emerald-100/90 text-sm sm:text-base leading-relaxed">
-              Découvrez les entreprises de transformation qui valorisent les récoltes fraîches en produits transformés, épices et conserves artisanales.
+              {t('transformers.heroDescription')}
             </p>
           </div>
         </div>
@@ -131,7 +126,7 @@ const Transformers = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Rechercher un transformateur (nom, ville, pays)..."
+                placeholder={t('transformers.searchPlaceholder')}
                 className="w-full pl-11 pr-4 py-3 text-sm border border-gray-200/90 rounded-xl focus:ring-2 focus:ring-[#1A5514] focus:border-transparent outline-none transition-all shadow-sm"
               />
               {searchQuery && (
@@ -139,32 +134,32 @@ const Transformers = () => {
                   onClick={() => setSearchQuery('')}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs font-bold text-gray-400 hover:text-gray-600 bg-gray-100 px-2 py-1 rounded-md"
                 >
-                  Effacer
+                  {t('transformers.clearSearch')}
                 </button>
               )}
             </div>
 
             <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
               <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                {filteredTransformers.length} Transformateur{filteredTransformers.length > 1 ? 's' : ''}
+                {t('transformers.resultCount', { count: filteredTransformers.length })}
               </span>
 
               <div className="flex items-center bg-gray-100 p-1 rounded-xl gap-1 border border-gray-200">
                 <button
                   onClick={() => handleViewModeChange('grid')}
                   className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-xs font-bold ${viewMode === 'grid' ? 'bg-[#1A5514] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-                  title="Vue en grille"
+                  title={t('transformers.gridViewTitle')}
                 >
                   <FiGrid className="h-4 w-4" />
-                  <span className="hidden sm:inline">Grille</span>
+                  <span className="hidden sm:inline">{t('transformers.grid')}</span>
                 </button>
                 <button
                   onClick={() => handleViewModeChange('list')}
                   className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-xs font-bold ${viewMode === 'list' ? 'bg-[#1A5514] text-white shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
-                  title="Vue en liste"
+                  title={t('transformers.listViewTitle')}
                 >
                   <FiList className="h-4 w-4" />
-                  <span className="hidden sm:inline">Liste</span>
+                  <span className="hidden sm:inline">{t('transformers.list')}</span>
                 </button>
               </div>
             </div>
@@ -174,7 +169,7 @@ const Transformers = () => {
         {/* Grille / Liste des transformateurs */}
         {filteredTransformers.length > 0 ? (
           viewMode === 'grid' ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               {filteredTransformers.map((transformer) => {
                 const name = transformer.companyName || `${transformer.firstName} ${transformer.lastName}`;
                 const rating = transformer.businessStats?.averageRating || 0;
@@ -188,10 +183,12 @@ const Transformers = () => {
                     {/* Banner */}
                     <div className="h-32 bg-gradient-to-r from-emerald-900 to-emerald-700 relative overflow-hidden">
                       {transformer.shopBanner ? (
-                        <img
+                        <CloudinaryImage
                           src={transformer.shopBanner}
                           alt={name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          width={400}
+                          height={128}
                         />
                       ) : (
                         <div className="w-full h-full opacity-20 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
@@ -199,7 +196,7 @@ const Transformers = () => {
 
                       <div className="absolute top-2.5 left-2.5 bg-[#1A5514]/90 backdrop-blur-md border border-emerald-500/40 text-white px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1.5 shadow-sm z-10">
                         <ShieldCheck className="w-3.5 h-3.5 text-[#31BC2E]" />
-                        <span>Vérifié</span>
+                        <span>{t('transformers.verified')}</span>
                       </div>
 
                       <div className="absolute top-2.5 right-2.5 bg-black/50 backdrop-blur-md px-2.5 py-1 rounded-full text-white text-[11px] font-bold flex items-center gap-1 shadow-sm z-10">
@@ -212,7 +209,7 @@ const Transformers = () => {
                     <div className="px-4 -mt-7 flex items-end justify-between relative z-10">
                       <div className="w-14 h-14 rounded-xl bg-white p-0.5 border border-gray-200/90 shadow-md overflow-hidden flex-shrink-0">
                         {transformer.shopLogo ? (
-                          <img src={transformer.shopLogo} alt={name} className="w-full h-full object-cover rounded-lg" />
+                          <CloudinaryImage src={transformer.shopLogo} alt={name} className="w-full h-full object-cover rounded-lg" width={56} height={56} />
                         ) : (
                           <div className="w-full h-full rounded-lg bg-emerald-50 text-[#1A5514] font-black flex items-center justify-center text-lg">
                             {transformer.companyName?.[0] || transformer.firstName?.[0] || 'T'}
@@ -245,7 +242,7 @@ const Transformers = () => {
                       <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-xs font-bold text-[#1A5514] group-hover:text-[#31BC2E] transition-colors">
                         <span className="flex items-center gap-1">
                           <FiAward className="w-3.5 h-3.5" />
-                          Services
+                          {t('transformers.services')}
                         </span>
                         <FiArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
                       </div>
@@ -269,7 +266,7 @@ const Transformers = () => {
                     <div className="flex items-center gap-3.5 flex-1 min-w-0">
                       <div className="w-14 h-14 rounded-xl bg-white p-0.5 border border-gray-200/90 shadow-md overflow-hidden flex-shrink-0">
                         {transformer.shopLogo ? (
-                          <img src={transformer.shopLogo} alt={name} className="w-full h-full object-cover rounded-lg" />
+                          <CloudinaryImage src={transformer.shopLogo} alt={name} className="w-full h-full object-cover rounded-lg" width={56} height={56} />
                         ) : (
                           <div className="w-full h-full rounded-lg bg-emerald-50 text-[#1A5514] font-black flex items-center justify-center text-lg">
                             {transformer.companyName?.[0] || transformer.firstName?.[0] || 'T'}
@@ -284,7 +281,7 @@ const Transformers = () => {
                           </h3>
                           <span className="hidden sm:flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 flex-shrink-0">
                             <ShieldCheck className="w-3 h-3 text-[#31BC2E]" />
-                            Vérifié
+                            {t('transformers.verified')}
                           </span>
                         </div>
                         <div className="flex items-center gap-3 text-xs text-gray-500 font-medium">
@@ -307,7 +304,7 @@ const Transformers = () => {
 
                     <div className="flex-shrink-0 self-end md:self-center">
                       <span className="bg-[#1A5514] group-hover:bg-[#31BC2E] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2">
-                        Voir le profil
+                        {t('transformers.viewProfile')}
                         <FiArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
                       </span>
                     </div>
@@ -319,16 +316,16 @@ const Transformers = () => {
         ) : (
           <div className="text-center py-16 bg-white rounded-2xl border border-emerald-100 shadow-sm">
             <FiTool className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-            <h3 className="text-lg font-extrabold text-[#161D14] mb-2">Aucun transformateur trouvé</h3>
+            <h3 className="text-lg font-extrabold text-[#161D14] mb-2">{t('transformers.noResultsFound')}</h3>
             <p className="text-xs text-gray-500 mb-6 max-w-sm mx-auto">
-              {searchQuery ? `Aucun transformateur ne correspond à "${searchQuery}".` : 'Revenez plus tard pour découvrir nos transformateurs.'}
+              {searchQuery ? t('transformers.noSearchResults', { query: searchQuery }) : t('transformers.noResultsDefault')}
             </p>
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
                 className="px-6 py-2.5 bg-[#1A5514] text-white font-bold rounded-full hover:bg-[#144210] text-xs transition-colors"
               >
-                Effacer la recherche
+                {t('transformers.clearSearchAction')}
               </button>
             )}
           </div>

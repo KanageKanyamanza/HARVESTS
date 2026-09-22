@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { useCart } from "../contexts/CartContext";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
@@ -17,6 +18,7 @@ import { convertPrice, formatPrice } from "../utils/currencyUtils";
 import { DEFAULT_CURRENCY } from "../config/currencies";
 
 const Cart = () => {
+	const { t } = useTranslation("public");
 	const {
 		items,
 		totalItems,
@@ -50,7 +52,7 @@ const Cart = () => {
 						>
 							<FiArrowLeft className="h-5 w-5" />
 						</button>
-						<h1 className="text-xl sm:text-2xl font-extrabold text-[#161D14]">Mon Panier</h1>
+						<h1 className="text-xl sm:text-2xl font-extrabold text-[#161D14]">{t("cart.title")}</h1>
 					</div>
 
 					<div className="bg-white rounded-3xl shadow-agri-card border border-emerald-100/80 p-10 text-center">
@@ -58,16 +60,16 @@ const Cart = () => {
 							<FiShoppingCart className="h-10 w-10 text-[#1A5514]" />
 						</div>
 						<h2 className="text-xl font-extrabold text-[#161D14] mb-2">
-							Votre panier est vide
+							{t("cart.emptyTitle")}
 						</h2>
 						<p className="text-gray-500 mb-6 text-sm">
-							Découvrez nos produits agricoles et ajoutez-les à votre panier
+							{t("cart.emptyDescription")}
 						</p>
 						<button
 							onClick={() => navigate("/products")}
 							className="bg-gradient-to-r from-[#1A5514] to-[#31BC2E] text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-emerald-900/20 hover:shadow-xl transition-all"
 						>
-							Voir les produits
+							{t("cart.viewProducts")}
 						</button>
 					</div>
 				</div>
@@ -89,10 +91,10 @@ const Cart = () => {
 						</button>
 						<div>
 							<h1 className="text-xl sm:text-2xl font-extrabold text-[#161D14]">
-								Mon Panier
+								{t("cart.title")}
 							</h1>
 							<p className="text-xs text-gray-500 font-medium">
-								{totalItems} article{totalItems > 1 ? "s" : ""}
+								{t("cart.itemCount", { count: totalItems })}
 							</p>
 						</div>
 					</div>
@@ -101,7 +103,7 @@ const Cart = () => {
 						className="text-xs font-bold text-gray-400 hover:text-red-600 transition-colors flex items-center gap-1"
 					>
 						<FiTrash2 className="h-3.5 w-3.5" />
-						<span className="hidden sm:inline">Vider le panier</span>
+						<span className="hidden sm:inline">{t("cart.clearCart")}</span>
 					</button>
 				</div>
 
@@ -142,14 +144,14 @@ const Cart = () => {
 												)}
 											</span>
 										</div>
-										<p className="text-[11px] text-emerald-700 font-bold mt-1">En stock</p>
+										<p className="text-[11px] text-emerald-700 font-bold mt-1">{t("cart.inStock")}</p>
 										<p className="text-[11px] text-gray-500 mt-0.5 truncate">
-											Vendu par{" "}
+											{t("cart.soldBy")}{" "}
 											<span className="text-[#1A5514] font-semibold">
 												{item.producer?.name ||
 													item.producerName ||
 													item.supplierName ||
-													"Fournisseur"}
+													t("cart.defaultSupplier")}
 											</span>
 										</p>
 									</div>
@@ -191,7 +193,7 @@ const Cart = () => {
 												removeFromCart(item.productId, item.originType)
 											}
 											className="text-gray-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-full transition-colors"
-											title="Supprimer"
+											title={t("cart.removeItem")}
 										>
 											<FiTrash2 className="h-4 w-4" />
 										</button>
@@ -204,11 +206,11 @@ const Cart = () => {
 					{/* Résumé de la commande */}
 					<div className="lg:col-span-4">
 						<div className="bg-white rounded-2xl shadow-agri-card border border-emerald-100/80 p-5 sticky top-4">
-							<h2 className="font-extrabold text-[#161D14] mb-4">Résumé de la commande</h2>
+							<h2 className="font-extrabold text-[#161D14] mb-4">{t("cart.orderSummary")}</h2>
 
 							<div className="space-y-2 text-sm text-gray-600 pb-4 border-b border-gray-100">
 								<div className="flex justify-between">
-									<span>Sous-total ({totalItems} article{totalItems > 1 ? "s" : ""})</span>
+									<span>{t("cart.subtotal", { count: totalItems })}</span>
 									<span className="font-bold text-[#161D14]">
 										{formatPrice(
 											convertPrice(totalPrice, DEFAULT_CURRENCY, currency),
@@ -217,13 +219,13 @@ const Cart = () => {
 									</span>
 								</div>
 								<div className="flex justify-between">
-									<span>Livraison</span>
-									<span className="font-bold text-emerald-600">Calculée au paiement</span>
+									<span>{t("cart.shipping")}</span>
+									<span className="font-bold text-emerald-600">{t("cart.shippingCalculated")}</span>
 								</div>
 							</div>
 
 							<div className="flex justify-between items-center py-4">
-								<span className="font-extrabold text-[#161D14]">Total</span>
+								<span className="font-extrabold text-[#161D14]">{t("cart.total")}</span>
 								<span className="font-extrabold text-xl text-[#1A5514]">
 									{formatPrice(
 										convertPrice(totalPrice, DEFAULT_CURRENCY, currency),
@@ -236,17 +238,17 @@ const Cart = () => {
 								onClick={goToCheckout}
 								className="hidden md:flex w-full items-center justify-center bg-gradient-to-r from-[#1A5514] to-[#31BC2E] hover:shadow-xl text-white py-3.5 rounded-full transition-all font-bold shadow-lg shadow-emerald-900/20"
 							>
-								Passer la commande
+								{t("cart.checkout")}
 							</button>
 
 							<div className="flex items-center gap-4 mt-5 pt-4 border-t border-gray-100 text-[10px] text-gray-400 font-semibold">
 								<span className="flex items-center gap-1.5">
 									<FiShield className="h-3.5 w-3.5 text-emerald-500" />
-									Paiement sécurisé
+									{t("cart.securePayment")}
 								</span>
 								<span className="flex items-center gap-1.5">
 									<FiTruck className="h-3.5 w-3.5 text-emerald-500" />
-									Livraison directe producteur
+									{t("cart.directDelivery")}
 								</span>
 							</div>
 						</div>
@@ -257,7 +259,7 @@ const Cart = () => {
 			{/* Barre de commande fixe (mobile) */}
 			<div className="md:hidden fixed bottom-16 inset-x-0 z-30 bg-white border-t border-gray-200 p-3 shadow-[0_-8px_30px_-8px_rgba(0,0,0,0.15)]">
 				<div className="flex items-center justify-between mb-2 px-1">
-					<span className="text-xs text-gray-500 font-medium">Total ({totalItems} article{totalItems > 1 ? "s" : ""})</span>
+					<span className="text-xs text-gray-500 font-medium">{t("cart.mobileTotal", { count: totalItems })}</span>
 					<span className="font-extrabold text-lg text-[#1A5514]">
 						{formatPrice(
 							convertPrice(totalPrice, DEFAULT_CURRENCY, currency),
@@ -269,7 +271,7 @@ const Cart = () => {
 					onClick={goToCheckout}
 					className="w-full bg-gradient-to-r from-[#1A5514] to-[#31BC2E] text-white py-3.5 rounded-full font-bold shadow-lg shadow-emerald-900/20"
 				>
-					Passer la commande
+					{t("cart.checkout")}
 				</button>
 			</div>
 		</div>

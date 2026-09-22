@@ -265,7 +265,7 @@ const VendorProfile = ({
 						Ce partenaire n'existe pas ou n'est plus disponible.
 					</p>
 					<button
-						onClick={() => navigate("/producteurs")}
+						onClick={() => navigate("/producers")}
 						className="bg-[#1A5514] hover:bg-[#31BC2E] text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-md"
 					>
 						Voir les producteurs

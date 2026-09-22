@@ -24,6 +24,8 @@
 	"blog": "Blog",
 	"invest": "Invest",
 	"ourProducers": "Our Producers",
+	"restaurateurs": "Restaurateurs",
+	"transformers": "Transformers",
 	"sidebar": {
 		"myOrders": "My orders",
 		"myFavorites": "My favorites",
@@ -85,8 +87,6 @@
 		"helloLogin": "Hello, sign in",
 		"loginPrompt": "Sign in",
 		"accountListsShort": "Account & Lists",
-		"producerSpace": "Producer Space",
-		"wholesaleB2B": "Wholesale (B2B)",
 		"mobileNavSection": "Navigation",
 		"mobileHelpSection": "Help & Settings",
 		"currencyOption": "Currency: {{code}}"
