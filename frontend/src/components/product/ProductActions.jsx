@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { FiShoppingCart, FiHeart, FiShare2, FiPlus, FiMinus, FiCheckCircle } from 'react-icons/fi';
 
 const ProductActions = ({
@@ -10,16 +11,17 @@ const ProductActions = ({
   isFavorite,
   showAddedToCart
 }) => {
+  const { t } = useTranslation('public');
   return (
     <div className="space-y-3">
       <div>
-        <label className="block text-xs font-bold text-gray-500 mb-2">Quantité</label>
+        <label className="block text-xs font-bold text-gray-500 mb-2">{t('productDetail.quantity')}</label>
         <div className="inline-flex items-center border border-gray-200 rounded-full bg-gray-50 overflow-hidden">
           <button
             type="button"
             onClick={() => onQuantityChange(Math.max(1, quantity - 1))}
             className="flex h-10 w-10 items-center justify-center hover:bg-gray-200 text-gray-600 transition-colors"
-            aria-label="Diminuer la quantité"
+            aria-label={t('productDetail.decreaseQuantity')}
           >
             <FiMinus className="h-4 w-4" />
           </button>
@@ -30,7 +32,7 @@ const ProductActions = ({
             type="button"
             onClick={() => onQuantityChange(quantity + 1)}
             className="flex h-10 w-10 items-center justify-center hover:bg-gray-200 text-gray-600 transition-colors"
-            aria-label="Augmenter la quantité"
+            aria-label={t('productDetail.increaseQuantity')}
           >
             <FiPlus className="h-4 w-4" />
           </button>
@@ -49,12 +51,12 @@ const ProductActions = ({
         {showAddedToCart ? (
           <>
             <FiCheckCircle className="h-5 w-5 shrink-0" />
-            Ajouté !
+            {t('productDetail.addedButton')}
           </>
         ) : (
           <>
             <FiShoppingCart className="h-5 w-5 shrink-0" />
-            Ajouter au panier
+            {t('productDetail.addToCart')}
           </>
         )}
       </button>
@@ -63,7 +65,7 @@ const ProductActions = ({
         <button
           type="button"
           onClick={onToggleFavorite}
-          aria-label={isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+          aria-label={isFavorite ? t('productDetail.removeFromFavorites') : t('productDetail.addToFavorites')}
           className={`h-10 rounded-full border inline-flex items-center justify-center gap-1.5 text-xs font-bold transition-colors ${
             isFavorite
               ? 'bg-red-50 border-red-200 text-red-600'
@@ -71,16 +73,16 @@ const ProductActions = ({
           }`}
         >
           <FiHeart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
-          {isFavorite ? 'Favori' : 'Ajouter'}
+          {isFavorite ? t('productDetail.favorite') : t('productDetail.add')}
         </button>
         <button
           type="button"
           onClick={onShare}
-          aria-label="Partager le produit"
+          aria-label={t('productDetail.shareProduct')}
           className="h-10 rounded-full border border-gray-200 bg-white text-gray-600 inline-flex items-center justify-center gap-1.5 text-xs font-bold hover:bg-gray-50 transition-colors"
         >
           <FiShare2 className="h-4 w-4" />
-          Partager
+          {t('productDetail.share')}
         </button>
       </div>
     </div>

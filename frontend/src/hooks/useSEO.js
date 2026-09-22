@@ -45,11 +45,6 @@ export const useSEO = (customSEO = {}) => {
         description: t('producers.description', 'Découvrez nos producteurs locaux et leurs produits frais de qualité directement depuis leur exploitation.'),
         keywords: t('producers.keywords', 'producteurs, agriculteurs, produits locaux, circuits courts, ferme'),
       },
-      '/producteurs': {
-        title: t('producers.title', 'Producteurs locaux | Harvests'),
-        description: t('producers.description', 'Découvrez nos producteurs locaux et leurs produits frais de qualité directement depuis leur exploitation.'),
-        keywords: t('producers.keywords', 'producteurs, agriculteurs, produits locaux, circuits courts, ferme'),
-      },
       '/transformers': {
         title: t('transformers.title', 'Transformateurs | Harvests'),
         description: t('transformers.description', 'Découvrez nos transformateurs et leurs produits transformés de qualité : conserves, jus, huiles et plus.'),
@@ -86,11 +81,6 @@ export const useSEO = (customSEO = {}) => {
         keywords: t('loyalty.keywords', 'fidélité, programme, avantages, points, remises, Harvests'),
       },
       '/about': {
-        title: t('about.title', 'À propos | Harvests'),
-        description: t('about.description', "Découvrez l'histoire de Harvests, notre mission et notre vision pour transformer la chaîne alimentaire en Afrique."),
-        keywords: t('about.keywords', 'à propos, mission, vision, histoire, Harvests'),
-      },
-      '/a-propos': {
         title: t('about.title', 'À propos | Harvests'),
         description: t('about.description', "Découvrez l'histoire de Harvests, notre mission et notre vision pour transformer la chaîne alimentaire en Afrique."),
         keywords: t('about.keywords', 'à propos, mission, vision, histoire, Harvests'),

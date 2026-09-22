@@ -35,11 +35,10 @@ Allow: /transformers/
 Allow: /vendeurs
 Allow: /restaurateurs
 Allow: /restaurateurs/
-Allow: /transporteurs-exportateurs
+Allow: /logistics
 Allow: /blog
 Allow: /blog/
 Allow: /about
-Allow: /a-propos
 Allow: /contact
 Allow: /faq
 Allow: /terms

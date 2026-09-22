@@ -1,8 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { FiPackage } from 'react-icons/fi';
 import CloudinaryImage from '../common/CloudinaryImage';
 
 const ProductImageGallery = ({ images, selectedIndex, onSelectImage, productName }) => {
+  const { t } = useTranslation('public');
   const getImageUrl = (image) => {
     return typeof image === 'string' ? image : (image?.url || image?.secure_url || '');
   };
@@ -54,7 +56,7 @@ const ProductImageGallery = ({ images, selectedIndex, onSelectImage, productName
         ) : (
           <div className="w-full aspect-square bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center text-gray-500">
             <FiPackage className="h-24 w-24 text-gray-400 mb-4" />
-            <span className="text-lg font-medium">Aucune image</span>
+            <span className="text-lg font-medium">{t('productDetail.noImage')}</span>
           </div>
         )}
       </div>

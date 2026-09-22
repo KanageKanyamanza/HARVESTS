@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
 	FiPackage,
 	FiUser,
@@ -15,6 +16,8 @@ import {
 import { formatPrice } from "../../utils/currencyUtils";
 
 const ProductSpecifications = ({ product, producer, user, statusConfig }) => {
+	const { t, i18n } = useTranslation("public");
+	const dateLocale = i18n.language === "en" ? "en-US" : "fr-FR";
 	const isOwnerOrAdmin =
 		user &&
 		(user.userType === "admin" ||
@@ -26,31 +29,31 @@ const ProductSpecifications = ({ product, producer, user, statusConfig }) => {
 			<div className="bg-white rounded-lg p-6 shadow-sm border">
 				<h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
 					<FiPackage className="h-5 w-5 mr-2" />
-					Informations générales
+					{t("productDetail.generalInfo")}
 				</h3>
 				<div className="space-y-3">
 					{product.category && (
 						<InfoRow
-							label="Catégorie"
+							label={t("productDetail.category")}
 							value={getCategoryLabel(product.category)}
 						/>
 					)}
 					{product.subcategory && (
-						<InfoRow label="Sous-catégorie" value={product.subcategory} />
+						<InfoRow label={t("productDetail.subcategory")} value={product.subcategory} />
 					)}
 					{product.price && (
-						<InfoRow label="Prix" value={formatPrice(product.price)} />
+						<InfoRow label={t("productDetail.price")} value={formatPrice(product.price)} />
 					)}
 					{product.compareAtPrice && (
 						<InfoRow
-							label="Prix de comparaison"
+							label={t("productDetail.comparePrice")}
 							value={formatPrice(product.compareAtPrice)}
 							className="line-through text-gray-500"
 						/>
 					)}
 					{product.minimumOrderQuantity > 0 && (
 						<InfoRow
-							label="Quantité minimum"
+							label={t("productDetail.minQuantity")}
 							value={`${product.minimumOrderQuantity} ${formatUnit(
 								product.minimumOrderQuantity,
 								product.unit
@@ -59,7 +62,7 @@ const ProductSpecifications = ({ product, producer, user, statusConfig }) => {
 					)}
 					{product.maximumOrderQuantity > 0 && (
 						<InfoRow
-							label="Quantité maximum"
+							label={t("productDetail.maxQuantity")}
 							value={`${product.maximumOrderQuantity} ${formatUnit(
 								product.maximumOrderQuantity,
 								product.unit
@@ -68,7 +71,7 @@ const ProductSpecifications = ({ product, producer, user, statusConfig }) => {
 					)}
 					{product.tags?.length > 0 && (
 						<div className="pt-1">
-							<dt className="text-gray-600 mb-2 block text-sm">Tags</dt>
+							<dt className="text-gray-600 mb-2 block text-sm">{t("productDetail.tags")}</dt>
 							<dd className="flex flex-wrap gap-2">
 								{product.tags.map((tag, i) => (
 									<span
@@ -89,7 +92,7 @@ const ProductSpecifications = ({ product, producer, user, statusConfig }) => {
 				<div className="bg-white rounded-lg p-6 shadow-sm border">
 					<h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
 						<FiPackage className="h-5 w-5 mr-2" />
-						Variantes disponibles
+						{t("productDetail.availableVariants")}
 					</h3>
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 						{product.variants.map((variant, i) => (
@@ -98,16 +101,16 @@ const ProductSpecifications = ({ product, producer, user, statusConfig }) => {
 								className="border border-gray-200 rounded-lg p-4 space-y-2"
 							>
 								<h4 className="font-medium text-gray-900">{variant.name}</h4>
-								<InfoRow label="Prix" value={formatPrice(variant.price)} />
+								<InfoRow label={t("productDetail.price")} value={formatPrice(variant.price)} />
 								{variant.compareAtPrice && (
 									<InfoRow
-										label="Prix de comparaison"
+										label={t("productDetail.comparePrice")}
 										value={formatPrice(variant.compareAtPrice)}
 										className="line-through text-gray-500"
 									/>
 								)}
 								<InfoRow
-									label="Stock"
+									label={t("productDetail.stock")}
 									value={`${variant.inventory?.quantity || 0} ${formatUnit(
 										variant.inventory?.quantity || 0,
 										variant.unit || product.unit
@@ -115,7 +118,7 @@ const ProductSpecifications = ({ product, producer, user, statusConfig }) => {
 								/>
 								{variant.sku && (
 									<InfoRow
-										label="SKU"
+										label={t("productDetail.sku")}
 										value={variant.sku}
 										className="text-sm"
 									/>
@@ -131,13 +134,13 @@ const ProductSpecifications = ({ product, producer, user, statusConfig }) => {
 				<div className="bg-white rounded-lg p-6 shadow-sm border">
 					<h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
 						<FiClock className="h-5 w-5 mr-2" />
-						Informations de publication
+						{t("productDetail.publicationInfo")}
 					</h3>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 						<div className="space-y-3">
-							<InfoRow label="Statut" value={statusConfig.text} />
+							<InfoRow label={t("productDetail.status")} value={statusConfig.text} />
 							<div className="flex justify-between">
-								<dt className="text-gray-600">Actif</dt>
+								<dt className="text-gray-600">{t("productDetail.active")}</dt>
 								<dd>
 									{product.isActive ? (
 										<FiCheckCircle className="h-4 w-4 text-green-500" />
@@ -147,7 +150,7 @@ const ProductSpecifications = ({ product, producer, user, statusConfig }) => {
 								</dd>
 							</div>
 							<div className="flex justify-between">
-								<dt className="text-gray-600">Mis en avant</dt>
+								<dt className="text-gray-600">{t("productDetail.featured")}</dt>
 								<dd>
 									{product.isFeatured ? (
 										<FiCheckCircle className="h-4 w-4 text-yellow-500" />
@@ -159,22 +162,22 @@ const ProductSpecifications = ({ product, producer, user, statusConfig }) => {
 						</div>
 						<div className="space-y-3">
 							<InfoRow
-								label="Créé le"
-								value={new Date(product.createdAt).toLocaleDateString("fr-FR")}
+								label={t("productDetail.createdAt")}
+								value={new Date(product.createdAt).toLocaleDateString(dateLocale)}
 							/>
 							{product.publishedAt && (
 								<InfoRow
-									label="Publié le"
+									label={t("productDetail.publishedAt")}
 									value={new Date(product.publishedAt).toLocaleDateString(
-										"fr-FR"
+										dateLocale
 									)}
 								/>
 							)}
 							{product.lastStockUpdate && (
 								<InfoRow
-									label="Dernière mise à jour stock"
+									label={t("productDetail.lastStockUpdate")}
 									value={new Date(product.lastStockUpdate).toLocaleDateString(
-										"fr-FR"
+										dateLocale
 									)}
 								/>
 							)}
@@ -182,7 +185,7 @@ const ProductSpecifications = ({ product, producer, user, statusConfig }) => {
 					</div>
 					{product.rejectionReason && (
 						<div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-							<dt className="text-red-800 font-medium mb-1">Raison du rejet</dt>
+							<dt className="text-red-800 font-medium mb-1">{t("productDetail.rejectionReason")}</dt>
 							<dd className="text-red-700">{product.rejectionReason}</dd>
 						</div>
 					)}
@@ -194,25 +197,25 @@ const ProductSpecifications = ({ product, producer, user, statusConfig }) => {
 				<div className="bg-white rounded-lg p-6 shadow-sm border">
 					<h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
 						<FiUser className="h-5 w-5 mr-2" />
-						Informations du partenaire
+						{t("productDetail.producerInfo")}
 					</h3>
 					<div className="space-y-3">
-						<InfoRow label="Nom" value={getVendorName(producer)} />
+						<InfoRow label={t("productDetail.name")} value={getVendorName(producer)} />
 						{formatVendorAddress(producer) && (
 							<InfoRow
-								label="Localisation"
+								label={t("productDetail.location")}
 								value={formatVendorAddress(producer)}
 							/>
 						)}
 						<InfoRow
-							label="Membre depuis"
-							value={new Date(producer.createdAt).toLocaleDateString("fr-FR")}
+							label={t("productDetail.memberSince")}
+							value={new Date(producer.createdAt).toLocaleDateString(dateLocale)}
 						/>
 						{producer.phone && (
-							<InfoRow label="Téléphone" value={producer.phone} />
+							<InfoRow label={t("productDetail.phone")} value={producer.phone} />
 						)}
 						{producer.email && (
-							<InfoRow label="Email" value={producer.email} />
+							<InfoRow label={t("productDetail.email")} value={producer.email} />
 						)}
 					</div>
 				</div>

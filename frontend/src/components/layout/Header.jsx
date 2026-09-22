@@ -15,7 +15,6 @@ import {
 	MessageCircle,
 	Shield,
 	Sprout,
-	TrendingUp,
 	Leaf,
 	Home,
 	Grid,
@@ -25,6 +24,8 @@ import {
 	ChevronDown,
 	Check,
 	Briefcase,
+	UtensilsCrossed,
+	Factory,
 } from "lucide-react";
 import logo from "../../assets/logo.png";
 
@@ -152,9 +153,21 @@ const Header = () => {
 		},
 		{
 			name: t("ourProducers", { ns: "navigation" }),
-			href: "/producteurs",
-			current: location.pathname === "/producteurs",
+			href: "/producers",
+			current: location.pathname === "/producers",
 			icon: Sprout,
+		},
+		{
+			name: t("restaurateurs", { ns: "navigation" }),
+			href: "/restaurateurs",
+			current: location.pathname === "/restaurateurs",
+			icon: UtensilsCrossed,
+		},
+		{
+			name: t("transformers", { ns: "navigation" }),
+			href: "/transformers",
+			current: location.pathname === "/transformers",
+			icon: Factory,
 		},
 		{ name: t("blog", { ns: "navigation" }), href: "/blog", current: location.pathname === "/blog", icon: Newspaper },
 		{
@@ -458,17 +471,6 @@ const Header = () => {
 						</Link>
 					))}
 				</nav>
-				<div className="flex items-center space-x-4 text-xs">
-					<Link to="/producteurs" className="hover:text-emerald-300 transition-colors flex items-center gap-1.5">
-						<Sprout className="w-3.5 h-3.5 text-emerald-400" />
-						{t("header.producerSpace", { ns: "navigation" })}
-					</Link>
-					<span className="opacity-40">|</span>
-					<Link to="/pricing" className="hover:text-emerald-300 transition-colors flex items-center gap-1.5">
-						<TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-						{t("header.wholesaleB2B", { ns: "navigation" })}
-					</Link>
-				</div>
 			</div>
 
 			{/* Menu mobile (Sidebar) — rendu via portal pour passer au-dessus de la bottom nav */}

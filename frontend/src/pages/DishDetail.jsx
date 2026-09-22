@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useCart } from "../contexts/CartContext";
 import {
 	FiArrowLeft,
@@ -18,6 +19,7 @@ import { getDishImageUrl, normalizeDishImage } from "../utils/dishImageUtils";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 
 const DishDetail = () => {
+	const { t } = useTranslation("public");
 	const { id } = useParams();
 	const { addToCart } = useCart();
 	const navigate = useNavigate();
@@ -40,12 +42,12 @@ const DishDetail = () => {
 					setDish(normalizedDish);
 					setRestaurateur(response.data.data.restaurateur);
 				} else {
-					setError("Plat non trouvé ou non disponible");
+					setError(t("dishDetail.notFoundServiceError"));
 				}
 			} catch (error) {
 				console.error("Erreur lors du chargement du plat:", error);
 				const errorMessage =
-					error.response?.data?.message || "Erreur lors du chargement du plat";
+					error.response?.data?.message || t("dishDetail.loadErrorDefault");
 				setError(errorMessage);
 			} finally {
 				setLoading(false);
@@ -65,36 +67,15 @@ const DishDetail = () => {
 		}).format(price);
 	};
 
-	const getCategoryText = (category) => {
-		const categoryMap = {
-			entree: "Entrée",
-			plat: "Plat principal",
-			dessert: "Dessert",
-			boisson: "Boisson",
-			accompagnement: "Accompagnement",
-		};
-		return categoryMap[category] || category;
-	};
+	const getCategoryText = (category) => t(`dishDetail.categories.${category}`, category);
 
-	const getAllergenText = (allergen) => {
-		const allergenMap = {
-			gluten: "Gluten",
-			lactose: "Lactose",
-			nuts: "Noix",
-			eggs: "Œufs",
-			soy: "Soja",
-			fish: "Poisson",
-			shellfish: "Crustacés",
-			sesame: "Sésame",
-		};
-		return allergenMap[allergen] || allergen;
-	};
+	const getAllergenText = (allergen) => t(`dishDetail.allergensMap.${allergen}`, allergen);
 
 	const handleAddToCart = () => {
 		// Vérifier le stock avant d'ajouter au panier
 		if (dish && restaurateur) {
 			if (dish.trackQuantity && dish.stock <= 0) {
-				alert("Ce plat est en rupture de stock");
+				alert(t("dishDetail.outOfStockAlert"));
 				return;
 			}
 			addToCart({
@@ -119,7 +100,7 @@ const DishDetail = () => {
 	if (loading) {
 		return (
 			<div className="min-h-screen bg-harvests-light flex items-center justify-center">
-				<LoadingSpinner size="lg" text="Chargement du plat..." />
+				<LoadingSpinner size="lg" text={t("dishDetail.loadingText")} />
 			</div>
 		);
 	}
@@ -130,16 +111,16 @@ const DishDetail = () => {
 				<div className="text-center">
 					<FiPackage className="w-16 h-16 text-gray-400 mx-auto mb-4" />
 					<h1 className="text-2xl font-bold text-gray-900 mb-4">
-						Plat non trouvé
+						{t("dishDetail.notFoundTitle")}
 					</h1>
 					<p className="text-gray-600 mb-6">
-						{error || "Ce plat n'existe pas ou n'est plus disponible."}
+						{error || t("dishDetail.notFoundDefault")}
 					</p>
 					<button
 						onClick={() => navigate("/")}
 						className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
 					>
-						Retour à l'accueil
+						{t("dishDetail.backToHome")}
 					</button>
 				</div>
 			</div>
@@ -158,7 +139,7 @@ const DishDetail = () => {
 						className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
 					>
 						<FiArrowLeft className="mr-2" />
-						Retour
+						{t("dishDetail.back")}
 					</button>
 				</div>
 			</div>
@@ -196,7 +177,7 @@ const DishDetail = () => {
 										</span>
 										<span className="flex items-center">
 											<FiClock className="mr-1" />
-											{dish.preparationTime || 30} min
+											{dish.preparationTime || 30} {t("dishDetail.minutesShort")}
 										</span>
 										{dish.trackQuantity && (
 											<span
@@ -205,7 +186,7 @@ const DishDetail = () => {
 												}`}
 											>
 												<FiPackage className="mr-1" />
-												Stock: {dish.stock || 0}
+												{t("dishDetail.stockLabel", { count: dish.stock || 0 })}
 											</span>
 										)}
 									</div>
@@ -214,7 +195,7 @@ const DishDetail = () => {
 									<div className="text-3xl font-bold text-orange-600">
 										{formatPrice(dish.price)}{" "}
 										<span className="text-sm font-normal text-gray-500">
-											/ {dish.unit || "portion"}
+											/ {dish.unit || t("dishDetail.defaultUnit")}
 										</span>
 									</div>
 								</div>
@@ -229,7 +210,7 @@ const DishDetail = () => {
 								<div className="mb-6">
 									<h3 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
 										<FiAlertTriangle className="mr-1 text-yellow-500" />
-										Allergènes
+										{t("dishDetail.allergensTitle")}
 									</h3>
 									<div className="flex flex-wrap gap-2">
 										{dish.allergens.map((allergen, index) => (
@@ -249,10 +230,10 @@ const DishDetail = () => {
 								<div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
 									<div className="flex items-center text-red-800">
 										<FiAlertTriangle className="mr-2" />
-										<span className="font-medium">Stock épuisé</span>
+										<span className="font-medium">{t("dishDetail.outOfStockTitle")}</span>
 									</div>
 									<p className="text-sm text-red-600 mt-1">
-										Ce plat n'est plus disponible pour le moment.
+										{t("dishDetail.outOfStockDescription")}
 									</p>
 								</div>
 							)}
@@ -276,16 +257,16 @@ const DishDetail = () => {
 										<FiShoppingCart className="mr-2" />
 									)}
 									{dish.trackQuantity && dish.stock === 0
-										? "Rupture de stock"
+										? t("dishDetail.outOfStockButton")
 										: isAdded
-										? "Ajouté !"
-										: "Ajouter au panier"}
+										? t("dishDetail.addedButton")
+										: t("dishDetail.addToCartButton")}
 								</button>
 								<button
 									onClick={handleGoToRestaurant}
 									className="px-6 py-3 mx-auto border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
 								>
-									Voir le restaurant
+									{t("dishDetail.viewRestaurant")}
 								</button>
 							</div>
 						</div>
@@ -294,7 +275,7 @@ const DishDetail = () => {
 						{restaurateur && (
 							<div className="bg-white rounded-lg shadow-sm p-6">
 								<h3 className="text-lg font-semibold text-gray-900 mb-4">
-									Restaurant
+									{t("dishDetail.restaurantTitle")}
 								</h3>
 								<div className="space-y-3">
 									<div className="flex items-center">

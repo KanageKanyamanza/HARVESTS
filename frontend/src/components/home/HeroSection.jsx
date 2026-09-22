@@ -28,7 +28,7 @@ const HeroSection = () => {
 	}, [slides.length]);
 
 	const stakeholderMeta = [
-		{ id: "farmers", href: "/producteurs", icon: Sprout, badge: "CF Grower", gradient: "from-[#1A5514] to-[#2E8B22]", bgLight: "bg-[#F3F8F2]", textColor: "text-[#1A5514]" },
+		{ id: "farmers", href: "/producers", icon: Sprout, badge: "CF Grower", gradient: "from-[#1A5514] to-[#2E8B22]", bgLight: "bg-[#F3F8F2]", textColor: "text-[#1A5514]" },
 		{ id: "buyers", href: "/products", icon: ShoppingBag, badge: "CF Buyer", gradient: "from-[#004D40] to-[#00897B]", bgLight: "bg-[#E0F2F1]", textColor: "text-[#004D40]" },
 		{ id: "storefront", href: "/transformers", icon: Store, badge: "CF Storefront", gradient: "from-[#B78103] to-[#E6A100]", bgLight: "bg-[#FFFDE7]", textColor: "text-[#855D00]" },
 		{ id: "restaurateurs", href: "/restaurateurs", icon: UtensilsCrossed, badge: "CF Kitchen", gradient: "from-[#1E3A8A] to-[#3B82F6]", bgLight: "bg-[#EFF6FF]", textColor: "text-[#1E3A8A]" }
