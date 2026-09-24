@@ -5,6 +5,7 @@ import { productService } from '../services';
 import CloudinaryImage from '../components/common/CloudinaryImage';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import SEOHead from '../components/seo/SEOHead';
+import { toPlainText } from '../utils/textHelpers';
 import { 
   Wheat, Carrot, Apple, Bean, Flame, Leaf, Sprout, Milk, 
   Beef, Drumstick, Fish, Archive, CupSoda, Package as PackageLucide, 
@@ -247,7 +248,7 @@ const Categories = () => {
                           </span>
                           <div className="grid grid-cols-4 gap-2">
                             {products.slice(0, 4).map((product) => {
-                              const productName = product.name?.fr || product.name?.en || product.name;
+                              const productName = toPlainText(product.name, '');
                               const primaryImage = product.primaryImage?.url || product.images?.find(img => img.isPrimary)?.url || product.images?.[0]?.url || CATEGORY_FALLBACK_IMAGES[category];
                               return (
                                 <div key={product._id} className="group/item">
@@ -320,7 +321,7 @@ const Categories = () => {
                         {products.length > 0 && (
                           <div className="flex items-center gap-3 mt-3 overflow-x-auto pb-1 scrollbar-hide">
                             {products.map((p) => {
-                              const pName = p.name?.fr || p.name?.en || p.name;
+                              const pName = toPlainText(p.name, '');
                               const img = p.primaryImage?.url || p.images?.find(i => i.isPrimary)?.url || p.images?.[0]?.url || CATEGORY_FALLBACK_IMAGES[category];
                               return (
                                 <div key={p._id} className="flex items-center gap-1.5 bg-gray-50 border border-gray-200/70 rounded-lg px-2 py-1 flex-shrink-0">

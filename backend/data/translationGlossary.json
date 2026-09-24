@@ -1,0 +1,19 @@
+{
+  "_comment": "Jour 45 (bascule bilingue) - glossaire fr->en consulté par utils/translateText.js avant/après l'appel aux services de traduction automatique (MyMemory/LibreTranslate), pour corriger le vocabulaire agricole/culinaire local qu'ils traduisent mal ou pas du tout. A enrichir au fil des cas repérés (cf. échange du 24/09 : 'Corète Potagère' -> 'Corchorus olitorius'/'corte', 'tô' -> 'toe').",
+
+  "exactTerms": {
+    "corète potagère": "Jute Mallow",
+    "corète": "Jute Mallow",
+    "tô": "Tô (corn or millet porridge)"
+  },
+
+  "wordReplacements": [
+    { "match": "\\bcorte\\b", "replace": "jute mallow", "flags": "gi" },
+    { "match": "\\bcorète\\b", "replace": "jute mallow", "flags": "gi" },
+    { "match": "\\btoe\\b", "replace": "tô (corn porridge)", "flags": "gi" },
+    { "match": "\\bgombo\\b", "replace": "okra", "flags": "gi" },
+    { "match": "\\bni[ée]b[ée]\\b", "replace": "cowpea", "flags": "gi" },
+    { "match": "\\bbissap\\b", "replace": "bissap (hibiscus)", "flags": "gi" },
+    { "match": "\\bsoumbala\\b", "replace": "soumbala (fermented locust bean)", "flags": "gi" }
+  ]
+}

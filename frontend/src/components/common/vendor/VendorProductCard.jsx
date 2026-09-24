@@ -1,8 +1,10 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { FiPackage, FiStar } from 'react-icons/fi';
 import { formatAverageRating, getProductAverageRating, getProductReviewCount } from '../../../utils/vendorRatings';
 
 const VendorProductCard = ({ item, helpers, showRating = true, colorClass = 'text-green-600' }) => {
+  const { t } = useTranslation('public');
   const productAverage = getProductAverageRating(item);
   const productReviewCount = getProductReviewCount(item);
 
@@ -28,7 +30,7 @@ const VendorProductCard = ({ item, helpers, showRating = true, colorClass = 'tex
       <div className="p-4">
         <div className="flex items-center justify-between mb-2">
           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-            {item.category || 'Produit'}
+            {item.category || t('vendorProfile.category')}
           </span>
           {showRating && (
             <div className="flex items-center text-yellow-500">
@@ -38,7 +40,7 @@ const VendorProductCard = ({ item, helpers, showRating = true, colorClass = 'tex
               </span>
               {productReviewCount > 0 && (
                 <span className="ml-1 text-xs text-gray-500">
-                  ({productReviewCount} avis)
+                  ({t('vendorProfile.reviewsCountParenthesis', { count: productReviewCount })})
                 </span>
               )}
             </div>

@@ -283,17 +283,31 @@ const restaurateurSchema = new mongoose.Schema({
 	// Plats du restaurant
 	dishes: [
 		{
+			// Jour 45 (bascule bilingue) : accepte une chaîne (plats historiques)
+			// ou un objet { fr, en } — `en` rempli automatiquement par traduction
+			// dans restaurateurDishController.js si absent à la création/édition.
 			name: {
-				type: String,
+				type: mongoose.Schema.Types.Mixed,
 				required: true,
-				trim: true,
-				maxlength: [100, "Le nom du plat ne peut pas dépasser 100 caractères"],
+				validate: {
+					validator: function (value) {
+						const text = typeof value === "string" ? value : value?.fr;
+						return typeof text === "string" && text.trim().length > 0 && text.length <= 100;
+					},
+					message: "Le nom du plat (fr) est requis et ne peut pas dépasser 100 caractères",
+				},
 			},
 			description: {
-				type: String,
+				type: mongoose.Schema.Types.Mixed,
 				required: false,
-				trim: true,
-				maxlength: [500, "La description ne peut pas dépasser 500 caractères"],
+				validate: {
+					validator: function (value) {
+						if (value === undefined || value === null || value === "") return true;
+						const text = typeof value === "string" ? value : value?.fr;
+						return typeof text === "string" && text.length <= 500;
+					},
+					message: "La description (fr) ne peut pas dépasser 500 caractères",
+				},
 			},
 			price: {
 				type: Number,

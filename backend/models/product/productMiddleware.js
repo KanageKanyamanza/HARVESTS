@@ -1,39 +1,70 @@
 const slugify = require('slugify');
 const { toPlainText } = require('../../utils/localization');
+const { translateText } = require('../../utils/translateText');
 
-const PLAINTEXT_FIELDS = ['name', 'description', 'shortDescription'];
+// Jour 45 (bascule bilingue) : name/description/shortDescription passent de
+// "toujours aplati en chaîne" à "objet {fr, en} avec traduction automatique
+// de en si absent". BILINGUAL_FIELDS remplace l'ancien PLAINTEXT_FIELDS qui
+// écrasait systématiquement tout objet {fr, en} en simple chaîne française —
+// ce comportement empêchait justement ce que ce jour met en place.
+const BILINGUAL_FIELDS = ['name', 'description', 'shortDescription'];
 
-const normalizePlainText = (value, fallback = '') => {
-  const normalized = toPlainText(value, fallback);
-  return typeof normalized === 'string' ? normalized : fallback;
+/**
+ * Normalise une valeur de champ bilingue en { fr, en } sans écraser un `en`
+ * déjà fourni. `fr` prend la chaîne d'origine si la valeur était déjà une
+ * simple chaîne (documents/payloads historiques).
+ */
+const normalizeBilingualShape = (value) => {
+  if (value === undefined || value === null || value === '') return value;
+  if (typeof value === 'string') return { fr: value.trim() };
+  if (typeof value === 'object') {
+    const fr = typeof value.fr === 'string' ? value.fr.trim() : '';
+    const en = typeof value.en === 'string' && value.en.trim() ? value.en.trim() : undefined;
+    return en ? { fr, en } : { fr };
+  }
+  return value;
+};
+
+/**
+ * Traduit fr -> en pour un champ bilingue si `en` est absent. Best-effort :
+ * en cas d'échec du service de traduction, le champ reste { fr } seul (pas
+ * bloquant, `toPlainText` retombe sur fr côté lecture).
+ */
+const fillAutoTranslation = async (shaped) => {
+  if (!shaped || typeof shaped !== 'object') return shaped;
+  if (shaped.en || !shaped.fr) return shaped;
+  try {
+    const { translatedText, ok } = await translateText(shaped.fr, 'fr', 'en');
+    if (ok && translatedText) {
+      return { ...shaped, en: translatedText };
+    }
+  } catch (error) {
+    // Best-effort : on garde { fr } seul si la traduction échoue
+  }
+  return shaped;
 };
 
 /**
  * Ajoute les middleware au schéma Product
  */
 function addProductMiddleware(productSchema) {
-  productSchema.pre('init', function(doc) {
-    if (doc) {
-      PLAINTEXT_FIELDS.forEach((field) => {
-        if (Object.prototype.hasOwnProperty.call(doc, field)) {
-          doc[field] = normalizePlainText(doc[field], doc[field] || '');
-        }
-      });
-    }
-  });
+  // Plus de flattening au chargement : un document déjà migré en {fr, en}
+  // doit rester tel quel. Les documents legacy (chaîne simple) restent lus
+  // tels quels aussi ; `toPlainText` (frontend/backend) gère les deux formes.
 
   // Middleware pre-save
   productSchema.pre('save', async function(next) {
-    PLAINTEXT_FIELDS.forEach((field) => {
-      if (this[field] !== undefined && this[field] !== null) {
-        this[field] = normalizePlainText(this[field], this[field]);
+    for (const field of BILINGUAL_FIELDS) {
+      if (this[field] !== undefined && this[field] !== null && this.isModified(field)) {
+        const shaped = normalizeBilingualShape(this[field]);
+        this[field] = await fillAutoTranslation(shaped);
       }
-    });
+    }
 
     // Générer le slug à partir du nom français
     if (this.isModified('name')) {
-      const nameForSlug = this.name || 'product';
-      let baseSlug = slugify(nameForSlug, { 
+      const nameForSlug = toPlainText(this.name, 'product');
+      let baseSlug = slugify(nameForSlug, {
         lower: true, 
         strict: true,
         remove: /[*+~.()'"!:@]/g 
@@ -80,22 +111,23 @@ function addProductMiddleware(productSchema) {
     next();
   });
 
-  const normalizeUpdatePayload = (payload) => {
+  const normalizeUpdatePayload = async (payload) => {
     if (!payload || typeof payload !== 'object') return;
-    PLAINTEXT_FIELDS.forEach((field) => {
+    for (const field of BILINGUAL_FIELDS) {
       if (Object.prototype.hasOwnProperty.call(payload, field)) {
-        payload[field] = normalizePlainText(payload[field], payload[field]);
+        const shaped = normalizeBilingualShape(payload[field]);
+        payload[field] = await fillAutoTranslation(shaped);
       }
-    });
+    }
   };
 
-  productSchema.pre(['findOneAndUpdate', 'updateOne', 'updateMany', 'findByIdAndUpdate'], function(next) {
+  productSchema.pre(['findOneAndUpdate', 'updateOne', 'updateMany', 'findByIdAndUpdate'], async function(next) {
     const update = this.getUpdate();
     if (update) {
       if (update.$set) {
-        normalizeUpdatePayload(update.$set);
+        await normalizeUpdatePayload(update.$set);
       }
-      normalizeUpdatePayload(update);
+      await normalizeUpdatePayload(update);
     }
     next();
   });

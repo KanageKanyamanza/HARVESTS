@@ -87,11 +87,22 @@ const variantSchema = new mongoose.Schema({
 const productSchema = new mongoose.Schema(
 	{
 		// Informations de base
+		// Jour 45 (bascule bilingue) : name/description/shortDescription acceptent
+		// soit une chaîne (documents historiques, avant migration), soit un objet
+		// { fr, en } — le champ `en` est rempli automatiquement par traduction
+		// automatique dans productMiddleware.js si absent à la sauvegarde.
+		// Type Mixed plutôt qu'un sous-schéma strict pour rester compatible en
+		// lecture avec les documents existants sans migration préalable.
 		name: {
-			type: String,
+			type: mongoose.Schema.Types.Mixed,
 			required: [true, "Nom du produit requis"],
-			trim: true,
-			maxlength: [200, "Le nom ne peut pas dépasser 200 caractères"],
+			validate: {
+				validator: function (value) {
+					const text = typeof value === "string" ? value : value?.fr;
+					return typeof text === "string" && text.trim().length > 0 && text.length <= 200;
+				},
+				message: "Le nom (fr) est requis et ne peut pas dépasser 200 caractères",
+			},
 		},
 
 		slug: {
@@ -101,17 +112,27 @@ const productSchema = new mongoose.Schema(
 		},
 
 		description: {
-			type: String,
+			type: mongoose.Schema.Types.Mixed,
 			required: [true, "Description requise"],
-			maxlength: [2000, "La description ne peut pas dépasser 2000 caractères"],
+			validate: {
+				validator: function (value) {
+					const text = typeof value === "string" ? value : value?.fr;
+					return typeof text === "string" && text.trim().length > 0 && text.length <= 2000;
+				},
+				message: "La description (fr) est requise et ne peut pas dépasser 2000 caractères",
+			},
 		},
 
 		shortDescription: {
-			type: String,
-			maxlength: [
-				300,
-				"La description courte ne peut pas dépasser 300 caractères",
-			],
+			type: mongoose.Schema.Types.Mixed,
+			validate: {
+				validator: function (value) {
+					if (value === undefined || value === null || value === "") return true;
+					const text = typeof value === "string" ? value : value?.fr;
+					return typeof text === "string" && text.length <= 300;
+				},
+				message: "La description courte (fr) ne peut pas dépasser 300 caractères",
+			},
 		},
 
 		// Producteur

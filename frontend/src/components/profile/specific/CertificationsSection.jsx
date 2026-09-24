@@ -1,4 +1,5 @@
 ﻿import React from "react";
+import { useTranslation } from "react-i18next";
 import {
 	Award,
 	Plus,
@@ -16,6 +17,7 @@ const CertificationsSection = ({
 	onInputChange,
 	editing = true,
 }) => {
+	const { t } = useTranslation("public");
 	if (!editing && (!certifications || certifications.length === 0)) return null;
 
 	const handleAdd = () => {
@@ -54,11 +56,11 @@ const CertificationsSection = ({
 			<div className="flex items-center justify-between">
 				<div>
 					<p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1.5">
-						Mise en avant
+						{t("vendorProfile.certificationsSection.kicker")}
 					</p>
 					<h3 className="text-xl font-[1000] text-gray-900 tracking-tight flex items-center gap-3">
 						<Award className="h-6 w-6 text-emerald-600" />
-						Gérez vos certifications
+						{t("vendorProfile.certificationsSection.manageTitle")}
 					</h3>
 				</div>
 				{editing && (
@@ -68,7 +70,7 @@ const CertificationsSection = ({
 						className="group inline-flex items-center gap-2 px-2 py-3 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 hover:-translate-y-1 transition-all shadow-lg active:scale-95"
 					>
 						<Plus className="h-4 w-4" />
-						Ajouter un Label
+						{t("vendorProfile.certificationsSection.addLabel")}
 					</button>
 				)}
 			</div>
@@ -77,7 +79,7 @@ const CertificationsSection = ({
 				<div className="bg-gray-50/50 rounded-[2rem] p-12 text-center border border-dashed border-gray-200">
 					<Award className="h-12 w-12 text-gray-200 mx-auto mb-4" />
 					<p className="text-gray-400 font-bold text-sm uppercase tracking-widest">
-						Aucune certification enregistrée
+						{t("vendorProfile.certificationsSection.emptyDisplay")}
 					</p>
 				</div>
 			)}
@@ -98,7 +100,7 @@ const CertificationsSection = ({
 								type="button"
 								onClick={() => handleRemove(index)}
 								className="absolute top-6 right-6 w-10 h-10 bg-gray-50 text-gray-400 rounded-xl flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-all"
-								title="Supprimer"
+								title={t("vendorProfile.certificationsSection.remove")}
 							>
 								<Trash2 className="h-4 w-4" />
 							</button>
@@ -108,7 +110,7 @@ const CertificationsSection = ({
 							{/* Nom du label */}
 							<div className="space-y-2">
 								<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-									Nom du Label / Certification
+									{t("vendorProfile.certificationsSection.nameLabel")}
 								</label>
 								{editing ?
 									<input
@@ -117,7 +119,7 @@ const CertificationsSection = ({
 										onChange={(e) =>
 											handleChange(index, "name", e.target.value)
 										}
-										placeholder="Agriculture Biologique, ISO 9001..."
+										placeholder={t("vendorProfile.certificationsSection.namePlaceholder")}
 										className="w-full bg-gray-50/50 px-2 py-2 border-2 border-transparent rounded-2xl text-gray-900 font-bold focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all placeholder-gray-300 shadow-inner"
 									/>
 								:	<div className="flex items-center gap-3">
@@ -135,7 +137,7 @@ const CertificationsSection = ({
 								{/* Organisme */}
 								<div className="space-y-2">
 									<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-										Délivré par
+										{t("vendorProfile.certificationsSection.issuedByLabel")}
 									</label>
 									{editing ?
 										<input
@@ -144,7 +146,7 @@ const CertificationsSection = ({
 											onChange={(e) =>
 												handleChange(index, "issuedBy", e.target.value)
 											}
-											placeholder="Organisme certificateur"
+											placeholder={t("vendorProfile.certificationsSection.issuedByPlaceholder")}
 											className="w-full bg-gray-50/50 px-2 py-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all placeholder-gray-300 shadow-inner"
 										/>
 									:	<p className="text-sm font-bold text-gray-600 ml-2">
@@ -156,7 +158,7 @@ const CertificationsSection = ({
 								{/* Date validité */}
 								<div className="space-y-2">
 									<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-										Date d'expiration
+										{t("vendorProfile.certificationsSection.expiryLabel")}
 									</label>
 									{editing ?
 										<div className="relative">
@@ -180,7 +182,7 @@ const CertificationsSection = ({
 											<Calendar className="h-4 w-4 text-emerald-500" />
 											{cert.validUntil ?
 												new Date(cert.validUntil).toLocaleDateString()
-											:	"Non précisé"}
+											:	t("vendorProfile.certificationsSection.notSpecified")}
 										</div>
 									}
 								</div>
@@ -189,7 +191,7 @@ const CertificationsSection = ({
 							{/* Document Preuve */}
 							<div className="pt-6 border-t border-gray-100">
 								<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 ml-2">
-									Preuve Documentaire
+									{t("vendorProfile.certificationsSection.documentLabel")}
 								</label>
 								{editing ?
 									<div className="rounded-2xl overflow-hidden border-2 border-dashed border-gray-100 hover:border-emerald-200 transition-colors">
@@ -210,11 +212,11 @@ const CertificationsSection = ({
 										className="inline-flex items-center gap-3 px-2 py-3 bg-emerald-50 text-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-100 hover:shadow-md transition-all group"
 									>
 										<FileText className="h-4 w-4 transition-transform group-hover:scale-110" />
-										Consulter le document
+										{t("vendorProfile.certificationsSection.viewDocument")}
 										<ExternalLink className="h-3 w-3" />
 									</a>
 								:	<span className="text-[10px] font-black text-gray-300 uppercase tracking-widest italic ml-2">
-										Aucun document joint
+										{t("vendorProfile.certificationsSection.noDocument")}
 									</span>
 								}
 							</div>

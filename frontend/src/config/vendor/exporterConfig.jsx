@@ -12,25 +12,18 @@ import {
 	VendorEmptyState,
 } from "../../components/common/vendor";
 import CertificationsSection from "../../components/profile/specific/CertificationsSection";
+import i18n from "../../utils/i18n";
 
-const VEHICLE_TYPES = {
-	container: "Conteneur standard",
-	"container-20ft": "Conteneur 20 pieds",
-	"container-40ft": "Conteneur 40 pieds",
-	"container-refrigerated": "Conteneur frigorifique",
-	truck: "Camion",
-	"refrigerated-truck": "Camion frigorifique",
-	trailer: "Remorque",
-	vessel: "Navire",
-	aircraft: "Avion cargo",
-};
+const t = (key, opts) =>
+	i18n.t(`vendorProfile.${key}`, {
+		ns: "public",
+		...(typeof opts === "string" ? { defaultValue: opts } : opts),
+	});
 
-const CONDITION_LABELS = {
-	excellent: "Excellent",
-	good: "Bon",
-	fair: "Moyen",
-	"needs-maintenance": "Entretien requis",
-};
+const getVehicleTypeLabel = (type) => t(`exporter.vehicleTypes.${type}`, type);
+const getConditionLabel = (cond) => t(`exporter.conditionLabels.${cond}`, cond);
+const getExperienceLabel = (exp) => t(`exporter.experienceLabels.${exp}`, exp);
+const getMarketTypeLabel = (type) => t(`exporter.marketTypeLabels.${type}`, type);
 
 export const exporterConfig = {
 	vendorType: "exporter",
@@ -39,8 +32,8 @@ export const exporterConfig = {
 		const markets =
 			e.targetMarkets?.map((m) => m.country).filter(Boolean) || [];
 		return markets.length > 0
-			? `Export vers ${markets.slice(0, 3).join(", ")}`
-			: "Exportateur";
+			? t("exporter.exportTo", { markets: markets.slice(0, 3).join(", ") })
+			: t("exporter.genericLabel");
 	},
 
 	getVendorStats: (exporter, _items, reviews = []) => {
@@ -49,22 +42,22 @@ export const exporterConfig = {
 			{
 				icon: <FiStar className="w-5 h-5 text-yellow-500" />,
 				value: formatAverageRating(averageRating),
-				label: "Note moyenne",
+				label: t("statLabels.averageRating"),
 			},
 			{
 				icon: <FiGlobe className="w-5 h-5 text-blue-500" />,
 				value: exporter.targetMarkets?.length || 0,
-				label: "Marchés cibles",
+				label: t("exporter.targetMarketsLabel"),
 			},
 			{
 				icon: <FiTruck className="w-5 h-5 text-green-500" />,
 				value: exporter.fleet?.length || 0,
-				label: "Flotte",
+				label: t("exporter.fleetLabel"),
 			},
 			{
 				icon: <FiCheckCircle className="w-5 h-5 text-purple-500" />,
 				value: exporter.exportLicenses?.length || 0,
-				label: "Licences",
+				label: t("exporter.licensesLabel"),
 			},
 		];
 	},
@@ -92,13 +85,13 @@ export const exporterConfig = {
 		const tags = [];
 		if (e.targetMarkets?.length > 0) {
 			tags.push({
-				label: "Marchés cibles",
+				label: t("exporter.targetMarketsLabel"),
 				items: e.targetMarkets.map((m) => m.country).filter(Boolean),
 			});
 		}
 		if (e.exportProducts?.length > 0) {
 			tags.push({
-				label: "Produits d'export",
+				label: t("exporter.exportProductsLabel"),
 				items: [
 					...new Set(e.exportProducts.map((p) => p.category).filter(Boolean)),
 				],
@@ -109,7 +102,7 @@ export const exporterConfig = {
 
 	formatPrice: formatPriceOrQuote,
 	getItemName: (v) =>
-		VEHICLE_TYPES[v.vehicleType] || v.vehicleType || "Véhicule",
+		getVehicleTypeLabel(v.vehicleType) || t("genericVehicle"),
 	getItemDescription: (v) => {
 		const capacity = [];
 		if (v.capacity?.weight)
@@ -117,8 +110,8 @@ export const exporterConfig = {
 		if (v.capacity?.volume)
 			capacity.push(`${v.capacity.volume.value} ${v.capacity.volume.unit}`);
 		return capacity.length > 0
-			? `Capacité: ${capacity.join(", ")}`
-			: "Véhicule d'export";
+			? t("exporter.capacityLabel", { capacity: capacity.join(", ") })
+			: t("exporter.genericVehicleDescription");
 	},
 	getItemPrice: () => null,
 	getItemImage: (v) =>
@@ -126,27 +119,24 @@ export const exporterConfig = {
 		v.image?.secure_url ||
 		(typeof v.image === "string" ? v.image : null),
 	getItemExtraInfo: (v) =>
-		`${v.isAvailable ? "Disponible" : "Indisponible"} - ${
-			CONDITION_LABELS[v.condition] || v.condition
-		}`,
-	getItemButtonText: "Voir détails",
+		`${v.isAvailable ? t("available") : t("unavailable")} - ${getConditionLabel(v.condition)}`,
+	get getItemButtonText() { return t("exporter.itemButton"); },
 	getItemButtonIcon: <FiTruck className="w-4 h-4 mr-2" />,
 	getItemButtonColor: "bg-blue-600 hover:bg-blue-700",
 	getEmptyStateIcon: (
 		<FiTruck className="w-12 h-12 text-gray-400 mx-auto mb-4" />
 	),
-	getEmptyStateTitle: "Aucune flotte disponible",
-	getEmptyStateDescription:
-		"Cet exportateur n'a pas encore de véhicules ou conteneurs enregistrés.",
+	get getEmptyStateTitle() { return t("exporter.emptyFleetTitle"); },
+	get getEmptyStateDescription() { return t("exporter.emptyFleetDescription"); },
 
 	tabs: ["fleet", "markets", "about", "certifications", "reviews"],
 	getTabLabel: (tab) =>
 		({
-			fleet: "Flotte",
-			markets: "Marchés",
-			about: "À propos",
-			certifications: "Certifications",
-			reviews: "Avis",
+			fleet: t("tabs.fleet"),
+			markets: t("tabs.markets"),
+			about: t("tabs.about"),
+			certifications: t("tabs.certifications"),
+			reviews: t("tabs.reviews"),
 		}[tab] || tab),
 	getTabCount: (tab, items, reviews, vendor) => {
 		if (tab === "fleet") return items?.length || 0;
@@ -187,10 +177,10 @@ export const exporterConfig = {
 					<div className="text-center py-12">
 						<FiGlobe className="w-12 h-12 text-gray-400 mx-auto mb-4" />
 						<h3 className="text-lg font-medium text-gray-900 mb-2">
-							Aucun marché cible
+							{t("exporter.noMarketsTitle")}
 						</h3>
 						<p className="text-gray-500">
-							Cet exportateur n'a pas encore renseigné ses marchés cibles.
+							{t("exporter.noMarketsDescription")}
 						</p>
 					</div>
 				);
@@ -208,30 +198,18 @@ export const exporterConfig = {
 								</h3>
 								{market.experience && (
 									<span className="text-xs text-gray-500">
-										{{
-											new: "Nouveau",
-											"1-2-years": "1-2 ans",
-											"3-5-years": "3-5 ans",
-											"5+-years": "5+ ans",
-										}[market.experience] || market.experience}
+										{getExperienceLabel(market.experience)}
 									</span>
 								)}
 							</div>
 							{market.marketType && (
 								<p className="text-sm text-gray-600 mb-2">
-									Type:{" "}
-									{{
-										wholesale: "Gros",
-										retail: "Détail",
-										industrial: "Industriel",
-										institutional: "Institutionnel",
-									}[market.marketType] || market.marketType}
+									{t("exporter.marketTypeLabel", { type: getMarketTypeLabel(market.marketType) })}
 								</p>
 							)}
 							{market.annualVolume && (
 								<p className="text-sm text-gray-600">
-									Volume annuel: {market.annualVolume.value}{" "}
-									{market.annualVolume.unit}
+									{t("exporter.annualVolumeLabel", { volume: market.annualVolume.value, unit: market.annualVolume.unit })}
 								</p>
 							)}
 						</div>
@@ -245,12 +223,12 @@ export const exporterConfig = {
 				<div className="bg-white rounded-lg p-6 space-y-8">
 					<div>
 						<h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">
-							Conditions Commerciales
+							{t("exporter.commercialConditionsTitle")}
 						</h3>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 							<div>
 								<p className="text-sm text-gray-500 font-bold uppercase mb-3 text-indigo-600">
-									Incoterms acceptés
+									{t("exporter.acceptedIncoterms")}
 								</p>
 								<div className="flex flex-wrap gap-2">
 									{(vendor.tradingTerms?.acceptedIncoterms || []).map(
@@ -267,7 +245,7 @@ export const exporterConfig = {
 							</div>
 							<div>
 								<p className="text-sm text-gray-500 font-bold uppercase mb-3 text-green-600">
-									Devises acceptées
+									{t("exporter.acceptedCurrencies")}
 								</p>
 								<div className="flex flex-wrap gap-2">
 									{(vendor.tradingTerms?.currencies || []).map((c, i) => (
@@ -286,7 +264,7 @@ export const exporterConfig = {
 					{vendor.exportLicenses && vendor.exportLicenses.length > 0 && (
 						<div>
 							<h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">
-								Licences d'exportation
+								{t("exporter.exportLicensesTitle")}
 							</h3>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								{vendor.exportLicenses.map((l, i) => (
@@ -295,14 +273,13 @@ export const exporterConfig = {
 										className="p-4 border border-gray-100 rounded-xl bg-gray-50"
 									>
 										<p className="font-bold text-gray-900">
-											N° {l.licenseNumber}
+											{t("exporter.licenseNumber", { number: l.licenseNumber })}
 										</p>
 										<p className="text-sm text-gray-600">
-											Délivré par: {l.issuedBy}
+											{t("exporter.issuedBy", { issuer: l.issuedBy })}
 										</p>
 										<p className="text-xs text-gray-500 mt-1">
-											Valide jusqu'au:{" "}
-											{new Date(l.validUntil).toLocaleDateString()}
+											{t("exporter.validUntil", { date: new Date(l.validUntil).toLocaleDateString() })}
 										</p>
 									</div>
 								))}

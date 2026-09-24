@@ -7,6 +7,9 @@ import {
 } from "../../utils/vendorRatings";
 import { toPlainText } from "../../utils/textHelpers";
 import { formatPrice, getBaseContact } from "./baseConfig.jsx";
+import i18n from "../../utils/i18n";
+
+const t = (key, opts) => i18n.t(`vendorProfile.${key}`, { ns: "public", ...opts });
 import {
 	VendorProductCard,
 	VendorReviewsList,
@@ -58,57 +61,56 @@ export const producerConfig = {
 			{
 				icon: <FiStar className="w-5 h-5 text-yellow-500" />,
 				value: formatAverageRating(averageRating),
-				label: "Note moyenne",
+				label: t("statLabels.averageRating"),
 			},
 			{
 				icon: <FiPackage className="w-5 h-5 text-green-500" />,
 				value: `${producer.farmSize?.value || 0} ${
 					producer.farmSize?.unit || "ha"
 				}`,
-				label: "Exploitation",
+				label: t("producer.farmSizeLabel"),
 			},
 			{
 				icon: <FiUsers className="w-5 h-5 text-blue-500" />,
 				value: reviewCount,
-				label: "Avis",
+				label: t("tabs.reviews"),
 			},
 			{
 				icon: <FiCalendar className="w-5 h-5 text-purple-500" />,
 				value: new Date(producer.createdAt).getFullYear(),
-				label: "Depuis",
+				label: t("statLabels.since"),
 			},
 		];
 	},
 
 	getVendorContact: getBaseContact,
 	getVendorTags: (producer) => [
-		{ label: "Spécialités", items: producer.specialties || [] },
+		{ label: t("producer.specialtiesLabel"), items: producer.specialties || [] },
 	],
 
 	formatPrice,
-	getItemName: (product) => toPlainText(product.name, "Produit sans nom"),
+	getItemName: (product) => toPlainText(product.name, t("producer.genericItemName")),
 	getItemDescription: (product) =>
-		toPlainText(product.description, "Aucune description"),
+		toPlainText(product.description, t("producer.genericDescription")),
 	getItemPrice: (product) => product.price,
 	getItemImage: (product) => product.images?.[0]?.url,
-	getItemExtraInfo: (product) => `${product.inventory?.quantity || 0} en stock`,
-	getItemButtonText: "Ajouter au panier",
+	getItemExtraInfo: (product) => `${product.inventory?.quantity || 0} ${t("producer.inStockSuffix")}`,
+	get getItemButtonText() { return t("producer.itemButton"); },
 	getItemButtonIcon: <FiPackage className="w-4 h-4 mr-2" />,
 	getItemButtonColor: "bg-green-600 hover:bg-green-700",
 	getEmptyStateIcon: (
 		<FiPackage className="w-12 h-12 text-gray-400 mx-auto mb-4" />
 	),
-	getEmptyStateTitle: "Aucun produit disponible",
-	getEmptyStateDescription:
-		"Ce producteur n'a pas encore de produits en vente.",
+	get getEmptyStateTitle() { return t("producer.emptyProductsTitle"); },
+	get getEmptyStateDescription() { return t("producer.emptyProductsDescription"); },
 
 	tabs: ["products", "about", "certifications", "reviews"],
 	getTabLabel: (tab) =>
 		({
-			products: "Produits",
-			about: "À propos",
-			certifications: "Certifications",
-			reviews: "Avis",
+			products: t("tabs.products"),
+			about: t("tabs.about"),
+			certifications: t("tabs.certifications"),
+			reviews: t("tabs.reviews"),
 		})[tab] || tab,
 	getTabCount: (tab, items, reviews, vendor) => {
 		if (tab === "products") return items?.length || 0;
@@ -142,12 +144,12 @@ export const producerConfig = {
 				<div className="bg-white rounded-lg p-6 space-y-8">
 					<div>
 						<h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">
-							Exploitation Agricole
+							{t("producer.operationTitle")}
 						</h3>
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 							<div className="bg-gray-50 p-4 rounded-xl">
 								<p className="text-sm text-gray-500 uppercase tracking-wider mb-1">
-									Taille
+									{t("producer.sizeLabel")}
 								</p>
 								<p className="font-bold text-gray-900">
 									{vendor.farmSize?.value || 0}{" "}
@@ -156,15 +158,15 @@ export const producerConfig = {
 							</div>
 							<div className="bg-gray-50 p-4 rounded-xl">
 								<p className="text-sm text-gray-500 uppercase tracking-wider mb-1">
-									Type d'agriculture
+									{t("producer.farmingTypeLabel")}
 								</p>
 								<p className="font-bold text-gray-900 capitalize">
-									{vendor.farmingType || "Conventionnelle"}
+									{vendor.farmingType || t("producer.conventional")}
 								</p>
 							</div>
 							<div className="bg-gray-50 p-4 rounded-xl">
 								<p className="text-sm text-gray-500 uppercase tracking-wider mb-1">
-									MOQ
+									{t("producer.moqLabel")}
 								</p>
 								<p className="font-bold text-gray-900">
 									{vendor.minimumOrderQuantity?.value || 1}{" "}
@@ -177,7 +179,7 @@ export const producerConfig = {
 					{vendor.crops && vendor.crops.length > 0 && (
 						<div>
 							<h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">
-								Nos Produits & Cultures
+								{t("producer.cropsTitle")}
 							</h3>
 							<div className="flex flex-wrap gap-3">
 								{vendor.crops.map((crop, i) => (
@@ -199,7 +201,7 @@ export const producerConfig = {
 
 					<div>
 						<h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">
-							Livraison & Logistique
+							{t("producer.logisticsTitle")}
 						</h3>
 						<div
 							className={`p-4 rounded-xl  ${
@@ -210,14 +212,16 @@ export const producerConfig = {
 						>
 							<p className="font-bold text-gray-900 mb-1">
 								{vendor.deliveryOptions?.canDeliver ?
-									"Service de livraison disponible"
-								:	"Pas de service de livraison"}
+									t("producer.deliveryAvailable")
+								:	t("producer.noDelivery")}
 							</p>
 							{vendor.deliveryOptions?.canDeliver && (
 								<div className="text-sm text-gray-700 space-y-1">
 									<p>
-										• Rayon d'action : {vendor.deliveryOptions.deliveryRadius}{" "}
-										km autour de {vendor.city || "la ferme"}
+										• {t("producer.deliveryRadius", {
+											radius: vendor.deliveryOptions.deliveryRadius,
+											city: vendor.city || t("producer.theFarm"),
+										})}
 									</p>
 
 								</div>
