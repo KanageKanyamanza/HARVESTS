@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../hooks/useAuth";
 import { useCart } from "../../contexts/CartContext";
 import { useChat } from "../../contexts/ChatContext";
@@ -47,6 +48,7 @@ const VendorProfile = ({
 	getTabLabel,
 	getTabCount,
 }) => {
+	const { t } = useTranslation("public");
 	const { id } = useParams();
 	const { user } = useAuth();
 	const { addToCart } = useCart();
@@ -70,9 +72,7 @@ const VendorProfile = ({
 		// authentification distincts) ne peuvent pas y participer. Sans ce garde-fou,
 		// la tentative échoue en 401 et finit par déconnecter l'admin.
 		if (user.role === "admin" || user.userType === "admin") {
-			window.alert(
-				"Les comptes administrateur ne peuvent pas utiliser la messagerie client. Contactez le partenaire depuis un compte standard."
-			);
+			window.alert(t("vendorProfile.adminMessagingBlocked"));
 			return;
 		}
 
@@ -248,7 +248,7 @@ const VendorProfile = ({
 	if (loading) {
 		return (
 			<div className="min-h-screen bg-[#F8FAF6] flex items-center justify-center">
-				<LoadingSpinner size="lg" text={`Chargement du profil...`} />
+				<LoadingSpinner size="lg" text={t("vendorProfile.loadingText")} />
 			</div>
 		);
 	}
@@ -259,16 +259,16 @@ const VendorProfile = ({
 				<div className="text-center bg-white rounded-2xl p-8 border border-emerald-100 shadow-sm max-w-md w-full">
 					<Store className="w-12 h-12 text-gray-300 mx-auto mb-3" />
 					<h1 className="text-xl font-extrabold text-[#161D14] mb-2">
-						Profil non trouvé
+						{t("vendorProfile.notFoundTitle")}
 					</h1>
 					<p className="text-xs text-gray-500 mb-6">
-						Ce partenaire n'existe pas ou n'est plus disponible.
+						{t("vendorProfile.notFoundDescription")}
 					</p>
 					<button
 						onClick={() => navigate("/producers")}
 						className="bg-[#1A5514] hover:bg-[#31BC2E] text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-md"
 					>
-						Voir les producteurs
+						{t("vendorProfile.backToProducers")}
 					</button>
 				</div>
 			</div>
@@ -299,13 +299,13 @@ const VendorProfile = ({
 						className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#1A5514] transition-colors"
 					>
 						<FiArrowLeft className="w-4 h-4" />
-						<span>Retour</span>
+						<span>{t("vendorProfile.back")}</span>
 					</button>
 
 					<div className="flex items-center gap-2">
 						<span className="text-xs font-extrabold text-[#161D14] hidden sm:inline">{getVendorName(vendor)}</span>
 						<span className="bg-emerald-50 text-emerald-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-100 uppercase">
-							{vendorType === 'producer' ? 'Producteur' : vendorType === 'transformer' ? 'Transformateur' : 'Partenaire'}
+							{vendorType === 'producer' ? t("vendorProfile.roleLabels.producer") : vendorType === 'transformer' ? t("vendorProfile.roleLabels.transformer") : t("vendorProfile.roleLabels.partner")}
 						</span>
 					</div>
 				</div>
@@ -319,7 +319,7 @@ const VendorProfile = ({
 					<div className="relative h-48 sm:h-64 lg:h-72 bg-gradient-to-r from-emerald-900 to-emerald-700 overflow-hidden">
 						<img
 							src={bannerUrl}
-							alt={`Bannière de ${getVendorName(vendor)}`}
+							alt={t("vendorProfile.bannerAlt", { name: getVendorName(vendor) })}
 							className="w-full h-full object-cover"
 						/>
 						<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
@@ -327,7 +327,7 @@ const VendorProfile = ({
 						{/* Verified Badge Top Right */}
 						<div className="absolute top-4 right-4 bg-[#1A5514] backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-extrabold shadow-md flex items-center gap-1.5 border border-white/20">
 							<FiCheckCircle className="w-4 h-4 text-emerald-400" />
-							<span>Partenaire Vérifié</span>
+							<span>{t("vendorProfile.verifiedPartner")}</span>
 						</div>
 					</div>
 
@@ -356,7 +356,7 @@ const VendorProfile = ({
 									className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-extrabold text-white bg-[#1A5514] hover:bg-[#31BC2E] transition-all shadow-md active:scale-95"
 								>
 									<FiMessageCircle className="w-4 h-4" />
-									<span>Contacter le partenaire</span>
+									<span>{t("vendorProfile.contactPartner")}</span>
 								</button>
 							</div>
 						</div>
@@ -368,7 +368,7 @@ const VendorProfile = ({
 								{vendor.isBio && (
 									<span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold text-white bg-[#1A5514]">
 										<Leaf className="mr-1 h-3 w-3 text-emerald-400" />
-										BIO
+										{t("vendorProfile.bio")}
 									</span>
 								)}
 							</h1>
@@ -390,7 +390,7 @@ const VendorProfile = ({
 							{vendor.createdAt && (
 								<span className="flex items-center gap-1 text-gray-400">
 									<FiCalendar className="w-3.5 h-3.5" />
-									Membre depuis {new Date(vendor.createdAt).getFullYear()}
+									{t("vendorProfile.memberSince", { year: new Date(vendor.createdAt).getFullYear() })}
 								</span>
 							)}
 						</div>

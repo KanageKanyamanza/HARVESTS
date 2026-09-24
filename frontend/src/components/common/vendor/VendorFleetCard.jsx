@@ -1,16 +1,9 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { FiTruck } from 'react-icons/fi';
 
-const FEATURE_LABELS = {
-  'refrigerated': 'Frigorifique',
-  'insulated': 'Isolé',
-  'ventilated': 'Ventilé',
-  'covered': 'Couvert',
-  'gps-tracked': 'Suivi GPS',
-  'temperature-controlled': 'Température contrôlée'
-};
-
 const VendorFleetCard = ({ vehicle, helpers, onAction }) => {
+  const { t } = useTranslation('public');
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
       {helpers.getItemImage(vehicle) ? (
@@ -43,11 +36,11 @@ const VendorFleetCard = ({ vehicle, helpers, onAction }) => {
             )}
           </div>
           <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-            vehicle.isAvailable 
-              ? 'bg-green-100 text-green-800' 
+            vehicle.isAvailable
+              ? 'bg-green-100 text-green-800'
               : 'bg-red-100 text-red-800'
           }`}>
-            {vehicle.isAvailable ? 'Disponible' : 'Indisponible'}
+            {vehicle.isAvailable ? t('vendorProfile.available') : t('vendorProfile.unavailable')}
           </div>
         </div>
 
@@ -57,11 +50,11 @@ const VendorFleetCard = ({ vehicle, helpers, onAction }) => {
 
         {vehicle.specialFeatures && vehicle.specialFeatures.length > 0 && (
           <div className="mb-4">
-            <p className="text-xs font-medium text-gray-500 mb-2">Caractéristiques:</p>
+            <p className="text-xs font-medium text-gray-500 mb-2">{t('vendorProfile.features')}</p>
             <div className="flex flex-wrap gap-2">
               {vehicle.specialFeatures.map((feature, idx) => (
                 <span key={idx} className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs">
-                  {FEATURE_LABELS[feature] || feature}
+                  {t(`vendorProfile.featureLabels.${feature}`, feature)}
                 </span>
               ))}
             </div>

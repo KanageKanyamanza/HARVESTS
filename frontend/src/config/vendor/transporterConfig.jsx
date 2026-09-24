@@ -18,47 +18,26 @@ import {
 	VendorEmptyState,
 } from "../../components/common/vendor";
 import CertificationsSection from "../../components/profile/specific/CertificationsSection";
+import i18n from "../../utils/i18n";
 
-const TRANSPORT_TYPES = {
-	road: "Transport routier",
-	rail: "Transport ferroviaire",
-	air: "Transport aérien",
-	sea: "Transport maritime",
-	multimodal: "Transport multimodal",
-};
+const t = (key, opts) =>
+	i18n.t(`vendorProfile.${key}`, {
+		ns: "public",
+		...(typeof opts === "string" ? { defaultValue: opts } : opts),
+	});
 
-const SERVICE_LABELS = {
-	"local-delivery": "Livraison locale",
-	"regional-transport": "Transport régional",
-	"national-transport": "Transport national",
-	"international-shipping": "Transport international",
-	"cold-chain": "Chaîne du froid",
-	"express-delivery": "Livraison express",
-};
-
-const VEHICLE_TYPES = {
-	motorcycle: "Moto",
-	van: "Camionnette",
-	truck: "Camion",
-	"refrigerated-truck": "Camion frigorifique",
-	trailer: "Remorque",
-	"container-truck": "Camion conteneur",
-};
-
-const CONDITION_LABELS = {
-	excellent: "Excellent",
-	good: "Bon",
-	fair: "Moyen",
-	"needs-maintenance": "Entretien requis",
-};
+const getTransportTypeLabel = (type) => t(`transporter.transportTypes.${type}`, type);
+const getServiceLabel = (type) => t(`transporter.serviceLabels.${type}`, type);
+const getVehicleTypeLabel = (type) => t(`transporter.vehicleTypes.${type}`, type);
+const getConditionLabel = (cond) => t(`transporter.conditionLabels.${cond}`, cond);
 
 export const transporterConfig = {
 	vendorType: "transporter",
-	getVendorName: (t) => t.companyName || `${t.firstName} ${t.lastName}`,
-	getVendorSubtitle: (t) =>
-		(t.transportType || [])
-			.map((type) => TRANSPORT_TYPES[type] || type)
-			.join(", ") || "Transporteur",
+	getVendorName: (transporter) => transporter.companyName || `${transporter.firstName} ${transporter.lastName}`,
+	getVendorSubtitle: (transporter) =>
+		(transporter.transportType || [])
+			.map((type) => getTransportTypeLabel(type))
+			.join(", ") || t("transporter.genericLabel"),
 
 	getVendorStats: (transporter, _items, reviews = []) => {
 		const averageRating = getVendorAverageRating(transporter, reviews);
@@ -66,39 +45,39 @@ export const transporterConfig = {
 			{
 				icon: <FiStar className="w-5 h-5 text-yellow-500" />,
 				value: formatAverageRating(averageRating),
-				label: "Note moyenne",
+				label: t("statLabels.averageRating"),
 			},
 			{
 				icon: <FiTruck className="w-5 h-5 text-blue-500" />,
 				value: transporter.fleet?.length || 0,
-				label: "Véhicules",
+				label: t("transporter.vehiclesLabel"),
 			},
 			{
 				icon: <FiCheckCircle className="w-5 h-5 text-green-500" />,
 				value: `${transporter.performanceStats?.onTimeDeliveryRate || 0}%`,
-				label: "Ponctualité",
+				label: t("transporter.punctualityLabel"),
 			},
 			{
 				icon: <FiPackage className="w-5 h-5 text-purple-500" />,
 				value: transporter.performanceStats?.totalDeliveries || 0,
-				label: "Livraisons",
+				label: t("transporter.deliveriesLabel"),
 			},
 		];
 	},
 
 	getVendorContact: getBaseContact,
-	getVendorTags: (t) => {
+	getVendorTags: (transporter) => {
 		const tags = [];
-		if (t.serviceTypes?.length > 0) {
+		if (transporter.serviceTypes?.length > 0) {
 			tags.push({
-				label: "Services",
-				items: t.serviceTypes.map((type) => SERVICE_LABELS[type] || type),
+				label: t("tabs.services"),
+				items: transporter.serviceTypes.map((type) => getServiceLabel(type)),
 			});
 		}
-		if (t.serviceAreas?.length > 0) {
+		if (transporter.serviceAreas?.length > 0) {
 			tags.push({
-				label: "Zones de couverture",
-				items: [...new Set(t.serviceAreas.map((a) => a.region))],
+				label: t("transporter.coverageZonesLabel"),
+				items: [...new Set(transporter.serviceAreas.map((a) => a.region))],
 			});
 		}
 		return tags;
@@ -106,7 +85,7 @@ export const transporterConfig = {
 
 	formatPrice: formatPriceOrQuote,
 	getItemName: (v) =>
-		VEHICLE_TYPES[v.vehicleType] || v.vehicleType || "Véhicule",
+		getVehicleTypeLabel(v.vehicleType) || t("genericVehicle"),
 	getItemDescription: (v) => {
 		const capacity = [];
 		if (v.capacity?.weight)
@@ -114,8 +93,8 @@ export const transporterConfig = {
 		if (v.capacity?.volume)
 			capacity.push(`${v.capacity.volume.value} ${v.capacity.volume.unit}`);
 		return capacity.length > 0
-			? `Capacité: ${capacity.join(", ")}`
-			: "Véhicule de transport";
+			? t("transporter.capacityLabel", { capacity: capacity.join(", ") })
+			: t("transporter.genericVehicleDescription");
 	},
 	getItemPrice: () => null,
 	getItemImage: (v) =>
@@ -123,28 +102,25 @@ export const transporterConfig = {
 		v.image?.secure_url ||
 		(typeof v.image === "string" ? v.image : null),
 	getItemExtraInfo: (v) =>
-		`${v.isAvailable ? "Disponible" : "Indisponible"} - ${
-			CONDITION_LABELS[v.condition] || v.condition
-		}`,
-	getItemButtonText: "Réserver",
+		`${v.isAvailable ? t("available") : t("unavailable")} - ${getConditionLabel(v.condition)}`,
+	get getItemButtonText() { return t("transporter.itemButton"); },
 	getItemButtonIcon: <FiTruck className="w-4 h-4 mr-2" />,
 	getItemButtonColor: "bg-blue-600 hover:bg-blue-700",
 	getEmptyStateIcon: (
 		<FiTruck className="w-12 h-12 text-gray-400 mx-auto mb-4" />
 	),
-	getEmptyStateTitle: "Aucun véhicule disponible",
-	getEmptyStateDescription:
-		"Ce transporteur n'a pas encore de véhicules enregistrés.",
+	get getEmptyStateTitle() { return t("transporter.emptyFleetTitle"); },
+	get getEmptyStateDescription() { return t("transporter.emptyFleetDescription"); },
 
 	tabs: ["fleet", "services", "about", "certifications", "reviews", "hours"],
 	getTabLabel: (tab) =>
 		({
-			fleet: "Flotte",
-			services: "Logistique",
-			about: "À propos",
-			certifications: "Certifications",
-			reviews: "Avis",
-			hours: "Horaires",
+			fleet: t("tabs.fleet"),
+			services: t("tabs.services"),
+			about: t("tabs.about"),
+			certifications: t("tabs.certifications"),
+			reviews: t("tabs.reviews"),
+			hours: t("tabs.hours"),
 		}[tab] || tab),
 	getTabCount: (tab, items, reviews, vendor) => {
 		if (tab === "fleet") return items?.length || 0;
@@ -177,7 +153,7 @@ export const transporterConfig = {
 							key={vehicle._id || vehicle.registrationNumber || idx}
 							vehicle={vehicle}
 							helpers={helpers}
-							onAction={() => alert("Fonctionnalité de réservation à venir")}
+							onAction={() => alert(t("reservationComingSoon"))}
 						/>
 					))}
 				</div>
@@ -191,7 +167,7 @@ export const transporterConfig = {
 						<div className="bg-white border border-gray-200 rounded-lg p-6">
 							<h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
 								<FiMapPin className="w-5 h-5 mr-2 text-blue-500" />
-								Zones de couverture
+								{t("transporter.coverageZonesLabel")}
 							</h3>
 							<div className="space-y-3">
 								{vendor.serviceAreas.map((area, idx) => (
@@ -202,12 +178,12 @@ export const transporterConfig = {
 										<p className="font-medium text-gray-900">{area.region}</p>
 										{area.cities?.length > 0 && (
 											<p className="text-sm text-gray-600 mt-1">
-												Villes: {area.cities.join(", ")}
+												{t("transporter.citiesLabel", { cities: area.cities.join(", ") })}
 											</p>
 										)}
 										{area.deliveryRadius && (
 											<p className="text-sm text-gray-500 mt-1">
-												Rayon: {area.deliveryRadius} km
+												{t("transporter.radiusLabel", { radius: area.deliveryRadius })}
 											</p>
 										)}
 									</div>
@@ -218,13 +194,13 @@ export const transporterConfig = {
 					{vendor.specialCapabilities && (
 						<div className="bg-white border border-gray-200 rounded-lg p-6">
 							<h3 className="text-lg font-semibold text-gray-900 mb-4">
-								Capacités spéciales
+								{t("transporter.servicesTitle")}
 							</h3>
 							<div className="space-y-2">
 								{vendor.specialCapabilities.coldChain?.available && (
 									<div className="flex items-center text-sm">
 										<FiCheckCircle className="w-4 h-4 text-green-500 mr-2" />
-										<span>Chaîne du froid</span>
+										<span>{t("transporter.coldChain")}</span>
 										{vendor.specialCapabilities.coldChain.temperatureRange && (
 											<span className="text-gray-500 ml-2">
 												(
@@ -245,13 +221,13 @@ export const transporterConfig = {
 								{vendor.specialCapabilities.oversizedCargo && (
 									<div className="flex items-center text-sm">
 										<FiCheckCircle className="w-4 h-4 text-green-500 mr-2" />
-										<span>Fret volumineux</span>
+										<span>{t("transporter.oversizedCargo")}</span>
 									</div>
 								)}
 								{vendor.specialCapabilities.crossBorder && (
 									<div className="flex items-center text-sm">
 										<FiCheckCircle className="w-4 h-4 text-green-500 mr-2" />
-										<span>Transport transfrontalier</span>
+										<span>{t("transporter.crossBorder")}</span>
 									</div>
 								)}
 							</div>
@@ -267,17 +243,17 @@ export const transporterConfig = {
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 						<div className="bg-gray-50 p-4 rounded-xl">
 							<p className="text-sm text-gray-500 uppercase tracking-wider mb-1">
-								Modèle tarifaire
+								{t("transporter.pricingModelLabel")}
 							</p>
 							<p className="font-bold text-gray-900 capitalize">
-								{vendor.pricingModel || "À la demande"}
+								{vendor.pricingModel || t("transporter.onDemand")}
 							</p>
 						</div>
 					</div>
 
 					<div>
 						<h3 className="text-md font-bold text-gray-900 mb-3 uppercase tracking-wide">
-							Types de transport
+							{t("transporter.transportTypesTitle")}
 						</h3>
 						<div className="flex flex-wrap gap-2">
 							{(vendor.transportType || []).map((type, i) => (
@@ -285,7 +261,7 @@ export const transporterConfig = {
 									key={i}
 									className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-100"
 								>
-									{TRANSPORT_TYPES[type] || type}
+									{getTransportTypeLabel(type)}
 								</span>
 							))}
 						</div>

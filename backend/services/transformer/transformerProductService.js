@@ -77,14 +77,14 @@ async function createProduct(transformerId, productData) {
 		throw new Error("Tous les champs obligatoires doivent être remplis");
 	}
 
-	const normalizedName = toPlainText(name, name);
-	const normalizedDescription = toPlainText(description, description);
-	const normalizedShortDescription =
-		shortDescription !== undefined && shortDescription !== null ?
-			toPlainText(shortDescription, shortDescription)
-		:	"";
+	// Jour 45 (bascule bilingue) : on ne fige plus name/description/
+	// shortDescription en chaîne ici — la forme brute (chaîne legacy ou
+	// {fr, en}) est transmise telle quelle, productMiddleware.js (pre('save'))
+	// la normalise et complète `en` par traduction automatique si absent.
+	const plainNameForValidation = toPlainText(name, "");
+	const plainDescriptionForValidation = toPlainText(description, "");
 
-	if (!normalizedName || !normalizedDescription) {
+	if (!plainNameForValidation || !plainDescriptionForValidation) {
 		throw new Error("Le nom et la description doivent être fournis");
 	}
 
@@ -93,9 +93,9 @@ async function createProduct(transformerId, productData) {
 
 	// Préparer les données du produit
 	const productDataToCreate = {
-		name: normalizedName,
-		description: normalizedDescription,
-		shortDescription: normalizedShortDescription || undefined,
+		name,
+		description,
+		shortDescription: shortDescription || undefined,
 		category,
 		subcategory: finalSubcategory,
 		tags: tags || [],

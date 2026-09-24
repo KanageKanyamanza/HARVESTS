@@ -22,20 +22,21 @@ async function createProduct(producerId, productData) {
     throw new Error('Tous les champs obligatoires doivent être remplis');
   }
 
-  const normalizedName = toPlainText(name, name);
-  const normalizedDescription = toPlainText(description, description);
-  const normalizedShortDescription = shortDescription !== undefined && shortDescription !== null
-    ? toPlainText(shortDescription, shortDescription)
-    : '';
+  // Jour 45 (bascule bilingue) : on ne fige plus name/description/
+  // shortDescription en chaîne ici — la forme brute (chaîne legacy ou
+  // {fr, en}) est transmise telle quelle, productMiddleware.js (pre('save'))
+  // la normalise et complète `en` par traduction automatique si absent.
+  const plainNameForValidation = toPlainText(name, '');
+  const plainDescriptionForValidation = toPlainText(description, '');
 
-  if (!normalizedName || !normalizedDescription) {
+  if (!plainNameForValidation || !plainDescriptionForValidation) {
     throw new Error('Le nom et la description doivent être fournis');
   }
 
   const productDataToCreate = {
-    name: normalizedName,
-    description: normalizedDescription,
-    shortDescription: normalizedShortDescription || undefined,
+    name,
+    description,
+    shortDescription: shortDescription || undefined,
     category,
     subcategory: subcategory || category || undefined,
     tags: tags || [],
@@ -84,18 +85,9 @@ async function updateProduct(productId, producerId, updateData) {
     throw new Error('Produit non trouvé');
   }
 
-  if (updateData.name) {
-    updateData.name = toPlainText(updateData.name, product.name);
-  }
-  
-  if (updateData.description) {
-    updateData.description = toPlainText(updateData.description, product.description);
-  }
-  
-  if (updateData.shortDescription) {
-    updateData.shortDescription = toPlainText(updateData.shortDescription, product.shortDescription);
-  }
-
+  // Jour 45 (bascule bilingue) : name/description/shortDescription passent
+  // tels quels à product.save() ci-dessous ; productMiddleware.js s'occupe
+  // de la normalisation et de la traduction automatique.
   Object.assign(product, updateData);
   await product.save();
   

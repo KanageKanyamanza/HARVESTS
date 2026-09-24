@@ -20,6 +20,7 @@ import {
 import { convertPrice } from "../../utils/currencyUtils";
 import { useCurrency } from "../../contexts/CurrencyContext";
 import { normalizeUnit } from "../../utils/productUtils";
+import { toPlainText } from "../../utils/textHelpers";
 
 const ProductCard = ({ product, viewMode = "grid" }) => {
 	const { t } = useTranslation("public");
@@ -33,7 +34,7 @@ const ProductCard = ({ product, viewMode = "grid" }) => {
 		totalReviews: initialCount,
 	});
 
-	const productName = product.name?.fr || product.name?.en || product.name;
+	const productName = toPlainText(product.name, "");
 	const primaryImage =
 		product.images?.find((img) => img.isPrimary) || product.images?.[0];
 

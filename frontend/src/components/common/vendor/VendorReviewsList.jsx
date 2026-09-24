@@ -1,13 +1,15 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { FiStar } from 'react-icons/fi';
 
 const VendorReviewsList = ({ reviews }) => {
+  const { t, i18n } = useTranslation('public');
   if (!reviews || reviews.length === 0) {
     return (
       <div className="text-center py-12">
         <FiStar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun avis</h3>
-        <p className="text-gray-500">Ce partenaire n'a pas encore reçu d'avis.</p>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t('vendorProfile.noReviewsTitle')}</h3>
+        <p className="text-gray-500">{t('vendorProfile.noReviewsDescription')}</p>
       </div>
     );
   }
@@ -42,7 +44,7 @@ const VendorReviewsList = ({ reviews }) => {
               </div>
               <p className="text-sm text-gray-600 mb-2">{review.comment}</p>
               <div className="text-xs text-gray-500">
-                {new Date(review.createdAt).toLocaleDateString('fr-FR')}
+                {new Date(review.createdAt).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'fr-FR')}
               </div>
             </div>
           </div>

@@ -2,6 +2,7 @@ import React from "react";
 import { FiPhone, FiMail, FiMapPin } from "react-icons/fi";
 
 import { DEFAULT_CURRENCY } from "../currencies";
+import i18n from "../../utils/i18n";
 
 export const formatPrice = (price, currency = DEFAULT_CURRENCY) => {
 	try {
@@ -20,7 +21,7 @@ export const formatPrice = (price, currency = DEFAULT_CURRENCY) => {
 };
 
 export const formatPriceOrQuote = (price) =>
-	price ? formatPrice(price) : "Sur devis";
+	price ? formatPrice(price) : i18n.t("vendorProfile.priceOnRequest", { ns: "public" });
 
 export const getBaseContact = (vendor) => {
 	const contact = [];

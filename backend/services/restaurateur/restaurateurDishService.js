@@ -55,22 +55,27 @@ async function addDish(restaurateurId, dishData) {
 		throw new Error("Le nom et le prix sont requis");
 	}
 
-	const normalizedName = toPlainText(name, name);
+	// Jour 45 (bascule bilingue) : on ne fige plus name/description en chaîne
+	// ici — la forme brute (chaîne legacy ou {fr, en}) est transmise telle
+	// quelle à Product.create(), et productMiddleware.js (pre('save')) la
+	// normalise et complète `en` par traduction automatique si absent.
+	const plainNameForDerivedFields = toPlainText(name, "");
 	const normalizedDescriptionRaw =
 		description !== undefined && description !== null ?
 			toPlainText(description, "")
 		:	"";
 	const baseDescription =
-		normalizedDescriptionRaw || "Plat proposé par le restaurateur";
+		(normalizedDescriptionRaw ? description : null) ||
+		"Plat proposé par le restaurateur";
 	const shortDescriptionText =
-		(normalizedDescriptionRaw || normalizedName || "").slice(0, 160) ||
+		(normalizedDescriptionRaw || plainNameForDerivedFields || "").slice(0, 160) ||
 		"Plat proposé par le restaurateur";
 
 	const images = [];
 	if (image) {
 		images.push({
 			url: image,
-			alt: normalizedName || "Plat",
+			alt: plainNameForDerivedFields || "Plat",
 			isPrimary: true,
 			order: 0,
 		});
@@ -82,7 +87,7 @@ async function addDish(restaurateurId, dishData) {
 		:	10;
 
 	const productData = {
-		name: normalizedName,
+		name,
 		description: baseDescription,
 		shortDescription: shortDescriptionText,
 		price: parseFloat(price),
@@ -158,27 +163,16 @@ async function updateDish(dishId, restaurateurId, updateData) {
 		requiresReview = true;
 	}
 
-	if (Object.prototype.hasOwnProperty.call(updateData, "name")) {
-		updateData.name = toPlainText(updateData.name, product.name);
-	}
-
-	if (Object.prototype.hasOwnProperty.call(updateData, "description")) {
-		const normalizedDescription = toPlainText(
-			updateData.description,
-			product.description,
-		);
-		updateData.description = normalizedDescription;
-		const derivedShort = (normalizedDescription || "").slice(0, 160);
-		if (!Object.prototype.hasOwnProperty.call(updateData, "shortDescription")) {
-			updateData.shortDescription = derivedShort || product.shortDescription;
-		}
-	}
-
-	if (Object.prototype.hasOwnProperty.call(updateData, "shortDescription")) {
-		updateData.shortDescription = toPlainText(
-			updateData.shortDescription,
-			product.shortDescription,
-		);
+	// Jour 45 (bascule bilingue) : name/description ne sont plus figés en
+	// chaîne ici — la forme brute (chaîne ou {fr, en}) passe telle quelle à
+	// product.save() plus bas, productMiddleware.js s'occupe de la normaliser
+	// et de compléter `en` par traduction automatique si absent.
+	if (
+		Object.prototype.hasOwnProperty.call(updateData, "description") &&
+		!Object.prototype.hasOwnProperty.call(updateData, "shortDescription")
+	) {
+		const derivedShort = toPlainText(updateData.description, "").slice(0, 160);
+		updateData.shortDescription = derivedShort || product.shortDescription;
 	}
 
 	if (updateData.image) {
@@ -186,7 +180,8 @@ async function updateDish(dishId, restaurateurId, updateData) {
 			typeof updateData.image === "string" ?
 				updateData.image
 			:	updateData.image.url;
-		const altText = toPlainText(updateData.name, product.name) || "Plat";
+		const altText =
+			toPlainText(updateData.name, toPlainText(product.name, "")) || "Plat";
 		updateData.images = [
 			{ url: imageUrl, alt: altText, isPrimary: true, order: 0 },
 		];

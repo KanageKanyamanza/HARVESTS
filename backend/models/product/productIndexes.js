@@ -3,7 +3,19 @@
  */
 function addProductIndexes(productSchema) {
   // Index pour la recherche et performance
-  productSchema.index({ name: 'text', description: 'text', tags: 'text' });
+  // Jour 45 (bascule bilingue) : name/description sont devenus Mixed ({fr,en}
+  // ou chaîne legacy) — un index text sur `name`/`description` directement
+  // n'indexerait plus rien pour les documents migrés. On indexe les deux
+  // sous-champs (name.fr/name.en n'existent que sur les documents migrés ;
+  // les documents legacy restent indexés via searchUtils.js en attendant la
+  // migration, voir scripts/migrateProductTranslations.js).
+  productSchema.index({
+    'name.fr': 'text',
+    'name.en': 'text',
+    'description.fr': 'text',
+    'description.en': 'text',
+    tags: 'text',
+  });
   productSchema.index({ producer: 1, status: 1 });
   productSchema.index({ transformer: 1, status: 1 });
   productSchema.index({ restaurateur: 1, status: 1 });

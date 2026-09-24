@@ -372,7 +372,8 @@ exports.getAllVisits = catchAsync(async (req, res, next) => {
 	});
 });
 
-// Traduction automatique
+// Traduction automatique (Jour 45 - logique partagée avec utils/translateText.js,
+// réutilisée aussi par le middleware Product et les plats du restaurateur)
 exports.translateText = catchAsync(async (req, res, next) => {
 	const { text, fromLang, toLang } = req.body;
 
@@ -382,91 +383,16 @@ exports.translateText = catchAsync(async (req, res, next) => {
 		);
 	}
 
-	if (fromLang === toLang) {
-		return res.status(200).json({
-			success: true,
-			data: {
-				translatedText: text,
-			},
-		});
-	}
+	const { translateText: runTranslation } = require("../../utils/translateText");
+	const { translatedText, ok } = await runTranslation(text, fromLang, toLang);
 
-	try {
-		const axios = require("axios");
-		try {
-			const response = await axios.get(
-				`https://api.mymemory.translated.net/get`,
-				{
-					params: {
-						q: text,
-						langpair: `${fromLang}|${toLang}`,
-					},
-					timeout: 5000,
+	return res.status(200).json({
+		success: true,
+		data: ok
+			? { translatedText }
+			: {
+					translatedText,
+					warning: "Traduction non disponible, texte original retourné",
 				},
-			);
-
-			if (
-				response.data &&
-				response.data.responseData &&
-				response.data.responseData.translatedText
-			) {
-				return res.status(200).json({
-					success: true,
-					data: {
-						translatedText: response.data.responseData.translatedText,
-					},
-				});
-			}
-		} catch (mymemoryError) {
-			console.log("MyMemory failed, trying LibreTranslate...");
-		}
-
-		// Fallback vers LibreTranslate
-		try {
-			const response = await axios.post(
-				"https://libretranslate.de/translate",
-				{
-					q: text,
-					source: fromLang,
-					target: toLang,
-					format: "text",
-				},
-				{
-					headers: {
-						"Content-Type": "application/json",
-					},
-					timeout: 5000,
-				},
-			);
-
-			if (response.data && response.data.translatedText) {
-				return res.status(200).json({
-					success: true,
-					data: {
-						translatedText: response.data.translatedText,
-					},
-				});
-			}
-		} catch (libreError) {
-			console.error("LibreTranslate failed:", libreError.message);
-		}
-
-		// Si les deux services échouent, retourner le texte original
-		return res.status(200).json({
-			success: true,
-			data: {
-				translatedText: text,
-				warning: "Traduction non disponible, texte original retourné",
-			},
-		});
-	} catch (error) {
-		console.error("Erreur lors de la traduction:", error);
-		return res.status(200).json({
-			success: true,
-			data: {
-				translatedText: text,
-				warning: "Erreur de traduction, texte original retourné",
-			},
-		});
-	}
+	});
 });

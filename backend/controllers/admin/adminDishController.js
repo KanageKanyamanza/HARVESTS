@@ -164,23 +164,28 @@ exports.updateDish = catchAsync(async (req, res, next) => {
     return next(new AppError('Plat non trouvé', 404));
   }
   
+  // Jour 45 (bascule bilingue) : name/description/shortDescription passent
+  // tels quels à product.save() ; productMiddleware.js normalise et
+  // traduit automatiquement plutôt que de figer en chaîne ici.
   const allowedFields = ['name', 'description', 'shortDescription', 'price', 'images', 'dishInfo', 'isActive'];
   Object.keys(updates).forEach(key => {
     if (allowedFields.includes(key) && key !== '_id' && key !== 'restaurateur') {
-      if (['name', 'description', 'shortDescription'].includes(key)) {
-        product[key] = toPlainText(updates[key], product[key]);
-      } else {
-        product[key] = updates[key];
-      }
+      product[key] = updates[key];
     }
   });
   
   await product.save();
-  
+
   res.status(200).json({
     status: 'success',
     message: 'Plat mis à jour avec succès',
-    data: { dish: product }
+    data: {
+      dish: {
+        ...product.toObject(),
+        name: toPlainText(product.name, ''),
+        description: toPlainText(product.description, '')
+      }
+    }
   });
 });
 

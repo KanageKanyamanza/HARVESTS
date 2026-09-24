@@ -79,12 +79,16 @@ function buildFlexibleSearchQuery(searchTerm, fields = ['name', 'description', '
   // Construire les conditions $or pour chaque champ
   const orConditions = [];
   
+  // Jour 45 (bascule bilingue) : name/description/shortDescription peuvent
+  // être soit une chaîne (documents historiques), soit un objet { fr, en } —
+  // on interroge les trois formes pour ne rien perdre pendant la transition.
+  const BILINGUAL_FIELDS = ['name', 'description', 'shortDescription'];
+
   fields.forEach(field => {
-    // Pour le champ 'name', utiliser buildNameSearchQuery qui gère les objets {fr, en}
-    if (field === 'name') {
-      const nameQuery = buildNameSearchQuery(searchTerm);
-      if (nameQuery.$or && nameQuery.$or.length > 0) {
-        orConditions.push(...nameQuery.$or);
+    if (BILINGUAL_FIELDS.includes(field)) {
+      const fieldQuery = buildBilingualFieldQuery(field, searchTerm);
+      if (fieldQuery.$or && fieldQuery.$or.length > 0) {
+        orConditions.push(...fieldQuery.$or);
       }
     } else {
       // Pour les autres champs, créer une condition regex normale
@@ -107,36 +111,36 @@ function buildFlexibleSearchQuery(searchTerm, fields = ['name', 'description', '
 }
 
 /**
- * Crée une requête de recherche pour les noms qui peuvent être des strings ou des objets {fr, en}
+ * Crée une requête de recherche pour un champ qui peut être soit une chaîne
+ * (documents historiques), soit un objet { fr, en } (Jour 45). Cherche dans
+ * les trois formes possibles pour ne rien perdre pendant la transition.
  */
-function buildNameSearchQuery(searchTerm) {
+function buildBilingualFieldQuery(field, searchTerm) {
   if (!searchTerm || !searchTerm.trim()) {
     return {};
   }
-  
+
   const variants = generateSearchVariants(searchTerm);
   const searchRegexes = variants.map(v => new RegExp(v, 'i'));
-  
+
   const orConditions = [];
-  
-  // Recherche dans name (string)
+
   searchRegexes.forEach(regex => {
-    orConditions.push({ name: regex });
+    orConditions.push({ [field]: regex });
+    orConditions.push({ [`${field}.fr`]: regex });
+    orConditions.push({ [`${field}.en`]: regex });
   });
-  
-  // Recherche dans name.fr (si c'est un objet)
-  searchRegexes.forEach(regex => {
-    orConditions.push({ 'name.fr': regex });
-  });
-  
-  // Recherche dans name.en (si c'est un objet)
-  searchRegexes.forEach(regex => {
-    orConditions.push({ 'name.en': regex });
-  });
-  
+
   return {
     $or: orConditions
   };
+}
+
+/**
+ * Alias historique conservé pour compatibilité (utilisait `name` seul).
+ */
+function buildNameSearchQuery(searchTerm) {
+  return buildBilingualFieldQuery('name', searchTerm);
 }
 
 /**
@@ -304,6 +308,7 @@ module.exports = {
   generateSearchVariants,
   buildFlexibleSearchQuery,
   buildNameSearchQuery,
+  buildBilingualFieldQuery,
   extractLocationFromSearch,
   buildSearchWithLocation,
   KNOWN_LOCATIONS

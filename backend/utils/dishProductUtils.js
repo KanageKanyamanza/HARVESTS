@@ -4,14 +4,21 @@ const { toPlainText } = require('./localization');
 const DEFAULT_CATEGORY = 'processed-foods';
 
 const buildDishProductPayload = (restaurateur, dish) => {
-  const nameValue = toPlainText(dish.name, dish.slug || 'Plat');
+  // Jour 45 (bascule bilingue) : on ne fige plus name/description en chaîne
+  // via toPlainText ici — on transmet la forme bilingue du plat telle quelle
+  // (chaîne legacy ou {fr, en}) et c'est productMiddleware.js (déclenché par
+  // le findOneAndUpdate plus bas) qui la normalise et complète `en` si besoin.
+  // On garde toPlainText seulement pour des usages ponctuels non persistés
+  // (alt d'image, valeur de repli du nom).
+  const nameValueRaw = toPlainText(dish.name, '');
+  const nameValue = (nameValueRaw ? dish.name : null) || dish.slug || 'Plat';
   const descriptionValueRaw = toPlainText(dish.description, '');
-  const descriptionValue = descriptionValueRaw || 'Plat proposé par le restaurateur';
-  const shortDescription = (descriptionValueRaw || nameValue || '').slice(0, 160) || 'Plat proposé par le restaurateur';
+  const descriptionValue = (descriptionValueRaw ? dish.description : null) || 'Plat proposé par le restaurateur';
+  const shortDescription = (descriptionValueRaw || toPlainText(nameValue, '') || '').slice(0, 160) || 'Plat proposé par le restaurateur';
 
   const images = [];
   if (dish.image) {
-    images.push({ url: dish.image, alt: nameValue, isPrimary: true, order: 0 });
+    images.push({ url: dish.image, alt: toPlainText(nameValue, 'Plat'), isPrimary: true, order: 0 });
   }
 
   return {

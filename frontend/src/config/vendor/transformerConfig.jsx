@@ -7,6 +7,9 @@ import {
 } from "../../utils/vendorRatings";
 import { toPlainText } from "../../utils/textHelpers";
 import { formatPrice, getBaseContact } from "./baseConfig.jsx";
+import i18n from "../../utils/i18n";
+
+const t = (key, opts) => i18n.t(`vendorProfile.${key}`, { ns: "public", ...opts });
 import {
 	VendorProductCard,
 	VendorReviewsList,
@@ -17,9 +20,9 @@ import CertificationsSection from "../../components/profile/specific/Certificati
 
 export const transformerConfig = {
 	vendorType: "transformer",
-	getVendorName: (t) => t.companyName || `${t.firstName} ${t.lastName}`,
-	getVendorSubtitle: (t) =>
-		t.companyName ? `${t.firstName} ${t.lastName}` : "Transformateur",
+	getVendorName: (transformer) => transformer.companyName || `${transformer.firstName} ${transformer.lastName}`,
+	getVendorSubtitle: (transformer) =>
+		transformer.companyName ? `${transformer.firstName} ${transformer.lastName}` : t("roleLabels.transformer"),
 
 	getVendorStats: (transformer, products, reviews = []) => {
 		const averageRating = getVendorAverageRating(transformer, reviews);
@@ -28,54 +31,53 @@ export const transformerConfig = {
 			{
 				icon: <FiStar className="w-5 h-5 text-yellow-500" />,
 				value: formatAverageRating(averageRating),
-				label: "Note moyenne",
+				label: t("statLabels.averageRating"),
 			},
 			{
 				icon: <FiPackage className="w-5 h-5 text-green-500" />,
 				value: products?.length || 0,
-				label: "Produits",
+				label: t("transformer.productsLabel"),
 			},
 			{
 				icon: <FiUsers className="w-5 h-5 text-blue-500" />,
 				value: reviewCount,
-				label: "Avis",
+				label: t("tabs.reviews"),
 			},
 			{
 				icon: <FiUsers className="w-5 h-5 text-purple-500" />,
-				value: transformer.transformationType || "Standard",
-				label: "Type",
+				value: transformer.transformationType || t("transformer.genericLabel"),
+				label: t("transformer.typeLabel"),
 			},
 		];
 	},
 
 	getVendorContact: getBaseContact,
-	getVendorTags: (t) => [{ label: "Spécialités", items: t.specialties || [] }],
+	getVendorTags: (transformer) => [{ label: t("producer.specialtiesLabel"), items: transformer.specialties || [] }],
 
 	formatPrice,
-	getItemName: (product) => toPlainText(product.name, "Produit sans nom"),
+	getItemName: (product) => toPlainText(product.name, t("producer.genericItemName")),
 	getItemDescription: (product) =>
-		toPlainText(product.description, "Aucune description"),
+		toPlainText(product.description, t("producer.genericDescription")),
 	getItemPrice: (product) => product.price,
 	getItemImage: (product) => product.images?.[0]?.url,
-	getItemExtraInfo: (product) => `${product.inventory?.quantity || 0} en stock`,
-	getItemButtonText: "Ajouter au panier",
+	getItemExtraInfo: (product) => `${product.inventory?.quantity || 0} ${t("producer.inStockSuffix")}`,
+	get getItemButtonText() { return t("producer.itemButton"); },
 	getItemButtonIcon: <FiPackage className="w-4 h-4 mr-2" />,
 	getItemButtonColor: "bg-green-600 hover:bg-green-700",
 	getEmptyStateIcon: (
 		<FiPackage className="w-12 h-12 text-gray-400 mx-auto mb-4" />
 	),
-	getEmptyStateTitle: "Aucun produit disponible",
-	getEmptyStateDescription:
-		"Ce transformateur n'a pas encore de produits en vente.",
+	get getEmptyStateTitle() { return t("transformer.emptyProductsTitle"); },
+	get getEmptyStateDescription() { return t("transformer.emptyProductsDescription"); },
 
 	tabs: ["products", "about", "certifications", "reviews", "hours"],
 	getTabLabel: (tab) =>
 		({
-			products: "Produits",
-			about: "À propos",
-			certifications: "Certifications",
-			reviews: "Avis",
-			hours: "Horaires",
+			products: t("tabs.products"),
+			about: t("tabs.about"),
+			certifications: t("tabs.certifications"),
+			reviews: t("tabs.reviews"),
+			hours: t("tabs.hours"),
 		}[tab] || tab),
 	getTabCount: (tab, items, reviews, vendor) => {
 		if (tab === "products") return items?.length || 0;
@@ -115,18 +117,18 @@ export const transformerConfig = {
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 						<div className="bg-gray-50 p-4 rounded-xl">
 							<p className="text-sm text-gray-500 uppercase tracking-wider mb-1">
-								Type de transformation
+								{t("transformer.transformationTypeLabel")}
 							</p>
 							<p className="font-bold text-gray-900 capitalize">
-								{vendor.transformationType || "Non renseigné"}
+								{vendor.transformationType || t("transformer.notSpecified")}
 							</p>
 						</div>
 						<div className="bg-gray-50 p-4 rounded-xl">
 							<p className="text-sm text-gray-500 uppercase tracking-wider mb-1">
-								Services
+								{t("transformer.servicesLabel")}
 							</p>
 							<p className="font-bold text-gray-900 capitalize">
-								{vendor.servicesOffered || "Vente directe"}
+								{vendor.servicesOffered || t("transformer.directSale")}
 							</p>
 						</div>
 					</div>
@@ -135,7 +137,7 @@ export const transformerConfig = {
 						vendor.processingCapabilities.length > 0 && (
 							<div>
 								<h3 className="text-md font-bold text-gray-900 mb-3 uppercase tracking-wide text-green-700">
-									Capacités Techniques
+									{t("transformer.technicalCapabilitiesTitle")}
 								</h3>
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 									{vendor.processingCapabilities.map((cap, i) => (
