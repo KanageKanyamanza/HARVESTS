@@ -413,6 +413,27 @@ export const translateText = async (text, fromLang, toLang) => {
 	return response.data;
 };
 
+// Glossaire de traduction fr -> en (Jour 46)
+export const getGlossaryEntries = async (params = {}) => {
+	const response = await api.get("/admin/glossary", { params });
+	return response.data;
+};
+
+export const createGlossaryEntry = async (entryData) => {
+	const response = await api.post("/admin/glossary", entryData);
+	return response.data;
+};
+
+export const updateGlossaryEntry = async (id, entryData) => {
+	const response = await api.patch(`/admin/glossary/${id}`, entryData);
+	return response.data;
+};
+
+export const deleteGlossaryEntry = async (id) => {
+	const response = await api.delete(`/admin/glossary/${id}`);
+	return response.data;
+};
+
 // Export nommé pour adminService
 export const adminService = {
 	// Dashboard
@@ -516,6 +537,12 @@ export const adminService = {
 	getBlogVisits,
 	getAllBlogVisits,
 	translateText,
+
+	// Glossaire de traduction
+	getGlossaryEntries,
+	createGlossaryEntry,
+	updateGlossaryEntry,
+	deleteGlossaryEntry,
 
 	// Chatbot
 	getChatStats: async (params = {}) => {

@@ -25,6 +25,7 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	HelpCircle,
+	Languages,
 } from "lucide-react";
 import NotificationDropdown from "../notifications/NotificationDropdown";
 import CloudinaryImage from "../common/CloudinaryImage";
@@ -159,6 +160,12 @@ const AdminLayout = ({ children }) => {
 			href: "/admin/chatbot/faqs",
 			icon: HelpCircle,
 			current: location.pathname.startsWith("/admin/chatbot/faqs"),
+		},
+		{
+			name: "Glossaire de traduction",
+			href: "/admin/glossary",
+			icon: Languages,
+			current: location.pathname.startsWith("/admin/glossary"),
 		},
 		{
 			name: "Notifications",

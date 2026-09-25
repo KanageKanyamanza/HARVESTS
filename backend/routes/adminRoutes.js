@@ -12,6 +12,7 @@ const adminPaymentController = require("../controllers/admin/adminPaymentControl
 const adminAnalyticsController = require("../controllers/admin/adminAnalyticsController");
 const adminSettingsController = require("../controllers/admin/adminSettingsController");
 const adminAuditController = require("../controllers/admin/adminAuditController");
+const adminGlossaryController = require("../controllers/admin/adminGlossaryController");
 
 /**
  * @swagger
@@ -335,6 +336,15 @@ router.get("/settings", adminSettingsController.getSystemSettings);
 
 // Mettre à jour les paramètres système
 router.patch("/settings", adminSettingsController.updateSystemSettings);
+
+// ========================================
+// GLOSSAIRE DE TRADUCTION (fr -> en)
+// ========================================
+
+router.get("/glossary", adminGlossaryController.getGlossaryEntries);
+router.post("/glossary", adminGlossaryController.createGlossaryEntry);
+router.patch("/glossary/:id", adminGlossaryController.updateGlossaryEntry);
+router.delete("/glossary/:id", adminGlossaryController.deleteGlossaryEntry);
 
 // ========================================
 // AUDIT LOGS

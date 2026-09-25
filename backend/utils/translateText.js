@@ -1,5 +1,5 @@
 const axios = require("axios");
-const glossary = require("../data/translationGlossary.json");
+const { loadGlossary } = require("./translationGlossary");
 
 // Jour 45 (bascule bilingue) - glossaire fr->en pour corriger le vocabulaire
 // agricole/culinaire local que MyMemory/LibreTranslate traduisent mal ou pas
@@ -7,21 +7,17 @@ const glossary = require("../data/translationGlossary.json");
 // "toe"). Deux passes : correspondance exacte (court-circuite l'appel MT pour
 // les termes courts comme les noms de produits) et remplacements de mots
 // appliqués sur le résultat de la MT (pour les fragments dans un texte plus
-// long, ex. une description). Voir backend/data/translationGlossary.json.
-const compiledReplacements = (glossary.wordReplacements || []).map((rule) => ({
-	regex: new RegExp(rule.match, rule.flags || "gi"),
-	replace: rule.replace,
-}));
+// long, ex. une description). Jour 46 : entrées lues en base (collection
+// TranslationGlossary, éditable dans le back-office), cf utils/translationGlossary.js.
+const EMPTY_GLOSSARY = { exactTerms: new Map(), replacements: [] };
 
-function lookupExactTerm(text) {
-	const normalized = text.trim().toLowerCase();
-	const entry = glossary.exactTerms?.[normalized];
-	return entry || null;
+function lookupExactTerm(glossary, text) {
+	return glossary.exactTerms.get(text.trim().toLowerCase()) || null;
 }
 
-function applyWordReplacements(text) {
+function applyWordReplacements(glossary, text) {
 	let result = text;
-	for (const { regex, replace } of compiledReplacements) {
+	for (const { regex, replace } of glossary.replacements) {
 		result = result.replace(regex, replace);
 	}
 	return result;
@@ -119,11 +115,16 @@ async function translateText(text, fromLang = "fr", toLang = "en") {
 		return { translatedText: text, ok: true };
 	}
 
-	if (fromLang === "fr" && toLang === "en") {
-		const exact = lookupExactTerm(text);
-		if (exact) {
-			return { translatedText: exact, ok: true, provider: "glossary" };
-		}
+	// Le glossaire est fr->en : ses remplacements (cibles en anglais) n'ont
+	// rien à faire sur une traduction dans l'autre sens.
+	const glossary =
+		fromLang === "fr" && toLang === "en"
+			? await loadGlossary().catch(() => EMPTY_GLOSSARY)
+			: EMPTY_GLOSSARY;
+
+	const exact = lookupExactTerm(glossary, text);
+	if (exact) {
+		return { translatedText: exact, ok: true, provider: "glossary" };
 	}
 
 	try {
@@ -135,7 +136,7 @@ async function translateText(text, fromLang = "fr", toLang = "en") {
 			translatedChunks.push(translated);
 		}
 		return {
-			translatedText: applyWordReplacements(translatedChunks.join(" ")),
+			translatedText: applyWordReplacements(glossary, translatedChunks.join(" ")),
 			ok: true,
 			provider: chunks.length > 1 ? "mymemory-chunked" : "mymemory",
 		};
@@ -147,7 +148,7 @@ async function translateText(text, fromLang = "fr", toLang = "en") {
 		const translated = await translateViaLibreTranslate(text, fromLang, toLang);
 		if (translated) {
 			return {
-				translatedText: applyWordReplacements(translated),
+				translatedText: applyWordReplacements(glossary, translated),
 				ok: true,
 				provider: "libretranslate",
 			};
