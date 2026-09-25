@@ -1,5 +1,5 @@
 {
-  "_comment": "Jour 45 (bascule bilingue) - glossaire fr->en consulté par utils/translateText.js avant/après l'appel aux services de traduction automatique (MyMemory/LibreTranslate), pour corriger le vocabulaire agricole/culinaire local qu'ils traduisent mal ou pas du tout. A enrichir au fil des cas repérés (cf. échange du 24/09 : 'Corète Potagère' -> 'Corchorus olitorius'/'corte', 'tô' -> 'toe').",
+  "_comment": "Jour 46 : ce fichier ne sert plus que de semence (scripts/seedTranslationGlossary.js) et de repli si la base est injoignable ; le glossaire actif vit dans la collection TranslationGlossary, éditable dans le back-office (/admin/glossary). Historique Jour 45 (bascule bilingue) - glossaire fr->en consulté par utils/translateText.js avant/après l'appel aux services de traduction automatique (MyMemory/LibreTranslate), pour corriger le vocabulaire agricole/culinaire local qu'ils traduisent mal ou pas du tout. A enrichir au fil des cas repérés (cf. échange du 24/09 : 'Corète Potagère' -> 'Corchorus olitorius'/'corte', 'tô' -> 'toe').",
 
   "exactTerms": {
     "corète potagère": "Jute Mallow",
