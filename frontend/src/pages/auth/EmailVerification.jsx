@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Mail, CheckCircle, AlertCircle, RefreshCw, ShieldCheck } from "lucide-react";
 import { authService } from "../../services";
 import SocialLinks from "../../components/common/SocialLinks";
@@ -7,6 +8,7 @@ import logo from "../../assets/logo.png";
 import authbg from "../../assets/images/authbg.webp";
 
 const EmailVerification = () => {
+	const { t } = useTranslation("auth");
 	const { token: tokenFromParams } = useParams();
 	const [searchParams] = useSearchParams();
 
@@ -15,7 +17,9 @@ const EmailVerification = () => {
 
 	const [verificationStatus, setVerificationStatus] = useState("loading"); // 'loading', 'success', 'error', 'already-verified'
 	const [isResending, setIsResending] = useState(false);
-	const [message, setMessage] = useState("");
+	// { key, params } du namespace auth (et non du texte) pour que le message
+	// affiché suive un changement de langue
+	const [message, setMessage] = useState(null);
 	const [email, setEmail] = useState("");
 	const [lastResendTime, setLastResendTime] = useState(0);
 	const [hasAttemptedVerification, setHasAttemptedVerification] =
@@ -30,25 +34,21 @@ const EmailVerification = () => {
 		// Si le backend a déjà vérifié l'email et redirigé
 		if (verified === "true") {
 			setVerificationStatus("success");
-			setMessage(
-				"Votre email a été vérifié avec succès ! Vous pouvez maintenant vous connecter."
-			);
+			setMessage({ key: "emailVerification.messages.verifiedCanLogin" });
 			return;
 		}
 
 		// Si le backend indique que l'email est déjà vérifié
 		if (status === "already-verified") {
 			setVerificationStatus("already-verified");
-			setMessage("Votre email est déjà vérifié ! Vous pouvez vous connecter.");
+			setMessage({ key: "emailVerification.messages.alreadyVerified" });
 			return;
 		}
 
 		// Si le backend indique une erreur
 		if (error === "invalid_token") {
 			setVerificationStatus("error");
-			setMessage(
-				"Token de vérification invalide ou expiré. Veuillez demander un nouveau lien de vérification."
-			);
+			setMessage({ key: "emailVerification.messages.invalidTokenRequestNew" });
 			return;
 		}
 
@@ -62,22 +62,22 @@ const EmailVerification = () => {
 
 	const verifyEmailToken = async (tokenToVerify) => {
 		setVerificationStatus("loading");
-		setMessage("Vérification en cours...");
+		setMessage({ key: "emailVerification.messages.verifying" });
 
 		try {
 			await authService.verifyEmail(tokenToVerify);
 			setVerificationStatus("success");
-			setMessage("Votre email a été vérifié avec succès !");
+			setMessage({ key: "emailVerification.messages.verified" });
 		} catch (error) {
 			console.error("Erreur de vérification:", error);
 			setVerificationStatus("error");
-			setMessage("Token de vérification invalide ou expiré.");
+			setMessage({ key: "emailVerification.messages.invalidToken" });
 		}
 	};
 
 	const handleResendVerification = async () => {
 		if (!email) {
-			setMessage("Veuillez entrer votre adresse email.");
+			setMessage({ key: "emailVerification.messages.enterEmail" });
 			return;
 		}
 
@@ -90,37 +90,34 @@ const EmailVerification = () => {
 			const remainingTime = Math.ceil(
 				(minInterval - timeSinceLastResend) / 1000
 			);
-			setMessage(
-				`⏳ Veuillez attendre ${remainingTime} seconde(s) avant de renvoyer l'email.`
-			);
+			setMessage({
+				key: "emailVerification.messages.waitBeforeResend",
+				params: { count: remainingTime },
+			});
 			return;
 		}
 
 		setIsResending(true);
-		setMessage(""); // Effacer les messages précédents
+		setMessage(null); // Effacer les messages précédents
 		setLastResendTime(now);
 
 		try {
 			const response = await authService.resendVerification(email);
 
 			if (response.data.status === "success") {
-				setMessage(
-					"✅ Un nouvel email de vérification a été envoyé ! Vérifiez votre boîte de réception."
-				);
+				setMessage({ key: "emailVerification.messages.resent" });
 			}
 		} catch (error) {
 			console.error("Erreur lors du renvoi:", error);
 
 			if (error.response?.status === 404) {
-				setMessage("❌ Aucun compte trouvé avec cette adresse email.");
+				setMessage({ key: "emailVerification.messages.noAccount" });
 			} else if (error.response?.status === 400) {
-				setMessage("❌ Cet email est déjà vérifié.");
+				setMessage({ key: "emailVerification.messages.alreadyVerifiedResend" });
 			} else if (error.response?.status === 429) {
-				setMessage(
-					"⏳ Trop de tentatives. Veuillez attendre quelques minutes avant de réessayer."
-				);
+				setMessage({ key: "emailVerification.messages.tooManyAttempts" });
 			} else {
-				setMessage("❌ Erreur lors de l'envoi de l'email. Veuillez réessayer.");
+				setMessage({ key: "emailVerification.messages.resendFailed" });
 			}
 		} finally {
 			setIsResending(false);
@@ -142,15 +139,15 @@ const EmailVerification = () => {
 	const getStatusTitle = () => {
 		switch (verificationStatus) {
 			case "success":
-				return "Email vérifié !";
+				return t("emailVerification.titles.success");
 			case "already-verified":
-				return "Email déjà vérifié";
+				return t("emailVerification.titles.alreadyVerified");
 			case "error":
-				return "Erreur de vérification";
+				return t("emailVerification.titles.error");
 			case "pending":
-				return "Vérification requise";
+				return t("emailVerification.titles.pending");
 			default:
-				return "Vérification en cours...";
+				return t("emailVerification.titles.loading");
 		}
 	};
 
@@ -169,12 +166,12 @@ const EmailVerification = () => {
 					<div className="relative z-10 text-center">
 						<img
 							src={logo}
-							alt="Harvests Logo"
+							alt={t("common.logoAlt")}
 							className="w-[400px] h-[190px] mx-auto mb-6 drop-shadow-lg"
 						/>
 						<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0D330A] shadow-md text-white text-xs font-bold uppercase tracking-wider mb-6">
 							<ShieldCheck className="w-4 h-4 text-[#31BC2E]" />
-							<span>Vérification du compte</span>
+							<span>{t("emailVerification.badge")}</span>
 						</div>
 
 						{/* Réseaux sociaux */}
@@ -195,7 +192,7 @@ const EmailVerification = () => {
 						<div className="lg:hidden text-center mb-8">
 							<img
 								src={logo}
-								alt="Harvests Logo"
+								alt={t("common.logoAlt")}
 								className="sm:w-[300px] sm:h-[140px] w-[200px] h-[90px] mx-auto mb-4"
 							/>
 						</div>
@@ -226,7 +223,7 @@ const EmailVerification = () => {
 											: "bg-blue-50 border border-blue-200 text-blue-700"
 									}`}
 								>
-									{message}
+									{t(message.key, message.params)}
 								</div>
 							)}
 
@@ -237,7 +234,7 @@ const EmailVerification = () => {
 									to="/login"
 									className="w-full bg-gradient-to-r from-[#1A5514] to-[#31BC2E] hover:shadow-lg shadow-emerald-900/20 text-white font-bold py-3 px-4 rounded-full transition-all flex items-center justify-center"
 								>
-									Se connecter
+									{t("emailVerification.login")}
 								</Link>
 							)}
 
@@ -253,7 +250,7 @@ const EmailVerification = () => {
 											type="email"
 											value={email}
 											onChange={(e) => setEmail(e.target.value)}
-											placeholder="Votre adresse email"
+											placeholder={t("emailVerification.emailPlaceholder")}
 											className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] outline-none transition-all text-sm"
 										/>
 									</div>
@@ -266,12 +263,12 @@ const EmailVerification = () => {
 										{isResending ? (
 											<>
 												<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-												<span>Envoi en cours...</span>
+												<span>{t("common.sending")}</span>
 											</>
 										) : (
 											<>
 												<RefreshCw className="h-4 w-4" />
-												Renvoyer l'email de vérification
+												{t("common.resendVerification")}
 											</>
 										)}
 									</button>
@@ -284,7 +281,7 @@ const EmailVerification = () => {
 									to="/login"
 									className="text-[#1A5514] hover:text-[#31BC2E] text-xs font-bold transition-colors"
 								>
-									Retour à la connexion
+									{t("common.backToLogin")}
 								</Link>
 							</div>
 						</div>

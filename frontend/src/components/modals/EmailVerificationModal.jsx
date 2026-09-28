@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useTranslation, Trans } from 'react-i18next';
 import { authService } from '../../services';
 import { FiMail, FiX, FiRefreshCw, FiCheck, FiAlertCircle } from 'react-icons/fi';
 
 const EmailVerificationModal = ({ isOpen, onClose, email, isRegistration = false }) => {
+  const { t } = useTranslation('auth');
   const [isResending, setIsResending] = useState(false);
   const [resendStatus, setResendStatus] = useState(null);
 
@@ -42,12 +44,13 @@ const EmailVerificationModal = ({ isOpen, onClose, email, isRegistration = false
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">
-                  {isRegistration ? 'Vérifiez votre email' : 'Email non vérifié'}
+                  {isRegistration ? t('verificationModal.titleRegistration') : t('verificationModal.titleUnverified')}
                 </h3>
               </div>
             </div>
             <button
               onClick={onClose}
+              aria-label={t('common.close')}
               className="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-harvests-green focus:ring-offset-2 rounded-md"
             >
               <FiX className="w-6 h-6" />
@@ -62,23 +65,27 @@ const EmailVerificationModal = ({ isOpen, onClose, email, isRegistration = false
                   <FiCheck className="h-8 w-8 text-green-600" />
                 </div>
                 <h4 className="text-lg font-medium text-gray-900 mb-2">
-                  Inscription réussie !
+                  {t('verificationModal.registrationSuccess')}
                 </h4>
                 <p className="text-gray-600 mb-4">
-                  Nous avons envoyé un email de vérification à :
+                  {t('verificationModal.sentTo')}
                 </p>
                 <p className="font-medium text-harvests-green mb-4">
                   {email}
                 </p>
                 <p className="text-sm text-gray-500 mb-6">
-                  Cliquez sur le lien dans l'email pour activer votre compte et commencer à utiliser Harvests.
+                  {t('verificationModal.clickLink')}
                 </p>
                 <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-left">
                   <h5 className="text-sm font-semibold text-blue-900 flex items-center gap-2 mb-1">
-                    📝 Renseignez vos informations de profil
+                    {t('verificationModal.completeProfileTitle')}
                   </h5>
                   <p className="text-xs text-blue-700 leading-relaxed">
-                    <strong>Une fois connecté</strong>, n'oubliez pas de compléter votre profil en ajoutant votre <strong>numéro de téléphone</strong>, <strong>ville et pays</strong> pour pouvoir passer des commandes ou vendre vos produits.
+                    <Trans
+                      i18nKey="verificationModal.completeProfileText"
+                      ns="auth"
+                      components={{ strong: <strong /> }}
+                    />
                   </p>
                 </div>
               </div>
@@ -88,16 +95,16 @@ const EmailVerificationModal = ({ isOpen, onClose, email, isRegistration = false
                   <FiAlertCircle className="h-8 w-8 text-yellow-600" />
                 </div>
                 <h4 className="text-lg font-medium text-gray-900 mb-2">
-                  Vérification requise
+                  {t('verificationModal.verificationRequired')}
                 </h4>
                 <p className="text-gray-600 mb-4">
-                  Votre email n'est pas encore vérifié. Vous devez vérifier votre email avant de pouvoir vous connecter.
+                  {t('verificationModal.notVerifiedYet')}
                 </p>
                 <p className="font-medium text-gray-900 mb-4">
                   {email}
                 </p>
                 <p className="text-sm text-gray-500 mb-6">
-                  Vérifiez votre boîte email et cliquez sur le lien de vérification.
+                  {t('verificationModal.checkInbox')}
                 </p>
               </div>
             )}
@@ -105,7 +112,7 @@ const EmailVerificationModal = ({ isOpen, onClose, email, isRegistration = false
             {/* Resend Email Section */}
             <div className="border-t border-gray-200 pt-4">
               <p className="text-sm text-gray-600 mb-3">
-                Vous n'avez pas reçu l'email ?
+                {t('verificationModal.notReceived')}
               </p>
               
               {resendStatus === 'success' && (
@@ -113,7 +120,7 @@ const EmailVerificationModal = ({ isOpen, onClose, email, isRegistration = false
                   <div className="flex items-center">
                     <FiCheck className="h-4 w-4 text-green-600 mr-2" />
                     <p className="text-sm text-green-700">
-                      Email de vérification renvoyé avec succès !
+                      {t('verificationModal.resent')}
                     </p>
                   </div>
                 </div>
@@ -124,7 +131,7 @@ const EmailVerificationModal = ({ isOpen, onClose, email, isRegistration = false
                   <div className="flex items-center">
                     <FiAlertCircle className="h-4 w-4 text-red-600 mr-2" />
                     <p className="text-sm text-red-700">
-                      Erreur lors du renvoi. Veuillez réessayer.
+                      {t('common.resendError')}
                     </p>
                   </div>
                 </div>
@@ -138,29 +145,16 @@ const EmailVerificationModal = ({ isOpen, onClose, email, isRegistration = false
                 {isResending ? (
                   <>
                     <FiRefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    Envoi en cours...
+                    {t('common.sending')}
                   </>
                 ) : (
                   <>
                     <FiMail className="w-4 h-4 mr-2" />
-                    Renvoyer l'email de vérification
+                    {t('common.resendVerification')}
                   </>
                 )}
               </button>
             </div>
-
-            {/* Instructions */}
-            {/* <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <h5 className="text-sm font-medium text-blue-900 mb-2">
-                Instructions :
-              </h5>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>• Vérifiez votre boîte de réception</li>
-                <li>• Regardez aussi dans les spams/indésirables</li>
-                <li>• Cliquez sur le lien de vérification</li>
-                <li>• Revenez vous connecter</li>
-              </ul>
-            </div> */}
           </div>
 
           {/* Footer */}
@@ -170,7 +164,7 @@ const EmailVerificationModal = ({ isOpen, onClose, email, isRegistration = false
                 onClick={onClose}
                 className="px-4 py-2 bg-harvests-green text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-harvests-green focus:ring-offset-2 transition-colors"
               >
-                J'ai compris
+                {t('verificationModal.understood')}
               </button>
             ) : (
               <>
@@ -178,13 +172,13 @@ const EmailVerificationModal = ({ isOpen, onClose, email, isRegistration = false
                   onClick={onClose}
                   className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-harvests-light focus:outline-none focus:ring-2 focus:ring-harvests-green focus:ring-offset-2 transition-colors"
                 >
-                  Fermer
+                  {t('common.close')}
                 </button>
                 <button
                   onClick={() => window.location.href = '/login'}
                   className="px-4 py-2 bg-harvests-green text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-harvests-green focus:ring-offset-2 transition-colors"
                 >
-                  Aller à la connexion
+                  {t('verificationModal.goToLogin')}
                 </button>
               </>
             )}

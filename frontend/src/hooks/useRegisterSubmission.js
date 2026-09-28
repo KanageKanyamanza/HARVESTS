@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from './useAuth';
 import { useModal } from './useModal';
 import { validateRegisterForm, prepareRegistrationData } from '../utils/registerValidation';
@@ -7,6 +8,7 @@ import { validateRegisterForm, prepareRegistrationData } from '../utils/register
  * Hook personnalisé pour gérer la soumission du formulaire d'inscription
  */
 export const useRegisterSubmission = (formData, setErrors, resetForm) => {
+  const { t, i18n } = useTranslation('auth');
   const { register } = useAuth();
   const { openEmailVerificationModal } = useModal();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,7 +28,13 @@ export const useRegisterSubmission = (formData, setErrors, resetForm) => {
 
     try {
       // Préparer les données selon le type d'utilisateur
-      const registrationData = prepareRegistrationData(formData);
+      // Jour 47 : langue active de l'interface au moment de l'inscription
+      // (était figée à 'fr'), pour que les futurs e-mails suivent le choix
+      // de l'utilisateur (Jours 64-65).
+      const registrationData = {
+        ...prepareRegistrationData(formData),
+        preferredLanguage: i18n.language === 'en' ? 'en' : 'fr'
+      };
 
       const result = await register(registrationData);
       if (result.success) {
@@ -44,13 +52,13 @@ export const useRegisterSubmission = (formData, setErrors, resetForm) => {
     } catch (error) {
       console.error('Erreur inscription:', error);
       
-      let errorMessage = 'Erreur lors de l\'inscription';
-      
+      let errorMessage = t('register.error');
+
       // Gérer les erreurs spécifiques
       if (error.isTimeout) {
-        errorMessage = 'La requête a pris trop de temps. Veuillez réessayer.';
+        errorMessage = t('common.timeout');
       } else if (error.message && error.message.includes('existe déjà')) {
-        errorMessage = 'Un compte avec cet email existe déjà. Essayez de vous connecter.';
+        errorMessage = t('register.emailExists');
       } else if (error.message) {
         errorMessage = error.message;
       }

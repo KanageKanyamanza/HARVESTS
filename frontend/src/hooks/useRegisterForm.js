@@ -21,7 +21,6 @@ export const useRegisterForm = () => {
     phone: '',
     userType: '',
     country: 'Sénégal',
-    preferredLanguage: 'fr',
     referredBy: commercial,
     acceptedTerms: false
   });
@@ -92,7 +91,6 @@ export const useRegisterForm = () => {
       phone: '',
       userType: '',
       country: 'Sénégal',
-      preferredLanguage: 'fr',
       referredBy: commercial,
       acceptedTerms: false
     });

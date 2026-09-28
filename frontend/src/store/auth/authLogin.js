@@ -4,6 +4,7 @@ import { authService } from '../../services';
 import { adminAuthService } from '../../services/adminAuthService';
 import { saveAuthData } from './authStorage';
 import { AUTH_ACTIONS } from '../authTypes';
+import i18n from '../../utils/i18n';
 
 export const login = async (credentials, dispatch) => {
   try {
@@ -59,7 +60,8 @@ export const login = async (credentials, dispatch) => {
 
     return { success: true, user: userWithApprovalStatus, token };
   } catch (error) {
-    const errorMessage = error.response?.data?.message || 'Erreur de connexion';
+    // Messages du backend encore en français : traduits côté serveur au Jour 58
+    const errorMessage = error.response?.data?.message || i18n.t('login.error', { ns: 'auth' });
     
     dispatch({
       type: AUTH_ACTIONS.LOGIN_FAILURE,
@@ -83,11 +85,11 @@ export const register = async (userData, dispatch) => {
       message: response.data.message || 'Inscription réussie' 
     };
   } catch (error) {
-    let errorMessage = 'Erreur d\'inscription';
+    let errorMessage = i18n.t('register.error', { ns: 'auth' });
     
     // Gérer les erreurs de timeout
     if (error.isTimeout) {
-      errorMessage = 'La requête a pris trop de temps. Veuillez réessayer.';
+      errorMessage = i18n.t('common.timeout', { ns: 'auth' });
     } 
     // Gérer les erreurs de serveur
     else if (error.response?.data?.message) {
@@ -95,7 +97,7 @@ export const register = async (userData, dispatch) => {
     }
     // Gérer les erreurs réseau
     else if (error.code === 'NETWORK_ERROR' || !error.response) {
-      errorMessage = 'Problème de connexion. Vérifiez votre connexion internet.';
+      errorMessage = i18n.t('common.networkError', { ns: 'auth' });
     }
     
     dispatch({

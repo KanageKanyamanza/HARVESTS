@@ -1,5 +1,9 @@
 /**
  * Validation du formulaire d'inscription
+ *
+ * Jour 47 (bascule bilingue) : retourne des clés du namespace "auth"
+ * (ex. "validation.emailRequired") et non du texte, traduites à l'affichage
+ * par t() pour que les erreurs suivent un changement de langue.
  */
 export const validateRegisterForm = (formData) => {
   const newErrors = {};
@@ -7,55 +11,55 @@ export const validateRegisterForm = (formData) => {
   // Pour les consommateurs : nom complet (prénom + nom)
   if (formData.userType === 'consumer') {
     if (!formData.fullName?.trim()) {
-      newErrors.firstName = 'Le nom complet est requis';
+      newErrors.firstName = 'validation.fullNameRequired';
     } else {
       const parts = formData.fullName.trim().split(/\s+/);
       if (parts.length < 2) {
-        newErrors.firstName = 'Veuillez saisir votre prénom et votre nom';
+        newErrors.firstName = 'validation.fullNameIncomplete';
       }
     }
   } else if (formData.userType === 'producer') {
     if (!formData.farmName?.trim()) {
-      newErrors.firstName = 'Le nom de la ferme est requis';
+      newErrors.firstName = 'validation.farmNameRequired';
     }
   } else if (formData.userType === 'restaurateur') {
     if (!formData.restaurantName?.trim()) {
-      newErrors.firstName = 'Le nom du restaurant est requis';
+      newErrors.firstName = 'validation.restaurantNameRequired';
     }
   } else if (['transformer', 'exporter', 'transporter'].includes(formData.userType)) {
     if (!formData.companyName?.trim()) {
-      newErrors.firstName = "Le nom de l'entreprise est requis";
+      newErrors.firstName = 'validation.companyNameRequired';
     }
   } else {
     if (!formData.firstName?.trim()) {
-      newErrors.firstName = 'Le nom est requis';
+      newErrors.firstName = 'validation.nameRequired';
     }
   }
   
   if (!formData.email?.trim()) {
-    newErrors.email = 'L\'email est requis';
+    newErrors.email = 'validation.emailRequired';
   } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-    newErrors.email = 'Format d\'email invalide';
+    newErrors.email = 'validation.emailInvalid';
   }
   
   if (!formData.password) {
-    newErrors.password = 'Le mot de passe est requis';
+    newErrors.password = 'validation.passwordRequired';
   } else if (formData.password.length < 8) {
-    newErrors.password = 'Le mot de passe doit contenir au moins 8 caractères';
+    newErrors.password = 'validation.passwordTooShort';
   } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(formData.password)) {
-    newErrors.password = 'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre';
+    newErrors.password = 'validation.passwordWeak';
   }
   
   if (!formData.userType) {
-    newErrors.userType = 'Le type d\'utilisateur est requis';
+    newErrors.userType = 'validation.userTypeRequired';
   }
   
   if (!formData.country?.trim()) {
-    newErrors.country = 'Le pays est requis';
+    newErrors.country = 'validation.countryRequired';
   }
 
   if (!formData.acceptedTerms) {
-    newErrors.acceptedTerms = 'Vous devez accepter les Conditions d\'Utilisation et la Politique de Confidentialité';
+    newErrors.acceptedTerms = 'validation.termsRequired';
   }
 
   return newErrors;

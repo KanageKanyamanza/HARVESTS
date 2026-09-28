@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import { Mail, X, CheckCircle, AlertCircle, Loader2, AlertTriangle } from "lucide-react";
 import api from "../../services/api";
 
@@ -7,6 +8,7 @@ import api from "../../services/api";
  * Disparaît définitivement si l'utilisateur la ferme, ou si l'email est vérifié.
  */
 const EmailVerificationBanner = ({ user, onClose }) => {
+	const { t } = useTranslation("auth");
 	const [dismissed, setDismissed] = useState(false);
 	const [sending, setSending] = useState(false);
 	const [sent, setSent] = useState(false);
@@ -24,7 +26,7 @@ const EmailVerificationBanner = ({ user, onClose }) => {
 		} catch (err) {
 			const msg =
 				err.response?.data?.message ||
-				"Impossible d'envoyer l'email. Réessayez plus tard.";
+				t("verificationBanner.sendError");
 			setError(msg);
 		} finally {
 			setSending(false);
@@ -48,16 +50,27 @@ const EmailVerificationBanner = ({ user, onClose }) => {
 						{sent ? (
 							<span className="flex items-center gap-1.5">
 								<CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />
-								Email envoyé à <strong>{user.email}</strong> — vérifiez votre boîte mail.
+								<Trans
+									i18nKey="verificationBanner.sent"
+									ns="auth"
+									values={{ email: user.email }}
+									components={{ strong: <strong /> }}
+								/>
 							</span>
 						) : (
 							<>
 								<span className="hidden sm:inline-flex items-center">
-									<AlertTriangle className="w-4 h-4 mr-1.5" /> Votre adresse email <strong>{user.email}</strong> n'est pas encore vérifiée.
-									Certaines fonctionnalités sont limitées.
+									<AlertTriangle className="w-4 h-4 mr-1.5" />{" "}
+									<Trans
+										i18nKey="verificationBanner.notVerified"
+										ns="auth"
+										values={{ email: user.email }}
+										components={{ strong: <strong /> }}
+									/>
 								</span>
 								<span className="sm:hidden flex items-center">
-									<AlertTriangle className="w-4 h-4 mr-1.5" /> Email non vérifié — fonctionnalités limitées.
+									<AlertTriangle className="w-4 h-4 mr-1.5" />{" "}
+									{t("verificationBanner.notVerifiedShort")}
 								</span>
 							</>
 						)}
@@ -84,14 +97,17 @@ const EmailVerificationBanner = ({ user, onClose }) => {
 							) : (
 								<Mail className="w-3 h-3" />
 							)}
-							{sending ? "Envoi..." : "Renvoyer l'email"}
+							{sending
+								? t("verificationBanner.sending")
+								: t("verificationBanner.resend")}
 						</button>
 					)}
 
 					<button
 						onClick={handleDismiss}
 						className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-						title="Fermer"
+						title={t("common.close")}
+						aria-label={t("common.close")}
 					>
 						<X className="w-3.5 h-3.5" />
 					</button>

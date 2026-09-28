@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
 import { Mail, KeyRound } from "lucide-react";
 import { authService } from "../../services";
 import SocialLinks from "../../components/common/SocialLinks";
@@ -7,6 +8,7 @@ import logo from "../../assets/logo.png";
 import authbg from "../../assets/images/authbg.webp";
 
 const ForgotPassword = () => {
+	const { t } = useTranslation("auth");
 	const [formData, setFormData] = useState({
 		email: "",
 	});
@@ -35,9 +37,9 @@ const ForgotPassword = () => {
 		const newErrors = {};
 
 		if (!formData.email.trim()) {
-			newErrors.email = "L'email est requis";
+			newErrors.email = "validation.emailRequired";
 		} else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-			newErrors.email = "Format d'email invalide";
+			newErrors.email = "validation.emailInvalid";
 		}
 
 		setErrors(newErrors);
@@ -60,7 +62,7 @@ const ForgotPassword = () => {
 			if (response.data.status === "success") {
 				setIsSuccess(true);
 			} else {
-				setErrors({ general: "Une erreur est survenue. Veuillez réessayer." });
+				setErrors({ general: t("common.genericError") });
 			}
 		} catch (error) {
 			console.error("Erreur lors de la demande de réinitialisation:", error);
@@ -70,7 +72,7 @@ const ForgotPassword = () => {
 			} else if (error.response?.data?.errors) {
 				setErrors(error.response.data.errors);
 			} else {
-				setErrors({ general: "Une erreur est survenue. Veuillez réessayer." });
+				setErrors({ general: t("common.genericError") });
 			}
 		} finally {
 			setIsLoading(false);
@@ -93,12 +95,12 @@ const ForgotPassword = () => {
 						<div className="relative z-10 text-center">
 							<img
 								src={logo}
-								alt="Harvests Logo"
+								alt={t("common.logoAlt")}
 								className="w-[400px] h-[190px] mx-auto mb-6 drop-shadow-lg"
 							/>
 							<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0D330A] shadow-md text-white text-xs font-bold uppercase tracking-wider mb-6">
 								<KeyRound className="w-4 h-4 text-[#31BC2E]" />
-								<span>Réinitialisation</span>
+								<span>{t("forgotPassword.badge")}</span>
 							</div>
 
 							{/* Réseaux sociaux */}
@@ -119,14 +121,14 @@ const ForgotPassword = () => {
 							<div className="lg:hidden text-center mb-8">
 								<img
 									src={logo}
-									alt="Harvests Logo"
+									alt={t("common.logoAlt")}
 									className="sm:w-[300px] sm:h-[140px] w-[200px] h-[90px] mx-auto mb-4"
 								/>
 							</div>
 
 							<div className="text-center mb-5">
 								<h2 className="text-2xl font-extrabold text-white">
-									Email envoyé !
+									{t("forgotPassword.successTitle")}
 								</h2>
 							</div>
 
@@ -135,8 +137,12 @@ const ForgotPassword = () => {
 									<Mail className="h-6 w-6 text-[#1A5514]" />
 								</div>
 								<p className="text-gray-600 text-sm mb-4">
-									Nous avons envoyé un lien de réinitialisation à{" "}
-									<strong className="text-[#161D14]">{formData.email}</strong>
+									<Trans
+										i18nKey="forgotPassword.successMessage"
+										ns="auth"
+										values={{ email: formData.email }}
+										components={{ strong: <strong className="text-[#161D14]" /> }}
+									/>
 								</p>
 
 								<div className="pt-2 border-t border-gray-100 space-y-2">
@@ -144,13 +150,13 @@ const ForgotPassword = () => {
 										to="/login"
 										className="block text-[#1A5514] hover:text-[#31BC2E] text-xs font-bold transition-colors"
 									>
-										Retour à la connexion
+										{t("common.backToLogin")}
 									</Link>
 									<button
 										onClick={() => setIsSuccess(false)}
 										className="text-[#1A5514] hover:text-[#31BC2E] text-xs font-bold transition-colors"
 									>
-										Renvoyer l'email
+										{t("forgotPassword.resend")}
 									</button>
 								</div>
 							</div>
@@ -176,12 +182,12 @@ const ForgotPassword = () => {
 					<div className="relative z-10 text-center">
 						<img
 							src={logo}
-							alt="Harvests Logo"
+							alt={t("common.logoAlt")}
 							className="w-[400px] h-[190px] mx-auto mb-6 drop-shadow-lg"
 						/>
 						<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0D330A] shadow-md text-white text-xs font-bold uppercase tracking-wider mb-6">
 							<KeyRound className="w-4 h-4 text-[#31BC2E]" />
-							<span>Réinitialisation</span>
+							<span>{t("forgotPassword.badge")}</span>
 						</div>
 
 						{/* Réseaux sociaux */}
@@ -202,14 +208,14 @@ const ForgotPassword = () => {
 						<div className="lg:hidden text-center mb-8">
 							<img
 								src={logo}
-								alt="Harvests Logo"
+								alt={t("common.logoAlt")}
 								className="sm:w-[300px] sm:h-[140px] w-[200px] h-[90px] mx-auto mb-4"
 							/>
 						</div>
 
 						<div className="text-center mb-5">
 							<h2 className="text-2xl font-extrabold text-white">
-								Mot de passe oublié
+								{t("forgotPassword.title")}
 							</h2>
 						</div>
 
@@ -231,13 +237,13 @@ const ForgotPassword = () => {
 										name="email"
 										value={formData.email}
 										onChange={handleChange}
-										placeholder="Votre email"
+										placeholder={t("common.emailPlaceholder")}
 										className={`w-full pl-10 pr-4 py-3 border rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] outline-none transition-all text-sm ${
 											errors.email ? "border-red-300" : "border-gray-200"
 										}`}
 									/>
 									{errors.email && (
-										<p className="mt-1 text-xs text-red-600 font-medium">{errors.email}</p>
+										<p className="mt-1 text-xs text-red-600 font-medium">{t(errors.email)}</p>
 									)}
 								</div>
 
@@ -247,7 +253,7 @@ const ForgotPassword = () => {
 										to="/login"
 										className="text-[#1A5514] hover:text-[#31BC2E] text-xs font-bold transition-colors"
 									>
-										Retour à la connexion
+										{t("common.backToLogin")}
 									</Link>
 								</div>
 
@@ -260,10 +266,10 @@ const ForgotPassword = () => {
 									{isLoading ? (
 										<>
 											<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-											<span>Envoi en cours...</span>
+											<span>{t("common.sending")}</span>
 										</>
 									) : (
-										"Envoyer le lien"
+										t("forgotPassword.submit")
 									)}
 								</button>
 							</div>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Eye, EyeOff, Lock, CheckCircle, KeyRound } from "lucide-react";
 import { authService } from "../../services";
 import SocialLinks from "../../components/common/SocialLinks";
@@ -7,6 +8,7 @@ import logo from "../../assets/logo.png";
 import authbg from "../../assets/images/authbg.webp";
 
 const ResetPassword = () => {
+	const { t } = useTranslation("auth");
 	const { token } = useParams();
 
 	const [formData, setFormData] = useState({
@@ -39,21 +41,19 @@ const ResetPassword = () => {
 		const newErrors = {};
 
 		if (!formData.password.trim()) {
-			newErrors.password = "Le mot de passe est requis";
+			newErrors.password = "validation.passwordRequired";
 		} else if (formData.password.length < 8) {
-			newErrors.password =
-				"Le mot de passe doit contenir au moins 8 caractères";
+			newErrors.password = "validation.passwordTooShort";
 		} else if (
 			!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(formData.password)
 		) {
-			newErrors.password =
-				"Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre";
+			newErrors.password = "validation.passwordWeak";
 		}
 
 		if (!formData.confirmPassword.trim()) {
-			newErrors.confirmPassword = "La confirmation du mot de passe est requise";
+			newErrors.confirmPassword = "validation.confirmPasswordRequired";
 		} else if (formData.password !== formData.confirmPassword) {
-			newErrors.confirmPassword = "Les mots de passe ne correspondent pas";
+			newErrors.confirmPassword = "validation.passwordsDoNotMatch";
 		}
 
 		setErrors(newErrors);
@@ -79,11 +79,11 @@ const ResetPassword = () => {
 			if (response.data.status === "success") {
 				setIsSuccess(true);
 			} else {
-				setErrors({ general: "Une erreur est survenue. Veuillez réessayer." });
+				setErrors({ general: t("common.genericError") });
 			}
 		} catch (error) {
 			console.error("Erreur lors de la réinitialisation:", error);
-			setErrors({ general: "Une erreur est survenue. Veuillez réessayer." });
+			setErrors({ general: t("common.genericError") });
 		} finally {
 			setIsLoading(false);
 		}
@@ -105,12 +105,12 @@ const ResetPassword = () => {
 						<div className="relative z-10 text-center">
 							<img
 								src={logo}
-								alt="Harvests Logo"
+								alt={t("common.logoAlt")}
 								className="w-[400px] h-[190px] mx-auto mb-6 drop-shadow-lg"
 							/>
 							<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0D330A] shadow-md text-white text-xs font-bold uppercase tracking-wider mb-6">
 								<KeyRound className="w-4 h-4 text-[#31BC2E]" />
-								<span>Nouveau mot de passe</span>
+								<span>{t("resetPassword.badge")}</span>
 							</div>
 
 							{/* Réseaux sociaux */}
@@ -131,13 +131,13 @@ const ResetPassword = () => {
 							<div className="lg:hidden text-center mb-8">
 								<img
 									src={logo}
-									alt="Harvests Logo"
+									alt={t("common.logoAlt")}
 									className="sm:w-[300px] sm:h-[140px] w-[200px] h-[90px] mx-auto mb-4"
 								/>
 							</div>
 
 							<div className="text-center mb-5">
-								<h2 className="text-2xl font-extrabold text-white">Succès !</h2>
+								<h2 className="text-2xl font-extrabold text-white">{t("resetPassword.successTitle")}</h2>
 							</div>
 
 							<div className="space-y-3 px-5 pt-7 pb-5 sm:px-8 sm:pt-9 sm:pb-7 shadow-2xl shadow-black/30 rounded-3xl bg-white border border-emerald-100/80 text-center">
@@ -145,7 +145,7 @@ const ResetPassword = () => {
 									<CheckCircle className="h-6 w-6 text-[#1A5514]" />
 								</div>
 								<p className="text-gray-600 text-sm mb-4">
-									Votre mot de passe a été réinitialisé avec succès.
+									{t("resetPassword.successMessage")}
 								</p>
 
 								<div className="pt-2 border-t border-gray-100">
@@ -153,7 +153,7 @@ const ResetPassword = () => {
 										to="/login"
 										className="text-[#1A5514] hover:text-[#31BC2E] text-xs font-bold transition-colors"
 									>
-										Retour à la connexion
+										{t("common.backToLogin")}
 									</Link>
 								</div>
 							</div>
@@ -179,12 +179,12 @@ const ResetPassword = () => {
 					<div className="relative z-10 text-center">
 						<img
 							src={logo}
-							alt="Harvests Logo"
+							alt={t("common.logoAlt")}
 							className="w-[400px] h-[190px] mx-auto mb-6 drop-shadow-lg"
 						/>
 						<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0D330A] shadow-md text-white text-xs font-bold uppercase tracking-wider mb-6">
 							<KeyRound className="w-4 h-4 text-[#31BC2E]" />
-							<span>Nouveau mot de passe</span>
+							<span>{t("resetPassword.badge")}</span>
 						</div>
 
 						{/* Réseaux sociaux */}
@@ -205,14 +205,14 @@ const ResetPassword = () => {
 						<div className="lg:hidden text-center mb-8">
 							<img
 								src={logo}
-								alt="Harvests Logo"
+								alt={t("common.logoAlt")}
 								className="sm:w-[300px] sm:h-[140px] w-[200px] h-[90px] mx-auto mb-4"
 							/>
 						</div>
 
 						<div className="text-center mb-5">
 							<h2 className="text-2xl font-extrabold text-white">
-								Nouveau mot de passe
+								{t("resetPassword.title")}
 							</h2>
 						</div>
 
@@ -234,7 +234,7 @@ const ResetPassword = () => {
 										name="password"
 										value={formData.password}
 										onChange={handleChange}
-										placeholder="Nouveau mot de passe"
+										placeholder={t("resetPassword.newPasswordPlaceholder")}
 										className={`w-full pl-10 pr-12 py-3 border rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] outline-none transition-all text-sm ${
 											errors.password ? "border-red-300" : "border-gray-200"
 										}`}
@@ -243,6 +243,7 @@ const ResetPassword = () => {
 										type="button"
 										className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600"
 										onClick={() => setShowPassword(!showPassword)}
+									aria-label={t(showPassword ? "common.hidePassword" : "common.showPassword")}
 									>
 										{showPassword ? (
 											<EyeOff className="h-4.5 w-4.5" />
@@ -252,11 +253,11 @@ const ResetPassword = () => {
 									</button>
 									{errors.password && (
 										<p className="mt-1 text-xs text-red-600 font-medium">
-											{errors.password}
+											{t(errors.password)}
 										</p>
 									)}
 									<p className="mt-1 text-xs text-gray-500">
-										Min. 8 caractères, 1 majuscule, 1 minuscule, 1 chiffre
+										{t("common.passwordHint")}
 									</p>
 								</div>
 
@@ -270,7 +271,7 @@ const ResetPassword = () => {
 										name="confirmPassword"
 										value={formData.confirmPassword}
 										onChange={handleChange}
-										placeholder="Confirmer le mot de passe"
+										placeholder={t("resetPassword.confirmPasswordPlaceholder")}
 										className={`w-full pl-10 pr-12 py-3 border rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] outline-none transition-all text-sm ${
 											errors.confirmPassword
 												? "border-red-300"
@@ -281,6 +282,7 @@ const ResetPassword = () => {
 										type="button"
 										className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600"
 										onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+									aria-label={t(showConfirmPassword ? "common.hidePassword" : "common.showPassword")}
 									>
 										{showConfirmPassword ? (
 											<EyeOff className="h-4.5 w-4.5" />
@@ -290,7 +292,7 @@ const ResetPassword = () => {
 									</button>
 									{errors.confirmPassword && (
 										<p className="mt-1 text-xs text-red-600 font-medium">
-											{errors.confirmPassword}
+											{t(errors.confirmPassword)}
 										</p>
 									)}
 								</div>
@@ -301,7 +303,7 @@ const ResetPassword = () => {
 										to="/login"
 										className="text-[#1A5514] hover:text-[#31BC2E] text-xs font-bold transition-colors"
 									>
-										Retour à la connexion
+										{t("common.backToLogin")}
 									</Link>
 								</div>
 
@@ -314,10 +316,10 @@ const ResetPassword = () => {
 									{isLoading ? (
 										<>
 											<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-											<span>Réinitialisation en cours...</span>
+											<span>{t("resetPassword.submitting")}</span>
 										</>
 									) : (
-										"Réinitialiser le mot de passe"
+										t("resetPassword.submit")
 									)}
 								</button>
 							</div>

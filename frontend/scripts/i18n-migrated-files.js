@@ -73,4 +73,17 @@ export const MIGRATED_FILES = [
 	"config/vendor/restaurateurConfig.jsx",
 	"config/vendor/transporterConfig.jsx",
 	"config/vendor/exporterConfig.jsx",
+	// Jour 47 — auth & onboarding
+	"pages/auth/Login.jsx",
+	"pages/auth/Register.jsx",
+	"pages/auth/ForgotPassword.jsx",
+	"pages/auth/ResetPassword.jsx",
+	"pages/auth/EmailVerification.jsx",
+	"components/auth/FormField.jsx",
+	"components/auth/NameFields.jsx",
+	"components/auth/UserTypeSelector.jsx",
+	"components/modals/EmailVerificationModal.jsx",
+	"components/common/EmailVerificationRequired.jsx",
+	"components/dashboard/EmailVerificationBanner.jsx",
+	"components/dashboard/ProfileCompletionModal.jsx",
 ];
