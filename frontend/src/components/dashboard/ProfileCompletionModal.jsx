@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
 import {
 	User,
 	Image as ImageIcon,
@@ -41,32 +42,34 @@ const isDismissalExpired = (user) => {
 	return elapsed >= DISMISS_DURATION_MS;
 };
 
+// Libellés et raisons : auth:profileCompletion.fields.<id>.label / .reason
 const computeMissingFields = (user) => {
 	const missing = [];
 	if (!user) return missing;
 
 	if (!user.avatar)
-		missing.push({ id: "avatar", label: "Photo de profil", icon: <User className="w-4 h-4" />, reason: "Inspire 40% plus de confiance" });
+		missing.push({ id: "avatar", icon: <User className="w-4 h-4" /> });
 	if (!user.shopBanner)
-		missing.push({ id: "shopBanner", label: "Bannière de boutique", icon: <ImageIcon className="w-4 h-4" />, reason: "Rend votre vitrine attractive" });
+		missing.push({ id: "shopBanner", icon: <ImageIcon className="w-4 h-4" /> });
 	if (!user.bio)
-		missing.push({ id: "bio", label: "Biographie / Présentation", icon: <Info className="w-4 h-4" />, reason: "Raconte votre histoire aux clients" });
+		missing.push({ id: "bio", icon: <Info className="w-4 h-4" /> });
 	if (!user.phone)
-		missing.push({ id: "phone", label: "Numéro de téléphone", icon: <Phone className="w-4 h-4" />, reason: "Essentiel pour la communication client" });
+		missing.push({ id: "phone", icon: <Phone className="w-4 h-4" /> });
 	if (!user.address || !user.city)
-		missing.push({ id: "location", label: "Adresse & Localisation", icon: <MapPin className="w-4 h-4" />, reason: "Aidez les clients à vous situer" });
+		missing.push({ id: "location", icon: <MapPin className="w-4 h-4" /> });
 
 	if (user.userType === "producer" && !user.farmName)
-		missing.push({ id: "farmName", label: "Nom de la ferme", icon: <Building2 className="w-4 h-4" />, reason: "Votre identité de producteur" });
+		missing.push({ id: "farmName", icon: <Building2 className="w-4 h-4" /> });
 	else if (user.userType === "restaurateur" && !user.restaurantName)
-		missing.push({ id: "restaurantName", label: "Nom du restaurant", icon: <Building2 className="w-4 h-4" />, reason: "Assurez votre visibilité culinaire" });
+		missing.push({ id: "restaurantName", icon: <Building2 className="w-4 h-4" /> });
 	else if (["transformer", "exporter", "transporter"].includes(user.userType) && !user.companyName)
-		missing.push({ id: "companyName", label: "Nom de l'entreprise", icon: <Building2 className="w-4 h-4" />, reason: "Renforce votre professionnalisme" });
+		missing.push({ id: "companyName", icon: <Building2 className="w-4 h-4" /> });
 
 	return missing;
 };
 
 const ProfileCompletionModal = ({ user }) => {
+	const { t } = useTranslation("auth");
 	const [isOpen, setIsOpen] = useState(false);
 	const [missingFields, setMissingFields] = useState([]);
 
@@ -144,7 +147,7 @@ const ProfileCompletionModal = ({ user }) => {
 						handleClose();
 					}}
 					className="absolute top-6 right-6 z-[60] p-2 rounded-full bg-black/10 hover:bg-black/20 text-white backdrop-blur-md border border-white/20 transition-all active:scale-90"
-					aria-label="Fermer"
+					aria-label={t("common.close")}
 				>
 					<X size={20} className="drop-shadow-sm" />
 				</button>
@@ -162,12 +165,16 @@ const ProfileCompletionModal = ({ user }) => {
 							<Sparkles className="w-8 h-8 text-white" />
 						</div>
 						<h2 className="text-2xl font-[1000] tracking-tighter mb-2">
-							Boostez votre Visibilité !
+							{t("profileCompletion.title")}
 						</h2>
 						<p className="text-emerald-50/80 text-sm font-medium leading-relaxed max-w-xs">
-							Un profil complet permet d'augmenter vos ventes de{" "}
-							<span className="font-bold text-white italic">300%</span> en
-							moyenne sur HARVESTS.
+							<Trans
+								i18nKey="profileCompletion.subtitle"
+								ns="auth"
+								components={{
+									highlight: <span className="font-bold text-white italic" />,
+								}}
+							/>
 						</p>
 					</div>
 				</div>
@@ -177,7 +184,7 @@ const ProfileCompletionModal = ({ user }) => {
 					<div>
 						<h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
 							<div className="w-4 h-[2px] bg-emerald-500"></div>
-							Éléments à compléter
+							{t("profileCompletion.missingTitle")}
 						</h3>
 
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -191,10 +198,10 @@ const ProfileCompletionModal = ({ user }) => {
 									</div>
 									<div className="ml-4 flex-1">
 										<p className="text-sm font-black text-gray-900 leading-none mb-1">
-											{field.label}
+											{t(`profileCompletion.fields.${field.id}.label`)}
 										</p>
 										<p className="text-[11px] text-gray-500 font-medium">
-											{field.reason}
+											{t(`profileCompletion.fields.${field.id}.reason`)}
 										</p>
 									</div>
 									<div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]"></div>
@@ -209,15 +216,14 @@ const ProfileCompletionModal = ({ user }) => {
 							onClick={handleClose}
 							className="group flex items-center justify-between w-full h-16 px-8 bg-gray-900 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-widest shadow-xl hover:bg-emerald-600 hover:shadow-emerald-200 transition-all duration-300 hover:-translate-y-1 active:scale-[0.98]"
 						>
-							Compléter mon profil
+							{t("profileCompletion.cta")}
 							<ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
 						</Link>
 
 						<div className="flex items-center gap-4 bg-blue-50/50 p-4 rounded-2xl border border-blue-100/50">
 							<ShieldCheck className="w-5 h-5 text-blue-600 flex-shrink-0" />
 							<p className="text-[11px] text-blue-800 font-medium leading-tight">
-								Un profil vérifié gagne en crédibilité et assure une meilleure
-								sécurité pour vos transactions.
+								{t("profileCompletion.trustNote")}
 							</p>
 						</div>
 
@@ -225,7 +231,7 @@ const ProfileCompletionModal = ({ user }) => {
 							onClick={handleClose}
 							className="w-full text-center text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-gray-900 transition-colors py-2"
 						>
-							Rappelle-moi plus tard
+							{t("profileCompletion.remindLater")}
 						</button>
 				</div>
 			</div>

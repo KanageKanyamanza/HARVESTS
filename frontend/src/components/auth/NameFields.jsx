@@ -1,6 +1,18 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { User } from 'lucide-react';
 import FormField from './FormField';
+
+// Chaque type de vendeur a son propre champ (le libellé vient de
+// auth:register.namePlaceholders.<type>)
+const FIELD_NAMES = {
+  consumer: 'fullName',
+  producer: 'farmName',
+  restaurateur: 'restaurantName',
+  transformer: 'companyName',
+  exporter: 'companyName',
+  transporter: 'companyName',
+};
 
 const NameFields = ({ 
   userType, 
@@ -8,37 +20,18 @@ const NameFields = ({
   onFirstNameChange, 
   firstNameError 
 }) => {
-  if (userType === 'consumer') {
-    return (
-      <FormField
-        icon={User}
-        type="text"
-        name="fullName"
-        value={firstName}
-        onChange={onFirstNameChange}
-        placeholder="Votre prénom et nom"
-        error={firstNameError}
-      />
-    );
-  }
-
-  // Chaque type de vendeur a son propre champ et placeholder
-  const fieldConfig = 
-    userType === 'producer'     ? { name: 'farmName',       placeholder: 'Nom de votre ferme / exploitation' } :
-    userType === 'restaurateur' ? { name: 'restaurantName', placeholder: 'Nom de votre restaurant' } :
-    userType === 'transformer'  ? { name: 'companyName',    placeholder: 'Nom de votre entreprise de transformation' } :
-    userType === 'exporter'     ? { name: 'companyName',    placeholder: "Nom de votre entreprise d'exportation" } :
-    userType === 'transporter'  ? { name: 'companyName',    placeholder: 'Nom de votre entreprise de transport' } :
-                                  { name: 'firstName',      placeholder: 'Votre nom' };
+  const { t } = useTranslation('auth');
+  const fieldName = FIELD_NAMES[userType] || 'firstName';
+  const placeholderKey = FIELD_NAMES[userType] ? userType : 'default';
 
   return (
     <FormField
       icon={User}
       type="text"
-      name={fieldConfig.name}
+      name={fieldName}
       value={firstName}
       onChange={onFirstNameChange}
-      placeholder={fieldConfig.placeholder}
+      placeholder={t(`register.namePlaceholders.${placeholderKey}`)}
       error={firstNameError}
     />
   );

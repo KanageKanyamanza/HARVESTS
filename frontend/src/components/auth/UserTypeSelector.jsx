@@ -1,13 +1,15 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Users, ChevronDown, ShoppingCart, Wheat, Factory, Utensils, Ship, Truck } from 'lucide-react';
 
+// Libellés et descriptions : auth:userTypes.<value>.label / .description
 const userTypes = [
-  { value: 'consumer', icon: ShoppingCart, label: 'Consommateur', description: 'Achetez des produits frais directement des producteurs' },
-  { value: 'producer', icon: Wheat, label: 'Producteur', description: 'Vendez vos produits agricoles sur notre plateforme' },
-  { value: 'transformer', icon: Factory, label: 'Transformateur', description: 'Transformez et commercialisez des produits agricoles' },
-  { value: 'restaurateur', icon: Utensils, label: 'Restaurateur', description: 'Commandez des ingrédients frais pour votre restaurant' },
-  { value: 'exporter', icon: Ship, label: 'Exportateur', description: 'Exportez des produits agricoles vers d\'autres pays' },
-  { value: 'transporter', icon: Truck, label: 'Transporteur', description: 'Transportez des produits agricoles en toute sécurité' }
+  { value: 'consumer', icon: ShoppingCart },
+  { value: 'producer', icon: Wheat },
+  { value: 'transformer', icon: Factory },
+  { value: 'restaurateur', icon: Utensils },
+  { value: 'exporter', icon: Ship },
+  { value: 'transporter', icon: Truck }
 ];
 
 const UserTypeSelector = ({ 
@@ -17,6 +19,7 @@ const UserTypeSelector = ({
   onSelect, 
   error 
 }) => {
+  const { t } = useTranslation('auth');
   return (
     <div className="relative profile-dropdown">
       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none z-10">
@@ -35,11 +38,11 @@ const UserTypeSelector = ({
           {selectedUserType 
             ? (() => {
                 const type = userTypes.find(t => t.value === selectedUserType);
-                if (!type) return 'Sélectionner un profil';
+                if (!type) return t('register.selectProfile');
                 const Icon = type.icon;
-                return <><Icon className="w-4 h-4 mr-2" /> {type.label}</>;
+                return <><Icon className="w-4 h-4 mr-2" /> {t(`userTypes.${type.value}.label`)}</>;
               })()
-            : 'Sélectionner un profil'
+            : t('register.selectProfile')
           }
         </span>
         <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -61,10 +64,10 @@ const UserTypeSelector = ({
                 <div className="mt-0.5"><type.icon className="w-4.5 h-4.5 text-[#1A5514]" /></div>
                 <div className="flex-1">
                   <div className="font-bold text-sm">
-                    {type.label}
+                    {t(`userTypes.${type.value}.label`)}
                   </div>
                   <div className="text-xs text-gray-500 mt-0.5">
-                    {type.description}
+                    {t(`userTypes.${type.value}.description`)}
                   </div>
                 </div>
                 {selectedUserType === type.value && (

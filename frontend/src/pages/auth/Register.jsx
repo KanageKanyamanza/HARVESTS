@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
 import { Mail, Lock, UserPlus } from "lucide-react";
 import SocialLinks from "../../components/common/SocialLinks";
 import UserTypeSelector from "../../components/auth/UserTypeSelector";
@@ -11,6 +12,8 @@ import logo from "../../assets/logo.png";
 import authbg from "../../assets/images/authbg.webp";
 
 const Register = () => {
+	const { t } = useTranslation("auth");
+
 	// Hooks personnalisés
 	const {
 		formData,
@@ -47,12 +50,12 @@ const Register = () => {
 					<div className="relative z-10 text-center">
 						<img
 							src={logo}
-							alt="Harvests Logo"
+							alt={t("common.logoAlt")}
 							className="w-[400px] h-[190px] mx-auto mb-6 drop-shadow-lg"
 						/>
 						<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0D330A] shadow-md text-white text-xs font-bold uppercase tracking-wider mb-6">
 							<UserPlus className="w-4 h-4 text-[#31BC2E]" />
-							<span>Rejoignez Harvests</span>
+							<span>{t("register.badge")}</span>
 						</div>
 
 						{/* Réseaux sociaux */}
@@ -73,13 +76,13 @@ const Register = () => {
 						<div className="lg:hidden text-center mb-8">
 							<img
 								src={logo}
-								alt="Harvests Logo"
+								alt={t("common.logoAlt")}
 								className="sm:w-[300px] sm:h-[140px] w-[200px] h-[90px] mx-auto mb-4"
 							/>
 						</div>
 
 						<div className="text-center mb-4">
-							<h2 className="text-2xl font-extrabold text-white">Inscription</h2>
+							<h2 className="text-2xl font-extrabold text-white">{t("register.title")}</h2>
 						</div>
 
 						{errors.submit && (
@@ -96,7 +99,7 @@ const Register = () => {
 									isOpen={isDropdownOpen}
 									onToggle={() => setIsDropdownOpen(!isDropdownOpen)}
 									onSelect={setUserType}
-									error={errors.userType}
+									error={errors.userType && t(errors.userType)}
 								/>
 
 								{/* Nom - Conditionnel selon le type d'utilisateur */}
@@ -110,7 +113,7 @@ const Register = () => {
 										formData.firstName
 									}
 									onFirstNameChange={handleChange}
-									firstNameError={errors.firstName}
+									firstNameError={errors.firstName && t(errors.firstName)}
 								/>
 
 								{/* Email */}
@@ -120,8 +123,8 @@ const Register = () => {
 									name="email"
 									value={formData.email}
 									onChange={handleChange}
-									placeholder="Votre email"
-									error={errors.email}
+									placeholder={t("common.emailPlaceholder")}
+									error={errors.email && t(errors.email)}
 								/>
 
 								{/* Mot de passe */}
@@ -131,12 +134,12 @@ const Register = () => {
 									name="password"
 									value={formData.password}
 									onChange={handleChange}
-									placeholder="Votre mot de passe"
-									error={errors.password}
+									placeholder={t("common.passwordPlaceholder")}
+									error={errors.password && t(errors.password)}
 									showPasswordToggle={true}
 									showPassword={showPassword}
 									onTogglePassword={() => setShowPassword(!showPassword)}
-									helperText="Min. 8 caractères, 1 majuscule, 1 minuscule, 1 chiffre"
+									helperText={t("common.passwordHint")}
 								/>
 
 								{/* Lien de connexion */}
@@ -145,7 +148,7 @@ const Register = () => {
 										to="/login"
 										className="text-[#1A5514] hover:text-[#31BC2E] text-xs font-bold transition-colors"
 									>
-										Ou connectez-vous
+										{t("register.loginLink")}
 									</Link>
 								</div>
 
@@ -161,29 +164,33 @@ const Register = () => {
 											className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[#1A5514] focus:ring-[#1A5514] flex-shrink-0"
 										/>
 										<span className="text-xs text-gray-600 font-medium leading-snug">
-											J'ai lu et j'accepte les{" "}
-											<Link
-												to="/terms"
-												target="_blank"
-												rel="noopener noreferrer"
-												className="text-[#1A5514] hover:text-[#31BC2E] font-bold underline"
-											>
-												Conditions d'Utilisation
-											</Link>{" "}
-											et la{" "}
-											<Link
-												to="/privacy"
-												target="_blank"
-												rel="noopener noreferrer"
-												className="text-[#1A5514] hover:text-[#31BC2E] font-bold underline"
-											>
-												Politique de Confidentialité
-											</Link>
+											<Trans
+												i18nKey="register.acceptTerms"
+												ns="auth"
+												components={{
+													termsLink: (
+														<Link
+															to="/terms"
+															target="_blank"
+															rel="noopener noreferrer"
+															className="text-[#1A5514] hover:text-[#31BC2E] font-bold underline"
+														/>
+													),
+													privacyLink: (
+														<Link
+															to="/privacy"
+															target="_blank"
+															rel="noopener noreferrer"
+															className="text-[#1A5514] hover:text-[#31BC2E] font-bold underline"
+														/>
+													),
+												}}
+											/>
 										</span>
 									</label>
 									{errors.acceptedTerms && (
 										<p className="text-red-600 text-xs font-semibold mt-1 ml-6">
-											{errors.acceptedTerms}
+											{t(errors.acceptedTerms)}
 										</p>
 									)}
 								</div>
@@ -197,10 +204,10 @@ const Register = () => {
 									{isSubmitting ? (
 										<>
 											<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-											<span>Inscription en cours...</span>
+											<span>{t("register.submitting")}</span>
 										</>
 									) : (
-										"S'inscrire"
+										t("register.submit")
 									)}
 								</button>
 							</div>

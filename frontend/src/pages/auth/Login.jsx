@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Eye, EyeOff, Mail, Lock, LogIn as LogInIcon } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import SocialLinks from "../../components/common/SocialLinks";
@@ -8,6 +9,7 @@ import logo from "../../assets/logo.png";
 import authbg from "../../assets/images/authbg.webp";
 
 const Login = () => {
+	const { t } = useTranslation("auth");
 	const { login, getDefaultRoute } = useAuth();
 	const { openEmailVerificationModal } = useModal();
 	const navigate = useNavigate();
@@ -42,13 +44,13 @@ const Login = () => {
 		const newErrors = {};
 
 		if (!formData.email.trim()) {
-			newErrors.email = "L'email est requis";
+			newErrors.email = "validation.emailRequired";
 		} else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-			newErrors.email = "Format d'email invalide";
+			newErrors.email = "validation.emailInvalid";
 		}
 
 		if (!formData.password) {
-			newErrors.password = "Le mot de passe est requis";
+			newErrors.password = "validation.passwordRequired";
 		}
 
 		setErrors(newErrors);
@@ -87,7 +89,7 @@ const Login = () => {
 				}
 			}
 		} catch {
-			setErrors({ submit: "Erreur de connexion" });
+			setErrors({ submit: t("login.error") });
 		} finally {
 			setIsSubmitting(false);
 		}
@@ -108,12 +110,12 @@ const Login = () => {
 					<div className="relative z-10 text-center">
 						<img
 							src={logo}
-							alt="Harvests Logo"
+							alt={t("common.logoAlt")}
 							className="w-[400px] h-[190px] mx-auto mb-6 drop-shadow-lg"
 						/>
 						<div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0D330A] shadow-md text-white text-xs font-bold uppercase tracking-wider mb-6">
 							<LogInIcon className="w-4 h-4 text-[#31BC2E]" />
-							<span>Bon retour</span>
+							<span>{t("login.badge")}</span>
 						</div>
 
 						{/* Réseaux sociaux */}
@@ -134,13 +136,13 @@ const Login = () => {
 						<div className="lg:hidden text-center mb-8">
 							<img
 								src={logo}
-								alt="Harvests Logo"
+								alt={t("common.logoAlt")}
 								className="sm:w-[300px] sm:h-[140px] w-[200px] h-[90px] mx-auto mb-4"
 							/>
 						</div>
 
 						<div className="text-center mb-5">
-							<h2 className="text-2xl font-extrabold text-white">Connexion</h2>
+							<h2 className="text-2xl font-extrabold text-white">{t("login.title")}</h2>
 						</div>
 
 						{errors.submit && (
@@ -161,13 +163,13 @@ const Login = () => {
 										name="email"
 										value={formData.email}
 										onChange={handleChange}
-										placeholder="Votre email"
+										placeholder={t("common.emailPlaceholder")}
 										className={`w-full pl-10 pr-4 py-3 border rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] outline-none transition-all text-sm ${
 											errors.email ? "border-red-300" : "border-gray-200"
 										}`}
 									/>
 									{errors.email && (
-										<p className="mt-1 text-xs text-red-600 font-medium">{errors.email}</p>
+										<p className="mt-1 text-xs text-red-600 font-medium">{t(errors.email)}</p>
 									)}
 								</div>
 
@@ -181,7 +183,7 @@ const Login = () => {
 										name="password"
 										value={formData.password}
 										onChange={handleChange}
-										placeholder="Votre mot de passe"
+										placeholder={t("common.passwordPlaceholder")}
 										className={`w-full pl-10 pr-12 py-3 border rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] outline-none transition-all text-sm ${
 											errors.password ? "border-red-300" : "border-gray-200"
 										}`}
@@ -190,6 +192,7 @@ const Login = () => {
 										type="button"
 										className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600"
 										onClick={() => setShowPassword(!showPassword)}
+									aria-label={t(showPassword ? "common.hidePassword" : "common.showPassword")}
 									>
 										{showPassword ? (
 											<EyeOff className="h-4.5 w-4.5" />
@@ -199,7 +202,7 @@ const Login = () => {
 									</button>
 									{errors.password && (
 										<p className="mt-1 text-xs text-red-600 font-medium">
-											{errors.password}
+											{t(errors.password)}
 										</p>
 									)}
 								</div>
@@ -210,13 +213,13 @@ const Login = () => {
 										to="/register"
 										className="text-[#1A5514] hover:text-[#31BC2E] font-bold transition-colors"
 									>
-										Ou inscrivez-vous
+										{t("login.registerLink")}
 									</Link>
 									<Link
 										to="/forgot-password"
 										className="text-[#1A5514] hover:text-[#31BC2E] font-bold transition-colors"
 									>
-										Mot de passe oublié ?
+										{t("login.forgotPasswordLink")}
 									</Link>
 								</div>
 
@@ -231,7 +234,7 @@ const Login = () => {
 										className="h-4 w-4 rounded border-gray-300 text-[#1A5514] focus:ring-[#1A5514]"
 									/>
 									<span className="text-xs text-gray-600 font-medium">
-										Se souvenir de moi
+										{t("login.rememberMe")}
 									</span>
 								</label>
 
@@ -244,10 +247,10 @@ const Login = () => {
 									{isSubmitting ? (
 										<>
 											<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-											<span>Connexion en cours...</span>
+											<span>{t("login.submitting")}</span>
 										</>
 									) : (
-										"Se connecter"
+										t("login.submit")
 									)}
 								</button>
 							</div>

@@ -1,9 +1,11 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { FiMail, FiAlertCircle, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 import { useAuth } from '../../hooks/useAuth';
 import { authService } from '../../services';
 
 const EmailVerificationRequired = ({ errorData, onResendEmail }) => {
+  const { t } = useTranslation('auth');
   const { user } = useAuth();
   const [isResending, setIsResending] = React.useState(false);
   const [resendStatus, setResendStatus] = React.useState(null);
@@ -34,16 +36,16 @@ const EmailVerificationRequired = ({ errorData, onResendEmail }) => {
         </div>
         <div className="ml-4 flex-1">
           <h3 className="text-lg font-medium text-yellow-800">
-            {errorData?.message || 'Vérification d\'email requise'}
+            {errorData?.message || t('verificationRequired.title')}
           </h3>
           <p className="mt-2 text-sm text-yellow-700">
-            {errorData?.suggestion || 'Vérifiez votre email pour débloquer cette fonctionnalité'}
+            {errorData?.suggestion || t('verificationRequired.suggestion')}
           </p>
 
           {/* Actions autorisées */}
           {errorData?.allowedActions && errorData.allowedActions.length > 0 && (
             <div className="mt-4">
-              <p className="text-sm font-medium text-yellow-800 mb-2">Actions autorisées :</p>
+              <p className="text-sm font-medium text-yellow-800 mb-2">{t('verificationRequired.allowedActions')}</p>
               <ul className="list-disc list-inside space-y-1">
                 {errorData.allowedActions.map((action, index) => (
                   <li key={index} className="text-sm text-yellow-700 flex items-center">
@@ -58,7 +60,7 @@ const EmailVerificationRequired = ({ errorData, onResendEmail }) => {
           {/* Actions restreintes */}
           {errorData?.restrictedActions && errorData.restrictedActions.length > 0 && (
             <div className="mt-4">
-              <p className="text-sm font-medium text-yellow-800 mb-2">Actions non disponibles :</p>
+              <p className="text-sm font-medium text-yellow-800 mb-2">{t('verificationRequired.restrictedActions')}</p>
               <ul className="list-disc list-inside space-y-1">
                 {errorData.restrictedActions.map((action, index) => (
                   <li key={index} className="text-sm text-yellow-700 flex items-center">
@@ -76,7 +78,7 @@ const EmailVerificationRequired = ({ errorData, onResendEmail }) => {
               <div className="flex items-center">
                 <FiCheckCircle className="h-5 w-5 text-green-600 mr-2" />
                 <p className="text-sm text-green-700">
-                  Email de vérification renvoyé avec succès ! Vérifiez votre boîte de réception.
+                  {t('verificationRequired.resent')}
                 </p>
               </div>
             </div>
@@ -87,7 +89,7 @@ const EmailVerificationRequired = ({ errorData, onResendEmail }) => {
               <div className="flex items-center">
                 <FiAlertCircle className="h-5 w-5 text-red-600 mr-2" />
                 <p className="text-sm text-red-700">
-                  Erreur lors du renvoi. Veuillez réessayer.
+                  {t('common.resendError')}
                 </p>
               </div>
             </div>
@@ -103,17 +105,17 @@ const EmailVerificationRequired = ({ errorData, onResendEmail }) => {
               {isResending ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Envoi en cours...
+                  {t('common.sending')}
                 </>
               ) : resendStatus === 'success' ? (
                 <>
                   <FiCheckCircle className="h-4 w-4 mr-2" />
-                  Email renvoyé
+                  {t('verificationRequired.resentButton')}
                 </>
               ) : (
                 <>
                   <FiMail className="h-4 w-4 mr-2" />
-                  Renvoyer l'email de vérification
+                  {t('common.resendVerification')}
                 </>
               )}
             </button>

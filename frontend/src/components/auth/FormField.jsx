@@ -1,7 +1,8 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff } from 'lucide-react';
 
-const FormField = ({ 
+const FormField = ({
   icon: Icon, 
   type = 'text', 
   name, 
@@ -14,6 +15,7 @@ const FormField = ({
   onTogglePassword,
   helperText
 }) => {
+  const { t } = useTranslation('auth');
   return (
     <div>
       <div className="relative">
@@ -37,6 +39,7 @@ const FormField = ({
             type="button"
             className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600"
             onClick={onTogglePassword}
+            aria-label={t(showPassword ? 'common.hidePassword' : 'common.showPassword')}
           >
             {showPassword ? (
               <EyeOff className="h-4.5 w-4.5" />
