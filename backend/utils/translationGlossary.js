@@ -39,21 +39,32 @@ function buildGlossary(exactEntries, replacementRules) {
 	};
 }
 
+// Jour 48 : un glossaire par sens de traduction ({ "fr-en": ..., "en-fr": ... }).
+// Le fichier JSON de repli ne contient que le sens fr -> en.
 function buildFromJson() {
-	return buildGlossary(
-		Object.entries(fallbackGlossary.exactTerms || {}).map(([source, target]) => ({ source, target })),
-		fallbackGlossary.wordReplacements || [],
-	);
+	return {
+		"fr-en": buildGlossary(
+			Object.entries(fallbackGlossary.exactTerms || {}).map(([source, target]) => ({ source, target })),
+			fallbackGlossary.wordReplacements || [],
+		),
+		"en-fr": buildGlossary([], []),
+	};
 }
 
 async function buildFromDatabase() {
 	const entries = await TranslationGlossary.find().sort({ createdAt: 1 }).lean();
-	return buildGlossary(
-		entries.filter((e) => e.type === "exact"),
-		entries
-			.filter((e) => e.type === "replacement")
-			.map((e) => ({ match: e.source, replace: e.target, flags: e.flags })),
-	);
+	const byDirection = {};
+	for (const direction of TranslationGlossary.DIRECTIONS) {
+		// Entrées antérieures au champ `direction` : fr -> en
+		const scoped = entries.filter((e) => (e.direction || "fr-en") === direction);
+		byDirection[direction] = buildGlossary(
+			scoped.filter((e) => e.type === "exact"),
+			scoped
+				.filter((e) => e.type === "replacement")
+				.map((e) => ({ match: e.source, replace: e.target, flags: e.flags })),
+		);
+	}
+	return byDirection;
 }
 
 async function loadGlossary() {

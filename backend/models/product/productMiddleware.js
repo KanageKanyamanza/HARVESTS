@@ -26,21 +26,42 @@ const normalizeBilingualShape = (value) => {
 };
 
 /**
- * Traduit fr -> en pour un champ bilingue si `en` est absent. Best-effort :
- * en cas d'échec du service de traduction, le champ reste { fr } seul (pas
- * bloquant, `toPlainText` retombe sur fr côté lecture).
+ * Complète la langue manquante d'un champ bilingue par traduction automatique.
+ *
+ * - `en` absent : fr -> en. En cas d'échec, le champ reste { fr } seul (pas
+ *   bloquant, `toPlainText` retombe sur fr côté lecture).
+ * - `fr` absent (Jour 48 : vendeur qui saisit en anglais, interface en
+ *   anglais) : en -> fr. `fr` étant obligatoire pour la validation, un échec
+ *   du service recopie le texte anglais dans `fr` plutôt que de bloquer
+ *   l'enregistrement.
  */
 const fillAutoTranslation = async (shaped) => {
   if (!shaped || typeof shaped !== 'object') return shaped;
-  if (shaped.en || !shaped.fr) return shaped;
-  try {
-    const { translatedText, ok } = await translateText(shaped.fr, 'fr', 'en');
-    if (ok && translatedText) {
-      return { ...shaped, en: translatedText };
+
+  if (shaped.fr && !shaped.en) {
+    try {
+      const { translatedText, ok } = await translateText(shaped.fr, 'fr', 'en');
+      if (ok && translatedText) {
+        return { ...shaped, en: translatedText };
+      }
+    } catch (error) {
+      // Best-effort : on garde { fr } seul si la traduction échoue
     }
-  } catch (error) {
-    // Best-effort : on garde { fr } seul si la traduction échoue
+    return shaped;
   }
+
+  if (shaped.en && !shaped.fr) {
+    try {
+      const { translatedText, ok } = await translateText(shaped.en, 'en', 'fr');
+      if (ok && translatedText) {
+        return { fr: translatedText, en: shaped.en };
+      }
+    } catch (error) {
+      // repli ci-dessous
+    }
+    return { fr: shaped.en, en: shaped.en };
+  }
+
   return shaped;
 };
 
@@ -52,15 +73,21 @@ function addProductMiddleware(productSchema) {
   // doit rester tel quel. Les documents legacy (chaîne simple) restent lus
   // tels quels aussi ; `toPlainText` (frontend/backend) gère les deux formes.
 
-  // Middleware pre-save
-  productSchema.pre('save', async function(next) {
+  // Champs bilingues normalisés et complétés AVANT la validation (Jour 48) :
+  // le schéma exige `fr`, qu'un payload { en } seul n'a qu'après traduction.
+  // save() déclenche validate(), donc ce hook couvre aussi les sauvegardes.
+  productSchema.pre('validate', async function(next) {
     for (const field of BILINGUAL_FIELDS) {
       if (this[field] !== undefined && this[field] !== null && this.isModified(field)) {
         const shaped = normalizeBilingualShape(this[field]);
         this[field] = await fillAutoTranslation(shaped);
       }
     }
+    next();
+  });
 
+  // Middleware pre-save
+  productSchema.pre('save', async function(next) {
     // Générer le slug à partir du nom français
     if (this.isModified('name')) {
       const nameForSlug = toPlainText(this.name, 'product');

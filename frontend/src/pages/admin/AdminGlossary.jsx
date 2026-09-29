@@ -13,10 +13,19 @@ import {
 import { adminService } from "../../services/adminService";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 
-// Jour 46 (bascule bilingue) - gestion du glossaire de traduction fr -> en
-// utilisé par la traduction automatique des produits/plats/blogs
-// (backend/utils/translateText.js). UI en français comme le reste du
-// back-office.
+// Jour 46 (bascule bilingue) - gestion du glossaire de traduction utilisé
+// par la traduction automatique des produits/plats/blogs
+// (backend/utils/translateText.js). Jour 48 : dans les deux sens (fr -> en
+// et en -> fr), chaque entrée ayant son sens. UI en français comme le reste
+// du back-office.
+
+const DIRECTIONS = {
+	"fr-en": { label: "FR → EN", from: "fr", to: "en", source: "français", target: "anglaise", result: "anglais" },
+	"en-fr": { label: "EN → FR", from: "en", to: "fr", source: "anglais", target: "française", result: "français" },
+};
+
+// Entrées créées avant le champ `direction` (Jour 46) : fr -> en
+const entryDirection = (entry) => entry.direction || "fr-en";
 
 const TYPE_LABELS = {
 	exact: "Terme exact",
@@ -24,6 +33,7 @@ const TYPE_LABELS = {
 };
 
 const EMPTY_FORM = {
+	direction: "fr-en",
 	type: "exact",
 	source: "",
 	target: "",
@@ -55,12 +65,14 @@ const AdminGlossary = () => {
 	const [loadError, setLoadError] = useState(null);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [typeFilter, setTypeFilter] = useState("all");
+	const [directionFilter, setDirectionFilter] = useState("all");
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [editingEntry, setEditingEntry] = useState(null);
 	const [formData, setFormData] = useState(EMPTY_FORM);
 	const [formError, setFormError] = useState(null);
 	const [actionLoading, setActionLoading] = useState(false);
 	const [testText, setTestText] = useState("");
+	const [testDirection, setTestDirection] = useState("fr-en");
 	const [testResult, setTestResult] = useState(null);
 	const [testLoading, setTestLoading] = useState(false);
 
@@ -89,17 +101,21 @@ const AdminGlossary = () => {
 		const term = searchTerm.trim().toLowerCase();
 		return entries.filter((entry) => {
 			if (typeFilter !== "all" && entry.type !== typeFilter) return false;
+			if (directionFilter !== "all" && entryDirection(entry) !== directionFilter)
+				return false;
 			if (!term) return true;
 			return [entry.source, entry.target, entry.note]
 				.filter(Boolean)
 				.some((value) => value.toLowerCase().includes(term));
 		});
-	}, [entries, searchTerm, typeFilter]);
+	}, [entries, searchTerm, typeFilter, directionFilter]);
 
 	const counts = useMemo(
 		() => ({
 			exact: entries.filter((e) => e.type === "exact").length,
 			replacement: entries.filter((e) => e.type === "replacement").length,
+			"fr-en": entries.filter((e) => entryDirection(e) === "fr-en").length,
+			"en-fr": entries.filter((e) => entryDirection(e) === "en-fr").length,
 		}),
 		[entries],
 	);
@@ -109,6 +125,7 @@ const AdminGlossary = () => {
 		setFormData(
 			entry
 				? {
+						direction: entryDirection(entry),
 						type: entry.type,
 						source: entry.source,
 						target: entry.target,
@@ -134,6 +151,7 @@ const AdminGlossary = () => {
 		}
 
 		const data = {
+			direction: formData.direction,
 			type: formData.type,
 			source: formData.source.trim(),
 			target: formData.target.trim(),
@@ -183,7 +201,8 @@ const AdminGlossary = () => {
 		setTestLoading(true);
 		setTestResult(null);
 		try {
-			const response = await adminService.translateText(testText, "fr", "en");
+			const { from, to } = DIRECTIONS[testDirection];
+			const response = await adminService.translateText(testText, from, to);
 			setTestResult({
 				text: response.data?.translatedText,
 				warning: response.data?.warning,
@@ -210,7 +229,7 @@ const AdminGlossary = () => {
 					<div>
 						<div className="flex items-center gap-2 text-purple-600 font-black text-[9px] uppercase tracking-[0.2em] mb-1">
 							<div className="w-5 h-[2px] bg-purple-600"></div>
-							<span>Traduction automatique FR → EN</span>
+							<span>Traduction automatique FR ↔ EN</span>
 						</div>
 						<h1 className="text-xl font-black text-gray-900 tracking-tight leading-none mb-1">
 							Glossaire de <span className="text-purple-600">traduction</span>
@@ -238,12 +257,31 @@ const AdminGlossary = () => {
 				>
 					<label className={labelClass}>Tester une traduction</label>
 					<div className="flex flex-col sm:flex-row gap-2">
+						<select
+							value={testDirection}
+							onChange={(e) => {
+								setTestDirection(e.target.value);
+								setTestResult(null);
+							}}
+							className={`${inputClass} sm:w-32`}
+							aria-label="Sens de traduction"
+						>
+							{Object.entries(DIRECTIONS).map(([value, { label }]) => (
+								<option key={value} value={value}>
+									{label}
+								</option>
+							))}
+						</select>
 						<input
 							type="text"
 							value={testText}
 							onChange={(e) => setTestText(e.target.value)}
 							className={inputClass}
-							placeholder="Ex : Sauce de corète potagère au soumbala"
+							placeholder={
+								testDirection === "fr-en" ?
+									"Ex : Sauce de corète potagère au soumbala"
+								:	"Ex : Jute mallow sauce with soumbala"
+							}
 						/>
 						<button
 							type="submit"
@@ -264,7 +302,7 @@ const AdminGlossary = () => {
 							{testResult.text && (
 								<p className="text-gray-900">
 									<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">
-										EN
+										{DIRECTIONS[testDirection].to.toUpperCase()}
 									</span>
 									{testResult.text}
 								</p>
@@ -301,6 +339,18 @@ const AdminGlossary = () => {
 							Remplacements ({counts.replacement})
 						</option>
 					</select>
+					<select
+						value={directionFilter}
+						onChange={(e) => setDirectionFilter(e.target.value)}
+						className="pl-3 pr-8 py-1.5 bg-gray-100/50 border border-transparent focus:border-purple-100 focus:bg-white focus:ring-2 focus:ring-purple-500/10 rounded-lg text-xs font-medium appearance-none cursor-pointer"
+					>
+						<option value="all">Tous les sens</option>
+						{Object.entries(DIRECTIONS).map(([value, { label }]) => (
+							<option key={value} value={value}>
+								{label} ({counts[value]})
+							</option>
+						))}
+					</select>
 				</div>
 
 				{loadError && (
@@ -322,13 +372,16 @@ const AdminGlossary = () => {
 								<thead className="bg-gray-50/50 border-b border-gray-100">
 									<tr>
 										<th className="px-4 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
+											Sens
+										</th>
+										<th className="px-4 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 											Type
 										</th>
 										<th className="px-4 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
-											Français / motif
+											Terme source / motif
 										</th>
 										<th className="px-4 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
-											Anglais
+											Traduction
 										</th>
 										<th className="px-4 py-3 text-left text-[9px] font-black text-gray-600 uppercase tracking-widest">
 											Note
@@ -342,7 +395,7 @@ const AdminGlossary = () => {
 									{filteredEntries.length === 0 && (
 										<tr>
 											<td
-												colSpan={5}
+												colSpan={6}
 												className="px-4 py-8 text-center text-xs text-gray-400"
 											>
 												{entries.length === 0
@@ -356,6 +409,11 @@ const AdminGlossary = () => {
 											key={entry._id}
 											className="hover:bg-gray-50/50 transition-colors"
 										>
+											<td className="px-4 py-3 whitespace-nowrap">
+												<span className="px-2 py-0.5 rounded-md text-[9px] font-black tracking-widest bg-gray-100 text-gray-600">
+													{DIRECTIONS[entryDirection(entry)].label}
+												</span>
+											</td>
 											<td className="px-4 py-3 whitespace-nowrap">
 												<span
 													className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest ${
@@ -429,6 +487,23 @@ const AdminGlossary = () => {
 							</h2>
 							<form onSubmit={handleSubmit} className="space-y-4">
 								<div>
+									<label className={labelClass}>Sens de traduction</label>
+									<select
+										value={formData.direction}
+										onChange={(e) =>
+											setFormData({ ...formData, direction: e.target.value })
+										}
+										className={inputClass}
+									>
+										<option value="fr-en">
+											FR → EN — textes saisis en français
+										</option>
+										<option value="en-fr">
+											EN → FR — textes saisis en anglais
+										</option>
+									</select>
+								</div>
+								<div>
 									<label className={labelClass}>Type</label>
 									<select
 										value={formData.type}
@@ -447,13 +522,13 @@ const AdminGlossary = () => {
 									<p className="text-[11px] text-gray-400 mt-1">
 										{formData.type === "exact"
 											? "Si le texte à traduire est exactement ce terme (majuscules ignorées), la traduction ci-dessous est utilisée telle quelle, sans passer par le service automatique."
-											: "Appliqué au résultat anglais de la traduction automatique : chaque correspondance du motif est remplacée. Utile quand le service traduit mal un mot au milieu d'une description."}
+											: `Appliqué au résultat ${DIRECTIONS[formData.direction].result} de la traduction automatique : chaque correspondance du motif est remplacée. Utile quand le service traduit mal un mot au milieu d'une description.`}
 									</p>
 								</div>
 								<div>
 									<label className={labelClass}>
 										{formData.type === "exact"
-											? "Terme français"
+											? `Terme ${DIRECTIONS[formData.direction].source}`
 											: "Motif à corriger (expression régulière)"}
 									</label>
 									<input
@@ -465,9 +540,12 @@ const AdminGlossary = () => {
 										}
 										className={`${inputClass} ${formData.type === "replacement" ? "font-mono" : ""}`}
 										placeholder={
-											formData.type === "exact"
-												? "Ex : corète potagère"
-												: "Ex : \\bgombo\\b"
+											formData.type === "exact" ?
+												formData.direction === "fr-en" ?
+													"Ex : corète potagère"
+												:	"Ex : jute mallow"
+											: formData.direction === "fr-en" ? "Ex : \\bgumbo\\b"
+											: "Ex : \\bmauve de jute\\b"
 										}
 									/>
 									{formData.type === "replacement" && (
@@ -478,7 +556,9 @@ const AdminGlossary = () => {
 									)}
 								</div>
 								<div>
-									<label className={labelClass}>Traduction anglaise</label>
+									<label className={labelClass}>
+										Traduction {DIRECTIONS[formData.direction].target}
+									</label>
 									<input
 										type="text"
 										required
@@ -487,7 +567,11 @@ const AdminGlossary = () => {
 											setFormData({ ...formData, target: e.target.value })
 										}
 										className={inputClass}
-										placeholder="Ex : Jute Mallow"
+										placeholder={
+											formData.direction === "fr-en" ?
+												"Ex : Jute Mallow"
+											:	"Ex : Corète potagère"
+										}
 									/>
 								</div>
 								{formData.type === "replacement" && (

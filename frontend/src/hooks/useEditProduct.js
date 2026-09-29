@@ -1,13 +1,31 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { producerService } from "../services";
 import { toPlainText, deriveShortDescription } from "../utils/textHelpers";
+import {
+	buildBilingualValue,
+	getLocalizedValue,
+	getOtherLang,
+	getSourceLang,
+	getStaleLang,
+} from "../utils/bilingualField";
 import { DEFAULT_CURRENCY } from "../config/currencies";
+import { useBilingualSourceLang } from "./useBilingualSourceLang";
+
+const BILINGUAL_FIELDS = ["name", "description"];
 
 /**
  * Hook personnalisé pour gérer l'édition d'un produit
+ *
+ * Jour 48 (bascule bilingue) : les champs principaux nom/description sont
+ * dans la langue de l'interface, les champs *Alt dans l'autre langue, chacun
+ * lu explicitement (toPlainText mélangeait les langues et enregistrait un
+ * texte anglais comme `fr`). Les erreurs de validation sont des clés du
+ * namespace dashboard-producer, traduites à l'affichage.
  */
 export const useEditProduct = () => {
+	const { t, i18n } = useTranslation("dashboard-producer");
 	const { id } = useParams();
 	const navigate = useNavigate();
 	const [loading, setLoading] = useState(true);
@@ -16,10 +34,18 @@ export const useEditProduct = () => {
 	const [uploadingImages, setUploadingImages] = useState(false);
 	const [productImages, setProductImages] = useState([]);
 	const [product, setProduct] = useState(null);
+	// Textes fr/en tels que chargés, pour détecter une traduction devenue
+	// obsolète
+	const [originalTexts, setOriginalTexts] = useState(null);
+	// Pour chaque champ bilingue, rôle dans lequel chaque langue a été
+	// modifiée : { name: { fr: "source", en: "retouch" }, ... }
+	const editRoles = useRef({});
 
 	const [formData, setFormData] = useState({
 		name: "",
 		description: "",
+		nameAlt: "",
+		descriptionAlt: "",
 		price: "",
 		stock: "",
 		category: "",
@@ -30,6 +56,12 @@ export const useEditProduct = () => {
 		flashSaleDiscount: "",
 		flashSaleEndDate: "",
 	});
+	// Langue des champs principaux (name/description) ; nameAlt/descriptionAlt
+	// contiennent l'autre langue, échangés sur place au changement de langue
+	const [sourceLang, setSourceLang] = useBilingualSourceLang(
+		setFormData,
+		BILINGUAL_FIELDS,
+	);
 
 	// Charger le produit à modifier
 	useEffect(() => {
@@ -50,9 +82,35 @@ export const useEditProduct = () => {
 
 					setProduct(formattedProduct);
 
+					const texts = {
+						name: {
+							fr: getLocalizedValue(productData.name, "fr"),
+							en: getLocalizedValue(productData.name, "en"),
+						},
+						description: {
+							fr: getLocalizedValue(productData.description, "fr"),
+							en: getLocalizedValue(productData.description, "en"),
+						},
+					};
+					setOriginalTexts(texts);
+					editRoles.current = {};
+
+					// Langue des champs principaux : celle de l'interface, sauf si le
+					// produit n'a pas encore de texte dans cette langue (on garde
+					// alors celle qui en a, plutôt qu'un champ principal vide)
+					const uiLang = getSourceLang(i18n.language);
+					const lang =
+						texts.name[uiLang] || !texts.name[getOtherLang(uiLang)] ?
+							uiLang
+						:	getOtherLang(uiLang);
+					const alt = getOtherLang(lang);
+					setSourceLang(lang);
+
 					setFormData({
-						name: formattedProduct.name,
-						description: formattedProduct.description,
+						name: texts.name[lang],
+						description: texts.description[lang],
+						nameAlt: texts.name[alt],
+						descriptionAlt: texts.description[alt],
 						price: formattedProduct.price || "",
 						stock: formattedProduct.inventory?.quantity || "",
 						category: formattedProduct.category || "",
@@ -78,7 +136,7 @@ export const useEditProduct = () => {
 				}
 			} catch (error) {
 				console.error("Erreur lors du chargement du produit:", error);
-				setErrors({ submit: "Erreur lors du chargement du produit" });
+				setErrors({ submit: t("products.form.loadError") });
 			} finally {
 				setLoading(false);
 			}
@@ -87,12 +145,27 @@ export const useEditProduct = () => {
 		if (id) {
 			loadProduct();
 		}
+		// Pas de `t` en dépendance : un changement de langue rechargerait le
+		// produit et effacerait les modifications en cours
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [id]);
 
 	const handleInputChange = (e) => {
 		const { name, value, type, checked } = e.target;
 		const val = type === "checkbox" ? checked : value;
 		setFormData((prev) => ({ ...prev, [name]: val }));
+
+		// Rôle de la langue modifiée, mémorisé à la saisie (voir getStaleLang) :
+		// texte principal = "source", bloc de l'autre langue = "retouche".
+		// Un rôle "source" n'est jamais rétrogradé en "retouche".
+		const field = name.replace(/Alt$/, "");
+		if (BILINGUAL_FIELDS.includes(field)) {
+			const isAlt = name !== field;
+			const lang = isAlt ? getOtherLang(sourceLang) : sourceLang;
+			const roles = (editRoles.current[field] ||= {});
+			if (!isAlt) roles[lang] = "source";
+			else if (!roles[lang]) roles[lang] = "retouch";
+		}
 		if (errors[name]) {
 			setErrors((prev) => ({ ...prev, [name]: "" }));
 		}
@@ -140,23 +213,23 @@ export const useEditProduct = () => {
 		const newErrors = {};
 
 		if (!formData.name.trim()) {
-			newErrors.name = "Le nom du produit est requis";
+			newErrors.name = "products.validation.nameRequired";
 		}
 
 		if (!formData.description.trim()) {
-			newErrors.description = "La description est requise";
+			newErrors.description = "products.validation.descriptionRequired";
 		}
 
 		if (!formData.price || parseFloat(formData.price) <= 0) {
-			newErrors.price = "Le prix est requis";
+			newErrors.price = "products.validation.priceRequired";
 		}
 
 		if (!formData.stock || parseInt(formData.stock) < 0) {
-			newErrors.stock = "Le stock est requis";
+			newErrors.stock = "products.validation.stockRequired";
 		}
 
 		if (!formData.category) {
-			newErrors.category = "La catégorie est requise";
+			newErrors.category = "products.validation.categoryRequired";
 		}
 
 		setErrors(newErrors);
@@ -171,10 +244,31 @@ export const useEditProduct = () => {
 		try {
 			setSaving(true);
 
+			const bilingual = (field) => {
+				const other = getOtherLang(sourceLang);
+				const current = {
+					[sourceLang]: formData[field],
+					[other]: formData[`${field}Alt`],
+				};
+				return buildBilingualValue(
+					formData[field],
+					formData[`${field}Alt`],
+					sourceLang,
+					getStaleLang(current, originalTexts?.[field], editRoles.current[field]),
+				);
+			};
+			const description = bilingual("description");
 			const productData = {
-				name: toPlainText(formData.name, ""),
-				description: toPlainText(formData.description, ""),
-				shortDescription: deriveShortDescription(formData.description, ""),
+				name: bilingual("name"),
+				description,
+				// Mêmes langues que la description : celle qui manque est
+				// traduite par le backend
+				shortDescription: Object.fromEntries(
+					Object.entries(description).map(([lang, text]) => [
+						lang,
+						deriveShortDescription(text, ""),
+					]),
+				),
 				price: parseFloat(formData.price),
 				category: formData.category,
 				subcategory: formData.category,
@@ -197,7 +291,7 @@ export const useEditProduct = () => {
 		} catch (error) {
 			console.error("Erreur lors de la modification du produit:", error);
 
-			let errorMessage = "Erreur lors de la mise à jour du produit";
+			let errorMessage = t("products.form.updateError");
 
 			if (error.response?.data?.message) {
 				const serverMessage = error.response.data.message;
@@ -206,9 +300,9 @@ export const useEditProduct = () => {
 					serverMessage.includes("duplicate key error") &&
 					serverMessage.includes("slug")
 				) {
-					errorMessage = "Un produit avec ce nom existe déjà";
+					errorMessage = t("products.form.duplicateName");
 				} else if (serverMessage.includes("validation failed")) {
-					errorMessage = "Erreur de validation";
+					errorMessage = t("products.form.validationError");
 				} else {
 					errorMessage = serverMessage;
 				}
@@ -226,6 +320,7 @@ export const useEditProduct = () => {
 		saving,
 		errors,
 		formData,
+		sourceLang,
 		productImages,
 		uploadingImages,
 		setUploadingImages,

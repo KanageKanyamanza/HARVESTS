@@ -1,5 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { getOtherLang } from "../../../utils/bilingualField";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 import CloudinaryImage from "../../../components/common/CloudinaryImage";
 import ProductImageUpload from "../../../components/common/ProductImageUpload";
@@ -21,27 +23,13 @@ import {
 import { useEditProduct } from "../../../hooks/useEditProduct";
 import { CURRENCIES } from "../../../config/currencies";
 import { UNITS } from "../../../config/units";
-
-const categories = [
-	{ value: "cereals", label: "Céréales" },
-	{ value: "vegetables", label: "Légumes" },
-	{ value: "fruits", label: "Fruits" },
-	{ value: "legumes", label: "Légumineuses" },
-	{ value: "tubers", label: "Tubercules" },
-	{ value: "spices", label: "Épices" },
-	{ value: "herbs", label: "Herbes" },
-	{ value: "nuts", label: "Noix" },
-	{ value: "seeds", label: "Graines" },
-	{ value: "dairy", label: "Produits laitiers" },
-	{ value: "meat", label: "Viande" },
-	{ value: "poultry", label: "Volaille" },
-	{ value: "fish", label: "Poisson" },
-	{ value: "processed-foods", label: "Aliments transformés" },
-	{ value: "beverages", label: "Boissons" },
-	{ value: "other", label: "Autres" },
-];
+import {
+	PRODUCT_FORM_CATEGORIES,
+	getCategoryLabel,
+} from "../../../utils/productHelpers";
 
 const EditProduct = () => {
+	const { t, i18n } = useTranslation("dashboard-producer");
 	const navigate = useNavigate();
 	const {
 		product,
@@ -49,6 +37,7 @@ const EditProduct = () => {
 		saving,
 		errors,
 		formData,
+		sourceLang,
 		productImages,
 		uploadingImages,
 		setUploadingImages,
@@ -58,13 +47,14 @@ const EditProduct = () => {
 		handleImageReorder,
 		handleSubmit,
 	} = useEditProduct();
+	const otherLang = getOtherLang(sourceLang);
 
 	if (loading) {
 		return (
 			<div className="min-h-[80vh] flex flex-col items-center justify-center space-y-4">
 				<div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
 				<p className="text-xs font-black text-gray-600 uppercase tracking-widest">
-					Chargement du produit...
+					{t("products.form.loading")}
 				</p>
 			</div>
 		);
@@ -77,18 +67,17 @@ const EditProduct = () => {
 					<FiAlertCircle className="w-10 h-10" />
 				</div>
 				<h1 className="text-2xl font-[1000] text-gray-900 mb-2 tracking-tight">
-					Produit Erroné
+					{t("products.form.notFoundTitle")}
 				</h1>
 				<p className="text-gray-500 font-medium mb-8">
-					Nous n'avons pas pu trouver la référence demandée. Elle a peut-être
-					été supprimée.
+					{t("products.form.notFoundText")}
 				</p>
 				<button
 					onClick={() => navigate("/producer/products")}
 					className="inline-flex items-center px-8 py-3 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all hover:bg-emerald-600"
 				>
 					<FiArrowLeft className="mr-2" />
-					Retour au catalogue
+					{t("products.form.backToCatalog")}
 				</button>
 			</div>
 		);
@@ -110,19 +99,19 @@ const EditProduct = () => {
 						className="flex items-center text-gray-600 hover:text-gray-900 transition-colors mb-2 text-[10px] font-bold uppercase tracking-widest group"
 					>
 						<FiArrowLeft className="mr-2 group-hover:-translate-x-1 transition-transform" />
-						Retour
+						{t("products.form.back")}
 					</button>
 
 					<div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
 						<div>
 							<h1 className="text-2xl md:text-3xl font-[1000] text-gray-900 tracking-tighter leading-tight mb-1">
-								Modifier{" "}
+								{t("products.form.editTitleStart")}{" "}
 								<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">
-									Product.
+									{t("products.form.editTitleHighlight")}
 								</span>
 							</h1>
 							<p className="text-xs font-medium text-gray-500 flex items-center gap-2">
-								ID:{" "}
+								{t("products.form.idLabel")}{" "}
 								<span className="text-gray-900 font-black">
 									#{product._id.slice(-8).toUpperCase()}
 								</span>
@@ -150,10 +139,10 @@ const EditProduct = () => {
 									</div>
 									<div>
 										<h2 className="text-base font-[900] text-gray-900 leading-tight">
-											Détails Essentiels
+											{t("products.form.editGeneralTitle")}
 										</h2>
 										<p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">
-											Nom et description publique
+											{t("products.form.editGeneralSubtitle")}
 										</p>
 									</div>
 								</div>
@@ -161,13 +150,14 @@ const EditProduct = () => {
 								<div className="space-y-5">
 									<div>
 										<label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">
-											Nom du produit <span className="text-rose-500">*</span>
+											{t("products.form.name")} <span className="text-rose-500">*</span>
 										</label>
 										<div className="relative group">
 											<FiPackage className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
 											<input
 												type="text"
 												name="name"
+												lang={sourceLang}
 												value={formData.name}
 												onChange={handleInputChange}
 												className={`w-full pl-11 pr-4 py-3 bg-white/50 border rounded-2xl focus:outline-none focus:ring-4 transition-all font-bold text-gray-800 text-sm ${
@@ -175,24 +165,25 @@ const EditProduct = () => {
 														"border-rose-300 ring-rose-500/5"
 													:	"border-gray-100 focus:ring-emerald-500/5 focus:border-emerald-500/50"
 												}`}
-												placeholder="Ex: Tomates Cerises Bio"
+												placeholder={t("products.form.namePlaceholder")}
 											/>
 										</div>
 										{errors.name && (
 											<p className="mt-1.5 ml-1 text-[10px] font-bold text-rose-500">
-												{errors.name}
+												{t(errors.name)}
 											</p>
 										)}
 									</div>
 
 									<div>
 										<label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">
-											Description <span className="text-rose-500">*</span>
+											{t("products.form.description")} <span className="text-rose-500">*</span>
 										</label>
 										<div className="relative group">
 											<FiAlignLeft className="absolute left-4 top-4 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
 											<textarea
 												name="description"
+												lang={sourceLang}
 												value={formData.description}
 												onChange={handleInputChange}
 												rows={5}
@@ -201,14 +192,55 @@ const EditProduct = () => {
 														"border-rose-300 ring-rose-500/5"
 													:	"border-gray-100 focus:ring-emerald-500/5 focus:border-emerald-500/50"
 												}`}
-												placeholder="Décrivez votre produit en quelques mots..."
+												placeholder={t("products.form.descriptionPlaceholder")}
 											/>
 										</div>
 										{errors.description && (
 											<p className="mt-1.5 ml-1 text-[10px] font-bold text-rose-500">
-												{errors.description}
+												{t(errors.description)}
 											</p>
 										)}
+									</div>
+
+									{/* Jour 48 : retouche facultative dans l'autre langue (sinon traduction automatique côté backend) */}
+									<div className="p-4 bg-blue-50/40 rounded-2xl border border-blue-100/60 space-y-4">
+										<div>
+											<p className="text-[10px] font-black text-blue-700 uppercase tracking-widest">
+												{t(`products.form.otherLang.title.${otherLang}`)}
+											</p>
+											<p className="text-[10px] text-blue-600/80 font-medium mt-0.5">
+												{t("products.form.otherLang.hint")}{" "}
+												{t("products.form.otherLang.editHint")}
+											</p>
+										</div>
+										<div>
+											<label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">
+												{t(`products.form.otherLang.name.${otherLang}`)}
+											</label>
+											<input
+												type="text"
+												name="nameAlt"
+												lang={otherLang}
+												value={formData.nameAlt}
+												onChange={handleInputChange}
+												className="w-full px-4 py-3 bg-white/50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500/50 transition-all text-gray-800 text-sm font-bold"
+												placeholder={t(`products.form.otherLang.namePlaceholder.${otherLang}`)}
+											/>
+										</div>
+										<div>
+											<label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">
+												{t(`products.form.otherLang.description.${otherLang}`)}
+											</label>
+											<textarea
+												name="descriptionAlt"
+												lang={otherLang}
+												value={formData.descriptionAlt}
+												onChange={handleInputChange}
+												rows={4}
+												className="w-full px-4 py-3 bg-white/50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500/50 transition-all text-gray-800 text-sm font-medium resize-none"
+												placeholder={t("products.form.otherLang.descriptionPlaceholder")}
+											/>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -221,10 +253,10 @@ const EditProduct = () => {
 									</div>
 									<div>
 										<h2 className="text-base font-[900] text-gray-900 leading-tight">
-											Galerie Photo
+											{t("products.form.galleryTitle")}
 										</h2>
 										<p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">
-											Jusqu'à 5 images de haute qualité
+											{t("products.form.gallerySubtitle")}
 										</p>
 									</div>
 								</div>
@@ -261,6 +293,7 @@ const EditProduct = () => {
 																	onClick={() =>
 																		handleImageReorder(index, index - 1)
 																	}
+																	aria-label={t("products.form.moveLeft")}
 																	className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center text-white hover:bg-white hover:text-gray-900 transition-all"
 																>
 																	<FiChevronLeft />
@@ -272,6 +305,7 @@ const EditProduct = () => {
 																	onClick={() =>
 																		handleImageReorder(index, index + 1)
 																	}
+																	aria-label={t("products.form.moveRight")}
 																	className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center text-white hover:bg-white hover:text-gray-900 transition-all"
 																>
 																	<FiChevronRight />
@@ -281,6 +315,7 @@ const EditProduct = () => {
 														<button
 															type="button"
 															onClick={() => handleImageRemove(index)}
+															aria-label={t("products.form.removeImage")}
 															className="w-10 h-10 bg-rose-500 rounded-full flex items-center justify-center text-white hover:bg-rose-600 hover:scale-110 transition-all shadow-lg"
 														>
 															<FiX className="w-5 h-5" />
@@ -288,7 +323,7 @@ const EditProduct = () => {
 													</div>
 													{image.isPrimary && (
 														<div className="absolute top-2 left-2 px-2 py-0.5 bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest rounded-md">
-															Principale
+															{t("products.form.primaryImage")}
 														</div>
 													)}
 												</div>
@@ -308,10 +343,10 @@ const EditProduct = () => {
 									</div>
 									<div>
 										<h2 className="text-base font-[900] text-gray-900 leading-tight">
-											Vente & Stock
+											{t("products.form.editSalesTitle")}
 										</h2>
 										<p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">
-											Paramètres commerciaux
+											{t("products.form.editSalesSubtitle")}
 										</p>
 									</div>
 								</div>
@@ -319,7 +354,7 @@ const EditProduct = () => {
 								<div className="space-y-4">
 									<div>
 										<label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">
-											Catégorie <span className="text-rose-500">*</span>
+											{t("products.form.category")} <span className="text-rose-500">*</span>
 										</label>
 										<div className="relative group">
 											<FiTag className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500" />
@@ -333,10 +368,10 @@ const EditProduct = () => {
 													:	"border-gray-100 focus:ring-emerald-500/5 focus:border-emerald-500/50"
 												}`}
 											>
-												<option value="">Choisir...</option>
-												{categories.map((cat) => (
-													<option key={cat.value} value={cat.value}>
-														{cat.label}
+												<option value="">{t("products.form.selectCategory")}</option>
+												{PRODUCT_FORM_CATEGORIES.map((category) => (
+													<option key={category} value={category}>
+														{getCategoryLabel(category, i18n.language)}
 													</option>
 												))}
 											</select>
@@ -358,7 +393,7 @@ const EditProduct = () => {
 										</div>
 										{errors.category && (
 											<p className="mt-1.5 ml-1 text-[10px] font-bold text-rose-500">
-												{errors.category}
+												{t(errors.category)}
 											</p>
 										)}
 									</div>
@@ -366,7 +401,7 @@ const EditProduct = () => {
 									<div className="grid grid-cols-2 gap-3">
 										<div>
 											<label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">
-												Prix <span className="text-rose-500">*</span>
+												{t("products.form.price")} <span className="text-rose-500">*</span>
 											</label>
 											<div className="relative group">
 												<FiDollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -382,7 +417,7 @@ const EditProduct = () => {
 										</div>
 										<div>
 											<label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">
-												Devise
+												{t("products.form.currency")}
 											</label>
 											<select
 												name="currency"
@@ -402,7 +437,7 @@ const EditProduct = () => {
 									<div className="grid grid-cols-2 gap-3">
 										<div>
 											<label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">
-												Stock <span className="text-rose-500">*</span>
+												{t("products.form.stock")} <span className="text-rose-500">*</span>
 											</label>
 											<input
 												type="number"
@@ -415,7 +450,7 @@ const EditProduct = () => {
 										</div>
 										<div>
 											<label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">
-												Unité
+												{t("products.form.unit")}
 											</label>
 											<select
 												name="unit"
@@ -425,7 +460,7 @@ const EditProduct = () => {
 											>
 												{UNITS.map((u) => (
 													<option key={u.value} value={u.value}>
-														{u.label}
+														{t(`common:units.${u.key}`)}
 													</option>
 												))}
 											</select>
@@ -434,7 +469,7 @@ const EditProduct = () => {
 
 									<div>
 										<label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5 ml-1">
-											Cycle de Vie
+											{t("products.form.lifecycle")}
 										</label>
 										<select
 											name="status"
@@ -442,12 +477,18 @@ const EditProduct = () => {
 											onChange={handleInputChange}
 											className="w-full px-4 py-3 bg-white/50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500/50 transition-all font-bold text-gray-600 text-sm"
 										>
-											<option value="draft">Brouillon</option>
-											<option value="pending-review">
-												En attente de révision
+											<option value="draft">
+												{t("products.form.lifecycleOptions.draft")}
 											</option>
-											<option value="approved">Approuvé (Public)</option>
-											<option value="inactive">Inactif</option>
+											<option value="pending-review">
+												{t("products.form.lifecycleOptions.pending-review")}
+											</option>
+											<option value="approved">
+												{t("products.form.lifecycleOptions.approved")}
+											</option>
+											<option value="inactive">
+												{t("products.form.lifecycleOptions.inactive")}
+											</option>
 										</select>
 									</div>
 
@@ -455,7 +496,7 @@ const EditProduct = () => {
 									<div className="pt-4 border-t border-gray-100">
 										<div className="flex items-center justify-between mb-3">
 											<label className="block text-[10px] font-black text-emerald-600 uppercase tracking-widest ml-1">
-												Activer la Vente Flash
+												{t("products.form.flashSale")}
 											</label>
 											<label className="relative inline-flex items-center cursor-pointer">
 												<input
@@ -473,7 +514,7 @@ const EditProduct = () => {
 											<div className="space-y-3 p-3 bg-emerald-50/50 rounded-xl border border-emerald-100/50">
 												<div>
 													<label className="block text-[9px] font-black text-emerald-700 uppercase tracking-widest mb-1.5 ml-1">
-														Réduction (%)
+														{t("products.form.discount")}
 													</label>
 													<input
 														type="number"
@@ -481,14 +522,14 @@ const EditProduct = () => {
 														value={formData.flashSaleDiscount}
 														onChange={handleInputChange}
 														className="w-full px-3 py-2 bg-white/70 border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 text-sm font-bold text-gray-800"
-														placeholder="Ex: 20"
+														placeholder={t("products.form.discountPlaceholder")}
 														min="1"
 														max="100"
 													/>
 												</div>
 												<div>
 													<label className="block text-[9px] font-black text-emerald-700 uppercase tracking-widest mb-1.5 ml-1">
-														Date de fin
+														{t("products.form.endDate")}
 													</label>
 													<input
 														type="date"
@@ -511,10 +552,10 @@ const EditProduct = () => {
 								</div>
 								<div className="relative z-10 space-y-4">
 									<p className="text-[10px] font-black text-emerald-200 uppercase tracking-[0.2em]">
-										Validation Finale
+										{t("products.form.finalValidation")}
 									</p>
 									<h3 className="text-xl font-[1000] tracking-tight leading-tight">
-										Prêt à diffuser vos changements ?
+										{t("products.form.readyTitle")}
 									</h3>
 									<div className="pt-2 flex flex-col gap-3">
 										<button
@@ -525,11 +566,11 @@ const EditProduct = () => {
 											{saving ?
 												<div className="flex items-center gap-2">
 													<div className="w-3 h-3 border-2 border-emerald-600/20 border-t-emerald-600 rounded-full animate-spin"></div>
-													<span>Sauvegarde...</span>
+													<span>{t("products.form.saving")}</span>
 												</div>
 											:	<>
 													<FiSave className="mr-2 h-4 w-4" />
-													Enregistrer les modifications
+													{t("products.form.saveChanges")}
 												</>
 											}
 										</button>
@@ -538,7 +579,7 @@ const EditProduct = () => {
 											onClick={() => navigate("/producer/products")}
 											className="w-full inline-flex items-center justify-center px-6 py-3 bg-emerald-500/20 border border-emerald-400/30 text-white font-bold text-[10px] uppercase tracking-widest rounded-xl hover:bg-emerald-500/40 transition-all"
 										>
-											Annuler
+											{t("products.form.cancel")}
 										</button>
 									</div>
 								</div>

@@ -136,14 +136,14 @@ const PWAInstallModal = () => {
           <div className="absolute bottom-[-25%] right-[-20%] w-[60%] h-[55%] bg-amber-100/40 rounded-full blur-[90px]" />
         </div>
 
-        <button
+        {/* <button
           type="button"
           onClick={handleDismiss}
           className="absolute top-3 right-3 z-10 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
           aria-label={t('pwaInstall.close')}
         >
           <X className="w-5 h-5" />
-        </button>
+        </button> */}
 
         <div className="relative z-10 p-5 sm:p-6">
           <div className="text-center mb-4">

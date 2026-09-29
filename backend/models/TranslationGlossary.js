@@ -4,13 +4,28 @@ const mongoose = require("mongoose");
 // back-office, remplace le fichier statique backend/data/translationGlossary.json
 // (qui ne sert plus que de semence, cf scripts/seedTranslationGlossary.js).
 // Deux types d'entrées, lus par utils/translationGlossary.js :
-//   - "exact"       : `source` = terme français normalisé (trim + minuscules),
-//                     court-circuite l'appel MT quand le texte entier correspond
+//   - "exact"       : `source` = terme dans la langue source, normalisé
+//                     (trim + minuscules), court-circuite l'appel MT quand le
+//                     texte entier correspond
 //   - "replacement" : `source` = motif regex appliqué sur le résultat de la MT
+// Jour 48 : chaque entrée a un sens (`direction`), le glossaire servant aussi
+// aux textes saisis en anglais (en -> fr). Le sens inverse ne se déduit pas
+// automatiquement (plusieurs termes fr peuvent donner le même terme en, et
+// un remplacement porte sur le texte déjà traduit).
 const ALLOWED_FLAGS = /^[gimsuy]*$/;
+const DIRECTIONS = ["fr-en", "en-fr"];
 
 const translationGlossarySchema = new mongoose.Schema(
 	{
+		direction: {
+			type: String,
+			enum: {
+				values: DIRECTIONS,
+				message: "Sens de traduction invalide (fr-en ou en-fr)",
+			},
+			default: "fr-en",
+			required: [true, "Le sens de traduction est requis"],
+		},
 		type: {
 			type: String,
 			enum: {
@@ -50,8 +65,10 @@ const translationGlossarySchema = new mongoose.Schema(
 	{ timestamps: true },
 );
 
-// Pas deux fois le même terme exact / le même motif
-translationGlossarySchema.index({ type: 1, source: 1 }, { unique: true });
+// Pas deux fois le même terme exact / le même motif dans un même sens.
+// Remplace l'index { type, source } du Jour 46, à supprimer en base
+// (scripts/migrateGlossaryDirection.js).
+translationGlossarySchema.index({ direction: 1, type: 1, source: 1 }, { unique: true });
 
 translationGlossarySchema.pre("validate", function (next) {
 	if (this.type === "exact" && typeof this.source === "string") {
@@ -69,4 +86,7 @@ translationGlossarySchema.pre("validate", function (next) {
 	next();
 });
 
-module.exports = mongoose.model("TranslationGlossary", translationGlossarySchema);
+const TranslationGlossary = mongoose.model("TranslationGlossary", translationGlossarySchema);
+TranslationGlossary.DIRECTIONS = DIRECTIONS;
+
+module.exports = TranslationGlossary;

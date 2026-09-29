@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { FiImage, FiX } from 'react-icons/fi';
 import CloudinaryImage from './CloudinaryImage';
 import ProductImageUpload from './ProductImageUpload';
@@ -11,6 +12,7 @@ const ProductImageManager = ({
   setUploading,
   errors = {}
 }) => {
+  const { t } = useTranslation('common');
   const handleImageAdd = async (imageUrl) => {
     if (!imageUrl) {
       console.error('❌ Aucune URL d\'image fournie');
@@ -68,7 +70,7 @@ const ProductImageManager = ({
       {images.length > 0 && (
         <div>
           <h3 className="text-sm font-medium text-gray-700 mb-3">
-            Images du produit ({images.length}/{maxImages})
+            {t('imageUpload.gridTitle', { count: images.length, max: maxImages })}
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {images.map((image, index) => (
@@ -86,7 +88,7 @@ const ProductImageManager = ({
                 {/* Indicateur d'image primaire */}
                 {image.isPrimary && (
                   <div className="absolute top-2 left-2 bg-purple-600 text-white text-xs px-2 py-1 rounded-full">
-                    Principal
+                    {t('imageUpload.primary')}
                   </div>
                 )}
                 
@@ -97,7 +99,8 @@ const ProductImageManager = ({
                       type="button"
                       onClick={() => handleSetPrimaryImage(index)}
                       className="p-2 bg-white text-gray-700 rounded-full hover:bg-gray-100 transition-colors"
-                      title="Définir comme image principale"
+                      title={t('imageUpload.setPrimary')}
+                      aria-label={t('imageUpload.setPrimary')}
                     >
                       <FiImage className="h-4 w-4" />
                     </button>
@@ -106,7 +109,8 @@ const ProductImageManager = ({
                     type="button"
                     onClick={() => handleImageRemove(index)}
                     className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                    title="Supprimer l'image"
+                    title={t('imageUpload.remove')}
+                    aria-label={t('imageUpload.remove')}
                   >
                     <FiX className="h-4 w-4" />
                   </button>

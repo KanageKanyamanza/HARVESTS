@@ -28,11 +28,13 @@ const EXECUTE = process.argv.slice(2).includes("--execute");
 
 function entriesFromJson() {
 	const exact = Object.entries(glossary.exactTerms || {}).map(([source, target]) => ({
+		direction: "fr-en",
 		type: "exact",
 		source: source.trim().toLowerCase(),
 		target,
 	}));
 	const replacements = (glossary.wordReplacements || []).map((rule) => ({
+		direction: "fr-en",
 		type: "replacement",
 		source: rule.match,
 		target: rule.replace,
@@ -56,7 +58,12 @@ async function run() {
 	const stats = { inserted: 0, skipped: 0, failed: 0 };
 
 	for (const entry of entriesFromJson()) {
-		const exists = await TranslationGlossary.exists({ type: entry.type, source: entry.source });
+		// Entrées antérieures au champ `direction` (Jour 46) : fr -> en
+		const exists = await TranslationGlossary.exists({
+			direction: { $in: ["fr-en", null] },
+			type: entry.type,
+			source: entry.source,
+		});
 		if (exists) {
 			stats.skipped += 1;
 			console.log(`  = déjà présent  [${entry.type}] ${entry.source}`);

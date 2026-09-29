@@ -112,5 +112,40 @@
 		"installNow": "Installer maintenant",
 		"later": "Plus tard",
 		"dontShowAgain": "Ne plus afficher"
+	},
+	"units": {
+		"kg": "Kilogrammes (kg)",
+		"g": "Grammes (g)",
+		"L": "Litres (L)",
+		"ml": "Millilitres (ml)",
+		"bag": "Sac",
+		"carton": "Carton",
+		"crate": "Caisse",
+		"sachet": "Sachet",
+		"bunch": "Botte / Bouquet",
+		"basket": "Panier",
+		"piece": "Pièce",
+		"tonne": "Tonne",
+		"unit": "Unité",
+		"portion": "Portion",
+		"dish": "Plat"
+	},
+	"imageUpload": {
+		"maxReached": "Maximum {{max}} images autorisées",
+		"partialUpload": "Seules {{count}} images seront envoyées (maximum {{max}})",
+		"invalidFile": "Veuillez sélectionner un fichier image valide",
+		"tooLarge": "La taille du fichier ne doit pas dépasser 5 Mo",
+		"uploadError": "Erreur lors de l'envoi de l'image",
+		"uploading": "Envoi en cours...",
+		"dropHere": "Glissez-déposez vos images ici",
+		"orClick": "ou cliquez pour sélectionner des fichiers",
+		"select": "Sélectionner des images",
+		"counter": "{{count}}/{{max}} images • JPG, PNG, WebP • 5 Mo max",
+		"limitTitle": "Nombre maximum d'images atteint ({{max}}/{{max}})",
+		"limitHint": "Supprimez une image pour en ajouter une nouvelle",
+		"gridTitle": "Images du produit ({{count}}/{{max}})",
+		"primary": "Principale",
+		"setPrimary": "Définir comme image principale",
+		"remove": "Supprimer l'image"
 	}
 }
