@@ -1,6 +1,7 @@
 const Product = require("../../models/Product");
 const Restaurateur = require("../../models/Restaurateur");
 const { toPlainText } = require("../../utils/localization");
+const { stripProtectedFields } = require("../../utils/vendorProductGuard");
 
 /**
  * Service pour la gestion des plats du restaurateur
@@ -131,10 +132,9 @@ async function updateDish(dishId, restaurateurId, updateData) {
 		throw new Error("Plat non trouvé");
 	}
 
-	delete updateData.status;
-	delete updateData.approvedAt;
-	delete updateData.rejectionReason;
-	delete updateData.isPublic;
+	// Statut, visibilité, propriétaire, statistiques... : réservés à l'admin
+	// ou au système (voir utils/vendorProductGuard.js)
+	updateData = stripProtectedFields(updateData);
 
 	const fieldsRequiringReview = [
 		"name",

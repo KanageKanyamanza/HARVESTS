@@ -109,8 +109,10 @@
 				"draft": "Draft",
 				"pending-review": "Pending review",
 				"approved": "Approved (public)",
-				"inactive": "Inactive"
+				"inactive": "Inactive",
+				"rejected": "Rejected by our team"
 			},
+			"lifecycleHint": "A product is only visible once our team has approved it. Changing the name, description, price, category or photos of a published product sends it back for review.",
 			"flashSale": "Enable flash sale",
 			"discount": "Discount (%)",
 			"discountPlaceholder": "E.g. 20",

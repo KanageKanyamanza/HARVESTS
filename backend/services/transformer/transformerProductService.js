@@ -1,5 +1,6 @@
 const Product = require("../../models/Product");
 const { toPlainText } = require("../../utils/localization");
+const { resolveCreateStatus } = require("../../utils/vendorProductGuard");
 
 /**
  * Service pour la gestion des produits du transformateur
@@ -109,7 +110,8 @@ async function createProduct(transformerId, productData) {
 		maximumOrderQuantity: maximumOrderQuantity || undefined,
 		unit: unit || "unité",
 		currency: currency || "XOF",
-		status: status || "draft",
+		// Jamais "approved" à la création : validation admin obligatoire
+		status: resolveCreateStatus(status),
 		images:
 			images ?
 				images.map((img, index) => ({
