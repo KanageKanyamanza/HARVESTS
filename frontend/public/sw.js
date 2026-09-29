@@ -55,6 +55,16 @@ self.addEventListener("fetch", (event) => {
 		return;
 	}
 
+	// Développement local : aucun cache. Les modules source de Vite
+	// (/src/...jsx) gardent la même URL d'une version à l'autre ; mis en cache
+	// par la stratégie « cache d'abord » ci-dessous, ils servaient indéfiniment
+	// l'ancien code après une modification. Le service worker reste enregistré
+	// pour les notifications push.
+	const { hostname } = new URL(event.request.url);
+	if (hostname === "localhost" || hostname === "127.0.0.1") {
+		return;
+	}
+
 	// Ignorer les requêtes vers l'API ou les uploads pour éviter de les mettre en cache
 	if (
 		event.request.url.includes("/api/") ||
