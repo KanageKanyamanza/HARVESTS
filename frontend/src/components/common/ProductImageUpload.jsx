@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FiUpload, FiX, FiImage, FiCheck } from 'react-icons/fi';
 import { uploadService } from '../../services';
 import CloudinaryImage from './CloudinaryImage';
@@ -11,13 +12,14 @@ const ProductImageUpload = ({
   maxImages = 5,
   currentCount = 0
 }) => {
+  const { t } = useTranslation('common');
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
 
   const handleFileSelect = async (files) => {
     if (currentCount >= maxImages) {
-      setError(`Maximum ${maxImages} images autorisées`);
+      setError(t('imageUpload.maxReached', { max: maxImages }));
       return;
     }
 
@@ -26,7 +28,7 @@ const ProductImageUpload = ({
     const filesToUpload = fileArray.slice(0, remainingSlots);
 
     if (filesToUpload.length !== fileArray.length) {
-      setError(`Seules ${remainingSlots} images seront uploadées (maximum ${maxImages})`);
+      setError(t('imageUpload.partialUpload', { count: remainingSlots, max: maxImages }));
     }
 
     for (const file of filesToUpload) {
@@ -37,12 +39,12 @@ const ProductImageUpload = ({
   const uploadSingleImage = async (file) => {
     // Validation du fichier
     if (!file.type.startsWith('image/')) {
-      setError('Veuillez sélectionner un fichier image valide');
+      setError(t('imageUpload.invalidFile'));
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) { // 5MB
-      setError('La taille du fichier ne doit pas dépasser 5MB');
+      setError(t('imageUpload.tooLarge'));
       return;
     }
 
@@ -93,7 +95,7 @@ const ProductImageUpload = ({
       }
     } catch (error) {
       console.error('Erreur lors de l\'upload:', error);
-      setError('Erreur lors de l\'upload de l\'image');
+      setError(t('imageUpload.uploadError'));
     } finally {
       setUploading(false);
     }
@@ -156,15 +158,15 @@ const ProductImageUpload = ({
           />
 
           {uploading ? (
-            <LoadingSpinner size="md" text="Upload en cours..." />
+            <LoadingSpinner size="md" text={t('imageUpload.uploading')} />
           ) : (
             <div className="flex flex-col items-center">
               <FiImage className="h-12 w-12 text-gray-400 mb-4" />
               <p className="text-lg font-medium text-gray-900 mb-2">
-                Glissez-déposez vos images ici
+                {t('imageUpload.dropHere')}
               </p>
               <p className="text-sm text-gray-500 mb-4">
-                ou cliquez pour sélectionner des fichiers
+                {t('imageUpload.orClick')}
               </p>
               <button
                 type="button"
@@ -172,10 +174,10 @@ const ProductImageUpload = ({
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-harvests-light focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 <FiUpload className="h-4 w-4 mr-2" />
-                Sélectionner des images
+                {t('imageUpload.select')}
               </button>
               <p className="text-xs text-gray-400 mt-2">
-                {currentCount}/{maxImages} images • JPG, PNG, WebP • Max 5MB
+                {t('imageUpload.counter', { count: currentCount, max: maxImages })}
               </p>
             </div>
           )}
@@ -187,10 +189,10 @@ const ProductImageUpload = ({
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
           <FiImage className="h-8 w-8 text-blue-400 mx-auto mb-2" />
           <p className="text-sm text-blue-600 font-medium">
-            Nombre maximum d'images atteint ({maxImages}/{maxImages})
+            {t('imageUpload.limitTitle', { max: maxImages })}
           </p>
           <p className="text-xs text-blue-500 mt-1">
-            Supprimez une image pour en ajouter une nouvelle
+            {t('imageUpload.limitHint')}
           </p>
         </div>
       )}

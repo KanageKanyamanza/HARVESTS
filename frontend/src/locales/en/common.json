@@ -112,5 +112,40 @@
 		"installNow": "Install now",
 		"later": "Later",
 		"dontShowAgain": "Don't show again"
+	},
+	"units": {
+		"kg": "Kilograms (kg)",
+		"g": "Grams (g)",
+		"L": "Liters (L)",
+		"ml": "Milliliters (ml)",
+		"bag": "Bag",
+		"carton": "Carton",
+		"crate": "Crate",
+		"sachet": "Sachet",
+		"bunch": "Bunch",
+		"basket": "Basket",
+		"piece": "Piece",
+		"tonne": "Tonne",
+		"unit": "Unit",
+		"portion": "Portion",
+		"dish": "Dish"
+	},
+	"imageUpload": {
+		"maxReached": "Maximum {{max}} images allowed",
+		"partialUpload": "Only {{count}} images will be uploaded (maximum {{max}})",
+		"invalidFile": "Please select a valid image file",
+		"tooLarge": "File size must not exceed 5 MB",
+		"uploadError": "Could not upload the image",
+		"uploading": "Uploading...",
+		"dropHere": "Drag and drop your images here",
+		"orClick": "or click to select files",
+		"select": "Select images",
+		"counter": "{{count}}/{{max}} images • JPG, PNG, WebP • 5 MB max",
+		"limitTitle": "Maximum number of images reached ({{max}}/{{max}})",
+		"limitHint": "Remove an image to add a new one",
+		"gridTitle": "Product images ({{count}}/{{max}})",
+		"primary": "Main",
+		"setPrimary": "Set as main image",
+		"remove": "Remove image"
 	}
 }

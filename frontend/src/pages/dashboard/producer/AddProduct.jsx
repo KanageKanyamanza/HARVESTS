@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
 import { producerService } from "../../../services";
 import { useNotifications } from "../../../hooks/useNotifications";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
@@ -17,8 +18,20 @@ import {
 } from "react-icons/fi";
 import { CURRENCIES, DEFAULT_CURRENCY } from "../../../config/currencies";
 import { UNITS, DEFAULT_UNIT } from "../../../config/units";
+import {
+	PRODUCT_FORM_CATEGORIES,
+	getCategoryLabel,
+} from "../../../utils/productHelpers";
+import {
+	buildBilingualValue,
+	getOtherLang,
+} from "../../../utils/bilingualField";
+import { useBilingualSourceLang } from "../../../hooks/useBilingualSourceLang";
+
+const BILINGUAL_FIELDS = ["name", "description"];
 
 const AddProduct = () => {
+	const { t, i18n } = useTranslation("dashboard-producer");
 	const { showSuccess, showError } = useNotifications();
 	const navigate = useNavigate();
 	const [loading, setLoading] = useState(false);
@@ -27,6 +40,8 @@ const AddProduct = () => {
 	const [product, setProduct] = useState({
 		name: "",
 		description: "",
+		nameAlt: "",
+		descriptionAlt: "",
 		price: "",
 		currency: DEFAULT_CURRENCY,
 		category: "",
@@ -36,25 +51,10 @@ const AddProduct = () => {
 		flashSaleDiscount: "",
 		flashSaleEndDate: "",
 	});
-
-	const categories = [
-		{ value: "cereals", label: "Céréales" },
-		{ value: "vegetables", label: "Légumes" },
-		{ value: "fruits", label: "Fruits" },
-		{ value: "legumes", label: "Légumineuses" },
-		{ value: "tubers", label: "Tubercules" },
-		{ value: "spices", label: "Épices" },
-		{ value: "herbs", label: "Herbes" },
-		{ value: "nuts", label: "Noix" },
-		{ value: "seeds", label: "Graines" },
-		{ value: "dairy", label: "Produits laitiers" },
-		{ value: "meat", label: "Viande" },
-		{ value: "poultry", label: "Volaille" },
-		{ value: "fish", label: "Poisson" },
-		{ value: "processed-foods", label: "Aliments transformés" },
-		{ value: "beverages", label: "Boissons" },
-		{ value: "other", label: "Autres" },
-	];
+	// Champs principaux dans la langue de l'interface, *Alt dans l'autre ;
+	// échangés sur place si l'utilisateur change de langue
+	const [sourceLang] = useBilingualSourceLang(setProduct, BILINGUAL_FIELDS);
+	const otherLang = getOtherLang(sourceLang);
 
 	const handleInputChange = (e) => {
 		const { name, value, type, checked } = e.target;
@@ -75,15 +75,22 @@ const AddProduct = () => {
 			!product.price ||
 			!product.stock
 		) {
-			showError("Veuillez remplir tous les champs obligatoires");
+			showError(t("products.validation.requiredFields"));
 			return;
 		}
 
 		try {
 			setLoading(true);
 
+			const { nameAlt, descriptionAlt, ...fields } = product;
 			const productData = {
-				...product,
+				...fields,
+				name: buildBilingualValue(product.name, nameAlt, sourceLang),
+				description: buildBilingualValue(
+					product.description,
+					descriptionAlt,
+					sourceLang,
+				),
 				flashSale: {
 					isActive: product.flashSaleIsActive,
 					discountPercentage: product.flashSaleDiscount ? parseInt(product.flashSaleDiscount) : 0,
@@ -94,12 +101,12 @@ const AddProduct = () => {
 			};
 
 			await producerService.createProduct(productData);
-			showSuccess("Produit créé avec succès");
+			showSuccess(t("products.form.createSuccess"));
 			navigate("/producer/products");
 		} catch (error) {
 			console.error("Erreur lors de la création du produit:", error);
 			showError(
-				error.response?.data?.message || "Erreur lors de la création du produit"
+				error.response?.data?.message || t("products.form.createError")
 			);
 		} finally {
 			setLoading(false);
@@ -123,20 +130,19 @@ const AddProduct = () => {
 						className="flex items-center text-gray-600 hover:text-gray-900 transition-colors mb-2 text-[10px] font-bold uppercase tracking-widest group"
 					>
 						<FiArrowLeft className="mr-2 group-hover:-translate-x-1 transition-transform" />
-						Retour au catalogue
+						{t("products.form.backToCatalog")}
 					</button>
 
 					<div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
 						<div>
 							<h1 className="text-2xl md:text-3xl font-[1000] text-gray-900 tracking-tighter leading-tight mb-1">
-								Nouveau{" "}
+								{t("products.form.addTitleStart")}{" "}
 								<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">
-									Produit.
+									{t("products.form.addTitleHighlight")}
 								</span>
 							</h1>
 							<p className="text-xs font-medium text-gray-500">
-								Ajoutez une nouvelle référence à votre catalogue et commencez à
-								vendre.
+								{t("products.form.addSubtitle")}
 							</p>
 						</div>
 					</div>
@@ -154,10 +160,10 @@ const AddProduct = () => {
 									</div>
 									<div>
 										<h2 className="text-base font-[900] text-gray-900 leading-tight">
-											Informations Générales
+											{t("products.form.generalTitle")}
 										</h2>
 										<p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">
-											Détails de base du produit
+											{t("products.form.generalSubtitle")}
 										</p>
 									</div>
 								</div>
@@ -165,36 +171,78 @@ const AddProduct = () => {
 								<div className="space-y-4">
 									<div>
 										<label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5">
-											Nom du produit <span className="text-red-500">*</span>
+											{t("products.form.name")} <span className="text-red-500">*</span>
 										</label>
 										<div className="relative group">
 											<FiPackage className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
 											<input
 												type="text"
 												name="name"
+												lang={sourceLang}
 												value={product.name}
 												onChange={handleInputChange}
 												required
 												className="w-full pl-10 pr-3 py-2.5 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-bold text-gray-800 placeholder-gray-300 text-sm"
-												placeholder="Ex: Tomates Bio"
+												placeholder={t("products.form.namePlaceholder")}
 											/>
 										</div>
 									</div>
 
 									<div>
 										<label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5">
-											Description <span className="text-red-500">*</span>
+											{t("products.form.description")} <span className="text-red-500">*</span>
 										</label>
 										<div className="relative group">
 											<FiAlignLeft className="absolute left-3 top-3 h-4 w-4 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
 											<textarea
 												name="description"
+												lang={sourceLang}
 												value={product.description}
 												onChange={handleInputChange}
 												required
 												rows={4}
 												className="w-full pl-10 pr-3 py-2.5 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium text-gray-800 placeholder-gray-300 resize-none text-sm"
-												placeholder="Décrivez les caractéristiques, l'origine et la qualité de votre produit..."
+												placeholder={t("products.form.descriptionPlaceholder")}
+											/>
+										</div>
+									</div>
+
+									{/* Jour 48 : retouche facultative dans l'autre langue (sinon traduction automatique côté backend) */}
+									<div className="p-3 bg-blue-50/40 rounded-xl border border-blue-100/60 space-y-3">
+										<div>
+											<p className="text-[10px] font-black text-blue-700 uppercase tracking-widest">
+												{t(`products.form.otherLang.title.${otherLang}`)}
+											</p>
+											<p className="text-[10px] text-blue-600/80 font-medium mt-0.5">
+												{t("products.form.otherLang.hint")}
+											</p>
+										</div>
+										<div>
+											<label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5">
+												{t(`products.form.otherLang.name.${otherLang}`)}
+											</label>
+											<input
+												type="text"
+												name="nameAlt"
+												lang={otherLang}
+												value={product.nameAlt}
+												onChange={handleInputChange}
+												className="w-full px-3 py-2.5 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-bold text-gray-800 placeholder-gray-300 text-sm"
+												placeholder={t(`products.form.otherLang.namePlaceholder.${otherLang}`)}
+											/>
+										</div>
+										<div>
+											<label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5">
+												{t(`products.form.otherLang.description.${otherLang}`)}
+											</label>
+											<textarea
+												name="descriptionAlt"
+												lang={otherLang}
+												value={product.descriptionAlt}
+												onChange={handleInputChange}
+												rows={3}
+												className="w-full px-3 py-2.5 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-medium text-gray-800 placeholder-gray-300 resize-none text-sm"
+												placeholder={t("products.form.otherLang.descriptionPlaceholder")}
 											/>
 										</div>
 									</div>
@@ -209,10 +257,10 @@ const AddProduct = () => {
 									</div>
 									<div>
 										<h2 className="text-base font-[900] text-gray-900 leading-tight">
-											Médias
+											{t("products.form.mediaTitle")}
 										</h2>
 										<p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">
-											Photos du produit
+											{t("products.form.mediaSubtitle")}
 										</p>
 									</div>
 								</div>
@@ -239,10 +287,10 @@ const AddProduct = () => {
 									</div>
 									<div>
 										<h2 className="text-base font-[900] text-gray-900 leading-tight">
-											Détails de Vente
+											{t("products.form.salesTitle")}
 										</h2>
 										<p className="text-[10px] text-gray-600 font-bold uppercase tracking-wider">
-											Prix et inventaire
+											{t("products.form.salesSubtitle")}
 										</p>
 									</div>
 								</div>
@@ -250,7 +298,7 @@ const AddProduct = () => {
 								<div className="space-y-4">
 									<div>
 										<label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5">
-											Catégorie <span className="text-red-500">*</span>
+											{t("products.form.category")} <span className="text-red-500">*</span>
 										</label>
 										<div className="relative group">
 											<FiTag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
@@ -261,10 +309,10 @@ const AddProduct = () => {
 												required
 												className="w-full pl-10 pr-3 py-2.5 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-bold text-gray-800 appearance-none cursor-pointer text-sm"
 											>
-												<option value="">Sélectionner...</option>
-												{categories.map((category) => (
-													<option key={category.value} value={category.value}>
-														{category.label}
+												<option value="">{t("products.form.selectCategory")}</option>
+												{PRODUCT_FORM_CATEGORIES.map((category) => (
+													<option key={category} value={category}>
+														{getCategoryLabel(category, i18n.language)}
 													</option>
 												))}
 											</select>
@@ -289,7 +337,7 @@ const AddProduct = () => {
 									<div className="grid grid-cols-2 gap-3">
 										<div>
 											<label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5">
-												Prix <span className="text-red-500">*</span>
+												{t("products.form.price")} <span className="text-red-500">*</span>
 											</label>
 											<div className="relative group">
 												<FiDollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400 group-focus-within:text-emerald-500 transition-colors" />
@@ -308,7 +356,7 @@ const AddProduct = () => {
 										</div>
 										<div>
 											<label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5">
-												Devise
+												{t("products.form.currency")}
 											</label>
 											<select
 												name="currency"
@@ -328,7 +376,7 @@ const AddProduct = () => {
 									<div className="grid grid-cols-2 gap-3">
 										<div>
 											<label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5">
-												Stock <span className="text-red-500">*</span>
+												{t("products.form.stock")} <span className="text-red-500">*</span>
 											</label>
 											<input
 												type="number"
@@ -343,7 +391,7 @@ const AddProduct = () => {
 										</div>
 										<div>
 											<label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1.5">
-												Unité
+												{t("products.form.unit")}
 											</label>
 											<select
 												name="unit"
@@ -353,7 +401,7 @@ const AddProduct = () => {
 											>
 												{UNITS.map((unit) => (
 													<option key={unit.value} value={unit.value}>
-														{unit.label}
+														{t(`common:units.${unit.key}`)}
 													</option>
 												))}
 											</select>
@@ -364,7 +412,7 @@ const AddProduct = () => {
 									<div className="pt-4 border-t border-gray-100">
 										<div className="flex items-center justify-between mb-3">
 											<label className="block text-[10px] font-black text-emerald-600 uppercase tracking-widest ml-1">
-												Activer la Vente Flash
+												{t("products.form.flashSale")}
 											</label>
 											<label className="relative inline-flex items-center cursor-pointer">
 												<input
@@ -382,7 +430,7 @@ const AddProduct = () => {
 											<div className="space-y-3 p-3 bg-emerald-50/50 rounded-xl border border-emerald-100/50">
 												<div>
 													<label className="block text-[9px] font-black text-emerald-700 uppercase tracking-widest mb-1.5 ml-1">
-														Réduction (%)
+														{t("products.form.discount")}
 													</label>
 													<input
 														type="number"
@@ -390,14 +438,14 @@ const AddProduct = () => {
 														value={product.flashSaleDiscount}
 														onChange={handleInputChange}
 														className="w-full px-3 py-2 bg-white/70 border border-emerald-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 text-sm font-bold text-gray-800"
-														placeholder="Ex: 20"
+														placeholder={t("products.form.discountPlaceholder")}
 														min="1"
 														max="100"
 													/>
 												</div>
 												<div>
 													<label className="block text-[9px] font-black text-emerald-700 uppercase tracking-widest mb-1.5 ml-1">
-														Date de fin
+														{t("products.form.endDate")}
 													</label>
 													<input
 														type="date"
@@ -431,10 +479,11 @@ const AddProduct = () => {
 									</svg>
 								</div>
 								<p className="text-xs text-blue-700 leading-relaxed font-medium">
-									Une fois créé, votre produit sera en statut{" "}
-									<span className="font-bold">Brouillon</span>. Vous pourrez le
-									publier pour validation par nos équipes depuis votre
-									catalogue.
+									<Trans
+										i18nKey="products.form.draftInfo"
+										ns="dashboard-producer"
+										components={{ strong: <span className="font-bold" /> }}
+									/>
 								</p>
 							</div>
 
@@ -448,11 +497,11 @@ const AddProduct = () => {
 									{loading ?
 										<>
 											<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-											Création...
+											{t("products.form.creating")}
 										</>
 									:	<>
 											<FiSave className="h-4 w-4 mr-2" />
-											Enregistrer le produit
+											{t("products.form.save")}
 										</>
 									}
 								</button>
@@ -461,7 +510,7 @@ const AddProduct = () => {
 									onClick={() => navigate(-1)}
 									className="w-full inline-flex items-center justify-center px-6 py-3 border border-gray-200 text-gray-600 font-bold text-xs uppercase tracking-widest rounded-xl hover:bg-gray-50 transition-colors"
 								>
-									Annuler
+									{t("products.form.cancel")}
 								</button>
 							</div>
 						</div>

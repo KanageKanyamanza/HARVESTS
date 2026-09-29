@@ -86,4 +86,11 @@ export const MIGRATED_FILES = [
 	"components/common/EmailVerificationRequired.jsx",
 	"components/dashboard/EmailVerificationBanner.jsx",
 	"components/dashboard/ProfileCompletionModal.jsx",
+	// Jour 48 — dashboard producteur : produits
+	"pages/dashboard/producer/MyProducts.jsx",
+	"pages/dashboard/producer/AddProduct.jsx",
+	"pages/dashboard/producer/EditProduct.jsx",
+	"hooks/useEditProduct.js",
+	"components/common/ProductImageUpload.jsx",
+	"components/common/ProductImageManager.jsx",
 ];

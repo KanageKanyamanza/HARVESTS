@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../hooks/useAuth";
 import { producerService } from "../../../services";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
@@ -22,8 +23,10 @@ import {
 
 import { toPlainText } from "../../../utils/textHelpers";
 import { formatPrice } from "../../../utils/currencyUtils";
+import { getCategoryLabel } from "../../../utils/productHelpers";
 
 const MyProducts = () => {
+	const { t, i18n } = useTranslation("dashboard-producer");
 	const { user } = useAuth();
 	const [products, setProducts] = useState([]);
 	const [loading, setLoading] = useState(true);
@@ -46,16 +49,9 @@ const MyProducts = () => {
 						response.data ||
 						[];
 
-					// Handle both Mongoose documents and plain objects
-					const formattedProducts =
-						Array.isArray(productsData) ?
-							productsData.map((product) => ({
-								...product,
-								name: toPlainText(product.name, ""),
-								description: toPlainText(product.description, ""),
-							}))
-						:	[];
-					setProducts(formattedProducts);
+					// name/description restent bruts ({fr, en} ou chaîne) et sont
+					// convertis à l'affichage (toPlainText suit la langue de l'UI)
+					setProducts(Array.isArray(productsData) ? productsData : []);
 				} catch (error) {
 					console.error("Erreur lors du chargement des produits:", error);
 					setProducts([]);
@@ -71,27 +67,27 @@ const MyProducts = () => {
 		const configs = {
 			approved: {
 				color: "bg-emerald-100 text-emerald-700 border-emerald-200",
-				text: "Publié",
+				text: t("products.status.approved"),
 				icon: FiCheckCircle,
 			},
 			"pending-review": {
 				color: "bg-amber-100 text-amber-700 border-amber-200",
-				text: "En révision",
+				text: t("products.status.pending-review"),
 				icon: FiClock,
 			},
 			draft: {
 				color: "bg-slate-100 text-slate-700 border-slate-200",
-				text: "Brouillon",
+				text: t("products.status.draft"),
 				icon: FiEdit,
 			},
 			rejected: {
 				color: "bg-red-100 text-red-700 border-red-200",
-				text: "Rejeté",
+				text: t("products.status.rejected"),
 				icon: FiXCircle,
 			},
 			inactive: {
 				color: "bg-gray-100 text-gray-700 border-gray-200",
-				text: "Inactif",
+				text: t("products.status.inactive"),
 				icon: FiXCircle,
 			},
 		};
@@ -99,13 +95,13 @@ const MyProducts = () => {
 	};
 
 	const handleDeleteProduct = async (productId) => {
-		if (window.confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
+		if (window.confirm(t("products.list.confirmDelete"))) {
 			try {
 				await producerService.deleteProduct(productId);
 				setProducts(products.filter((p) => p._id !== productId));
 			} catch (error) {
 				console.error("Erreur lors de la suppression:", error);
-				alert("Erreur lors de la suppression du produit");
+				alert(t("products.list.deleteError"));
 			}
 		}
 	};
@@ -113,9 +109,7 @@ const MyProducts = () => {
 	const handlePublishProduct = async (productId, e) => {
 		e.preventDefault(); // Prevent navigation if button is inside Link
 		if (
-			window.confirm(
-				"Êtes-vous sûr de vouloir publier ce produit ? Il sera soumis à révision.",
-			)
+			window.confirm(t("products.list.confirmPublish"))
 		) {
 			try {
 				await producerService.updateProduct(productId, {
@@ -134,10 +128,10 @@ const MyProducts = () => {
 					response.data.data?.products || response.data.products || [];
 				setProducts(Array.isArray(productsData) ? productsData : []);
 
-				alert("Produit soumis à révision avec succès !");
+				alert(t("products.list.publishSuccess"));
 			} catch (error) {
 				console.error("Erreur lors de la publication:", error);
-				alert("Erreur lors de la publication du produit");
+				alert(t("products.list.publishError"));
 			}
 		}
 	};
@@ -184,17 +178,16 @@ const MyProducts = () => {
 					<div>
 						<div className="flex items-center gap-2 text-emerald-600 font-black text-[9px] uppercase tracking-widest mb-2">
 							<div className="w-5 h-[2px] bg-emerald-600"></div>
-							<span>Catalogue</span>
+							<span>{t("products.list.eyebrow")}</span>
 						</div>
 						<h1 className="text-3xl font-[1000] text-gray-900 tracking-tighter leading-none mb-2">
-							Mes{" "}
+							{t("products.list.titleStart")}{" "}
 							<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">
-								Produits.
+								{t("products.list.titleHighlight")}
 							</span>
 						</h1>
 						<p className="text-xs text-gray-500 font-medium max-w-xl">
-							Gérez votre inventaire, suivez vos stocks et mettez en valeur
-							votre savoir-faire.
+							{t("products.list.subtitle")}
 						</p>
 					</div>
 
@@ -203,10 +196,13 @@ const MyProducts = () => {
 							<div className="flex items-center gap-2 px-3 py-1.5 bg-white/50 border border-white/60 rounded-xl shadow-sm">
 								<div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
 								<span className="text-[10px] font-black text-gray-600 uppercase tracking-wider">
-									Quota: {products.length} /{" "}
-									{user.subscriptionFeatures.maxProducts === -1 ?
-										"∞"
-									:	user.subscriptionFeatures.maxProducts}
+									{t("products.list.quota", {
+										count: products.length,
+										max:
+											user.subscriptionFeatures.maxProducts === -1 ?
+												"∞"
+											:	user.subscriptionFeatures.maxProducts,
+									})}
 								</span>
 							</div>
 						)}
@@ -226,7 +222,9 @@ const MyProducts = () => {
 								) {
 									e.preventDefault();
 									alert(
-										`Limite atteinte (${user.subscriptionFeatures.maxProducts} produits). Passez au plan Standard ou Premium pour en ajouter plus !`,
+										t("products.list.limitReached", {
+											max: user.subscriptionFeatures.maxProducts,
+										}),
 									);
 								}
 							}}
@@ -241,7 +239,7 @@ const MyProducts = () => {
 						>
 							<span className="relative z-10 flex items-center gap-2">
 								<FiPlus className="w-4 h-4" />
-								Nouveau Produit
+								{t("products.list.newProduct")}
 							</span>
 						</Link>
 					</div>
@@ -255,7 +253,7 @@ const MyProducts = () => {
 						</div>
 						<input
 							type="text"
-							placeholder="Rechercher par nom, catégorie..."
+							placeholder={t("products.list.searchPlaceholder")}
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
 							className="block w-full pl-11 pr-4 py-3.5 bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-sm group-hover:shadow-md"
@@ -271,11 +269,13 @@ const MyProducts = () => {
 							onChange={(e) => setStatusFilter(e.target.value)}
 							className="block w-full pl-10 pr-10 py-3.5 bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl text-xs font-bold uppercase tracking-wide text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-sm cursor-pointer appearance-none hover:bg-white"
 						>
-							<option value="all">Tous les statuts</option>
-							<option value="approved">Publiés</option>
-							<option value="pending-review">En révision</option>
-							<option value="draft">Brouillons</option>
-							<option value="rejected">Rejetés</option>
+							<option value="all">{t("products.list.filters.all")}</option>
+							<option value="approved">{t("products.list.filters.approved")}</option>
+							<option value="pending-review">
+								{t("products.list.filters.pending-review")}
+							</option>
+							<option value="draft">{t("products.list.filters.draft")}</option>
+							<option value="rejected">{t("products.list.filters.rejected")}</option>
 						</select>
 						<div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
 							<svg
@@ -302,24 +302,29 @@ const MyProducts = () => {
 							<FiPackage className="h-10 w-10 text-gray-300" />
 						</div>
 						<h3 className="text-lg font-black text-gray-900 mb-2">
-							Aucun produit trouvé
+							{t("products.list.emptyTitle")}
 						</h3>
 						<p className="text-gray-500 text-sm max-w-md mx-auto mb-6">
 							{searchTerm || statusFilter !== "all" ?
-								"Essayez de modifier vos filtres ou votre recherche."
-							:	"Commencez à vendre en ajoutant votre premier produit à votre catalogue."
+								t("products.list.emptyFiltered")
+							:	t("products.list.emptyStart")
 							}
 						</p>
 						<Link
 							to="/producer/products/add"
 							className="inline-flex items-center px-5 py-2.5 bg-emerald-50 text-emerald-700 font-bold rounded-xl text-xs uppercase tracking-wider hover:bg-emerald-100 transition-colors"
 						>
-							Ajouter un produit
+							{t("products.list.addProduct")}
 						</Link>
 					</div>
 				:	<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-fade-in-up delay-200">
 						{products.map((product) => {
 							const statusConfig = getStatusConfig(product.status);
+							const productName = toPlainText(product.name, "");
+							const productDescription = toPlainText(product.description, "");
+							// Le stock est stocké dans inventory.quantity (product.stock
+							// n'existe pas côté API : la carte affichait un stock vide)
+							const stock = product.inventory?.quantity ?? product.stock ?? 0;
 							const StatusIcon = statusConfig.icon;
 
 							return (
@@ -346,14 +351,16 @@ const MyProducts = () => {
 												<Link
 													to={`/producer/products/edit/${product._id}`}
 													className="p-2 bg-white text-gray-700 rounded-full shadow-lg hover:bg-emerald-50 hover:text-emerald-600 transition-colors"
-													title="Modifier"
+													title={t("products.list.edit")}
+													aria-label={t("products.list.edit")}
 												>
 													<FiEdit className="w-4 h-4" />
 												</Link>
 												<button
 													onClick={() => handleDeleteProduct(product._id)}
 													className="p-2 bg-white text-gray-700 rounded-full shadow-lg hover:bg-red-50 hover:text-red-500 transition-colors"
-													title="Supprimer"
+													title={t("products.list.delete")}
+													aria-label={t("products.list.delete")}
 												>
 													<FiTrash2 className="w-4 h-4" />
 												</button>
@@ -363,7 +370,7 @@ const MyProducts = () => {
 										{product.images && product.images.length > 0 ?
 											<CloudinaryImage
 												src={product.images[0].url || product.images[0]}
-												alt={product.name}
+												alt={productName}
 												className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
 											/>
 										:	<div className="w-full h-full bg-gray-100 flex items-center justify-center">
@@ -382,34 +389,36 @@ const MyProducts = () => {
 
 										<div className="mb-2">
 											<span className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] bg-emerald-50 px-2.5 py-1.5 rounded-lg inline-block">
-												{product.category || "Produit"}
+												{product.category ?
+												getCategoryLabel(product.category, i18n.language)
+											:	t("products.list.defaultCategory")}
 											</span>
 										</div>
 
 										<h3
 											className="text-lg font-[1000] text-gray-900 mb-2 group-hover:text-emerald-700 transition-colors line-clamp-1 tracking-tight"
-											title={product.name}
+											title={productName}
 										>
-											{product.name}
+											{productName}
 										</h3>
 
 										<p className="text-[11px] font-medium text-gray-500 line-clamp-2 mb-6 flex-grow leading-relaxed">
-											{product.description}
+											{productDescription}
 										</p>
 
 										<div className="pt-5 border-t border-gray-100 flex items-center justify-between mt-auto">
 											<div className="flex items-center text-gray-600 text-[10px] font-black uppercase tracking-widest">
 												<FiPackage className="w-3.5 h-3.5 mr-1.5 text-emerald-500" />
 												<span>
-													Stock:{" "}
+													{t("products.list.stock")}{" "}
 													<span
 														className={
-															product.stock < 10 ?
+															stock < 10 ?
 																"text-red-500"
 															:	"text-gray-900"
 														}
 													>
-														{product.stock}
+														{stock}
 													</span>
 												</span>
 											</div>
@@ -419,13 +428,13 @@ const MyProducts = () => {
 													onClick={(e) => handlePublishProduct(product._id, e)}
 													className="text-[10px] bg-emerald-100 hover:bg-emerald-600 hover:text-white px-5 py-2.5 rounded-xl font-black uppercase tracking-widest transition-all shadow-sm active:scale-95"
 												>
-													Publier
+													{t("products.list.publish")}
 												</button>
 											:	<Link
 													to={`/products/${product.slug || product._id}`}
 													className="text-[10px] text-gray-600 hover:text-emerald-600 font-black uppercase tracking-widest transition-all flex items-center gap-1.5"
 												>
-													Détails <FiEye className="w-4 h-4" />
+													{t("products.list.details")} <FiEye className="w-4 h-4" />
 												</Link>
 											}
 										</div>
