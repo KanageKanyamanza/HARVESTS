@@ -109,8 +109,10 @@
 				"draft": "Brouillon",
 				"pending-review": "En attente de révision",
 				"approved": "Approuvé (Public)",
-				"inactive": "Inactif"
+				"inactive": "Inactif",
+				"rejected": "Rejeté par l'équipe"
 			},
+			"lifecycleHint": "Un produit n'est visible qu'après validation par notre équipe. Modifier le nom, la description, le prix, la catégorie ou les photos d'un produit publié le renvoie en validation.",
 			"flashSale": "Activer la vente flash",
 			"discount": "Réduction (%)",
 			"discountPlaceholder": "Ex : 20",

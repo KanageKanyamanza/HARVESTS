@@ -483,13 +483,26 @@ const EditProduct = () => {
 											<option value="pending-review">
 												{t("products.form.lifecycleOptions.pending-review")}
 											</option>
-											<option value="approved">
-												{t("products.form.lifecycleOptions.approved")}
-											</option>
+											{/* Validation admin obligatoire : "approuvé" et "rejeté" ne
+											    s'affichent que comme état actuel du produit, jamais comme
+											    choix (le backend les refuse de toute façon) */}
+											{product.status === "approved" && (
+												<option value="approved">
+													{t("products.form.lifecycleOptions.approved")}
+												</option>
+											)}
+											{product.status === "rejected" && (
+												<option value="rejected" disabled>
+													{t("products.form.lifecycleOptions.rejected")}
+												</option>
+											)}
 											<option value="inactive">
 												{t("products.form.lifecycleOptions.inactive")}
 											</option>
 										</select>
+										<p className="mt-1.5 ml-1 text-[10px] font-medium text-gray-500">
+											{t("products.form.lifecycleHint")}
+										</p>
 									</div>
 
 									{/* Flash Sale Section */}

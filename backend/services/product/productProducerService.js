@@ -3,6 +3,10 @@ const Product = require("../../models/Product");
 const Producer = require("../../models/Producer");
 const User = require("../../models/User");
 const { toPlainText } = require("../../utils/localization");
+const {
+	stripProtectedFields,
+	resolveCreateStatus,
+} = require("../../utils/vendorProductGuard");
 const notificationSystemService = require("../notification/notificationSystemService");
 const adminNotifications = require("../../utils/adminNotifications");
 
@@ -67,6 +71,11 @@ async function createProduct(producerId, productData) {
 		);
 	}
 
+	// Le corps de la requête était enregistré tel quel (statut compris) :
+	// champs réservés retirés, statut limité à brouillon / révision
+	const requestedStatus = productData.status;
+	productData = stripProtectedFields(productData);
+	productData.status = resolveCreateStatus(requestedStatus);
 	productData.producer = producerId;
 
 	// S'assurer que subcategory a une valeur par défaut si non fournie
