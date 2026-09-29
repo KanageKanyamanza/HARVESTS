@@ -9,6 +9,7 @@ const { loadGlossary } = require("./translationGlossary");
 // appliqués sur le résultat de la MT (pour les fragments dans un texte plus
 // long, ex. une description). Jour 46 : entrées lues en base (collection
 // TranslationGlossary, éditable dans le back-office), cf utils/translationGlossary.js.
+// Jour 48 : glossaire dans les deux sens (fr -> en et en -> fr).
 const EMPTY_GLOSSARY = { exactTerms: new Map(), replacements: [] };
 
 function lookupExactTerm(glossary, text) {
@@ -115,12 +116,9 @@ async function translateText(text, fromLang = "fr", toLang = "en") {
 		return { translatedText: text, ok: true };
 	}
 
-	// Le glossaire est fr->en : ses remplacements (cibles en anglais) n'ont
-	// rien à faire sur une traduction dans l'autre sens.
-	const glossary =
-		fromLang === "fr" && toLang === "en"
-			? await loadGlossary().catch(() => EMPTY_GLOSSARY)
-			: EMPTY_GLOSSARY;
+	// Glossaire du sens demandé (fr-en ou en-fr) ; aucun pour les autres paires
+	const glossaries = await loadGlossary().catch(() => ({}));
+	const glossary = glossaries[`${fromLang}-${toLang}`] || EMPTY_GLOSSARY;
 
 	const exact = lookupExactTerm(glossary, text);
 	if (exact) {

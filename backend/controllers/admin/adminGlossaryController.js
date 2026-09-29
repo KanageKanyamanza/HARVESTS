@@ -7,7 +7,7 @@ const { logAudit, AUDIT_ACTIONS } = require("../../utils/auditLogger");
 // Jour 46 (bascule bilingue) - gestion du glossaire de traduction fr->en
 // depuis le back-office (cf models/TranslationGlossary.js).
 
-const EDITABLE_FIELDS = ["type", "source", "target", "flags", "note"];
+const EDITABLE_FIELDS = ["direction", "type", "source", "target", "flags", "note"];
 
 function pickEditable(body) {
 	const data = {};
@@ -33,9 +33,15 @@ function duplicateError(error) {
 // @route   GET /api/v1/admin/glossary
 // @access  Admin
 exports.getGlossaryEntries = catchAsync(async (req, res, next) => {
-	const { type, search } = req.query;
+	const { type, direction, search } = req.query;
 
 	const filter = {};
+	if (direction === "fr-en") {
+		// Entrées antérieures au champ `direction` (Jour 46) : fr -> en
+		filter.direction = { $in: ["fr-en", null] };
+	} else if (direction === "en-fr") {
+		filter.direction = "en-fr";
+	}
 	if (type === "exact" || type === "replacement") {
 		filter.type = type;
 	}
@@ -45,7 +51,7 @@ exports.getGlossaryEntries = catchAsync(async (req, res, next) => {
 	}
 
 	const entries = await TranslationGlossary.find(filter)
-		.sort({ type: 1, source: 1 })
+		.sort({ direction: 1, type: 1, source: 1 })
 		.lean();
 
 	res.status(200).json({
@@ -78,7 +84,7 @@ exports.createGlossaryEntry = catchAsync(async (req, res, next) => {
 		action: AUDIT_ACTIONS.GLOSSARY_ENTRY_CREATED,
 		targetType: "TranslationGlossary",
 		targetId: entry._id,
-		details: { type: entry.type, source: entry.source, target: entry.target },
+		details: { direction: entry.direction, type: entry.type, source: entry.source, target: entry.target },
 	});
 
 	res.status(201).json({ status: "success", data: { entry } });
@@ -93,7 +99,7 @@ exports.updateGlossaryEntry = catchAsync(async (req, res, next) => {
 		return next(new AppError("Entrée du glossaire non trouvée", 404));
 	}
 
-	const before = { type: entry.type, source: entry.source, target: entry.target };
+	const before = { direction: entry.direction, type: entry.type, source: entry.source, target: entry.target };
 
 	// save() plutôt que findByIdAndUpdate : les hooks pre("validate")
 	// (normalisation des termes exacts, contrôle de la regex) doivent tourner
@@ -114,7 +120,7 @@ exports.updateGlossaryEntry = catchAsync(async (req, res, next) => {
 		targetId: entry._id,
 		details: {
 			before,
-			after: { type: entry.type, source: entry.source, target: entry.target },
+			after: { direction: entry.direction, type: entry.type, source: entry.source, target: entry.target },
 		},
 	});
 
@@ -138,7 +144,7 @@ exports.deleteGlossaryEntry = catchAsync(async (req, res, next) => {
 		action: AUDIT_ACTIONS.GLOSSARY_ENTRY_DELETED,
 		targetType: "TranslationGlossary",
 		targetId: entry._id,
-		details: { type: entry.type, source: entry.source, target: entry.target },
+		details: { direction: entry.direction, type: entry.type, source: entry.source, target: entry.target },
 	});
 
 	res.status(200).json({ status: "success", data: null });
