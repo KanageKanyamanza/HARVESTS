@@ -21,6 +21,10 @@ addOrderMethods(orderSchema);
 // Ajouter les méthodes statiques
 addOrderStatics(orderSchema);
 
+// Statistiques admin : commandes impliquant un compte de test exclues (utils/testAccounts.js)
+const { addTestDataExclusion, testOrderFilter } = require('../../utils/testAccounts');
+addTestDataExclusion(orderSchema, testOrderFilter);
+
 const Order = mongoose.model('Order', orderSchema);
 
 module.exports = Order;

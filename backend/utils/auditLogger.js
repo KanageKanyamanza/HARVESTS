@@ -3,6 +3,7 @@
  */
 
 const AuditLog = require("../models/AuditLog");
+const { isTestUser } = require("./testAccounts");
 
 const AUDIT_ACTIONS = {
 	// Auth
@@ -62,6 +63,9 @@ const logAudit = async ({
 	status = "success",
 }) => {
 	try {
+		// Comptes de test (développement) : jamais suivis (utils/testAccounts.js)
+		if (await isTestUser({ id: userId, email: userEmail })) return;
+
 		// En développement, log aussi en console
 		if (process.env.NODE_ENV === "development") {
 			console.log(`📋 AUDIT [${action}]`, {

@@ -26,6 +26,11 @@ const router = express.Router();
 // Toutes les routes admin nécessitent une authentification admin
 router.use(adminAuthController.protect);
 
+// Comptes de test (développement) : exclus des statistiques admin
+// (utils/testAccounts.js)
+const { excludeTestDataMiddleware } = require("../utils/testAccounts");
+router.use(["/dashboard", "/analytics", "/reports", "/export"], excludeTestDataMiddleware);
+
 // ========================================
 // DASHBOARD ET STATISTIQUES
 // ========================================

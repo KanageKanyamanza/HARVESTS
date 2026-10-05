@@ -2,6 +2,7 @@ const nodemailer = require("nodemailer");
 const htmlToText = require("html-to-text");
 const emailjs = require("@emailjs/nodejs");
 const { sgMail } = require("./emailConfig");
+const { hasTestRecipient } = require("../testAccounts");
 
 // Méthodes de transport pour la classe Email
 function addEmailTransportMethods(EmailClass) {
@@ -206,6 +207,37 @@ function addEmailTransportMethods(EmailClass) {
 				return false;
 			}
 		}
+	};
+
+	// Comptes de test (développement) : aucun e-mail ne leur est envoyé
+	// (utils/testAccounts.js). Filtre posé sur les trois moyens d'envoi, par
+	// lesquels passent tous les e-mails de la classe Email.
+	const skipped = { skipped: true, reason: "test-account" };
+	const isTestRecipient = (to) => hasTestRecipient(to).catch(() => false);
+
+	const sendWithSendGrid = EmailClass.prototype.sendWithSendGrid;
+	EmailClass.prototype.sendWithSendGrid = async function (...args) {
+		if (await isTestRecipient(this.to)) return skipped;
+		return sendWithSendGrid.apply(this, args);
+	};
+
+	const sendWithEmailJS = EmailClass.prototype.sendWithEmailJS;
+	EmailClass.prototype.sendWithEmailJS = async function (...args) {
+		if (await isTestRecipient(this.to)) return skipped;
+		return sendWithEmailJS.apply(this, args);
+	};
+
+	const newTransport = EmailClass.prototype.newTransport;
+	EmailClass.prototype.newTransport = function (...args) {
+		const transporter = newTransport.apply(this, args);
+		const sendMail = transporter.sendMail.bind(transporter);
+		transporter.sendMail = async (mailOptions, ...rest) => {
+			if (await isTestRecipient(String(mailOptions?.to || "").split(/\s*,\s*/))) {
+				return skipped;
+			}
+			return sendMail(mailOptions, ...rest);
+		};
+		return transporter;
 	};
 }
 

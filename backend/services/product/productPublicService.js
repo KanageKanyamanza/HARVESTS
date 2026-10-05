@@ -10,13 +10,16 @@ const { getUserLocation, buildLocationQuery } = require('../../utils/locationSer
 // (miroir exact des critères des searchServices)
 async function applyVendorVisibility(queryObj) {
   const User = require('../../models/User');
+  // includeTestAccounts : cette requête sert justement à masquer les comptes
+  // de test (sinon exclus d'office par le modèle User, voir utils/testAccounts.js)
   const hiddenVendors = await User.find({
     $or: [
       { isShopVisible: false },
+      { isTestAccount: true },
       { userType: 'producer', shopBanner: null },
       { userType: 'restaurateur', restaurantBanner: null },
     ]
-  }).select('_id').lean();
+  }).setOptions({ includeTestAccounts: true }).select('_id').lean();
   if (hiddenVendors.length === 0) return queryObj;
   const hiddenIds = hiddenVendors.map(v => v._id);
   queryObj.$and = queryObj.$and || [];
