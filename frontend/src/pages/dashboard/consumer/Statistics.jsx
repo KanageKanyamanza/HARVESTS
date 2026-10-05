@@ -12,7 +12,7 @@ import {
 	FiRefreshCw,
 } from "react-icons/fi";
 import { consumerService } from "../../../services/genericService";
-import LoadingSpinner from "../../../components/common/LoadingSpinner";
+import DataValue from "../../../components/common/DataValue";
 import ErrorMessage from "../../../components/common/ErrorMessage";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 
@@ -71,13 +71,6 @@ const Statistics = () => {
 		});
 	};
 
-	if (loading) {
-		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<LoadingSpinner size="lg" text="Analyse de vos habitudes..." />
-			</div>
-		);
-	}
 
 	const statsData = stats?.stats || {};
 	const activityStats = stats?.activityStats || {};
@@ -85,7 +78,7 @@ const Statistics = () => {
 	const analyticsData = analytics?.analytics || {};
 
 	return (
-		<div className="min-h-screen relative overflow-hidden bg-harvests-light/20 pb-20">
+		<div className="dashboard-page bg-harvests-light/20">
 			{/* Background radial glows - Blue/Sky theme */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-100/30 rounded-full blur-[120px]"></div>
@@ -93,7 +86,7 @@ const Statistics = () => {
 				<div className="absolute top-[20%] left-[10%] w-[30%] h-[30%] bg-cyan-100/20 rounded-full blur-[120px]"></div>
 			</div>
 
-			<div className="relative z-10 max-w-7xl mx-auto px-4 py-8 md:py-12 space-y-10">
+			<div className="dashboard-container space-y-10">
 				{/* Header */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-in-down">
 					<div className="space-y-3">
@@ -189,11 +182,11 @@ const Statistics = () => {
 									)}
 								</div>
 								<h3 className="text-2xl font-[1000] text-gray-900 tracking-tighter">
-									{item.value}
+									<DataValue loading={loading}>{item.value}</DataValue>
 								</h3>
 								{item.sub && (
 									<p className="text-[9px] font-bold text-gray-500 mt-1 uppercase tracking-widest">
-										{item.sub}
+										<DataValue loading={loading} className="w-10 h-[0.9em]">{item.sub}</DataValue>
 									</p>
 								)}
 							</div>
@@ -257,7 +250,7 @@ const Statistics = () => {
                                             ${row.color === "amber" ? "text-amber-600" : ""}
                                         `}
 									>
-										{row.val}
+										<DataValue loading={loading} className="w-8 h-[0.9em]">{row.val}</DataValue>
 									</span>
 								</div>
 							))}
@@ -286,7 +279,7 @@ const Statistics = () => {
 										Niveau actuel
 									</p>
 									<h2 className="text-4xl font-[1000] text-white tracking-tighter uppercase italic">
-										{loyaltyStats.tier || "Bronze"}
+										<DataValue loading={loading} light className="w-32 h-[0.8em]">{loyaltyStats.tier || "Bronze"}</DataValue>
 									</h2>
 								</div>
 
@@ -296,7 +289,7 @@ const Statistics = () => {
 											Points Actuels
 										</p>
 										<p className="text-2xl font-[1000] text-white tracking-tighter">
-											{loyaltyStats.points || 0}
+											<DataValue loading={loading} light>{loyaltyStats.points || 0}</DataValue>
 										</p>
 									</div>
 									<div>
@@ -304,7 +297,7 @@ const Statistics = () => {
 											Total Gagné
 										</p>
 										<p className="text-2xl font-[1000] text-white tracking-tighter">
-											{loyaltyStats.totalPointsEarned || 0}
+											<DataValue loading={loading} light>{loyaltyStats.totalPointsEarned || 0}</DataValue>
 										</p>
 									</div>
 								</div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import DetailPageSkeleton from "../../components/common/DetailPageSkeleton";
 import { useParams, useNavigate } from "react-router-dom";
 import {
 	ArrowLeft,
@@ -21,7 +22,6 @@ import {
 	AlertTriangle,
 	FileText,
 } from "lucide-react";
-import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { adminService } from "../../services/adminService";
 import { toPlainText } from "../../utils/textHelpers";
 
@@ -148,13 +148,8 @@ const ProductDetails = () => {
 
 	const getLocalizedText = (text) => toPlainText(text, "Texte non disponible");
 
-	if (loading) {
-		return (
-			<div className="flex items-center justify-center min-h-[400px]">
-				<LoadingSpinner size="lg" text="Chargement des détails..." />
-			</div>
-		);
-	}
+	// Chargement : bouton retour utilisable, seules les données sont grisées
+	if (loading) return <DetailPageSkeleton onBack={() => navigate(-1)} />;
 
 	if (!product) {
 		return (
@@ -179,14 +174,14 @@ const ProductDetails = () => {
 	}
 
 	return (
-		<div className="min-h-screen pb-20 relative overflow-hidden">
+		<div className="dashboard-page">
 			{/* Background radial glows pour un effet "wow" */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-green-100/30 rounded-full blur-[120px]"></div>
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="max-w-[1400px] mx-auto px-4 py-12 relative z-10">
+			<div className="dashboard-container max-w-[1400px]">
 				{/* Header Premium */}
 				<div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12 animate-fade-in-down">
 					<div className="flex items-center gap-6">

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import TableRowsSkeleton from "../../components/common/TableRowsSkeleton";
+import DataValue from "../../components/common/DataValue";
 import { Link } from "react-router-dom";
 import {
 	Search,
@@ -21,7 +23,6 @@ import {
 } from "../../services/adminService";
 import CloudinaryImage from "../../components/common/CloudinaryImage";
 import { normalizeDishImage } from "../../utils/dishImageUtils";
-import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { useDebounce } from "../../hooks/useDebounce";
 
 const AdminDishes = () => {
@@ -171,16 +172,9 @@ const AdminDishes = () => {
 		return categoryMap[category] || category;
 	};
 
-	if (loading) {
-		return (
-			<div className="flex items-center justify-center min-h-[400px]">
-				<LoadingSpinner size="lg" text="Chargement des plats..." />
-			</div>
-		);
-	}
 
 	return (
-		<div className="min-h-screen md:pl-3 pb-20 relative overflow-hidden">
+		<div className="dashboard-page">
 			{/* Background radial glows pour un effet "wow" */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-green-100/30 rounded-full blur-[120px]"></div>
@@ -188,7 +182,7 @@ const AdminDishes = () => {
 				<div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-purple-100/20 rounded-full blur-[120px]"></div>
 			</div>
 
-			<div className="max-w-full mx-auto px-3 py-4 space-y-4 relative z-10 pl-1 md:pl-6 md:px-4 md:py-6 md:space-y-6">
+			<div className="dashboard-container space-y-4 md:space-y-6">
 				{/* Header avec typographie premium */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
 					<div className="animate-fade-in-down">
@@ -252,7 +246,7 @@ const AdminDishes = () => {
 								Liste des Créations
 							</h3>
 							<p className="text-[9px] font-black text-gray-600 mt-0.5 uppercase tracking-[0.2em]">
-								Total: {dishes.length} plats trouvés
+								Total: <DataValue loading={loading} className="w-6 h-[0.9em]">{dishes.length}</DataValue> plats trouvés
 							</p>
 						</div>
 						{selectedDishes.length > 0 && (
@@ -306,7 +300,9 @@ const AdminDishes = () => {
 								</tr>
 							</thead>
 							<tbody className="divide-y divide-gray-100">
-								{dishes.length === 0 ? (
+								{loading ? (
+									<TableRowsSkeleton cols={8} />
+								) : dishes.length === 0 ? (
 									<tr>
 										<td colSpan="8" className="px-4 py-12 text-center">
 											<div className="flex flex-col items-center">

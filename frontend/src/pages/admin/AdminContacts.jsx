@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { getConfig } from "../../config/production";
 import { useDebounce } from "../../hooks/useDebounce";
+import TableRowsSkeleton from "../../components/common/TableRowsSkeleton";
 
 const AdminContacts = () => {
 	const navigate = useNavigate();
@@ -170,14 +171,14 @@ const AdminContacts = () => {
 	};
 
 	return (
-		<div className="pb-20 relative overflow-hidden">
+		<div className="dashboard-page">
 				{/* Background radial glows */}
 				<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 					<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/30 rounded-full blur-[120px]"></div>
 					<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
 				</div>
 
-				<div className="max-w-full mx-auto px-4 md:px-8 py-8 relative z-10">
+				<div className="dashboard-container">
 				{/* Header Section */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-6">
 					<div>
@@ -304,16 +305,7 @@ const AdminContacts = () => {
 							</thead>
 							<tbody className="divide-y divide-slate-50">
 								{loading && contacts.length === 0 ? (
-									<tr>
-										<td colSpan="5" className="px-6 py-20 text-center">
-											<div className="flex flex-col items-center gap-3">
-												<RefreshCw className="w-8 h-8 text-emerald-500 animate-spin" />
-												<p className="text-sm font-bold text-slate-400">
-													Chargement des contacts...
-												</p>
-											</div>
-										</td>
-									</tr>
+									<TableRowsSkeleton rows={6} cols={5} />
 								) : contacts.length === 0 ? (
 									<tr>
 										<td colSpan="5" className="px-6 py-20 text-center">

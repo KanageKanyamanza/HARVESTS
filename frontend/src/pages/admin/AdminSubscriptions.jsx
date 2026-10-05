@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import LoadingSpinner from "../../components/common/LoadingSpinner";
+import CardGridSkeleton from "../../components/common/CardGridSkeleton";
 import SubscriptionStats from "../../components/admin/subscriptions/SubscriptionStats";
 import SubscriptionFilters from "../../components/admin/subscriptions/SubscriptionFilters";
 import SubscriptionTable from "../../components/admin/subscriptions/SubscriptionTable";
@@ -40,23 +40,16 @@ const AdminSubscriptions = () => {
 		setCurrentPage(1);
 	};
 
-	if (loading && !subscriptions.length) {
-		return (
-			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
-				<LoadingSpinner size="lg" text="Chargement des souscriptions..." />
-			</div>
-		);
-	}
 
 	return (
-		<div className="min-h-screen md:pl-6 pb-20 relative overflow-hidden">
+		<div className="dashboard-page">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/30 rounded-full blur-[120px]"></div>
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="max-w-full mx-auto px-3 py-4 relative z-10 pl-1 md:pl-6 md:px-4 md:py-8">
+			<div className="dashboard-container">
 				{/* Header */}
 				<div className="mb-8 animate-fade-in-down">
 					<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-1.5">
@@ -89,10 +82,14 @@ const AdminSubscriptions = () => {
 				/>
 
 				{/* Tableau des souscriptions */}
-				<SubscriptionTable
-					subscriptions={filteredSubscriptions}
-					onViewDetails={handleViewDetails}
-				/>
+				{loading && !subscriptions.length ? (
+					<CardGridSkeleton count={5} variant="row" className="space-y-3" />
+				) : (
+					<SubscriptionTable
+						subscriptions={filteredSubscriptions}
+						onViewDetails={handleViewDetails}
+					/>
+				)}
 
 				{/* Pagination */}
 				<SubscriptionPagination

@@ -45,14 +45,14 @@ const AdminBlogCreate = () => {
 	} = form;
 
 	return (
-		<div className="min-h-screen bg-[#fafafa] relative overflow-hidden">
+		<div className="dashboard-page bg-[#fafafa]">
 			{/* Background Deco */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/30 rounded-full blur-[120px]"></div>
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="max-w-6xl mx-auto px-5 py-12 relative z-10">
+			<div className="dashboard-container max-w-6xl">
 				<BlogFormHeader
 					isEdit={isEdit}
 					navigate={navigate}

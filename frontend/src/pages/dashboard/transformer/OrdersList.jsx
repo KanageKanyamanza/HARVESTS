@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../hooks/useAuth";
 import { transformerService } from "../../../services";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
@@ -8,6 +9,7 @@ import { FiSearch, FiRefreshCw, FiFilter, FiShoppingBag } from "react-icons/fi";
 import { useLocation } from "react-router-dom";
 
 const OrdersList = () => {
+	const { t } = useTranslation("dashboard-producer");
 	const { user } = useAuth();
 	const location = useLocation();
 	const [orders, setOrders] = useState([]);
@@ -148,7 +150,7 @@ const OrdersList = () => {
 	});
 
 	return (
-		<div className="min-h-screen relative overflow-hidden">
+		<div className="dashboard-page">
 			{/* Background radial glows - Purple Theme for Transformer */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-100/30 rounded-full blur-[120px]"></div>
@@ -156,7 +158,7 @@ const OrdersList = () => {
 				<div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-indigo-50/30 rounded-full blur-[120px]"></div>
 			</div>
 
-			<div className="relative z-10 p-4 md:p-6 max-w-[1600px] mx-auto space-y-6">
+			<div className="dashboard-container space-y-6">
 				{/* Message de vérification d'email */}
 				{emailVerificationError && (
 					<EmailVerificationRequired
@@ -175,17 +177,16 @@ const OrdersList = () => {
 					<div>
 						<div className="flex items-center gap-2 text-purple-600 font-black text-[9px] uppercase tracking-widest mb-2">
 							<div className="w-5 h-[2px] bg-purple-600"></div>
-							<span>Gestion</span>
+							<span>{t("orders.eyebrow")}</span>
 						</div>
 						<h1 className="text-3xl font-[1000] text-gray-900 tracking-tighter leading-none mb-2">
-							Mes{" "}
+							{t("orders.titleStart")}{" "}
 							<span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-fuchsia-500">
-								Commandes.
+								{t("orders.titleHighlight")}
 							</span>
 						</h1>
 						<p className="text-xs text-gray-500 font-medium max-w-xl">
-							Suivez vos commandes, gérez vos productions et les interactions
-							avec vos clients.
+							{t("transformer.orders.subtitle")}
 						</p>
 					</div>
 
@@ -196,7 +197,7 @@ const OrdersList = () => {
 						<FiRefreshCw
 							className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
 						/>
-						Actualiser
+						{t("orders.refresh")}
 					</button>
 				</div>
 
@@ -208,7 +209,7 @@ const OrdersList = () => {
 						</div>
 						<input
 							type="text"
-							placeholder="Rechercher par numéro de commande..."
+							placeholder={t("orders.searchPlaceholder")}
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
 							className="block w-full pl-11 pr-4 py-3 bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all shadow-sm group-hover:shadow-md"
@@ -224,16 +225,18 @@ const OrdersList = () => {
 							onChange={(e) => setStatusFilter(e.target.value)}
 							className="block w-full pl-10 pr-10 py-3 bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl text-xs font-bold uppercase tracking-wide text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all shadow-sm cursor-pointer appearance-none hover:bg-white"
 						>
-							<option value="all">Tous les statuts</option>
-							<option value="active">En cours</option>
-							<option value="pending">En attente</option>
-							<option value="confirmed">Confirmées</option>
-							<option value="preparing">En préparation</option>
-							<option value="ready-for-pickup">Prêtes pour collecte</option>
-							<option value="in-transit">En transit</option>
-							<option value="delivered">Livrées</option>
-							<option value="completed">Terminées</option>
-							<option value="cancelled">Annulées</option>
+							<option value="all">{t("orders.filters.all")}</option>
+							<option value="active">{t("orders.filters.active")}</option>
+							<option value="pending">{t("orders.filters.pending")}</option>
+							<option value="confirmed">{t("orders.filters.confirmed")}</option>
+							<option value="preparing">{t("orders.filters.preparing")}</option>
+							<option value="ready-for-pickup">
+								{t("orders.filters.ready-for-pickup")}
+							</option>
+							<option value="in-transit">{t("orders.filters.in-transit")}</option>
+							<option value="delivered">{t("orders.filters.delivered")}</option>
+							<option value="completed">{t("orders.filters.completed")}</option>
+							<option value="cancelled">{t("orders.filters.cancelled")}</option>
 						</select>
 						<div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
 							<svg

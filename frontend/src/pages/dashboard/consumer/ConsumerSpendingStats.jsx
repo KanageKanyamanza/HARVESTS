@@ -10,7 +10,8 @@ import {
 } from "recharts";
 import { FiTrendingUp, FiArrowUpRight, FiDollarSign } from "react-icons/fi";
 
-const ConsumerSpendingStats = ({ monthlySpentChart, totalSpent }) => {
+// loading : titres affichés, seuls le montant et la courbe (serveur) attendent
+const ConsumerSpendingStats = ({ monthlySpentChart, totalSpent, loading = false }) => {
 	const formatCurrency = (val) => {
 		return new Intl.NumberFormat("fr-FR", {
 			style: "currency",
@@ -42,7 +43,10 @@ const ConsumerSpendingStats = ({ monthlySpentChart, totalSpent }) => {
 							Ce mois-ci
 						</p>
 						<p className="text-2xl font-[1000] text-gray-900 tracking-tighter">
-							{formatCurrency(totalSpent / 12)} {/* Mock average */}
+							{loading ?
+								<span className="inline-block h-6 w-24 bg-gray-100 rounded animate-pulse" />
+							:	formatCurrency(totalSpent / 12)}{" "}
+							{/* Mock average */}
 						</p>
 					</div>
 					<div className="w-[1px] h-10 bg-gray-100 mx-2"></div>
@@ -54,50 +58,53 @@ const ConsumerSpendingStats = ({ monthlySpentChart, totalSpent }) => {
 			</div>
 
 			<div className="h-[280px] w-full relative z-10">
-				<ResponsiveContainer width="100%" height="100%">
-					<AreaChart data={monthlySpentChart}>
-						<defs>
-							<linearGradient id="colorSpent" x1="0" y1="0" x2="0" y2="1">
-								<stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-								<stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-							</linearGradient>
-						</defs>
-						<CartesianGrid
-							strokeDasharray="3 3"
-							vertical={false}
-							stroke="#f1f5f9"
-						/>
-						<XAxis
-							dataKey="name"
-							axisLine={false}
-							tickLine={false}
-							tick={{ fontSize: 10, fontWeight: 800, fill: "#94a3b8" }}
-							dy={10}
-						/>
-						<YAxis hide={true} />
-						<Tooltip
-							contentStyle={{
-								backgroundColor: "rgba(255, 255, 255, 0.8)",
-								backdropFilter: "blur(12px)",
-								borderRadius: "20px",
-								border: "1px solid rgba(255, 255, 255, 0.6)",
-								boxShadow: "0 20px 50px rgba(0,0,0,0.05)",
-								fontSize: "12px",
-								fontWeight: "bold",
-								color: "#1e293b",
-							}}
-							formatter={(value) => [formatCurrency(value), "Dépensé"]}
-						/>
-						<Area
-							type="monotone"
-							dataKey="value"
-							stroke="#3b82f6"
-							strokeWidth={4}
-							fillOpacity={1}
-							fill="url(#colorSpent)"
-						/>
-					</AreaChart>
-				</ResponsiveContainer>
+				{loading ?
+					<div className="h-full w-full bg-gray-100/70 rounded-2xl animate-pulse" />
+				:	<ResponsiveContainer width="100%" height="100%">
+						<AreaChart data={monthlySpentChart}>
+							<defs>
+								<linearGradient id="colorSpent" x1="0" y1="0" x2="0" y2="1">
+									<stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+									<stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+								</linearGradient>
+							</defs>
+							<CartesianGrid
+								strokeDasharray="3 3"
+								vertical={false}
+								stroke="#f1f5f9"
+							/>
+							<XAxis
+								dataKey="name"
+								axisLine={false}
+								tickLine={false}
+								tick={{ fontSize: 10, fontWeight: 800, fill: "#94a3b8" }}
+								dy={10}
+							/>
+							<YAxis hide={true} />
+							<Tooltip
+								contentStyle={{
+									backgroundColor: "rgba(255, 255, 255, 0.8)",
+									backdropFilter: "blur(12px)",
+									borderRadius: "20px",
+									border: "1px solid rgba(255, 255, 255, 0.6)",
+									boxShadow: "0 20px 50px rgba(0,0,0,0.05)",
+									fontSize: "12px",
+									fontWeight: "bold",
+									color: "#1e293b",
+								}}
+								formatter={(value) => [formatCurrency(value), "Dépensé"]}
+							/>
+							<Area
+								type="monotone"
+								dataKey="value"
+								stroke="#3b82f6"
+								strokeWidth={4}
+								fillOpacity={1}
+								fill="url(#colorSpent)"
+							/>
+						</AreaChart>
+					</ResponsiveContainer>
+				}
 			</div>
 		</div>
 	);

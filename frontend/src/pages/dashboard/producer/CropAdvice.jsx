@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../hooks/useAuth";
 import { producerService } from "../../../services";
 import {
@@ -13,15 +14,19 @@ import {
 } from "react-icons/fi";
 import { Sprout } from "lucide-react";
 import { toPlainText } from "../../../utils/textHelpers";
+import { getCategoryLabel } from "../../../utils/productHelpers";
 import {
 	cropAdviceData,
 	cropCategories,
 	findCropAdviceByName,
+	localizeCropData,
 	searchCropAdvice,
 } from "../../../data/cropAdviceData";
 
 // Carte compacte : résumé cliquable avec image et badges
-const CropAdviceCard = ({ crop }) => {
+const CropAdviceCard = ({ crop: sourceCrop }) => {
+	const { t, i18n } = useTranslation("dashboard-producer");
+	const crop = localizeCropData(sourceCrop, i18n.language);
 	const [imgSrc, setImgSrc] = useState(crop.image || crop.fallbackUrl);
 
 	const handleImgError = () => {
@@ -32,8 +37,8 @@ const CropAdviceCard = ({ crop }) => {
 		}
 	};
 
-	const categoryLabel =
-		cropCategories.find((c) => c.value === crop.category)?.label || crop.category;
+	// Valeurs de catégorie identiques à celles des produits : libellé traduit
+	const categoryLabel = getCategoryLabel(crop.category, i18n.language);
 
 	return (
 		<Link
@@ -79,7 +84,9 @@ const CropAdviceCard = ({ crop }) => {
 					<div className="flex items-center justify-between gap-2 text-xs text-gray-500 pt-1 border-t border-gray-100">
 						<div className="flex items-center gap-1.5 min-w-0">
 							<FiThermometer className="text-red-500 flex-shrink-0" />
-							<span className="truncate">{crop.idealTemp.min}°C à {crop.idealTemp.max}°C</span>
+							<span className="truncate">
+								{t("cropAdvice.tempRange", { min: crop.idealTemp.min, max: crop.idealTemp.max })}
+							</span>
 						</div>
 						<div className="flex items-center gap-1.5 min-w-0">
 							<FiCalendar className="text-emerald-600 flex-shrink-0" />
@@ -89,7 +96,7 @@ const CropAdviceCard = ({ crop }) => {
 				</div>
 
 				<div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs font-semibold text-harvests-primary group-hover:text-harvests-secondary transition-colors">
-					<span>Voir fiche & étapes de pousse</span>
+					<span>{t("cropAdvice.seeGuide")}</span>
 					<FiChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
 				</div>
 			</div>
@@ -98,6 +105,7 @@ const CropAdviceCard = ({ crop }) => {
 };
 
 const CropAdvice = () => {
+	const { t, i18n } = useTranslation("dashboard-producer");
 	const { user } = useAuth();
 	const [myProducts, setMyProducts] = useState([]);
 	const [loadingProducts, setLoadingProducts] = useState(true);
@@ -160,20 +168,20 @@ const CropAdvice = () => {
 	}, [searchTerm, categoryFilter]);
 
 	return (
-		<div className="min-h-screen relative overflow-hidden bg-gradient-to-b from-gray-50/50 to-white">
-			<div className="relative z-10 p-4 md:p-6 max-w-[1600px] mx-auto space-y-8">
+		<div className="dashboard-page bg-gradient-to-b from-gray-50/50 to-white">
+			<div className="dashboard-container space-y-8">
 				{/* En-tête */}
 				<div className="bg-gradient-to-r from-emerald-800 via-harvests-primary to-emerald-900 rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
 					<div className="absolute right-0 top-0 bottom-0 w-1/3 bg-white/5 skew-x-12 pointer-events-none" />
 					<div className="relative z-10 max-w-3xl space-y-2">
 						<span className="inline-flex items-center gap-2 text-xs font-semibold px-3 py-1 rounded-full bg-white/20 text-emerald-100 backdrop-blur-md">
-							<Sprout className="h-3.5 w-3.5" /> Guide Agricole & Bonnes Pratiques
+							<Sprout className="h-3.5 w-3.5" /> {t("cropAdvice.badge")}
 						</span>
 						<h1 className="text-2xl md:text-4xl font-extrabold tracking-tight">
-							Conseils Agricoles & Fiches de Culture
+							{t("cropAdvice.title")}
 						</h1>
 						<p className="text-emerald-100 text-sm md:text-base opacity-90 leading-relaxed">
-							Découvrez les conseils personnalisés pour vos récoltes : saisons optimales, températures, étapes de pousse illustrées et équipements agricoles préconisés.
+							{t("cropAdvice.subtitle")}
 						</p>
 					</div>
 				</div>
@@ -184,10 +192,10 @@ const CropAdvice = () => {
 						<div className="flex items-center justify-between">
 							<h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
 								<span className="w-2 h-6 rounded-full bg-harvests-primary" />
-								Conseils pour vos produits actuels
+								{t("cropAdvice.forYourProducts")}
 							</h2>
 							<span className="text-xs text-gray-500 font-medium">
-								{myProductsAdvice.length} fiche(s) personnalisée(s)
+								{t("cropAdvice.personalizedCount", { count: myProductsAdvice.length })}
 							</span>
 						</div>
 						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
@@ -204,9 +212,9 @@ const CropAdvice = () => {
 						<div className="bg-amber-50/80 border border-amber-200 text-amber-900 rounded-2xl p-4 flex items-start gap-3 text-sm shadow-sm">
 							<FiInfo className="mt-0.5 h-5 w-5 text-amber-600 flex-shrink-0" />
 							<div>
-								<span className="font-semibold block mb-0.5">Fiches d'aide sur-mesure</span>
+								<span className="font-semibold block mb-0.5">{t("cropAdvice.noMatchTitle")}</span>
 								<span>
-									Aucune correspondance directe trouvée pour l'un de vos produits enregistrés. Vous pouvez rechercher n'importe quelle culture du catalogue ci-dessous.
+									{t("cropAdvice.noMatchText")}
 								</span>
 							</div>
 						</div>
@@ -221,7 +229,7 @@ const CropAdvice = () => {
 								type="text"
 								value={searchTerm}
 								onChange={(e) => setSearchTerm(e.target.value)}
-								placeholder="Rechercher une culture (ex: tomate, mil, mangue, maïs...)"
+								placeholder={t("cropAdvice.searchPlaceholder")}
 								className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-harvests-primary focus:border-transparent text-sm bg-gray-50/50 focus:bg-white transition-all"
 							/>
 						</div>
@@ -232,12 +240,14 @@ const CropAdvice = () => {
 								onChange={(e) => setCategoryFilter(e.target.value)}
 								className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-harvests-primary focus:border-transparent text-sm bg-gray-50/50 focus:bg-white transition-all font-medium text-gray-700"
 							>
-								<option value="all">Toutes les catégories ({cropAdviceData.length})</option>
+								<option value="all">
+								{t("cropAdvice.allCategories", { count: cropAdviceData.length })}
+							</option>
 								{cropCategories.map((cat) => {
 									const count = cropAdviceData.filter((c) => c.category === cat.value).length;
 									return (
 										<option key={cat.value} value={cat.value}>
-											{cat.label} ({count})
+											{t("cropAdvice.categoryOption", { label: getCategoryLabel(cat.value, i18n.language), count })}
 										</option>
 									);
 								})}
@@ -249,8 +259,8 @@ const CropAdvice = () => {
 					{filteredCatalog.length === 0 ? (
 						<div className="bg-white rounded-2xl border border-gray-100 p-12 text-center text-gray-500 space-y-3">
 							<FiImage className="h-12 w-12 text-gray-300 mx-auto" />
-							<p className="font-semibold text-gray-700">Aucune culture trouvée</p>
-							<p className="text-xs">Essayez un autre mot-clé ou réinitialisez le filtre de catégorie.</p>
+							<p className="font-semibold text-gray-700">{t("cropAdvice.noResultTitle")}</p>
+							<p className="text-xs">{t("cropAdvice.noResultText")}</p>
 						</div>
 					) : (
 						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

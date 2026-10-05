@@ -4,7 +4,6 @@ import { Utensils } from 'lucide-react';
 import { FiArrowLeft, FiClock, FiDollarSign, FiTag, FiAlertTriangle, FiEdit, FiTrash2 } from 'react-icons/fi';
 import { restaurateurService } from '../../../services';
 import { useNotifications } from '../../../hooks/useNotifications';
-import LoadingSpinner from '../../../components/common/LoadingSpinner';
 
 const DishDetail = () => {
   const { dishId } = useParams();
@@ -69,15 +68,8 @@ const DishDetail = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-harvests-light flex items-center justify-center">
-        <LoadingSpinner size="lg" text="Chargement du plat..." />
-      </div>
-    );
-  }
 
-  if (error || !dish) {
+  if (!loading && (error || !dish)) {
     return (
       <div className="min-h-screen bg-harvests-light flex items-center justify-center">
         <div className="text-center">
@@ -96,8 +88,8 @@ const DishDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-harvests-light">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="dashboard-page bg-harvests-light">
+      <div className="dashboard-container">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <button
@@ -126,133 +118,145 @@ const DishDetail = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Image */}
-          <div className="space-y-4">
-            <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-              {dish.image ? (
-                dish.image.startsWith('data:image/') ? (
-                  <img
-                    src={dish.image}
-                    alt={dish.name}
-                    className="w-full h-full object-cover"
-                  />
+        {loading ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-pulse" aria-busy="true">
+          	<div className="aspect-square rounded-2xl bg-gray-100" />
+          	<div className="space-y-4">
+          		<div className="h-8 bg-gray-100 rounded w-2/3" />
+          		<div className="h-4 bg-gray-100 rounded w-1/3" />
+          		<div className="h-24 bg-gray-100 rounded-xl" />
+          		<div className="h-12 bg-gray-100 rounded-xl w-1/2" />
+          	</div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Image */}
+            <div className="space-y-4">
+              <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
+                {dish.image ? (
+                  dish.image.startsWith('data:image/') ? (
+                    <img
+                      src={dish.image}
+                      alt={dish.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <img
+                      src={dish.image}
+                      alt={dish.name}
+                      className="w-full h-full object-cover"
+                    />
+                  )
                 ) : (
-                  <img
-                    src={dish.image}
-                    alt={dish.name}
-                    className="w-full h-full object-cover"
-                  />
-                )
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="text-center text-gray-400">
-                    <div className="flex justify-center mb-4 text-gray-300"><Utensils size={64} /></div>
-                    <p>Aucune image</p>
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="text-center text-gray-400">
+                      <div className="flex justify-center mb-4 text-gray-300"><Utensils size={64} /></div>
+                      <p>Aucune image</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Details */}
+            <div className="space-y-6">
+              {/* Title and Status */}
+              <div>
+                <div className="flex items-start justify-between mb-2">
+                  <h1 className="text-3xl font-bold text-gray-900">{dish.name}</h1>
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      dish.isAvailable
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}
+                  >
+                    {dish.isAvailable ? 'Disponible' : 'Indisponible'}
+                  </span>
+                </div>
+                <p className="text-gray-600 text-lg">{dish.description}</p>
+              </div>
+
+              {/* Price and Time */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white p-4 rounded-lg border">
+                  <div className="flex items-center text-green-600">
+                    <FiDollarSign className="mr-2" />
+                    <span className="font-semibold">Prix</span>
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">
+                    {dish.price} FCFA
+                  </p>
+                </div>
+                
+                <div className="bg-white p-4 rounded-lg border">
+                  <div className="flex items-center text-blue-600">
+                    <FiClock className="mr-2" />
+                    <span className="font-semibold">Temps de préparation</span>
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">
+                    {dish.preparationTime} min
+                  </p>
+                </div>
+              </div>
+
+              {/* Category */}
+              <div className="bg-white p-4 rounded-lg border">
+                <div className="flex items-center text-purple-600 mb-2">
+                  <FiTag className="mr-2" />
+                  <span className="font-semibold">Catégorie</span>
+                </div>
+                <span className="inline-block px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
+                  {dish.category}
+                </span>
+              </div>
+
+              {/* Allergens */}
+              {dish.allergens && dish.allergens.length > 0 && (
+                <div className="bg-white p-4 rounded-lg border">
+                  <div className="flex items-center text-orange-600 mb-3">
+                    <FiAlertTriangle className="mr-2" />
+                    <span className="font-semibold">Allergènes</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {dish.allergens.map((allergen, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm"
+                      >
+                        {allergen}
+                      </span>
+                    ))}
                   </div>
                 </div>
               )}
-            </div>
-          </div>
 
-          {/* Details */}
-          <div className="space-y-6">
-            {/* Title and Status */}
-            <div>
-              <div className="flex items-start justify-between mb-2">
-                <h1 className="text-3xl font-bold text-gray-900">{dish.name}</h1>
-                <span
-                  className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    dish.isAvailable
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}
-                >
-                  {dish.isAvailable ? 'Disponible' : 'Indisponible'}
-                </span>
-              </div>
-              <p className="text-gray-600 text-lg">{dish.description}</p>
-            </div>
-
-            {/* Price and Time */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white p-4 rounded-lg border">
-                <div className="flex items-center text-green-600">
-                  <FiDollarSign className="mr-2" />
-                  <span className="font-semibold">Prix</span>
+              {/* Actions */}
+              <div className="bg-white p-6 rounded-lg border">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Actions</h3>
+                <div className="space-y-3">
+                  <button
+                    onClick={handleToggleAvailability}
+                    className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+                      dish.isAvailable
+                        ? 'bg-red-600 text-white hover:bg-red-700'
+                        : 'bg-green-600 text-white hover:bg-green-700'
+                    }`}
+                  >
+                    {dish.isAvailable ? 'Désactiver le plat' : 'Activer le plat'}
+                  </button>
+                  
+                  <button
+                    onClick={handleEdit}
+                    className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Modifier les détails
+                  </button>
                 </div>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {dish.price} FCFA
-                </p>
-              </div>
-              
-              <div className="bg-white p-4 rounded-lg border">
-                <div className="flex items-center text-blue-600">
-                  <FiClock className="mr-2" />
-                  <span className="font-semibold">Temps de préparation</span>
-                </div>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {dish.preparationTime} min
-                </p>
-              </div>
-            </div>
-
-            {/* Category */}
-            <div className="bg-white p-4 rounded-lg border">
-              <div className="flex items-center text-purple-600 mb-2">
-                <FiTag className="mr-2" />
-                <span className="font-semibold">Catégorie</span>
-              </div>
-              <span className="inline-block px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
-                {dish.category}
-              </span>
-            </div>
-
-            {/* Allergens */}
-            {dish.allergens && dish.allergens.length > 0 && (
-              <div className="bg-white p-4 rounded-lg border">
-                <div className="flex items-center text-orange-600 mb-3">
-                  <FiAlertTriangle className="mr-2" />
-                  <span className="font-semibold">Allergènes</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {dish.allergens.map((allergen, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm"
-                    >
-                      {allergen}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="bg-white p-6 rounded-lg border">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Actions</h3>
-              <div className="space-y-3">
-                <button
-                  onClick={handleToggleAvailability}
-                  className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
-                    dish.isAvailable
-                      ? 'bg-red-600 text-white hover:bg-red-700'
-                      : 'bg-green-600 text-white hover:bg-green-700'
-                  }`}
-                >
-                  {dish.isAvailable ? 'Désactiver le plat' : 'Activer le plat'}
-                </button>
-                
-                <button
-                  onClick={handleEdit}
-                  className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Modifier les détails
-                </button>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

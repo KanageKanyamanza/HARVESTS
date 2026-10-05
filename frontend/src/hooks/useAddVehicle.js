@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { exporterService, transporterService, uploadService } from '../services';
 import { useNotifications } from '../hooks/useNotifications';
 
@@ -9,6 +10,7 @@ import { useNotifications } from '../hooks/useNotifications';
  */
 export const useAddVehicle = (userType = 'exporter') => {
   const navigate = useNavigate();
+  const { t } = useTranslation('dashboard-transporter');
   const { showSuccess, showError } = useNotifications();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -86,7 +88,7 @@ export const useAddVehicle = (userType = 'exporter') => {
     const newErrors = {};
     
     if (!formData.vehicleType) {
-      newErrors.vehicleType = 'Le type de véhicule est requis';
+      newErrors.vehicleType = t('vehicle.messages.typeRequired');
     }
     
     setErrors(newErrors);
@@ -97,12 +99,12 @@ export const useAddVehicle = (userType = 'exporter') => {
     if (!file) return;
     
     if (!file.type.startsWith('image/')) {
-      showError('Veuillez sélectionner un fichier image valide');
+      showError(t('vehicle.messages.invalidImage'));
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      showError('La taille du fichier ne doit pas dépasser 5MB');
+      showError(t('vehicle.messages.imageTooLarge'));
       return;
     }
 
@@ -141,7 +143,7 @@ export const useAddVehicle = (userType = 'exporter') => {
       }
     } catch (error) {
       console.error('Erreur lors de l\'upload de l\'image:', error);
-      showError('Erreur lors de l\'upload de l\'image');
+      showError(t('vehicle.messages.imageUploadError'));
     } finally {
       setUploadingImage(false);
     }
@@ -202,7 +204,7 @@ export const useAddVehicle = (userType = 'exporter') => {
 
       const service = userType === 'transporter' ? transporterService : exporterService;
       const response = await service.addFleetVehicle(vehicleData);
-      showSuccess('Véhicule ajouté avec succès à votre flotte !');
+      showSuccess(t('vehicle.messages.added'));
       
       const newVehicle = response?.data?.data || response?.data;
       const basePath = userType === 'transporter' ? '/transporter/fleet' : '/exporter/fleet';
@@ -213,7 +215,7 @@ export const useAddVehicle = (userType = 'exporter') => {
       }
     } catch (error) {
       console.error('Erreur:', error);
-      showError(error.response?.data?.message || 'Erreur lors de l\'ajout du véhicule. Veuillez réessayer.');
+      showError(error.response?.data?.message || t('vehicle.messages.addError'));
     } finally {
       setLoading(false);
     }

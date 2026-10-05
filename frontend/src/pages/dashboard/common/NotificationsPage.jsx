@@ -1,6 +1,6 @@
 import React from "react";
+import CardGridSkeleton from "../../../components/common/CardGridSkeleton";
 import { Bell, CheckCheck, Check } from "lucide-react"; // Icons
-import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import NotificationFilters from "../../../components/notifications/NotificationFilters";
 import NotificationBulkActions from "../../../components/notifications/NotificationBulkActions";
 import NotificationItem from "../../../components/notifications/NotificationItem";
@@ -43,23 +43,16 @@ const NotificationsPage = () => {
 		setSelectedNotifications([]);
 	};
 
-	if (loading && notifications.length === 0) {
-		return (
-			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
-				<LoadingSpinner size="lg" text="Chargement des notifications..." />
-			</div>
-		);
-	}
 
 	return (
-		<div className="min-h-screen pb-20 relative overflow-hidden">
+		<div className="dashboard-page">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/30 rounded-full blur-[120px]"></div>
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="max-w-full mx-auto px-3 py-4 relative z-10 md:pl-6 md:px-4 md:py-8">
+			<div className="dashboard-container">
 				{/* Header */}
 				<div className="mb-8 animate-fade-in-down">
 					<div className="flex items-center gap-2 text-emerald-600 font-black text-[9px] uppercase tracking-widest mb-2">
@@ -121,7 +114,9 @@ const NotificationsPage = () => {
 
 				{/* Liste des notifications */}
 				<div className="bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/60 shadow-sm min-h-[400px]">
-					{filteredNotifications.length === 0 ? (
+					{loading && notifications.length === 0 ? (
+						<CardGridSkeleton count={5} variant="row" className="space-y-3" />
+					) : filteredNotifications.length === 0 ? (
 						<div className="flex flex-col items-center justify-center py-24 text-center">
 							<div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-6 shadow-sm">
 								<Bell className="h-10 w-10 text-gray-300" />

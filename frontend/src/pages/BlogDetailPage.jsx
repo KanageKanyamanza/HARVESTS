@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import PublicDetailSkeleton from "../components/common/PublicDetailSkeleton";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
@@ -7,7 +8,6 @@ import trackingService from "../services/trackingService";
 import BlogVisitorModal from "../components/blog/BlogVisitorModal";
 import useBlogVisitorModal from "../hooks/useBlogVisitorModal";
 import { useNotifications } from "../hooks/useNotifications";
-import LoadingSpinner from "../components/common/LoadingSpinner";
 import BlogPreviewBanner from "./blogDetail/BlogPreviewBanner";
 import BlogHeader from "./blogDetail/BlogHeader";
 import BlogContent from "./blogDetail/BlogContent";
@@ -220,13 +220,8 @@ const BlogDetailPage = () => {
 	const getCategoryLabelWrapper = (category) => getCategoryLabel(category, t);
 	const translateTagWrapper = (tag) => translateTag(tag, t);
 
-	if (loading) {
-		return (
-			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
-				<LoadingSpinner size="lg" text="Chargement du blog..." />
-			</div>
-		);
-	}
+	// Chargement : bouton retour affiché, seul le contenu (serveur) est grisé
+	if (loading) return <PublicDetailSkeleton onBack={() => navigate(-1)} variant="article" />;
 
 	if (!blog) {
 		return (

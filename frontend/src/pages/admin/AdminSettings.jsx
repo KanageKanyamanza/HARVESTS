@@ -1,6 +1,5 @@
 import React from "react";
 import { Settings } from "lucide-react";
-import LoadingSpinner from "../../components/common/LoadingSpinner";
 import SettingsTabs from "../../components/admin/settings/SettingsTabs";
 import ProfileTab from "../../components/admin/settings/ProfileTab";
 import NotificationsTab from "../../components/admin/settings/NotificationsTab";
@@ -34,23 +33,16 @@ const AdminSettings = () => {
 		setPasswordData((prev) => ({ ...prev, [field]: value }));
 	};
 
-	if (loading) {
-		return (
-			<div className="flex items-center justify-center h-64">
-				<LoadingSpinner size="lg" text="Chargement..." />
-			</div>
-		);
-	}
 
 	return (
-		<div className="min-h-screen md:pl-3 pb-20 relative overflow-hidden">
+		<div className="dashboard-page">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-green-100/30 rounded-full blur-[120px]"></div>
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="max-w-full mx-auto px-3 py-4 relative z-10 md:pl-6 md:px-4 md:py-8">
+			<div className="dashboard-container">
 				{/* Header */}
 				<div className="mb-8 animate-fade-in-down">
 					<div className="flex items-center gap-2 text-emerald-600 font-black text-[9px] uppercase tracking-widest mb-2">
@@ -91,43 +83,54 @@ const AdminSettings = () => {
 					{/* Contenu principal */}
 					<div className="lg:col-span-3">
 						<div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-sm border border-white/60 overflow-hidden relative">
-							{/* Onglet Profil */}
-							{activeTab === "profile" && (
-								<ProfileTab
-									user={user}
-									formData={formData}
-									avatarPreview={avatarPreview}
-									errors={errors}
-									saving={saving}
-									onInputChange={handleInputChange}
-									onAvatarChange={handleAvatarChange}
-									onSubmit={handleUpdateProfile}
-									onReset={resetProfileForm}
-								/>
-							)}
-
-							{/* Onglet Notifications */}
-							{activeTab === "notifications" && (
-								<NotificationsTab
-									user={user}
-									formData={formData}
-									saving={saving}
-									onInputChange={handleInputChange}
-									onSubmit={handleUpdateNotificationEmail}
-									onReset={resetNotificationForm}
-								/>
-							)}
-
-							{/* Onglet Mot de passe */}
-							{activeTab === "password" && (
-								<PasswordTab
-									passwordData={passwordData}
-									errors={errors}
-									saving={saving}
-									onPasswordChange={handlePasswordChange}
-									onSubmit={handleChangePassword}
-									onReset={resetPasswordForm}
-								/>
+							{loading ? (
+								<div className="p-6 space-y-4 animate-pulse" aria-busy="true">
+									<div className="h-4 bg-gray-100 rounded w-1/4" />
+									<div className="h-11 bg-gray-100 rounded-xl" />
+									<div className="h-11 bg-gray-100 rounded-xl" />
+									<div className="h-11 bg-gray-100 rounded-xl w-1/2" />
+								</div>
+							) : (
+								<>
+									{/* Onglet Profil */}
+									{activeTab === "profile" && (
+										<ProfileTab
+											user={user}
+											formData={formData}
+											avatarPreview={avatarPreview}
+											errors={errors}
+											saving={saving}
+											onInputChange={handleInputChange}
+											onAvatarChange={handleAvatarChange}
+											onSubmit={handleUpdateProfile}
+											onReset={resetProfileForm}
+										/>
+									)}
+	
+									{/* Onglet Notifications */}
+									{activeTab === "notifications" && (
+										<NotificationsTab
+											user={user}
+											formData={formData}
+											saving={saving}
+											onInputChange={handleInputChange}
+											onSubmit={handleUpdateNotificationEmail}
+											onReset={resetNotificationForm}
+										/>
+									)}
+	
+									{/* Onglet Mot de passe */}
+									{activeTab === "password" && (
+										<PasswordTab
+											passwordData={passwordData}
+											errors={errors}
+											saving={saving}
+											onPasswordChange={handlePasswordChange}
+											onSubmit={handleChangePassword}
+											onReset={resetPasswordForm}
+										/>
+									)}
+								</>
 							)}
 						</div>
 					</div>

@@ -12,6 +12,7 @@ import frPublic from "../locales/fr/public.json";
 import frDashboardAdmin from "../locales/fr/dashboard-admin.json";
 import frDashboardConsumer from "../locales/fr/dashboard-consumer.json";
 import frDashboardProducer from "../locales/fr/dashboard-producer.json";
+import frDashboardTransporter from "../locales/fr/dashboard-transporter.json";
 import frAuth from "../locales/fr/auth.json";
 import frBlog from "../locales/fr/blog.json";
 import frSeo from "../locales/fr/seo.json";
@@ -22,6 +23,7 @@ import enPublic from "../locales/en/public.json";
 import enDashboardAdmin from "../locales/en/dashboard-admin.json";
 import enDashboardConsumer from "../locales/en/dashboard-consumer.json";
 import enDashboardProducer from "../locales/en/dashboard-producer.json";
+import enDashboardTransporter from "../locales/en/dashboard-transporter.json";
 import enAuth from "../locales/en/auth.json";
 import enBlog from "../locales/en/blog.json";
 import enSeo from "../locales/en/seo.json";
@@ -33,6 +35,7 @@ export const NAMESPACES = [
 	"dashboard-admin",
 	"dashboard-consumer",
 	"dashboard-producer",
+	"dashboard-transporter",
 	"auth",
 	"blog",
 	"seo",
@@ -47,6 +50,7 @@ const resources = {
 		"dashboard-admin": frDashboardAdmin,
 		"dashboard-consumer": frDashboardConsumer,
 		"dashboard-producer": frDashboardProducer,
+		"dashboard-transporter": frDashboardTransporter,
 		auth: frAuth,
 		blog: frBlog,
 		seo: frSeo,
@@ -58,6 +62,7 @@ const resources = {
 		"dashboard-admin": enDashboardAdmin,
 		"dashboard-consumer": enDashboardConsumer,
 		"dashboard-producer": enDashboardProducer,
+		"dashboard-transporter": enDashboardTransporter,
 		auth: enAuth,
 		blog: enBlog,
 		seo: enSeo,
@@ -231,6 +236,37 @@ export const formatDate = (date, language = getCurrentLanguage()) => {
 		}).format(new Date(date));
 	} catch {
 		return new Date(date).toLocaleDateString();
+	}
+};
+
+// Date + heure courtes (ex. « 29 sept. 2026, 08:15 » / « Sep 29, 2026, 08:15 AM »)
+// Jour 49 : listes de commandes et widgets du tableau de bord.
+export const formatDateTime = (
+	date,
+	language = getCurrentLanguage(),
+	options = { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" },
+) => {
+	const config = getLocaleConfig(language);
+	try {
+		return new Intl.DateTimeFormat(config.locale, options).format(new Date(date));
+	} catch {
+		return new Date(date).toLocaleString();
+	}
+};
+
+// Mois à partir d'un code « AAAA-MM » renvoyé par l'API (ex. « 2026-09 »)
+export const formatMonthCode = (
+	monthCode,
+	language = getCurrentLanguage(),
+	options = { month: "short", year: "2-digit" },
+) => {
+	const [year, month] = String(monthCode || "").split("-").map(Number);
+	if (!year || !month) return monthCode || "";
+	const config = getLocaleConfig(language);
+	try {
+		return new Intl.DateTimeFormat(config.locale, options).format(new Date(year, month - 1));
+	} catch {
+		return monthCode;
 	}
 };
 

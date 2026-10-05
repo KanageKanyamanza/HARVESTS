@@ -4,7 +4,6 @@ import { exporterService } from "../../../services";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 import ExporterStatsOverview from "../../../components/dashboard/exporter/ExporterStatsOverview";
 import ExporterCharts from "../../../components/dashboard/exporter/ExporterCharts";
-import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import {
 	BarChart3,
 	TrendingUp,
@@ -42,13 +41,6 @@ const Statistics = () => {
 		loadStats();
 	}, [user]);
 
-	if (loading && !stats) {
-		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<LoadingSpinner size="lg" text="Chargement..." />
-			</div>
-		);
-	}
 
 	const secondaryStats = [
 		{
@@ -89,7 +81,7 @@ const Statistics = () => {
 	];
 
 	return (
-		<div className="min-h-screen md:pl-3 pb-20 relative overflow-hidden">
+		<div className="dashboard-page">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-100/30 rounded-full blur-[120px]"></div>
@@ -97,9 +89,9 @@ const Statistics = () => {
 				<div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-emerald-100/20 rounded-full blur-[120px]"></div>
 			</div>
 
-			<div className="max-w-full mx-auto px-3 py-4 space-y-4 relative z-10 md:pl-6 md:px-4 md:py-6 md:space-y-5">
+			<div className="dashboard-container space-y-4 md:space-y-5">
 				{/* Header */}
-				<div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-2 animate-fade-in-down">
+				<div className="flex flex-col md:flex-row md:items-end justify-between gap-4 animate-fade-in-down">
 					<div>
 						<div className="flex items-center gap-2 text-indigo-600 font-black text-[10px] uppercase tracking-[0.2em] mb-1.5">
 							<div className="w-5 h-[2px] bg-indigo-600"></div>
@@ -137,7 +129,7 @@ const Statistics = () => {
 							Indicateurs clés
 						</span>
 					</div>
-					<StatCards statCards={secondaryStats} />
+					<StatCards statCards={secondaryStats} loading={loading && !stats} />
 				</div>
 
 				{/* Visualizations Section */}

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from './useAuth';
 import { uploadService } from '../services';
 import { useNotifications } from '../hooks/useNotifications';
@@ -7,6 +8,11 @@ import { useNotifications } from '../hooks/useNotifications';
 export const useVehicleForm = (service, userTypeKey, basePath, defaultWeightUnit = 'kg') => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation('dashboard-transporter');
+  // Lu via une ref dans le chargement : changer de langue ne doit pas
+  // recharger le véhicule (et écraser une saisie en cours).
+  const tRef = useRef(t);
+  tRef.current = t;
   const { vehicleId } = useParams();
   const { showSuccess, showError } = useNotifications();
   const [loading, setLoading] = useState(!!vehicleId);
@@ -41,7 +47,7 @@ export const useVehicleForm = (service, userTypeKey, basePath, defaultWeightUnit
           const vehicle = fleet.find(v => v._id === vehicleId);
           
           if (!vehicle) {
-            showError('Véhicule non trouvé');
+            showError(tRef.current('vehicle.messages.notFound'));
             navigate(`/${userTypeKey}/fleet`);
             return;
           }
@@ -62,11 +68,11 @@ export const useVehicleForm = (service, userTypeKey, basePath, defaultWeightUnit
           });
 
           if (vehicle.image) {
-            setVehicleImage(typeof vehicle.image === 'string' ? { url: vehicle.image, alt: 'Véhicule' } : vehicle.image);
+            setVehicleImage(typeof vehicle.image === 'string' ? { url: vehicle.image, alt: tRef.current('vehicle.imageUpload.alt') } : vehicle.image);
           }
         } catch (error) {
           console.error('Erreur:', error);
-          showError('Erreur lors du chargement');
+          showError(tRef.current('vehicle.messages.loadError'));
         } finally {
           setLoading(false);
         }
@@ -108,25 +114,25 @@ export const useVehicleForm = (service, userTypeKey, basePath, defaultWeightUnit
       setUploadingImage(true);
       const response = await uploadService.uploadSingle(file, 'vehicles');
       if (response.data?.url) {
-        setVehicleImage({ url: response.data.url, public_id: response.data.public_id, alt: 'Véhicule' });
-        showSuccess('Image téléchargée');
+        setVehicleImage({ url: response.data.url, public_id: response.data.public_id, alt: t('vehicle.imageUpload.alt') });
+        showSuccess(t('vehicle.messages.imageUploaded'));
       }
     } catch {
-      showError('Erreur lors du téléchargement');
+      showError(t('vehicle.messages.imageUploadError'));
     } finally {
       setUploadingImage(false);
     }
-  }, [showSuccess, showError]);
+  }, [showSuccess, showError, t]);
 
   const handleImageRemove = useCallback(() => setVehicleImage(null), []);
 
   const validate = useCallback(() => {
     const newErrors = {};
-    if (!formData.vehicleType) newErrors.vehicleType = 'Type requis';
-    if (!formData.registrationNumber) newErrors.registrationNumber = 'Immatriculation requise';
+    if (!formData.vehicleType) newErrors.vehicleType = t('vehicle.messages.typeRequired');
+    if (!formData.registrationNumber) newErrors.registrationNumber = t('vehicle.messages.registrationRequired');
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formData]);
+  }, [formData, t]);
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
@@ -138,19 +144,19 @@ export const useVehicleForm = (service, userTypeKey, basePath, defaultWeightUnit
       
       if (vehicleId) {
         await service.updateVehicle(vehicleId, payload);
-        showSuccess('Véhicule mis à jour');
+        showSuccess(t('vehicle.messages.updated'));
       } else {
         await service.addVehicle(payload);
-        showSuccess('Véhicule ajouté');
+        showSuccess(t('vehicle.messages.added'));
       }
       navigate(`/${userTypeKey}/fleet`);
     } catch (error) {
       console.error('Erreur:', error);
-      showError(error.response?.data?.message || 'Erreur lors de l\'enregistrement');
+      showError(error.response?.data?.message || t('vehicle.messages.saveError'));
     } finally {
       setSaving(false);
     }
-  }, [formData, vehicleImage, vehicleId, service, userTypeKey, navigate, showSuccess, showError, validate]);
+  }, [formData, vehicleImage, vehicleId, service, userTypeKey, navigate, showSuccess, showError, validate, t]);
 
   return {
     formData, setFormData, errors, loading, saving, vehicleImage,

@@ -23,6 +23,7 @@ import {
 	transporterService,
 	commonService,
 } from "../../../services";
+import DashboardPageSkeleton from "../../../components/common/DashboardPageSkeleton";
 
 const DocumentsPage = () => {
 	const { user, isAuthenticated, refreshUser, setUser, updateProfile } =
@@ -122,26 +123,18 @@ const DocumentsPage = () => {
 
 	const activeDocTypes = getDocTypes();
 
-	if (!isAuthenticated || !user) {
-		return (
-			<div className="min-h-[80vh] flex flex-col items-center justify-center space-y-4">
-				<div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
-				<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
-					Chargement de votre coffre-fort...
-				</p>
-			</div>
-		);
-	}
+	// Session en cours de restauration : gabarit grisé plutôt qu'un spinner
+	if (!isAuthenticated || !user) return <DashboardPageSkeleton />;
 
 	return (
-		<div className="min-h-screen relative overflow-hidden pb-20 bg-harvests-light/20">
+		<div className="dashboard-page bg-harvests-light/20">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/30 rounded-full blur-[120px]"></div>
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="relative z-10 max-w-5xl mx-auto px-4 py-8 md:py-12 space-y-12">
+			<div className="dashboard-container space-y-12">
 				{/* Header Section */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-8 animate-fade-in-down">
 					<div className="space-y-4">

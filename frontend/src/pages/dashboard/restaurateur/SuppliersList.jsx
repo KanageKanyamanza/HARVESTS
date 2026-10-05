@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import CardGridSkeleton from "../../../components/common/CardGridSkeleton";
+import DataValue from "../../../components/common/DataValue";
 import { Link } from "react-router-dom";
 import { restaurateurService } from "../../../services";
 import { useNotifications } from "../../../hooks/useNotifications";
@@ -142,27 +144,9 @@ const SuppliersList = () => {
 		setPagination((prev) => ({ ...prev, page: newPage }));
 	};
 
-	if (loading) {
-		return (
-			<div className="p-6 max-w-7xl mx-auto pb-20">
-				<div className="animate-pulse">
-					<div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
-					<div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-						{[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-							<div key={i} className="bg-white rounded-lg shadow p-6">
-								<div className="h-4 bg-gray-200 rounded mb-2"></div>
-								<div className="h-4 bg-gray-200 rounded w-1/2"></div>
-							</div>
-						))}
-					</div>
-				</div>
-			</div>
-		);
-	}
 
 	return (
-		<div className="p-6 max-w-7xl mx-auto pb-20">
+		<div className="dashboard-container pb-20">
 			{/* Header */}
 			<div className="flex items-center justify-between mb-8">
 				<div>
@@ -239,13 +223,15 @@ const SuppliersList = () => {
 						Réinitialiser
 					</button>
 					<div className="text-sm text-gray-500">
-						{pagination.total} fournisseur(s) trouvé(s)
+						<DataValue loading={loading} className="w-6 h-[0.9em]">{pagination.total}</DataValue> fournisseur(s) trouvé(s)
 					</div>
 				</div>
 			</div>
 
 			{/* Liste des fournisseurs */}
-			{filteredSuppliers.length === 0 ?
+			{loading ?
+				<CardGridSkeleton variant="row" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" />
+			: filteredSuppliers.length === 0 ?
 				<div className="text-center py-12">
 					<FiUsers className="mx-auto h-12 w-12 text-gray-400" />
 					<h3 className="mt-2 text-sm font-medium text-gray-900">

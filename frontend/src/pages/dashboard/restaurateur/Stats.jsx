@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import DataValue from "../../../components/common/DataValue";
 import { useAuth } from "../../../hooks/useAuth";
 import { restaurateurService } from "../../../services";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
@@ -110,24 +111,6 @@ const Stats = () => {
 		loadStats();
 	}, [user]);
 
-	if (loading) {
-		return (
-			<div className="p-6 max-w-7xl mx-auto pb-20">
-				<div className="animate-pulse">
-					<div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
-					<div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-						{[1, 2, 3, 4].map((i) => (
-							<div key={i} className="bg-white rounded-lg shadow p-6">
-								<div className="h-4 bg-gray-200 rounded mb-2"></div>
-								<div className="h-8 bg-gray-200 rounded w-1/2"></div>
-							</div>
-						))}
-					</div>
-				</div>
-			</div>
-		);
-	}
 
 	// Calculer les statuts des commandes
 	const pendingOrders = orders.filter(
@@ -142,7 +125,7 @@ const Stats = () => {
 	).length;
 
 	return (
-		<div className="p-6 max-w-7xl mx-auto pb-20">
+		<div className="dashboard-container pb-20">
 			<div className="mb-8">
 				<h1 className="text-2xl font-bold text-gray-900">
 					Statistiques de Vente
@@ -165,7 +148,7 @@ const Stats = () => {
 									Revenus totaux
 								</dt>
 								<dd className="text-lg font-medium text-gray-900">
-									{(stats?.totalRevenue || 0).toLocaleString()} FCFA
+									<DataValue loading={loading}>{(stats?.totalRevenue || 0).toLocaleString()}</DataValue> FCFA
 								</dd>
 							</dl>
 						</div>
@@ -183,10 +166,10 @@ const Stats = () => {
 									Commandes totales
 								</dt>
 								<dd className="text-lg font-medium text-gray-900">
-									{orders.length || stats?.totalOrders || 0}
+									<DataValue loading={loading}>{orders.length || stats?.totalOrders || 0}</DataValue>
 								</dd>
 								<dd className="text-xs text-gray-500 mt-1">
-									{completedOrders} complétées
+									<DataValue loading={loading}>{completedOrders}</DataValue> complétées
 								</dd>
 							</dl>
 						</div>
@@ -204,7 +187,7 @@ const Stats = () => {
 									Plats vendus
 								</dt>
 								<dd className="text-lg font-medium text-gray-900">
-									{stats?.totalProductsSold || stats?.totalDishesSold || 0}
+									<DataValue loading={loading}>{stats?.totalProductsSold || stats?.totalDishesSold || 0}</DataValue>
 								</dd>
 							</dl>
 						</div>
@@ -222,7 +205,7 @@ const Stats = () => {
 									Clients uniques
 								</dt>
 								<dd className="text-lg font-medium text-gray-900">
-									{stats?.uniqueCustomers || 0}
+									<DataValue loading={loading}>{stats?.uniqueCustomers || 0}</DataValue>
 								</dd>
 							</dl>
 						</div>
@@ -239,7 +222,11 @@ const Stats = () => {
 						Ventes par mois
 					</h3>
 					<div className="space-y-2 max-h-64 overflow-y-auto">
-						{(
+						{loading ?
+							[1, 2, 3].map((i) => (
+								<div key={i} className="h-14 bg-harvests-light rounded-lg animate-pulse" />
+							))
+						: (
 							salesAnalytics?.monthlySales &&
 							salesAnalytics.monthlySales.length > 0
 						) ?
@@ -283,7 +270,11 @@ const Stats = () => {
 						Revenus par mois
 					</h3>
 					<div className="space-y-2 max-h-64 overflow-y-auto">
-						{(
+						{loading ?
+							[1, 2, 3].map((i) => (
+								<div key={i} className="h-14 bg-harvests-light rounded-lg animate-pulse" />
+							))
+						: (
 							revenueAnalytics?.monthlyRevenue &&
 							revenueAnalytics.monthlyRevenue.length > 0
 						) ?
@@ -331,7 +322,11 @@ const Stats = () => {
 						Plats les plus vendus
 					</h3>
 					<div className="overflow-hidden">
-						{stats?.topProducts && stats.topProducts.length > 0 ?
+						{loading ?
+							[1, 2, 3].map((i) => (
+								<div key={i} className="h-12 bg-harvests-light rounded-lg animate-pulse" />
+							))
+						: stats?.topProducts && stats.topProducts.length > 0 ?
 							<div className="space-y-3">
 								{stats.topProducts.map((dish, index) => (
 									<div
@@ -385,7 +380,7 @@ const Stats = () => {
 								</span>
 							</div>
 							<span className="text-xl font-bold text-green-600">
-								{stats?.activeProducts || 0}
+								<DataValue loading={loading}>{stats?.activeProducts || 0}</DataValue>
 							</span>
 						</div>
 						<div className="flex items-center justify-between p-3 bg-harvests-light rounded-lg">
@@ -396,7 +391,7 @@ const Stats = () => {
 								</span>
 							</div>
 							<span className="text-xl font-bold text-gray-600">
-								{stats?.totalProducts || 0}
+								<DataValue loading={loading}>{stats?.totalProducts || 0}</DataValue>
 							</span>
 						</div>
 						<div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
@@ -407,7 +402,7 @@ const Stats = () => {
 								</span>
 							</div>
 							<span className="text-xl font-bold text-blue-600">
-								{stats?.totalProductsSold || stats?.totalDishesSold || 0}
+								<DataValue loading={loading}>{stats?.totalProductsSold || stats?.totalDishesSold || 0}</DataValue>
 							</span>
 						</div>
 					</div>
@@ -427,7 +422,7 @@ const Stats = () => {
 							<FiClock className="h-5 w-5 text-yellow-500" />
 						</div>
 						<div className="text-2xl font-bold text-yellow-600">
-							{pendingOrders}
+							<DataValue loading={loading}>{pendingOrders}</DataValue>
 						</div>
 						<p className="text-xs text-gray-600 mt-1">À traiter</p>
 					</div>
@@ -438,7 +433,7 @@ const Stats = () => {
 							<FiShoppingBag className="h-5 w-5 text-blue-500" />
 						</div>
 						<div className="text-2xl font-bold text-blue-600">
-							{inTransitOrders}
+							<DataValue loading={loading}>{inTransitOrders}</DataValue>
 						</div>
 						<p className="text-xs text-gray-600 mt-1">En livraison</p>
 					</div>
@@ -449,7 +444,7 @@ const Stats = () => {
 							<FiCheckCircle className="h-5 w-5 text-green-500" />
 						</div>
 						<div className="text-2xl font-bold text-green-600">
-							{completedOrders}
+							<DataValue loading={loading}>{completedOrders}</DataValue>
 						</div>
 						<p className="text-xs text-gray-600 mt-1">Livrées avec succès</p>
 					</div>
@@ -460,7 +455,7 @@ const Stats = () => {
 							<FiPackage className="h-5 w-5 text-red-500" />
 						</div>
 						<div className="text-2xl font-bold text-red-600">
-							{cancelledOrders}
+							<DataValue loading={loading}>{cancelledOrders}</DataValue>
 						</div>
 						<p className="text-xs text-gray-600 mt-1">Non abouties</p>
 					</div>
@@ -473,9 +468,11 @@ const Stats = () => {
 				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 					<div className="text-center">
 						<p className="text-3xl font-bold mb-1">
-							{stats?.averageOrderValue ?
-								`${Math.round(stats.averageOrderValue).toLocaleString()}`
-							:	"0"}
+							<DataValue loading={loading} light>
+								{stats?.averageOrderValue ?
+									`${Math.round(stats.averageOrderValue).toLocaleString()}`
+								:	"0"}
+							</DataValue>
 						</p>
 						<p className="text-sm text-white/80">
 							Valeur moyenne commande (FCFA)
@@ -483,19 +480,19 @@ const Stats = () => {
 					</div>
 					<div className="text-center">
 						<p className="text-3xl font-bold mb-1">
-							{stats?.conversionRate || 0}%
+							<DataValue loading={loading}>{stats?.conversionRate || 0}</DataValue>%
 						</p>
 						<p className="text-sm text-white/80">Taux de conversion</p>
 					</div>
 					<div className="text-center">
 						<p className="text-3xl font-bold mb-1">
-							{stats?.customerRetentionRate || 0}%
+							<DataValue loading={loading}>{stats?.customerRetentionRate || 0}</DataValue>%
 						</p>
 						<p className="text-sm text-white/80">Taux de fidélisation</p>
 					</div>
 					<div className="text-center">
 						<p className="text-3xl font-bold mb-1">
-							{stats?.uniqueCustomers || 0}
+							<DataValue loading={loading}>{stats?.uniqueCustomers || 0}</DataValue>
 						</p>
 						<p className="text-sm text-white/80">Clients uniques</p>
 					</div>

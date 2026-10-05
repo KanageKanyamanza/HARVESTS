@@ -147,5 +147,197 @@
 		"primary": "Principale",
 		"setPrimary": "Définir comme image principale",
 		"remove": "Supprimer l'image"
+	},
+	"orderStatus": {
+		"pending": "En attente",
+		"confirmed": "Confirmée",
+		"preparing": "En préparation",
+		"ready-for-pickup": "Prête pour collecte",
+		"in-transit": "En transit",
+		"out-for-delivery": "En cours de livraison",
+		"delivered": "Livrée",
+		"completed": "Terminée",
+		"cancelled": "Annulée",
+		"rejected": "Rejetée",
+		"refunded": "Remboursée",
+		"disputed": "En litige",
+		"processing": "En traitement",
+		"shipped": "Expédiée"
+	},
+	"orderStatusDescription": {
+		"pending": "Commande en attente de confirmation",
+		"confirmed": "Commande confirmée et en préparation",
+		"preparing": "Commande en cours de préparation",
+		"ready-for-pickup": "Commande prête pour la collecte",
+		"in-transit": "Commande en route",
+		"out-for-delivery": "Commande en cours de livraison",
+		"delivered": "Commande livrée avec succès",
+		"completed": "Commande terminée avec succès",
+		"cancelled": "Commande annulée"
+	},
+	"orders": {
+		"order": "Commande",
+		"totalAmount": "Montant total",
+		"noDate": "Date non disponible",
+		"customerDetails": "Coordonnées du client",
+		"deliveryAddress": "Adresse de livraison",
+		"summary": "Résumé de commande",
+		"itemCount_one": "{{count}} article",
+		"itemCount_other": "{{count}} articles",
+		"subtotal": "Total partiel : {{amount}}",
+		"viewDetails": "Voir les détails",
+		"items": "Articles de la commande",
+		"moreItems": "+ {{count}} autres…",
+		"unknownCustomer": "Client inconnu",
+		"customer": "Client",
+		"expand": "Afficher le détail",
+		"collapse": "Masquer le détail",
+		"emptySellerTitle": "Aucune commande reçue",
+		"emptySellerText": "Dès qu'un client passera une commande, elle apparaîtra ici avec tous les détails nécessaires.",
+		"emptyBuyerTitle": "Aucun achat effectué",
+		"emptyBuyerText": "Parcourez notre catalogue et découvrez des produits d'exception livrables chez vous.",
+		"actions": {
+			"cancel": "Annuler",
+			"prepare": "Préparer",
+			"startPreparing": "Commencer la préparation",
+			"ready": "Prête",
+			"readyForPickup": "Prête pour collecte",
+			"markDelivered": "Marquer comme livrée",
+			"delivered": "Livrée",
+			"received": "Reçu",
+			"confirmReceipt": "Confirmer la réception",
+			"complete": "Terminer",
+			"markCompleted": "Marquer terminée",
+			"pickUp": "Collecter",
+			"markPickedUp": "Marquer collectée",
+			"inTransit": "En transit",
+			"markInTransit": "Marquer en transit",
+			"deliver": "Livrer",
+			"loading": "Chargement…",
+			"validating": "Validation…",
+			"sending": "Envoi…",
+			"preparing": "Préparation…",
+			"pickingUp": "Collecte…",
+			"inProgress": "En cours…",
+			"delivering": "Livraison…",
+			"confirmDelivery": "Confirmer la livraison",
+			"confirming": "Confirmation…"
+		}
+	},
+	"dashboardWidgets": {
+		"recentOrders": "Commandes récentes",
+		"latestTransactions": "Dernières transactions",
+		"seeAll": "Tout voir",
+		"noOrders": "Aucune commande",
+		"waitingForSales": "En attente de ventes",
+		"itemCount_one": "{{count}} article",
+		"itemCount_other": "{{count}} articles",
+		"sales": "Ventes",
+		"orders": "Commandes",
+		"noData": "Aucune donnée disponible"
+	},
+	"dashboardSections": {
+		"orders": {
+			"emptyTitle": "Aucune commande",
+			"emptyText": "Vos commandes apparaîtront ici.",
+			"seeAll": "Voir toutes les commandes",
+			"seeAllCount": "Voir toutes les commandes ({{count}})",
+			"orderNumber": "Commande n° {{number}}",
+			"noAmount": "Montant non défini",
+			"view": "Voir"
+		},
+		"quickActions": {
+			"addProduct": {
+				"title": "Ajouter un produit",
+				"description": "Créer un nouveau produit"
+			},
+			"editProfile": {
+				"title": "Modifier le profil",
+				"description": "Mettre à jour vos informations"
+			},
+			"settings": {
+				"title": "Paramètres",
+				"description": "Configurer votre compte"
+			},
+			"analytics": {
+				"title": "Statistiques",
+				"description": "Voir les statistiques"
+			},
+			"certifications": {
+				"title": "Certifications",
+				"description": "Gérer les certifications"
+			},
+			"myOrders": {
+				"title": "Mes commandes",
+				"description": "Voir mes commandes"
+			},
+			"favorites": {
+				"title": "Favoris",
+				"description": "Mes producteurs favoris"
+			},
+			"production": {
+				"title": "Production",
+				"description": "Gérer la production"
+			},
+			"newDish": {
+				"title": "Nouveau plat",
+				"description": "Créer un nouveau plat"
+			},
+			"suppliers": {
+				"title": "Fournisseurs",
+				"description": "Gérer les fournisseurs"
+			},
+			"orders": {
+				"title": "Commandes",
+				"description": "Voir les commandes"
+			},
+			"deliveries": {
+				"title": "Livraisons",
+				"description": "Gérer les livraisons"
+			},
+			"fleet": {
+				"title": "Ma flotte",
+				"description": "Gérer vos véhicules"
+			},
+			"exportProducts": {
+				"title": "Produits d'export",
+				"description": "Gérer les produits"
+			}
+		},
+		"subscription": {
+			"title": "Mon abonnement",
+			"loadError": "Impossible de charger l'abonnement",
+			"none": "Aucun abonnement actif",
+			"seePlans": "Voir les plans disponibles",
+			"plan": "Plan",
+			"plans": {
+				"gratuit": "Gratuit",
+				"standard": "Standard",
+				"premium": "Premium"
+			},
+			"status": {
+				"active": "Actif",
+				"pending": "En attente",
+				"suspended": "Suspendu",
+				"cancelled": "Annulé",
+				"expired": "Expiré"
+			},
+			"amount": "Montant",
+			"perMonth": "/mois",
+			"perYear": "/an",
+			"period": "Période",
+			"monthly": "Mensuel",
+			"annual": "Annuel",
+			"expiresOn": "Date d'expiration",
+			"nextPayment": "Prochain paiement",
+			"notAvailable": "N/A",
+			"expiringTitle": "Expiration imminente",
+			"expiringText_one": "Votre abonnement expire dans {{count}} jour. Renouvelez-le maintenant pour éviter toute interruption.",
+			"expiringText_other": "Votre abonnement expire dans {{count}} jours. Renouvelez-le maintenant pour éviter toute interruption.",
+			"renewNow": "Renouveler maintenant",
+			"renewUrgent": "Renouveler d'urgence",
+			"manage": "Gérer mon abonnement",
+			"activate": "Activer un plan"
+		}
 	}
 }

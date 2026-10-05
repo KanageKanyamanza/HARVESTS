@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
+import CardGridSkeleton from "../../components/common/CardGridSkeleton";
+import DataValue from "../../components/common/DataValue";
 import { useSearchParams } from "react-router-dom";
 import {
 	Search,
@@ -10,7 +12,6 @@ import {
 	MoreVertical,
 } from "lucide-react";
 import { adminService } from "../../services/adminService";
-import LoadingSpinner from "../../components/common/LoadingSpinner";
 import AdminOrdersTable from "../../components/admin/AdminOrdersTable";
 
 const AdminOrders = () => {
@@ -80,22 +81,16 @@ const AdminOrders = () => {
 		}
 	};
 
-	if (loading)
-		return (
-			<div className="flex items-center justify-center min-h-[400px]">
-				<LoadingSpinner size="lg" text="Chargement des commandes..." />
-			</div>
-		);
 
 	return (
-		<div className="min-h-screen md:pl-3 pb-20 relative overflow-hidden">
+		<div className="dashboard-page">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-green-100/30 rounded-full blur-[120px]"></div>
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="max-w-full mx-auto px-3 py-4 relative z-10 pl-1 md:pl-6 md:px-4 md:py-6">
+			<div className="dashboard-container">
 				{/* Header */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5 animate-fade-in-down">
 					<div>
@@ -147,18 +142,22 @@ const AdminOrders = () => {
 							</select>
 						</div>
 						<div className="px-3 py-1.5 bg-gray-900/5 text-gray-900 rounded-lg text-[8px] font-black uppercase tracking-widest border border-gray-900/5">
-							{totalOrders} Commande(s)
+							<DataValue loading={loading} className="w-6 h-[0.9em]">{totalOrders}</DataValue> Commande(s)
 						</div>
 					</div>
 				</div>
 
 				{/* Table Container */}
 				<div className="animate-fade-in-up">
-					<AdminOrdersTable
-						orders={orders}
-						onConfirmPayment={handleConfirmPayment}
-						confirmingPayment={confirmingPayment}
-					/>
+					{loading ? (
+						<CardGridSkeleton count={6} variant="row" className="space-y-3" />
+					) : (
+						<AdminOrdersTable
+							orders={orders}
+							onConfirmPayment={handleConfirmPayment}
+							confirmingPayment={confirmingPayment}
+						/>
+					)}
 				</div>
 
 				{/* Pagination */}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PublicDetailSkeleton from "../components/common/PublicDetailSkeleton";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useCart } from "../contexts/CartContext";
@@ -16,7 +17,6 @@ import {
 } from "react-icons/fi";
 import { restaurateurService } from "../services";
 import { getDishImageUrl, normalizeDishImage } from "../utils/dishImageUtils";
-import LoadingSpinner from "../components/common/LoadingSpinner";
 
 const DishDetail = () => {
 	const { t } = useTranslation("public");
@@ -97,13 +97,8 @@ const DishDetail = () => {
 		navigate(`/restaurateurs/${restaurateur._id}`);
 	};
 
-	if (loading) {
-		return (
-			<div className="min-h-screen bg-harvests-light flex items-center justify-center">
-				<LoadingSpinner size="lg" text={t("dishDetail.loadingText")} />
-			</div>
-		);
-	}
+	// Chargement : bouton retour affiché, seul le contenu (serveur) est grisé
+	if (loading) return <PublicDetailSkeleton onBack={() => navigate(-1)} variant="product" />;
 
 	if (error || !dish) {
 		return (

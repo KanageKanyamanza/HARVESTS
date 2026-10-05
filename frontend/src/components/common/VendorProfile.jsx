@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PublicDetailSkeleton from "./PublicDetailSkeleton";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../hooks/useAuth";
@@ -22,7 +23,6 @@ import {
 import { Leaf, Award, Sparkles, Store } from "lucide-react";
 import { reviewService } from "../../services";
 import { getCountryName } from "../../utils/countryMapper";
-import LoadingSpinner from "./LoadingSpinner";
 
 const VendorProfile = ({
 	vendorType,
@@ -245,13 +245,8 @@ const VendorProfile = ({
 		};
 	}, [vendor?._id, vendorType]);
 
-	if (loading) {
-		return (
-			<div className="min-h-screen bg-[#F8FAF6] flex items-center justify-center">
-				<LoadingSpinner size="lg" text={t("vendorProfile.loadingText")} />
-			</div>
-		);
-	}
+	// Chargement : bouton retour affiché, seul le contenu (serveur) est grisé
+	if (loading) return <PublicDetailSkeleton onBack={() => navigate(-1)} variant="article" />;
 
 	if (!vendor) {
 		return (

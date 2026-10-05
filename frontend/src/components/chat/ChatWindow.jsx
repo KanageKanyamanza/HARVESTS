@@ -195,8 +195,10 @@ const ChatWindow = ({ conversation, currentUser, mobileView, onBack }) => {
 			{/* Messages */}
 			<div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#e5ddd5]/10">
 				{loading ?
-					<div className="flex justify-center pt-10">
-						<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-harvests-green"></div>
+					<div className="space-y-4 animate-pulse" aria-busy="true">
+						{["w-2/3", "w-1/2 ml-auto", "w-3/5", "w-2/5 ml-auto"].map((width) => (
+							<div key={width} className={`h-12 bg-white/80 rounded-2xl ${width}`} />
+						))}
 					</div>
 				:	<>
 						{messages.map((msg, index) => {

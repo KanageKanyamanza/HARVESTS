@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { adminService } from "../../services/adminService";
 import { useNotifications } from "../../hooks/useNotifications";
-import LoadingSpinner from "../../components/common/LoadingSpinner";
+import CardGridSkeleton from "../../components/common/CardGridSkeleton";
 
 const AdminBlogAnalytics = () => {
 	const navigate = useNavigate();
@@ -243,14 +243,14 @@ const AdminBlogAnalytics = () => {
 	);
 
 	return (
-		<div className="min-h-screen md:pl-3 bg-[#fafafa] relative overflow-hidden">
+		<div className="dashboard-page bg-[#fafafa]">
 			{/* Background Deco */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-100/30 rounded-full blur-[120px]"></div>
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="max-w-full mx-auto px-3 py-4 relative z-10 pl-1 md:pl-6 md:px-4 md:py-6">
+			<div className="dashboard-container">
 				{/* Header Section */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
 					<div className="flex items-center gap-4">
@@ -425,12 +425,7 @@ const AdminBlogAnalytics = () => {
 				{/* Analytics Table */}
 				<div className="bg-white rounded-[32px] border border-slate-100 shadow-2xl shadow-slate-100 overflow-hidden">
 					{loading && visits.length === 0 ? (
-						<div className="flex flex-col items-center justify-center py-32 space-y-6">
-							<LoadingSpinner size="lg" />
-							<p className="text-slate-400 font-bold uppercase tracking-widest text-xs animate-pulse">
-								Synchronising stream data...
-							</p>
-						</div>
+						<CardGridSkeleton count={5} variant="row" className="space-y-3 p-4" />
 					) : visits.length === 0 ? (
 						<div className="py-32 flex flex-col items-center justify-center text-center">
 							<div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">

@@ -10,7 +10,6 @@ import {
 	FiInfo,
 	FiZap,
 } from "react-icons/fi";
-import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import { useNotifications } from "../../../hooks/useNotifications";
 import VehicleImageUpload from "../../../components/vehicles/VehicleImageUpload";
 import VehicleCapacity from "../../../components/vehicles/VehicleCapacity";
@@ -193,16 +192,9 @@ const EditVehicle = () => {
 		}
 	};
 
-	if (loading) {
-		return (
-			<div className="min-h-screen flex items-center justify-center bg-gray-50/50">
-				<LoadingSpinner size="lg" text="Chargement du véhicule..." />
-			</div>
-		);
-	}
 
 	return (
-		<div className="min-h-screen relative bg-gray-50/30">
+		<div className="dashboard-page bg-gray-50/30">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden -z-10">
 				<div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-100/30 rounded-full blur-[120px]"></div>
@@ -210,7 +202,7 @@ const EditVehicle = () => {
 				<div className="absolute bottom-[-10%] right-[20%] w-[40%] h-[40%] bg-amber-50/30 rounded-full blur-[120px]"></div>
 			</div>
 
-			<div className="relative z-10 p-4 md:p-6 max-w-4xl mx-auto space-y-8">
+			<div className="dashboard-container space-y-8">
 				{/* Header */}
 				<div>
 					<button
@@ -240,227 +232,242 @@ const EditVehicle = () => {
 					</p>
 				</div>
 
-				<form onSubmit={handleSubmit} className="space-y-10">
-					{/* Image Upload Area */}
-					<div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-[2.5rem] p-8 md:p-10 shadow-xl shadow-blue-900/5">
-						<div className="flex items-center gap-2 mb-6">
-							<FiActivity className="text-blue-500 w-4 h-4" />
-							<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">
-								Visuel de l'unité
-							</h3>
-						</div>
-						<VehicleImageUpload
-							vehicleImage={vehicleImage}
-							uploadingImage={uploadingImage}
-							fileInputRef={fileInputRef}
-							onFileSelect={handleFileSelect}
-							onRemove={() => setVehicleImage(null)}
-						/>
+				{loading ? (
+					// Seuls les champs (valeurs du véhicule) attendent le serveur
+					<div className="space-y-4 animate-pulse" aria-busy="true">
+						{[1, 2, 3].map((i) => (
+							<div key={i} className="bg-white/70 rounded-[2rem] border border-white/60 p-6 space-y-4">
+								<div className="h-4 bg-gray-100 rounded w-1/4" />
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+									<div className="h-11 bg-gray-100 rounded-xl" />
+									<div className="h-11 bg-gray-100 rounded-xl" />
+								</div>
+							</div>
+						))}
 					</div>
-
-					{/* Main Form Fields */}
-					<div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-[2.5rem] p-8 md:p-10 shadow-xl shadow-blue-900/5 space-y-10">
-						{/* Basic Info */}
-						<div className="space-y-6">
-							<div className="flex items-center gap-2">
-								<FiInfo className="text-blue-500 w-4 h-4" />
-								<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">
-									Données Générales
-								</h3>
-							</div>
-
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								<div className="space-y-2">
-									<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-										Type d'unité
-									</label>
-									<select
-										name="vehicleType"
-										value={formData.vehicleType || ""}
-										onChange={handleInputChange}
-										required
-										className="w-full px-5 py-4 bg-white/50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all cursor-pointer"
-									>
-										<option value="">Sélectionnez un type</option>
-										{(vehicleTypes || []).map((type) => (
-											<option key={type.value} value={type.value}>
-												{type.label}
-											</option>
-										))}
-									</select>
-								</div>
-
-								<div className="space-y-2">
-									<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-										Immatriculation
-									</label>
-									<input
-										type="text"
-										name="registrationNumber"
-										value={formData.registrationNumber || ""}
-										onChange={handleInputChange}
-										className="w-full px-5 py-4 bg-white/50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
-									/>
-								</div>
-
-								<div className="space-y-2">
-									<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-										N° Conteneur
-									</label>
-									<input
-										type="text"
-										name="containerNumber"
-										value={formData.containerNumber || ""}
-										onChange={handleInputChange}
-										className="w-full px-5 py-4 bg-white/50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
-									/>
-								</div>
-
-								<div className="space-y-2">
-									<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-										Etat
-									</label>
-									<select
-										name="condition"
-										value={formData.condition || "excellent"}
-										onChange={handleInputChange}
-										className="w-full px-5 py-4 bg-white/50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all cursor-pointer"
-									>
-										<option value="excellent">Excellent</option>
-										<option value="good">Bon</option>
-										<option value="fair">Moyen</option>
-										<option value="needs-maintenance">Maintenance</option>
-									</select>
-								</div>
-							</div>
-						</div>
-
-						{/* Capacity Module */}
-						<div className="bg-gray-50/50 rounded-3xl p-6 border border-gray-100/50">
+				) : (
+					<form onSubmit={handleSubmit} className="space-y-10">
+						{/* Image Upload Area */}
+						<div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-[2.5rem] p-8 md:p-10 shadow-xl shadow-blue-900/5">
 							<div className="flex items-center gap-2 mb-6">
-								<FiZap className="text-blue-500 w-4 h-4" />
+								<FiActivity className="text-blue-500 w-4 h-4" />
 								<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">
-									Spécifications de Charge
+									Visuel de l'unité
 								</h3>
 							</div>
-							<VehicleCapacity
-								capacity={formData.capacity}
-								onInputChange={handleInputChange}
+							<VehicleImageUpload
+								vehicleImage={vehicleImage}
+								uploadingImage={uploadingImage}
+								fileInputRef={fileInputRef}
+								onFileSelect={handleFileSelect}
+								onRemove={() => setVehicleImage(null)}
 							/>
 						</div>
 
-						{/* Options */}
-						<div>
-							<div className="flex items-center gap-2 mb-4">
-								<FiCpu className="text-blue-500 w-4 h-4" />
-								<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">
-									Options Techniques
-								</h3>
-							</div>
-							<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-								{(specialFeaturesOptions || []).map((feature) => (
-									<label
-										key={feature.value}
-										className="relative group cursor-pointer"
-									>
-										<input
-											type="checkbox"
-											name="specialFeatures"
-											value={feature.value}
-											checked={(formData.specialFeatures || []).includes(
-												feature.value,
-											)}
-											onChange={handleInputChange}
-											className="peer sr-only"
-										/>
-										<div className="px-4 py-3 bg-white border border-gray-100 rounded-2xl text-[10px] font-black text-gray-500 uppercase tracking-tight transition-all peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-500 peer-checked:shadow-lg peer-checked:shadow-blue-200">
-											{feature.label}
-										</div>
-									</label>
-								))}
-							</div>
-						</div>
+						{/* Main Form Fields */}
+						<div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-[2.5rem] p-8 md:p-10 shadow-xl shadow-blue-900/5 space-y-10">
+							{/* Basic Info */}
+							<div className="space-y-6">
+								<div className="flex items-center gap-2">
+									<FiInfo className="text-blue-500 w-4 h-4" />
+									<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">
+										Données Générales
+									</h3>
+								</div>
 
-						{/* Status */}
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-6 border-t border-gray-100 pt-8">
-							<div className="space-y-4">
-								<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-									Disponibilité
-								</label>
-								<label className="flex items-center cursor-pointer group w-fit">
-									<div className="relative">
-										<input
-											type="checkbox"
-											name="isAvailable"
-											checked={formData.isAvailable || false}
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+									<div className="space-y-2">
+										<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+											Type d'unité
+										</label>
+										<select
+											name="vehicleType"
+											value={formData.vehicleType || ""}
 											onChange={handleInputChange}
-											className="sr-only peer"
-										/>
-										<div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+											required
+											className="w-full px-5 py-4 bg-white/50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all cursor-pointer"
+										>
+											<option value="">Sélectionnez un type</option>
+											{(vehicleTypes || []).map((type) => (
+												<option key={type.value} value={type.value}>
+													{type.label}
+												</option>
+											))}
+										</select>
 									</div>
-									<span className="ml-3 text-[10px] font-black text-gray-700 uppercase tracking-widest">
-										Actif
-									</span>
-								</label>
+
+									<div className="space-y-2">
+										<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+											Immatriculation
+										</label>
+										<input
+											type="text"
+											name="registrationNumber"
+											value={formData.registrationNumber || ""}
+											onChange={handleInputChange}
+											className="w-full px-5 py-4 bg-white/50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
+										/>
+									</div>
+
+									<div className="space-y-2">
+										<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+											N° Conteneur
+										</label>
+										<input
+											type="text"
+											name="containerNumber"
+											value={formData.containerNumber || ""}
+											onChange={handleInputChange}
+											className="w-full px-5 py-4 bg-white/50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all"
+										/>
+									</div>
+
+									<div className="space-y-2">
+										<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+											Etat
+										</label>
+										<select
+											name="condition"
+											value={formData.condition || "excellent"}
+											onChange={handleInputChange}
+											className="w-full px-5 py-4 bg-white/50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all cursor-pointer"
+										>
+											<option value="excellent">Excellent</option>
+											<option value="good">Bon</option>
+											<option value="fair">Moyen</option>
+											<option value="needs-maintenance">Maintenance</option>
+										</select>
+									</div>
+								</div>
 							</div>
 
-							<div className="space-y-2">
-								<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-									Dernière Maintenance
-								</label>
-								<input
-									type="date"
-									name="lastMaintenanceDate"
-									value={formData.lastMaintenanceDate || ""}
-									onChange={handleInputChange}
-									className="w-full px-5 py-3 bg-white border border-gray-100 rounded-2xl text-[10px] font-bold text-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-sans"
+							{/* Capacity Module */}
+							<div className="bg-gray-50/50 rounded-3xl p-6 border border-gray-100/50">
+								<div className="flex items-center gap-2 mb-6">
+									<FiZap className="text-blue-500 w-4 h-4" />
+									<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">
+										Spécifications de Charge
+									</h3>
+								</div>
+								<VehicleCapacity
+									capacity={formData.capacity}
+									onInputChange={handleInputChange}
 								/>
 							</div>
 
-							<div className="space-y-2">
-								<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-									Prochaine Échéance
-								</label>
-								<input
-									type="date"
-									name="nextMaintenanceDate"
-									value={formData.nextMaintenanceDate || ""}
-									onChange={handleInputChange}
-									className="w-full px-5 py-3 bg-white border border-gray-100 rounded-2xl text-[10px] font-bold text-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-sans"
-								/>
+							{/* Options */}
+							<div>
+								<div className="flex items-center gap-2 mb-4">
+									<FiCpu className="text-blue-500 w-4 h-4" />
+									<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">
+										Options Techniques
+									</h3>
+								</div>
+								<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+									{(specialFeaturesOptions || []).map((feature) => (
+										<label
+											key={feature.value}
+											className="relative group cursor-pointer"
+										>
+											<input
+												type="checkbox"
+												name="specialFeatures"
+												value={feature.value}
+												checked={(formData.specialFeatures || []).includes(
+													feature.value,
+												)}
+												onChange={handleInputChange}
+												className="peer sr-only"
+											/>
+											<div className="px-4 py-3 bg-white border border-gray-100 rounded-2xl text-[10px] font-black text-gray-500 uppercase tracking-tight transition-all peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-500 peer-checked:shadow-lg peer-checked:shadow-blue-200">
+												{feature.label}
+											</div>
+										</label>
+									))}
+								</div>
+							</div>
+
+							{/* Status */}
+							<div className="grid grid-cols-1 md:grid-cols-3 gap-6 border-t border-gray-100 pt-8">
+								<div className="space-y-4">
+									<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+										Disponibilité
+									</label>
+									<label className="flex items-center cursor-pointer group w-fit">
+										<div className="relative">
+											<input
+												type="checkbox"
+												name="isAvailable"
+												checked={formData.isAvailable || false}
+												onChange={handleInputChange}
+												className="sr-only peer"
+											/>
+											<div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+										</div>
+										<span className="ml-3 text-[10px] font-black text-gray-700 uppercase tracking-widest">
+											Actif
+										</span>
+									</label>
+								</div>
+
+								<div className="space-y-2">
+									<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+										Dernière Maintenance
+									</label>
+									<input
+										type="date"
+										name="lastMaintenanceDate"
+										value={formData.lastMaintenanceDate || ""}
+										onChange={handleInputChange}
+										className="w-full px-5 py-3 bg-white border border-gray-100 rounded-2xl text-[10px] font-bold text-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-sans"
+									/>
+								</div>
+
+								<div className="space-y-2">
+									<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+										Prochaine Échéance
+									</label>
+									<input
+										type="date"
+										name="nextMaintenanceDate"
+										value={formData.nextMaintenanceDate || ""}
+										onChange={handleInputChange}
+										className="w-full px-5 py-3 bg-white border border-gray-100 rounded-2xl text-[10px] font-bold text-gray-900 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-sans"
+									/>
+								</div>
 							</div>
 						</div>
-					</div>
 
-					{/* Actions Area */}
-					<div className="flex flex-col sm:flex-row justify-end gap-4 border-t border-gray-100 pt-10">
-						<button
-							type="button"
-							onClick={() => navigate("/exporter/fleet")}
-							className="px-8 py-4 bg-white border border-gray-100 rounded-2xl text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] hover:bg-gray-50 hover:text-gray-600 transition-all active:scale-95"
-						>
-							Annuler
-						</button>
-						<button
-							type="submit"
-							disabled={saving}
-							className="group relative px-10 py-4 bg-gray-900 text-white rounded-2xl overflow-hidden disabled:bg-gray-200 disabled:cursor-not-allowed transition-all active:scale-95 shadow-xl shadow-gray-200"
-						>
-							<div className="relative flex items-center justify-center text-[10px] font-black uppercase tracking-[0.2em]">
-								{saving ?
-									<>
-										<div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-3"></div>
-										Mise à jour...
-									</>
-								:	<>
-										<FiSave className="h-4 w-4 mr-2" />
-										Sauvegarder
-									</>
-								}
-							</div>
-						</button>
-					</div>
-				</form>
+						{/* Actions Area */}
+						<div className="flex flex-col sm:flex-row justify-end gap-4 border-t border-gray-100 pt-10">
+							<button
+								type="button"
+								onClick={() => navigate("/exporter/fleet")}
+								className="px-8 py-4 bg-white border border-gray-100 rounded-2xl text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] hover:bg-gray-50 hover:text-gray-600 transition-all active:scale-95"
+							>
+								Annuler
+							</button>
+							<button
+								type="submit"
+								disabled={saving}
+								className="group relative px-10 py-4 bg-gray-900 text-white rounded-2xl overflow-hidden disabled:bg-gray-200 disabled:cursor-not-allowed transition-all active:scale-95 shadow-xl shadow-gray-200"
+							>
+								<div className="relative flex items-center justify-center text-[10px] font-black uppercase tracking-[0.2em]">
+									{saving ?
+										<>
+											<div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-3"></div>
+											Mise à jour...
+										</>
+									:	<>
+											<FiSave className="h-4 w-4 mr-2" />
+											Sauvegarder
+										</>
+									}
+								</div>
+							</button>
+						</div>
+					</form>
+				)}
 			</div>
 		</div>
 	);

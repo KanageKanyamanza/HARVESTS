@@ -11,7 +11,6 @@ import {
 	exporterService,
 } from "../../services";
 import { adminService } from "../../services/adminService";
-import LoadingSpinner from "../../components/common/LoadingSpinner";
 import OrderStatusBadge from "../../components/orders/OrderStatusBadge";
 import { getStatusConfig } from "../../utils/orderStatusBadgeHelpers";
 import OrderActions from "../../components/orders/OrderActions";
@@ -157,10 +156,33 @@ const OrderDetail = () => {
 	const deliverOrder = () => updateOrderStatus("delivered");
 	const completeOrder = () => updateOrderStatus("completed");
 
+	// Chargement : navigation et intitulés affichés, seules les données de la
+	// commande (numéro, date, contenu) attendent le serveur
 	if (loading) {
 		return (
-			<div className="flex flex-col items-center justify-center min-h-[500px] space-y-4">
-				<LoadingSpinner size="lg" text="Chargement du dossier de commande..." />
+			<div className="dashboard-page bg-harvests-light/10">
+				<div className="dashboard-container">
+					<div className="flex items-center gap-4 mb-10">
+						<button
+							onClick={() => navigate(-1)}
+							className="w-12 h-12 bg-white/70 backdrop-blur-xl rounded-2xl flex items-center justify-center text-gray-400 hover:text-gray-900 border border-white/60 shadow-sm transition-all hover:-translate-x-1"
+						>
+							<FiArrowLeft className="h-5 w-5" />
+						</button>
+						<div className="flex flex-col">
+							<span className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-0.5">
+								Détails de transaction
+							</span>
+							<div className="h-6 w-48 bg-gray-200/80 rounded-md animate-pulse" />
+						</div>
+					</div>
+					<div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-pulse" aria-busy="true">
+						<div className="lg:col-span-8 h-48 bg-white/70 rounded-[3rem] border border-white/60" />
+						<div className="lg:col-span-4 h-48 bg-white/70 rounded-[3rem] border border-white/60" />
+						<div className="lg:col-span-8 h-72 bg-white/70 rounded-[3rem] border border-white/60" />
+						<div className="lg:col-span-4 h-72 bg-white/70 rounded-[3rem] border border-white/60" />
+					</div>
+				</div>
 			</div>
 		);
 	}
@@ -213,7 +235,7 @@ const OrderDetail = () => {
 
 
 	return (
-		<div className="min-h-screen pb-20 relative overflow-hidden bg-harvests-light/10">
+		<div className="dashboard-page bg-harvests-light/10">
 			{/* High-end Background Decoration */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-emerald-100/40 rounded-full blur-[140px]"></div>
@@ -221,7 +243,7 @@ const OrderDetail = () => {
 				<div className="absolute top-[30%] left-[20%] w-[10%] h-[10%] bg-amber-100/20 rounded-full blur-[60px]"></div>
 			</div>
 
-			<div className="max-w-[1440px] mx-auto px-4 md:px-8 py-8 md:py-12 relative z-10">
+			<div className="dashboard-container">
 				{/* Global Navigation & Breadcrumb */}
 				<div className="flex items-center gap-4 mb-10 animate-fade-in-down">
 					<button

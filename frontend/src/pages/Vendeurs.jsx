@@ -20,7 +20,7 @@ import {
 import { Leaf, Search } from "lucide-react";
 import { buildVendorRating } from "../utils/vendorRatings";
 import { getCountryName } from "../utils/countryMapper";
-import LoadingSpinner from "../components/common/LoadingSpinner";
+import CardGridSkeleton from "../components/common/CardGridSkeleton";
 import CloudinaryImage from "../components/common/CloudinaryImage";
 import { useApiCache } from "../hooks/useApiCache";
 
@@ -227,13 +227,8 @@ const Vendeurs = () => {
 		return matchesType && matchesSearch;
 	});
 
-	if (loading) {
-		return (
-			<div className="min-h-screen bg-harvests-light flex items-center justify-center">
-				<LoadingSpinner size="lg" text={t("vendeurs.loadingText")} />
-			</div>
-		);
-	}
+	// Seule la liste attend le serveur : bannière, recherche et filtres restent affichés
+	const initialLoading = loading && vendeurs.length === 0;
 
 	return (
 		<div className="min-h-screen bg-white relative overflow-hidden">
@@ -346,7 +341,9 @@ const Vendeurs = () => {
 				</div>
 
 				{/* Grid */}
-				{filteredVendeurs.length > 0 ? (
+				{initialLoading ? (
+					<CardGridSkeleton className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3" />
+				) : filteredVendeurs.length > 0 ? (
 					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 animate-slide-up">
 						{filteredVendeurs.map((vendeur) => {
 							const { averageDisplay, reviewCount } = buildVendorRating(vendeur);

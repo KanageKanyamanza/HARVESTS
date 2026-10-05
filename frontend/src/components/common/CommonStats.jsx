@@ -10,24 +10,11 @@ import {
 	FiGlobe,
 } from "react-icons/fi";
 
-// Composant pour afficher les statistiques communes
-const CommonStats = ({ stats, userType, loading = false }) => {
-	if (loading) {
-		return (
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-				{[...Array(4)].map((_, index) => (
-					<div
-						key={index}
-						className="bg-white rounded-lg shadow p-2 animate-pulse"
-					>
-						<div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-						<div className="h-8 bg-gray-200 rounded w-1/2"></div>
-					</div>
-				))}
-			</div>
-		);
-	}
+import DataValue from "./DataValue";
 
+// Composant pour afficher les statistiques communes
+// loading : libellés affichés, seules les valeurs (serveur) attendent
+const CommonStats = ({ stats, userType, loading = false }) => {
 	const getStatsForUserType = () => {
 		const baseStats = [
 			{
@@ -264,12 +251,14 @@ const CommonStats = ({ stats, userType, loading = false }) => {
 							<div>
 								<p className="text-sm font-medium text-gray-600">{stat.name}</p>
 								<p className="text-2xl font-bold text-gray-900">
-									{stat.format
-										? stat.format(stat.value)
-										: stat.value.toLocaleString()}
+									<DataValue loading={loading}>
+										{stat.format
+											? stat.format(stat.value)
+											: stat.value.toLocaleString()}
+									</DataValue>
 								</p>
 								{stat.subtitle && (
-									<p className="text-xs text-gray-500 mt-1">{stat.subtitle}</p>
+									<p className="text-xs text-gray-500 mt-1"><DataValue loading={loading} className="w-12 h-[0.9em]">{stat.subtitle}</DataValue></p>
 								)}
 							</div>
 							<div className={`p-3 rounded-full ${stat.bgColor}`}>

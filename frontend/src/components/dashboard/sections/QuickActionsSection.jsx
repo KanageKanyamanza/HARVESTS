@@ -1,11 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   FiPlus, 
   FiEdit, 
   FiSettings, 
   FiCreditCard, 
-  FiMapPin, 
+  FiTruck, 
   FiShield,
   FiTrendingUp,
   FiUsers,
@@ -20,26 +21,24 @@ import {
 } from '../../../utils/routeUtils';
 
 const QuickActionsSection = ({ userType, actions = [] }) => {
+  const { t } = useTranslation('common');
   const getDefaultActions = () => {
     const baseActions = [
       {
         icon: <FiPlus className="h-5 w-5" />,
-        title: 'Ajouter un produit',
-        description: 'Créer un nouveau produit',
+        key: 'addProduct',
         href: getAddProductRoute({ userType }),
         color: 'bg-blue-500 hover:bg-blue-600'
       },
       {
         icon: <FiEdit className="h-5 w-5" />,
-        title: 'Modifier le profil',
-        description: 'Mettre à jour vos informations',
+        key: 'editProfile',
         href: getProfileRoute({ userType }),
         color: 'bg-green-500 hover:bg-green-600'
       },
       {
         icon: <FiSettings className="h-5 w-5" />,
-        title: 'Paramètres',
-        description: 'Configurer votre compte',
+        key: 'settings',
         href: getSettingsRoute({ userType }),
         color: 'bg-gray-500 hover:bg-gray-600'
       }
@@ -52,15 +51,13 @@ const QuickActionsSection = ({ userType, actions = [] }) => {
           ...baseActions,
           {
             icon: <FiTrendingUp className="h-5 w-5" />,
-            title: 'Analytics',
-            description: 'Voir les statistiques',
+            key: 'analytics',
             href: `/${userType}/stats`,
             color: 'bg-purple-500 hover:bg-purple-600'
           },
           {
             icon: <FiShield className="h-5 w-5" />,
-            title: 'Certifications',
-            description: 'Gérer les certifications',
+            key: 'certifications',
             href: `/${userType}/certifications`,
             color: 'bg-yellow-500 hover:bg-yellow-600'
           }
@@ -70,29 +67,25 @@ const QuickActionsSection = ({ userType, actions = [] }) => {
         return [
           {
             icon: <FiShoppingCart className="h-5 w-5" />,
-            title: 'Mes commandes',
-            description: 'Voir mes commandes',
+            key: 'myOrders',
             href: getOrdersRoute({ userType }),
             color: 'bg-blue-500 hover:bg-blue-600'
           },
           {
             icon: <FiUsers className="h-5 w-5" />,
-            title: 'Favoris',
-            description: 'Mes producteurs favoris',
+            key: 'favorites',
             href: `/${userType}/favorites`,
             color: 'bg-red-500 hover:bg-red-600'
           },
           {
             icon: <FiEdit className="h-5 w-5" />,
-            title: 'Modifier le profil',
-            description: 'Mettre à jour vos informations',
+            key: 'editProfile',
             href: getProfileRoute({ userType }),
             color: 'bg-green-500 hover:bg-green-600'
           },
           {
             icon: <FiSettings className="h-5 w-5" />,
-            title: 'Paramètres',
-            description: 'Configurer votre compte',
+            key: 'settings',
             href: getSettingsRoute({ userType }),
             color: 'bg-gray-500 hover:bg-gray-600'
           }
@@ -103,15 +96,13 @@ const QuickActionsSection = ({ userType, actions = [] }) => {
           ...baseActions,
           {
             icon: <FiTrendingUp className="h-5 w-5" />,
-            title: 'Production',
-            description: 'Gérer la production',
+            key: 'production',
             href: `/${userType}/production`,
             color: 'bg-purple-500 hover:bg-purple-600'
           },
           {
             icon: <FiShield className="h-5 w-5" />,
-            title: 'Certifications',
-            description: 'Gérer les certifications',
+            key: 'certifications',
             href: `/${userType}/certifications`,
             color: 'bg-yellow-500 hover:bg-yellow-600'
           }
@@ -121,29 +112,25 @@ const QuickActionsSection = ({ userType, actions = [] }) => {
         return [
           {
             icon: <FiPlus className="h-5 w-5" />,
-            title: 'Nouveau plat',
-            description: 'Créer un nouveau plat',
+            key: 'newDish',
             href: `/${userType}/dishes/add`,
             color: 'bg-blue-500 hover:bg-blue-600'
           },
           {
             icon: <FiUsers className="h-5 w-5" />,
-            title: 'Fournisseurs',
-            description: 'Gérer les fournisseurs',
+            key: 'suppliers',
             href: `/${userType}/suppliers`,
             color: 'bg-green-500 hover:bg-green-600'
           },
           {
             icon: <FiShoppingCart className="h-5 w-5" />,
-            title: 'Commandes',
-            description: 'Voir les commandes',
+            key: 'orders',
             href: getOrdersRoute({ userType }),
             color: 'bg-purple-500 hover:bg-purple-600'
           },
           {
             icon: <FiEdit className="h-5 w-5" />,
-            title: 'Modifier le profil',
-            description: 'Mettre à jour vos informations',
+            key: 'editProfile',
             href: getProfileRoute({ userType }),
             color: 'bg-gray-500 hover:bg-gray-600'
           }
@@ -153,22 +140,19 @@ const QuickActionsSection = ({ userType, actions = [] }) => {
         return [
           {
             icon: <FiShoppingCart className="h-5 w-5" />,
-            title: 'Livraisons',
-            description: 'Gérer les livraisons',
-            href: `/${userType}/deliveries`,
+            key: 'deliveries',
+            href: getOrdersRoute({ userType }),
             color: 'bg-blue-500 hover:bg-blue-600'
           },
           {
-            icon: <FiMapPin className="h-5 w-5" />,
-            title: 'Zones de livraison',
-            description: 'Configurer les zones',
-            href: `/${userType}/zones`,
+            icon: <FiTruck className="h-5 w-5" />,
+            key: 'fleet',
+            href: `/${userType}/fleet`,
             color: 'bg-green-500 hover:bg-green-600'
           },
           {
             icon: <FiEdit className="h-5 w-5" />,
-            title: 'Modifier le profil',
-            description: 'Mettre à jour vos informations',
+            key: 'editProfile',
             href: getProfileRoute({ userType }),
             color: 'bg-gray-500 hover:bg-gray-600'
           }
@@ -178,22 +162,19 @@ const QuickActionsSection = ({ userType, actions = [] }) => {
         return [
           {
             icon: <FiPackage className="h-5 w-5" />,
-            title: 'Produits d\'export',
-            description: 'Gérer les produits',
+            key: 'exportProducts',
             href: `/${userType}/products`,
             color: 'bg-blue-500 hover:bg-blue-600'
           },
           {
             icon: <FiTrendingUp className="h-5 w-5" />,
-            title: 'Analytics',
-            description: 'Voir les statistiques',
+            key: 'analytics',
             href: `/${userType}/analytics`,
             color: 'bg-purple-500 hover:bg-purple-600'
           },
           {
             icon: <FiEdit className="h-5 w-5" />,
-            title: 'Modifier le profil',
-            description: 'Mettre à jour vos informations',
+            key: 'editProfile',
             href: getProfileRoute({ userType }),
             color: 'bg-gray-500 hover:bg-gray-600'
           }
@@ -220,10 +201,10 @@ const QuickActionsSection = ({ userType, actions = [] }) => {
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="text-sm font-medium text-gray-900 group-hover:text-gray-700">
-                {action.title}
+                {action.key ? t(`dashboardSections.quickActions.${action.key}.title`) : action.title}
               </h3>
               <p className="text-sm text-gray-500 mt-1">
-                {action.description}
+                {action.key ? t(`dashboardSections.quickActions.${action.key}.description`) : action.description}
               </p>
             </div>
           </div>

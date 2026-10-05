@@ -1,6 +1,13 @@
 // Méthodes statiques
 function addNotificationStatics(notificationSchema) {
 	notificationSchema.statics.createNotification = async function (data) {
+		// Comptes de test (développement) : aucune alerte aux admins les
+		// concernant (utils/testAccounts.js)
+		if (data?.recipientModel === "Admin") {
+			const { notificationInvolvesTestAccount } = require("../../utils/testAccounts");
+			if (await notificationInvolvesTestAccount(data.data).catch(() => false)) return null;
+		}
+
 		// S'assurer que data est un objet JavaScript simple (sérialiser les objets complexes)
 		if (data && data.data) {
 			// Convertir data.data en objet JavaScript simple si nécessaire

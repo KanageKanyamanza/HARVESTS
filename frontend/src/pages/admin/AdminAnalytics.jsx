@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import DataValue from "../../components/common/DataValue";
 import {
 	BarChart3,
 	TrendingUp,
@@ -19,7 +20,6 @@ import { adminService } from "../../services/adminService";
 import { toPlainText } from "../../utils/textHelpers";
 import UserRegistrationsChart from "../../components/admin/UserRegistrationsChart";
 import RevenueTrendsChart from "../../components/admin/RevenueTrendsChart";
-import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 const AdminAnalytics = () => {
 	const [analytics, setAnalytics] = useState({
@@ -83,23 +83,16 @@ const AdminAnalytics = () => {
 		return growth >= 0 ? TrendingUp : TrendingDown;
 	};
 
-	if (loading) {
-		return (
-			<div className="flex items-center justify-center min-h-[400px]">
-				<LoadingSpinner size="lg" text="Chargement des analyses..." />
-			</div>
-		);
-	}
 
 	return (
-		<div className="min-h-screen md:pl-3 pb-20 relative overflow-hidden">
+		<div className="dashboard-page">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-green-100/30 rounded-full blur-[120px]"></div>
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="max-w-full mx-auto px-3 py-4 relative z-10 pl-1 md:pl-6 md:px-4 md:py-6">
+			<div className="dashboard-container">
 				{/* Header */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5 animate-fade-in-down">
 					<div>
@@ -200,7 +193,7 @@ const AdminAnalytics = () => {
 										</div>
 										<div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md border border-white/20 text-[7px] font-black text-white uppercase tracking-widest shadow-sm">
 											<GrowthIcon className="h-1.5 w-1.5" />
-											{Math.abs(stat.growth || 0)}%
+											<DataValue loading={loading} light className="w-5 h-[0.9em]">{Math.abs(stat.growth || 0)}%</DataValue>
 										</div>
 									</div>
 
@@ -209,9 +202,11 @@ const AdminAnalytics = () => {
 											{stat.label}
 										</h3>
 										<h3 className="text-lg font-black text-white tracking-tighter drop-shadow-sm">
-											{stat.isPrice
-												? formatPrice(stat.value || 0)
-												: formatNumber(stat.value || 0)}
+											<DataValue loading={loading} light className="w-20 h-[0.8em]">
+												{stat.isPrice
+													? formatPrice(stat.value || 0)
+													: formatNumber(stat.value || 0)}
+											</DataValue>
 										</h3>
 									</div>
 								</div>
@@ -233,9 +228,13 @@ const AdminAnalytics = () => {
 							</div>
 						</div>
 						<div className="h-[200px]">
-							<UserRegistrationsChart
-								data={analytics.charts?.userRegistrations || []}
-							/>
+							{loading ? (
+								<div className="h-full w-full bg-gray-100/70 rounded-xl animate-pulse" />
+							) : (
+								<UserRegistrationsChart
+									data={analytics.charts?.userRegistrations || []}
+								/>
+							)}
 						</div>
 					</div>
 
@@ -250,9 +249,13 @@ const AdminAnalytics = () => {
 							</div>
 						</div>
 						<div className="h-[200px]">
-							<RevenueTrendsChart
-								data={analytics.charts?.revenueTrends || []}
-							/>
+							{loading ? (
+								<div className="h-full w-full bg-gray-100/70 rounded-xl animate-pulse" />
+							) : (
+								<RevenueTrendsChart
+									data={analytics.charts?.revenueTrends || []}
+								/>
+							)}
 						</div>
 					</div>
 				</div>
@@ -271,7 +274,11 @@ const AdminAnalytics = () => {
 						</div>
 
 						<div className="space-y-1.5">
-							{(analytics.charts?.topProducers || []).length > 0 ? (
+							{loading ? (
+								[1, 2, 3].map((i) => (
+									<div key={i} className="h-12 bg-gray-100/70 rounded-xl animate-pulse" />
+								))
+							) : (analytics.charts?.topProducers || []).length > 0 ? (
 								analytics.charts.topProducers.map((producer, index) => (
 									<div
 										key={producer._id}
@@ -333,7 +340,11 @@ const AdminAnalytics = () => {
 						</div>
 
 						<div className="space-y-1.5">
-							{(analytics.charts?.topProducts || []).length > 0 ? (
+							{loading ? (
+								[1, 2, 3].map((i) => (
+									<div key={i} className="h-12 bg-gray-100/70 rounded-xl animate-pulse" />
+								))
+							) : (analytics.charts?.topProducts || []).length > 0 ? (
 								analytics.charts.topProducts.map((product, index) => (
 									<div
 										key={product._id}

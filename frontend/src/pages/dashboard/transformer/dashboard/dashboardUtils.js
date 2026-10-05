@@ -6,46 +6,52 @@ import {
 	Users,
 	TrendingUp,
 } from "lucide-react";
+import i18n, { formatNumber } from "../../../../utils/i18n";
+import { formatPrice } from "../../../../utils/currencyUtils";
+
+// Jour 49 (bascule bilingue) : libellés de dashboard-producer:dashboard.cards,
+// nombres et montants au format de la langue courante
+const t = (key, options) => i18n.t(`dashboard.cards.${key}`, { ns: "dashboard-producer", ...options });
 
 export const createTransformerStatCards = (stats) => [
 	{
-		title: "Chiffre d'affaires",
-		value: `${stats.totalRevenue.toLocaleString()} FCFA`,
+		title: t("revenue"),
+		value: formatPrice(stats.totalRevenue, "XOF"),
 		icon: DollarSign,
 		color: "bg-green-500",
-		change: `Panier moyen: ${Math.round(stats.averageOrderValue).toLocaleString()} FCFA`,
+		change: t("averageBasket", { amount: formatPrice(Math.round(stats.averageOrderValue), "XOF") }),
 		link: "/transformer/stats",
 	},
 	{
-		title: "Commandes",
-		value: stats.totalOrders.toLocaleString(),
+		title: t("orders"),
+		value: formatNumber(stats.totalOrders),
 		icon: ShoppingCart,
 		color: "bg-blue-500",
-		change: `${stats.pendingOrders || 0} en attente`,
+		change: t("pending", { count: stats.pendingOrders || 0 }),
 		link: "/transformer/orders",
 	},
 	{
-		title: "Produits Transformés",
-		value: stats.activeProducts.toLocaleString(),
+		title: i18n.t("transformer.dashboard.processedProducts", { ns: "dashboard-producer" }),
+		value: formatNumber(stats.activeProducts),
 		icon: Package,
 		color: "bg-purple-500",
-		change: `${stats.totalProducts} total`,
+		change: t("total", { count: stats.totalProducts }),
 		link: "/transformer/products",
 	},
 	{
-		title: "Clients Uniques",
-		value: stats.uniqueCustomers.toLocaleString(),
+		title: t("uniqueCustomers"),
+		value: formatNumber(stats.uniqueCustomers),
 		icon: Users,
 		color: "bg-orange-500",
-		change: "Fidélisation",
-		link: "/transformer/orders",
+		change: t("loyalty"),
+		link: "/transformer/orders", // Or a customers page if it existed
 	},
 	{
-		title: "Note Moyenne",
-		value: `${stats.averageRating ? Number(stats.averageRating).toFixed(1) : "N/A"}/5`,
+		title: t("averageRating"),
+		value: stats.averageRating ? `${Number(stats.averageRating).toFixed(1)}/5` : "—",
 		icon: Star,
 		color: "bg-yellow-500",
-		change: "Voir avis",
+		change: t("seeReviews"),
 		link: "/transformer/reviews",
 	},
 ];

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { FiPackage, FiShoppingBag } from "react-icons/fi";
 import OrderListItem from "./OrderListItem";
 
@@ -9,6 +10,7 @@ const OrderList = ({
 	loading = false,
 	updatingOrders = new Set(),
 }) => {
+	const { t } = useTranslation("common");
 	const initializedOrderIds = useRef(new Set());
 	const [collapsedOrders, setCollapsedOrders] = useState(() => {
 		const initialCollapsed = new Set();
@@ -80,13 +82,13 @@ const OrderList = ({
 				</div>
 				<h3 className="text-xl font-black text-gray-900 mb-2">
 					{["producer", "transformer"].includes(userType) ?
-						"Aucune commande reçue"
-					:	"Aucun achat effectué"}
+						t("orders.emptySellerTitle")
+					:	t("orders.emptyBuyerTitle")}
 				</h3>
 				<p className="text-gray-500 text-sm max-w-sm mx-auto leading-relaxed">
 					{["producer", "transformer"].includes(userType) ?
-						"Dès qu'un client passera une commande, elle apparaîtra ici avec tous les détails nécessaires."
-					:	"Parcourez notre catalogue et découvrez des produits d'exception livrables chez vous."
+						t("orders.emptySellerText")
+					:	t("orders.emptyBuyerText")
 					}
 				</p>
 			</div>

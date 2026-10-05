@@ -188,6 +188,11 @@ const baseUserSchema = new mongoose.Schema(
 			type: Boolean,
 			default: true,
 		},
+		// Compte de développement : jamais suivi ni exposé (utils/testAccounts.js)
+		isTestAccount: {
+			type: Boolean,
+			default: false,
+		},
 		emailVerificationToken: String,
 		emailVerificationExpires: Date,
 
@@ -387,6 +392,40 @@ baseUserSchema.index({ email: 1 });
 baseUserSchema.index({ userType: 1 });
 baseUserSchema.index({ country: 1, region: 1 });
 baseUserSchema.index({ isActive: 1, isApproved: 1 });
+
+// Comptes de test (développement) : exclus de toutes les listes, recherches,
+// comptages et statistiques, sauf requêtes visant un compte précis
+// (connexion, jeton…) ou ayant l'option `includeTestAccounts`.
+// Voir utils/testAccounts.js.
+const { isSpecificUserFilter, invalidateTestAccounts } = require("../utils/testAccounts");
+
+function excludeTestAccounts() {
+	if (this.getOptions().includeTestAccounts) return;
+	const filter = this.getFilter();
+	if (isSpecificUserFilter(filter) || "isTestAccount" in filter) return;
+	this.where({ isTestAccount: { $ne: true } });
+}
+baseUserSchema.pre(["find", "findOne", "countDocuments", "distinct"], excludeTestAccounts);
+
+baseUserSchema.pre("aggregate", function () {
+	if (this.options?.includeTestAccounts) return;
+	this.pipeline().unshift({ $match: { isTestAccount: { $ne: true } } });
+});
+
+// Boutique jamais visible pour un compte de test
+baseUserSchema.pre("save", function (next) {
+	if (this.isTestAccount) this.isShopVisible = false;
+	if (this.isModified("isTestAccount")) invalidateTestAccounts();
+	next();
+});
+baseUserSchema.pre(["findOneAndUpdate", "updateOne", "updateMany"], function () {
+	const update = this.getUpdate() || {};
+	const showsShop = update.isShopVisible === true || update.$set?.isShopVisible === true;
+	if (showsShop) this.where({ isTestAccount: { $ne: true } });
+	if ("isTestAccount" in update || (update.$set && "isTestAccount" in update.$set)) {
+		invalidateTestAccounts();
+	}
+});
 
 // Middleware pre-save pour hasher le mot de passe
 baseUserSchema.pre("save", async function (next) {

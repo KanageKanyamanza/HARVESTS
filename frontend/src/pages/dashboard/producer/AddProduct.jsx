@@ -114,7 +114,7 @@ const AddProduct = () => {
 	};
 
 	return (
-		<div className="min-h-screen relative overflow-hidden pb-10">
+		<div className="dashboard-page">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/30 rounded-full blur-[120px]"></div>
@@ -122,7 +122,7 @@ const AddProduct = () => {
 				<div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-amber-50/30 rounded-full blur-[120px]"></div>
 			</div>
 
-			<div className="max-w-5xl mx-auto p-4 md:p-5 relative z-10">
+			<div className="dashboard-container">
 				{/* Header with Breadcrumb-like Feel */}
 				<div className="mb-4 animate-fade-in-down">
 					<button

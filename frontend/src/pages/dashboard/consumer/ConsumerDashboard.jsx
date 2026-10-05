@@ -1,5 +1,4 @@
 import React from "react";
-import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import StatCards from "../../admin/adminDashboard/StatCards";
 import RecentOrders from "../../../components/admin/RecentOrders";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
@@ -14,13 +13,6 @@ const ConsumerDashboard = () => {
 	const { stats, recentOrders, favoriteProducts, loading } =
 		useConsumerDashboardStats();
 
-	if (loading) {
-		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<LoadingSpinner size="lg" text="Préparation de votre espace..." />
-			</div>
-		);
-	}
 
 	const statCards = createConsumerStatCards(stats);
 
@@ -33,7 +25,7 @@ const ConsumerDashboard = () => {
 	};
 
 	return (
-		<div className="min-h-screen md:pl-3 pb-20 relative overflow-hidden bg-harvests-light/20">
+		<div className="dashboard-page bg-harvests-light/20">
 			{/* Background radial glows - Blue/Sky theme for Consumer */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-100/30 rounded-full blur-[120px]"></div>
@@ -41,9 +33,9 @@ const ConsumerDashboard = () => {
 				<div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-cyan-100/20 rounded-full blur-[120px]"></div>
 			</div>
 
-			<div className="max-w-full mx-auto px-3 py-4 space-y-4 relative z-10 md:pl-6 md:px-4 md:py-6 md:space-y-6">
+			<div className="dashboard-container space-y-4 md:space-y-6">
 				{/* Header */}
-				<div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 px-2 animate-fade-in-down">
+				<div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 animate-fade-in-down">
 					<div className="flex-1">
 						<div className="flex items-center gap-2 text-blue-600 font-black text-[10px] uppercase tracking-[0.2em] mb-1.5">
 							<div className="w-5 h-[2px] bg-blue-600"></div>
@@ -73,7 +65,9 @@ const ConsumerDashboard = () => {
 							</p>
 							<div className="flex items-baseline gap-1">
 								<h3 className="text-xl font-[1000] text-gray-900 tracking-tighter">
-									{stats.loyaltyPoints.toLocaleString()}
+									{loading ?
+										<span className="inline-block h-5 w-14 bg-gray-100 rounded animate-pulse" />
+									:	stats.loyaltyPoints.toLocaleString()}
 								</h3>
 								<span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">
 									pts
@@ -92,7 +86,7 @@ const ConsumerDashboard = () => {
 
 				{/* Stat Cards */}
 				<div className="animate-fade-in-up">
-					<StatCards statCards={statCards} />
+					<StatCards statCards={statCards} loading={loading} />
 				</div>
 
 				{/* Main Grid: Analysis & Quick Actions */}
@@ -101,6 +95,7 @@ const ConsumerDashboard = () => {
 						<ConsumerSpendingStats
 							monthlySpentChart={stats.monthlySpentChart}
 							totalSpent={stats.totalSpent}
+							loading={loading}
 						/>
 					</div>
 					<div>
@@ -111,7 +106,7 @@ const ConsumerDashboard = () => {
 				{/* Recent Activity & Orders */}
 				<div className="grid grid-cols-1 xl:grid-cols-3 gap-6 animate-fade-in-up delay-300">
 					<div className="xl:col-span-2">
-						<RecentOrders orders={recentOrders} />
+						<RecentOrders orders={recentOrders} basePath="/consumer/orders" loading={loading} />
 					</div>
 
 					{/* My Favorites Preview */}
@@ -134,7 +129,17 @@ const ConsumerDashboard = () => {
 						</div>
 
 						<div className="space-y-4">
-							{favoriteProducts && favoriteProducts.length > 0 ?
+							{loading ?
+								[1, 2, 3].map((i) => (
+									<div key={i} className="flex items-center gap-4 p-3 animate-pulse">
+										<div className="w-14 h-14 rounded-xl bg-gray-100" />
+										<div className="flex-1 space-y-2">
+											<div className="h-3 bg-gray-100 rounded w-1/2" />
+											<div className="h-2.5 bg-gray-100 rounded w-1/4" />
+										</div>
+									</div>
+								))
+							: favoriteProducts && favoriteProducts.length > 0 ?
 								favoriteProducts.map((product) => (
 									<div
 										key={product.id}

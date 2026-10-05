@@ -20,16 +20,8 @@ const data = [
 	{ name: "Juin", revenue: 5500, volume: 360 },
 ];
 
+// loading : titres des graphiques affichés, seules les courbes attendent
 const ExporterCharts = ({ loading, stats }) => {
-	if (loading) {
-		return (
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				<div className="h-[300px] bg-white animate-pulse rounded-2xl shadow-sm border border-gray-100" />
-				<div className="h-[300px] bg-white animate-pulse rounded-2xl shadow-sm border border-gray-100" />
-			</div>
-		);
-	}
-
 	const monthlyGrowth = stats?.monthlyGrowth || 12;
 
 	return (
@@ -55,49 +47,52 @@ const ExporterCharts = ({ loading, stats }) => {
 					</div>
 				</div>
 				<div className="h-[250px] w-full relative z-10">
-					<ResponsiveContainer width="100%" height="100%">
-						<AreaChart data={data}>
-							<defs>
-								<linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-									<stop offset="5%" stopColor="#0d9488" stopOpacity={0.3} />
-									<stop offset="95%" stopColor="#0d9488" stopOpacity={0} />
-								</linearGradient>
-							</defs>
-							<CartesianGrid
-								strokeDasharray="3 3"
-								vertical={false}
-								stroke="#f0f0f0"
-							/>
-							<XAxis
-								dataKey="name"
-								axisLine={false}
-								tickLine={false}
-								tick={{ fontSize: 10, fontWeight: 700, fill: "#9ca3af" }}
-							/>
-							<YAxis
-								axisLine={false}
-								tickLine={false}
-								tick={{ fontSize: 10, fontWeight: 700, fill: "#9ca3af" }}
-								tickFormatter={(value) => `${value}`}
-							/>
-							<Tooltip
-								contentStyle={{
-									borderRadius: "12px",
-									border: "none",
-									boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
-								}}
-								labelStyle={{ fontWeight: 800, color: "#111827" }}
-							/>
-							<Area
-								type="monotone"
-								dataKey="revenue"
-								stroke="#0d9488"
-								strokeWidth={3}
-								fillOpacity={1}
-								fill="url(#colorRev)"
-							/>
-						</AreaChart>
-					</ResponsiveContainer>
+					{loading ?
+						<div className="h-full w-full bg-gray-100/70 rounded-xl animate-pulse" />
+					:	<ResponsiveContainer width="100%" height="100%">
+							<AreaChart data={data}>
+								<defs>
+									<linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+										<stop offset="5%" stopColor="#0d9488" stopOpacity={0.3} />
+										<stop offset="95%" stopColor="#0d9488" stopOpacity={0} />
+									</linearGradient>
+								</defs>
+								<CartesianGrid
+									strokeDasharray="3 3"
+									vertical={false}
+									stroke="#f0f0f0"
+								/>
+								<XAxis
+									dataKey="name"
+									axisLine={false}
+									tickLine={false}
+									tick={{ fontSize: 10, fontWeight: 700, fill: "#9ca3af" }}
+								/>
+								<YAxis
+									axisLine={false}
+									tickLine={false}
+									tick={{ fontSize: 10, fontWeight: 700, fill: "#9ca3af" }}
+									tickFormatter={(value) => `${value}`}
+								/>
+								<Tooltip
+									contentStyle={{
+										borderRadius: "12px",
+										border: "none",
+										boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+									}}
+									labelStyle={{ fontWeight: 800, color: "#111827" }}
+								/>
+								<Area
+									type="monotone"
+									dataKey="revenue"
+									stroke="#0d9488"
+									strokeWidth={3}
+									fillOpacity={1}
+									fill="url(#colorRev)"
+								/>
+							</AreaChart>
+						</ResponsiveContainer>
+					}
 				</div>
 			</div>
 
@@ -114,40 +109,43 @@ const ExporterCharts = ({ loading, stats }) => {
 					</div>
 				</div>
 				<div className="h-[250px] w-full relative z-10">
-					<ResponsiveContainer width="100%" height="100%">
-						<BarChart data={data}>
-							<CartesianGrid
-								strokeDasharray="3 3"
-								vertical={false}
-								stroke="#f0f0f0"
-							/>
-							<XAxis
-								dataKey="name"
-								axisLine={false}
-								tickLine={false}
-								tick={{ fontSize: 10, fontWeight: 700, fill: "#9ca3af" }}
-							/>
-							<YAxis
-								axisLine={false}
-								tickLine={false}
-								tick={{ fontSize: 10, fontWeight: 700, fill: "#9ca3af" }}
-							/>
-							<Tooltip
-								contentStyle={{
-									borderRadius: "12px",
-									border: "none",
-									boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
-								}}
-								cursor={{ fill: "#f8fafc" }}
-							/>
-							<Bar
-								dataKey="volume"
-								fill="#3b82f6"
-								radius={[4, 4, 0, 0]}
-								barSize={20}
-							/>
-						</BarChart>
-					</ResponsiveContainer>
+					{loading ?
+						<div className="h-full w-full bg-gray-100/70 rounded-xl animate-pulse" />
+					:	<ResponsiveContainer width="100%" height="100%">
+							<BarChart data={data}>
+								<CartesianGrid
+									strokeDasharray="3 3"
+									vertical={false}
+									stroke="#f0f0f0"
+								/>
+								<XAxis
+									dataKey="name"
+									axisLine={false}
+									tickLine={false}
+									tick={{ fontSize: 10, fontWeight: 700, fill: "#9ca3af" }}
+								/>
+								<YAxis
+									axisLine={false}
+									tickLine={false}
+									tick={{ fontSize: 10, fontWeight: 700, fill: "#9ca3af" }}
+								/>
+								<Tooltip
+									contentStyle={{
+										borderRadius: "12px",
+										border: "none",
+										boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+									}}
+									cursor={{ fill: "#f8fafc" }}
+								/>
+								<Bar
+									dataKey="volume"
+									fill="#3b82f6"
+									radius={[4, 4, 0, 0]}
+									barSize={20}
+								/>
+							</BarChart>
+						</ResponsiveContainer>
+					}
 				</div>
 			</div>
 		</div>

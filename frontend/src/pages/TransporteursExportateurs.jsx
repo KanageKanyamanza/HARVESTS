@@ -18,7 +18,7 @@ import {
 } from "react-icons/fi";
 import { Truck as TruckIcon, ShieldCheck } from "lucide-react";
 import { getCountryName } from "../utils/countryMapper";
-import LoadingSpinner from "../components/common/LoadingSpinner";
+import CardGridSkeleton from "../components/common/CardGridSkeleton";
 import CloudinaryImage from "../components/common/CloudinaryImage";
 import SEOHead from "../components/seo/SEOHead";
 
@@ -106,13 +106,8 @@ const TransporteursExportateurs = () => {
 		return name.includes(term) || city.includes(term) || country.includes(term);
 	});
 
-	if (loading) {
-		return (
-			<div className="min-h-screen bg-[#F8FAF6] flex items-center justify-center">
-				<LoadingSpinner size="lg" text={t("logistics.loadingText")} />
-			</div>
-		);
-	}
+	// Seule la liste attend le serveur : bannière, recherche et filtres restent affichés
+	const initialLoading = loading && logistics.length === 0;
 
 	return (
 		<div className="min-h-screen bg-[#F8FAF6] pb-16">
@@ -164,7 +159,7 @@ const TransporteursExportateurs = () => {
 
 						<div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
 							<span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-								{t("logistics.resultCount", { count: filteredLogistics.length })}
+								{initialLoading ? <span className="inline-block h-3 w-20 bg-gray-100 rounded animate-pulse align-middle" /> : t("logistics.resultCount", { count: filteredLogistics.length })}
 							</span>
 
 							<div className="flex items-center bg-gray-100 p-1 rounded-xl gap-1 border border-gray-200">
@@ -211,7 +206,9 @@ const TransporteursExportateurs = () => {
 				</div>
 
 				{/* Grille / Liste */}
-				{filteredLogistics.length > 0 ? (
+				{initialLoading ? (
+					<CardGridSkeleton className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6" />
+				) : filteredLogistics.length > 0 ? (
 					viewMode === 'grid' ? (
 						<div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
 							{filteredLogistics.map((item) => {

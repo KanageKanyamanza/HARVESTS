@@ -578,3 +578,35 @@ exports.notifyHighValueOrder = async (order, buyer) => {
 		console.error("Erreur notification commande de forte valeur:", error);
 	}
 };
+
+// Comptes de test (développement) : aucune alerte aux admins quand un compte
+// de test est concerné (utils/testAccounts.js). Chaque fonction notify* reçoit
+// l'utilisateur, la commande, le produit ou l'avis concerné : on y cherche
+// les comptes impliqués (identifiants ou objets peuplés).
+const { isTestUser } = require("./testAccounts");
+const PARTY_FIELDS = ["buyer", "seller", "producer", "transformer", "restaurateur", "reviewer", "user", "customer"];
+
+async function involvesTestAccount(args) {
+	const candidates = [];
+	for (const arg of args) {
+		if (!arg || typeof arg !== "object") continue;
+		candidates.push({ id: arg._id, email: arg.email });
+		for (const field of PARTY_FIELDS) {
+			const value = arg[field];
+			if (!value) continue;
+			candidates.push(typeof value === "object" ? { id: value._id || value, email: value.email } : { id: value });
+		}
+	}
+	for (const candidate of candidates) {
+		if ((candidate.id || candidate.email) && (await isTestUser(candidate).catch(() => false))) return true;
+	}
+	return false;
+}
+
+for (const [name, fn] of Object.entries(module.exports)) {
+	if (!name.startsWith("notify") || typeof fn !== "function") continue;
+	exports[name] = async (...args) => {
+		if (await involvesTestAccount(args)) return;
+		return fn(...args);
+	};
+}

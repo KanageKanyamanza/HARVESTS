@@ -2,15 +2,6 @@ const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
 const transformerProductService = require('../../services/transformer/transformerProductService');
 
-// Fonctions temporaires pour les fonctionnalités nécessitant d'autres modèles
-const temporaryResponse = (message) => catchAsync(async (req, res, next) => {
-  res.status(200).json({
-    status: 'success',
-    message: `Fonctionnalité en cours de développement - ${message}`,
-    data: {}
-  });
-});
-
 // Produits de la boutique
 exports.getMyProducts = catchAsync(async (req, res, next) => {
   try {
@@ -52,7 +43,17 @@ exports.createProduct = catchAsync(async (req, res, next) => {
   }
 });
 
-exports.updateProduct = temporaryResponse('Mise à jour produit');
+exports.updateProduct = catchAsync(async (req, res, next) => {
+  try {
+    const product = await transformerProductService.updateProduct(req.params.productId, req.user._id, req.body);
+    res.status(200).json({
+      status: 'success',
+      data: { product }
+    });
+  } catch (error) {
+    return next(new AppError(error.message, error.message === 'Produit non trouvé' ? 404 : 400));
+  }
+});
 
 exports.deleteProduct = catchAsync(async (req, res, next) => {
   try {

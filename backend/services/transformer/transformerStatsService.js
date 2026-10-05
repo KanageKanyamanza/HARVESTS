@@ -127,6 +127,9 @@ async function getProductionAnalytics(transformerId, period = "30d") {
 		case "90d":
 			startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
 			break;
+		case "1y":
+			startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+			break;
 		default:
 			startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 	}
@@ -139,7 +142,9 @@ async function getProductionAnalytics(transformerId, period = "30d") {
 
 	const dailyProduction = {};
 	orders.forEach((order) => {
-		const date = new Date(order.createdAt).toLocaleDateString("fr-FR");
+		// Jour 51 : date ISO (AAAA-MM-JJ), triable et formatée côté interface
+		// selon la langue (était « JJ/MM/AAAA », non triable)
+		const date = new Date(order.createdAt).toISOString().slice(0, 10);
 		if (!dailyProduction[date]) {
 			dailyProduction[date] = {
 				orders: 0,
@@ -156,10 +161,9 @@ async function getProductionAnalytics(transformerId, period = "30d") {
 
 	return {
 		period,
-		dailyProduction: Object.entries(dailyProduction).map(([date, data]) => ({
-			date,
-			...data,
-		})),
+		dailyProduction: Object.entries(dailyProduction)
+			.map(([date, data]) => ({ date, ...data }))
+			.sort((a, b) => a.date.localeCompare(b.date)),
 	};
 }
 

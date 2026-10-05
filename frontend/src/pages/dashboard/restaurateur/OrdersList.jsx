@@ -127,14 +127,14 @@ const OrdersList = () => {
 	});
 
 	return (
-		<div className="min-h-screen relative overflow-hidden bg-harvests-light/20">
+		<div className="dashboard-page bg-harvests-light/20">
 			{/* Decorative Background */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
 				<div className="absolute top-[-5%] left-[-5%] w-[40%] h-[40%] bg-emerald-100/30 rounded-full blur-[100px]"></div>
 				<div className="absolute bottom-[10%] right-[-5%] w-[35%] h-[35%] bg-blue-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="relative z-10 p-4 md:p-8 max-w-[1600px] mx-auto space-y-8">
+			<div className="dashboard-container space-y-8">
 				{/* Modern Header */}
 				<div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 animate-fade-in-down">
 					<div className="space-y-2">

@@ -10,9 +10,17 @@ import {
 	Search,
 	MessageSquare,
 } from "lucide-react";
+import CardGridSkeleton from "../../../components/common/CardGridSkeleton";
 
 const AdvancedStatsTab = ({ stats }) => {
-	if (!stats) return null;
+	// Statistiques pas encore reçues : cartes grisées plutôt qu'une zone vide
+	if (!stats)
+		return (
+			<div className="space-y-6">
+				<CardGridSkeleton count={4} variant="stat" className="grid grid-cols-2 lg:grid-cols-4 gap-4" />
+				<div className="h-64 bg-white/70 rounded-[2rem] border border-white/60 animate-pulse" />
+			</div>
+		);
 
 	const formatNumber = (num) => {
 		return new Intl.NumberFormat("fr-FR").format(num || 0);

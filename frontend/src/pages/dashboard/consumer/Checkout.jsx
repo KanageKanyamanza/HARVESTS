@@ -234,8 +234,8 @@ const Checkout = () => {
 	}
 
 	return (
-		<div className="min-h-screen bg-[#F8FAF6] pb-10">
-			<div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-8">
+		<div className="dashboard-page bg-[#F8FAF6]">
+			<div className="dashboard-container">
 				{/* Header */}
 				<div className="flex items-center gap-3 mb-6">
 					<button

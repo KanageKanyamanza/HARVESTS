@@ -21,6 +21,10 @@ addProductMethods(productSchema);
 // Ajouter les méthodes statiques
 addProductStatics(productSchema);
 
+// Statistiques admin : produits des comptes de test exclus (utils/testAccounts.js)
+const { addTestDataExclusion, testProductFilter } = require('../../utils/testAccounts');
+addTestDataExclusion(productSchema, testProductFilter);
+
 const Product = mongoose.model('Product', productSchema);
 
 module.exports = Product;
