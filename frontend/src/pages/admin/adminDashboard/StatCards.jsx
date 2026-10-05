@@ -1,7 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const StatCards = ({ statCards }) => {
+// loading : les libellés restent affichés, seuls les chiffres (serveur) attendent
+const StatCards = ({ statCards, loading = false }) => {
 	// Helper to get vibrant gradients based on the base color class
 	const getGradient = (colorClass) => {
 		if (colorClass.includes("blue"))
@@ -45,7 +46,7 @@ const StatCards = ({ statCards }) => {
 					>
 						{/* Top Badge/Pill */}
 						<div className="flex justify-start">
-							{card.change ?
+							{card.change && !loading ?
 								<div className="bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/10 shadow-sm">
 									<span className="text-[10px] font-bold tracking-wide">
 										{card.change.includes("+") ? "↑" : ""} {card.change}
@@ -65,7 +66,9 @@ const StatCards = ({ statCards }) => {
 
 						<div className="relative z-10 mt-auto">
 							<h3 className="text-xl leading-none text-white font-black tracking-tighter mb-0.5 drop-shadow-sm">
-								{card.value}
+								{loading ?
+									<span className="block h-5 w-16 bg-white/30 rounded-md animate-pulse" />
+								:	card.value}
 							</h3>
 							<p className="text-[8px] font-black text-white/90 tracking-widest uppercase">
 								{card.title}

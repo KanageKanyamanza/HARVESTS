@@ -1,5 +1,5 @@
 import React from "react";
-import LoadingSpinner from "../../../components/common/LoadingSpinner";
+import { useTranslation, Trans } from "react-i18next";
 import StatCards from "../../admin/adminDashboard/StatCards";
 import RecentOrders from "../../../components/admin/RecentOrders";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
@@ -9,28 +9,25 @@ import { useProducerDashboardStats } from "./dashboard/dashboardHooks";
 import { createProducerStatCards } from "./dashboard/dashboardUtils";
 
 const ProducerDashboardNew = () => {
+	const { t } = useTranslation("dashboard-producer");
 	const { stats, recentOrders, salesChartData, recentProducts, loading } =
 		useProducerDashboardStats();
 
-	if (loading) {
-		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<LoadingSpinner size="lg" text="Chargement..." />
-			</div>
-		);
-	}
 
 	const statCards = createProducerStatCards(stats);
 
+	// Alertes de quota : seulement une fois les vrais chiffres chargés
 	const reachedQuota =
+		!loading &&
 		stats.maxWeeklyOrders !== -1 && stats.weeklyOrders >= stats.maxWeeklyOrders;
 	const nearQuota =
+		!loading &&
 		stats.maxWeeklyOrders !== -1 &&
 		!reachedQuota &&
 		stats.weeklyOrders >= stats.maxWeeklyOrders * 0.8;
 
 	return (
-		<div className="min-h-screen md:pl-3 pb-20 relative overflow-hidden">
+		<div className="dashboard-page">
 			{/* Background radial glows for "wow" effect - Copied from AdminDashboard */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-green-100/30 rounded-full blur-[120px]"></div>
@@ -38,7 +35,7 @@ const ProducerDashboardNew = () => {
 				<div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-purple-100/20 rounded-full blur-[120px]"></div>
 			</div>
 
-			<div className="max-w-full mx-auto px-3 py-4 space-y-4 relative z-10 md:pl-6 md:px-4 md:py-6 md:space-y-5">
+			<div className="dashboard-container space-y-4 md:space-y-5">
 				{/* Quota Alerts */}
 				{reachedQuota && (
 					<div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded shadow-sm animate-pulse-slow">
@@ -58,13 +55,13 @@ const ProducerDashboardNew = () => {
 							</div>
 							<div className="ml-3">
 								<p className="text-sm text-red-700 font-bold">
-									Quota hebdomadaire atteint ({stats.weeklyOrders}/
-									{stats.maxWeeklyOrders})
+									{t("dashboard.quotaReachedTitle", {
+										count: stats.weeklyOrders,
+										max: stats.maxWeeklyOrders,
+									})}
 								</p>
 								<p className="text-xs text-red-600">
-									Vous ne pouvez plus recevoir de nouvelles commandes cette
-									semaine. Passez au plan Standard ou Premium pour lever cette
-									limite.
+									{t("dashboard.quotaReachedText")}
 								</p>
 							</div>
 							<div className="ml-auto">
@@ -72,7 +69,7 @@ const ProducerDashboardNew = () => {
 									onClick={() => (window.location.href = "/pricing")}
 									className="text-xs bg-red-600 text-white px-3 py-1 rounded font-bold hover:bg-red-700 transition-colors uppercase tracking-wider"
 								>
-									Upgrade
+									{t("dashboard.upgrade")}
 								</button>
 							</div>
 						</div>
@@ -97,12 +94,13 @@ const ProducerDashboardNew = () => {
 							</div>
 							<div className="ml-3">
 								<p className="text-sm text-amber-700 font-bold">
-									Limite de commandes proche ({stats.weeklyOrders}/
-									{stats.maxWeeklyOrders})
+									{t("dashboard.quotaNearTitle", {
+										count: stats.weeklyOrders,
+										max: stats.maxWeeklyOrders,
+									})}
 								</p>
 								<p className="text-xs text-amber-600">
-									Vous approchez de votre limite hebdomadaire. Anticipez en
-									passant à un plan supérieur.
+									{t("dashboard.quotaNearText")}
 								</p>
 							</div>
 							<div className="ml-auto">
@@ -110,7 +108,7 @@ const ProducerDashboardNew = () => {
 									onClick={() => (window.location.href = "/pricing")}
 									className="text-xs bg-amber-600 text-white px-3 py-1 rounded font-bold hover:bg-amber-700 transition-colors uppercase tracking-wider"
 								>
-									Upgrade
+									{t("dashboard.upgrade")}
 								</button>
 							</div>
 						</div>
@@ -118,29 +116,33 @@ const ProducerDashboardNew = () => {
 				)}
 
 				{/* Header */}
-				<div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-2 animate-fade-in-down">
+				<div className="flex flex-col md:flex-row md:items-end justify-between gap-4 animate-fade-in-down">
 					<div>
 						<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-1.5">
 							<div className="w-5 h-[2px] bg-emerald-600"></div>
-							<span className="text-[9px]">Espace Producteur</span>
+							<span className="text-[9px]">{t("dashboard.eyebrow")}</span>
 						</div>
 						<h1 className="text-2xl font-[1000] text-gray-900 tracking-tighter leading-[1] mb-1.5">
-							Tableau de
+							{t("dashboard.titleStart")}
 							<span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-500 italic ml-1.5">
-								Bord.
+								{t("dashboard.titleHighlight")}
 							</span>
 						</h1>
 						<p className="text-xs text-gray-500 max-w-2xl font-medium leading-relaxed">
-							Gérez votre activité agricole avec{" "}
-							<span className="text-harvests-green font-black">Harvests</span>.
-							Suivez vos ventes, vos produits et vos commandes en temps réel.
+							<Trans
+								i18nKey="dashboard.subtitle"
+								ns="dashboard-producer"
+								components={{
+									brand: <span className="text-harvests-green font-black" />,
+								}}
+							/>
 						</p>
 					</div>
 				</div>
 
 				{/* Stat Cards */}
 				<div className="animate-fade-in-up">
-					<StatCards statCards={statCards} />
+					<StatCards statCards={statCards} loading={loading} />
 				</div>
 
 				{/* Sales Chart */}
@@ -149,16 +151,17 @@ const ProducerDashboardNew = () => {
 						salesChartData={salesChartData}
 						monthlyRevenue={stats.monthlyRevenue}
 						monthlyGrowth={stats.monthlyGrowth}
+						loading={loading}
 					/>
 				</div>
 
 				{/* Recent Orders & Other widgets */}
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-fade-in-up delay-300">
 					<div>
-						<RecentOrders orders={recentOrders} />
+						<RecentOrders orders={recentOrders} basePath="/producer/orders" loading={loading} />
 					</div>
 					<div>
-						<RecentProductsWidget products={recentProducts} />
+						<RecentProductsWidget products={recentProducts} loading={loading} />
 					</div>
 				</div>
 			</div>

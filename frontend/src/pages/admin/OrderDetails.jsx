@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import DetailPageSkeleton from "../../components/common/DetailPageSkeleton";
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingCart, XCircle, CreditCard } from 'lucide-react';
 import { adminService } from '../../services/adminService';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
 import {
   getStatusConfig, getPaymentStatusConfig, formatDate,
   OrderSegment, OrderItemRow, BuyerInfoCard, DeliveryInfoCard,
@@ -75,7 +75,8 @@ const OrderDetails = () => {
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-harvests-light flex items-center justify-center"><LoadingSpinner size="lg" text="Chargement..." /></div>;
+  // Chargement : bouton retour utilisable, seules les données sont grisées
+  if (loading) return <DetailPageSkeleton onBack={() => navigate(-1)} />;
 
   if (!order) {
     return (
@@ -96,8 +97,8 @@ const OrderDetails = () => {
   const StatusIcon = statusConfig.icon;
 
   return (
-    <div className="min-h-screen bg-harvests-light">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="dashboard-page bg-harvests-light">
+      <div className="dashboard-container">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">

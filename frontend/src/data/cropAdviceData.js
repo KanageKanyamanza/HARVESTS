@@ -1,5 +1,43 @@
 // Base de connaissances agricoles pour aider les producteurs (saisons, températures,
 // besoins de culture et conseils de récolte). Contexte Afrique de l'Ouest / zone soudano-sahélienne.
+// Textes en français ; traduction anglaise dans cropAdviceData.en.js (Jour 50).
+import { cropAdviceEn } from "./cropAdviceData.en.js";
+
+// Champs techniques jamais traduits (identifiants, images, mots-clés de recherche).
+// `category` est traduit : code pour une culture (« vegetables », absent du
+// dictionnaire donc inchangé), libellé pour un équipement (« Préparation du sol »).
+const UNTRANSLATED_KEYS = new Set(["id", "image", "fallbackUrl", "value", "aliases", "keywords"]);
+
+/**
+ * Version d'une fiche (ou de toute partie : étapes, équipements) dans la
+ * langue demandée. En français, renvoie la donnée telle quelle ; en anglais,
+ * remplace chaque texte par sa traduction (un texte absent du dictionnaire
+ * reste en français).
+ */
+export const localizeCropData = (value, lang, key = null) => {
+	if (lang !== "en") return value;
+	if (typeof value === "string") {
+		return UNTRANSLATED_KEYS.has(key) ? value : (cropAdviceEn[value] ?? value);
+	}
+	if (Array.isArray(value)) return value.map((item) => localizeCropData(item, lang, key));
+	if (value && typeof value === "object") {
+		return Object.fromEntries(
+			Object.entries(value).map(([k, v]) => [k, localizeCropData(v, lang, k)]),
+		);
+	}
+	return value;
+};
+
+const normalizeText = (text = "") =>
+	text
+		.toLowerCase()
+		.normalize("NFD")
+		.replace(/[̀-ͯ]/g, "")
+		.trim();
+
+// Termes de recherche d'une culture : alias, nom français et nom anglais
+const searchTermsOf = (crop) =>
+	[...crop.aliases, crop.name, cropAdviceEn[crop.name]].filter(Boolean).map(normalizeText);
 
 export const cropCategories = [
 	{ value: "cereals", label: "Céréales" },
@@ -217,7 +255,7 @@ export const cropAdviceData = [
 				period: "Jour 85 à 120",
 				image: "/images/tomate/stage_recolte.jpg",
 				fallbackUrl: "https://images.unsplash.com/photo-1576181256399-83563454b679?auto=format&fit=crop&w=800&q=80",
-				description: "Ceuillette manuelle des tomates rouges et fermes. Conditionnement délicat dans des cagettes aérées.",
+				description: "Cueillette manuelle des tomates rouges et fermes. Conditionnement délicat dans des cagettes aérées.",
 			},
 		],
 	},
@@ -1000,7 +1038,7 @@ export const cropAdviceData = [
 				period: "Jours 60 à 90",
 				image: "/images/aubergine/stage_floraison.jpg",
 				fallbackUrl: "https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=800&q=80",
-				description: "Apparition des petites fleurs et début de formation des fruits d'aubergines, nécessitant une irrigation régulière et constante sans excès d'eau.s.",
+				description: "Apparition des petites fleurs et début de formation des fruits d'aubergines, nécessitant une irrigation régulière et constante sans excès d'eau.",
 			},
 			{
 				id: "recolte",
@@ -1082,7 +1120,7 @@ export const cropAdviceData = [
 				period: "Jours 90 à 120",
 				image: "/images/gombo/stage_recolte.jpg",
 				fallbackUrl: "https://images.unsplash.com/photo-1588252303782-7ee9a3d46337?auto=format&fit=crop&w=800&q=80",
-				description: "Ceuillette manuelle des capsules tendres et bien mûres à la fraîcheur du matin, suivie de la mise en paniers, du tri et du séchage.",
+				description: "Cueillette manuelle des capsules tendres et bien mûres à la fraîcheur du matin, suivie de la mise en paniers, du tri et du séchage.",
 			},
 		],
 	},
@@ -1702,49 +1740,29 @@ export const getCropEquipmentDetails = (crop) => {
 	return matched;
 };
 
-// Cherche une fiche de conseils correspondant à un nom de produit (ex: nom saisi par le producteur)
+// Cherche une fiche de conseils correspondant à un nom de produit (ex: nom saisi par le producteur).
+// Jour 50 : compare aussi au nom anglais de la culture (produits saisis en anglais).
 export const findCropAdviceByName = (productName = "") => {
 	if (!productName) return null;
-	const normalized = productName
-		.toLowerCase()
-		.normalize("NFD")
-		.replace(/[̀-ͯ]/g, "")
-		.trim();
+	const normalized = normalizeText(productName);
+	if (!normalized) return null;
 
 	return (
 		cropAdviceData.find((crop) =>
-			crop.aliases.some((alias) => {
-				const normalizedAlias = alias
-					.toLowerCase()
-					.normalize("NFD")
-					.replace(/[̀-ͯ]/g, "");
-				return (
-					normalized.includes(normalizedAlias) ||
-					normalizedAlias.includes(normalized)
-				);
-			})
+			searchTermsOf(crop).some(
+				(term) => normalized.includes(term) || term.includes(normalized),
+			),
 		) || null
 	);
 };
 
+// Recherche dans le catalogue, en français comme en anglais
 export const searchCropAdvice = (query = "") => {
 	if (!query) return cropAdviceData;
-	const normalized = query
-		.toLowerCase()
-		.normalize("NFD")
-		.replace(/[̀-ͯ]/g, "")
-		.trim();
-
-	return cropAdviceData.filter((crop) => {
-		const name = crop.name
-			.toLowerCase()
-			.normalize("NFD")
-			.replace(/[̀-ͯ]/g, "");
-		return (
-			name.includes(normalized) ||
-			crop.aliases.some((alias) => alias.includes(normalized))
-		);
-	});
+	const normalized = normalizeText(query);
+	return cropAdviceData.filter((crop) =>
+		searchTermsOf(crop).some((term) => term.includes(normalized)),
+	);
 };
 
 export default cropAdviceData;

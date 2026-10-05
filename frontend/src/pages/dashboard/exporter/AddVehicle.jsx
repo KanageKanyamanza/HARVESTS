@@ -26,7 +26,7 @@ const AddVehicle = () => {
 	} = useAddVehicle();
 
 	return (
-		<div className="min-h-screen relative">
+		<div className="dashboard-page">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden -z-10">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/30 rounded-full blur-[120px]"></div>
@@ -34,7 +34,7 @@ const AddVehicle = () => {
 				<div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-amber-50/30 rounded-full blur-[120px]"></div>
 			</div>
 
-			<div className="relative z-10 p-4 md:p-6 max-w-4xl mx-auto space-y-8">
+			<div className="dashboard-container space-y-8">
 				{/* Header Section */}
 				<div>
 					<button

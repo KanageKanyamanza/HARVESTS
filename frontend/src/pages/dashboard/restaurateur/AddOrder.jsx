@@ -87,7 +87,7 @@ const NewOrder = () => {
 	};
 
 	return (
-		<div className="p-6 max-w-7xl mx-auto pb-20">
+		<div className="dashboard-container pb-20">
 			{/* Header */}
 			<div className="mb-8">
 				<h1 className="text-2xl font-bold text-gray-900">Nouvelle Commande</h1>

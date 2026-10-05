@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { FiShoppingCart, FiClock, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 
 const OrdersSection = ({ orders, userType, loading = false, service }) => {
+  const { t } = useTranslation('common');
   const [localOrders, setLocalOrders] = useState([]);
   const [localLoading, setLocalLoading] = useState(false);
 
@@ -64,20 +66,8 @@ const OrdersSection = ({ orders, userType, loading = false, service }) => {
     }
   };
 
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'pending':
-        return 'En attente';
-      case 'confirmed':
-        return 'Confirmée';
-      case 'completed':
-        return 'Terminée';
-      case 'cancelled':
-        return 'Annulée';
-      default:
-        return status;
-    }
-  };
+  const getStatusText = (status) =>
+    t(`orderStatus.${status}`, { defaultValue: status });
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -117,14 +107,14 @@ const OrdersSection = ({ orders, userType, loading = false, service }) => {
     return (
       <div className="text-center py-8">
         <FiShoppingCart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune commande</h3>
-        <p className="text-gray-500 mb-4">Vos commandes apparaîtront ici.</p>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t('dashboardSections.orders.emptyTitle')}</h3>
+        <p className="text-gray-500 mb-4">{t('dashboardSections.orders.emptyText')}</p>
         <Link
           to={`/${userType}/orders`}
           className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <FiShoppingCart className="mr-2" />
-          Voir toutes les commandes
+          {t('dashboardSections.orders.seeAll')}
         </Link>
       </div>
     );
@@ -138,10 +128,12 @@ const OrdersSection = ({ orders, userType, loading = false, service }) => {
             {getStatusIcon(order.status)}
             <div>
               <h4 className="text-sm font-medium text-gray-900">
-                Commande #{order.orderNumber || order._id.slice(-8)}
+                {t('dashboardSections.orders.orderNumber', {
+                  number: order.orderNumber || order._id.slice(-8),
+                })}
               </h4>
               <p className="text-sm text-gray-500">
-                {order.total ? `${order.total} ${order.currency || 'XAF'}` : 'Montant non défini'}
+                {order.total ? `${order.total} ${order.currency || 'XAF'}` : t('dashboardSections.orders.noAmount')}
               </p>
             </div>
           </div>
@@ -153,7 +145,7 @@ const OrdersSection = ({ orders, userType, loading = false, service }) => {
               to={`/${userType}/orders/${order._id}`}
               className="text-blue-600 hover:text-blue-800 text-sm font-medium"
             >
-              Voir
+              {t('dashboardSections.orders.view')}
             </Link>
           </div>
         </div>
@@ -165,7 +157,7 @@ const OrdersSection = ({ orders, userType, loading = false, service }) => {
             to={`/${userType}/orders`}
             className="text-sm text-blue-600 hover:text-blue-800 font-medium"
           >
-            Voir toutes les commandes ({displayOrders.length})
+            {t('dashboardSections.orders.seeAllCount', { count: displayOrders.length })}
           </Link>
         </div>
       )}

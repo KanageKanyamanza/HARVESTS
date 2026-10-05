@@ -1,10 +1,12 @@
 import React from "react";
 import SalesChart from "../../../components/admin/SalesChart";
+import DataValue from "../../../components/common/DataValue";
 
 const SalesAndUserStats = ({
 	salesChartData,
 	marketplaceStats,
 	monthlyGrowth,
+	loading = false,
 }) => {
 	return (
 		<div className="grid gap-6 mb-6">
@@ -20,14 +22,18 @@ const SalesAndUserStats = ({
 						</p>
 					</div>
 					<div className="flex flex-col items-end">
+						{!loading && (
 						<span className="inline-flex items-center px-1.5 py-0.5 rounded-lg text-[8px] font-black bg-green-500 text-white shadow-md shadow-green-200 border border-green-400 animate-pulse-slow uppercase tracking-widest">
 							{monthlyGrowth >= 0 ? "+" : ""}
 							{monthlyGrowth}% croissance
 						</span>
+						)}
 					</div>
 				</div>
 				<div className="max-h-[280px] w-full relative z-10 mx-1">
-					<SalesChart data={salesChartData} type="bar" />
+					{loading ?
+						<div className="h-[240px] w-full bg-gray-100/70 rounded-xl animate-pulse" />
+					:	<SalesChart data={salesChartData} type="bar" />}
 				</div>
 			</div>
 
@@ -53,7 +59,7 @@ const SalesAndUserStats = ({
 								</p>
 								<div className="flex items-baseline justify-between">
 									<p className="text-base font-black text-gray-900 leading-none">
-										{stat.value}
+										<DataValue loading={loading} className="w-10 h-[0.9em]">{stat.value}</DataValue>
 									</p>
 								</div>
 							</div>

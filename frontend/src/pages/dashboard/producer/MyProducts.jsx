@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import CardGridSkeleton from "../../../components/common/CardGridSkeleton";
+import DataValue from "../../../components/common/DataValue";
 import { useAuth } from "../../../hooks/useAuth";
 import { producerService } from "../../../services";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
@@ -136,35 +138,11 @@ const MyProducts = () => {
 		}
 	};
 
-	// Skeleton Loader
-	if (loading && products.length === 0) {
-		return (
-			<div className="min-h-screen relative overflow-hidden p-6 md:p-8 space-y-8">
-				{/* Background Glows */}
-				<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden z-0">
-					<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-50/40 rounded-full blur-[120px]"></div>
-				</div>
-
-				<div className="relative z-10 max-w-7xl mx-auto">
-					<div className="flex justify-between items-center mb-10">
-						<div className="h-10 bg-gray-200 rounded-xl w-64 animate-pulse"></div>
-						<div className="h-10 bg-gray-200 rounded-xl w-40 animate-pulse"></div>
-					</div>
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-						{[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-							<div
-								key={i}
-								className="bg-white/60 rounded-3xl h-[350px] animate-pulse"
-							></div>
-						))}
-					</div>
-				</div>
-			</div>
-		);
-	}
+	// Seule la grille attend le serveur : titre, quota et filtres restent affichés
+	const initialLoading = loading && products.length === 0;
 
 	return (
-		<div className="min-h-screen relative overflow-hidden">
+		<div className="dashboard-page">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/30 rounded-full blur-[120px]"></div>
@@ -172,7 +150,7 @@ const MyProducts = () => {
 				<div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-amber-50/30 rounded-full blur-[120px]"></div>
 			</div>
 
-			<div className="relative z-10 p-6 md:p-8 max-w-[1600px] mx-auto space-y-8">
+			<div className="dashboard-container space-y-8">
 				{/* Header Section */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-in-down">
 					<div>
@@ -196,13 +174,15 @@ const MyProducts = () => {
 							<div className="flex items-center gap-2 px-3 py-1.5 bg-white/50 border border-white/60 rounded-xl shadow-sm">
 								<div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
 								<span className="text-[10px] font-black text-gray-600 uppercase tracking-wider">
-									{t("products.list.quota", {
-										count: products.length,
-										max:
-											user.subscriptionFeatures.maxProducts === -1 ?
-												"∞"
-											:	user.subscriptionFeatures.maxProducts,
-									})}
+									<DataValue loading={initialLoading} className="w-16 h-[0.9em]">
+										{t("products.list.quota", {
+											count: products.length,
+											max:
+												user.subscriptionFeatures.maxProducts === -1 ?
+													"∞"
+												:	user.subscriptionFeatures.maxProducts,
+										})}
+									</DataValue>
 								</span>
 							</div>
 						)}
@@ -296,7 +276,9 @@ const MyProducts = () => {
 				</div>
 
 				{/* Products Grid */}
-				{products.length === 0 && !loading ?
+				{initialLoading ?
+					<CardGridSkeleton className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" />
+				: products.length === 0 && !loading ?
 					<div className="bg-white/50 backdrop-blur-sm border-2 border-dashed border-gray-200 rounded-3xl p-12 text-center animate-fade-in-up">
 						<div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
 							<FiPackage className="h-10 w-10 text-gray-300" />

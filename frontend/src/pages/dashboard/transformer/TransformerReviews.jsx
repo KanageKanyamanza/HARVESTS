@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import DataValue from "../../../components/common/DataValue";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
+import { formatDate } from "../../../utils/i18n";
+import { toPlainText } from "../../../utils/textHelpers";
 import { useNotifications } from "../../../hooks/useNotifications";
-import { transformerService, reviewService } from "../../../services";
+import { reviewService } from "../../../services";
+// Service dédié : markReviewAsRead n'existe pas dans le service générique
+import transformerService from "../../../services/transformerService";
 import StarRating from "../../../components/reviews/StarRating";
 import CloudinaryImage from "../../../components/common/CloudinaryImage";
 import {
@@ -22,6 +28,7 @@ import {
 } from "lucide-react";
 
 const TransformerReviews = () => {
+	const { t, i18n } = useTranslation("dashboard-producer");
 	const { showSuccess, showError } = useNotifications();
 
 	const [reviews, setReviews] = useState([]);
@@ -62,11 +69,11 @@ const TransformerReviews = () => {
 			});
 		} catch (error) {
 			console.error("Erreur lors du chargement des avis:", error);
-			showError("Erreur lors du chargement des avis");
+			showError(t("reviews.loadError"));
 		} finally {
 			setLoading(false);
 		}
-	}, [filters, showError]);
+	}, [filters, showError, t]);
 
 	useEffect(() => {
 		loadReviews();
@@ -74,23 +81,26 @@ const TransformerReviews = () => {
 
 	const handleRespondToReview = async (reviewId) => {
 		if (!responseText.trim()) {
-			showError("Veuillez saisir une réponse");
+			showError(t("reviews.emptyResponse"));
 			return;
 		}
 
 		try {
 			setSubmittingResponse(true);
-			await transformerService.respondToReview(reviewId, {
-				response: responseText.trim(), // API expects 'response' key based on previous file
+			// Jour 51 : route générique des avis (comme le producteur). L'appel
+			// précédent visait une méthode absente du service importé (échec
+			// systématique), et la route transformateur dédiée ne fait rien.
+			await reviewService.respondToReview(reviewId, {
+				comment: responseText.trim(),
 			});
 
-			showSuccess("Réponse publiée avec succès");
+			showSuccess(t("reviews.responseSuccess"));
 			setResponseText("");
 			setRespondingTo(null);
 			loadReviews();
 		} catch (error) {
 			console.error("Erreur lors de la réponse:", error);
-			showError("Erreur lors de la publication de la réponse");
+			showError(t("reviews.responseError"));
 		} finally {
 			setSubmittingResponse(false);
 		}
@@ -124,30 +134,29 @@ const TransformerReviews = () => {
 	};
 
 	return (
-		<div className="min-h-screen relative overflow-hidden bg-harvests-light/20">
+		<div className="dashboard-page bg-harvests-light/20">
 			{/* Background Decorative Glows - Purple Theme for Transformer */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
 				<div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-100/30 rounded-full blur-[120px]"></div>
 				<div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="relative z-10 max-w-6xl mx-auto px-4 py-8 md:py-12 space-y-10">
+			<div className="dashboard-container space-y-10">
 				{/* Header */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-in-down">
 					<div className="space-y-3">
 						<div className="flex items-center gap-2 text-purple-600 font-black text-[9px] uppercase tracking-widest mb-2">
 							<div className="w-5 h-[2px] bg-purple-600 rounded-full"></div>
-							<span>Réputation</span>
+							<span>{t("reviews.eyebrow")}</span>
 						</div>
 						<h1 className="text-3xl font-[1000] text-gray-900 tracking-tighter leading-none mb-2">
-							Avis{" "}
+							{t("reviews.titleStart")}{" "}
 							<span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-fuchsia-500">
-								Clients.
+								{t("reviews.titleHighlight")}
 							</span>
 						</h1>
 						<p className="text-xs text-gray-500 font-medium max-w-xl">
-							Suivez la satisfaction de vos clients et engagez la conversation
-							pour fidéliser votre audience.
+							{t("reviews.subtitle")}
 						</p>
 					</div>
 
@@ -157,11 +166,11 @@ const TransformerReviews = () => {
 						</div>
 						<div>
 							<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
-								Satisfaction
+								{t("reviews.satisfaction")}
 							</p>
 							<div className="flex items-center gap-2">
 								<span className="text-2xl font-[1000] text-gray-900 tracking-tight">
-									{getAverageRating()}
+									<DataValue loading={loading} className="w-10 h-[0.8em]">{getAverageRating()}</DataValue>
 								</span>
 								<StarRating rating={parseFloat(getAverageRating())} size="sm" />
 							</div>
@@ -173,25 +182,25 @@ const TransformerReviews = () => {
 				<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 animate-fade-in-up delay-100">
 					{[
 						{
-							label: "Total Avis",
+							label: t("reviews.totalReviews"),
 							value: getTotalReviews(),
 							icon: MessageSquare,
 							color: "blue",
 						},
 						{
-							label: "Taux de Réponse",
+							label: t("reviews.responseRate"),
 							value: `${getTotalReviews() > 0 ? Math.round((reviews.filter((r) => r.response || r.producerResponse).length / getTotalReviews()) * 100) : 0}%`,
 							icon: Reply,
 							color: "purple",
 						},
 						{
-							label: "Non Lus",
+							label: t("transformer.reviews.unread"),
 							value: reviews.filter((r) => !r.isRead).length,
 							icon: AlertCircle,
 							color: "amber",
 						},
 						{
-							label: "Clients satisfaits",
+							label: t("transformer.reviews.satisfiedCustomers"),
 							value: reviews.filter((r) => r.rating >= 4).length,
 							icon: CheckCircle,
 							color: "emerald",
@@ -217,7 +226,7 @@ const TransformerReviews = () => {
 								{item.label}
 							</p>
 							<p className="text-2xl font-[1000] text-gray-900 tracking-tighter">
-								{item.value}
+								<DataValue loading={loading} className="w-12 h-[0.8em]">{item.value}</DataValue>
 							</p>
 						</div>
 					))}
@@ -228,7 +237,7 @@ const TransformerReviews = () => {
 					<div className="flex items-center gap-3 px-4 border-r border-gray-100 hidden md:flex">
 						<Filter className="h-4 w-4 text-gray-400" />
 						<span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
-							Filtrer par
+							{t("reviews.filterBy")}
 						</span>
 					</div>
 
@@ -238,10 +247,10 @@ const TransformerReviews = () => {
 							onChange={(e) => handleFilterChange("rating", e.target.value)}
 							className="bg-white/70 border-none rounded-2xl px-5 py-3 text-xs font-black uppercase tracking-widest text-gray-700 focus:ring-4 focus:ring-purple-500/5 appearance-none cursor-pointer"
 						>
-							<option value="all">Toutes les notes</option>
+							<option value="all">{t("reviews.allRatings")}</option>
 							{[5, 4, 3, 2, 1].map((n) => (
 								<option key={n} value={n.toString()}>
-									{n} Étoiles
+									{t("reviews.stars", { count: n })}
 								</option>
 							))}
 						</select>
@@ -253,9 +262,11 @@ const TransformerReviews = () => {
 							}
 							className="bg-white/70 border-none rounded-2xl px-5 py-3 text-xs font-black uppercase tracking-widest text-gray-700 focus:ring-4 focus:ring-purple-500/5 appearance-none cursor-pointer"
 						>
-							<option value="all">Toutes les réponses</option>
-							<option value="responded">Avec réponse</option>
-							<option value="not-responded">Sans réponse</option>
+							<option value="all">{t("reviews.allResponses")}</option>
+							<option value="responded">{t("reviews.withResponse")}</option>
+							<option value="not-responded">
+								{t("reviews.withoutResponse")}
+							</option>
 						</select>
 
 						<select
@@ -263,10 +274,14 @@ const TransformerReviews = () => {
 							onChange={(e) => handleFilterChange("sort", e.target.value)}
 							className="bg-white/70 border-none rounded-2xl px-5 py-3 text-xs font-black uppercase tracking-widest text-gray-700 focus:ring-4 focus:ring-purple-500/5 appearance-none cursor-pointer"
 						>
-							<option value="newest">Plus récents</option>
-							<option value="oldest">Plus anciens</option>
-							<option value="highest-rating">Meilleures notes</option>
-							<option value="lowest-rating">Moins bonnes notes</option>
+							<option value="newest">{t("reviews.newest")}</option>
+							<option value="oldest">{t("reviews.oldest")}</option>
+							<option value="highest-rating">
+								{t("reviews.highestRating")}
+							</option>
+							<option value="lowest-rating">
+								{t("reviews.lowestRating")}
+							</option>
 						</select>
 					</div>
 				</div>
@@ -300,11 +315,10 @@ const TransformerReviews = () => {
 								<MessageSquare className="h-10 w-10" />
 							</div>
 							<h3 className="text-2xl font-[1000] text-gray-900 tracking-tight mb-2">
-								Aucun avis pour le moment
+								{t("reviews.emptyTitle")}
 							</h3>
 							<p className="text-gray-500 max-w-sm mx-auto font-medium">
-								Les avis de vos clients s'afficheront ici. Continuez à fournir
-								d'excellents produits pour récolter des retours positifs !
+								{t("reviews.emptyText")}
 							</p>
 						</div>
 					:	reviews.map((review) => (
@@ -315,7 +329,7 @@ const TransformerReviews = () => {
 							>
 								{!review.isRead && (
 									<div className="absolute top-0 right-0 bg-purple-500 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-bl-2xl">
-										Nouveau
+										{t("transformer.reviews.new")}
 									</div>
 								)}
 								<div className="flex flex-col md:flex-row gap-8 relative z-10">
@@ -336,7 +350,7 @@ const TransformerReviews = () => {
 													{review.reviewer?.lastName}
 												</h4>
 												<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest truncate">
-													Acheteur Harvests
+													{t("reviews.buyer")}
 												</p>
 											</div>
 										</div>
@@ -365,10 +379,10 @@ const TransformerReviews = () => {
 													</div>
 													<div className="min-w-0">
 														<p className="text-[8px] font-black text-purple-600 uppercase tracking-widest mb-0.5">
-															Produit concerné
+															{t("reviews.product")}
 														</p>
 														<p className="text-[10px] font-bold text-gray-900 truncate">
-															{review.product.name}
+															{toPlainText(review.product.name, "")}
 														</p>
 													</div>
 												</div>
@@ -377,19 +391,12 @@ const TransformerReviews = () => {
 											<div className="flex flex-col gap-2">
 												<div className="flex items-center gap-2 text-[10px] font-black text-gray-600 uppercase tracking-widest">
 													<Calendar className="h-3 w-3 text-purple-500" />
-													{new Date(review.createdAt).toLocaleDateString(
-														"fr-FR",
-														{
-															day: "numeric",
-															month: "long",
-															year: "numeric",
-														},
-													)}
+													{formatDate(review.createdAt, i18n.language)}
 												</div>
 												{review.isVerifiedPurchase && (
 													<div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[9px] font-black uppercase tracking-widest border border-emerald-100 w-fit">
 														<CheckCircle className="h-3 w-3" />
-														Achat Vérifié
+														{t("reviews.verifiedPurchase")}
 													</div>
 												)}
 											</div>
@@ -403,7 +410,7 @@ const TransformerReviews = () => {
 												<MessageSquare className="w-24 h-24" />
 											</div>
 											<h3 className="text-xl font-[1000] text-gray-900 tracking-tight mb-3">
-												{review.title || "Avis Client"}
+												{review.title || t("transformer.reviews.untitled")}
 											</h3>
 											<p className="text-gray-600 leading-relaxed font-medium">
 												{review.comment}
@@ -423,15 +430,16 @@ const TransformerReviews = () => {
 																<Reply className="h-4 w-4" />
 															</div>
 															<span className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-100">
-																Votre Réponse
+																{t("reviews.yourResponse")}
 															</span>
 														</div>
 														<span className="text-[9px] font-black text-purple-200 uppercase tracking-widest">
-															{new Date(
+															{formatDate(
 																review.respondedAt ||
 																	review.producerResponse?.respondedAt ||
 																	new Date(),
-															).toLocaleDateString("fr-FR")}
+																i18n.language,
+															)}
 														</span>
 													</div>
 													<p className="text-white/90 font-bold leading-relaxed">
@@ -443,14 +451,14 @@ const TransformerReviews = () => {
 										: respondingTo === review._id ?
 											<div className="bg-white/80 rounded-[1.8rem] p-6 border-2 border-purple-500/20 shadow-inner animate-fade-in">
 												<label className="block text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-3 ml-2">
-													Rédiger votre réponse
+													{t("reviews.writeResponse")}
 												</label>
 												<textarea
 													value={responseText}
 													onChange={(e) => setResponseText(e.target.value)}
 													rows={3}
 													className="w-full bg-transparent border-none focus:ring-0 text-gray-800 font-medium text-lg placeholder-gray-300 resize-none px-2"
-													placeholder="Remerciez votre client ou apportez des précisions..."
+													placeholder={t("reviews.responsePlaceholder")}
 													autoFocus
 												/>
 												<div className="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-gray-100">
@@ -461,7 +469,7 @@ const TransformerReviews = () => {
 														}}
 														className="px-6 py-2.5 text-[9px] font-black text-gray-600 uppercase tracking-widest hover:text-gray-900 transition-colors"
 													>
-														Annuler
+														{t("reviews.cancel")}
 													</button>
 													<button
 														onClick={() => handleRespondToReview(review._id)}
@@ -474,8 +482,8 @@ const TransformerReviews = () => {
 															<div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
 														:	<Send className="h-3 w-3" />}
 														{submittingResponse ?
-															"Publication..."
-														:	"Envoyer la réponse"}
+															t("reviews.publishing")
+														:	t("reviews.sendResponse")}
 													</button>
 												</div>
 											</div>
@@ -484,7 +492,7 @@ const TransformerReviews = () => {
 												className="w-full py-4 border-2 border-dashed border-gray-200 rounded-[1.8rem] text-gray-600 hover:border-purple-300 hover:text-purple-500 hover:bg-purple-50/50 transition-all font-black text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-3 group"
 											>
 												<Reply className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-												Répondre à cet avis
+												{t("reviews.respond")}
 												<ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
 											</button>
 										}

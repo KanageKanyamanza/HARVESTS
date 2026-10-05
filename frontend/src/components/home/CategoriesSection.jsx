@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Wheat, Carrot, Apple, Bean, Flame, Leaf, Sprout, Milk, Beef, Drumstick, Fish, Archive, CupSoda, Package, ArrowRight, Grid } from "lucide-react";
 import CloudinaryImage from "../common/CloudinaryImage";
-import LoadingSpinner from "../common/LoadingSpinner";
+import CardGridSkeleton from "../common/CardGridSkeleton";
 import { productService } from "../../services";
 
 const ALL_CATEGORIES = [
@@ -106,16 +106,6 @@ const CategoriesSection = () => {
 		loadCategories();
 	}, [loadCategories]);
 
-	if (loading) {
-		return (
-			<section className="my-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-				<div className="flex justify-center items-center py-12 bg-white rounded-2xl shadow-agri-card border border-emerald-100">
-					<LoadingSpinner />
-				</div>
-			</section>
-		);
-	}
-
 	return (
 		<section
 			className="md:bg-white my-6 p-0 sm:p-6 mx-4 sm:mx-6 lg:mx-8 max-w-7xl lg:mx-auto md:rounded-2xl md:shadow-agri-card md:border border-emerald-100/80 relative z-10"
@@ -137,6 +127,8 @@ const CategoriesSection = () => {
 				</Link>
 			</div>
 
+			{/* Seules les catégories (données serveur) attendent : le titre reste affiché */}
+			{loading && <CardGridSkeleton count={4} className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6" />}
 			<div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
 				{visibleCategories.slice(0, 4).map((category) => {
 					const product = categoryProducts[category];

@@ -8,7 +8,7 @@ import {
 	ThumbsDown,
 	MessageSquare,
 } from "lucide-react";
-import LoadingSpinner from "../../../components/common/LoadingSpinner";
+import CardGridSkeleton from "../../../components/common/CardGridSkeleton";
 
 const ChatDetailsModal = ({
 	selectedInteraction,
@@ -56,9 +56,7 @@ const ChatDetailsModal = ({
 				{/* Chat History */}
 				<div className="flex-1 overflow-y-auto p-8 bg-gray-50 space-y-6 custom-scrollbar">
 					{loadingHistory ? (
-						<div className="flex justify-center py-20">
-							<LoadingSpinner />
-						</div>
+						<CardGridSkeleton count={5} variant="row" className="space-y-3" />
 					) : chatHistory.length === 0 ? (
 						<div className="text-center py-20 flex flex-col items-center">
 							<div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mb-6 opacity-50">

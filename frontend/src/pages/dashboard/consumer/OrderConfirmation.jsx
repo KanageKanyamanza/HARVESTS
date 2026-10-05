@@ -286,23 +286,24 @@ const OrderConfirmation = () => {
 		else navigator.clipboard.writeText(window.location.href);
 	};
 
+	// Chargement : l'en-tête de confirmation (texte fixe) s'affiche tout de
+	// suite, seules les cartes de la commande attendent le serveur
 	if (loading) {
 		return (
-			<div className="min-h-screen bg-[#F8FAF6] py-8">
-				<div className="max-w-4xl mx-auto px-4 animate-pulse">
-					<div className="h-8 bg-gray-200 rounded-full w-1/3 mb-4"></div>
-					<div className="h-4 bg-gray-200 rounded-full w-1/2 mb-8"></div>
-					{[1, 2, 3].map((i) => (
-						<div
-							key={i}
-							className="bg-white rounded-2xl shadow-agri-card border border-emerald-100/80 p-6 mb-4"
-						>
-							<div className="h-6 bg-gray-200 rounded-full mb-4"></div>
-							<div className="space-y-3">
-								<div className="h-4 bg-gray-200 rounded-full"></div>
+			<div className="dashboard-page bg-[#F8FAF6]">
+				<div className="dashboard-container">
+					<SuccessHeader />
+					<div className="space-y-4 animate-pulse" aria-busy="true">
+						{[1, 2, 3].map((i) => (
+							<div
+								key={i}
+								className="bg-white rounded-2xl shadow-agri-card border border-emerald-100/80 p-6"
+							>
+								<div className="h-5 bg-gray-100 rounded-full w-1/3 mb-4"></div>
+								<div className="h-4 bg-gray-100 rounded-full"></div>
 							</div>
-						</div>
-					))}
+						))}
+					</div>
 				</div>
 			</div>
 		);
@@ -382,8 +383,8 @@ const OrderConfirmation = () => {
 	};
 
 	return (
-		<div className="min-h-screen bg-[#F8FAF6] py-6 sm:py-8">
-			<div className="max-w-4xl mx-auto px-3 sm:px-4">
+		<div className="dashboard-page bg-[#F8FAF6]">
+			<div className="dashboard-container">
 				<SuccessHeader />
 
 				{isPaypalPending && (

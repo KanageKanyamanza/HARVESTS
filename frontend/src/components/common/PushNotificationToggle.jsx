@@ -102,9 +102,12 @@ const PushNotificationToggle = ({ isAdmin = false, className = "" }) => {
 
 	if (permissionStatus === "loading") {
 		return (
-			<div className={`flex items-center gap-3 p-4 bg-gray-50 rounded-2xl ${className}`}>
-				<Loader2 className="h-5 w-5 text-gray-400 animate-spin" />
-				<span className="text-xs font-bold text-gray-400">Vérification des notifications...</span>
+			<div
+				className={`flex items-center justify-between gap-3 p-4 bg-gray-50 rounded-2xl animate-pulse ${className}`}
+				aria-busy="true"
+			>
+				<div className="h-3 w-40 bg-gray-200 rounded" />
+				<div className="h-8 w-14 bg-gray-200 rounded-full" />
 			</div>
 		);
 	}

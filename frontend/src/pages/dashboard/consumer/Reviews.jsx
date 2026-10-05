@@ -12,7 +12,8 @@ import {
 	FiRefreshCw,
 } from "react-icons/fi";
 import { reviewService } from "../../../services";
-import LoadingSpinner from "../../../components/common/LoadingSpinner";
+import CardGridSkeleton from "../../../components/common/CardGridSkeleton";
+import DataValue from "../../../components/common/DataValue";
 import ErrorMessage from "../../../components/common/ErrorMessage";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 
@@ -84,16 +85,9 @@ const Reviews = () => {
 		));
 	};
 
-	if (loading) {
-		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<LoadingSpinner size="lg" text="Chargement de vos avis..." />
-			</div>
-		);
-	}
 
 	return (
-		<div className="min-h-screen relative overflow-hidden bg-harvests-light/20 pb-20">
+		<div className="dashboard-page bg-harvests-light/20">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-100/30 rounded-full blur-[120px]"></div>
@@ -101,7 +95,7 @@ const Reviews = () => {
 				<div className="absolute top-[20%] left-[10%] w-[30%] h-[30%] bg-cyan-100/20 rounded-full blur-[120px]"></div>
 			</div>
 
-			<div className="relative z-10 max-w-7xl mx-auto px-4 py-8 md:py-12 space-y-10">
+			<div className="dashboard-container space-y-10">
 				{/* Header */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-in-down">
 					<div className="space-y-3">
@@ -117,7 +111,8 @@ const Reviews = () => {
 						</h1>
 						<p className="text-xs text-gray-500 font-medium max-w-xl">
 							Retrouvez tous les retours que vous avez partagés avec nos
-							producteurs. {reviews.length} avis publié
+							producteurs.{" "}
+							<DataValue loading={loading} className="w-4 h-[0.9em]">{reviews.length}</DataValue> avis publié
 							{reviews.length > 1 ? "s" : ""}.
 						</p>
 					</div>
@@ -140,7 +135,9 @@ const Reviews = () => {
 
 				{/* Reviews List */}
 				<div className="animate-fade-in-up delay-100">
-					{reviews.length === 0 ?
+					{loading ?
+						<CardGridSkeleton count={3} variant="row" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" />
+					: reviews.length === 0 ?
 						<div className="bg-white/50 backdrop-blur-xl rounded-[3rem] p-20 border border-white/60 text-center shadow-lg">
 							<div className="w-24 h-24 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 mx-auto mb-6 shadow-inner">
 								<FiMessageSquare className="w-10 h-10" />

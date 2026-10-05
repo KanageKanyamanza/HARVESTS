@@ -141,7 +141,7 @@ const AddDish = () => {
 	};
 
 	return (
-		<div className="max-w-4xl mx-auto p-6 pb-20">
+		<div className="dashboard-container pb-20">
 			<button
 				onClick={() => navigate(-1)}
 				className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4"

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { adminService } from "../../services/adminService";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
+import CardGridSkeleton from "../../components/common/CardGridSkeleton";
 
 const AdminFaqManager = () => {
 	const [faqs, setFaqs] = useState([]);
@@ -122,13 +123,13 @@ const AdminFaqManager = () => {
 	};
 
 	return (
-		<div className="min-h-screen md:pl-3 pb-20 relative overflow-hidden">
+		<div className="dashboard-page">
 			{/* Background Effect */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-purple-100/30 rounded-full blur-[120px]"></div>
 			</div>
 
-			<div className="max-w-full mx-auto px-3 py-4 relative z-10 pl-1 md:pl-6 md:px-4 md:py-6">
+			<div className="dashboard-container">
 				{/* Header */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5">
 					<div>
@@ -177,9 +178,7 @@ const AdminFaqManager = () => {
 
 				{/* Table */}
 				{loading ? (
-					<div className="flex justify-center p-8">
-						<LoadingSpinner size="lg" text="Chargement..." />
-					</div>
+					<CardGridSkeleton count={5} variant="row" className="space-y-3" />
 				) : (
 					<div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/60 shadow-sm overflow-hidden">
 						<div className="overflow-x-auto">

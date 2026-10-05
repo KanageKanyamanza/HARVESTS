@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { subscriptionService } from "../../../services";
+import { formatDate as formatLocalizedDate } from "../../../utils/i18n";
 import {
 	FiStar,
 	FiCalendar,
@@ -12,6 +14,7 @@ import {
 } from "react-icons/fi";
 
 const SubscriptionSection = () => {
+	const { t, i18n } = useTranslation("common");
 	const [subscription, setSubscription] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
@@ -61,7 +64,7 @@ const SubscriptionSection = () => {
 			}
 			// Ne pas afficher d'erreur si c'est juste qu'il n'y a pas d'abonnement
 			if (err.response?.status !== 404) {
-				setError("Impossible de charger l'abonnement");
+				setError("dashboardSections.subscription.loadError");
 			} else {
 				setSubscription(null);
 			}
@@ -75,12 +78,8 @@ const SubscriptionSection = () => {
 	};
 
 	const formatDate = (dateString) => {
-		if (!dateString) return "N/A";
-		return new Date(dateString).toLocaleDateString("fr-FR", {
-			year: "numeric",
-			month: "long",
-			day: "numeric",
-		});
+		if (!dateString) return t("dashboardSections.subscription.notAvailable");
+		return formatLocalizedDate(dateString, i18n.language);
 	};
 
 	const getStatusBadge = (status) => {
@@ -88,27 +87,27 @@ const SubscriptionSection = () => {
 			active: {
 				icon: <FiCheckCircle className="h-4 w-4" />,
 				className: "bg-green-100 text-green-800",
-				text: "Actif",
+				text: t("dashboardSections.subscription.status.active"),
 			},
 			pending: {
 				icon: <FiClock className="h-4 w-4" />,
 				className: "bg-yellow-100 text-yellow-800",
-				text: "En attente",
+				text: t("dashboardSections.subscription.status.pending"),
 			},
 			suspended: {
 				icon: <FiAlertCircle className="h-4 w-4" />,
 				className: "bg-orange-100 text-orange-800",
-				text: "Suspendu",
+				text: t("dashboardSections.subscription.status.suspended"),
 			},
 			cancelled: {
 				icon: <FiXCircle className="h-4 w-4" />,
 				className: "bg-red-100 text-red-800",
-				text: "Annulé",
+				text: t("dashboardSections.subscription.status.cancelled"),
 			},
 			expired: {
 				icon: <FiXCircle className="h-4 w-4" />,
 				className: "bg-gray-100 text-gray-800",
-				text: "Expiré",
+				text: t("dashboardSections.subscription.status.expired"),
 			},
 		};
 
@@ -124,12 +123,9 @@ const SubscriptionSection = () => {
 	};
 
 	const getPlanName = (planId) => {
-		const plans = {
-			gratuit: "Gratuit",
-			standard: "Standard",
-			premium: "Premium",
-		};
-		return plans[planId] || planId;
+		return t(`dashboardSections.subscription.plans.${planId}`, {
+			defaultValue: planId,
+		});
 	};
 
 	const getPlanColor = (planId) => {
@@ -141,13 +137,17 @@ const SubscriptionSection = () => {
 		return colors[planId] || "text-gray-600";
 	};
 
+	// Chargement : le titre (fixe) reste affiché, seul le détail attend
 	if (loading) {
 		return (
 			<div className="bg-white rounded-lg shadow p-6">
-				<div className="animate-pulse">
-					<div className="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
-					<div className="h-20 bg-gray-200 rounded"></div>
+				<div className="flex items-center justify-between mb-4">
+					<h3 className="text-lg font-semibold text-gray-900 flex items-center">
+						<FiStar className="h-5 w-5 mr-2 text-yellow-500" />
+						{t("dashboardSections.subscription.title")}
+					</h3>
 				</div>
+				<div className="h-20 bg-gray-100 rounded animate-pulse"></div>
 			</div>
 		);
 	}
@@ -155,7 +155,7 @@ const SubscriptionSection = () => {
 	if (error) {
 		return (
 			<div className="bg-white rounded-lg shadow p-6">
-				<div className="text-red-600 text-sm">{error}</div>
+				<div className="text-red-600 text-sm">{t(error)}</div>
 			</div>
 		);
 	}
@@ -166,16 +166,16 @@ const SubscriptionSection = () => {
 				<div className="flex items-center justify-between mb-4">
 					<h3 className="text-lg font-semibold text-gray-900 flex items-center">
 						<FiStar className="h-5 w-5 mr-2 text-yellow-500" />
-						Mon Abonnement
+						{t("dashboardSections.subscription.title")}
 					</h3>
 				</div>
 				<div className="text-center py-8">
-					<p className="text-gray-600 mb-4">Aucun abonnement actif</p>
+					<p className="text-gray-600 mb-4">{t("dashboardSections.subscription.none")}</p>
 					<button
 						onClick={() => navigate("/pricing")}
 						className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
 					>
-						Voir les plans disponibles
+						{t("dashboardSections.subscription.seePlans")}
 					</button>
 				</div>
 			</div>
@@ -189,7 +189,7 @@ const SubscriptionSection = () => {
 					<FiStar
 						className={`h-5 w-5 mr-2 ${getPlanColor(subscription.planId)}`}
 					/>
-					Mon Abonnement
+					{t("dashboardSections.subscription.title")}
 				</h3>
 				{getStatusBadge(subscription.status)}
 			</div>
@@ -197,7 +197,9 @@ const SubscriptionSection = () => {
 			<div className="space-y-4">
 				<div>
 					<div className="flex items-center justify-between mb-2">
-						<span className="text-sm font-medium text-gray-700">Plan</span>
+						<span className="text-sm font-medium text-gray-700">
+							{t("dashboardSections.subscription.plan")}
+						</span>
 						<span
 							className={`text-lg font-bold ${getPlanColor(
 								subscription.planId
@@ -211,15 +213,19 @@ const SubscriptionSection = () => {
 				<div className="flex items-center justify-between text-sm">
 					<span className="text-gray-600 flex items-center">
 						<FiDollarSign className="h-4 w-4 mr-1" />
-						Montant
+						{t("dashboardSections.subscription.amount")}
 					</span>
 					<span className="font-semibold text-gray-900">
 						{formatPrice(subscription.amount)} {subscription.currency}
 						{subscription.billingPeriod === "monthly" && (
-							<span className="text-gray-500 text-xs ml-1">/mois</span>
+							<span className="text-gray-500 text-xs ml-1">
+								{t("dashboardSections.subscription.perMonth")}
+							</span>
 						)}
 						{subscription.billingPeriod === "annual" && (
-							<span className="text-gray-500 text-xs ml-1">/an</span>
+							<span className="text-gray-500 text-xs ml-1">
+								{t("dashboardSections.subscription.perYear")}
+							</span>
 						)}
 					</span>
 				</div>
@@ -227,17 +233,21 @@ const SubscriptionSection = () => {
 				<div className="flex items-center justify-between text-sm">
 					<span className="text-gray-600 flex items-center">
 						<FiCalendar className="h-4 w-4 mr-1" />
-						Période
+						{t("dashboardSections.subscription.period")}
 					</span>
 					<span className="font-medium text-gray-900">
-						{subscription.billingPeriod === "monthly" ? "Mensuel" : "Annuel"}
+						{subscription.billingPeriod === "monthly" ?
+							t("dashboardSections.subscription.monthly")
+						:	t("dashboardSections.subscription.annual")}
 					</span>
 				</div>
 
 				{subscription.endDate && (
 					<div className="pt-4 border-t border-gray-200">
 						<div className="flex items-center justify-between text-sm">
-							<span className="text-gray-600">Date d'expiration</span>
+							<span className="text-gray-600">
+								{t("dashboardSections.subscription.expiresOn")}
+							</span>
 							<span className="font-medium text-gray-900">
 								{formatDate(subscription.endDate)}
 							</span>
@@ -245,7 +255,9 @@ const SubscriptionSection = () => {
 						{subscription.nextBillingDate &&
 							subscription.status === "active" && (
 								<div className="flex items-center justify-between text-sm mt-2">
-									<span className="text-gray-600">Prochain paiement</span>
+									<span className="text-gray-600">
+										{t("dashboardSections.subscription.nextPayment")}
+									</span>
 									<span className="font-medium text-gray-900">
 										{formatDate(subscription.nextBillingDate)}
 									</span>
@@ -268,12 +280,12 @@ const SubscriptionSection = () => {
 										<FiAlertCircle className="h-5 w-5 text-orange-600 flex-shrink-0 mt-0.5" />
 										<div>
 											<p className="text-sm font-medium text-orange-800">
-												Expiration imminent
+												{t("dashboardSections.subscription.expiringTitle")}
 											</p>
 											<p className="text-xs text-orange-700 mt-1">
-												Votre abonnement expire dans {daysRemaining} jour
-												{daysRemaining > 1 ? "s" : ""}. Renouvelez maintenant
-												pour éviter toute interruption.
+												{t("dashboardSections.subscription.expiringText", {
+													count: daysRemaining,
+												})}
 											</p>
 										</div>
 									</div>
@@ -288,13 +300,13 @@ const SubscriptionSection = () => {
 								className="w-full px-4 py-2 text-sm font-medium text-green-600 border border-green-600 rounded-lg hover:bg-green-50 transition-colors"
 								title={
 									getDaysRemaining(subscription.endDate) <= 7
-										? "Renouveler d'urgence"
-										: "Gérer l'abonnement"
+										? t("dashboardSections.subscription.renewUrgent")
+										: t("dashboardSections.subscription.manage")
 								}
 							>
 								{getDaysRemaining(subscription.endDate) <= 7
-									? "Renouveler maintenant"
-									: "Gérer mon abonnement"}
+									? t("dashboardSections.subscription.renewNow")
+									: t("dashboardSections.subscription.manage")}
 							</button>
 						</div>
 					</>
@@ -306,7 +318,7 @@ const SubscriptionSection = () => {
 							onClick={() => navigate("/pricing")}
 							className="w-full px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
 						>
-							Activer un plan
+							{t("dashboardSections.subscription.activate")}
 						</button>
 					</div>
 				)}

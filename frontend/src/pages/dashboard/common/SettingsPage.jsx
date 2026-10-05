@@ -26,6 +26,7 @@ import {
 	Download,
 } from "lucide-react";
 import commonService from "../../../services/commonService";
+import DashboardPageSkeleton from "../../../components/common/DashboardPageSkeleton";
 
 const SettingsPage = () => {
 	const { user, isAuthenticated, refreshUser, updatePassword, logout } = useAuth();
@@ -268,28 +269,20 @@ const SettingsPage = () => {
 		{ id: "addresses", label: "Adresses", icon: MapPin, color: "rose" },
 	];
 
-	if (!isAuthenticated || !user || loading) {
-		return (
-			<div className="min-h-[80vh] flex flex-col items-center justify-center space-y-4">
-				<div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
-				<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
-					{!isAuthenticated || !user ?
-						"Identification en cours..."
-					:	"Chargement des paramètres..."}
-				</p>
-			</div>
-		);
-	}
+	// La session (utilisateur) doit être connue ; les paramètres eux-mêmes ne
+	// bloquent plus la page : seul le panneau de l'onglet attend le serveur
+	// Session en cours de restauration : gabarit grisé plutôt qu'un spinner
+	if (!isAuthenticated || !user) return <DashboardPageSkeleton />;
 
 	return (
-		<div className="min-h-screen relative overflow-hidden pb-24 bg-harvests-light/20">
+		<div className="dashboard-page bg-harvests-light/20">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/30 rounded-full blur-[120px]"></div>
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="relative z-10 max-w-6xl mx-auto px-4 py-8 md:py-12">
+			<div className="dashboard-container">
 				{/* Header Section */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 animate-fade-in-down">
 					<div className="space-y-4">
@@ -398,347 +391,361 @@ const SettingsPage = () => {
 					{/* Main Content Area */}
 					<div className="lg:col-span-3 min-h-[600px] animate-fade-in-up delay-100">
 						<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] md:rounded-[3rem] p-6 md:p-10 border border-white/60 shadow-sm min-h-full">
-							{/* Tab: Financier */}
-							{activeTab === "financial" && (
-								<FinancialInfo
-									bankAccount={financialInfo?.bankAccount}
-									paymentMethods={financialInfo?.paymentMethods}
-									onUpdate={handleRefresh}
-								/>
-							)}
-
-							{/* Tab: Notifications */}
-							{activeTab === "notifications" && (
-								<NotificationSettings data={notificationSettings} />
-							)}
-
-							{/* Tab: Sécurité */}
-							{activeTab === "security" && (
-								<div className="space-y-12">
-									<div className="flex items-center justify-between">
-										<div className="flex items-center gap-3 px-2">
-											<ShieldCheck className="h-5 w-5 text-indigo-600/50" />
-											<h2 className="text-sm font-black text-gray-900 uppercase tracking-widest">
-												Sécurité du compte
-											</h2>
+							{loading ? (
+								<div className="space-y-4 animate-pulse" aria-busy="true">
+									{[1, 2, 3].map((i) => (
+										<div key={i} className="bg-white/70 rounded-2xl border border-gray-100 p-6 space-y-3">
+											<div className="h-4 bg-gray-100 rounded w-1/4" />
+											<div className="h-3 bg-gray-100 rounded w-2/3" />
+											<div className="h-3 bg-gray-100 rounded w-1/2" />
 										</div>
-										<button
-											onClick={handleRefresh}
-											disabled={isRefreshing}
-											className="p-3 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
-										>
-											<RefreshCw
-												className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
-											/>
-										</button>
-									</div>
-
-									<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-										{/* Email Verification */}
-										<div className="p-6 bg-white border border-gray-100 rounded-3xl group hover:shadow-xl transition-all duration-500">
-											<div className="flex items-start justify-between mb-4">
-												<div
-													className={`p-3 rounded-2xl ${verificationStatus?.email?.verified ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-500"}`}
-												>
-													<Mail className="h-6 w-6" />
-												</div>
-												{verificationStatus?.email?.verified ?
-													<div className="px-3 py-1 bg-emerald-100 text-emerald-700 text-[9px] font-black uppercase tracking-widest rounded-full">
-														Validé
-													</div>
-												:	<button className="px-3 py-1 bg-gray-900 text-white text-[9px] font-black uppercase tracking-widest rounded-full hover:bg-emerald-600 transition-colors">
-														Vérifier
-													</button>
-												}
-											</div>
-											<h4 className="text-sm font-[1000] text-gray-900 uppercase tracking-widest mb-1">
-												Validation Email
-											</h4>
-											<p className="text-xs text-gray-500 font-medium leading-relaxed">
-												Essentiel pour recevoir vos factures et alertes
-												critiques.
-											</p>
-										</div>
-
-										{/* Password Change */}
-										<div className="p-6 bg-white border border-gray-100 rounded-3xl group hover:shadow-xl transition-all duration-500">
-											<div className="flex items-start justify-between mb-4">
-												<div className="p-3 bg-gray-50 text-gray-600 rounded-2xl group-hover:bg-gray-900 group-hover:text-white transition-colors">
-													<Lock className="h-6 w-6" />
+									))}
+								</div>
+							) : (
+								<>
+									{/* Tab: Financier */}
+									{activeTab === "financial" && (
+										<FinancialInfo
+											bankAccount={financialInfo?.bankAccount}
+											paymentMethods={financialInfo?.paymentMethods}
+											onUpdate={handleRefresh}
+										/>
+									)}
+	
+									{/* Tab: Notifications */}
+									{activeTab === "notifications" && (
+										<NotificationSettings data={notificationSettings} />
+									)}
+	
+									{/* Tab: Sécurité */}
+									{activeTab === "security" && (
+										<div className="space-y-12">
+											<div className="flex items-center justify-between">
+												<div className="flex items-center gap-3 px-2">
+													<ShieldCheck className="h-5 w-5 text-indigo-600/50" />
+													<h2 className="text-sm font-black text-gray-900 uppercase tracking-widest">
+														Sécurité du compte
+													</h2>
 												</div>
 												<button
-													onClick={togglePasswordForm}
-													className="px-3 py-1 bg-gray-100 text-gray-600 text-[9px] font-black uppercase tracking-widest rounded-full hover:bg-gray-200 transition-colors"
+													onClick={handleRefresh}
+													disabled={isRefreshing}
+													className="p-3 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
 												>
-													{showPasswordForm ? "Annuler" : "Modifier"}
+													<RefreshCw
+														className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+													/>
 												</button>
 											</div>
-											<h4 className="text-sm font-[1000] text-gray-900 uppercase tracking-widest mb-1">
-												Mot de Passe
-											</h4>
-
-											{!showPasswordForm ? (
-												<p className="text-xs text-gray-500 font-medium leading-relaxed">
-													Modifiez votre mot de passe régulièrement pour
-													sécuriser votre compte.
-												</p>
-											) : (
-												<form onSubmit={handlePasswordSubmit} className="space-y-3 mt-4">
-													<div className="relative">
-														<input
-															type={passwordVisible.passwordCurrent ? "text" : "password"}
-															name="passwordCurrent"
-															value={passwordForm.passwordCurrent}
-															onChange={handlePasswordFieldChange}
-															placeholder="Mot de passe actuel"
-															required
-															className="w-full bg-gray-50/50 px-4 py-2.5 pr-11 border-2 border-transparent rounded-xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all"
-														/>
-														<button
-															type="button"
-															onClick={() => togglePasswordVisibility("passwordCurrent")}
-															className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
-															tabIndex={-1}
+	
+											<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+												{/* Email Verification */}
+												<div className="p-6 bg-white border border-gray-100 rounded-3xl group hover:shadow-xl transition-all duration-500">
+													<div className="flex items-start justify-between mb-4">
+														<div
+															className={`p-3 rounded-2xl ${verificationStatus?.email?.verified ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-500"}`}
 														>
-															{passwordVisible.passwordCurrent ? (
-																<EyeOff className="h-4 w-4" />
-															) : (
-																<Eye className="h-4 w-4" />
-															)}
-														</button>
+															<Mail className="h-6 w-6" />
+														</div>
+														{verificationStatus?.email?.verified ?
+															<div className="px-3 py-1 bg-emerald-100 text-emerald-700 text-[9px] font-black uppercase tracking-widest rounded-full">
+																Validé
+															</div>
+														:	<button className="px-3 py-1 bg-gray-900 text-white text-[9px] font-black uppercase tracking-widest rounded-full hover:bg-emerald-600 transition-colors">
+																Vérifier
+															</button>
+														}
 													</div>
-													<div className="relative">
-														<input
-															type={passwordVisible.password ? "text" : "password"}
-															name="password"
-															value={passwordForm.password}
-															onChange={handlePasswordFieldChange}
-															placeholder="Nouveau mot de passe (maj., min., chiffre, 8+ car.)"
-															required
-															minLength={8}
-															className="w-full bg-gray-50/50 px-4 py-2.5 pr-11 border-2 border-transparent rounded-xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all"
-														/>
-														<button
-															type="button"
-															onClick={() => togglePasswordVisibility("password")}
-															className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
-															tabIndex={-1}
-														>
-															{passwordVisible.password ? (
-																<EyeOff className="h-4 w-4" />
-															) : (
-																<Eye className="h-4 w-4" />
-															)}
-														</button>
-													</div>
-													<div className="relative">
-														<input
-															type={passwordVisible.passwordConfirm ? "text" : "password"}
-															name="passwordConfirm"
-															value={passwordForm.passwordConfirm}
-															onChange={handlePasswordFieldChange}
-															placeholder="Confirmer le nouveau mot de passe"
-															required
-															minLength={8}
-															className="w-full bg-gray-50/50 px-4 py-2.5 pr-11 border-2 border-transparent rounded-xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all"
-														/>
-														<button
-															type="button"
-															onClick={() => togglePasswordVisibility("passwordConfirm")}
-															className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
-															tabIndex={-1}
-														>
-															{passwordVisible.passwordConfirm ? (
-																<EyeOff className="h-4 w-4" />
-															) : (
-																<Eye className="h-4 w-4" />
-															)}
-														</button>
-													</div>
-
-													{passwordError && (
-														<p className="text-xs font-bold text-rose-600">{passwordError}</p>
-													)}
-													{passwordSuccess && (
-														<p className="text-xs font-bold text-emerald-600">{passwordSuccess}</p>
-													)}
-
-													<button
-														type="submit"
-														disabled={passwordSaving}
-														className="w-full py-2.5 bg-gray-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-colors disabled:opacity-50"
-													>
-														{passwordSaving ? "Enregistrement..." : "Enregistrer le nouveau mot de passe"}
-													</button>
-												</form>
-											)}
-										</div>
-									</div>
-
-									<div className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden">
-										<div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-											<div className="w-24 h-24 rounded-full border-4 border-emerald-500/30 flex items-center justify-center p-2">
-												<div className="w-full h-full bg-emerald-500 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.5)]">
-													<ShieldCheck className="h-10 w-10 text-white" />
-												</div>
-											</div>
-											<div className="flex-1 text-center md:text-left">
-												<h4 className="text-xl font-[1000] mb-2 uppercase tracking-tight">
-													Niveau de Sécurité : Global
-												</h4>
-												<p className="text-xs text-gray-400 font-medium mb-6">
-													Votre compte bénéficie de la protection standard
-													Harvests.
-												</p>
-												<div className="flex flex-wrap justify-center md:justify-start gap-4">
-													<div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl border border-white/10 backdrop-blur-md">
-														<Check className="h-3 w-3 text-emerald-500" />
-														<span className="text-[9px] font-black uppercase tracking-widest">
-															2FA Active
-														</span>
-													</div>
-													<div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl border border-white/10 backdrop-blur-md">
-														<Check className="h-3 w-3 text-emerald-500" />
-														<span className="text-[9px] font-black uppercase tracking-widest">
-															SSL Certifié
-														</span>
-													</div>
-												</div>
-											</div>
-										</div>
-									</div>
-
-									{/* Export de mes données */}
-									<div className="p-6 md:p-8 bg-white border border-gray-100 rounded-3xl">
-										<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-											<div className="flex items-start gap-3">
-												<div className="p-3 bg-gray-50 text-gray-600 rounded-2xl flex-shrink-0">
-													<Download className="h-5 w-5" />
-												</div>
-												<div>
 													<h4 className="text-sm font-[1000] text-gray-900 uppercase tracking-widest mb-1">
-														Télécharger mes données
+														Validation Email
 													</h4>
-													<p className="text-xs text-gray-500 font-medium leading-relaxed max-w-md">
-														Exportez une copie de vos données personnelles (profil,
-														commandes, produits et avis selon votre type de compte) au
-														format JSON.
+													<p className="text-xs text-gray-500 font-medium leading-relaxed">
+														Essentiel pour recevoir vos factures et alertes
+														critiques.
 													</p>
-													{exportError && (
-														<p className="text-xs font-bold text-rose-600 mt-2">{exportError}</p>
+												</div>
+	
+												{/* Password Change */}
+												<div className="p-6 bg-white border border-gray-100 rounded-3xl group hover:shadow-xl transition-all duration-500">
+													<div className="flex items-start justify-between mb-4">
+														<div className="p-3 bg-gray-50 text-gray-600 rounded-2xl group-hover:bg-gray-900 group-hover:text-white transition-colors">
+															<Lock className="h-6 w-6" />
+														</div>
+														<button
+															onClick={togglePasswordForm}
+															className="px-3 py-1 bg-gray-100 text-gray-600 text-[9px] font-black uppercase tracking-widest rounded-full hover:bg-gray-200 transition-colors"
+														>
+															{showPasswordForm ? "Annuler" : "Modifier"}
+														</button>
+													</div>
+													<h4 className="text-sm font-[1000] text-gray-900 uppercase tracking-widest mb-1">
+														Mot de Passe
+													</h4>
+	
+													{!showPasswordForm ? (
+														<p className="text-xs text-gray-500 font-medium leading-relaxed">
+															Modifiez votre mot de passe régulièrement pour
+															sécuriser votre compte.
+														</p>
+													) : (
+														<form onSubmit={handlePasswordSubmit} className="space-y-3 mt-4">
+															<div className="relative">
+																<input
+																	type={passwordVisible.passwordCurrent ? "text" : "password"}
+																	name="passwordCurrent"
+																	value={passwordForm.passwordCurrent}
+																	onChange={handlePasswordFieldChange}
+																	placeholder="Mot de passe actuel"
+																	required
+																	className="w-full bg-gray-50/50 px-4 py-2.5 pr-11 border-2 border-transparent rounded-xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all"
+																/>
+																<button
+																	type="button"
+																	onClick={() => togglePasswordVisibility("passwordCurrent")}
+																	className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
+																	tabIndex={-1}
+																>
+																	{passwordVisible.passwordCurrent ? (
+																		<EyeOff className="h-4 w-4" />
+																	) : (
+																		<Eye className="h-4 w-4" />
+																	)}
+																</button>
+															</div>
+															<div className="relative">
+																<input
+																	type={passwordVisible.password ? "text" : "password"}
+																	name="password"
+																	value={passwordForm.password}
+																	onChange={handlePasswordFieldChange}
+																	placeholder="Nouveau mot de passe (maj., min., chiffre, 8+ car.)"
+																	required
+																	minLength={8}
+																	className="w-full bg-gray-50/50 px-4 py-2.5 pr-11 border-2 border-transparent rounded-xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all"
+																/>
+																<button
+																	type="button"
+																	onClick={() => togglePasswordVisibility("password")}
+																	className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
+																	tabIndex={-1}
+																>
+																	{passwordVisible.password ? (
+																		<EyeOff className="h-4 w-4" />
+																	) : (
+																		<Eye className="h-4 w-4" />
+																	)}
+																</button>
+															</div>
+															<div className="relative">
+																<input
+																	type={passwordVisible.passwordConfirm ? "text" : "password"}
+																	name="passwordConfirm"
+																	value={passwordForm.passwordConfirm}
+																	onChange={handlePasswordFieldChange}
+																	placeholder="Confirmer le nouveau mot de passe"
+																	required
+																	minLength={8}
+																	className="w-full bg-gray-50/50 px-4 py-2.5 pr-11 border-2 border-transparent rounded-xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all"
+																/>
+																<button
+																	type="button"
+																	onClick={() => togglePasswordVisibility("passwordConfirm")}
+																	className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
+																	tabIndex={-1}
+																>
+																	{passwordVisible.passwordConfirm ? (
+																		<EyeOff className="h-4 w-4" />
+																	) : (
+																		<Eye className="h-4 w-4" />
+																	)}
+																</button>
+															</div>
+	
+															{passwordError && (
+																<p className="text-xs font-bold text-rose-600">{passwordError}</p>
+															)}
+															{passwordSuccess && (
+																<p className="text-xs font-bold text-emerald-600">{passwordSuccess}</p>
+															)}
+	
+															<button
+																type="submit"
+																disabled={passwordSaving}
+																className="w-full py-2.5 bg-gray-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-colors disabled:opacity-50"
+															>
+																{passwordSaving ? "Enregistrement..." : "Enregistrer le nouveau mot de passe"}
+															</button>
+														</form>
 													)}
 												</div>
 											</div>
-											<button
-												onClick={handleExportData}
-												disabled={exportLoading}
-												className="flex-shrink-0 flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-emerald-600 transition-all active:scale-95 disabled:opacity-50"
-											>
-												<Download className="h-4 w-4" />
-												{exportLoading ? "Préparation..." : "Télécharger mes données"}
-											</button>
-										</div>
-									</div>
-
-									{/* Zone dangereuse */}
-									<div className="p-6 md:p-8 bg-rose-50/50 border-2 border-dashed border-rose-200 rounded-3xl">
-										<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-											<div className="flex items-start gap-3">
-												<div className="p-3 bg-rose-100 text-rose-600 rounded-2xl flex-shrink-0">
-													<AlertTriangle className="h-5 w-5" />
+	
+											<div className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden">
+												<div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+													<div className="w-24 h-24 rounded-full border-4 border-emerald-500/30 flex items-center justify-center p-2">
+														<div className="w-full h-full bg-emerald-500 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.5)]">
+															<ShieldCheck className="h-10 w-10 text-white" />
+														</div>
+													</div>
+													<div className="flex-1 text-center md:text-left">
+														<h4 className="text-xl font-[1000] mb-2 uppercase tracking-tight">
+															Niveau de Sécurité : Global
+														</h4>
+														<p className="text-xs text-gray-400 font-medium mb-6">
+															Votre compte bénéficie de la protection standard
+															Harvests.
+														</p>
+														<div className="flex flex-wrap justify-center md:justify-start gap-4">
+															<div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl border border-white/10 backdrop-blur-md">
+																<Check className="h-3 w-3 text-emerald-500" />
+																<span className="text-[9px] font-black uppercase tracking-widest">
+																	2FA Active
+																</span>
+															</div>
+															<div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl border border-white/10 backdrop-blur-md">
+																<Check className="h-3 w-3 text-emerald-500" />
+																<span className="text-[9px] font-black uppercase tracking-widest">
+																	SSL Certifié
+																</span>
+															</div>
+														</div>
+													</div>
 												</div>
-												<div>
-													<h4 className="text-sm font-[1000] text-rose-900 uppercase tracking-widest mb-1">
+											</div>
+	
+											{/* Export de mes données */}
+											<div className="p-6 md:p-8 bg-white border border-gray-100 rounded-3xl">
+												<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+													<div className="flex items-start gap-3">
+														<div className="p-3 bg-gray-50 text-gray-600 rounded-2xl flex-shrink-0">
+															<Download className="h-5 w-5" />
+														</div>
+														<div>
+															<h4 className="text-sm font-[1000] text-gray-900 uppercase tracking-widest mb-1">
+																Télécharger mes données
+															</h4>
+															<p className="text-xs text-gray-500 font-medium leading-relaxed max-w-md">
+																Exportez une copie de vos données personnelles (profil,
+																commandes, produits et avis selon votre type de compte) au
+																format JSON.
+															</p>
+															{exportError && (
+																<p className="text-xs font-bold text-rose-600 mt-2">{exportError}</p>
+															)}
+														</div>
+													</div>
+													<button
+														onClick={handleExportData}
+														disabled={exportLoading}
+														className="flex-shrink-0 flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-emerald-600 transition-all active:scale-95 disabled:opacity-50"
+													>
+														<Download className="h-4 w-4" />
+														{exportLoading ? "Préparation..." : "Télécharger mes données"}
+													</button>
+												</div>
+											</div>
+	
+											{/* Zone dangereuse */}
+											<div className="p-6 md:p-8 bg-rose-50/50 border-2 border-dashed border-rose-200 rounded-3xl">
+												<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+													<div className="flex items-start gap-3">
+														<div className="p-3 bg-rose-100 text-rose-600 rounded-2xl flex-shrink-0">
+															<AlertTriangle className="h-5 w-5" />
+														</div>
+														<div>
+															<h4 className="text-sm font-[1000] text-rose-900 uppercase tracking-widest mb-1">
+																Supprimer mon compte
+															</h4>
+															<p className="text-xs text-rose-700/80 font-medium leading-relaxed max-w-md">
+																Action définitive : vos données personnelles seront
+																anonymisées et votre compte désactivé. Vos commandes
+																existantes sont conservées pour des raisons légales.
+															</p>
+														</div>
+													</div>
+													<button
+														onClick={() => setShowDeleteModal(true)}
+														className="flex-shrink-0 px-6 py-3 bg-rose-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-rose-700 transition-all active:scale-95"
+													>
 														Supprimer mon compte
-													</h4>
-													<p className="text-xs text-rose-700/80 font-medium leading-relaxed max-w-md">
-														Action définitive : vos données personnelles seront
-														anonymisées et votre compte désactivé. Vos commandes
-														existantes sont conservées pour des raisons légales.
-													</p>
+													</button>
 												</div>
 											</div>
-											<button
-												onClick={() => setShowDeleteModal(true)}
-												className="flex-shrink-0 px-6 py-3 bg-rose-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-rose-700 transition-all active:scale-95"
-											>
-												Supprimer mon compte
-											</button>
 										</div>
-									</div>
-								</div>
-							)}
-
-							{/* Tab: Adresses */}
-							{activeTab === "addresses" && (
-								<div className="space-y-12">
-									<div className="flex items-center justify-between px-2">
-										<div className="flex items-center gap-3">
-											<MapPin className="h-5 w-5 text-rose-500/50" />
-											<h2 className="text-sm font-black text-gray-900 uppercase tracking-widest">
-												Adresses de livraison
-											</h2>
-										</div>
-										<button className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-emerald-600 transition-all active:scale-95">
-											<Plus className="h-4 w-4" />
-											Ajouter
-										</button>
-									</div>
-
-									<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-										{deliveryAddresses.length > 0 ?
-											deliveryAddresses.map((address, index) => (
-												<div
-													key={index}
-													className="group relative bg-white border border-gray-100 rounded-[2.5rem] p-8 hover:shadow-2xl hover:shadow-gray-100 transition-all duration-500"
-												>
-													<div className="flex items-start justify-between mb-6">
-														<div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center">
-															<MapPin className="h-6 w-6" />
-														</div>
-														{address.isDefault && (
-															<span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-widest rounded-full border border-emerald-100">
-																Par défaut
-															</span>
-														)}
-													</div>
-
-													<div className="space-y-1">
-														<h3 className="text-lg font-[1000] text-gray-900 tracking-tight">
-															{address.name}
-														</h3>
-														<p className="text-sm font-medium text-gray-700 leading-relaxed italic opacity-80">
-															{address.address}
-														</p>
-													</div>
-
-													<div className="mt-6 pt-6 border-t border-gray-50 flex items-center justify-between">
-														<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
-															{address.city}, {address.country}
-														</p>
-														<div className="flex gap-2">
-															<button className="p-2 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all">
-																<Edit3 className="h-4 w-4" />
-															</button>
-															<button className="p-2 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all">
-																<Trash2 className="h-4 w-4" />
-															</button>
-														</div>
-													</div>
+									)}
+	
+									{/* Tab: Adresses */}
+									{activeTab === "addresses" && (
+										<div className="space-y-12">
+											<div className="flex items-center justify-between px-2">
+												<div className="flex items-center gap-3">
+													<MapPin className="h-5 w-5 text-rose-500/50" />
+													<h2 className="text-sm font-black text-gray-900 uppercase tracking-widest">
+														Adresses de livraison
+													</h2>
 												</div>
-											))
-										:	<div className="md:col-span-2 text-center py-20 px-4 bg-gray-50/50 rounded-[3rem] border-2 border-dashed border-gray-100">
-												<MapPin className="mx-auto h-16 w-16 text-gray-200 mb-6" />
-												<p className="text-sm font-black text-gray-600 uppercase tracking-widest mb-2">
-													Aucune adresse enregistrée
-												</p>
-												<p className="text-xs text-gray-400">
-													Ajouter une adresse pour simplifier vos futurs achats.
-												</p>
+												<button className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-emerald-600 transition-all active:scale-95">
+													<Plus className="h-4 w-4" />
+													Ajouter
+												</button>
 											</div>
-										}
-									</div>
-								</div>
+	
+											<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+												{deliveryAddresses.length > 0 ?
+													deliveryAddresses.map((address, index) => (
+														<div
+															key={index}
+															className="group relative bg-white border border-gray-100 rounded-[2.5rem] p-8 hover:shadow-2xl hover:shadow-gray-100 transition-all duration-500"
+														>
+															<div className="flex items-start justify-between mb-6">
+																<div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center">
+																	<MapPin className="h-6 w-6" />
+																</div>
+																{address.isDefault && (
+																	<span className="px-3 py-1 bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-widest rounded-full border border-emerald-100">
+																		Par défaut
+																	</span>
+																)}
+															</div>
+	
+															<div className="space-y-1">
+																<h3 className="text-lg font-[1000] text-gray-900 tracking-tight">
+																	{address.name}
+																</h3>
+																<p className="text-sm font-medium text-gray-700 leading-relaxed italic opacity-80">
+																	{address.address}
+																</p>
+															</div>
+	
+															<div className="mt-6 pt-6 border-t border-gray-50 flex items-center justify-between">
+																<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
+																	{address.city}, {address.country}
+																</p>
+																<div className="flex gap-2">
+																	<button className="p-2 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all">
+																		<Edit3 className="h-4 w-4" />
+																	</button>
+																	<button className="p-2 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all">
+																		<Trash2 className="h-4 w-4" />
+																	</button>
+																</div>
+															</div>
+														</div>
+													))
+												:	<div className="md:col-span-2 text-center py-20 px-4 bg-gray-50/50 rounded-[3rem] border-2 border-dashed border-gray-100">
+														<MapPin className="mx-auto h-16 w-16 text-gray-200 mb-6" />
+														<p className="text-sm font-black text-gray-600 uppercase tracking-widest mb-2">
+															Aucune adresse enregistrée
+														</p>
+														<p className="text-xs text-gray-400">
+															Ajouter une adresse pour simplifier vos futurs achats.
+														</p>
+													</div>
+												}
+											</div>
+										</div>
+									)}
+								</>
 							)}
 						</div>
 					</div>

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
+import CardGridSkeleton from "../../../components/common/CardGridSkeleton";
+import DataValue from "../../../components/common/DataValue";
 import { useNavigate } from "react-router-dom";
 import { restaurateurService } from "../../../services";
 import { useNotifications } from "../../../hooks/useNotifications";
 import { useAuth } from "../../../hooks/useAuth";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
-import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import DishCard from "../../../components/dishes/DishCard";
 import DishForm from "../../../components/dishes/DishForm";
 import { normalizeDishImage } from "../../../utils/dishImageUtils";
@@ -81,6 +82,9 @@ const DishesManagement = () => {
 		}
 	};
 
+	// Seule la liste attend le serveur : titre, quota et filtres restent affichés
+	const initialLoading = loading && dishes.length === 0;
+
 	const filteredDishes = dishes.filter((dish) => {
 		if (!dish) return false;
 		const matchesFilter =
@@ -96,16 +100,9 @@ const DishesManagement = () => {
 		);
 	});
 
-	if (loading && dishes.length === 0) {
-		return (
-			<div className="p-6 max-w-7xl mx-auto flex items-center justify-center h-64">
-				<LoadingSpinner size="lg" text="Chargement des plats..." />
-			</div>
-		);
-	}
 
 	return (
-		<div className="p-6 max-w-7xl mx-auto">
+		<div className="dashboard-container pb-20">
 			{/* Header */}
 			<div className="mb-8">
 				<h1 className="text-3xl font-bold text-gray-900">Gestion des Plats</h1>
@@ -123,7 +120,7 @@ const DishesManagement = () => {
 								<div
 									className={`w-2 h-2 rounded-full ${dishes.length >= propsUser.subscriptionFeatures.maxProducts && propsUser.subscriptionFeatures.maxProducts !== -1 ? "bg-red-500" : "bg-emerald-500 animate-pulse"}`}
 								></div>
-								Quota Plats: {dishes.length} /{" "}
+								Quota Plats: <DataValue loading={initialLoading} className="w-4 h-[0.9em]">{dishes.length}</DataValue> /{" "}
 								{propsUser.subscriptionFeatures.maxProducts === -1 ?
 									"∞"
 								:	propsUser.subscriptionFeatures.maxProducts}
@@ -204,11 +201,13 @@ const DishesManagement = () => {
 			<div className="bg-white rounded-lg shadow">
 				<div className="px-6 py-4 border-b border-gray-200">
 					<h2 className="text-lg font-medium text-gray-900">
-						Mes Plats ({filteredDishes.length})
+						Mes Plats (<DataValue loading={initialLoading} className="w-4 h-[0.9em]">{filteredDishes.length}</DataValue>)
 					</h2>
 				</div>
 				<div className="p-6">
-					{filteredDishes.length > 0 ?
+					{initialLoading ?
+						<CardGridSkeleton count={6} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" />
+					: filteredDishes.length > 0 ?
 						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 							{filteredDishes.map((dish) => (
 								<DishCard

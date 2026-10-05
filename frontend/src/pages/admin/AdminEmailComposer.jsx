@@ -127,14 +127,14 @@ const AdminEmailComposer = () => {
 	};
 
 	return (
-		<div className="pb-20 relative overflow-hidden">
+		<div className="dashboard-page">
 				{/* Background radial glows */}
 				<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 					<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/30 rounded-full blur-[120px]"></div>
 					<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
 				</div>
 
-				<div className="max-w-full mx-auto px-4 md:px-8 py-8 relative z-10">
+				<div className="dashboard-container">
 				{/* Header Section */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-6">
 					<div>

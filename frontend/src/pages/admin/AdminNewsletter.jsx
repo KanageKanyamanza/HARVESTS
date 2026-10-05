@@ -17,8 +17,9 @@ import {
 import { getConfig } from "../../config/production";
 import SimpleTextEditor from "../../components/admin/SimpleTextEditor";
 import { markdownToHtml } from "../blogDetail/blogUtils";
+import TableRowsSkeleton from "../../components/common/TableRowsSkeleton";
 
-const MiniMetric = ({ label, value, icon: Icon, color }) => (
+const MiniMetric = ({ label, value, icon: Icon, color, loading = false }) => (
 	<div className="bg-white/50 backdrop-blur-sm border border-white rounded-2xl p-4 flex items-center gap-3 hover:bg-white transition-all group shadow-sm hover:shadow-md">
 		<div
 			className={`w-10 h-10 rounded-xl overflow-hidden bg-${color}-50 flex items-center justify-center text-${color}-500 group-hover:scale-110 transition-transform shadow-sm`}
@@ -29,15 +30,19 @@ const MiniMetric = ({ label, value, icon: Icon, color }) => (
 			<p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
 				{label}
 			</p>
-			<h4 className="text-lg font-black text-slate-900 tracking-tighter">
-				{value}
-			</h4>
+			{loading ? (
+				<div className="h-5 w-12 mt-1 bg-slate-100 rounded animate-pulse" />
+			) : (
+				<h4 className="text-lg font-black text-slate-900 tracking-tighter">
+					{value}
+				</h4>
+			)}
 		</div>
 	</div>
 );
 
 const AdminNewsletter = () => {
-	const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState(true);
 	const [uploading, setUploading] = useState(false);
 	const [activeTab, setActiveTab] = useState("overview");
 	const [imageUrl, setImageUrl] = useState("");
@@ -350,20 +355,19 @@ const AdminNewsletter = () => {
 		});
 	};
 
-	if (loading && newsletters.length === 0)
-		return (
-			<div className="flex items-center justify-center h-screen">Charge...</div>
-		);
+	// Chargement : la page (titres, onglets, en-têtes) reste affichée,
+	// seules les données du serveur sont grisées
+	const statsLoading = loading && newsletters.length === 0 && subscribers.length === 0;
 
 	return (
-		<div className="min-h-screen md:pl-6 pb-20 relative overflow-hidden">
+		<div className="dashboard-page">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/30 rounded-full blur-[120px]"></div>
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="max-w-full mx-auto px-3 py-4 relative z-10 pl-1 md:pl-6 md:px-4 md:py-4">
+			<div className="dashboard-container">
 				{/* Header Section */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-3 mb-6">
 					<div>
@@ -423,24 +427,28 @@ const AdminNewsletter = () => {
 						value={stats.totalSubscribers}
 						icon={Users}
 						color="emerald"
+						loading={statsLoading}
 					/>
 					<MiniMetric
 						label="Newsletters Envoyées"
 						value={stats.sentNewsletters}
 						icon={Send}
 						color="blue"
+						loading={statsLoading}
 					/>
 					<MiniMetric
 						label="Taux d'ouverture"
 						value={`${stats.openRate || "0.0"}%`}
 						icon={TrendingUp}
 						color="amber"
+						loading={statsLoading}
 					/>
 					<MiniMetric
 						label="Total Emails"
 						value={stats.sentNewsletters * stats.totalSubscribers}
 						icon={Mail}
 						color="indigo"
+						loading={statsLoading}
 					/>
 				</div>
 
@@ -751,7 +759,9 @@ const AdminNewsletter = () => {
 								</tr>
 							</thead>
 							<tbody className="divide-y divide-slate-50">
-								{newsletters.length === 0 ? (
+								{loading && newsletters.length === 0 ? (
+									<TableRowsSkeleton rows={5} cols={4} />
+								) : newsletters.length === 0 ? (
 									<tr>
 										<td
 											colSpan="5"
@@ -874,6 +884,9 @@ const AdminNewsletter = () => {
 								</tr>
 							</thead>
 							<tbody className="divide-y divide-slate-50">
+								{loading && subscribers.length === 0 && (
+									<TableRowsSkeleton rows={5} cols={3} />
+								)}
 								{subscribers.map((sub) => (
 									<tr
 										key={sub._id}

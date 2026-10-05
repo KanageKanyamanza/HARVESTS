@@ -6,6 +6,7 @@ import { Routes, Route, Navigate, useLocation, useParams } from "react-router-do
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../hooks/useAuth";
 import LoadingSpinner from "../components/common/LoadingSpinner";
+import DashboardPageSkeleton from "../components/common/DashboardPageSkeleton";
 
 // Import des routes organisées
 import {
@@ -98,7 +99,11 @@ import {
 } from "react-icons/fi";
 import { FaChartBar } from "react-icons/fa";
 
-// Composant de fallback pour les routes
+// Pages des tableaux de bord : gabarit grisé (pas de spinner) pendant le
+// chargement du code de la page ou la restauration de la session
+const DashboardFallback = () => <DashboardPageSkeleton />;
+
+// Composant de fallback pour les routes publiques
 const RouteFallback = () => (
 	<div className="min-h-screen flex items-center justify-center bg-harvests-light">
 		<LoadingSpinner size="lg" text="Chargement..." />
@@ -130,8 +135,8 @@ const DashboardRouteWrapper = ({ children }) => {
 /**
  * Composant pour wrapper les routes avec Suspense
  */
-const SuspenseRoute = ({ element }) => (
-	<Suspense fallback={<RouteFallback />}>{element}</Suspense>
+const SuspenseRoute = ({ element, fallback = <RouteFallback /> }) => (
+	<Suspense fallback={fallback}>{element}</Suspense>
 );
 
 /**
@@ -141,7 +146,7 @@ const ProtectedRoute = ({ children, requiredRole, requiredUserType }) => {
 	const { isAuthenticated, user, isRestoringSession } = useAuth();
 
 	if (isRestoringSession) {
-		return <RouteFallback />;
+		return <DashboardFallback />;
 	}
 
 	if (!isAuthenticated) {
@@ -168,7 +173,7 @@ const MessagesRedirect = () => {
 	const { id } = useParams();
 
 	if (isRestoringSession) {
-		return <RouteFallback />;
+		return <DashboardFallback />;
 	}
 
 	if (!isAuthenticated) {
@@ -564,7 +569,7 @@ const AppRoutes = () => {
 					element={
 						<ProtectedRoute requiredRole="admin">
 							<AdminLayout>
-								<SuspenseRoute element={route.element} />
+								<SuspenseRoute element={route.element} fallback={<DashboardFallback />} />
 							</AdminLayout>
 						</ProtectedRoute>
 					}
@@ -579,7 +584,7 @@ const AppRoutes = () => {
 					element={
 						<ProtectedRoute requiredUserType="consumer">
 							<DashboardRouteWrapper>
-								<SuspenseRoute element={route.element} />
+								<SuspenseRoute element={route.element} fallback={<DashboardFallback />} />
 							</DashboardRouteWrapper>
 						</ProtectedRoute>
 					}
@@ -594,7 +599,7 @@ const AppRoutes = () => {
 					element={
 						<ProtectedRoute requiredUserType="producer">
 							<DashboardRouteWrapper>
-								<SuspenseRoute element={route.element} />
+								<SuspenseRoute element={route.element} fallback={<DashboardFallback />} />
 							</DashboardRouteWrapper>
 						</ProtectedRoute>
 					}
@@ -609,7 +614,7 @@ const AppRoutes = () => {
 					element={
 						<ProtectedRoute requiredUserType="transformer">
 							<DashboardRouteWrapper>
-								<SuspenseRoute element={route.element} />
+								<SuspenseRoute element={route.element} fallback={<DashboardFallback />} />
 							</DashboardRouteWrapper>
 						</ProtectedRoute>
 					}
@@ -624,7 +629,7 @@ const AppRoutes = () => {
 					element={
 						<ProtectedRoute requiredUserType="restaurateur">
 							<DashboardRouteWrapper>
-								<SuspenseRoute element={route.element} />
+								<SuspenseRoute element={route.element} fallback={<DashboardFallback />} />
 							</DashboardRouteWrapper>
 						</ProtectedRoute>
 					}
@@ -639,7 +644,7 @@ const AppRoutes = () => {
 					element={
 						<ProtectedRoute requiredUserType="transporter">
 							<DashboardRouteWrapper>
-								<SuspenseRoute element={route.element} />
+								<SuspenseRoute element={route.element} fallback={<DashboardFallback />} />
 							</DashboardRouteWrapper>
 						</ProtectedRoute>
 					}
@@ -654,7 +659,7 @@ const AppRoutes = () => {
 					element={
 						<ProtectedRoute requiredUserType="exporter">
 							<DashboardRouteWrapper>
-								<SuspenseRoute element={route.element} />
+								<SuspenseRoute element={route.element} fallback={<DashboardFallback />} />
 							</DashboardRouteWrapper>
 						</ProtectedRoute>
 					}
@@ -669,7 +674,7 @@ const AppRoutes = () => {
 					element={
 						<ProtectedRoute requiredUserType="explorer">
 							<DashboardRouteWrapper>
-								<SuspenseRoute element={route.element} />
+								<SuspenseRoute element={route.element} fallback={<DashboardFallback />} />
 							</DashboardRouteWrapper>
 						</ProtectedRoute>
 					}

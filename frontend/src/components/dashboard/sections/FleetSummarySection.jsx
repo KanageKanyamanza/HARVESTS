@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { FiTruck, FiPlusCircle } from 'react-icons/fi';
 import CloudinaryImage from '../../common/CloudinaryImage';
 
-const FleetSummarySection = ({ service, loading }) => {
+// basePath : la flotte du transporteur et celle de l'exportateur n'ont pas la même route
+const FleetSummarySection = ({ service, loading, basePath = '/exporter/fleet' }) => {
+  const { t } = useTranslation('dashboard-transporter');
   const [vehicles, setVehicles] = useState([]);
   const [fleetLoading, setFleetLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -20,8 +23,8 @@ const FleetSummarySection = ({ service, loading }) => {
           [];
         setVehicles(Array.isArray(fleetData) ? fleetData : []);
       } catch (err) {
-        console.error('Erreur lors du chargement de la flotte exportateur :', err);
-        setError("Impossible de récupérer votre flotte pour le moment.");
+        console.error('Erreur lors du chargement de la flotte :', err);
+        setError('fleet.summary.loadError');
       } finally {
         setFleetLoading(false);
       }
@@ -33,11 +36,12 @@ const FleetSummarySection = ({ service, loading }) => {
   }, [service]);
 
   const isLoading = loading || fleetLoading;
+  const unitLabel = (unit) => t(`vehicle.units.${unit}`, { defaultValue: unit });
 
   if (error) {
     return (
       <div className="text-sm text-red-600">
-        {error}
+        {t(error)}
       </div>
     );
   }
@@ -56,16 +60,16 @@ const FleetSummarySection = ({ service, loading }) => {
     return (
       <div className="text-center py-6">
         <FiTruck className="mx-auto h-10 w-10 text-gray-400 mb-4" />
-        <h4 className="text-lg font-semibold text-gray-900 mb-1">Aucun véhicule enregistré</h4>
+        <h4 className="text-lg font-semibold text-gray-900 mb-1">{t('fleet.summary.emptyTitle')}</h4>
         <p className="text-gray-500 mb-4">
-          Ajoutez vos moyens de transport pour suivre vos capacités d'exportation.
+          {t('fleet.summary.emptyText')}
         </p>
         <Link
-          to="/exporter/fleet/add"
+          to={`${basePath}/add`}
           className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <FiPlusCircle className="mr-2" />
-          Ajouter un véhicule
+          {t('fleet.addVehicle')}
         </Link>
       </div>
     );
@@ -83,7 +87,7 @@ const FleetSummarySection = ({ service, loading }) => {
               {vehicle?.image?.url || vehicle?.image ? (
                 <CloudinaryImage
                   src={vehicle.image.url || vehicle.image}
-                  alt={vehicle?.name || 'Véhicule'}
+                  alt={vehicle?.name || t('vehicle.fallbackName')}
                   className="h-full w-full object-cover"
                 />
               ) : (
@@ -92,29 +96,35 @@ const FleetSummarySection = ({ service, loading }) => {
             </div>
             <div>
               <h4 className="text-sm font-semibold text-gray-900">
-                {vehicle?.name || vehicle?.identifier || 'Véhicule'}
+                {vehicle?.name || vehicle?.identifier || vehicle?.registrationNumber || t('vehicle.fallbackName')}
               </h4>
               <p className="text-xs text-gray-500">
-                {vehicle?.type || vehicle?.vehicleType || 'Type non spécifié'}
+                {vehicle?.type || vehicle?.vehicleType ?
+                  t(`vehicle.types.${vehicle.type || vehicle.vehicleType}`, {
+                    defaultValue: vehicle.type || vehicle.vehicleType,
+                  })
+                : t('vehicle.unknownType')}
               </p>
             </div>
           </div>
           <div className="text-right">
             {vehicle?.capacity && (
               <p className="text-sm font-medium text-gray-900">
-                Capacité :{' '}
-                {typeof vehicle.capacity === 'object'
-                  ? [
-                      vehicle.capacity.weight
-                        ? `${vehicle.capacity.weight.value ?? vehicle.capacity.weight} ${vehicle.capacity.weight.unit ?? 't'}`
-                        : null,
-                      vehicle.capacity.volume
-                        ? `${vehicle.capacity.volume.value ?? vehicle.capacity.volume} ${vehicle.capacity.volume.unit ?? 'm³'}`
-                        : null
-                    ]
-                      .filter(Boolean)
-                      .join(' / ') || 'Non spécifiée'
-                  : vehicle.capacity}
+                {t('fleet.summary.capacity', {
+                  value:
+                    typeof vehicle.capacity === 'object'
+                      ? [
+                          vehicle.capacity.weight
+                            ? `${vehicle.capacity.weight.value ?? vehicle.capacity.weight} ${unitLabel(vehicle.capacity.weight.unit ?? 't')}`
+                            : null,
+                          vehicle.capacity.volume
+                            ? `${vehicle.capacity.volume.value ?? vehicle.capacity.volume} ${unitLabel(vehicle.capacity.volume.unit ?? 'm³')}`
+                            : null
+                        ]
+                          .filter(Boolean)
+                          .join(' / ') || t('fleet.summary.unspecified')
+                      : vehicle.capacity,
+                })}
               </p>
             )}
             {vehicle?.status && (
@@ -127,10 +137,10 @@ const FleetSummarySection = ({ service, loading }) => {
       ))}
 
       <Link
-        to="/exporter/fleet"
+        to={basePath}
         className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800"
       >
-        Voir toute la flotte
+        {t('fleet.summary.seeAll')}
       </Link>
     </div>
   );

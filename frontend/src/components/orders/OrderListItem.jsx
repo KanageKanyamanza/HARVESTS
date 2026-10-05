@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { parseProductName } from "../../utils/productUtils";
 import {
 	FiClock,
@@ -34,6 +35,7 @@ const OrderListItem = ({
 	isCollapsed,
 	toggleCollapse,
 }) => {
+	const { t } = useTranslation("common");
 	const { currency: userCurrency } = useCurrency();
 	const isSellerView =
 		["producer", "transformer", "restaurateur"].includes(userType) &&
@@ -78,6 +80,8 @@ const OrderListItem = ({
 					<div className="flex flex-1 items-center gap-4">
 						<button
 							onClick={() => toggleCollapse(order._id)}
+							aria-label={isCollapsed ? t("orders.expand") : t("orders.collapse")}
+							aria-expanded={!isCollapsed}
 							className={`p-2 rounded-xl transition-all duration-300 ${isCollapsed ? "bg-gray-50 text-gray-400 group-hover:bg-emerald-50 group-hover:text-emerald-500" : "bg-emerald-600 text-white shadow-lg shadow-emerald-200"}`}
 						>
 							{isCollapsed ?
@@ -87,7 +91,7 @@ const OrderListItem = ({
 						<div className="">
 							<div className="flex items-center gap-2 mb-0.5">
 								<span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
-									Commande
+									{t("orders.order")}
 								</span>
 								<span className="text-gray-900 font-[1000] text-lg tracking-tight">
 									#{order.orderNumber || order._id.slice(-8).toUpperCase()}
@@ -110,7 +114,7 @@ const OrderListItem = ({
 					<div className="flex flex-wrap items-center gap-3 md:gap-6 w-full md:w-auto">
 						<div className="hidden sm:flex flex-col items-end">
 							<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-								Montant Total
+								{t("orders.totalAmount")}
 							</span>
 							<span className="text-gray-900 font-black text-lg -mt-1 tracking-tight">
 								{formatCurrency(displayedTotal)}
@@ -158,7 +162,7 @@ const OrderListItem = ({
 								</div>
 								<div>
 									<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">
-										Coordonnées du client
+										{t("orders.customerDetails")}
 									</p>
 									<h4 className="font-black text-gray-900 mt-1">
 										{clientInfo.name || "N/A"}
@@ -180,7 +184,7 @@ const OrderListItem = ({
 								</div>
 								<div>
 									<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">
-										Adresse de livraison
+										{t("orders.deliveryAddress")}
 									</p>
 									<h4 className="font-black text-gray-900 mt-1">
 										{order.delivery?.deliveryAddress?.city || "N/A"}
@@ -204,24 +208,23 @@ const OrderListItem = ({
 								</div>
 								<div>
 									<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">
-										Résumé de commande
+										{t("orders.summary")}
 									</p>
 									<h4 className="font-black text-gray-900 mt-1">
-										{orderItems.length} article
-										{orderItems.length > 1 ? "s" : ""}
+										{t("orders.itemCount", { count: orderItems.length })}
 									</h4>
 								</div>
 							</div>
 							<div className="pl-12 text-xs font-bold text-gray-500">
 								<p className="mb-2">
-									Total partiel: {formatCurrency(displayedSubtotal)}
+									{t("orders.subtotal", { amount: formatCurrency(displayedSubtotal) })}
 								</p>
 								<Link
 									to={`/${userType}/orders/${order._id}`}
 									className="inline-flex items-center px-4 py-2 border border-gray-200 rounded-xl text-xs font-black uppercase tracking-wider text-gray-900 bg-white hover:bg-emerald-50 hover:text-emerald-700 transition-colors shadow-sm"
 								>
 									<FiEye className="h-3.5 w-3.5 mr-2" />
-									Voir Détails
+									{t("orders.viewDetails")}
 								</Link>
 							</div>
 						</div>
@@ -232,7 +235,7 @@ const OrderListItem = ({
 						<div className="flex items-center gap-2 mb-4">
 							<div className="w-1.5 h-4 bg-emerald-500 rounded-full"></div>
 							<h4 className="text-[11px] font-[1000] text-gray-900 uppercase tracking-widest">
-								Articles de la commande
+								{t("orders.items")}
 							</h4>
 						</div>
 						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -301,7 +304,7 @@ const OrderListItem = ({
 									to={`/${userType}/orders/${order._id}`}
 									className="flex items-center justify-center p-3 bg-gray-50/50 border border-dashed border-gray-200 rounded-2xl text-[10px] font-black text-gray-400 uppercase tracking-widest hover:border-emerald-300 hover:text-emerald-700 transition-all"
 								>
-									+ {orderItems.length - 3} autres ...
+									{t("orders.moreItems", { count: orderItems.length - 3 })}
 								</Link>
 							)}
 						</div>
@@ -322,6 +325,7 @@ const StatusButtons = ({
 	isSellerView,
 	isBuyerView,
 }) => {
+	const { t } = useTranslation("common");
 	const isUpdating = updatingOrders.has(order._id);
 
 	if (userType === "transporter" || userType === "exporter") {
@@ -334,7 +338,7 @@ const StatusButtons = ({
 						className="inline-flex items-center px-4 py-2 bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-amber-600 transition-all hover:scale-105 shadow-md shadow-amber-100 disabled:opacity-50"
 					>
 						<FiTruck className="h-3.5 w-3.5 mr-2" />
-						{isUpdating ? "Collecte..." : "Collecter"}
+						{isUpdating ? t("orders.actions.pickingUp") : t("orders.actions.pickUp")}
 					</button>
 				)}
 				{order.delivery?.status === "picked-up" &&
@@ -346,7 +350,7 @@ const StatusButtons = ({
 							className="inline-flex items-center px-4 py-2 bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-600 transition-all hover:scale-105 shadow-md shadow-blue-100 disabled:opacity-50"
 						>
 							<FiTruck className="h-3.5 w-3.5 mr-2" />
-							{isUpdating ? "En cours..." : "En transit"}
+							{isUpdating ? t("orders.actions.inProgress") : t("orders.actions.inTransit")}
 						</button>
 					)}
 				{segmentStatus === "in-transit" && (
@@ -356,7 +360,7 @@ const StatusButtons = ({
 						className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition-all hover:scale-105 shadow-md shadow-emerald-100 disabled:opacity-50"
 					>
 						<FiCheckCircle className="h-3.5 w-3.5 mr-2" />
-						{isUpdating ? "Livraison..." : "Livrer"}
+						{isUpdating ? t("orders.actions.delivering") : t("orders.actions.deliver")}
 					</button>
 				)}
 			</>
@@ -373,7 +377,7 @@ const StatusButtons = ({
 						className="inline-flex items-center px-4 py-2 bg-white border border-rose-200 text-rose-500 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-rose-50 transition-all disabled:opacity-50 shadow-sm"
 					>
 						<FiXCircle className="h-3.5 w-3.5 mr-2" />
-						Annuler
+						{t("orders.actions.cancel")}
 					</button>
 				)}
 				{segmentStatus === "confirmed" && (
@@ -383,7 +387,7 @@ const StatusButtons = ({
 						className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all hover:scale-105 shadow-md shadow-blue-100 disabled:opacity-50"
 					>
 						<FiClock className="h-3.5 w-3.5 mr-2" />
-						{isUpdating ? "Chargement..." : "Préparer"}
+						{isUpdating ? t("orders.actions.loading") : t("orders.actions.prepare")}
 					</button>
 				)}
 				{segmentStatus === "preparing" && (
@@ -393,7 +397,7 @@ const StatusButtons = ({
 						className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-indigo-700 transition-all hover:scale-105 shadow-md shadow-indigo-100 disabled:opacity-50"
 					>
 						<FiPackage className="h-3.5 w-3.5 mr-2" />
-						{isUpdating ? "Chargement..." : "Prête"}
+						{isUpdating ? t("orders.actions.loading") : t("orders.actions.ready")}
 					</button>
 				)}
 				{segmentStatus === "ready-for-pickup" && (
@@ -403,7 +407,7 @@ const StatusButtons = ({
 						className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition-all hover:scale-105 shadow-md shadow-emerald-100 disabled:opacity-50"
 					>
 						<FiCheckCircle className="h-3.5 w-3.5 mr-2" />
-						{isUpdating ? "Validation..." : "Livrée"}
+						{isUpdating ? t("orders.actions.validating") : t("orders.actions.delivered")}
 					</button>
 				)}
 			</div>
@@ -420,7 +424,7 @@ const StatusButtons = ({
 						className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all hover:scale-105 shadow-md shadow-blue-100 disabled:opacity-50"
 					>
 						<FiCheckCircle className="h-3.5 w-3.5 mr-2" />
-						{isUpdating ? "Validation..." : "Reçu"}
+						{isUpdating ? t("orders.actions.validating") : t("orders.actions.received")}
 					</button>
 				)}
 				{segmentStatus === "delivered" && (
@@ -430,7 +434,7 @@ const StatusButtons = ({
 						className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition-all hover:scale-105 shadow-md shadow-emerald-100 disabled:opacity-50"
 					>
 						<FiCheckCircle className="h-3.5 w-3.5 mr-2" />
-						{isUpdating ? "Validation..." : "Terminer"}
+						{isUpdating ? t("orders.actions.validating") : t("orders.actions.complete")}
 					</button>
 				)}
 			</div>

@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import SEOHead from "../components/seo/SEOHead";
 import ProductCard from "../components/products/ProductCard";
 import ProductFilters from "../components/products/ProductFilters";
-import LoadingSpinner from "../components/common/LoadingSpinner";
+import CardGridSkeleton from "../components/common/CardGridSkeleton";
 import { useProducts } from "../hooks/useProducts";
 import { getCategoryLabel } from "../utils/productHelpers";
 import { FiPackage, FiGrid, FiList, FiFilter, FiSearch, FiSliders } from "react-icons/fi";
@@ -63,13 +63,8 @@ const Products = () => {
 			t('products.featuredDescription', 'Nos produits mis en avant : qualité, fraîcheur et livraison rapide avec Harvests.')
 		:	t('products.catalogDescription', 'Parcourez tous les produits agricoles Harvests : fraîcheur, traçabilité et livraison directe.');
 
-	if (loading && products.length === 0) {
-		return (
-			<div className="min-h-screen bg-[#F8FAF6] flex items-center justify-center">
-				<LoadingSpinner />
-			</div>
-		);
-	}
+	// Seules les données du serveur attendent : bannière, filtres et tri restent affichés
+	const initialLoading = loading && products.length === 0 && restaurateurProducts.length === 0;
 
 	return (
 		<div className="min-h-screen bg-[#F8FAF6] pb-16">
@@ -112,7 +107,9 @@ const Products = () => {
 							</button>
 
 							<span className="text-xs font-extrabold text-[#161D14]">
-								{t("products.resultsCount", { ns: "public", count: totalProducts })}
+								{initialLoading ?
+									<span className="inline-block h-3 w-20 bg-gray-100 rounded animate-pulse align-middle" />
+								:	t("products.resultsCount", { ns: "public", count: totalProducts })}
 								{searchQuery && <span className="text-emerald-700 font-bold ml-1">{t("products.resultsForQuery", { ns: "public", query: searchQuery })}</span>}
 							</span>
 						</div>
@@ -195,6 +192,13 @@ const Products = () => {
 								<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-600 mr-2" />
 								{t("products.searchingInProgress", { ns: "public" })}
 							</div>
+						)}
+
+						{initialLoading && (
+							<CardGridSkeleton
+								className={viewMode === 'grid' ? "grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4" : "grid gap-3 grid-cols-1 sm:grid-cols-2"}
+								variant={viewMode === 'grid' ? "card" : "row"}
+							/>
 						)}
 
 						{/* Section 1: Produit des Producteurs & Transformateurs */}

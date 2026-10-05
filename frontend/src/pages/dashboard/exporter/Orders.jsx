@@ -3,7 +3,7 @@ import { useAuth } from "../../../hooks/useAuth";
 import { exporterService } from "../../../services";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 import OrderList from "../../../components/orders/OrderList";
-import LoadingSpinner from "../../../components/common/LoadingSpinner";
+import CardGridSkeleton from "../../../components/common/CardGridSkeleton";
 import { FiSearch, FiRefreshCw, FiFilter, FiPackage } from "react-icons/fi";
 
 const Orders = () => {
@@ -101,7 +101,7 @@ const Orders = () => {
 	});
 
 	return (
-		<div className="min-h-screen relative overflow-hidden">
+		<div className="dashboard-page">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/30 rounded-full blur-[120px]"></div>
@@ -109,7 +109,7 @@ const Orders = () => {
 				<div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-purple-50/30 rounded-full blur-[120px]"></div>
 			</div>
 
-			<div className="relative z-10 p-4 md:p-6 max-w-[1600px] mx-auto space-y-8">
+			<div className="dashboard-container space-y-8">
 				{/* Header Section */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-in-down">
 					<div>
@@ -193,9 +193,11 @@ const Orders = () => {
 				{/* Content Section */}
 				<div className="animate-fade-in-up delay-200">
 					{loading && orders.length === 0 ?
-						<div className="bg-white/50 backdrop-blur-xl border border-white/60 rounded-3xl p-12 text-center shadow-sm">
-							<LoadingSpinner size="lg" text="Synchronisation des flux..." />
-						</div>
+						<CardGridSkeleton
+							count={5}
+							variant="row"
+							className="space-y-3"
+						/>
 					: filteredOrders.length === 0 ?
 						<div className="bg-white/50 backdrop-blur-xl border border-white/60 rounded-3xl p-20 text-center shadow-sm">
 							<div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6 text-gray-400">

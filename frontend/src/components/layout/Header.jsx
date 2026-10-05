@@ -213,7 +213,7 @@ const Header = () => {
 		<header
 			className={`${shouldBeTransparent
 					? "absolute top-0 left-0 right-0 bg-transparent"
-					: "bg-white border-b border-gray-200"
+					: "relative bg-white border-b border-gray-200"
 				} z-40 transition-all duration-500 ease-in-out flex flex-col`}
 		>
 			{/* Top Tier */}
@@ -397,7 +397,7 @@ const Header = () => {
 									</button>
 
 									{isProfileMenuOpen && (
-										<div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
+										<div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
 											<div className="py-1">
 												{userNavigation.map((item) => {
 													const Icon = item.icon;

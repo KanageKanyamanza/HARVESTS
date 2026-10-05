@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../hooks/useAuth";
 import { producerService } from "../../../services";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
@@ -6,6 +7,7 @@ import OrderList from "../../../components/orders/OrderList";
 import { FiSearch, FiRefreshCw, FiFilter, FiShoppingBag } from "react-icons/fi";
 
 const Orders = () => {
+	const { t } = useTranslation("dashboard-producer");
 	const { user } = useAuth();
 	const [orders, setOrders] = useState([]);
 	const [loading, setLoading] = useState(true);
@@ -95,7 +97,7 @@ const Orders = () => {
 	});
 
 	return (
-		<div className="min-h-screen relative overflow-hidden">
+		<div className="dashboard-page">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/30 rounded-full blur-[120px]"></div>
@@ -103,23 +105,22 @@ const Orders = () => {
 				<div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-amber-50/30 rounded-full blur-[120px]"></div>
 			</div>
 
-			<div className="relative z-10 p-4 md:p-6 max-w-[1600px] mx-auto space-y-6">
+			<div className="dashboard-container space-y-6">
 				{/* Header Section */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-in-down">
 					<div>
 						<div className="flex items-center gap-2 text-emerald-600 font-black text-[9px] uppercase tracking-widest mb-2">
 							<div className="w-5 h-[2px] bg-emerald-600"></div>
-							<span>Gestion</span>
+							<span>{t("orders.eyebrow")}</span>
 						</div>
 						<h1 className="text-3xl font-[1000] text-gray-900 tracking-tighter leading-none mb-2">
-							Mes{" "}
+							{t("orders.titleStart")}{" "}
 							<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">
-								Commandes.
+								{t("orders.titleHighlight")}
 							</span>
 						</h1>
 						<p className="text-xs text-gray-500 font-medium max-w-xl">
-							Suivez vos ventes, préparez vos colis et gérez les interactions
-							avec vos clients.
+							{t("orders.subtitle")}
 						</p>
 					</div>
 
@@ -130,7 +131,7 @@ const Orders = () => {
 						<FiRefreshCw
 							className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
 						/>
-						Actualiser
+						{t("orders.refresh")}
 					</button>
 				</div>
 
@@ -142,7 +143,7 @@ const Orders = () => {
 						</div>
 						<input
 							type="text"
-							placeholder="Rechercher par numéro de commande..."
+							placeholder={t("orders.searchPlaceholder")}
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
 							className="block w-full pl-11 pr-4 py-3 bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-sm group-hover:shadow-md"
@@ -158,15 +159,15 @@ const Orders = () => {
 							onChange={(e) => setStatusFilter(e.target.value)}
 							className="block w-full pl-10 pr-10 py-3 bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl text-xs font-bold uppercase tracking-wide text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-sm cursor-pointer appearance-none hover:bg-white"
 						>
-							<option value="all">Tous les statuts</option>
-							<option value="pending">En attente</option>
-							<option value="confirmed">Confirmées</option>
-							<option value="preparing">En préparation</option>
-							<option value="ready-for-pickup">Prêtes</option>
-							<option value="in-transit">En livraison</option>
-							<option value="delivered">Livrées</option>
-							<option value="completed">Terminées</option>
-							<option value="cancelled">Annulées</option>
+							<option value="all">{t("orders.filters.all")}</option>
+							<option value="pending">{t("orders.filters.pending")}</option>
+							<option value="confirmed">{t("orders.filters.confirmed")}</option>
+							<option value="preparing">{t("orders.filters.preparing")}</option>
+							<option value="ready-for-pickup">{t("orders.filters.ready-for-pickup")}</option>
+							<option value="in-transit">{t("orders.filters.in-transit")}</option>
+							<option value="delivered">{t("orders.filters.delivered")}</option>
+							<option value="completed">{t("orders.filters.completed")}</option>
+							<option value="cancelled">{t("orders.filters.cancelled")}</option>
 						</select>
 						<div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
 							<svg

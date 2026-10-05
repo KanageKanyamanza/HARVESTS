@@ -7,7 +7,7 @@ import {
 } from "react-icons/fi";
 import { Leaf, Sprout, Search, ShieldCheck } from "lucide-react";
 import { getCountryName, SUPPORTED_COUNTRIES, REGIONAL_ZONES } from "../utils/countryMapper";
-import LoadingSpinner from "../components/common/LoadingSpinner";
+import CardGridSkeleton from "../components/common/CardGridSkeleton";
 import CloudinaryImage from "../components/common/CloudinaryImage";
 import SEOHead from "../components/seo/SEOHead";
 import { useApiCache } from "../hooks/useApiCache";
@@ -159,13 +159,8 @@ const Producers = () => {
     return name.includes(term) || city.includes(term) || country.includes(term);
   });
 
-  if (loading && producers.length === 0) {
-    return (
-      <div className="min-h-screen bg-[#F8FAF6] flex items-center justify-center">
-        <LoadingSpinner size="lg" text={t("producers.loadingText")} />
-      </div>
-    );
-  }
+  // Seule la liste attend le serveur : bannière, recherche et filtres restent affichés
+  const initialLoading = loading && producers.length === 0;
 
   return (
     <div className="min-h-screen bg-[#F8FAF6] pb-16">
@@ -339,19 +334,23 @@ const Producers = () => {
 
           <div className="mt-2.5 pt-2 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
             <span>
-              <Trans
-                i18nKey="producers.showingCount"
-                ns="public"
-                count={filteredProducers.length}
-                values={{ count: filteredProducers.length, page: currentPage, totalPages }}
-                components={{ strong: <strong className="text-gray-900" /> }}
-              />
+              {initialLoading ? <span className="inline-block h-3 w-20 bg-gray-100 rounded animate-pulse align-middle" /> : (
+                <Trans
+                  i18nKey="producers.showingCount"
+                  ns="public"
+                  count={filteredProducers.length}
+                  values={{ count: filteredProducers.length, page: currentPage, totalPages }}
+                  components={{ strong: <strong className="text-gray-900" /> }}
+                />
+              )}
             </span>
           </div>
         </div>
 
         {/* Producers Cards Grid / List */}
-        {filteredProducers.length > 0 ? (
+        {initialLoading ? (
+          <CardGridSkeleton className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6" />
+        ) : filteredProducers.length > 0 ? (
           viewMode === 'grid' ? (
             /* VUE EN GRILLE (4 COLONNES) */
             <div className={`grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 transition-opacity duration-200 ${loading ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>

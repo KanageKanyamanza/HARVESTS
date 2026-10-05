@@ -1,6 +1,10 @@
 const Product = require("../../models/Product");
 const { toPlainText } = require("../../utils/localization");
-const { resolveCreateStatus } = require("../../utils/vendorProductGuard");
+const {
+	resolveCreateStatus,
+	resolveUpdateStatus,
+	stripProtectedFields,
+} = require("../../utils/vendorProductGuard");
 
 /**
  * Service pour la gestion des produits du transformateur
@@ -132,6 +136,32 @@ async function createProduct(transformerId, productData) {
 	return product;
 }
 
+// Jour 51 : la route PATCH /transformers/me/products/:id répondait « succès »
+// sans rien enregistrer (fonction temporaire). Même logique que le producteur :
+// champs réservés retirés et statut décidé par le garde-fou (validation admin
+// obligatoire, retour en révision si le contenu d'un produit approuvé change).
+async function updateProduct(productId, transformerId, updateData) {
+	const product = await Product.findOne({
+		_id: productId,
+		transformer: transformerId,
+	});
+
+	if (!product) {
+		throw new Error("Produit non trouvé");
+	}
+
+	const data = stripProtectedFields(updateData);
+	const nextStatus = resolveUpdateStatus(product, updateData.status, data);
+	Object.assign(product, data);
+	if (nextStatus !== product.status) {
+		if (product.status === "approved") product.isActive = false;
+		product.status = nextStatus;
+	}
+	await product.save();
+
+	return product;
+}
+
 async function deleteProduct(productId, transformerId) {
 	const product = await Product.findOneAndDelete({
 		_id: productId,
@@ -175,6 +205,7 @@ module.exports = {
 	getMyProducts,
 	getProduct,
 	createProduct,
+	updateProduct,
 	deleteProduct,
 	submitProductForReview,
 	getPublicProducts,

@@ -9,7 +9,7 @@ import { useSearchParams, useNavigate, useLocation, Link } from "react-router-do
 import { useTranslation } from "react-i18next";
 import { blogApiService } from "../services/blogService";
 import SEOHead from "../components/seo/SEOHead";
-import LoadingSpinner from "../components/common/LoadingSpinner";
+import CardGridSkeleton from "../components/common/CardGridSkeleton";
 import CloudinaryImage from "../components/common/CloudinaryImage";
 import { 
   FiSearch, FiCalendar, FiEye, FiHeart, FiTag, FiArrowRight, FiGrid, FiList, FiClock, FiShare2, FiX, FiCheck
@@ -249,13 +249,8 @@ const BlogPage = () => {
 	const getTypeLabel = (type) => t(`types.${type}`, type);
 	const getCategoryLabel = (category) => t(`categories.${category}`, category);
 
-	if (loading && blogs.length === 0) {
-		return (
-			<div className="min-h-screen bg-[#F8FAF6] flex items-center justify-center">
-				<LoadingSpinner size="lg" text="Chargement du blog..." />
-			</div>
-		);
-	}
+	// Seuls les articles attendent le serveur : bannière, recherche et filtres restent affichés
+	const initialLoading = loading && blogs.length === 0;
 
 	if (error && blogs.length === 0) {
 		return (
@@ -451,7 +446,9 @@ const BlogPage = () => {
 				)}
 
 				{/* Articles List / Grid */}
-				{blogs.length > 0 ? (
+				{initialLoading ? (
+					<CardGridSkeleton count={6} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" />
+				) : blogs.length > 0 ? (
 					viewMode === 'grid' ? (
 						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 							{regularBlogs.map((blog) => (

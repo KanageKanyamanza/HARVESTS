@@ -12,7 +12,8 @@ import {
 	FiTrash2,
 } from "react-icons/fi";
 import { consumerService } from "../../../services/genericService";
-import LoadingSpinner from "../../../components/common/LoadingSpinner";
+import CardGridSkeleton from "../../../components/common/CardGridSkeleton";
+import DataValue from "../../../components/common/DataValue";
 import ErrorMessage from "../../../components/common/ErrorMessage";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 import CloudinaryImage from "../../../components/common/CloudinaryImage";
@@ -168,19 +169,9 @@ const Favorites = () => {
 		}
 	};
 
-	if (loading) {
-		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<LoadingSpinner
-					size="lg"
-					text="Chargement de vos coups de coeur..."
-				/>
-			</div>
-		);
-	}
 
 	return (
-		<div className="min-h-screen relative overflow-hidden bg-harvests-light/20 pb-20">
+		<div className="dashboard-page bg-harvests-light/20">
 				{/* Background radial glows - Blue/Sky theme */}
 				<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 					<div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-100/30 rounded-full blur-[120px]"></div>
@@ -188,7 +179,7 @@ const Favorites = () => {
 					<div className="absolute top-[20%] left-[10%] w-[30%] h-[30%] bg-cyan-100/20 rounded-full blur-[120px]"></div>
 				</div>
 
-				<div className="relative z-10 max-w-7xl mx-auto px-4 py-8 md:py-12 space-y-10">
+				<div className="dashboard-container space-y-10">
 					{/* Header */}
 					<div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-in-down">
 						<div className="space-y-3">
@@ -204,7 +195,7 @@ const Favorites = () => {
 							</h1>
 							<p className="text-xs text-gray-500 font-medium max-w-xl">
 								Retrouvez tous les produits que vous avez aimés.{" "}
-								{favorites.length} article
+								<DataValue loading={loading} className="w-4 h-[0.9em]">{favorites.length}</DataValue> article
 								{favorites.length > 1 ? "s" : ""} enregistré
 								{favorites.length > 1 ? "s" : ""}.
 							</p>
@@ -235,7 +226,9 @@ const Favorites = () => {
 
 					{/* Favorites List */}
 					<div className="animate-fade-in-up delay-100">
-						{favorites.length === 0 ?
+						{loading ?
+							<CardGridSkeleton count={4} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 md:gap-10" />
+						: favorites.length === 0 ?
 							<div className="bg-white/50 backdrop-blur-xl rounded-[3rem] p-20 border border-white/60 text-center shadow-lg">
 								<div className="w-24 h-24 bg-rose-50 rounded-full flex items-center justify-center text-rose-500 mx-auto mb-6 shadow-inner">
 									<FiHeart className="w-10 h-10" />

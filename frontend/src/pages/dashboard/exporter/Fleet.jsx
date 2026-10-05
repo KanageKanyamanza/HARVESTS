@@ -18,7 +18,7 @@ import {
 } from "react-icons/fi";
 import { useNotifications } from "../../../hooks/useNotifications";
 import CloudinaryImage from "../../../components/common/CloudinaryImage";
-import LoadingSpinner from "../../../components/common/LoadingSpinner";
+import CardGridSkeleton from "../../../components/common/CardGridSkeleton";
 
 const Fleet = () => {
 	const { user } = useAuth();
@@ -122,7 +122,7 @@ const Fleet = () => {
 	};
 
 	return (
-		<div className="min-h-screen relative overflow-hidden">
+		<div className="dashboard-page">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
 				<div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-emerald-100/30 rounded-full blur-[120px]"></div>
@@ -130,7 +130,7 @@ const Fleet = () => {
 				<div className="absolute bottom-[-10%] right-[20%] w-[40%] h-[40%] bg-amber-50/30 rounded-full blur-[120px]"></div>
 			</div>
 
-			<div className="relative z-10 p-4 md:p-6 max-w-[1600px] mx-auto space-y-8">
+			<div className="dashboard-container space-y-8">
 				{/* Header Section */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-in-down">
 					<div>
@@ -178,9 +178,10 @@ const Fleet = () => {
 				{/* Fleet Grid */}
 				<div className="animate-fade-in-up delay-200">
 					{loading ?
-						<div className="bg-white/50 backdrop-blur-xl border border-white/60 rounded-3xl p-12 text-center">
-							<LoadingSpinner size="lg" text="Initialisation de la flotte..." />
-						</div>
+						<CardGridSkeleton
+							count={6}
+							className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+						/>
 					: filteredFleet.length === 0 ?
 						<div className="bg-white/50 backdrop-blur-xl border border-white/60 rounded-3xl p-20 text-center shadow-sm">
 							<div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-6 text-gray-400">

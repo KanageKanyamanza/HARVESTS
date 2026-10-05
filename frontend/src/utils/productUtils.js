@@ -1,5 +1,7 @@
 import { getCountryName } from "./countryMapper";
 import { DEFAULT_CURRENCY, CURRENCIES } from "../config/currencies";
+import i18n from "./i18n";
+import { toPlainText } from "./textHelpers";
 
 export const normalizeUnit = (unit) => {
 	if (!unit) return "unité";
@@ -170,17 +172,13 @@ export const getStatusConfig = (status) => {
 };
 
 // Extraire le nom du produit depuis différentes structures
+// Jour 49 : nom dans la langue de l'interface (toPlainText), et non plus
+// toujours en français — utilisé uniquement pour l'affichage (paniers,
+// commandes, alt/title d'images).
 export const parseProductName = (name) => {
-	if (!name) return "Produit sans nom";
-	if (typeof name === "string") return name;
-	if (typeof name === "object") {
-		return (
-			name.fr ||
-			name.en ||
-			name.value ||
-			Object.values(name)[0] ||
-			"Produit sans nom"
-		);
+	const fallback = i18n.t("vendorProfile.producer.genericItemName", { ns: "public" });
+	if (name && typeof name === "object" && !name.fr && !name.en && name.value) {
+		return toPlainText(name.value, fallback);
 	}
-	return String(name);
+	return toPlainText(name, fallback);
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import DetailPageSkeleton from "../../components/common/DetailPageSkeleton";
 import { useParams, useNavigate } from "react-router-dom";
 import {
 	ArrowLeft,
@@ -27,7 +28,6 @@ import {
 	Leaf,
 } from "lucide-react";
 import { adminService } from "../../services/adminService";
-import LoadingSpinner from "../../components/common/LoadingSpinner";
 import CloudinaryImage from "../../components/common/CloudinaryImage";
 
 const UserDetails = () => {
@@ -358,13 +358,8 @@ const UserDetails = () => {
 		);
 	};
 
-	if (loading) {
-		return (
-			<div className="flex items-center justify-center min-h-[400px]">
-				<LoadingSpinner size="lg" text="Chargement..." />
-			</div>
-		);
-	}
+	// Chargement : bouton retour utilisable, seules les données sont grisées
+	if (loading) return <DetailPageSkeleton onBack={() => navigate(-1)} />;
 
 	if (!user) {
 		return (
@@ -386,14 +381,14 @@ const UserDetails = () => {
 	}
 
 	return (
-		<div className="min-h-screen p-4 pb-20 relative overflow-hidden">
+		<div className="dashboard-page">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-green-100/30 rounded-full blur-[120px]"></div>
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="max-w-[1400px] mx-auto px-4 py-12 relative z-10">
+			<div className="dashboard-container max-w-[1400px]">
 				{/* Header */}
 				<div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-8 lg:mb-12 animate-fade-in-down">
 					<div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
@@ -806,9 +801,10 @@ const UserDetails = () => {
 						{/* Modal Content */}
 						<div className="flex-1 overflow-hidden bg-gray-50/50 p-4 sm:p-8 flex items-center justify-center">
 							{previewDoc.loading ? (
-								<div className="flex flex-col items-center gap-4">
-									<LoadingSpinner size="lg" text="Chargement du document..." />
-								</div>
+								<div
+									className="w-full max-w-3xl h-full min-h-[300px] bg-white rounded-2xl border border-gray-100 shadow-sm animate-pulse"
+									aria-busy="true"
+								/>
 							) : previewDoc.error ? (
 								<div className="flex flex-col items-center gap-4 text-rose-500">
 									<XCircle className="h-16 w-16" />

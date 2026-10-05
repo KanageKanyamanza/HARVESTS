@@ -5,6 +5,7 @@ import ChatList from "../components/chat/ChatList";
 import ChatWindow from "../components/chat/ChatWindow";
 import { useAuth } from "../hooks/useAuth";
 import { FiMessageSquare } from "react-icons/fi";
+import CardGridSkeleton from "../components/common/CardGridSkeleton";
 
 const Messages = () => {
 	const { id } = useParams();
@@ -43,7 +44,7 @@ const Messages = () => {
     }, [activeConversation, navigate]); */
 
 	return (
-		<div className="h-[calc(100vh-80px)] md:h-[calc(100vh-100px)] flex bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden m-2 md:m-4 animate-fade-in">
+		<div className="h-[calc(100vh-80px)] md:h-[calc(100vh-100px)] flex bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mx-3 my-4 md:ml-9 md:mr-4 md:my-6 animate-fade-in">
 			{/* 
                 Sidebar List 
                 Desktop: Always visible (w-1/3 or 320px)
@@ -63,9 +64,11 @@ const Messages = () => {
 					</span>
 				</div>
 				{isLoading && conversations.length === 0 ?
-					<div className="flex-1 flex items-center justify-center">
-						<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-harvests-green"></div>
-					</div>
+					<CardGridSkeleton
+						count={6}
+						variant="row"
+						className="flex-1 space-y-2 p-3"
+					/>
 				:	<ChatList
 						conversations={conversations}
 						activeConversationId={activeConversation?._id}

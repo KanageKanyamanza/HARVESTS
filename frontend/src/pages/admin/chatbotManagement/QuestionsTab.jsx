@@ -7,7 +7,7 @@ import {
 	MessageCircle,
 	MoreHorizontal,
 } from "lucide-react";
-import LoadingSpinner from "../../../components/common/LoadingSpinner";
+import CardGridSkeleton from "../../../components/common/CardGridSkeleton";
 
 const QuestionsTab = ({
 	questions,
@@ -44,9 +44,7 @@ const QuestionsTab = ({
 
 			{/* Questions List */}
 			{loading ? (
-				<div className="flex justify-center py-20">
-					<LoadingSpinner />
-				</div>
+				<CardGridSkeleton count={5} variant="row" className="space-y-3" />
 			) : questions.length === 0 ? (
 				<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] shadow-sm border border-white/60 p-20 text-center flex flex-col items-center">
 					<div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mb-6">

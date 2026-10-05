@@ -3,19 +3,6 @@ import { ShoppingCart, DollarSign, Globe, Star } from "lucide-react";
 import StatCards from "../../../pages/admin/adminDashboard/StatCards";
 
 const ExporterStatsOverview = ({ stats, loading }) => {
-	if (loading && !stats) {
-		return (
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-				{[1, 2, 3, 4].map((i) => (
-					<div
-						key={i}
-						className="h-32 rounded-[1.5rem] bg-gray-100 animate-pulse shadow-sm"
-					/>
-				))}
-			</div>
-		);
-	}
-
 	const statCards = [
 		{
 			title: "Exportations",
@@ -54,7 +41,7 @@ const ExporterStatsOverview = ({ stats, loading }) => {
 		},
 	];
 
-	return <StatCards statCards={statCards} />;
+	return <StatCards statCards={statCards} loading={loading && !stats} />;
 };
 
 export default ExporterStatsOverview;

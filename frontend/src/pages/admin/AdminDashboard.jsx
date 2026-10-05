@@ -3,7 +3,6 @@ import RecentOrders from "../../components/admin/RecentOrders";
 import PendingProducts from "../../components/admin/PendingProducts";
 import TopProducers from "../../components/admin/TopProducers";
 import ProductStats from "../../components/admin/ProductStats";
-import LoadingSpinner from "../../components/common/LoadingSpinner";
 import StatCards from "./adminDashboard/StatCards";
 import SalesAndUserStats from "./adminDashboard/SalesAndUserStats";
 import MainSections from "./adminDashboard/MainSections";
@@ -24,19 +23,12 @@ const AdminDashboard = () => {
 		loading,
 	} = useDashboardStats();
 
-	if (loading) {
-		return (
-			<div className="min-h-screen bg-harvests-light flex items-center justify-center">
-				<LoadingSpinner size="lg" text="Chargement..." />
-			</div>
-		);
-	}
 
 	const statCards = createStatCards(stats);
 	const marketplaceStats = createMarketplaceStats(stats);
 
 	return (
-		<div className="min-h-screen md:pl-3 pb-20 relative overflow-hidden">
+		<div className="dashboard-page">
 			{/* Background radial glows for "wow" effect */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-green-100/30 rounded-full blur-[120px]"></div>
@@ -44,7 +36,7 @@ const AdminDashboard = () => {
 				<div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-purple-100/20 rounded-full blur-[120px]"></div>
 			</div>
 
-			<div className="max-w-full mx-auto px-3 py-4 space-y-4 relative z-10 md:pl-6 md:px-4 md:py-6 md:space-y-5">
+			<div className="dashboard-container space-y-4 md:space-y-5">
 				{/* En-tête avec message d'accueil */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-2 animate-fade-in-down">
 					<div>
@@ -68,7 +60,7 @@ const AdminDashboard = () => {
 
 				{/* Cartes de statistiques principales */}
 				<div className="animate-fade-in-up">
-					<StatCards statCards={statCards} />
+					<StatCards statCards={statCards} loading={loading} />
 				</div>
 
 				{/* Section Graphique & Stats Utilisateurs */}
@@ -77,26 +69,27 @@ const AdminDashboard = () => {
 						salesChartData={salesChartData}
 						marketplaceStats={marketplaceStats}
 						monthlyGrowth={stats.monthlyGrowth}
+						loading={loading}
 					/>
 				</div>
 
 				{/* Commandes & Produits */}
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-5 animate-fade-in-up delay-300">
 					<div>
-						<RecentOrders orders={recentOrders} />
+						<RecentOrders orders={recentOrders} loading={loading} />
 					</div>
 					<div>
-						<PendingProducts products={pendingProducts} />
+						<PendingProducts products={pendingProducts} loading={loading} />
 					</div>
 				</div>
 
 				{/* Dashboard Power Grid: TopProducers, ProductStats */}
 				<div className="grid grid-cols-1 gap-5 animate-fade-in-up delay-[450ms]">
 					<div className="flex flex-col">
-						<TopProducers producers={topProducers} />
+						<TopProducers producers={topProducers} loading={loading} />
 					</div>
 					<div className="flex flex-col">
-						<ProductStats data={productStats} />
+						<ProductStats data={productStats} loading={loading} />
 					</div>
 				</div>
 

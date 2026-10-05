@@ -76,7 +76,7 @@ const OrderHistory = () => {
 	const stats = getOrderStats();
 
 	return (
-		<div className="min-h-screen relative overflow-hidden bg-harvests-light/30">
+		<div className="dashboard-page bg-harvests-light/30">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-100/40 rounded-full blur-[120px]"></div>
@@ -84,7 +84,7 @@ const OrderHistory = () => {
 				<div className="absolute top-[20%] left-[10%] w-[30%] h-[30%] bg-cyan-100/20 rounded-full blur-[120px]"></div>
 			</div>
 
-			<div className="relative z-10 p-4 md:p-8 max-w-[1600px] mx-auto space-y-10">
+			<div className="dashboard-container space-y-10">
 				{/* Header Section */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-8 animate-fade-in-down">
 					<div className="space-y-3">

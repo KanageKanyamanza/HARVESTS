@@ -1,5 +1,6 @@
-import React, { useState, useRef, useLayoutEffect } from "react";
+import React, { useState, useRef, useLayoutEffect, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
 	FiArrowLeft,
 	FiSun,
@@ -15,17 +16,24 @@ import {
 	FiChevronDown,
 } from "react-icons/fi";
 import { Sprout } from "lucide-react";
+import { getCategoryLabel } from "../../../utils/productHelpers";
 import {
 	cropAdviceData,
-	cropCategories,
+	localizeCropData,
 	getCropGrowthStages,
 	getCropEquipmentDetails,
 } from "../../../data/cropAdviceData";
 
 const CropAdviceDetail = () => {
 	const { cropId } = useParams();
+	const { t, i18n } = useTranslation("dashboard-producer");
 	const navigate = useNavigate();
-	const crop = cropAdviceData.find((c) => c.id === cropId);
+	const sourceCrop = cropAdviceData.find((c) => c.id === cropId);
+	// Mémoïsé : l'effet de détection de troncature dépend de `crop`
+	const crop = useMemo(
+		() => sourceCrop && localizeCropData(sourceCrop, i18n.language),
+		[sourceCrop, i18n.language],
+	);
 
 	const handleBack = () => {
 		navigate("/producer/crop-advice");
@@ -65,32 +73,31 @@ const CropAdviceDetail = () => {
 				<div className="text-center max-w-md bg-white p-8 rounded-2xl border border-gray-100 shadow-sm space-y-4">
 					<Sprout className="h-12 w-12 text-gray-400 mx-auto" />
 					<h1 className="text-xl font-bold text-gray-900">
-						Fiche de culture introuvable
+						{t("cropAdvice.detail.notFoundTitle")}
 					</h1>
 					<p className="text-gray-500 text-sm">
-						Cette culture n'existe pas ou n'est plus référencée dans la base agricole.
+						{t("cropAdvice.detail.notFoundText")}
 					</p>
 					<Link
 						to="/producer/crop-advice"
 						className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-harvests-primary text-white font-medium text-sm hover:bg-harvests-secondary transition-colors"
 					>
 						<FiArrowLeft className="h-4 w-4" />
-						Retour aux conseils agricoles
+						{t("cropAdvice.detail.back")}
 					</Link>
 				</div>
 			</div>
 		);
 	}
 
-	const categoryLabel =
-		cropCategories.find((c) => c.value === crop.category)?.label || crop.category;
+	const categoryLabel = getCategoryLabel(crop.category, i18n.language);
 
-	const growthStages = getCropGrowthStages(crop);
-	const equipmentDetails = getCropEquipmentDetails(crop);
+	const growthStages = localizeCropData(getCropGrowthStages(sourceCrop), i18n.language);
+	const equipmentDetails = localizeCropData(getCropEquipmentDetails(sourceCrop), i18n.language);
 
 	return (
-		<div className="min-h-screen relative overflow-hidden bg-gray-50/50 pb-16">
-			<div className="relative z-10 max-w-5xl mx-auto p-4 md:p-6 space-y-8">
+		<div className="dashboard-page bg-gray-50/50">
+			<div className="dashboard-container space-y-8">
 				{/* Bouton retour */}
 				<button
 					type="button"
@@ -98,7 +105,7 @@ const CropAdviceDetail = () => {
 					className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-harvests-primary bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm transition-all duration-200 hover:-translate-x-0.5"
 				>
 					<FiArrowLeft className="h-4 w-4" />
-					Retour aux conseils agricoles
+					{t("cropAdvice.detail.back")}
 				</button>
 
 				{/* Section Hero avec Image du Produit */}
@@ -131,14 +138,14 @@ const CropAdviceDetail = () => {
 								{categoryLabel}
 							</span>
 							<span className="text-xs px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-white font-medium">
-								Zone Sahelienne / West Africa
+								{t("cropAdvice.detail.zone")}
 							</span>
 						</div>
 						<h1 className="text-3xl md:text-5xl font-black text-white drop-shadow-md tracking-tight">
-							Fiche de Culture : {crop.name}
+							{t("cropAdvice.detail.title", { name: crop.name })}
 						</h1>
 						<p className="text-gray-200 text-sm md:text-base max-w-2xl line-clamp-2">
-							{crop.season.label} · Durée estimée du cycle : {crop.cycleDays}
+							{t("cropAdvice.detail.subtitle", { season: crop.season.label, cycle: crop.cycleDays })}
 						</p>
 					</div>
 				</div>
@@ -150,7 +157,7 @@ const CropAdviceDetail = () => {
 							<FiSun className="h-6 w-6" />
 						</div>
 						<div className="min-w-0 flex-1">
-							<span className="text-xs text-gray-400 font-medium block">Saison</span>
+							<span className="text-xs text-gray-400 font-medium block">{t("cropAdvice.detail.season")}</span>
 							<span
 								ref={seasonTextRef}
 								className={`text-sm font-bold text-gray-800 block ${expandedMetrics.season ? "" : "line-clamp-1"}`}
@@ -163,7 +170,7 @@ const CropAdviceDetail = () => {
 									onClick={() => toggleMetric("season")}
 									className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-harvests-primary hover:underline"
 								>
-									{expandedMetrics.season ? "Voir moins" : "Voir plus"}
+									{expandedMetrics.season ? t("cropAdvice.detail.seeLess") : t("cropAdvice.detail.seeMore")}
 									<FiChevronDown
 										className={`h-3 w-3 transition-transform duration-200 ${expandedMetrics.season ? "rotate-180" : ""}`}
 									/>
@@ -177,8 +184,8 @@ const CropAdviceDetail = () => {
 							<FiThermometer className="h-6 w-6" />
 						</div>
 						<div>
-							<span className="text-xs text-gray-400 font-medium block">Température</span>
-							<span className="text-sm font-bold text-gray-800">{crop.idealTemp.min}°C - {crop.idealTemp.max}°C</span>
+							<span className="text-xs text-gray-400 font-medium block">{t("cropAdvice.detail.temperature")}</span>
+							<span className="text-sm font-bold text-gray-800">{t("cropAdvice.detail.tempRange", { min: crop.idealTemp.min, max: crop.idealTemp.max })}</span>
 						</div>
 					</div>
 
@@ -187,7 +194,7 @@ const CropAdviceDetail = () => {
 							<FiDroplet className="h-6 w-6" />
 						</div>
 						<div className="min-w-0 flex-1">
-							<span className="text-xs text-gray-400 font-medium block">Besoin en eau</span>
+							<span className="text-xs text-gray-400 font-medium block">{t("cropAdvice.detail.water")}</span>
 							<span
 								ref={waterTextRef}
 								className={`text-xs font-semibold text-gray-800 block ${expandedMetrics.water ? "" : "line-clamp-2"}`}
@@ -200,7 +207,7 @@ const CropAdviceDetail = () => {
 									onClick={() => toggleMetric("water")}
 									className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-harvests-primary hover:underline"
 								>
-									{expandedMetrics.water ? "Voir moins" : "Voir plus"}
+									{expandedMetrics.water ? t("cropAdvice.detail.seeLess") : t("cropAdvice.detail.seeMore")}
 									<FiChevronDown
 										className={`h-3 w-3 transition-transform duration-200 ${expandedMetrics.water ? "rotate-180" : ""}`}
 									/>
@@ -214,7 +221,7 @@ const CropAdviceDetail = () => {
 							<FiCalendar className="h-6 w-6" />
 						</div>
 						<div>
-							<span className="text-xs text-gray-400 font-medium block">Durée du cycle</span>
+							<span className="text-xs text-gray-400 font-medium block">{t("cropAdvice.detail.cycle")}</span>
 							<span className="text-sm font-bold text-gray-800">{crop.cycleDays}</span>
 						</div>
 					</div>
@@ -225,15 +232,15 @@ const CropAdviceDetail = () => {
 					<div className="flex flex-wrap gap-1 items-center justify-between border-b border-gray-100 pb-4">
 						<div className="space-y-1">
 							<span className="text-xs font-bold text-harvests-primary uppercase tracking-wider">
-								Guide Visuel
+								{t("cropAdvice.detail.visualGuide")}
 							</span>
 							<h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
 								<Sprout className="text-emerald-600" />
-								Étapes de Pousse & Développement
+								{t("cropAdvice.detail.growthStages")}
 							</h2>
 						</div>
 						<span className="text-xs px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 font-semibold">
-							4 phases clés
+							{t("cropAdvice.detail.keyPhases", { count: growthStages.length })}
 						</span>
 					</div>
 
@@ -256,7 +263,7 @@ const CropAdviceDetail = () => {
 									/>
 									<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 									<span className="absolute top-3 left-3 text-xs font-extrabold px-2.5 py-1 rounded-lg bg-harvests-primary text-white shadow-md">
-										{stage.phase || `Étape ${idx + 1}`}
+										{stage.phase || t("cropAdvice.detail.stage", { n: idx + 1 })}
 									</span>
 									<span className="absolute bottom-2 left-3 right-3 text-xs text-emerald-100 font-medium">
 										{stage.period}
@@ -282,15 +289,15 @@ const CropAdviceDetail = () => {
 					<div className="flex flex-wrap gap-1 items-center justify-between border-b border-gray-100 pb-4">
 						<div className="space-y-1">
 							<span className="text-xs font-bold text-harvests-primary uppercase tracking-wider">
-								Équipements Préconisés
+								{t("cropAdvice.detail.recommendedEquipment")}
 							</span>
 							<h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
 								<FiTool className="text-slate-700" />
-								Engins & Matériel Agricole Recommandé
+								{t("cropAdvice.detail.equipmentTitle")}
 							</h2>
 						</div>
 						<span className="text-xs px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-semibold">
-							Matériel spécialisé
+							{t("cropAdvice.detail.specializedEquipment")}
 						</span>
 					</div>
 
@@ -322,7 +329,7 @@ const CropAdviceDetail = () => {
 										{eq.name}
 									</h3>
 									<p className="text-sm text-gray-600 leading-relaxed">
-										{eq.description || `Optimisé pour la culture du produit ${crop.name}.`}
+										{eq.description || t("cropAdvice.detail.equipmentFallback", { name: crop.name })}
 									</p>
 								</div>
 							</div>
@@ -338,7 +345,7 @@ const CropAdviceDetail = () => {
 							<div className="p-2 rounded-xl bg-emerald-100 text-emerald-700">
 								<FiShield className="h-5 w-5" />
 							</div>
-							Sol & Préparation Recommandée
+							{t("cropAdvice.detail.soil")}
 						</div>
 						<p className="text-sm text-gray-700 leading-relaxed bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100">
 							{crop.soil}
@@ -351,7 +358,7 @@ const CropAdviceDetail = () => {
 							<div className="p-2 rounded-xl bg-amber-100 text-amber-700">
 								<FiLayers className="h-5 w-5" />
 							</div>
-							Fertilisation & Apports Nutritifs
+							{t("cropAdvice.detail.fertilizer")}
 						</div>
 						<p className="text-sm text-gray-700 leading-relaxed bg-amber-50/50 p-4 rounded-2xl border border-amber-100">
 							{crop.fertilizer}
@@ -363,7 +370,7 @@ const CropAdviceDetail = () => {
 				<div className="bg-white rounded-3xl border border-gray-100 p-4 md:p-8 shadow-sm space-y-6">
 					<h2 className="text-xl font-bold text-gray-900 flex items-center gap-2 border-b border-gray-100 pb-3">
 						<FiCheckCircle className="text-emerald-600" />
-						Conseils Clés & Post-Récolte
+						{t("cropAdvice.detail.keyTips")}
 					</h2>
 
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -371,7 +378,7 @@ const CropAdviceDetail = () => {
 						<div className="space-y-3">
 							<h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
 								<span className="w-2 h-2 rounded-full bg-emerald-500" />
-								Pratiques de Culture
+								{t("cropAdvice.detail.practices")}
 							</h3>
 							<ul className="space-y-2 text-xs text-gray-600">
 								{crop.tips.map((tip, i) => (
@@ -387,7 +394,7 @@ const CropAdviceDetail = () => {
 						<div className="space-y-3">
 							<h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
 								<span className="w-2 h-2 rounded-full bg-amber-500" />
-								Indicateurs de Récolte
+								{t("cropAdvice.detail.harvestIndicators")}
 							</h3>
 							<div className="bg-amber-50/60 border border-amber-200/80 p-4 rounded-2xl text-xs text-gray-700 leading-relaxed space-y-2">
 								<FiCheckCircle className="h-5 w-5 text-amber-600" />
@@ -399,7 +406,7 @@ const CropAdviceDetail = () => {
 						<div className="space-y-3">
 							<h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
 								<span className="w-2 h-2 rounded-full bg-orange-500" />
-								Stockage & Post-Récolte
+								{t("cropAdvice.detail.storage")}
 							</h3>
 							<div className="bg-orange-50/60 border border-orange-200/80 p-4 rounded-2xl text-xs text-gray-700 leading-relaxed space-y-2">
 								<FiPackage className="h-5 w-5 text-orange-600" />

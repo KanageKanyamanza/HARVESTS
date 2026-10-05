@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import DataValue from "../../components/common/DataValue";
 import { useNavigate, Link } from "react-router-dom";
 import {
 	BarChart3,
@@ -15,7 +16,6 @@ import {
 } from "lucide-react";
 import { adminService } from "../../services/adminService";
 import { useNotifications } from "../../hooks/useNotifications";
-import LoadingSpinner from "../../components/common/LoadingSpinner";
 
 const AdminBlogStats = () => {
 	const navigate = useNavigate();
@@ -57,16 +57,6 @@ const AdminBlogStats = () => {
 		}
 	};
 
-	if (loading) {
-		return (
-			<div className="min-h-screen flex flex-col items-center justify-center p-6">
-				<LoadingSpinner size="lg" />
-				<p className="mt-4 text-slate-400 font-bold uppercase tracking-widest text-[10px] animate-pulse">
-					Analysing blog performance...
-				</p>
-			</div>
-		);
-	}
 
 	const MetricCard = ({ title, value, icon: Icon, color, trend }) => (
 		<div className="relative group bg-white rounded-2xl p-4 border border-slate-100 shadow-2xl shadow-slate-100/50 hover:shadow-emerald-500/10 transition-all duration-500 overflow-hidden">
@@ -91,21 +81,21 @@ const AdminBlogStats = () => {
 					{title}
 				</p>
 				<h3 className="text-2xl font-black text-slate-900 tracking-tighter">
-					{value}
+					<DataValue loading={loading}>{value}</DataValue>
 				</h3>
 			</div>
 		</div>
 	);
 
 	return (
-		<div className="min-h-screen md:pl-3 bg-[#fafafa] relative overflow-hidden">
+		<div className="dashboard-page bg-[#fafafa]">
 			{/* Background Decoration */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/30 rounded-full blur-[120px]"></div>
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="max-w-full mx-auto px-3 py-4 relative z-10 pl-1 md:pl-6 md:px-4 md:py-6">
+			<div className="dashboard-container">
 				{/* Breadcrumbs & Header */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
 					<div className="flex items-center gap-4">
@@ -186,7 +176,11 @@ const AdminBlogStats = () => {
 										By Format type
 									</h3>
 									<div className="space-y-3">
-										{stats.byType?.length > 0 ? (
+										{loading ? (
+											[1, 2, 3].map((i) => (
+												<div key={i} className="h-8 bg-slate-100 rounded-lg animate-pulse" />
+											))
+										) : stats.byType?.length > 0 ? (
 											stats.byType.map((item, idx) => (
 												<div key={idx} className="space-y-1.5 group">
 													<div className="flex justify-between text-[11px] font-bold text-slate-700">
@@ -225,7 +219,11 @@ const AdminBlogStats = () => {
 										By Industry category
 									</h3>
 									<div className="space-y-3">
-										{stats.byCategory?.length > 0 ? (
+										{loading ? (
+											[1, 2, 3].map((i) => (
+												<div key={i} className="h-8 bg-slate-100 rounded-lg animate-pulse" />
+											))
+										) : stats.byCategory?.length > 0 ? (
 											stats.byCategory.map((item, idx) => (
 												<div key={idx} className="space-y-1.5 group">
 													<div className="flex justify-between text-[11px] font-bold text-slate-700">
@@ -351,7 +349,7 @@ const AdminBlogStats = () => {
 								<div className="space-y-5">
 									<div>
 										<p className="text-3xl font-black tracking-tighter">
-											{stats.totalLikes || 0}
+											<DataValue loading={loading} light>{stats.totalLikes || 0}</DataValue>
 										</p>
 										<p className="text-[9px] font-black text-white/40 uppercase tracking-widest mt-0.5">
 											Cumulative Likes
@@ -386,7 +384,7 @@ const AdminBlogStats = () => {
 								<div className="flex items-end gap-x-3">
 									<div className="flex-1">
 										<p className="text-xl font-black text-slate-900 leading-none">
-											{stats.tracking?.totalVisits || 0}
+											<DataValue loading={loading} light>{stats.tracking?.totalVisits || 0}</DataValue>
 										</p>
 										<p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.15em] mt-1.5">
 											Total Sessions
@@ -408,7 +406,7 @@ const AdminBlogStats = () => {
 								<div className="flex items-end gap-x-3">
 									<div className="flex-1">
 										<p className="text-xl font-black text-slate-900 leading-none">
-											{stats.tracking?.uniqueVisitors || 0}
+											<DataValue loading={loading} light>{stats.tracking?.uniqueVisitors || 0}</DataValue>
 										</p>
 										<p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.15em] mt-1.5">
 											Unique Visitors

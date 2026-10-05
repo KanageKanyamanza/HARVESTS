@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import PublicDetailSkeleton from "../components/common/PublicDetailSkeleton";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SEOHead from "../components/seo/SEOHead";
@@ -15,7 +16,6 @@ import {
 import ReviewList from "../components/reviews/ReviewList";
 import SimpleReviewForm from "../components/reviews/SimpleReviewForm";
 import StarRating from "../components/reviews/StarRating";
-import LoadingSpinner from "../components/common/LoadingSpinner";
 import ProductSpecifications from "../components/product/ProductSpecifications";
 import { toPlainText } from "../utils/textHelpers";
 import { getCategoryLabel, getStatusConfig, normalizeUnit } from "../utils/productUtils";
@@ -203,13 +203,8 @@ const ProductDetail = () => {
 		}
 	};
 
-	if (loading) {
-		return (
-			<div className="min-h-screen bg-[#F8FAF6] flex items-center justify-center">
-				<LoadingSpinner size="lg" text={t("productDetail.loadingText")} />
-			</div>
-		);
-	}
+	// Chargement : bouton retour affiché, seul le contenu (serveur) est grisé
+	if (loading) return <PublicDetailSkeleton onBack={() => navigate(-1)} variant="product" />;
 
 	if (error || !product) {
 		return (

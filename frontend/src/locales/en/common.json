@@ -147,5 +147,197 @@
 		"primary": "Main",
 		"setPrimary": "Set as main image",
 		"remove": "Remove image"
+	},
+	"orderStatus": {
+		"pending": "Pending",
+		"confirmed": "Confirmed",
+		"preparing": "Preparing",
+		"ready-for-pickup": "Ready for pickup",
+		"in-transit": "In transit",
+		"out-for-delivery": "Out for delivery",
+		"delivered": "Delivered",
+		"completed": "Completed",
+		"cancelled": "Cancelled",
+		"rejected": "Rejected",
+		"refunded": "Refunded",
+		"disputed": "Disputed",
+		"processing": "Processing",
+		"shipped": "Shipped"
+	},
+	"orderStatusDescription": {
+		"pending": "Order awaiting confirmation",
+		"confirmed": "Order confirmed and being prepared",
+		"preparing": "Order being prepared",
+		"ready-for-pickup": "Order ready for pickup",
+		"in-transit": "Order on its way",
+		"out-for-delivery": "Order out for delivery",
+		"delivered": "Order delivered successfully",
+		"completed": "Order completed successfully",
+		"cancelled": "Order cancelled"
+	},
+	"orders": {
+		"order": "Order",
+		"totalAmount": "Total amount",
+		"noDate": "Date not available",
+		"customerDetails": "Customer details",
+		"deliveryAddress": "Delivery address",
+		"summary": "Order summary",
+		"itemCount_one": "{{count}} item",
+		"itemCount_other": "{{count}} items",
+		"subtotal": "Subtotal: {{amount}}",
+		"viewDetails": "View details",
+		"items": "Order items",
+		"moreItems": "+ {{count}} more…",
+		"unknownCustomer": "Unknown customer",
+		"customer": "Customer",
+		"expand": "Show details",
+		"collapse": "Hide details",
+		"emptySellerTitle": "No orders received yet",
+		"emptySellerText": "As soon as a customer places an order, it will appear here with all the details you need.",
+		"emptyBuyerTitle": "No purchases yet",
+		"emptyBuyerText": "Browse our catalog and discover exceptional products delivered to your door.",
+		"actions": {
+			"cancel": "Cancel",
+			"prepare": "Prepare",
+			"startPreparing": "Start preparing",
+			"ready": "Ready",
+			"readyForPickup": "Ready for pickup",
+			"markDelivered": "Mark as delivered",
+			"delivered": "Delivered",
+			"received": "Received",
+			"confirmReceipt": "Confirm receipt",
+			"complete": "Complete",
+			"markCompleted": "Mark as completed",
+			"pickUp": "Pick up",
+			"markPickedUp": "Mark as picked up",
+			"inTransit": "In transit",
+			"markInTransit": "Mark as in transit",
+			"deliver": "Deliver",
+			"loading": "Loading…",
+			"validating": "Confirming…",
+			"sending": "Sending…",
+			"preparing": "Preparing…",
+			"pickingUp": "Picking up…",
+			"inProgress": "In progress…",
+			"delivering": "Delivering…",
+			"confirmDelivery": "Confirm delivery",
+			"confirming": "Confirming…"
+		}
+	},
+	"dashboardWidgets": {
+		"recentOrders": "Recent orders",
+		"latestTransactions": "Latest transactions",
+		"seeAll": "See all",
+		"noOrders": "No orders",
+		"waitingForSales": "Waiting for sales",
+		"itemCount_one": "{{count}} item",
+		"itemCount_other": "{{count}} items",
+		"sales": "Sales",
+		"orders": "Orders",
+		"noData": "No data available"
+	},
+	"dashboardSections": {
+		"orders": {
+			"emptyTitle": "No orders",
+			"emptyText": "Your orders will appear here.",
+			"seeAll": "See all orders",
+			"seeAllCount": "See all orders ({{count}})",
+			"orderNumber": "Order #{{number}}",
+			"noAmount": "Amount not set",
+			"view": "View"
+		},
+		"quickActions": {
+			"addProduct": {
+				"title": "Add a product",
+				"description": "Create a new product"
+			},
+			"editProfile": {
+				"title": "Edit profile",
+				"description": "Update your information"
+			},
+			"settings": {
+				"title": "Settings",
+				"description": "Configure your account"
+			},
+			"analytics": {
+				"title": "Analytics",
+				"description": "View statistics"
+			},
+			"certifications": {
+				"title": "Certifications",
+				"description": "Manage certifications"
+			},
+			"myOrders": {
+				"title": "My orders",
+				"description": "View my orders"
+			},
+			"favorites": {
+				"title": "Favourites",
+				"description": "My favourite producers"
+			},
+			"production": {
+				"title": "Production",
+				"description": "Manage production"
+			},
+			"newDish": {
+				"title": "New dish",
+				"description": "Create a new dish"
+			},
+			"suppliers": {
+				"title": "Suppliers",
+				"description": "Manage suppliers"
+			},
+			"orders": {
+				"title": "Orders",
+				"description": "View orders"
+			},
+			"deliveries": {
+				"title": "Deliveries",
+				"description": "Manage deliveries"
+			},
+			"fleet": {
+				"title": "My fleet",
+				"description": "Manage your vehicles"
+			},
+			"exportProducts": {
+				"title": "Export products",
+				"description": "Manage products"
+			}
+		},
+		"subscription": {
+			"title": "My subscription",
+			"loadError": "Unable to load the subscription",
+			"none": "No active subscription",
+			"seePlans": "See available plans",
+			"plan": "Plan",
+			"plans": {
+				"gratuit": "Free",
+				"standard": "Standard",
+				"premium": "Premium"
+			},
+			"status": {
+				"active": "Active",
+				"pending": "Pending",
+				"suspended": "Suspended",
+				"cancelled": "Cancelled",
+				"expired": "Expired"
+			},
+			"amount": "Amount",
+			"perMonth": "/month",
+			"perYear": "/year",
+			"period": "Billing period",
+			"monthly": "Monthly",
+			"annual": "Annual",
+			"expiresOn": "Expiry date",
+			"nextPayment": "Next payment",
+			"notAvailable": "N/A",
+			"expiringTitle": "Expiring soon",
+			"expiringText_one": "Your subscription expires in {{count}} day. Renew it now to avoid any interruption.",
+			"expiringText_other": "Your subscription expires in {{count}} days. Renew it now to avoid any interruption.",
+			"renewNow": "Renew now",
+			"renewUrgent": "Renew urgently",
+			"manage": "Manage my subscription",
+			"activate": "Activate a plan"
+		}
 	}
 }

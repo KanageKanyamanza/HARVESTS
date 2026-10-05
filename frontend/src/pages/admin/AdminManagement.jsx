@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
+import CardGridSkeleton from "../../components/common/CardGridSkeleton";
+import DataValue from "../../components/common/DataValue";
 import { adminService } from "../../services/adminService";
-import LoadingSpinner from "../../components/common/LoadingSpinner";
 import { Plus } from "lucide-react";
 import AdminFilters from "./adminManagement/AdminFilters";
 import AdminTable from "./adminManagement/AdminTable";
@@ -238,23 +239,16 @@ const AdminManagement = () => {
 		setSelectedAdmin(null);
 	};
 
-	if (loading && admins.length === 0) {
-		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<LoadingSpinner size="lg" text="Chargement des admins..." />
-			</div>
-		);
-	}
 
 	return (
-		<div className="min-h-screen md:pl-3 pb-20 relative overflow-hidden">
+		<div className="dashboard-page">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden ">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/30 rounded-full blur-[120px]"></div>
 				<div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="max-w-full mx-auto px-3 py-4 relative z-10 pl-1 space-y-3 md:pl-6 md:px-4 md:py-6 md:space-y-4">
+			<div className="dashboard-container space-y-3 md:space-y-4">
 				{/* Messages de succès/erreur */}
 				{success && (
 					<div className="mb-4 animate-fade-in">
@@ -326,22 +320,26 @@ const AdminManagement = () => {
 									Staff Autorisé
 								</h3>
 								<p className="text-[9px] font-black text-gray-600 uppercase tracking-widest mt-0.5">
-									{totalItems} administrateurs trouvés
+									<DataValue loading={loading && admins.length === 0} className="w-6 h-[0.9em]">{totalItems}</DataValue> administrateurs trouvés
 								</p>
 							</div>
 						</div>
 
-						<AdminTable
-							admins={admins}
-							getRoleColor={getRoleColor}
-							getRoleLabel={getRoleLabel}
-							getDepartmentLabel={getDepartmentLabel}
-							formatDate={formatDate}
-							handleView={handleView}
-							handleEditClick={handleEditClick}
-							handleDelete={handleDelete}
-							handleToggleStatus={handleToggleStatus}
-						/>
+						{loading && admins.length === 0 ? (
+							<CardGridSkeleton count={4} variant="row" className="p-4 space-y-3" />
+						) : (
+							<AdminTable
+								admins={admins}
+								getRoleColor={getRoleColor}
+								getRoleLabel={getRoleLabel}
+								getDepartmentLabel={getDepartmentLabel}
+								formatDate={formatDate}
+								handleView={handleView}
+								handleEditClick={handleEditClick}
+								handleDelete={handleDelete}
+								handleToggleStatus={handleToggleStatus}
+							/>
+						)}
 
 						<div className="px-4 py-3 bg-gray-50/30 border-t border-gray-100/50">
 							<AdminPagination

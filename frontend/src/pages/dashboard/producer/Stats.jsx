@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import DataValue from "../../../components/common/DataValue";
 import { useAuth } from "../../../hooks/useAuth";
+import { formatPrice } from "../../../utils/currencyUtils";
+import { formatMonthCode, formatNumber } from "../../../utils/i18n";
+import { toPlainText } from "../../../utils/textHelpers";
+import { getCategoryLabel } from "../../../utils/productHelpers";
 import { producerService } from "../../../services";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 import {
@@ -11,15 +17,14 @@ import {
 	BarChart3,
 	CheckCircle2,
 	Clock,
-	ArrowUpRight,
 	Calendar,
 	Zap,
 	Star,
 	Activity,
-	ArrowRight,
 } from "lucide-react";
 
 const Stats = () => {
+	const { t, i18n } = useTranslation("dashboard-producer");
 	const { user } = useAuth();
 	const [stats, setStats] = useState(null);
 	const [salesAnalytics, setSalesAnalytics] = useState(null);
@@ -79,16 +84,6 @@ const Stats = () => {
 		loadStats();
 	}, [user]);
 
-	if (loading) {
-		return (
-			<div className="min-h-[80vh] flex flex-col items-center justify-center space-y-4">
-				<div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
-				<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
-					Analyse des données en cours...
-				</p>
-			</div>
-		);
-	}
 
 	// Calculer les statuts des commandes
 	const pendingOrdersCount = orders.filter(
@@ -105,30 +100,29 @@ const Stats = () => {
 	).length;
 
 	return (
-		<div className="min-h-screen relative overflow-hidden pb-10 bg-harvests-light/20">
+		<div className="dashboard-page bg-harvests-light/20">
 			{/* Background Decorative Glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
 				<div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-emerald-100/30 rounded-full blur-[120px]"></div>
 				<div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-100/20 rounded-full blur-[100px]"></div>
 			</div>
 
-			<div className="relative z-10 max-w-7xl mx-auto px-4 py-8 md:py-12 space-y-10">
+			<div className="dashboard-container space-y-10">
 				{/* Header */}
 				<div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-in-down">
 					<div className="space-y-3">
 						<div className="flex items-center gap-2 text-emerald-600 font-black text-[9px] uppercase tracking-widest mb-2">
 							<div className="w-5 h-[2px] bg-emerald-600 rounded-full"></div>
-							<span>Analytics</span>
+							<span>{t("stats.eyebrow")}</span>
 						</div>
 						<h1 className="text-3xl font-[1000] text-gray-900 tracking-tighter leading-none mb-2">
-							Volume de{" "}
+							{t("stats.titleStart")}{" "}
 							<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">
-								Ventes.
+								{t("stats.titleHighlight")}
 							</span>
 						</h1>
 						<p className="text-xs text-gray-500 font-medium max-w-xl">
-							Analysez votre croissance et identifiez vos leviers de performance
-							commerciale.
+							{t("stats.subtitle")}
 						</p>
 					</div>
 
@@ -136,7 +130,7 @@ const Stats = () => {
 						<div className="bg-white/70 backdrop-blur-xl px-5 py-3 rounded-2xl border border-white/60 shadow-sm flex items-center gap-3">
 							<Calendar className="h-4 w-4 text-emerald-600" />
 							<span className="text-[9px] font-black uppercase tracking-widest text-gray-900">
-								Mois en cours
+								{t("stats.allTime")}
 							</span>
 						</div>
 					</div>
@@ -146,32 +140,28 @@ const Stats = () => {
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in-up delay-100">
 					{[
 						{
-							label: "Revenus Totaux",
-							value: `${(stats?.totalRevenue || 0).toLocaleString()} FCFA`,
+							label: t("stats.totalRevenue"),
+							value: formatPrice(stats?.totalRevenue || 0, "XOF"),
 							icon: DollarSign,
 							color: "emerald",
-							trend: "+12.5%",
 						},
 						{
-							label: "Commandes",
-							value: orders.length || stats?.totalOrders || 0,
+							label: t("stats.orders"),
+							value: formatNumber(orders.length || stats?.totalOrders || 0, i18n.language),
 							icon: ShoppingBag,
 							color: "blue",
-							trend: "+5.2%",
 						},
 						{
-							label: "Produits Vendus",
-							value: stats?.totalProductsSold || 0,
+							label: t("stats.productsSold"),
+							value: formatNumber(stats?.totalProductsSold || 0, i18n.language),
 							icon: Package,
 							color: "purple",
-							trend: "+8.1%",
 						},
 						{
-							label: "Clients Uniques",
-							value: stats?.uniqueCustomers || 0,
+							label: t("stats.uniqueCustomers"),
+							value: formatNumber(stats?.uniqueCustomers || 0, i18n.language),
 							icon: Users,
 							color: "amber",
-							trend: "+3.4%",
 						},
 					].map((item, idx) => (
 						<div
@@ -189,16 +179,12 @@ const Stats = () => {
 								>
 									<item.icon className="w-6 h-6" />
 								</div>
-								<div className="flex items-center gap-1 text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
-									<ArrowUpRight className="h-3 w-3" />
-									{item.trend}
-								</div>
 							</div>
 							<p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] mb-1">
 								{item.label}
 							</p>
 							<p className="text-3xl font-[1000] text-gray-900 tracking-tighter">
-								{item.value}
+								<DataValue loading={loading} className="w-24 h-[0.8em]">{item.value}</DataValue>
 							</p>
 						</div>
 					))}
@@ -215,23 +201,30 @@ const Stats = () => {
 									</div>
 									<div>
 										<h3 className="text-xl font-[1000] text-gray-900 tracking-tight">
-											Ventes Mensuelles
+											{t("stats.monthlySales")}
 										</h3>
 										<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
-											Évolution sur 6 mois
+											{t("stats.lastMonths", { count: 6 })}
 										</p>
 									</div>
 								</div>
 								<div className="flex gap-2">
 									<div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
 									<span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-										Revenus
+										{t("stats.revenue")}
 									</span>
 								</div>
 							</div>
 
 							<div className="space-y-6">
-								{(
+								{loading ?
+									[1, 2, 3, 4].map((i) => (
+										<div key={i} className="space-y-2 animate-pulse">
+											<div className="h-3 bg-gray-100 rounded w-1/3" />
+											<div className="h-3 bg-gray-100 rounded-full" />
+										</div>
+									))
+								: (
 									salesAnalytics?.monthlySales &&
 									salesAnalytics.monthlySales.length > 0
 								) ?
@@ -245,13 +238,10 @@ const Stats = () => {
 											<div key={index} className="space-y-2">
 												<div className="flex items-end justify-between px-2">
 													<p className="text-xs font-black text-gray-800 uppercase tracking-widest">
-														{sale.month}
+														{formatMonthCode(sale.month, i18n.language, { month: "long", year: "numeric" })}
 													</p>
 													<p className="text-xs font-[1000] text-gray-900">
-														{(sale.revenue || 0).toLocaleString()}{" "}
-														<span className="text-[10px] text-gray-400 font-bold">
-															FCFA
-														</span>
+														{formatPrice(sale.revenue || 0, "XOF")}
 													</p>
 												</div>
 												<div className="h-3 bg-gray-100/50 rounded-full overflow-hidden border border-gray-100">
@@ -262,10 +252,10 @@ const Stats = () => {
 												</div>
 												<div className="flex justify-between px-2">
 													<span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">
-														{sale.orders} commandes
+														{t("stats.monthOrders", { count: sale.orders || 0 })}
 													</span>
 													<span className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest">
-														{sale.products} produits
+														{t("stats.monthProducts", { count: sale.products || 0 })}
 													</span>
 												</div>
 											</div>
@@ -274,7 +264,7 @@ const Stats = () => {
 								:	<div className="text-center py-16">
 										<BarChart3 className="mx-auto h-12 w-12 text-gray-200 mb-4" />
 										<p className="text-gray-600 font-bold text-xs uppercase tracking-widest">
-											Aucune donnée disponible
+											{t("stats.noData")}
 										</p>
 									</div>
 								}
@@ -289,16 +279,20 @@ const Stats = () => {
 								</div>
 								<div>
 									<h3 className="text-xl font-[1000] text-gray-900 tracking-tight">
-										Best Sellers
+										{t("stats.bestSellers")}
 									</h3>
 									<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
-										Produits les plus performants
+										{t("stats.bestSellersSubtitle")}
 									</p>
 								</div>
 							</div>
 
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								{stats?.topProducts && stats.topProducts.length > 0 ?
+								{loading ?
+									[1, 2].map((i) => (
+										<div key={i} className="h-20 bg-gray-50 rounded-[2rem] animate-pulse" />
+									))
+								: stats?.topProducts && stats.topProducts.length > 0 ?
 									stats.topProducts.map((product, index) => (
 										<div
 											key={index}
@@ -309,18 +303,18 @@ const Stats = () => {
 											</div>
 											<div className="flex-1 min-w-0">
 												<p className="text-xs font-black text-gray-900 uppercase tracking-tight truncate mb-0.5">
-													{product.name}
+													{toPlainText(product.name, "")}
 												</p>
 												<p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">
-													{product.category}
+													{getCategoryLabel(product.category, i18n.language)}
 												</p>
 											</div>
 											<div className="text-right">
 												<p className="text-xs font-[1000] text-gray-900">
-													{(product.revenue || 0).toLocaleString()} FCFA
+													{formatPrice(product.revenue || 0, "XOF")}
 												</p>
 												<p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">
-													{product.quantitySold} vendus
+													{t("stats.sold", { count: product.quantitySold || 0 })}
 												</p>
 											</div>
 										</div>
@@ -328,7 +322,7 @@ const Stats = () => {
 								:	<div className="col-span-full py-10 text-center">
 										<Package className="h-10 w-10 text-gray-100 mx-auto mb-3" />
 										<p className="text-gray-600 font-bold text-xs uppercase tracking-widest">
-											Aucun produit vendu
+											{t("stats.noProductSold")}
 										</p>
 									</div>
 								}
@@ -346,10 +340,10 @@ const Stats = () => {
 								</div>
 								<div>
 									<h3 className="text-xl font-[1000] text-gray-900 tracking-tight">
-										Flux de Commandes
+										{t("stats.orderFlow")}
 									</h3>
 									<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
-										Répartition des statuts
+										{t("stats.statusBreakdown")}
 									</p>
 								</div>
 							</div>
@@ -357,28 +351,28 @@ const Stats = () => {
 							<div className="space-y-4">
 								{[
 									{
-										label: "À traiter",
+										label: t("stats.toProcess"),
 										count: pendingOrdersCount,
 										color: "text-amber-600",
 										bg: "bg-amber-50",
 										icon: Clock,
 									},
 									{
-										label: "En livraison",
+										label: t("stats.inDelivery"),
 										count: inTransitOrdersCount,
 										color: "text-blue-600",
 										bg: "bg-blue-50",
 										icon: Truck,
 									},
 									{
-										label: "Livrées",
+										label: t("stats.delivered"),
 										count: completedOrdersCount,
 										color: "text-emerald-600",
 										bg: "bg-emerald-50",
 										icon: CheckCircle2,
 									},
 									{
-										label: "Annulées",
+										label: t("stats.cancelled"),
 										count: cancelledOrdersCount,
 										color: "text-rose-600",
 										bg: "bg-rose-50",
@@ -396,7 +390,7 @@ const Stats = () => {
 											</span>
 										</div>
 										<span className={`text-xl font-[1000] ${s.color}`}>
-											{s.count}
+											<DataValue loading={loading} className="w-8 h-[0.8em]">{s.count}</DataValue>
 										</span>
 									</div>
 								))}
@@ -414,55 +408,49 @@ const Stats = () => {
 										<Star className="h-5 w-5 text-white fill-current" />
 									</div>
 									<h3 className="text-xl font-[1000] tracking-tight text-white">
-										Synthèse Qualité
+										{t("stats.qualitySummary")}
 									</h3>
 								</div>
 
 								<div className="grid grid-cols-2 gap-6">
 									<div>
 										<p className="text-[9px] font-black text-white/70 uppercase tracking-widest mb-1">
-											Panier Moyen
+											{t("stats.averageBasket")}
 										</p>
 										<p className="text-xl font-[1000] tracking-tight text-white">
-											{stats?.averageOrderValue ?
-												Math.round(stats.averageOrderValue).toLocaleString()
-											:	"0"}{" "}
-											<span className="text-xs font-bold opacity-60">FCFA</span>
+											<DataValue loading={loading} light>{formatPrice(Math.round(stats?.averageOrderValue || 0), "XOF")}</DataValue>
 										</p>
 									</div>
 									<div>
 										<p className="text-[9px] font-black text-white/70 uppercase tracking-widest mb-1">
-											Conversion
+											{t("stats.conversion")}
 										</p>
 										<p className="text-xl font-[1000] tracking-tight text-white">
-											{stats?.conversionRate || 0}%
+											<DataValue loading={loading} light>{stats?.conversionRate || 0}%</DataValue>
 										</p>
 									</div>
 									<div>
 										<p className="text-[9px] font-black text-white/70 uppercase tracking-widest mb-1">
-											Fidélisation
+											{t("stats.retention")}
 										</p>
 										<p className="text-xl font-[1000] tracking-tight text-white">
-											{stats?.customerRetentionRate || 0}%
+											<DataValue loading={loading} light>{stats?.customerRetentionRate || 0}%</DataValue>
 										</p>
 									</div>
 									<div>
 										<p className="text-[9px] font-black text-white/70 uppercase tracking-widest mb-1">
-											Satisfaction
+											{t("stats.satisfaction")}
 										</p>
 										<p className="text-xl font-[1000] tracking-tight text-white">
-											{stats?.averageRating ?
-												Number(stats.averageRating).toFixed(1)
-											:	"4.8"}
-											/5
+											<DataValue loading={loading} light>
+												{stats?.averageRating ?
+													`${Number(stats.averageRating).toFixed(1)}/5`
+												:	t("stats.noRating")}
+											</DataValue>
 										</p>
 									</div>
 								</div>
 
-								<button className="w-full py-4 bg-white text-emerald-700 rounded-2xl font-[1000] text-[10px] uppercase tracking-[0.2em] hover:shadow-2xl hover:-translate-y-1 transition-all flex items-center justify-center gap-2 group/btn border border-white/20">
-									Télécharger le rapport
-									<ArrowRight className="h-3 w-3 group-hover/btn:translate-x-1 transition-transform" />
-								</button>
 							</div>
 						</div>
 					</div>

@@ -1,4 +1,5 @@
 import { toPlainText } from "../../utils/textHelpers";
+import i18n, { formatDateTime } from "../../utils/i18n";
 import {
 	FiClock,
 	FiTruck,
@@ -7,116 +8,99 @@ import {
 	FiPackage,
 } from "react-icons/fi";
 
+// Jour 49 (bascule bilingue) : libellé lu dans common:orderStatus au moment
+// de l'appel (langue courante) ; les appelants lisent toujours config.text.
+const withLabel = (status, config) => ({
+	...config,
+	text: i18n.t(`orderStatus.${status}`, { ns: "common" }),
+});
+
 export const getStatusConfig = (status) => {
 	const configs = {
 		pending: {
 			color: "text-amber-600 bg-amber-50 border-amber-100",
-			text: "En attente",
 			icon: FiClock,
 		},
 		confirmed: {
 			color: "text-blue-600 bg-blue-50 border-blue-100",
-			text: "Confirmée",
 			icon: FiCheckCircle,
 		},
 		preparing: {
 			color: "text-purple-600 bg-purple-50 border-purple-100",
-			text: "En préparation",
 			icon: FiPackage,
 		},
 		"ready-for-pickup": {
 			color: "text-orange-600 bg-orange-50 border-orange-100",
-			text: "Prête",
 			icon: FiPackage,
 		},
 		"in-transit": {
 			color: "text-indigo-600 bg-indigo-50 border-indigo-100",
-			text: "En transit",
 			icon: FiTruck,
 		},
 		"out-for-delivery": {
 			color: "text-blue-600 bg-blue-50 border-blue-100",
-			text: "En cours de livraison",
 			icon: FiTruck,
 		},
 		delivered: {
 			color: "text-emerald-600 bg-emerald-50 border-emerald-100",
-			text: "Livrée",
 			icon: FiCheckCircle,
 		},
 		completed: {
 			color: "text-emerald-700 bg-emerald-50 border-emerald-100",
-			text: "Terminée",
 			icon: FiCheckCircle,
 		},
 		cancelled: {
 			color: "text-rose-600 bg-rose-50 border-rose-100",
-			text: "Annulée",
 			icon: FiXCircle,
 		},
 	};
-	return configs[status] || configs.pending;
+	const key = configs[status] ? status : "pending";
+	return withLabel(key, configs[key]);
 };
 
 export const getItemStatusConfig = (status = "pending") => {
 	const configs = {
 		pending: {
 			color: "bg-amber-50 text-amber-700 border-amber-100",
-			text: "En attente",
 		},
 		confirmed: {
 			color: "bg-blue-50 text-blue-700 border-blue-100",
-			text: "Confirmé",
 		},
 		preparing: {
 			color: "bg-purple-50 text-purple-700 border-purple-100",
-			text: "Préparation",
 		},
 		"ready-for-pickup": {
 			color: "bg-orange-50 text-orange-700 border-orange-100",
-			text: "Prête",
 		},
 		"in-transit": {
 			color: "bg-indigo-50 text-indigo-700 border-indigo-100",
-			text: "En transit",
 		},
 		delivered: {
 			color: "bg-emerald-50 text-emerald-700 border-emerald-100",
-			text: "Livré",
 		},
 		completed: {
 			color: "bg-emerald-50 text-emerald-700 border-emerald-100",
-			text: "Terminé",
 		},
 		cancelled: {
 			color: "bg-rose-50 text-rose-700 border-rose-100",
-			text: "Annulé",
 		},
 		rejected: {
 			color: "bg-rose-50 text-rose-700 border-rose-100",
-			text: "Rejeté",
 		},
 		refunded: {
 			color: "bg-rose-50 text-rose-700 border-rose-100",
-			text: "Remboursé",
 		},
 		disputed: {
 			color: "bg-rose-50 text-rose-700 border-rose-100",
-			text: "En litige",
 		},
 	};
-	return configs[status] || configs.pending;
+	const key = configs[status] ? status : "pending";
+	return withLabel(key, configs[key]);
 };
 
 export const formatDate = (dateString) => {
-	if (!dateString) return "Date non disponible";
-	return new Date(dateString).toLocaleDateString("fr-FR", {
-		year: "numeric",
-		month: "short",
-		day: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-	});
+	if (!dateString) return i18n.t("orders.noDate", { ns: "common" });
+	return formatDateTime(dateString);
 };
 
 export const extractSellerDetails = (order) => {
@@ -171,10 +155,10 @@ export const getClientInfo = (order, userType) => {
 			const name =
 				buyer.firstName && buyer.lastName ?
 					`${buyer.firstName} ${buyer.lastName}`
-				:	buyer.name || buyer.username || "Client";
+				:	buyer.name || buyer.username || i18n.t("orders.customer", { ns: "common" });
 			return { name, email: buyer.email, phone: buyer.phone };
 		}
-		return { name: "Client inconnu" };
+		return { name: i18n.t("orders.unknownCustomer", { ns: "common" }) };
 	} else {
 		if (sellers.length === 1) return sellers[0];
 		if (sellers.length > 1)

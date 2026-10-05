@@ -1,24 +1,14 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Truck, DollarSign, MapPin, Star } from "lucide-react";
 import StatCards from "../../../pages/admin/adminDashboard/StatCards";
 
 const TransporterStatsOverview = ({ stats, loading }) => {
-	if (loading && !stats) {
-		return (
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-				{[1, 2, 3, 4].map((i) => (
-					<div
-						key={i}
-						className="h-32 rounded-[1.5rem] bg-gray-100 animate-pulse shadow-sm"
-					/>
-				))}
-			</div>
-		);
-	}
+	const { t } = useTranslation("dashboard-transporter");
 
 	const statCards = [
 		{
-			title: "Livraisons",
+			title: t("dashboard.cards.deliveries"),
 			value: (
 				stats?.performanceStats?.totalDeliveries ||
 				stats?.totalOrders ||
@@ -26,39 +16,44 @@ const TransporterStatsOverview = ({ stats, loading }) => {
 			).toLocaleString(),
 			icon: Truck,
 			color: "bg-blue-500",
-			change: `${stats?.activeDeliveries || 0} en cours`,
+			change: t("dashboard.cards.inProgress", {
+				count: stats?.activeDeliveries || 0,
+			}),
 			link: "/transporter/orders",
 		},
 		{
-			title: "Chiffre d'affaires",
+			title: t("dashboard.cards.revenue"),
 			value:
 				stats?.performanceStats?.totalRevenue || stats?.totalRevenue ?
 					`${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(stats?.performanceStats?.totalRevenue || stats?.totalRevenue)} FCFA`
 				:	"0 FCFA",
 			icon: DollarSign,
 			color: "bg-emerald-500",
-			change: "Revenu brut",
+			change: t("dashboard.cards.grossRevenue"),
 			link: "/transporter/statistics",
 		},
 		{
-			title: "Zones de service",
-			value: stats?.serviceAreas?.length || stats?.deliveryZones || "0",
+			title: t("dashboard.cards.serviceAreas"),
+			value: (typeof stats?.serviceAreas === "number" ?
+				stats.serviceAreas
+			:	stats?.serviceAreas?.length || stats?.deliveryZones || 0
+			).toString(),
 			icon: MapPin,
 			color: "bg-indigo-500",
-			change: "Zones couvertes",
+			change: t("dashboard.cards.areasCovered"),
 			link: "/transporter/profile",
 		},
 		{
-			title: "Note Moyenne",
+			title: t("dashboard.cards.averageRating"),
 			value: `${stats?.averageRating ? Number(stats?.averageRating).toFixed(1) : "0.0"}/5`,
 			icon: Star,
 			color: "bg-yellow-500",
-			change: `${stats?.totalReviews || 0} avis`,
-			link: "/transporter/reviews",
+			change: t("dashboard.cards.reviews", { count: stats?.totalReviews || 0 }),
+			link: "/transporter/profile",
 		},
 	];
 
-	return <StatCards statCards={statCards} />;
+	return <StatCards statCards={statCards} loading={loading && !stats} />;
 };
 
 export default TransporterStatsOverview;

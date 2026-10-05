@@ -1,8 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 import VehicleImageUpload from "../../../components/vehicles/VehicleImageUpload";
 import VehicleCapacity from "../../../components/vehicles/VehicleCapacity";
+import LoadingSpinner from "../../../components/common/LoadingSpinner";
 import { FiTruck, FiArrowLeft, FiSave } from "react-icons/fi";
 import { useAddVehicle } from "../../../hooks/useAddVehicle";
 import {
@@ -11,6 +13,7 @@ import {
 } from "../../../utils/vehicleConstants";
 
 const AddVehicle = () => {
+	const { t } = useTranslation("dashboard-transporter");
 	const navigate = useNavigate();
 	const {
 		loading,
@@ -27,7 +30,7 @@ const AddVehicle = () => {
 	} = useAddVehicle("transporter");
 
 	return (
-		<div className="min-h-screen md:pl-3 pb-20 relative overflow-hidden bg-gray-50/30">
+		<div className="dashboard-page bg-gray-50/30">
 			{/* Background radial glows */}
 			<div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
 				<div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-indigo-100/30 rounded-full blur-[120px]"></div>
@@ -35,14 +38,14 @@ const AddVehicle = () => {
 				<div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-purple-100/20 rounded-full blur-[120px]"></div>
 			</div>
 
-			<div className="relative z-10 p-4 md:p-6 max-w-5xl mx-auto space-y-8">
+			<div className="dashboard-container space-y-8">
 				{/* Back Button */}
 				<button
 					onClick={() => navigate(-1)}
 					className="group inline-flex items-center text-[10px] font-black uppercase tracking-widest text-gray-600 hover:text-indigo-600 transition-colors"
 				>
 					<FiArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-					RETOUR À LA FLOTTE
+					{t("vehicle.form.backToFleet")}
 				</button>
 
 				{/* Header Section */}
@@ -50,17 +53,16 @@ const AddVehicle = () => {
 					<div>
 						<div className="flex items-center gap-2 text-indigo-600 font-black text-[10px] uppercase tracking-[0.2em] mb-2">
 							<div className="w-5 h-[2px] bg-indigo-600"></div>
-							<span>Unités Logistiques</span>
+							<span>{t("vehicle.form.addEyebrow")}</span>
 						</div>
 						<h1 className="text-3xl font-[1000] text-gray-900 tracking-tighter leading-none mb-2">
-							Ajouter un{" "}
+							{t("vehicle.form.addTitleStart")}{" "}
 							<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-500 italic">
-								Véhicule.
+								{t("vehicle.form.addTitleHighlight")}
 							</span>
 						</h1>
 						<p className="text-xs text-gray-500 font-medium max-w-xl">
-							Enregistrez une nouvelle unité pour étendre vos capacités de
-							livraison locale.
+							{t("vehicle.form.addSubtitle")}
 						</p>
 					</div>
 				</div>
@@ -73,7 +75,7 @@ const AddVehicle = () => {
 					<div className="lg:col-span-1 space-y-6">
 						<div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-[2.5rem] p-6 shadow-xl shadow-indigo-900/5">
 							<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-6 px-2">
-								Visuel du véhicule
+								{t("vehicle.form.image")}
 							</h3>
 							<VehicleImageUpload
 								vehicleImage={vehicleImage}
@@ -87,12 +89,12 @@ const AddVehicle = () => {
 
 						<div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-[2.5rem] p-6 shadow-xl shadow-indigo-900/5">
 							<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-6 px-2">
-								Disponibilité & État
+								{t("vehicle.form.availabilityAndCondition")}
 							</h3>
 							<div className="space-y-4 px-2">
 								<div>
 									<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2">
-										État Général
+										{t("vehicle.form.generalCondition")}
 									</label>
 									<select
 										name="condition"
@@ -100,10 +102,13 @@ const AddVehicle = () => {
 										onChange={handleInputChange}
 										className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
 									>
-										<option value="excellent">Excellent</option>
-										<option value="good">Bon</option>
-										<option value="fair">Moyen</option>
-										<option value="needs-maintenance">Entretien requis</option>
+										{["excellent", "good", "fair", "needs-maintenance"].map(
+											(condition) => (
+												<option key={condition} value={condition}>
+													{t(`vehicle.conditions.${condition}`)}
+												</option>
+											),
+										)}
 									</select>
 								</div>
 								<div className="flex items-center gap-3 p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
@@ -119,7 +124,7 @@ const AddVehicle = () => {
 										htmlFor="isAvailable"
 										className="text-xs font-bold text-indigo-900"
 									>
-										Prêt pour le service
+										{t("vehicle.form.readyForService")}
 									</label>
 								</div>
 							</div>
@@ -130,13 +135,13 @@ const AddVehicle = () => {
 					<div className="lg:col-span-2 space-y-6">
 						<div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-[2.5rem] p-8 shadow-xl shadow-indigo-900/5">
 							<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-8 px-2">
-								Informations Techniques
+								{t("vehicle.form.technicalInfo")}
 							</h3>
 
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-2">
 								<div className="space-y-2">
 									<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest">
-										Type de Véhicule <span className="text-red-500">*</span>
+										{t("vehicle.form.vehicleType")} <span className="text-red-500">*</span>
 									</label>
 									<select
 										name="vehicleType"
@@ -145,10 +150,10 @@ const AddVehicle = () => {
 										required
 										className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-inner"
 									>
-										<option value="">Sélectionnez un type</option>
+										<option value="">{t("vehicle.form.selectType")}</option>
 										{transporterVehicleTypes.map((type) => (
 											<option key={type.value} value={type.value}>
-												{type.label}
+												{t(`vehicle.types.${type.value}`, { defaultValue: type.label })}
 											</option>
 										))}
 									</select>
@@ -161,14 +166,14 @@ const AddVehicle = () => {
 
 								<div className="space-y-2">
 									<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest">
-										ID / Immatriculation
+										{t("vehicle.form.registration")}
 									</label>
 									<input
 										type="text"
 										name="registrationNumber"
 										value={formData.registrationNumber}
 										onChange={handleInputChange}
-										placeholder="EX: LT-2024-X"
+										placeholder={t("vehicle.form.registrationPlaceholder")}
 										className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-inner"
 									/>
 								</div>
@@ -182,7 +187,7 @@ const AddVehicle = () => {
 
 								<div className="md:col-span-2 pt-4 border-t border-gray-100/50">
 									<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-4">
-										Équipements & Spécificités
+										{t("vehicle.form.equipment")}
 									</label>
 									<div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
 										{specialFeaturesOptions.map((feature) => (
@@ -205,7 +210,9 @@ const AddVehicle = () => {
 													className="sr-only"
 												/>
 												<span className="text-[10px] font-black uppercase tracking-tight">
-													{feature.label}
+													{t(`vehicle.features.${feature.value}`, {
+														defaultValue: feature.label,
+													})}
 												</span>
 											</label>
 										))}
@@ -215,7 +222,7 @@ const AddVehicle = () => {
 								<div className="md:col-span-2 pt-6 border-t border-gray-100/50 flex flex-col md:flex-row gap-4">
 									<div className="flex-1 space-y-2">
 										<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest text-center md:text-left">
-											Dernière Maintenance
+											{t("vehicle.form.lastMaintenance")}
 										</label>
 										<input
 											type="date"
@@ -227,7 +234,7 @@ const AddVehicle = () => {
 									</div>
 									<div className="flex-1 space-y-2">
 										<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest text-center md:text-left">
-											Prochain RDV
+											{t("vehicle.form.nextMaintenance")}
 										</label>
 										<input
 											type="date"
@@ -255,7 +262,7 @@ const AddVehicle = () => {
 									onClick={() => navigate(-1)}
 									className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-gray-600 hover:text-gray-900 transition-colors"
 								>
-									Annuler
+									{t("vehicle.form.cancel")}
 								</button>
 								<button
 									type="submit"
@@ -267,7 +274,7 @@ const AddVehicle = () => {
 									:	<>
 											<FiSave className="w-4 h-4 mr-2 text-white/50 group-hover:text-white transition-colors" />
 											<span className="text-[10px] font-black uppercase tracking-widest text-white">
-												Enregistrer le véhicule
+												{t("vehicle.form.save")}
 											</span>
 										</>
 									}

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
 	ResponsiveContainer,
 	BarChart,
@@ -10,8 +11,11 @@ import {
 	YAxis,
 	Tooltip,
 } from "recharts";
+import { formatMonthCode } from "../../utils/i18n";
+import { formatPrice } from "../../utils/currencyUtils";
 
 const SalesChart = ({ data, type = "line", color = "green" }) => {
+	const { t, i18n } = useTranslation("common");
 	const themeColors = {
 		green: {
 			stroke: "#22C55E",
@@ -39,29 +43,19 @@ const SalesChart = ({ data, type = "line", color = "green" }) => {
 				<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-indigo-400 to-blue-500"></div>
 				<div className="p-4 border-b border-gray-100 flex items-center justify-between relative z-10">
 					<div className="flex items-center justify-center h-64 bg-harvests-light rounded-lg w-full">
-						<p className="text-gray-500">Aucune donnée disponible</p>
+						<p className="text-gray-500">{t("dashboardWidgets.noData")}</p>
 					</div>
 				</div>
 			</div>
 		);
 	}
 
-	const formatCurrency = (value) => {
-		return new Intl.NumberFormat("fr-FR", {
-			style: "currency",
-			currency: "XAF",
-			minimumFractionDigits: 0,
-		}).format(value);
-	};
-
-	const formatMonth = (month) => {
-		const [year, monthNum] = month.split("-");
-		const date = new Date(year, monthNum - 1);
-		return date.toLocaleDateString("fr-FR", {
-			month: "short",
-			year: "2-digit",
-		});
-	};
+	// Montants en FCFA (devise de stockage des commandes), même format que le
+	// reste du site ; mois « AAAA-MM » dans la langue courante (Jour 49)
+	const formatCurrency = (value) => formatPrice(value, "XOF");
+	const formatMonth = (month) => formatMonthCode(month, i18n.language);
+	const seriesLabel = (name) =>
+		name === "sales" ? t("dashboardWidgets.sales") : t("dashboardWidgets.orders");
 
 	if (type === "bar") {
 		return (
@@ -85,11 +79,11 @@ const SalesChart = ({ data, type = "line", color = "green" }) => {
 					<Tooltip
 						formatter={(value, name) => [
 							name === "sales" ? formatCurrency(value) : value,
-							name === "sales" ? "Ventes" : "Commandes",
+							seriesLabel(name),
 						]}
 						labelFormatter={(label) => formatMonth(label)}
 					/>
-					<Bar dataKey="sales" fill={currentColor.fill} name="Ventes" />
+					<Bar dataKey="sales" fill={currentColor.fill} name="sales" />
 				</BarChart>
 			</ResponsiveContainer>
 		);
@@ -140,7 +134,7 @@ const SalesChart = ({ data, type = "line", color = "green" }) => {
 					}}
 					formatter={(value, name) => [
 						name === "sales" ? formatCurrency(value) : value,
-						name === "sales" ? "VENTES" : "COMMANDES",
+						seriesLabel(name).toUpperCase(),
 					]}
 					labelFormatter={(label) => formatMonth(label)}
 				/>

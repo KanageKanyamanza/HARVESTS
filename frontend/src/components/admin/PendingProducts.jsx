@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { Package, Clock, User, MapPin } from "lucide-react";
 import CloudinaryImage from "../common/CloudinaryImage";
 
-const PendingProducts = ({ products = [] }) => {
+// loading : l'en-tête reste affiché, seule la liste (serveur) attend
+const PendingProducts = ({ products = [], loading = false }) => {
 	const formatCurrency = (amount) => {
 		return new Intl.NumberFormat("fr-FR", {
 			style: "currency",
@@ -20,7 +21,7 @@ const PendingProducts = ({ products = [] }) => {
 		});
 	};
 
-	if (products.length === 0) {
+	if (!loading && products.length === 0) {
 		return (
 			<div className="bg-white/70 backdrop-blur-xl rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white/60 p-6 text-center">
 				<div className="bg-gray-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -56,7 +57,17 @@ const PendingProducts = ({ products = [] }) => {
 			</div>
 
 			<div className="p-2 space-y-2 flex-1 overflow-auto relative z-10">
-				{products.map((product) => (
+				{loading ?
+					[1, 2, 3].map((i) => (
+						<div key={i} className="p-2.5 flex items-center gap-3 animate-pulse">
+							<div className="w-10 h-10 rounded-xl bg-gray-100 flex-shrink-0" />
+							<div className="flex-1 space-y-2">
+								<div className="h-3 bg-gray-100 rounded w-1/2" />
+								<div className="h-2.5 bg-gray-100 rounded w-1/3" />
+							</div>
+						</div>
+					))
+				:	products.map((product) => (
 					<div
 						key={product._id}
 						className="group p-2.5 rounded-[1rem] border border-transparent hover:border-gray-100 hover:bg-white hover:shadow-[0_20px_50px_rgba(0,0,0,0.04)] transition-all duration-500 cursor-pointer bg-white/40"

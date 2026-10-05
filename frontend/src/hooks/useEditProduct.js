@@ -24,7 +24,14 @@ const BILINGUAL_FIELDS = ["name", "description"];
  * texte anglais comme `fr`). Les erreurs de validation sont des clés du
  * namespace dashboard-producer, traduites à l'affichage.
  */
-export const useEditProduct = () => {
+// Jour 51 : paramétrable pour être partagé par le producteur et le
+// transformateur (useEditProductTransformer), qui avait une copie divergente
+// sans les corrections du Jour 48.
+export const useEditProduct = ({
+	service = producerService,
+	listPath = "/producer/products",
+	defaultUnit = "kg",
+} = {}) => {
 	const { t, i18n } = useTranslation("dashboard-producer");
 	const { id } = useParams();
 	const navigate = useNavigate();
@@ -49,7 +56,7 @@ export const useEditProduct = () => {
 		price: "",
 		stock: "",
 		category: "",
-		unit: "kg",
+		unit: defaultUnit,
 		currency: DEFAULT_CURRENCY,
 		status: "draft",
 		flashSaleIsActive: false,
@@ -68,7 +75,7 @@ export const useEditProduct = () => {
 		const loadProduct = async () => {
 			try {
 				setLoading(true);
-				const response = await producerService.getProduct(id);
+				const response = await service.getProduct(id);
 				const productData =
 					response.data.data?.product || response.data.product || response.data;
 
@@ -112,9 +119,12 @@ export const useEditProduct = () => {
 						nameAlt: texts.name[alt],
 						descriptionAlt: texts.description[alt],
 						price: formattedProduct.price || "",
-						stock: formattedProduct.inventory?.quantity || "",
+						stock:
+							formattedProduct.inventory?.quantity ||
+							formattedProduct.stock ||
+							"",
 						category: formattedProduct.category || "",
-						unit: formattedProduct.unit || "kg",
+						unit: formattedProduct.unit || defaultUnit,
 						currency: formattedProduct.currency || DEFAULT_CURRENCY,
 						status: formattedProduct.status || "draft",
 						flashSaleIsActive: formattedProduct.flashSale?.isActive || false,
@@ -286,8 +296,8 @@ export const useEditProduct = () => {
 				}
 			};
 
-			await producerService.updateProduct(id, productData);
-			navigate("/producer/products");
+			await service.updateProduct(id, productData);
+			navigate(listPath);
 		} catch (error) {
 			console.error("Erreur lors de la modification du produit:", error);
 

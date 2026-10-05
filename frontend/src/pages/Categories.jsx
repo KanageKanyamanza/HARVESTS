@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { productService } from '../services';
 import CloudinaryImage from '../components/common/CloudinaryImage';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import CardGridSkeleton from '../components/common/CardGridSkeleton';
 import SEOHead from '../components/seo/SEOHead';
 import { toPlainText } from '../utils/textHelpers';
 import { 
@@ -113,14 +113,6 @@ const Categories = () => {
     return label.toLowerCase().includes(term) || description.toLowerCase().includes(term);
   });
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-harvests-light flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-[#F8FAF6] pb-16">
       <SEOHead />
@@ -171,7 +163,9 @@ const Categories = () => {
 
             <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
               <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-                {t('categories.resultCount', { count: filteredCategories.length })}
+                {loading ?
+                  <span className="inline-block h-3 w-20 bg-gray-100 rounded animate-pulse align-middle" />
+                : t('categories.resultCount', { count: filteredCategories.length })}
               </span>
 
               <div className="flex items-center bg-gray-100 p-1 rounded-xl gap-1 border border-gray-200">
@@ -197,7 +191,9 @@ const Categories = () => {
         </div>
 
         {/* Grille / Liste des Catégories */}
-        {error ? (
+        {loading ? (
+          <CardGridSkeleton className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" />
+        ) : error ? (
           <div className="text-center py-16 bg-white rounded-2xl border border-emerald-100 shadow-sm">
             <div className="text-red-600 font-bold mb-4">{error}</div>
             <button onClick={loadCategories} className="px-6 py-2.5 bg-[#1A5514] text-white font-bold rounded-full hover:bg-[#144210]">
