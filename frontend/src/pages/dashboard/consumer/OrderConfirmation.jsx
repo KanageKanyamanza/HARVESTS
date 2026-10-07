@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../hooks/useAuth";
 import {
 	consumerService,
@@ -23,6 +24,7 @@ import { useCurrency } from "../../../contexts/CurrencyContext";
 import { CURRENCIES, DEFAULT_CURRENCY } from "../../../config/currencies";
 
 const OrderConfirmation = () => {
+	const { t } = useTranslation("dashboard-consumer");
 	const { orderId } = useParams();
 	const { user, isAuthenticated } = useAuth();
 	const navigate = useNavigate();
@@ -39,12 +41,12 @@ const OrderConfirmation = () => {
 
 	const fetchOrder = useCallback(async () => {
 		if (!orderId) {
-			setError("ID de commande manquant");
+			setError(t("confirmation.errors.missingId"));
 			setLoading(false);
 			return;
 		}
 		if (!isAuthenticated) {
-			setError("Vous devez être connecté pour voir cette commande");
+			setError(t("confirmation.errors.notLoggedIn"));
 			setLoading(false);
 			return;
 		}
@@ -70,16 +72,18 @@ const OrderConfirmation = () => {
 			response = await orderService.getOrder(orderId);
 			if (response.data.status === "success")
 				setOrder(response.data.data?.order || response.data.order);
-			else setError("Commande non trouvée");
+			else setError(t("confirmation.errors.notFound"));
 		} catch (error) {
-			if (error.response?.status === 404) setError("Commande introuvable");
+			if (error.response?.status === 404) setError(t("confirmation.errors.notFound"));
 			else if (error.response?.status === 403)
-				setError("Vous n'avez pas l'autorisation de voir cette commande");
-			else setError("Erreur lors du chargement de la commande");
+				setError(t("confirmation.errors.forbidden"));
+			else setError(t("confirmation.errors.loadError"));
 		} finally {
 			setLoading(false);
 			setPaymentProcessing(false);
 		}
+		// `t` exclu : changer de langue ne doit pas recharger la commande
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [orderId, isAuthenticated, user]);
 
 	useEffect(() => {
@@ -88,7 +92,7 @@ const OrderConfirmation = () => {
 
 	const handleFallbackPayment = useCallback(async () => {
 		if (!orderKey) {
-			setPaymentError("Commande introuvable.");
+			setPaymentError(t("paypal.orderNotFound"));
 			return;
 		}
 		try {
@@ -116,20 +120,20 @@ const OrderConfirmation = () => {
 				window.location.href = payload.approvalUrl;
 				return;
 			}
-			setPaymentError("Lien PayPal introuvable.");
+			setPaymentError(t("paypal.linkNotFound"));
 		} catch (err) {
 			setPaymentError(
 				err.response?.data?.message ||
 					err.message ||
-					"Erreur lors de l'initiation du paiement."
+					t("paypal.initPaymentError")
 			);
 		} finally {
 			setPaymentProcessing(false);
 		}
-	}, [orderKey]);
+	}, [orderKey, t]);
 
 	const createPayPalOrder = useCallback(async () => {
-		if (!orderKey) throw new Error("Commande introuvable.");
+		if (!orderKey) throw new Error(t("paypal.orderNotFound"));
 		try {
 			setPaymentProcessing(true);
 			setPaymentError(null);
@@ -153,23 +157,23 @@ const OrderConfirmation = () => {
 					paymentId
 				);
 			if (!payload?.paypalOrderId)
-				throw new Error("Identifiant PayPal introuvable.");
+				throw new Error(t("paypal.paypalIdNotFound"));
 			return payload.paypalOrderId;
 		} catch (err) {
 			setPaymentError(
 				err.response?.data?.message ||
 					err.message ||
-					"Impossible de contacter PayPal."
+					t("paypal.contactError")
 			);
 			setPaymentProcessing(false);
 			throw err;
 		}
-	}, [orderKey]);
+	}, [orderKey, t]);
 
 	const handlePayPalApprove = useCallback(
 		async (data) => {
 			if (!orderKey) {
-				setPaymentError("Commande introuvable.");
+				setPaymentError(t("paypal.orderNotFound"));
 				setPaymentProcessing(false);
 				return;
 			}
@@ -177,7 +181,7 @@ const OrderConfirmation = () => {
 				const paymentId =
 					paymentIdRef.current ||
 					sessionStorage.getItem(`harvests_paypal_payment_${orderKey}`);
-				if (!paymentId) throw new Error("Identifiant du paiement introuvable.");
+				if (!paymentId) throw new Error(t("paypal.paymentIdNotFound"));
 				await paymentService.confirmPayment(paymentId, {
 					paypalOrderId: data.orderID,
 				});
@@ -191,25 +195,25 @@ const OrderConfirmation = () => {
 				setPaymentError(
 					err.response?.data?.message ||
 						err.message ||
-						"Erreur lors de la confirmation."
+						t("paypal.confirmError")
 				);
 			} finally {
 				setPaymentProcessing(false);
 			}
 		},
-		[fetchOrder, orderKey, navigate]
+		[fetchOrder, orderKey, navigate, t]
 	);
 
 	const handlePayPalCancel = useCallback(() => {
-		setPaymentError("Paiement annulé. Vous pouvez réessayer.");
+		setPaymentError(t("paypal.cancelled"));
 		setPaymentProcessing(false);
 		if (orderKey) navigate(`/payments/paypal/cancel?orderId=${orderKey}`);
-	}, [navigate, orderKey]);
+	}, [navigate, orderKey, t]);
 
 	const handlePayPalError = useCallback((err) => {
-		setPaymentError(err?.message || "Erreur PayPal inattendue.");
+		setPaymentError(err?.message || t("paypal.unexpectedError"));
 		setPaymentProcessing(false);
-	}, []);
+	}, [t]);
 
 	const handleDownloadInvoice = async () => {
 		if (!orderId) {
@@ -247,7 +251,7 @@ const OrderConfirmation = () => {
 				order?.invoiceNumber ||
 				order?.orderNumber ||
 				`INV-${orderId.substring(0, 8).toUpperCase()}`;
-			link.download = `facture-${invoiceNumber}.pdf`;
+			link.download = t("confirmation.invoiceFile", { number: invoiceNumber });
 
 			// Déclencher le téléchargement
 			document.body.appendChild(link);
@@ -264,13 +268,11 @@ const OrderConfirmation = () => {
 				error
 			);
 			if (error.response?.status === 403) {
-				window.alert("Vous n'avez pas le droit de télécharger cette facture.");
+				window.alert(t("confirmation.errors.invoiceForbidden"));
 			} else if (error.response?.status === 404) {
-				window.alert("Commande non trouvée.");
+				window.alert(t("confirmation.errors.invoiceNotFound"));
 			} else {
-				window.alert(
-					"Une erreur est survenue lors du téléchargement de la facture. Veuillez réessayer."
-				);
+				window.alert(t("confirmation.errors.invoiceError"));
 			}
 		} finally {
 			setLoading(false);
@@ -279,8 +281,8 @@ const OrderConfirmation = () => {
 	const handleShareOrder = () => {
 		if (navigator.share)
 			navigator.share({
-				title: `Commande #${order?.orderNumber}`,
-				text: `Ma commande sur Harvests`,
+				title: t("confirmation.orderNumber", { number: order?.orderNumber }),
+				text: t("confirmation.shareText"),
 				url: window.location.href,
 			});
 		else navigator.clipboard.writeText(window.location.href);
@@ -318,18 +320,18 @@ const OrderConfirmation = () => {
 							<FiShoppingBag className="h-10 w-10 text-[#1A5514]" />
 						</div>
 						<h2 className="text-xl font-extrabold text-[#161D14] mb-2">
-							{error || "Commande introuvable"}
+							{error || t("confirmation.errors.notFound")}
 						</h2>
 						<p className="text-gray-500 mb-6 text-sm">
-							Une erreur est survenue lors du chargement de la commande.
+							{t("confirmation.errors.loadErrorText")}
 						</p>
 						<div className="flex flex-wrap items-center justify-center gap-3">
-							{error === "Vous devez être connecté pour voir cette commande" ? (
+							{!isAuthenticated ? (
 								<button
 									onClick={() => navigate("/login")}
 									className="inline-flex items-center bg-gradient-to-r from-[#1A5514] to-[#31BC2E] text-white px-6 py-3 rounded-full font-bold shadow-lg shadow-emerald-900/20 hover:shadow-xl transition-all"
 								>
-									Se connecter
+									{t("confirmation.errors.login")}
 								</button>
 							) : (
 								<button
@@ -344,7 +346,7 @@ const OrderConfirmation = () => {
 									className="inline-flex items-center bg-gradient-to-r from-[#1A5514] to-[#31BC2E] text-white px-6 py-3 rounded-full font-bold shadow-lg shadow-emerald-900/20 hover:shadow-xl transition-all"
 								>
 									<FiArrowRight className="mr-2 h-5 w-5" />
-									Voir mes commandes
+									{t("confirmation.viewOrders")}
 								</button>
 							)}
 							<button
@@ -352,7 +354,7 @@ const OrderConfirmation = () => {
 								className="inline-flex items-center px-6 py-3 rounded-full font-bold text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors"
 							>
 								<FiHome className="mr-2 h-5 w-5" />
-								Accueil
+								{t("confirmation.home")}
 							</button>
 						</div>
 					</div>

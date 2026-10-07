@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import i18n from "../utils/i18n";
 import { authService, orderService } from "../services";
 import { getCountryName } from "../utils/countryMapper";
 import { CURRENCIES, DEFAULT_CURRENCY } from "../config/currencies";
@@ -306,7 +307,8 @@ export const useCheckout = (user, cartItems) => {
 				if (isMounted) {
 					setEstimation(null);
 					setEstimationError(
-						error.response?.data?.message || "Impossible de calculer les frais."
+						error.response?.data?.message ||
+							i18n.t("checkout.estimateError", { ns: "dashboard-consumer" })
 					);
 				}
 			})

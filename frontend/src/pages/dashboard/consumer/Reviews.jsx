@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
 	FiStar,
 	FiEdit,
@@ -15,9 +16,11 @@ import { reviewService } from "../../../services";
 import CardGridSkeleton from "../../../components/common/CardGridSkeleton";
 import DataValue from "../../../components/common/DataValue";
 import ErrorMessage from "../../../components/common/ErrorMessage";
-import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
+import { formatDate as formatLocalizedDate } from "../../../utils/i18n";
+import { toPlainText } from "../../../utils/textHelpers";
 
 const Reviews = () => {
+	const { t, i18n } = useTranslation("dashboard-consumer");
 	const [reviews, setReviews] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
@@ -46,14 +49,14 @@ const Reviews = () => {
 			setReviews(Array.isArray(reviewsData) ? reviewsData : []);
 		} catch (err) {
 			console.error("Erreur lors du chargement des avis:", err);
-			setError("Impossible de charger vos avis");
+			setError(t("reviews.loadError"));
 		} finally {
 			setLoading(false);
 		}
 	};
 
 	const handleDeleteReview = async (reviewId) => {
-		if (!window.confirm("Êtes-vous sûr de vouloir supprimer cet avis ?")) {
+		if (!window.confirm(t("reviews.confirmDelete"))) {
 			return;
 		}
 
@@ -63,16 +66,11 @@ const Reviews = () => {
 			window.dispatchEvent(new Event("reviewChanged"));
 		} catch (err) {
 			console.error("Erreur lors de la suppression de l'avis:", err);
+			setError(t("reviews.deleteError"));
 		}
 	};
 
-	const formatDate = (dateString) => {
-		return new Date(dateString).toLocaleDateString("fr-FR", {
-			year: "numeric",
-			month: "long",
-			day: "numeric",
-		});
-	};
+	const formatDate = (dateString) => formatLocalizedDate(dateString, i18n.language);
 
 	const renderStars = (rating) => {
 		return Array.from({ length: 5 }, (_, index) => (
@@ -101,25 +99,27 @@ const Reviews = () => {
 					<div className="space-y-3">
 						<div className="flex items-center gap-2 text-blue-600 font-black text-[9px] uppercase tracking-widest mb-2">
 							<div className="w-5 h-[2px] bg-blue-600 rounded-full"></div>
-							<span>Feedback</span>
+							<span>{t("reviews.eyebrow")}</span>
 						</div>
 						<h1 className="text-3xl font-[1000] text-gray-900 tracking-tighter leading-none mb-2">
-							Mes{" "}
+							{t("reviews.titleStart")}{" "}
 							<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-sky-500 italic">
-								Avis.
+								{t("reviews.titleHighlight")}
 							</span>
 						</h1>
 						<p className="text-xs text-gray-500 font-medium max-w-xl">
-							Retrouvez tous les retours que vous avez partagés avec nos
-							producteurs.{" "}
-							<DataValue loading={loading} className="w-4 h-[0.9em]">{reviews.length}</DataValue> avis publié
-							{reviews.length > 1 ? "s" : ""}.
+							{t("reviews.subtitle")}{" "}
+							<DataValue loading={loading} className="w-16 h-[0.9em]">
+								{t("reviews.publishedCount", { count: reviews.length })}
+							</DataValue>
 						</p>
 					</div>
 
 					<div className="flex items-center gap-3">
 						<button
 							onClick={loadReviews}
+							title={t("reviews.refresh")}
+							aria-label={t("reviews.refresh")}
 							className="w-12 h-12 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/60 shadow-sm flex items-center justify-center text-gray-500 hover:text-blue-600 transition-colors group"
 						>
 							<FiRefreshCw className="w-4 h-4 group-active:rotate-180 transition-transform duration-500" />
@@ -143,17 +143,16 @@ const Reviews = () => {
 								<FiMessageSquare className="w-10 h-10" />
 							</div>
 							<h3 className="text-2xl font-[1000] text-gray-900 tracking-tight mb-2">
-								Aucun avis pour le moment
+								{t("reviews.emptyTitle")}
 							</h3>
 							<p className="text-gray-500 font-medium mb-8 max-w-sm mx-auto">
-								Partagez votre expérience sur les produits que vous avez achetés
-								pour aider la communauté.
+								{t("reviews.emptyText")}
 							</p>
 							<Link
 								to="/consumer/orders"
 								className="inline-flex items-center px-10 py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-200"
 							>
-								Donner mon avis
+								{t("reviews.giveReview")}
 							</Link>
 						</div>
 					:	<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -176,20 +175,19 @@ const Reviews = () => {
 											</div>
 											<div>
 												<h4 className="text-sm font-[1000] text-gray-900 leading-tight mb-0.5 line-clamp-1">
-													{review.product?.name?.fr ||
-														review.product?.name?.en ||
-														review.product?.name ||
-														"Produit inconnu"}
+													{toPlainText(review.product?.name, t("reviews.unknownProduct"))}
 												</h4>
 												<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
 													{review.producer?.farmName ||
 														review.transformer?.companyName ||
-														"Harvests Seller"}
+														t("reviews.seller")}
 												</p>
 											</div>
 										</div>
 										<button
 											onClick={() => handleDeleteReview(review._id)}
+											title={t("reviews.delete")}
+											aria-label={t("reviews.delete")}
 											className="w-8 h-8 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-500 hover:text-white"
 										>
 											<FiTrash2 className="w-4 h-4" />
@@ -206,7 +204,7 @@ const Reviews = () => {
 												{review.rating}.0
 											</span>
 										</div>
-										"{review.comment || "Aucun commentaire laissé."}"
+										"{review.comment || t("reviews.noComment")}"
 									</div>
 
 									{/* Footer */}
@@ -223,7 +221,7 @@ const Reviews = () => {
 											to={`/products/${review.product?.slug || review.product?._id}`}
 											className="flex items-center gap-1.5 text-[9px] font-black text-blue-600 uppercase tracking-widest hover:translate-x-1 transition-transform"
 										>
-											Acheter à nouveau <FiArrowRight className="w-3 h-3" />
+											{t("reviews.buyAgain")} <FiArrowRight className="w-3 h-3" />
 										</Link>
 									</div>
 								</div>

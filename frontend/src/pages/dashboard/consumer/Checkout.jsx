@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../hooks/useAuth";
 import { useCart } from "../../../contexts/CartContext";
 import { useCheckout } from "../../../hooks/useCheckout";
@@ -19,6 +20,7 @@ import { FiArrowLeft, FiShoppingBag } from "react-icons/fi";
 import { DEFAULT_CURRENCY } from "../../../config/currencies";
 
 const Checkout = () => {
+	const { t } = useTranslation("dashboard-consumer");
 	const { user } = useAuth();
 	const { items: cartItems, clearCart, removeFromCart } = useCart();
 	const navigate = useNavigate();
@@ -73,9 +75,7 @@ const Checkout = () => {
 						item.originType || "product"
 					)
 				);
-				window.alert(
-					"Certains articles ne sont plus disponibles et ont été retirés."
-				);
+				window.alert(t("checkout.unavailableItems"));
 				if (validCartItems.length === 0) {
 					setSubmitting(false);
 					return;
@@ -177,11 +177,9 @@ const Checkout = () => {
 				error.response?.data?.code === "EMAIL_VERIFICATION_REQUIRED"
 			) {
 				const message =
-					error.response.data.message || "Vérification d'email requise";
+					error.response.data.message || t("checkout.emailRequired");
 				console.warn("🛒 [Checkout] Email non vérifié");
-				window.alert(
-					`${message}\n\nVeuillez vérifier votre email pour pouvoir passer une commande.`
-				);
+				window.alert(`${message}\n\n${t("checkout.emailRequiredHint")}`);
 				// Optionnel : rediriger vers la page de vérification d'email
 				// navigate('/verify-email');
 			} else if (error.response?.data?.message) {
@@ -189,15 +187,13 @@ const Checkout = () => {
 					"🛒 [Checkout] Erreur du serveur:",
 					error.response.data.message
 				);
-				window.alert(`Erreur : ${error.response.data.message}`);
+				window.alert(t("checkout.errorPrefix", { message: error.response.data.message }));
 			} else if (error.message) {
 				console.error("🛒 [Checkout] Erreur:", error.message);
-				window.alert(`Erreur : ${error.message}`);
+				window.alert(t("checkout.errorPrefix", { message: error.message }));
 			} else {
 				console.error("🛒 [Checkout] Erreur inconnue");
-				window.alert(
-					"Une erreur est survenue lors de la création de la commande. Veuillez réessayer."
-				);
+				window.alert(t("checkout.genericError"));
 			}
 		} finally {
 			setSubmitting(false);
@@ -215,17 +211,17 @@ const Checkout = () => {
 							<FiShoppingBag className="h-10 w-10 text-[#1A5514]" />
 						</div>
 						<h2 className="text-xl font-extrabold text-[#161D14] mb-2">
-							Votre panier est vide
+							{t("checkout.emptyTitle")}
 						</h2>
 						<p className="text-gray-500 mb-6 text-sm">
-							Ajoutez des produits avant de passer commande
+							{t("checkout.emptyText")}
 						</p>
 						<button
 							onClick={() => navigate("/cart")}
 							className="inline-flex items-center bg-gradient-to-r from-[#1A5514] to-[#31BC2E] text-white px-8 py-3 rounded-full font-bold shadow-lg shadow-emerald-900/20 hover:shadow-xl transition-all"
 						>
 							<FiArrowLeft className="mr-2 h-5 w-5" />
-							Retour au panier
+							{t("checkout.backToCart")}
 						</button>
 					</div>
 				</div>
@@ -240,17 +236,18 @@ const Checkout = () => {
 				<div className="flex items-center gap-3 mb-6">
 					<button
 						onClick={() => navigate("/cart")}
+						title={t("checkout.backToCart")}
+						aria-label={t("checkout.backToCart")}
 						className="p-2 text-gray-600 hover:text-gray-900 hover:bg-white rounded-full transition-colors"
 					>
 						<FiArrowLeft className="h-5 w-5" />
 					</button>
 					<div>
 						<h1 className="text-xl sm:text-2xl font-extrabold text-[#161D14]">
-							Finaliser la commande
+							{t("checkout.title")}
 						</h1>
 						<p className="text-xs sm:text-sm text-gray-500 font-medium">
-							Étape {currentStep} sur 3 • {cartItems.length} article
-							{cartItems.length > 1 ? "s" : ""}
+							{t("checkout.stepInfo", { step: currentStep, count: cartItems.length })}
 						</p>
 					</div>
 				</div>
@@ -282,7 +279,7 @@ const Checkout = () => {
 								disabled={currentStep === 1}
 								className="px-6 py-2.5 border border-gray-200 rounded-full text-sm font-bold text-gray-600 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 							>
-								Précédent
+								{t("checkout.previous")}
 							</button>
 
 							{currentStep < 3 ? (
@@ -291,7 +288,7 @@ const Checkout = () => {
 									disabled={!validateStep(currentStep)}
 									className="px-6 py-2.5 bg-gradient-to-r from-[#1A5514] to-[#31BC2E] text-white rounded-full text-sm font-bold shadow-lg shadow-emerald-900/20 hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
 								>
-									Suivant
+									{t("checkout.next")}
 								</button>
 							) : (
 								<button
@@ -307,10 +304,10 @@ const Checkout = () => {
 									{submitting ? (
 										<>
 											<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-											Création...
+											{t("checkout.creating")}
 										</>
 									) : (
-										"Confirmer la commande"
+										t("checkout.confirm")
 									)}
 								</button>
 							)}

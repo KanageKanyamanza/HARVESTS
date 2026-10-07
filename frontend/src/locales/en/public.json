@@ -526,7 +526,7 @@
           },
           {
             "q": "What are the delivery fees?",
-            "a": "Delivery fees are calculated based on distance and weight. They are free for any order over 50,000 FCFA (depending on the partner's plan)."
+            "a": "Delivery fees are not charged by Harvests: they are set and paid directly to the courier when you receive your order."
           },
           {
             "q": "What are the delivery times?",

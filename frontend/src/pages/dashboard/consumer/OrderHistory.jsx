@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../hooks/useAuth";
 import { consumerService } from "../../../services";
-import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 import OrderList from "../../../components/orders/OrderList";
 import {
 	FiShoppingBag,
@@ -16,7 +15,19 @@ import {
 	FiTrendingUp,
 } from "react-icons/fi";
 
+// Statuts proposés au filtre (libellés : common.orderStatus)
+const STATUS_FILTERS = [
+	"pending",
+	"confirmed",
+	"processing",
+	"shipped",
+	"delivered",
+	"completed",
+	"cancelled",
+];
+
 const OrderHistory = () => {
+	const { t } = useTranslation(["dashboard-consumer", "common"]);
 	const { user } = useAuth();
 	const [orders, setOrders] = useState([]);
 	const [loading, setLoading] = useState(true);
@@ -90,17 +101,16 @@ const OrderHistory = () => {
 					<div className="space-y-3">
 						<div className="flex items-center gap-3 text-blue-600 font-black text-[10px] uppercase tracking-[0.3em]">
 							<div className="w-8 h-[2px] bg-blue-600 rounded-full"></div>
-							<span>Journal d'Achat</span>
+							<span>{t("orders.eyebrow")}</span>
 						</div>
 						<h1 className="text-4xl md:text-5xl font-[1000] text-gray-900 tracking-tighter leading-[0.9] mb-2">
-							Historique des{" "}
+							{t("orders.titleStart")}{" "}
 							<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-sky-500 italic">
-								Achats.
+								{t("orders.titleHighlight")}
 							</span>
 						</h1>
 						<p className="text-gray-500 font-medium max-w-xl text-base">
-							Gérez vos commandes, suivez vos livraisons et retrouvez vos
-							factures en quelques clics.
+							{t("orders.subtitle")}
 						</p>
 					</div>
 
@@ -111,7 +121,7 @@ const OrderHistory = () => {
 						<FiRefreshCw
 							className={`w-4 h-4 mr-3 transition-transform group-hover:rotate-180 duration-500 ${loading ? "animate-spin" : ""}`}
 						/>
-						Synchroniser
+						{t("orders.refresh")}
 					</button>
 				</div>
 
@@ -119,25 +129,25 @@ const OrderHistory = () => {
 				<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 animate-fade-in-up delay-100">
 					{[
 						{
-							label: "Total Commandes",
+							label: t("orders.total"),
 							value: stats.total,
 							icon: FiShoppingBag,
 							color: "blue",
 						},
 						{
-							label: "En attente",
+							label: t("orders.pending"),
 							value: stats.pending,
 							icon: FiClock,
 							color: "amber",
 						},
 						{
-							label: "Livrées",
+							label: t("orders.delivered"),
 							value: stats.delivered,
 							icon: FiCheckCircle,
 							color: "cyan",
 						},
 						{
-							label: "Annulées",
+							label: t("orders.cancelled"),
 							value: stats.cancelled,
 							icon: FiXCircle,
 							color: "rose",
@@ -183,7 +193,7 @@ const OrderHistory = () => {
 							</div>
 							<input
 								type="text"
-								placeholder="Rechercher par numéro de commande, produit..."
+								placeholder={t("orders.searchPlaceholder")}
 								value={searchTerm}
 								onChange={(e) => setSearchTerm(e.target.value)}
 								className="block w-full pl-12 pr-6 py-4 bg-white/70 backdrop-blur-xl border border-white/60 rounded-[1.8rem] text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/50 transition-all shadow-sm hover:bg-white"
@@ -199,14 +209,12 @@ const OrderHistory = () => {
 								onChange={(e) => setFilter(e.target.value)}
 								className="block w-full pl-12 pr-12 py-4 bg-white/70 backdrop-blur-xl border border-white/60 rounded-[1.8rem] text-xs font-black uppercase tracking-widest text-gray-700 focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/50 transition-all shadow-sm cursor-pointer appearance-none hover:bg-white"
 							>
-								<option value="all">Tous les statuts</option>
-								<option value="pending">En attente</option>
-								<option value="confirmed">Confirmées</option>
-								<option value="processing">Préparation</option>
-								<option value="shipped">Expédiées</option>
-								<option value="delivered">Livrées</option>
-								<option value="completed">Terminées</option>
-								<option value="cancelled">Annulées</option>
+								<option value="all">{t("orders.allStatuses")}</option>
+								{STATUS_FILTERS.map((status) => (
+									<option key={status} value={status}>
+										{t(`common:orderStatus.${status}`)}
+									</option>
+								))}
 							</select>
 							<div className="absolute inset-y-0 right-0 pr-6 flex items-center pointer-events-none">
 								<svg

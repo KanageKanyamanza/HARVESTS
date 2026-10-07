@@ -1,4 +1,6 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
+import { toPlainText } from "../../utils/textHelpers";
 import { FiShoppingBag, FiShield } from "react-icons/fi";
 import CloudinaryImage from "../common/CloudinaryImage";
 import { formatPrice, convertPrice } from "../../utils/currencyUtils";
@@ -8,12 +10,13 @@ import { DEFAULT_CURRENCY } from "../../config/currencies";
 
 
 const OrderSummary = ({ cartItems, totals }) => {
+	const { t } = useTranslation("dashboard-consumer");
 	const { currency } = useCurrency();
 
 	return (
 		<div className="bg-white rounded-2xl shadow-agri-card border border-emerald-100/80 p-5 sm:p-6 sticky top-6">
 			<h2 className="font-extrabold text-[#161D14] mb-5">
-				Résumé de la commande
+				{t("checkout.summary.title")}
 			</h2>
 
 			{/* Cart Items */}
@@ -27,7 +30,7 @@ const OrderSummary = ({ cartItems, totals }) => {
 							{item.image ? (
 								<CloudinaryImage
 									src={item.image}
-									alt={item.name}
+									alt={toPlainText(item.name, "")}
 									className="h-full w-full object-contain mix-blend-multiply"
 									width={48}
 									height={48}
@@ -38,9 +41,9 @@ const OrderSummary = ({ cartItems, totals }) => {
 						</div>
 						<div className="flex-1 min-w-0">
 							<p className="text-sm font-bold text-[#161D14] truncate">
-								{item.name}
+								{toPlainText(item.name, "")}
 							</p>
-							<p className="text-xs text-gray-500">x {item.quantity}</p>
+							<p className="text-xs text-gray-500">× {item.quantity}</p>
 						</div>
 						<p className="text-sm font-extrabold text-[#1A5514]">
 							{formatPrice(
@@ -59,7 +62,7 @@ const OrderSummary = ({ cartItems, totals }) => {
 			{/* Price Breakdown */}
 			<div className="space-y-2.5 text-sm text-gray-600 mb-2">
 				<div className="flex justify-between">
-					<span>Sous-total</span>
+					<span>{t("checkout.summary.subtotal")}</span>
 					<span className="font-bold text-[#161D14]">
 						{formatPrice(
 							convertPrice(totals.subtotal, DEFAULT_CURRENCY, currency),
@@ -70,7 +73,7 @@ const OrderSummary = ({ cartItems, totals }) => {
 
 				{totals.taxes > 0 && (
 					<div className="flex justify-between">
-						<span>TVA</span>
+						<span>{t("checkout.summary.vat")}</span>
 						<span className="font-bold text-[#161D14]">
 							{formatPrice(
 								convertPrice(totals.taxes, DEFAULT_CURRENCY, currency),
@@ -82,7 +85,7 @@ const OrderSummary = ({ cartItems, totals }) => {
 
 				{totals.discount > 0 && (
 					<div className="flex justify-between">
-						<span className="text-emerald-600">Réduction</span>
+						<span className="text-emerald-600">{t("checkout.summary.discount")}</span>
 						<span className="font-bold text-emerald-600">
 							-
 							{formatPrice(
@@ -95,7 +98,7 @@ const OrderSummary = ({ cartItems, totals }) => {
 			</div>
 
 			<div className="flex justify-between items-center py-4 border-t border-gray-100">
-				<span className="font-extrabold text-[#161D14]">Total</span>
+				<span className="font-extrabold text-[#161D14]">{t("checkout.summary.total")}</span>
 				<span className="font-extrabold text-xl text-[#1A5514]">
 					{formatPrice(
 						convertPrice(totals.total, DEFAULT_CURRENCY, currency),
@@ -104,18 +107,18 @@ const OrderSummary = ({ cartItems, totals }) => {
 				</span>
 			</div>
 
-			{/* Livraison gratuite (frais retirés) */}
+			{/* La livraison est facturée par le livreur, pas par Harvests */}
 			<p className="text-[10px] text-gray-400 text-right -mt-2 mb-4 italic uppercase font-bold tracking-tighter">
-				Livraison offerte par Harvests
+				{t("checkout.summary.deliveryToCourier")}
 			</p>
 
 			{/* Security Info */}
 			<div className="flex items-center gap-4 pt-4 border-t border-gray-100 text-[10px] text-gray-400 font-semibold">
 				<span className="flex items-center gap-1.5">
 					<FiShield className="h-3.5 w-3.5 text-emerald-500" />
-					Paiement sécurisé
+					{t("checkout.summary.securePayment")}
 				</span>
-				<span>Livraison garantie</span>
+				<span>{t("checkout.summary.guaranteedDelivery")}</span>
 			</div>
 		</div>
 	);

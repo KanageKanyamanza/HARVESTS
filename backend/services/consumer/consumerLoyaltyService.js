@@ -7,7 +7,9 @@ const Order = require('../../models/Order');
  */
 
 async function getLoyaltyStatus(consumerId) {
-  const consumer = await Consumer.findById(consumerId).select('loyaltyPoints loyaltyTier');
+  // Jour 54 : les points sont rangés dans loyaltyProgram (models/Consumer.js) ;
+  // loyaltyPoints / loyaltyTier n'existent pas (toujours 0 point, niveau bronze)
+  const consumer = await Consumer.findById(consumerId).select('loyaltyProgram');
   if (!consumer) {
     throw new Error('Consommateur non trouvé');
   }
@@ -23,8 +25,8 @@ async function getLoyaltyStatus(consumerId) {
   ]);
   
   return {
-    currentPoints: consumer.loyaltyPoints || 0,
-    tier: consumer.loyaltyTier || 'bronze',
+    currentPoints: consumer.loyaltyProgram?.points || 0,
+    tier: consumer.loyaltyProgram?.tier || 'bronze',
     totalEarned: totalEarned[0]?.total || 0,
     totalRedeemed: totalRedeemed[0]?.total || 0
   };
@@ -36,13 +38,8 @@ async function redeemLoyaltyPoints(consumerId, points, description) {
     throw new Error('Consommateur non trouvé');
   }
   
-  const currentPoints = consumer.loyaltyPoints || 0;
-  
-  if (currentPoints < points) {
-    throw new Error('Points insuffisants');
-  }
-  
-  consumer.loyaltyPoints -= points;
+  // Méthode du modèle : débite loyaltyProgram.points et met à jour le niveau
+  await consumer.redeemLoyaltyPoints(points);
   await consumer.save();
   
   const transaction = await LoyaltyTransaction.create({
@@ -55,7 +52,7 @@ async function redeemLoyaltyPoints(consumerId, points, description) {
   
   return {
     transaction,
-    remainingPoints: consumer.loyaltyPoints
+    remainingPoints: consumer.loyaltyProgram.points
   };
 }
 

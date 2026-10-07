@@ -1,5 +1,6 @@
 const Order = require('../../models/Order');
 const Consumer = require('../../models/Consumer');
+const Review = require('../../models/Review');
 
 /**
  * Service pour les statistiques du consommateur
@@ -12,15 +13,21 @@ async function getConsumerStats(consumerId) {
   const totalSpent = completedOrders.reduce((sum, order) => sum + (order.total || 0), 0);
   const averageOrderValue = completedOrders.length > 0 ? totalSpent / completedOrders.length : 0;
   
-  const consumer = await Consumer.findById(consumerId).select('loyaltyPoints loyaltyTier');
+  // Jour 54 : les points sont rangés dans loyaltyProgram (models/Consumer.js) ;
+  // loyaltyPoints / loyaltyTier n'existent pas (toujours 0 point, niveau bronze)
+  const consumer = await Consumer.findById(consumerId).select('loyaltyProgram');
+  // Jour 54 : affiché sur le tableau de bord (la carte « Avis donnés » restait à 0)
+  const reviewsWritten = await Review.countDocuments({ reviewer: consumerId });
   
   return {
     totalOrders: orders.length,
     completedOrders: completedOrders.length,
     totalSpent,
     averageOrderValue,
-    loyaltyPoints: consumer?.loyaltyPoints || 0,
-    loyaltyTier: consumer?.loyaltyTier || 'bronze'
+    loyaltyPoints: consumer?.loyaltyProgram?.points || 0,
+    loyaltyTier: consumer?.loyaltyProgram?.tier || 'bronze',
+    totalPointsEarned: consumer?.loyaltyProgram?.totalPointsEarned || 0,
+    reviewsWritten
   };
 }
 
@@ -36,7 +43,9 @@ async function getSpendingAnalytics(consumerId) {
   
   const monthlySpending = {};
   orders.forEach(order => {
-    const month = new Date(order.createdAt).toLocaleDateString('fr-FR', { year: 'numeric', month: 'short' });
+    // Jour 54 : mois ISO (AAAA-MM), triable et formaté côté interface selon la
+    // langue (était « sept. 2026 », en français et non trié)
+    const month = new Date(order.createdAt).toISOString().slice(0, 7);
     if (!monthlySpending[month]) {
       monthlySpending[month] = 0;
     }
@@ -53,10 +62,9 @@ async function getSpendingAnalytics(consumerId) {
     .reduce((sum, order) => sum + (order.total || 0), 0);
   
   return {
-    monthlySpending: Object.entries(monthlySpending).map(([month, spending]) => ({
-      month,
-      spending
-    })),
+    monthlySpending: Object.entries(monthlySpending)
+      .map(([month, spending]) => ({ month, spending }))
+      .sort((a, b) => a.month.localeCompare(b.month)),
     currentMonthSpending,
     totalSpending: orders.reduce((sum, order) => sum + (order.total || 0), 0)
   };
