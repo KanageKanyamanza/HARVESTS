@@ -13,6 +13,7 @@ import frDashboardAdmin from "../locales/fr/dashboard-admin.json";
 import frDashboardConsumer from "../locales/fr/dashboard-consumer.json";
 import frDashboardProducer from "../locales/fr/dashboard-producer.json";
 import frDashboardTransporter from "../locales/fr/dashboard-transporter.json";
+import frDashboardRestaurateur from "../locales/fr/dashboard-restaurateur.json";
 import frAuth from "../locales/fr/auth.json";
 import frBlog from "../locales/fr/blog.json";
 import frSeo from "../locales/fr/seo.json";
@@ -24,6 +25,7 @@ import enDashboardAdmin from "../locales/en/dashboard-admin.json";
 import enDashboardConsumer from "../locales/en/dashboard-consumer.json";
 import enDashboardProducer from "../locales/en/dashboard-producer.json";
 import enDashboardTransporter from "../locales/en/dashboard-transporter.json";
+import enDashboardRestaurateur from "../locales/en/dashboard-restaurateur.json";
 import enAuth from "../locales/en/auth.json";
 import enBlog from "../locales/en/blog.json";
 import enSeo from "../locales/en/seo.json";
@@ -36,6 +38,7 @@ export const NAMESPACES = [
 	"dashboard-consumer",
 	"dashboard-producer",
 	"dashboard-transporter",
+	"dashboard-restaurateur",
 	"auth",
 	"blog",
 	"seo",
@@ -51,6 +54,7 @@ const resources = {
 		"dashboard-consumer": frDashboardConsumer,
 		"dashboard-producer": frDashboardProducer,
 		"dashboard-transporter": frDashboardTransporter,
+		"dashboard-restaurateur": frDashboardRestaurateur,
 		auth: frAuth,
 		blog: frBlog,
 		seo: frSeo,
@@ -63,6 +67,7 @@ const resources = {
 		"dashboard-consumer": enDashboardConsumer,
 		"dashboard-producer": enDashboardProducer,
 		"dashboard-transporter": enDashboardTransporter,
+		"dashboard-restaurateur": enDashboardRestaurateur,
 		auth: enAuth,
 		blog: enBlog,
 		seo: enSeo,

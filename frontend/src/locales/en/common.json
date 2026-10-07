@@ -302,6 +302,10 @@
 			"exportProducts": {
 				"title": "Export products",
 				"description": "Manage products"
+			},
+			"myDishes": {
+				"title": "My dishes",
+				"description": "Manage your menu"
 			}
 		},
 		"subscription": {
@@ -339,5 +343,67 @@
 			"manage": "Manage my subscription",
 			"activate": "Activate a plan"
 		}
+	},
+	"genericDashboard": {
+		"emailTitle": "Email verification required",
+		"emailText": "To access all dashboard features, please verify your email address.",
+		"emailLabel": "Email: {{email}}",
+		"emailResent": "Verification email sent again! Check your inbox.",
+		"emailError": "Error while resending. Please try again.",
+		"emailWait": "Please wait before resending the email.",
+		"sending": "Sending...",
+		"sent": "Email sent",
+		"resend": "Resend the verification email",
+		"quotaReachedTitle": "Weekly quota reached ({{count}}/{{max}})",
+		"quotaReachedText": "You have reached your order limit for this week. Upgrade to the Standard or Premium plan to lift this limit.",
+		"quotaNearTitle": "Weekly limit almost reached ({{count}}/{{max}})",
+		"quotaNearText": "You are approaching your order limit for this week. Plan ahead by upgrading to a higher plan.",
+		"upgrade": "Upgrade",
+		"unauthorizedTitle": "Access denied",
+		"unauthorizedText": "You must be logged in to access this page.",
+		"login": "Log in"
+	},
+	"commonStats": {
+		"averageRating": "Average rating",
+		"reviews_one": "{{count}} review",
+		"reviews_other": "{{count}} reviews",
+		"profileViews": "Profile views",
+		"productsOnSale": "Products on sale",
+		"ordersThisMonth": "Orders this month",
+		"revenueThisMonth": "Revenue this month",
+		"productsSold": "Products sold",
+		"dishesSold": "Dishes sold",
+		"revenue": "Revenue",
+		"totalExports": "Total exports",
+		"exportValue": "Export value",
+		"exportCountries": "Export countries",
+		"totalOrders": "Total orders",
+		"amountSpent": "Amount spent",
+		"reviewsWritten": "Reviews written",
+		"averageGiven": "Average rating: {{value}}/5",
+		"deliveriesMade": "Deliveries made",
+		"onTimeRate": "On-time rate"
+	},
+	"productsSection": {
+		"emptyTitle": "No products",
+		"emptyText": "Start by adding your first products.",
+		"emptyDishesTitle": "No dishes",
+		"emptyDishesText": "Start by adding your first dishes.",
+		"addProduct": "Add a product",
+		"addDish": "Add a dish",
+		"unnamed": "Untitled",
+		"noPrice": "Price not set",
+		"view": "View",
+		"edit": "Edit",
+		"seeAllProducts": "See all products ({{count}})",
+		"seeAllDishes": "See all dishes ({{count}})"
+	},
+	"starRating": {
+		"1": "Very poor",
+		"2": "Poor",
+		"3": "Average",
+		"4": "Good",
+		"5": "Excellent",
+		"rate": "Rate"
 	}
 }

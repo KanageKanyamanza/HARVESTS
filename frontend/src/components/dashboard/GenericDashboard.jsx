@@ -6,9 +6,9 @@ import React, {
 	useMemo,
 } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../hooks/useAuth";
 import { useOrderNotifications } from "../../hooks/useOrderNotifications";
-import ModularDashboardLayout from "../layout/ModularDashboardLayout";
 import CommonStats from "../common/CommonStats";
 import { authService } from "../../services";
 import { normalizeDishImage } from "../../utils/dishImageUtils";
@@ -16,6 +16,7 @@ import { FiAlertCircle, FiMail, FiRefreshCw, FiCheck } from "react-icons/fi";
 
 // Composant pour la bannière de vérification d'email
 const EmailVerificationBanner = ({ userEmail }) => {
+	const { t } = useTranslation("common");
 	const [isResending, setIsResending] = useState(false);
 	const [resendStatus, setResendStatus] = useState(null);
 	const [lastResendTime, setLastResendTime] = useState(0);
@@ -58,14 +59,13 @@ const EmailVerificationBanner = ({ userEmail }) => {
 				<FiAlertCircle className="h-5 w-5 text-yellow-400 mt-0.5 mr-3 flex-shrink-0" />
 				<div className="flex-1">
 					<h3 className="text-sm font-medium text-yellow-800">
-						Vérification d'email requise
+						{t("genericDashboard.emailTitle")}
 					</h3>
 					<p className="mt-1 text-sm text-yellow-700">
-						Pour accéder à toutes les fonctionnalités du dashboard, veuillez
-						vérifier votre adresse email.
+						{t("genericDashboard.emailText")}
 						{userEmail && (
 							<span className="block mt-1 font-medium">
-								Email : {userEmail}
+								{t("genericDashboard.emailLabel", { email: userEmail })}
 							</span>
 						)}
 					</p>
@@ -76,8 +76,7 @@ const EmailVerificationBanner = ({ userEmail }) => {
 							<div className="flex items-center">
 								<FiCheck className="h-4 w-4 text-green-600 mr-2" />
 								<p className="text-sm text-green-700">
-									Email de vérification renvoyé avec succès ! Vérifiez votre
-									boîte de réception.
+									{t("genericDashboard.emailResent")}
 								</p>
 							</div>
 						</div>
@@ -88,7 +87,7 @@ const EmailVerificationBanner = ({ userEmail }) => {
 							<div className="flex items-center">
 								<FiAlertCircle className="h-4 w-4 text-red-600 mr-2" />
 								<p className="text-sm text-red-700">
-									Erreur lors du renvoi. Veuillez réessayer.
+									{t("genericDashboard.emailError")}
 								</p>
 							</div>
 						</div>
@@ -97,7 +96,7 @@ const EmailVerificationBanner = ({ userEmail }) => {
 					{resendStatus === "wait" && (
 						<div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
 							<p className="text-sm text-blue-700">
-								Veuillez attendre avant de renvoyer l'email.
+								{t("genericDashboard.emailWait")}
 							</p>
 						</div>
 					)}
@@ -112,16 +111,16 @@ const EmailVerificationBanner = ({ userEmail }) => {
 							{isResending ?
 								<>
 									<FiRefreshCw className="h-4 w-4 mr-2 animate-spin" />
-									Envoi en cours...
+									{t("genericDashboard.sending")}
 								</>
 							: resendStatus === "success" ?
 								<>
 									<FiCheck className="h-4 w-4 mr-2" />
-									Email renvoyé
+									{t("genericDashboard.sent")}
 								</>
 							:	<>
 									<FiMail className="h-4 w-4 mr-2" />
-									Renvoyer l'email de vérification
+									{t("genericDashboard.resend")}
 								</>
 							}
 						</button>
@@ -142,6 +141,7 @@ const GenericDashboard = ({
 	sections = [],
 	loading: externalLoading,
 }) => {
+	const { t } = useTranslation("common");
 	const { user, isAuthenticated } = useAuth();
 	const { notifyNewOrder } = useOrderNotifications();
 
@@ -363,24 +363,24 @@ const GenericDashboard = ({
 
 	if (!isAuthenticated || !user) {
 		return (
-			<ModularDashboardLayout>
+			<div className="dashboard-page">
 				<div className="flex items-center justify-center min-h-screen">
 					<div className="text-center">
 						<h2 className="text-2xl font-bold text-gray-900 mb-4">
-							Accès non autorisé
+							{t("genericDashboard.unauthorizedTitle")}
 						</h2>
 						<p className="text-gray-600 mb-6">
-							Vous devez être connecté pour accéder à cette page.
+							{t("genericDashboard.unauthorizedText")}
 						</p>
 						<Link
 							to="/login"
 							className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
 						>
-							Se connecter
+							{t("genericDashboard.login")}
 						</Link>
 					</div>
 				</div>
-			</ModularDashboardLayout>
+			</div>
 		);
 	}
 
@@ -391,7 +391,9 @@ const GenericDashboard = ({
 	// chiffres et les listes (serveur) attendent
 
 	return (
-		<ModularDashboardLayout>
+		// La route fournit déjà ModularDashboardLayout (un second gabarit ici
+		// décalait et coupait le contenu)
+		<div className="dashboard-page">
 			<div className="dashboard-container pb-20">
 				{/* Alerte de vérification d'email */}
 				{emailVerificationRequired && (
@@ -408,13 +410,13 @@ const GenericDashboard = ({
 								</div>
 								<div className="ml-3">
 									<p className="text-sm text-red-700 font-bold">
-										Quota hebdomadaire atteint ({stats.weeklyOrders}/
-										{stats.maxWeeklyOrders})
+										{t("genericDashboard.quotaReachedTitle", {
+											count: stats.weeklyOrders,
+											max: stats.maxWeeklyOrders,
+										})}
 									</p>
 									<p className="text-xs text-red-600">
-										Vous avez atteint votre limite de commandes/actions pour
-										cette semaine. Passez au plan Standard ou Premium pour lever
-										cette limite.
+										{t("genericDashboard.quotaReachedText")}
 									</p>
 								</div>
 								<div className="ml-auto">
@@ -422,7 +424,7 @@ const GenericDashboard = ({
 										onClick={() => (window.location.href = "/pricing")}
 										className="text-xs bg-red-600 text-white px-3 py-1.5 rounded-md font-bold hover:bg-red-700 transition-colors uppercase tracking-wider"
 									>
-										Upgrade
+										{t("genericDashboard.upgrade")}
 									</button>
 								</div>
 							</div>
@@ -439,12 +441,13 @@ const GenericDashboard = ({
 								</div>
 								<div className="ml-3">
 									<p className="text-sm text-amber-700 font-bold">
-										Limite hebdomadaire proche ({stats.weeklyOrders}/
-										{stats.maxWeeklyOrders})
+										{t("genericDashboard.quotaNearTitle", {
+											count: stats.weeklyOrders,
+											max: stats.maxWeeklyOrders,
+										})}
 									</p>
 									<p className="text-xs text-amber-600">
-										Vous approchez de votre limite de commandes pour cette
-										semaine. Anticipez en passant à un plan supérieur.
+										{t("genericDashboard.quotaNearText")}
 									</p>
 								</div>
 								<div className="ml-auto">
@@ -452,7 +455,7 @@ const GenericDashboard = ({
 										onClick={() => (window.location.href = "/pricing")}
 										className="text-xs bg-amber-600 text-white px-3 py-1.5 rounded-md font-bold hover:bg-amber-700 transition-colors uppercase tracking-wider"
 									>
-										Upgrade
+										{t("genericDashboard.upgrade")}
 									</button>
 								</div>
 							</div>
@@ -532,7 +535,7 @@ const GenericDashboard = ({
 					))}
 				</div>
 			</div>
-		</ModularDashboardLayout>
+		</div>
 	);
 };
 

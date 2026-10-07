@@ -302,6 +302,10 @@
 			"exportProducts": {
 				"title": "Produits d'export",
 				"description": "Gérer les produits"
+			},
+			"myDishes": {
+				"title": "Mes plats",
+				"description": "Gérer votre menu"
 			}
 		},
 		"subscription": {
@@ -339,5 +343,67 @@
 			"manage": "Gérer mon abonnement",
 			"activate": "Activer un plan"
 		}
+	},
+	"genericDashboard": {
+		"emailTitle": "Vérification de l'adresse e-mail requise",
+		"emailText": "Pour accéder à toutes les fonctionnalités du tableau de bord, veuillez vérifier votre adresse e-mail.",
+		"emailLabel": "E-mail : {{email}}",
+		"emailResent": "E-mail de vérification renvoyé ! Vérifiez votre boîte de réception.",
+		"emailError": "Erreur lors du renvoi. Veuillez réessayer.",
+		"emailWait": "Veuillez patienter avant de renvoyer l'e-mail.",
+		"sending": "Envoi en cours...",
+		"sent": "E-mail renvoyé",
+		"resend": "Renvoyer l'e-mail de vérification",
+		"quotaReachedTitle": "Quota hebdomadaire atteint ({{count}}/{{max}})",
+		"quotaReachedText": "Vous avez atteint votre limite de commandes pour cette semaine. Passez au plan Standard ou Premium pour lever cette limite.",
+		"quotaNearTitle": "Limite hebdomadaire proche ({{count}}/{{max}})",
+		"quotaNearText": "Vous approchez de votre limite de commandes pour cette semaine. Anticipez en passant à un plan supérieur.",
+		"upgrade": "Passer au plan supérieur",
+		"unauthorizedTitle": "Accès non autorisé",
+		"unauthorizedText": "Vous devez être connecté pour accéder à cette page.",
+		"login": "Se connecter"
+	},
+	"commonStats": {
+		"averageRating": "Note moyenne",
+		"reviews_one": "{{count}} avis",
+		"reviews_other": "{{count}} avis",
+		"profileViews": "Vues du profil",
+		"productsOnSale": "Produits en vente",
+		"ordersThisMonth": "Commandes ce mois",
+		"revenueThisMonth": "Revenus ce mois",
+		"productsSold": "Produits vendus",
+		"dishesSold": "Plats vendus",
+		"revenue": "Chiffre d'affaires",
+		"totalExports": "Exportations totales",
+		"exportValue": "Valeur des exportations",
+		"exportCountries": "Pays d'exportation",
+		"totalOrders": "Commandes totales",
+		"amountSpent": "Montant dépensé",
+		"reviewsWritten": "Avis laissés",
+		"averageGiven": "Note moyenne : {{value}}/5",
+		"deliveriesMade": "Livraisons effectuées",
+		"onTimeRate": "Taux de ponctualité"
+	},
+	"productsSection": {
+		"emptyTitle": "Aucun produit",
+		"emptyText": "Commencez par ajouter vos premiers produits.",
+		"emptyDishesTitle": "Aucun plat",
+		"emptyDishesText": "Commencez par ajouter vos premiers plats.",
+		"addProduct": "Ajouter un produit",
+		"addDish": "Ajouter un plat",
+		"unnamed": "Sans nom",
+		"noPrice": "Prix non défini",
+		"view": "Voir",
+		"edit": "Modifier",
+		"seeAllProducts": "Voir tous les produits ({{count}})",
+		"seeAllDishes": "Voir tous les plats ({{count}})"
+	},
+	"starRating": {
+		"1": "Très mauvais",
+		"2": "Mauvais",
+		"3": "Moyen",
+		"4": "Bon",
+		"5": "Excellent",
+		"rate": "Noter"
 	}
 }

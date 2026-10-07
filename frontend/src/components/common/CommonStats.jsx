@@ -10,24 +10,26 @@ import {
 	FiGlobe,
 } from "react-icons/fi";
 
+import { useTranslation } from "react-i18next";
 import DataValue from "./DataValue";
 
 // Composant pour afficher les statistiques communes
 // loading : libellés affichés, seules les valeurs (serveur) attendent
 const CommonStats = ({ stats, userType, loading = false }) => {
+	const { t } = useTranslation("common", { keyPrefix: "commonStats" });
 	const getStatsForUserType = () => {
 		const baseStats = [
 			{
-				name: "Note moyenne",
+				name: t("averageRating"),
 				value: stats?.ratings?.average || 0,
 				icon: FiStar,
 				color: "text-yellow-500",
 				bgColor: "bg-yellow-50",
 				format: (value) => `${value.toFixed(1)}/5`,
-				subtitle: `${stats?.ratings?.count || 0} avis`,
+				subtitle: t("reviews", { count: stats?.ratings?.count || 0 }),
 			},
 			{
-				name: "Vues du profil",
+				name: t("profileViews"),
 				value: stats?.profileViews || 0,
 				icon: FiEye,
 				color: "text-blue-500",
@@ -41,7 +43,7 @@ const CommonStats = ({ stats, userType, loading = false }) => {
 			case "producer":
 				return [
 					{
-						name: "Produits en vente",
+						name: t("productsOnSale"),
 						value: stats?.activeProducts || 0,
 						icon: FiShoppingBag,
 						color: "text-green-500",
@@ -49,7 +51,7 @@ const CommonStats = ({ stats, userType, loading = false }) => {
 						format: (value) => value.toLocaleString(),
 					},
 					{
-						name: "Commandes ce mois",
+						name: t("ordersThisMonth"),
 						value: stats?.totalOrders || 0,
 						icon: FiShoppingCart,
 						color: "text-blue-500",
@@ -57,7 +59,7 @@ const CommonStats = ({ stats, userType, loading = false }) => {
 						format: (value) => value.toLocaleString(),
 					},
 					{
-						name: "Revenus ce mois",
+						name: t("revenueThisMonth"),
 						value: stats?.totalRevenue || 0,
 						icon: FiDollarSign,
 						color: "text-purple-500",
@@ -65,7 +67,7 @@ const CommonStats = ({ stats, userType, loading = false }) => {
 						format: (value) => `${value.toLocaleString()} FCFA`,
 					},
 					{
-						name: "Note moyenne",
+						name: t("averageRating"),
 						value: stats?.averageRating || 0,
 						icon: FiStar,
 						color: "text-yellow-500",
@@ -78,7 +80,7 @@ const CommonStats = ({ stats, userType, loading = false }) => {
 				return [
 					...baseStats,
 					{
-						name: "Produits vendus",
+						name: t("productsSold"),
 						value: stats?.salesStats?.totalSales || 0,
 						icon: FiShoppingBag,
 						color: "text-green-500",
@@ -86,7 +88,7 @@ const CommonStats = ({ stats, userType, loading = false }) => {
 						format: (value) => value.toLocaleString(),
 					},
 					{
-						name: "Chiffre d'affaires",
+						name: t("revenue"),
 						value: stats?.salesStats?.totalRevenue || 0,
 						icon: FiDollarSign,
 						color: "text-purple-500",
@@ -98,18 +100,18 @@ const CommonStats = ({ stats, userType, loading = false }) => {
 			case "restaurateur":
 				return [
 					{
-						name: "Note moyenne",
+						name: t("averageRating"),
 						value: stats?.ratings?.average || stats?.averageRating || 0,
 						icon: FiStar,
 						color: "text-yellow-500",
 						bgColor: "bg-yellow-50",
 						format: (value) => `${value.toFixed(1)}/5`,
-						subtitle: `${
-							stats?.ratings?.count || stats?.totalReviews || 0
-						} avis`,
+						subtitle: t("reviews", {
+							count: stats?.ratings?.count || stats?.totalReviews || 0,
+						}),
 					},
 					{
-						name: "Vues du profil",
+						name: t("profileViews"),
 						value: stats?.profileViews || 0,
 						icon: FiEye,
 						color: "text-blue-500",
@@ -117,7 +119,7 @@ const CommonStats = ({ stats, userType, loading = false }) => {
 						format: (value) => value.toLocaleString(),
 					},
 					{
-						name: "Produits vendus",
+						name: t("dishesSold"),
 						value: stats?.totalProductsSold || stats?.totalDishesSold || 0,
 						icon: FiShoppingBag,
 						color: "text-green-500",
@@ -125,7 +127,7 @@ const CommonStats = ({ stats, userType, loading = false }) => {
 						format: (value) => value.toLocaleString(),
 					},
 					{
-						name: "Chiffre d'affaires",
+						name: t("revenue"),
 						value: stats?.totalRevenue || 0,
 						icon: FiDollarSign,
 						color: "text-purple-500",
@@ -137,7 +139,7 @@ const CommonStats = ({ stats, userType, loading = false }) => {
 			case "exporter":
 				return [
 					{
-						name: "Exportations totales",
+						name: t("totalExports"),
 						value: stats?.totalExports || 0,
 						icon: FiShoppingBag,
 						color: "text-teal-500",
@@ -145,7 +147,7 @@ const CommonStats = ({ stats, userType, loading = false }) => {
 						format: (value) => value.toLocaleString(),
 					},
 					{
-						name: "Valeur des exports",
+						name: t("exportValue"),
 						value: stats?.totalValue || stats?.exportValue || 0,
 						icon: FiDollarSign,
 						color: "text-green-500",
@@ -153,7 +155,7 @@ const CommonStats = ({ stats, userType, loading = false }) => {
 						format: (value) => `${value.toLocaleString()} FCFA`,
 					},
 					{
-						name: "Pays d'export",
+						name: t("exportCountries"),
 						value: stats?.exportCountries || 0,
 						icon: FiGlobe,
 						color: "text-blue-500",
@@ -161,20 +163,20 @@ const CommonStats = ({ stats, userType, loading = false }) => {
 						format: (value) => value.toLocaleString(),
 					},
 					{
-						name: "Note moyenne",
+						name: t("averageRating"),
 						value: stats?.averageRating || 0,
 						icon: FiStar,
 						color: "text-yellow-500",
 						bgColor: "bg-yellow-50",
 						format: (value) => `${value.toFixed(1)}/5`,
-						subtitle: `${stats?.totalReviews || 0} avis`,
+						subtitle: t("reviews", { count: stats?.totalReviews || 0 }),
 					},
 				];
 
 			case "consumer":
 				return [
 					{
-						name: "Commandes totales",
+						name: t("totalOrders"),
 						value: stats?.totalOrders || 0,
 						icon: FiShoppingBag,
 						color: "text-green-500",
@@ -182,7 +184,7 @@ const CommonStats = ({ stats, userType, loading = false }) => {
 						format: (value) => value.toLocaleString(),
 					},
 					{
-						name: "Montant dépensé",
+						name: t("amountSpent"),
 						value: stats?.totalSpent || 0,
 						icon: FiDollarSign,
 						color: "text-purple-500",
@@ -190,18 +192,18 @@ const CommonStats = ({ stats, userType, loading = false }) => {
 						format: (value) => `${value.toLocaleString()} FCFA`,
 					},
 					{
-						name: "Avis laissés",
+						name: t("reviewsWritten"),
 						value: stats?.reviewsWritten || 0,
 						icon: FiStar,
 						color: "text-yellow-500",
 						bgColor: "bg-yellow-50",
 						format: (value) => value.toLocaleString(),
-						subtitle: `Note moyenne: ${
-							stats?.averageRatingGiven?.toFixed(1) || "0.0"
-						}/5`,
+						subtitle: t("averageGiven", {
+							value: stats?.averageRatingGiven?.toFixed(1) || "0.0",
+						}),
 					},
 					{
-						name: "Vues du profil",
+						name: t("profileViews"),
 						value: stats?.profileViews || 0,
 						icon: FiEye,
 						color: "text-blue-500",
@@ -214,7 +216,7 @@ const CommonStats = ({ stats, userType, loading = false }) => {
 				return [
 					...baseStats,
 					{
-						name: "Livraisons effectuées",
+						name: t("deliveriesMade"),
 						value: stats?.performanceStats?.totalDeliveries || 0,
 						icon: FiShoppingBag,
 						color: "text-green-500",
@@ -222,7 +224,7 @@ const CommonStats = ({ stats, userType, loading = false }) => {
 						format: (value) => value.toLocaleString(),
 					},
 					{
-						name: "Taux de ponctualité",
+						name: t("onTimeRate"),
 						value: stats?.performanceStats?.onTimeDeliveryRate || 0,
 						icon: FiTrendingUp,
 						color: "text-blue-500",

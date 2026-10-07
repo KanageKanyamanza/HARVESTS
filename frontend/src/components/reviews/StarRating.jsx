@@ -1,5 +1,6 @@
 import React from 'react';
 import { Star } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const StarRating = ({ 
   rating = 0, 
@@ -10,6 +11,7 @@ const StarRating = ({
   showText = false,
   className = ''
 }) => {
+  const { t } = useTranslation('common');
   const sizeClasses = {
     sm: 'h-3 w-3',
     md: 'h-4 w-4',
@@ -24,16 +26,8 @@ const StarRating = ({
     xl: 'text-lg'
   };
 
-  const getRatingText = (rating) => {
-    const texts = {
-      1: 'Très mauvais',
-      2: 'Mauvais',
-      3: 'Moyen',
-      4: 'Bon',
-      5: 'Excellent'
-    };
-    return texts[rating] || '';
-  };
+  const getRatingText = (rating) =>
+    rating >= 1 && rating <= 5 ? t(`starRating.${rating}`) : '';
 
   const handleStarClick = (starRating) => {
     if (interactive && onRatingChange) {
@@ -81,7 +75,7 @@ const StarRating = ({
       )}
       {interactive && (
         <span className={`${textClasses[size]} text-gray-500 ml-2`}>
-          {rating > 0 ? `${rating}/${maxRating}` : 'Noter'}
+          {rating > 0 ? `${rating}/${maxRating}` : t('starRating.rate')}
         </span>
       )}
     </div>
