@@ -1,11 +1,16 @@
 // Méthodes statiques
 function addNotificationStatics(notificationSchema) {
 	notificationSchema.statics.createNotification = async function (data) {
-		// Comptes de test (développement) : aucune alerte aux admins les
-		// concernant (utils/testAccounts.js)
-		if (data?.recipientModel === "Admin") {
-			const { notificationInvolvesTestAccount } = require("../../utils/testAccounts");
-			if (await notificationInvolvesTestAccount(data.data).catch(() => false)) return null;
+		// Comptes de test (développement) : une notification qui concerne un
+		// compte de test (commande, produit, utilisateur) ne part que vers un
+		// compte de test. Avant le 07/10, seules les alertes admin étaient
+		// filtrées : une commande de test notifiait le vrai vendeur (in-app + push).
+		const { notificationInvolvesTestAccount, isTestUser } = require("../../utils/testAccounts");
+		if (await notificationInvolvesTestAccount(data?.data).catch(() => false)) {
+			const recipientIsTest =
+				data?.recipientModel !== "Admin" &&
+				(await isTestUser({ id: data?.recipient }).catch(() => false));
+			if (!recipientIsTest) return null;
 		}
 
 		// S'assurer que data est un objet JavaScript simple (sérialiser les objets complexes)
