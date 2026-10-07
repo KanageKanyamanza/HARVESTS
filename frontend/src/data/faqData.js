@@ -43,7 +43,7 @@ export const faqData = {
 			],
 			question: "Combien coûte la livraison ?",
 			answer:
-				"Les frais de livraison dépendent de votre localisation et du poids de la commande. Ils sont calculés automatiquement au moment du checkout. La livraison est gratuite pour les commandes supérieures à 50 000 FCFA.",
+				"Les frais de livraison ne sont pas facturés par Harvests : ils sont fixés et réglés directement auprès du livreur, à la réception de votre commande.",
 		},
 		{
 			id: "livraison-suivi",
@@ -167,7 +167,7 @@ export const faqData = {
 			keywords: ["minimum", "commande", "montant", "minimum"],
 			question: "Y a-t-il un montant minimum de commande ?",
 			answer:
-				"Non, il n'y a pas de montant minimum de commande. Cependant, les frais de livraison peuvent rendre les petites commandes moins avantageuses. La livraison est gratuite à partir de 50 000 FCFA.",
+				"Non, il n'y a pas de montant minimum de commande. Les frais de livraison sont réglés directement au livreur.",
 		},
 
 		// Compte
@@ -628,7 +628,7 @@ export const faqData = {
 			],
 			question: "Y a-t-il des promotions disponibles ?",
 			answer:
-				'Oui ! Nous proposons régulièrement des promotions :\n• Réductions sur certains produits\n• Offres spéciales saisonnières\n• Livraison gratuite à partir de 50 000 FCFA\n• Codes promo pour nouveaux clients\n\nConsultez la section "Promotions" ou demandez-moi "quelles sont les promotions" pour voir les offres actuelles.',
+				'Oui ! Nous proposons régulièrement des promotions :\n• Réductions sur certains produits\n• Offres spéciales saisonnières\n• Codes promo pour nouveaux clients\n\nConsultez la section "Promotions" ou demandez-moi "quelles sont les promotions" pour voir les offres actuelles.',
 		},
 
 		// Fraîcheur des produits

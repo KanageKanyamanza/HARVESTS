@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
 	FiMapPin,
 	FiCreditCard,
@@ -11,14 +12,17 @@ import {
 import { convertPrice, formatPrice } from "../../utils/currencyUtils";
 import { useCurrency } from "../../contexts/CurrencyContext.jsx";
 import { DEFAULT_CURRENCY } from "../../config/currencies";
+import { toPlainText } from "../../utils/textHelpers";
 
-export const ProgressSteps = ({ currentStep }) => (
+export const ProgressSteps = ({ currentStep }) => {
+	const { t } = useTranslation("dashboard-consumer");
+	return (
 	<div className="mb-6 sm:mb-8 bg-white rounded-2xl shadow-agri-card border border-emerald-100/80 p-4 sm:p-5">
 		<div className="flex items-center justify-between">
 			{[
-				{ step: 1, title: "Adresse", Icon: FiMapPin },
-				{ step: 2, title: "Paiement", Icon: FiCreditCard },
-				{ step: 3, title: "Confirmation", Icon: FiCheck },
+				{ step: 1, title: t("checkout.steps.address"), Icon: FiMapPin },
+				{ step: 2, title: t("checkout.steps.payment"), Icon: FiCreditCard },
+				{ step: 3, title: t("checkout.steps.confirmation"), Icon: FiCheck },
 			].map(({ step, title, Icon }, idx) => (
 				<React.Fragment key={step}>
 					<div className="flex items-center">
@@ -50,65 +54,68 @@ export const ProgressSteps = ({ currentStep }) => (
 			))}
 		</div>
 	</div>
-);
+	);
+};
 
-export const AddressStep = ({ orderData, handleInputChange }) => (
+export const AddressStep = ({ orderData, handleInputChange }) => {
+	const { t } = useTranslation("dashboard-consumer");
+	return (
 	<div className="bg-white rounded-2xl shadow-agri-card border border-emerald-100/80 p-5 sm:p-6">
 		<h2 className="font-extrabold text-[#161D14] mb-6 flex items-center">
 			<span className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center mr-2.5">
 				<FiMapPin className="h-4 w-4 text-[#1A5514]" />
 			</span>
-			Adresse de livraison
+			{t("checkout.address.title")}
 		</h2>
 
 		<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 			<InputField
-				label="Prénom *"
+				label={`${t("checkout.address.firstName")} *`}
 				value={orderData.deliveryAddress.firstName}
 				onChange={(v) => handleInputChange("deliveryAddress", "firstName", v)}
 				required
 			/>
 			<InputField
-				label="Nom *"
+				label={`${t("checkout.address.lastName")} *`}
 				value={orderData.deliveryAddress.lastName}
 				onChange={(v) => handleInputChange("deliveryAddress", "lastName", v)}
 				required
 			/>
 			<InputField
-				label="Adresse *"
+				label={`${t("checkout.address.street")} *`}
 				value={orderData.deliveryAddress.street}
 				onChange={(v) => handleInputChange("deliveryAddress", "street", v)}
-				placeholder="Rue, numéro, quartier"
+				placeholder={t("checkout.address.streetPlaceholder")}
 				className="md:col-span-2"
 				required
 			/>
 			<InputField
-				label="Ville *"
+				label={`${t("checkout.address.city")} *`}
 				value={orderData.deliveryAddress.city}
 				onChange={(v) => handleInputChange("deliveryAddress", "city", v)}
 				required
 			/>
 			<InputField
-				label="Région/État/Province *"
+				label={`${t("checkout.address.region")} *`}
 				value={orderData.deliveryAddress.region}
 				onChange={(v) => handleInputChange("deliveryAddress", "region", v)}
-				placeholder="Ex: Centre, Dakar..."
+				placeholder={t("checkout.address.regionPlaceholder")}
 				required
 			/>
 			<InputField
-				label="Code postal"
+				label={t("checkout.address.postalCode")}
 				value={orderData.deliveryAddress.postalCode}
 				onChange={(v) => handleInputChange("deliveryAddress", "postalCode", v)}
 			/>
 			<InputField
-				label="Pays *"
+				label={`${t("checkout.address.country")} *`}
 				value={orderData.deliveryAddress.country}
 				onChange={(v) => handleInputChange("deliveryAddress", "country", v)}
-				placeholder="Ex: Cameroun, Sénégal..."
+				placeholder={t("checkout.address.countryPlaceholder")}
 				required
 			/>
 			<InputField
-				label="Téléphone *"
+				label={`${t("checkout.address.phone")} *`}
 				value={orderData.deliveryAddress.phone}
 				onChange={(v) => handleInputChange("deliveryAddress", "phone", v)}
 				type="tel"
@@ -117,7 +124,7 @@ export const AddressStep = ({ orderData, handleInputChange }) => (
 			/>
 			<div className="md:col-span-2">
 				<label className="block text-sm font-medium text-gray-700 mb-2">
-					Instructions de livraison
+					{t("checkout.address.instructions")}
 				</label>
 				<textarea
 					value={orderData.deliveryAddress.deliveryInstructions}
@@ -128,17 +135,18 @@ export const AddressStep = ({ orderData, handleInputChange }) => (
 							e.target.value
 						)
 					}
-					placeholder="Informations supplémentaires pour le livreur..."
+					placeholder={t("checkout.address.instructionsPlaceholder")}
 					rows={3}
 					className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#31BC2E]/40 focus:border-[#31BC2E]"
 				/>
 			</div>
 		</div>
 	</div>
-);
+	);
+};
 
 export const PaymentStep = ({ orderData, handleInputChange }) => {
-	const { currency } = useCurrency();
+	const { t } = useTranslation("dashboard-consumer");
 
 	return (
 		<div className="space-y-5">
@@ -147,21 +155,21 @@ export const PaymentStep = ({ orderData, handleInputChange }) => {
 					<span className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center mr-2.5">
 						<FiCreditCard className="h-4 w-4 text-[#1A5514]" />
 					</span>
-					Méthode de paiement
+					{t("checkout.payment.title")}
 				</h2>
 
 				<div className="space-y-3">
 					{[
 						{
 							value: "cash",
-							label: "Paiement à la livraison",
-							description: "Réglez en espèces auprès du livreur.",
+							label: t("checkout.payment.cash"),
+							description: t("checkout.payment.cashDescription"),
 							Icon: FiDollarSign,
 						},
 						{
 							value: "paypal",
-							label: "Paypal ou Carte bancaire",
-							description: "Payer en ligne via PayPal ou Carte bancaire.",
+							label: t("checkout.payment.paypal"),
+							description: t("checkout.payment.paypalDescription"),
 							Icon: FiCreditCard,
 						},
 					].map(({ value, label, description, Icon }) => (
@@ -201,10 +209,10 @@ export const PaymentStep = ({ orderData, handleInputChange }) => {
 						<FiInfo className="h-5 w-5 text-[#1A5514] mr-2 mt-0.5 flex-shrink-0" />
 						<div>
 							<h3 className="text-sm font-bold text-[#1A5514]">
-								Paiement à la livraison
+								{t("checkout.payment.cash")}
 							</h3>
 							<p className="text-sm text-emerald-800/80 mt-1">
-								Préparez le montant exact pour le livreur.
+								{t("checkout.payment.cashHint")}
 							</p>
 						</div>
 					</div>
@@ -215,10 +223,10 @@ export const PaymentStep = ({ orderData, handleInputChange }) => {
 						<FiShield className="h-5 w-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
 						<div>
 							<h3 className="text-sm font-bold text-blue-800">
-								Paiement sécurisé via PayPal
+								{t("checkout.payment.paypalSecure")}
 							</h3>
 							<p className="text-sm text-blue-700/80 mt-1">
-								Vous serez redirigé vers PayPal pour autoriser le paiement.
+								{t("checkout.payment.paypalRedirect")}
 							</p>
 						</div>
 					</div>
@@ -230,22 +238,20 @@ export const PaymentStep = ({ orderData, handleInputChange }) => {
 					<span className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center mr-2.5">
 						<FiTruck className="h-4 w-4 text-[#1A5514]" />
 					</span>
-					Mode de livraison
+					{t("checkout.delivery.title")}
 				</h2>
 
 				<div className="space-y-3">
 					{[
 						{
 							value: "standard-delivery",
-							label: "Livraison standard",
-							description: "2-3 jours ouvrables",
-							basePrice: 2000,
+							label: t("checkout.delivery.standard"),
+							description: t("checkout.delivery.standardDelay"),
 						},
 						{
 							value: "express-delivery",
-							label: "Livraison express",
-							description: "24 heures",
-							basePrice: 5000,
+							label: t("checkout.delivery.express"),
+							description: t("checkout.delivery.expressDelay"),
 						},
 					].map((method) => (
 						<label
@@ -276,12 +282,6 @@ export const PaymentStep = ({ orderData, handleInputChange }) => {
 									</div>
 								</div>
 							</div>
-							<div className="text-sm font-extrabold text-[#1A5514]">
-								{formatPrice(
-									convertPrice(method.basePrice, DEFAULT_CURRENCY, currency),
-									currency
-								)}
-							</div>
 						</label>
 					))}
 				</div>
@@ -289,12 +289,12 @@ export const PaymentStep = ({ orderData, handleInputChange }) => {
 
 			<div className="bg-white rounded-2xl shadow-agri-card border border-emerald-100/80 p-5 sm:p-6">
 				<h2 className="font-extrabold text-[#161D14] mb-4">
-					Notes de commande
+					{t("checkout.notes.title")}
 				</h2>
 				<textarea
 					value={orderData.notes}
 					onChange={(e) => handleInputChange("", "notes", e.target.value)}
-					placeholder="Instructions spéciales..."
+					placeholder={t("checkout.notes.placeholder")}
 					rows={3}
 					className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#31BC2E]/40 focus:border-[#31BC2E]"
 				/>
@@ -304,6 +304,7 @@ export const PaymentStep = ({ orderData, handleInputChange }) => {
 };
 
 export const ConfirmationStep = ({ orderData, cartItems }) => {
+	const { t } = useTranslation("dashboard-consumer");
 	const { currency } = useCurrency();
 
 	return (
@@ -312,13 +313,13 @@ export const ConfirmationStep = ({ orderData, cartItems }) => {
 				<span className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center mr-2.5">
 					<FiCheck className="h-4 w-4 text-[#1A5514]" />
 				</span>
-				Confirmation de commande
+				{t("checkout.review.title")}
 			</h2>
 
 			<div className="space-y-5">
 				<div className="pb-5 border-b border-gray-100">
 					<h3 className="text-sm font-bold text-[#161D14] mb-3">
-						Résumé de la commande
+						{t("checkout.review.summary")}
 					</h3>
 					<div className="space-y-2">
 						{cartItems.map((item, i) => (
@@ -327,7 +328,7 @@ export const ConfirmationStep = ({ orderData, cartItems }) => {
 								className="flex justify-between text-sm text-gray-600"
 							>
 								<span>
-									{item.name} x {item.quantity}
+									{toPlainText(item.name, "")} × {item.quantity}
 								</span>
 								<span className="font-bold text-[#161D14]">
 									{formatPrice(
@@ -346,7 +347,7 @@ export const ConfirmationStep = ({ orderData, cartItems }) => {
 
 				<div className="pb-5 border-b border-gray-100">
 					<h3 className="text-sm font-bold text-[#161D14] mb-3">
-						Adresse de livraison
+						{t("checkout.review.address")}
 					</h3>
 					<div className="text-sm text-gray-500 space-y-0.5">
 						<p>
@@ -363,20 +364,22 @@ export const ConfirmationStep = ({ orderData, cartItems }) => {
 				</div>
 
 				<div>
-					<h3 className="text-sm font-bold text-[#161D14] mb-3">Paiement</h3>
+					<h3 className="text-sm font-bold text-[#161D14] mb-3">
+						{t("checkout.review.payment")}
+					</h3>
 					<div className="text-sm text-gray-500">
 						<p>
-							Méthode:{" "}
-							{orderData.paymentMethod === "paypal"
-								? "PayPal"
-								: "Paiement à la livraison"}
+							{t("checkout.review.method", {
+								method:
+									orderData.paymentMethod === "paypal" ? "PayPal" : t("checkout.payment.cash"),
+							})}
 						</p>
 						{orderData.paymentMethod === "paypal" && (
-							<p className="text-blue-600 mt-1">Vous serez redirigé vers PayPal.</p>
+							<p className="text-blue-600 mt-1">{t("checkout.review.paypalRedirect")}</p>
 						)}
 						{orderData.paymentMethod === "cash" && (
 							<p className="text-[#1A5514] font-bold flex items-center mt-1">
-								<FiCheck className="w-4 h-4 mr-1" /> Paiement en espèces à la livraison
+								<FiCheck className="w-4 h-4 mr-1" /> {t("checkout.review.cashOnDelivery")}
 							</p>
 						)}
 					</div>

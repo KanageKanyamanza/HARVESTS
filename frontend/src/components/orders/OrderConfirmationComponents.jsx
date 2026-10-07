@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
 	FiCheckCircle,
 	FiClock,
@@ -20,7 +21,11 @@ import { DEFAULT_CURRENCY } from "../../config/currencies";
 
 import { formatDate } from "../../utils/orderUIUtils";
 
-export const SuccessHeader = () => (
+const useT = () => useTranslation("dashboard-consumer").t;
+
+export const SuccessHeader = () => {
+	const t = useT();
+	return (
 	<div className="text-center mb-6 sm:mb-8">
 		<div className="mx-auto flex items-center justify-center h-20 w-20 rounded-2xl bg-emerald-50 mb-5">
 			<div className="h-14 w-14 rounded-full bg-gradient-to-r from-[#1A5514] to-[#31BC2E] flex items-center justify-center shadow-lg shadow-emerald-900/20">
@@ -28,14 +33,14 @@ export const SuccessHeader = () => (
 			</div>
 		</div>
 		<h1 className="text-xl sm:text-2xl font-extrabold text-[#161D14] mb-2">
-			Commande confirmée !
+			{t("confirmation.successTitle")}
 		</h1>
 		<p className="text-gray-500 text-sm">
-			Votre commande a été passée avec succès. Vous recevrez un email de
-			confirmation.
+			{t("confirmation.successText")}
 		</p>
 	</div>
-);
+	);
+};
 
 export const OrderInfoCard = ({
 	order,
@@ -44,16 +49,19 @@ export const OrderInfoCard = ({
 	onShare,
 	onViewOrders,
 }) => {
+	const t = useT();
 	const StatusIcon = statusConfig.icon;
 	return (
 		<div className="bg-white rounded-2xl shadow-agri-card border border-emerald-100/80 p-5 sm:p-6 mb-5">
 			<div className="flex items-center justify-between mb-5 gap-2 flex-wrap">
 				<div>
 					<h2 className="font-extrabold text-[#161D14]">
-						Commande #{order.orderNumber || order._id.slice(-8).toUpperCase()}
+						{t("confirmation.orderNumber", {
+							number: order.orderNumber || order._id.slice(-8).toUpperCase(),
+						})}
 					</h2>
 					<p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-						Passée le {formatDate(order.createdAt)}
+						{t("confirmation.placedOn", { date: formatDate(order.createdAt) })}
 					</p>
 				</div>
 				<span
@@ -69,21 +77,21 @@ export const OrderInfoCard = ({
 					className="inline-flex items-center px-4 py-2 border border-gray-200 rounded-full text-xs sm:text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
 				>
 					<FiDownload className="h-4 w-4 mr-2" />
-					Télécharger la facture
+					{t("confirmation.downloadInvoice")}
 				</button>
 				<button
 					onClick={onShare}
 					className="inline-flex items-center px-4 py-2 border border-gray-200 rounded-full text-xs sm:text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
 				>
 					<FiShare2 className="h-4 w-4 mr-2" />
-					Partager
+					{t("confirmation.share")}
 				</button>
 				<button
 					onClick={onViewOrders}
 					className="inline-flex items-center px-4 py-2 border border-gray-200 rounded-full text-xs sm:text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
 				>
 					<FiShoppingBag className="h-4 w-4 mr-2" />
-					Voir toutes mes commandes
+					{t("confirmation.viewAllOrders")}
 				</button>
 			</div>
 		</div>
@@ -91,6 +99,7 @@ export const OrderInfoCard = ({
 };
 
 export const OrderItemsCard = ({ items }) => {
+	const t = useT();
 	const { currency } = useCurrency();
 	return (
 		<div className="bg-white rounded-2xl shadow-agri-card border border-emerald-100/80 p-5 sm:p-6">
@@ -98,13 +107,13 @@ export const OrderItemsCard = ({ items }) => {
 				<span className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center mr-2.5">
 					<FiPackage className="h-4 w-4 text-[#1A5514]" />
 				</span>
-				Articles commandés
+				{t("confirmation.itemsTitle")}
 			</h3>
 			<div className="space-y-3">
 				{items?.map((item, index) => {
 					const productSnapshot = item.productSnapshot || {};
 					const productName =
-						productSnapshot.name || item.name || "Produit inconnu";
+						productSnapshot.name || item.name || t("confirmation.unknownProduct");
 					const productImages = productSnapshot.images || [];
 					const productPrice =
 						productSnapshot.price || item.unitPrice || item.price || 0;
@@ -152,20 +161,21 @@ export const OrderItemsCard = ({ items }) => {
 									{parseProductName(productName)}
 								</h4>
 								<p className="text-xs text-gray-500 mt-0.5">
-									Quantité: {quantity}
+									{t("confirmation.quantity", { count: quantity })}
 								</p>
 								<p className="text-xs text-gray-500">
-									Prix unitaire:{" "}
-									{formatPrice(
-										convertPrice(
-											productPrice,
-											item.currency ||
-												productSnapshot.currency ||
-												DEFAULT_CURRENCY,
+									{t("confirmation.unitPrice", {
+										price: formatPrice(
+											convertPrice(
+												productPrice,
+												item.currency ||
+													productSnapshot.currency ||
+													DEFAULT_CURRENCY,
+												currency
+											),
 											currency
 										),
-										currency
-									)}
+									})}
 								</p>
 							</div>
 							<div className="text-right">
@@ -191,17 +201,18 @@ export const OrderItemsCard = ({ items }) => {
 };
 
 export const OrderSummaryCard = ({ totals }) => {
+	const t = useT();
 	const { currency } = useCurrency();
 
 
 	return (
 		<div className="bg-white rounded-2xl shadow-agri-card border border-emerald-100/80 p-5 sm:p-6">
 			<h3 className="font-extrabold text-[#161D14] mb-4">
-				Résumé de la commande
+				{t("checkout.summary.title")}
 			</h3>
 			<div className="space-y-2.5">
 				<Row
-					label="Sous-total"
+					label={t("checkout.summary.subtotal")}
 					value={formatPrice(
 						convertPrice(totals.subtotal, DEFAULT_CURRENCY, currency),
 						currency
@@ -210,7 +221,7 @@ export const OrderSummaryCard = ({ totals }) => {
 
 				{totals.taxes > 0 && (
 					<Row
-						label="TVA"
+						label={t("checkout.summary.vat")}
 						value={formatPrice(
 							convertPrice(totals.taxes, DEFAULT_CURRENCY, currency),
 							currency
@@ -219,7 +230,7 @@ export const OrderSummaryCard = ({ totals }) => {
 				)}
 				{totals.discount > 0 && (
 					<Row
-						label="Réduction"
+						label={t("checkout.summary.discount")}
 						value={`-${formatPrice(
 							convertPrice(totals.discount, DEFAULT_CURRENCY, currency),
 							currency
@@ -229,7 +240,9 @@ export const OrderSummaryCard = ({ totals }) => {
 				)}
 				<div className="border-t border-gray-100 pt-3">
 					<div className="flex justify-between items-center">
-						<span className="font-extrabold text-[#161D14]">Total</span>
+						<span className="font-extrabold text-[#161D14]">
+							{t("checkout.summary.total")}
+						</span>
 						<span className="font-extrabold text-xl text-[#1A5514]">
 							{formatPrice(
 								convertPrice(totals.total, DEFAULT_CURRENCY, currency),
@@ -243,13 +256,15 @@ export const OrderSummaryCard = ({ totals }) => {
 	);
 };
 
-export const DeliveryAddressCard = ({ address }) => (
+export const DeliveryAddressCard = ({ address }) => {
+	const t = useT();
+	return (
 	<div className="bg-white rounded-2xl shadow-agri-card border border-emerald-100/80 p-5 sm:p-6">
 		<h3 className="font-extrabold text-[#161D14] mb-4 flex items-center">
 			<span className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center mr-2.5">
 				<FiMapPin className="h-4 w-4 text-[#1A5514]" />
 			</span>
-			Adresse de livraison
+			{t("confirmation.addressTitle")}
 		</h3>
 		{address ? (
 			<div className="space-y-3">
@@ -285,7 +300,7 @@ export const DeliveryAddressCard = ({ address }) => (
 				{address.deliveryInstructions && (
 					<div className="mt-3 p-3 bg-emerald-50 rounded-xl">
 						<p className="text-sm text-emerald-800/80">
-							<span className="font-bold text-[#1A5514]">Instructions:</span>
+							<span className="font-bold text-[#1A5514]">{t("confirmation.instructions")}</span>
 							<br />
 							{address.deliveryInstructions}
 						</p>
@@ -293,58 +308,58 @@ export const DeliveryAddressCard = ({ address }) => (
 				)}
 			</div>
 		) : (
-			<p className="text-sm text-gray-500">Aucune adresse spécifiée</p>
+			<p className="text-sm text-gray-500">{t("confirmation.noAddress")}</p>
 		)}
 	</div>
-);
+	);
+};
 
-export const PaymentInfoCard = ({ payment }) => (
+export const PaymentInfoCard = ({ payment }) => {
+	const t = useT();
+	return (
 	<div className="bg-white rounded-2xl shadow-agri-card border border-emerald-100/80 p-5 sm:p-6">
 		<h3 className="font-extrabold text-[#161D14] mb-4 flex items-center">
 			<span className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center mr-2.5">
 				<FiCreditCard className="h-4 w-4 text-[#1A5514]" />
 			</span>
-			Paiement
+			{t("confirmation.paymentTitle")}
 		</h3>
 		<div className="text-sm text-gray-600 space-y-1">
 			<p>
-				<span className="font-bold text-[#161D14]">Méthode:</span>{" "}
+				<span className="font-bold text-[#161D14]">{t("confirmation.method")}</span>{" "}
 				{payment?.method === "paypal"
 					? "PayPal"
 					: payment?.method === "cash"
-					? "Paiement à la livraison"
+					? t("checkout.payment.cash")
 					: payment?.method}
 			</p>
 			<p>
-				<span className="font-bold text-[#161D14]">Statut:</span>{" "}
-				{payment?.status === "pending"
-					? "En attente"
-					: payment?.status === "completed"
-					? "Payé"
-					: payment?.status === "failed"
-					? "Échoué"
-					: payment?.status}
+				<span className="font-bold text-[#161D14]">{t("confirmation.status")}</span>{" "}
+				{t(`confirmation.paymentStatus.${payment?.status}`, { defaultValue: payment?.status || "" })}
 			</p>
 			{payment?.transactionId && (
 				<p>
-					<span className="font-bold text-[#161D14]">Transaction:</span>{" "}
+					<span className="font-bold text-[#161D14]">{t("confirmation.transaction")}</span>{" "}
 					{payment.transactionId}
 				</p>
 			)}
 		</div>
 	</div>
-);
+	);
+};
 
-export const NextStepsCard = () => (
+export const NextStepsCard = () => {
+	const t = useT();
+	return (
 	<div className="mt-5 bg-emerald-50 rounded-2xl border border-emerald-100 p-5 sm:p-6">
 		<h3 className="font-extrabold text-[#1A5514] mb-4">
-			Prochaines étapes
+			{t("confirmation.nextStepsTitle")}
 		</h3>
 		<div className="space-y-3 text-sm text-emerald-900/80">
 			{[
-				"Vous recevrez un email de confirmation avec les détails de votre commande.",
-				"Le producteur préparera votre commande et vous informera de l'expédition.",
-				"Vous recevrez un numéro de suivi pour suivre votre livraison en temps réel.",
+				t("confirmation.nextSteps.email"),
+				t("confirmation.nextSteps.preparation"),
+				t("confirmation.nextSteps.tracking"),
 			].map((text, i) => (
 				<div key={i} className="flex items-start">
 					<div className="flex-shrink-0 h-6 w-6 rounded-full bg-gradient-to-r from-[#1A5514] to-[#31BC2E] flex items-center justify-center mr-3 mt-0.5">
@@ -355,26 +370,30 @@ export const NextStepsCard = () => (
 			))}
 		</div>
 	</div>
-);
+	);
+};
 
-export const ActionButtons = ({ onHome, onViewOrders }) => (
+export const ActionButtons = ({ onHome, onViewOrders }) => {
+	const t = useT();
+	return (
 	<div className="mt-6 flex flex-col sm:flex-row gap-3">
 		<button
 			onClick={onHome}
 			className="flex-1 inline-flex items-center justify-center px-6 py-3 rounded-full text-sm font-bold text-white bg-gradient-to-r from-[#1A5514] to-[#31BC2E] shadow-lg shadow-emerald-900/20 hover:shadow-xl transition-all"
 		>
 			<FiHome className="mr-2 h-5 w-5" />
-			Retour à l'accueil
+			{t("confirmation.home")}
 		</button>
 		<button
 			onClick={onViewOrders}
 			className="flex-1 inline-flex items-center justify-center px-6 py-3 rounded-full text-sm font-bold text-gray-600 border border-gray-200 hover:bg-gray-50 transition-colors"
 		>
 			<FiShoppingBag className="mr-2 h-5 w-5" />
-			Voir mes commandes
+			{t("confirmation.viewOrders")}
 		</button>
 	</div>
-);
+	);
+};
 
 const Row = ({ label, value, className = "" }) => (
 	<div className={`flex justify-between text-sm ${className || "text-[#161D14]"}`}>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { restaurateurService } from "../../../services";
 import { useNotifications } from "../../../hooks/useNotifications";
 import { useAuth } from "../../../hooks/useAuth";
@@ -14,7 +14,20 @@ import {
 	FiShoppingBag,
 } from "react-icons/fi";
 
+// Statuts proposés au filtre (libellés : common.orderStatus)
+const STATUS_FILTERS = [
+	"pending",
+	"confirmed",
+	"preparing",
+	"ready-for-pickup",
+	"in-transit",
+	"delivered",
+	"completed",
+	"cancelled",
+];
+
 const OrdersList = () => {
+	const { t } = useTranslation(["dashboard-restaurateur", "common"]);
 	const { showSuccess, showError } = useNotifications();
 	const { user } = useAuth();
 	const [orders, setOrders] = useState([]);
@@ -96,11 +109,11 @@ const OrdersList = () => {
 			);
 
 			if (response.data.status === "success") {
-				showSuccess(`Statut mis à jour avec succès`);
+				showSuccess(t("orders.statusUpdated"));
 				await loadOrders();
 			}
 		} catch {
-			showError("Erreur lors de la mise à jour");
+			showError(t("orders.updateError"));
 		} finally {
 			setUpdatingOrders((prev) => {
 				const newSet = new Set(prev);
@@ -140,17 +153,16 @@ const OrdersList = () => {
 					<div className="space-y-2">
 						<div className="flex items-center gap-3 text-emerald-600 font-black text-[10px] uppercase tracking-[0.3em]">
 							<div className="w-8 h-[2px] bg-emerald-600 rounded-full"></div>
-							<span>Transactions</span>
+							<span>{t("orders.eyebrow")}</span>
 						</div>
 						<h1 className="text-4xl md:text-5xl font-[1000] text-gray-900 tracking-tighter leading-none">
-							Flux des{" "}
+							{t("orders.titleStart")}{" "}
 							<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">
-								Commandes.
+								{t("orders.titleHighlight")}
 							</span>
 						</h1>
 						<p className="text-gray-500 font-medium text-base">
-							Gérez vos achats de matières premières et vos ventes de plats
-							préparés dans un espace unifié.
+							{t("orders.subtitle")}
 						</p>
 					</div>
 
@@ -161,7 +173,7 @@ const OrdersList = () => {
 						<FiRefreshCw
 							className={`w-4 h-4 mr-3 ${loading ? "animate-spin" : ""}`}
 						/>
-						Rafraîchir
+						{t("orders.refresh")}
 					</button>
 				</div>
 
@@ -173,7 +185,7 @@ const OrdersList = () => {
 						</div>
 						<input
 							type="text"
-							placeholder="Chercher par n° de commande ou nom de client..."
+							placeholder={t("orders.searchPlaceholder")}
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
 							className="block w-full pl-12 pr-6 py-4 bg-white/60 border border-transparent focus:bg-white focus:border-emerald-500/30 rounded-[1.5rem] text-sm font-bold text-gray-900 placeholder-gray-400 transition-all shadow-inner"
@@ -188,9 +200,9 @@ const OrdersList = () => {
 								onChange={(e) => setOrderTypeFilter(e.target.value)}
 								className="pl-11 pr-10 py-4 bg-white/60 border border-transparent rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest text-gray-700 appearance-none cursor-pointer focus:bg-white transition-all shadow-inner min-w-[180px]"
 							>
-								<option value="all">Tous les types</option>
-								<option value="received">Ventes (Reçues)</option>
-								<option value="placed">Achats (Passées)</option>
+								<option value="all">{t("orders.allTypes")}</option>
+								<option value="received">{t("orders.received")}</option>
+								<option value="placed">{t("orders.placed")}</option>
 							</select>
 						</div>
 
@@ -201,15 +213,12 @@ const OrdersList = () => {
 								onChange={(e) => setStatusFilter(e.target.value)}
 								className="pl-11 pr-10 py-4 bg-white/60 border border-transparent rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest text-gray-700 appearance-none cursor-pointer focus:bg-white transition-all shadow-inner min-w-[200px]"
 							>
-								<option value="all">Tous les statuts</option>
-								<option value="pending">En attente</option>
-								<option value="confirmed">Confirmées</option>
-								<option value="preparing">En préparation</option>
-								<option value="ready-for-pickup">Prête</option>
-								<option value="in-transit">En transit</option>
-								<option value="delivered">Livrées</option>
-								<option value="completed">Terminées</option>
-								<option value="cancelled">Annulées</option>
+								<option value="all">{t("orders.allStatuses")}</option>
+								{STATUS_FILTERS.map((status) => (
+									<option key={status} value={status}>
+										{t(`common:orderStatus.${status}`)}
+									</option>
+								))}
 							</select>
 						</div>
 					</div>

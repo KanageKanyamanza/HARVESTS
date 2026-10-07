@@ -367,7 +367,8 @@ async function generateInvoicePDF(
 			yPos += 18;
 		}
 
-		if (order.deliveryFee !== undefined && order.deliveryFee !== null) {
+		// Livraison facturée par le livreur : ligne affichée seulement si un montant existe
+		if (order.deliveryFee > 0) {
 			const label = "Frais de livraison:";
 			const value = formatCurrency(
 				order.deliveryFee,

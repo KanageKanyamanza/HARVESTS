@@ -1,50 +1,83 @@
-import React, { useState } from "react";
-import { toPlainText } from "../../utils/textHelpers";
+import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getDishImageUrl } from "../../utils/dishImageUtils";
+import { DISH_CATEGORIES, DISH_ALLERGENS, getDishInfo } from "../../utils/dishHelpers";
+import { deriveShortDescription } from "../../utils/textHelpers";
+import {
+	buildBilingualValue,
+	getLocalizedValue,
+	getOtherLang,
+	getSourceLang,
+	getStaleLang,
+} from "../../utils/bilingualField";
+import { useBilingualSourceLang } from "../../hooks/useBilingualSourceLang";
 import { UNITS, DEFAULT_UNIT } from "../../config/units";
 import { CURRENCIES, DEFAULT_CURRENCY } from "../../config/currencies";
 
-const categories = [
-	{ value: "entree", label: "Entrée" },
-	{ value: "plat", label: "Plat principal" },
-	{ value: "dessert", label: "Dessert" },
-	{ value: "boisson", label: "Boisson" },
-	{ value: "accompagnement", label: "Accompagnement" },
-];
+// Champs bilingues : le champ principal est dans la langue « source »,
+// <champ>Alt dans l'autre langue (voir utils/bilingualField.js)
+const BILINGUAL_FIELDS = ["name", "description"];
 
-const allergenOptions = [
-	{ value: "gluten", label: "Gluten" },
-	{ value: "lactose", label: "Lactose" },
-	{ value: "nuts", label: "Noix" },
-	{ value: "eggs", label: "Œufs" },
-	{ value: "soy", label: "Soja" },
-	{ value: "fish", label: "Poisson" },
-	{ value: "shellfish", label: "Crustacés" },
-	{ value: "sesame", label: "Sésame" },
-];
+const inputClass =
+	"w-full px-4 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all";
+
+// Jour 53 : textes du plat lus langue par langue (getLocalizedValue), jamais
+// via toPlainText qui suit la langue de l'interface : sinon un nom anglais
+// était renvoyé comme texte français à l'enregistrement.
+const readTexts = (dish) => ({
+	name: {
+		fr: getLocalizedValue(dish?.name, "fr"),
+		en: getLocalizedValue(dish?.name, "en"),
+	},
+	description: {
+		fr: getLocalizedValue(dish?.description, "fr"),
+		en: getLocalizedValue(dish?.description, "en"),
+	},
+});
+
+// Langue des champs principaux : celle de l'interface, sauf si le plat n'a
+// encore aucun nom dans cette langue (on garde alors celle qui en a un)
+const pickSourceLang = (texts, uiLang) =>
+	texts.name[uiLang] || !texts.name[getOtherLang(uiLang)] ? uiLang : getOtherLang(uiLang);
 
 const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
-	const dishName = toPlainText(dish?.name, "");
-	const dishDescription = toPlainText(dish?.description, "");
-	const dishImage = getDishImageUrl(dish) || "";
-	const dishCategory = dish?.dishInfo?.category || dish?.category || "plat";
-	const dishPreparationTime =
-		dish?.dishInfo?.preparationTime || dish?.preparationTime || 30;
-	const dishAllergens = dish?.dishInfo?.allergens || dish?.allergens || [];
-	const dishStock = dish?.inventory?.quantity ?? dish?.stock ?? 10;
+	const { t, i18n } = useTranslation(["dashboard-restaurateur", "dashboard-producer", "common"]);
+	const info = getDishInfo(dish);
 
-	const [formData, setFormData] = useState({
-		name: dishName,
-		description: dishDescription,
-		price: dish?.price || "",
-		image: dishImage,
-		category: dishCategory,
-		preparationTime: dishPreparationTime,
-		allergens: dishAllergens,
-		stock: dishStock,
-		unit: dish?.unit || DEFAULT_UNIT,
-		currency: dish?.currency || DEFAULT_CURRENCY,
+	const [originalTexts] = useState(() => readTexts(dish));
+	const [initialLang] = useState(() =>
+		pickSourceLang(originalTexts, getSourceLang(i18n.language)),
+	);
+	const editRoles = useRef({});
+
+	const [formData, setFormData] = useState(() => {
+		const alt = getOtherLang(initialLang);
+		return {
+			name: originalTexts.name[initialLang],
+			description: originalTexts.description[initialLang],
+			nameAlt: originalTexts.name[alt],
+			descriptionAlt: originalTexts.description[alt],
+			price: dish?.price || "",
+			image: getDishImageUrl(dish) || "",
+			category: info.category,
+			preparationTime: info.preparationTime ?? 30,
+			allergens: info.allergens,
+			stock: dish?.inventory?.quantity ?? dish?.stock ?? 10,
+			unit: dish?.unit || DEFAULT_UNIT,
+			currency: dish?.currency || DEFAULT_CURRENCY,
+		};
 	});
+	const [sourceLang, setSourceLang] = useBilingualSourceLang(
+		setFormData,
+		BILINGUAL_FIELDS,
+	);
+	const otherLang = getOtherLang(sourceLang);
+
+	// Aligne la langue source sur celle choisie au chargement du plat
+	useEffect(() => {
+		setSourceLang(initialLang);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	const handleChange = (e) => {
 		const { name, value, type, checked } = e.target;
@@ -52,6 +85,17 @@ const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
 			...prev,
 			[name]: type === "checkbox" ? checked : value,
 		}));
+
+		// Rôle de la langue modifiée (voir getStaleLang) : texte principal =
+		// "source", bloc de l'autre langue = "retouche"
+		const field = name.replace(/Alt$/, "");
+		if (BILINGUAL_FIELDS.includes(field)) {
+			const isAlt = name !== field;
+			const lang = isAlt ? otherLang : sourceLang;
+			const roles = (editRoles.current[field] ||= {});
+			if (!isAlt) roles[lang] = "source";
+			else if (!roles[lang]) roles[lang] = "retouch";
+		}
 	};
 
 	const handleImageChange = (e) => {
@@ -73,49 +117,82 @@ const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
 		}));
 	};
 
+	const bilingual = (field) => {
+		const current = {
+			[sourceLang]: formData[field],
+			[otherLang]: formData[`${field}Alt`],
+		};
+		return buildBilingualValue(
+			formData[field],
+			formData[`${field}Alt`],
+			sourceLang,
+			getStaleLang(current, originalTexts[field], editRoles.current[field]),
+		);
+	};
+
 	const handleSubmit = (e) => {
 		e.preventDefault();
+		const { nameAlt: _nameAlt, descriptionAlt, ...fields } = formData;
+		const description =
+			formData.description.trim() || descriptionAlt.trim() ?
+				bilingual("description")
+			:	undefined;
 		onSubmit({
-			...formData,
-			name: toPlainText(formData.name, ""),
-			description: toPlainText(formData.description, ""),
-			shortDescription: toPlainText(formData.description, "").slice(0, 160),
+			...fields,
+			name: bilingual("name"),
+			...(description && {
+				description,
+				// Mêmes langues que la description : celle qui manque est
+				// traduite par le backend
+				shortDescription: Object.fromEntries(
+					Object.entries(description).map(([lang, text]) => [
+						lang,
+						deriveShortDescription(text, ""),
+					]),
+				),
+			}),
 		});
 	};
 
 	return (
-		<div className="p-6">
-			<h4 className="text-lg font-medium text-gray-900 mb-6">
-				{dish ? "Modifier le plat" : "Ajouter un nouveau plat"}
-			</h4>
+		<div className="p-6 md:p-8">
+			<div className="flex items-center gap-2 text-orange-600 font-black text-[9px] uppercase tracking-widest mb-2">
+				<div className="w-5 h-[2px] bg-orange-600"></div>
+				<span>{t("dishes.eyebrow")}</span>
+			</div>
+			<h4 className="text-2xl font-[1000] text-gray-900 tracking-tighter mb-1">{t("form.editTitle")}</h4>
+			<p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mb-6">
+				{t("form.reviewNotice")}
+			</p>
 			<form onSubmit={handleSubmit} className="space-y-4">
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">
-							Nom du plat *
+						<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2">
+							{t("form.name")} *
 						</label>
 						<input
 							type="text"
 							name="name"
+							lang={sourceLang}
 							value={formData.name}
 							onChange={handleChange}
 							required
-							className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-harvests-green"
+							className={inputClass}
 						/>
 					</div>
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">
-							Catégorie
+						<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2">
+							{t("form.category")}
 						</label>
 						<select
 							name="category"
 							value={formData.category}
 							onChange={handleChange}
-							className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-harvests-green"
+							className={inputClass}
 						>
-							{categories.map((cat) => (
-								<option key={cat.value} value={cat.value}>
-									{cat.label}
+							{DISH_CATEGORIES.map((category) => (
+								<option key={category} value={category}>
+									{t(`dish.categories.${category}`)}
 								</option>
 							))}
 						</select>
@@ -123,22 +200,62 @@ const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
 				</div>
 
 				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-2">
-						Description
+					<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2">
+						{t("form.description")}
 					</label>
 					<textarea
 						name="description"
+						lang={sourceLang}
 						value={formData.description}
 						onChange={handleChange}
 						rows={3}
-						className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-harvests-green"
+						className={inputClass}
 					/>
+				</div>
+
+				{/* Retouche de l'autre langue (sinon retraduite automatiquement) */}
+				<div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 space-y-3">
+					<div>
+						<p className="text-sm font-semibold text-blue-800">
+							{t(`dashboard-producer:products.form.otherLang.title.${otherLang}`)}
+						</p>
+						<p className="text-xs text-blue-700/80 mt-0.5">
+							{t("dashboard-producer:products.form.otherLang.editHint")}
+						</p>
+					</div>
+					<div>
+						<label className="block text-xs font-medium text-gray-600 mb-1">
+							{t(`dashboard-producer:products.form.otherLang.name.${otherLang}`)}
+						</label>
+						<input
+							type="text"
+							name="nameAlt"
+							lang={otherLang}
+							value={formData.nameAlt}
+							onChange={handleChange}
+							className={inputClass}
+						/>
+					</div>
+					<div>
+						<label className="block text-xs font-medium text-gray-600 mb-1">
+							{t(`dashboard-producer:products.form.otherLang.description.${otherLang}`)}
+						</label>
+						<textarea
+							name="descriptionAlt"
+							lang={otherLang}
+							value={formData.descriptionAlt}
+							onChange={handleChange}
+							rows={2}
+							placeholder={t("dashboard-producer:products.form.otherLang.descriptionPlaceholder")}
+							className={inputClass}
+						/>
+					</div>
 				</div>
 
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">
-							Prix *
+						<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2">
+							{t("form.price")} *
 						</label>
 						<div className="flex gap-2">
 							<input
@@ -148,13 +265,14 @@ const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
 								onChange={handleChange}
 								required
 								min="0"
-								className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-harvests-green"
+								className={inputClass}
 							/>
 							<select
 								name="currency"
 								value={formData.currency}
 								onChange={handleChange}
-								className="w-24 px-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-harvests-green"
+								aria-label={t("form.currency")}
+								className="w-28 px-3 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
 							>
 								{CURRENCIES.map((currency) => (
 									<option key={currency.code} value={currency.code}>
@@ -165,8 +283,8 @@ const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
 						</div>
 					</div>
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">
-							Temps de préparation (min)
+						<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2">
+							{t("form.preparationTime")}
 						</label>
 						<input
 							type="number"
@@ -174,12 +292,12 @@ const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
 							value={formData.preparationTime}
 							onChange={handleChange}
 							min="0"
-							className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-harvests-green"
+							className={inputClass}
 						/>
 					</div>
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">
-							Stock initial
+						<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2">
+							{t("form.stock")}
 						</label>
 						<input
 							type="number"
@@ -187,23 +305,23 @@ const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
 							value={formData.stock}
 							onChange={handleChange}
 							min="0"
-							className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-harvests-green"
+							className={inputClass}
 							placeholder="10"
 						/>
 					</div>
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">
-							Unité
+						<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2">
+							{t("form.unit")}
 						</label>
 						<select
 							name="unit"
 							value={formData.unit}
 							onChange={handleChange}
-							className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-harvests-green"
+							className={inputClass}
 						>
 							{UNITS.map((unit) => (
 								<option key={unit.value} value={unit.value}>
-									{unit.label}
+									{t(`common:units.${unit.key}`)}
 								</option>
 							))}
 						</select>
@@ -211,42 +329,42 @@ const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
 				</div>
 
 				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-2">
-						Image
+					<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2">
+						{t("form.image")}
 					</label>
 					<input
 						type="file"
 						name="image"
 						accept="image/*"
 						onChange={handleImageChange}
-						className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-harvests-green"
+						className={inputClass}
 					/>
 					{formData.image && (
 						<div className="mt-2">
 							<img
 								src={formData.image}
-								alt="Aperçu"
-								className="w-20 h-20 object-cover rounded-md"
+								alt={t("form.imageAlt")}
+								className="w-20 h-20 object-cover rounded-xl border border-gray-100"
 							/>
 						</div>
 					)}
 				</div>
 
 				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-2">
-						Allergènes
+					<label className="block text-[10px] font-black text-gray-600 uppercase tracking-widest mb-2">
+						{t("form.allergens")}
 					</label>
 					<div className="grid grid-cols-3 md:grid-cols-4 gap-2">
-						{allergenOptions.map((allergen) => (
-							<label key={allergen.value} className="flex items-center text-sm">
+						{DISH_ALLERGENS.map((allergen) => (
+							<label key={allergen} className="flex items-center text-sm">
 								<input
 									type="checkbox"
-									checked={formData.allergens.includes(allergen.value)}
-									onChange={() => handleAllergenChange(allergen.value)}
-									className="h-4 w-4 text-harvests-green focus:ring-harvests-green border-gray-300 rounded"
+									checked={formData.allergens.includes(allergen)}
+									onChange={() => handleAllergenChange(allergen)}
+									className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
 								/>
 								<span className="ml-2 text-xs text-gray-700">
-									{allergen.label}
+									{t(`dish.allergens.${allergen}`)}
 								</span>
 							</label>
 						))}
@@ -257,16 +375,16 @@ const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
 					<button
 						type="button"
 						onClick={onCancel}
-						className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-harvests-light"
+						className="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
 					>
-						Annuler
+						{t("form.cancel")}
 					</button>
 					<button
 						type="submit"
 						disabled={loading}
-						className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-harvests-green hover:bg-green-700 disabled:opacity-50"
+						className="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest text-white bg-gray-900 hover:bg-orange-600 transition-colors disabled:opacity-50"
 					>
-						{loading ? "Sauvegarde..." : dish ? "Modifier" : "Ajouter"}
+						{loading ? t("form.saving") : t("form.saveChanges")}
 					</button>
 				</div>
 			</form>

@@ -118,8 +118,8 @@ const QuickActionsSection = ({ userType, actions = [] }) => {
           },
           {
             icon: <FiUsers className="h-5 w-5" />,
-            key: 'suppliers',
-            href: `/${userType}/suppliers`,
+            key: 'myDishes',
+            href: `/${userType}/dishes`,
             color: 'bg-green-500 hover:bg-green-600'
           },
           {

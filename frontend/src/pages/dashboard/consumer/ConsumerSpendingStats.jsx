@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
 	AreaChart,
 	Area,
@@ -8,17 +9,19 @@ import {
 	Tooltip,
 	ResponsiveContainer,
 } from "recharts";
-import { FiTrendingUp, FiArrowUpRight, FiDollarSign } from "react-icons/fi";
+import { FiTrendingUp, FiArrowUpRight, FiArrowDownRight } from "react-icons/fi";
+import { formatPrice } from "../../../utils/currencyUtils";
+import { formatMonthCode } from "../../../utils/i18n";
 
 // loading : titres affichés, seuls le montant et la courbe (serveur) attendent
-const ConsumerSpendingStats = ({ monthlySpentChart, totalSpent, loading = false }) => {
-	const formatCurrency = (val) => {
-		return new Intl.NumberFormat("fr-FR", {
-			style: "currency",
-			currency: "XAF",
-			minimumFractionDigits: 0,
-		}).format(val || 0);
-	};
+const ConsumerSpendingStats = ({
+	monthlySpentChart,
+	currentMonthSpent,
+	monthlyGrowth,
+	loading = false,
+}) => {
+	const { t, i18n } = useTranslation("dashboard-consumer");
+	const formatCurrency = (val) => formatPrice(val || 0, "XOF");
 
 	return (
 		<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white/60 relative overflow-hidden group">
@@ -29,10 +32,10 @@ const ConsumerSpendingStats = ({ monthlySpentChart, totalSpent, loading = false 
 					</div>
 					<div>
 						<h3 className="text-xl font-[1000] text-gray-900 tracking-tight">
-							Analyse des Dépenses
+							{t("dashboard.spending.title")}
 						</h3>
 						<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mt-0.5">
-							Évolution de vos achats mensuels
+							{t("dashboard.spending.subtitle")}
 						</p>
 					</div>
 				</div>
@@ -40,20 +43,31 @@ const ConsumerSpendingStats = ({ monthlySpentChart, totalSpent, loading = false 
 				<div className="flex items-center gap-4">
 					<div className="text-right">
 						<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-1">
-							Ce mois-ci
+							{t("dashboard.spending.thisMonth")}
 						</p>
 						<p className="text-2xl font-[1000] text-gray-900 tracking-tighter">
 							{loading ?
 								<span className="inline-block h-6 w-24 bg-gray-100 rounded animate-pulse" />
-							:	formatCurrency(totalSpent / 12)}{" "}
-							{/* Mock average */}
+							:	formatCurrency(currentMonthSpent)}
 						</p>
 					</div>
-					<div className="w-[1px] h-10 bg-gray-100 mx-2"></div>
-					<div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest">
-						<FiArrowUpRight className="w-3 h-3" />
-						+12.5%
-					</div>
+					{/* Tendance réelle (mois en cours vs mois précédent), seulement si calculable */}
+					{!loading && monthlyGrowth !== null && monthlyGrowth !== undefined && (
+						<>
+							<div className="w-[1px] h-10 bg-gray-100 mx-2"></div>
+							<div
+								className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
+									monthlyGrowth >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+								}`}
+							>
+								{monthlyGrowth >= 0 ?
+									<FiArrowUpRight className="w-3 h-3" />
+								:	<FiArrowDownRight className="w-3 h-3" />}
+								{monthlyGrowth >= 0 ? "+" : ""}
+								{monthlyGrowth}%
+							</div>
+						</>
+					)}
 				</div>
 			</div>
 
@@ -68,13 +82,10 @@ const ConsumerSpendingStats = ({ monthlySpentChart, totalSpent, loading = false 
 									<stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
 								</linearGradient>
 							</defs>
-							<CartesianGrid
-								strokeDasharray="3 3"
-								vertical={false}
-								stroke="#f1f5f9"
-							/>
+							<CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
 							<XAxis
-								dataKey="name"
+								dataKey="month"
+								tickFormatter={(month) => formatMonthCode(month, i18n.language)}
 								axisLine={false}
 								tickLine={false}
 								tick={{ fontSize: 10, fontWeight: 800, fill: "#94a3b8" }}
@@ -92,7 +103,10 @@ const ConsumerSpendingStats = ({ monthlySpentChart, totalSpent, loading = false 
 									fontWeight: "bold",
 									color: "#1e293b",
 								}}
-								formatter={(value) => [formatCurrency(value), "Dépensé"]}
+								labelFormatter={(month) =>
+									formatMonthCode(month, i18n.language, { month: "long", year: "numeric" })
+								}
+								formatter={(value) => [formatCurrency(value), t("dashboard.spending.spent")]}
 							/>
 							<Area
 								type="monotone"

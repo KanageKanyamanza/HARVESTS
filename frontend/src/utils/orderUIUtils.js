@@ -5,46 +5,49 @@ import {
 	FiPackage,
 	FiTruck,
 } from "react-icons/fi";
+import i18n, { formatDateTime } from "./i18n";
 
+// Jour 54 : libellés traduits (common.orderStatus) et dates au format de la langue
 export const getStatusConfig = (status) => {
 	const configs = {
 		pending: {
 			color: "text-yellow-600 bg-yellow-100",
-			text: "En attente",
+			status: "pending",
 			icon: FiClock,
 		},
 		confirmed: {
 			color: "text-blue-600 bg-blue-100",
-			text: "Confirmée",
+			status: "confirmed",
 			icon: FiCheckCircle,
 		},
 		processing: {
 			color: "text-purple-600 bg-purple-100",
-			text: "En préparation",
+			status: "processing",
 			icon: FiPackage,
 		},
 		shipped: {
 			color: "text-indigo-600 bg-indigo-100",
-			text: "Expédiée",
+			status: "shipped",
 			icon: FiTruck,
 		},
 		delivered: {
 			color: "text-green-600 bg-green-100",
-			text: "Livrée",
+			status: "delivered",
 			icon: FiCheckCircle,
 		},
 		cancelled: {
 			color: "text-red-600 bg-red-100",
-			text: "Annulée",
+			status: "cancelled",
 			icon: FiClock,
 		},
 	};
-	return configs[status] || configs["pending"];
+	const config = configs[status] || configs.pending;
+	return { ...config, text: i18n.t(`orderStatus.${config.status}`, { ns: "common" }) };
 };
 
 export const formatDate = (dateString) => {
-	if (!dateString) return "N/A";
-	return new Date(dateString).toLocaleDateString("fr-FR", {
+	if (!dateString) return "—";
+	return formatDateTime(dateString, i18n.language, {
 		year: "numeric",
 		month: "long",
 		day: "numeric",

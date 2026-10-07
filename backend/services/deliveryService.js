@@ -107,7 +107,8 @@ function calculateDeliveryFee(items, deliveryAddress, sellerLocations = [], deli
     amount: 0,
     scope: 'local',
     method: deliveryMethod || 'standard-delivery',
-    reason: 'Livraison gratuite sur toute la plateforme.'
+    // La livraison est facturée par le livreur, pas par Harvests
+    reason: 'Frais de livraison réglés directement au livreur.'
   };
 }
 

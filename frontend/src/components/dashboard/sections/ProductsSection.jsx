@@ -1,12 +1,16 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { formatPrice } from '../../../utils/currencyUtils';
 import { FiPackage, FiPlus, FiEdit, FiEye } from 'react-icons/fi';
 import CloudinaryImage from '../../common/CloudinaryImage';
 import { getDishImageUrl } from '../../../utils/dishImageUtils';
 import { toPlainText } from '../../../utils/textHelpers';
 
 const ProductsSection = ({ products, userType, loading = false }) => {
+  const { t } = useTranslation('common', { keyPrefix: 'productsSection' });
   const navigate = useNavigate();
+  const isRestaurateur = userType === 'restaurateur';
   
   // Fonction pour obtenir la route de modification selon le type d'utilisateur
   const getEditRoute = (productId) => {
@@ -67,14 +71,18 @@ const ProductsSection = ({ products, userType, loading = false }) => {
     return (
       <div className="text-center py-8">
         <FiPackage className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun produit</h3>
-        <p className="text-gray-500 mb-4">Commencez par ajouter vos premiers produits.</p>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">
+          {isRestaurateur ? t('emptyDishesTitle') : t('emptyTitle')}
+        </h3>
+        <p className="text-gray-500 mb-4">
+          {isRestaurateur ? t('emptyDishesText') : t('emptyText')}
+        </p>
         <Link
           to={getAddRoute()}
           className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <FiPlus className="mr-2" />
-          {userType === 'restaurateur' ? 'Ajouter un plat' : 'Ajouter un produit'}
+          {isRestaurateur ? t('addDish') : t('addProduct')}
         </Link>
       </div>
     );
@@ -94,7 +102,7 @@ const ProductsSection = ({ products, userType, loading = false }) => {
                   return (
                     <CloudinaryImage
                       src={imageUrl}
-                      alt={toPlainText(product.name, 'Plat')}
+                      alt={toPlainText(product.name, t('unnamed'))}
                       className="w-full h-full object-cover"
                     />
                   );
@@ -103,7 +111,7 @@ const ProductsSection = ({ products, userType, loading = false }) => {
                 return (
                   <CloudinaryImage
                     src={product.images[0].url || product.images[0]}
-                    alt={toPlainText(product.name, 'Produit')}
+                    alt={toPlainText(product.name, t('unnamed'))}
                     className="w-full h-full object-cover"
                   />
                 );
@@ -118,17 +126,18 @@ const ProductsSection = ({ products, userType, loading = false }) => {
           </div>
           <div className="flex-1 min-w-0">
             <h4 className="text-sm font-medium text-gray-900 truncate">
-              {toPlainText(product.name, 'Sans nom')}
+              {toPlainText(product.name, t('unnamed'))}
             </h4>
             <p className="text-sm text-gray-500">
-              {product.price ? `${product.price} XAF` : 'Prix non défini'}
+              {product.price ? formatPrice(product.price, product.currency) : t('noPrice')}
             </p>
           </div>
           <div className="flex space-x-1">
             <Link
-              to={`/products/${product.slug || product._id}`}
+              to={isRestaurateur ? `/dishes/${product._id}` : `/products/${product.slug || product._id}`}
               className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-              title="Voir"
+              title={t('view')}
+              aria-label={t('view')}
             >
               <FiEye className="h-4 w-4" />
             </Link>
@@ -136,7 +145,8 @@ const ProductsSection = ({ products, userType, loading = false }) => {
               to={getEditRoute(product._id)}
               onClick={(e) => handleEditClick(e, product._id)}
               className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-              title="Modifier"
+              title={t('edit')}
+              aria-label={t('edit')}
             >
               <FiEdit className="h-4 w-4" />
             </Link>
@@ -150,9 +160,9 @@ const ProductsSection = ({ products, userType, loading = false }) => {
             to={getAllRoute()}
             className="text-sm text-blue-600 hover:text-blue-800 font-medium"
           >
-            {userType === 'restaurateur' 
-              ? `Voir tous les plats (${products.length})` 
-              : `Voir tous les produits (${products.length})`}
+            {isRestaurateur
+              ? t('seeAllDishes', { count: products.length })
+              : t('seeAllProducts', { count: products.length })}
           </Link>
         </div>
       )}

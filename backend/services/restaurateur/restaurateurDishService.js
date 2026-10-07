@@ -65,12 +65,20 @@ async function addDish(restaurateurId, dishData) {
 		description !== undefined && description !== null ?
 			toPlainText(description, "")
 		:	"";
+	// Jour 53 : texte par défaut dans les deux langues (une chaîne simple est
+	// lue comme du français par productMiddleware.js)
+	const defaultDescription = {
+		fr: "Plat proposé par le restaurateur",
+		en: "Dish offered by the restaurant",
+	};
 	const baseDescription =
-		(normalizedDescriptionRaw ? description : null) ||
-		"Plat proposé par le restaurateur";
+		(normalizedDescriptionRaw ? description : null) || defaultDescription;
+	// Résumé fourni par l'interface ({ fr, en }, mêmes langues que la
+	// description) ; à défaut, dérivé du texte (repli historique)
 	const shortDescriptionText =
+		dishData.shortDescription ||
 		(normalizedDescriptionRaw || plainNameForDerivedFields || "").slice(0, 160) ||
-		"Plat proposé par le restaurateur";
+		defaultDescription;
 
 	const images = [];
 	if (image) {

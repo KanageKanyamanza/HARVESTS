@@ -1,54 +1,44 @@
-import {
-	FiShoppingCart,
-	FiCreditCard,
-	FiStar,
-	FiHeart,
-	FiAward,
-	FiTrendingUp,
-} from "react-icons/fi";
+import { FiShoppingCart, FiCreditCard, FiStar, FiAward } from "react-icons/fi";
+import i18n, { formatNumber } from "../../../utils/i18n";
+import { formatPrice } from "../../../utils/currencyUtils";
 
-export const createConsumerStatCards = (stats) => {
-	const formatCurrency = (val) => {
-		return new Intl.NumberFormat("fr-FR", {
-			style: "currency",
-			currency: "XAF",
-			minimumFractionDigits: 0,
-		}).format(val || 0);
-	};
+const card = (key) => i18n.t(`dashboard.cards.${key}`, { ns: "dashboard-consumer" });
 
-	return [
-		{
-			title: "Total Dépensé",
-			value: formatCurrency(stats.totalSpent),
-			icon: FiCreditCard,
-			color: "bg-blue-500",
+export const createConsumerStatCards = (stats) => [
+	{
+		title: card("totalSpent"),
+		value: formatPrice(stats.totalSpent, "XOF"),
+		icon: FiCreditCard,
+		color: "bg-blue-500",
+		// Tendance affichée seulement quand elle est calculable (mois précédent non nul)
+		...(stats.monthlyGrowth !== null && {
 			trend: {
-				value: `${stats.monthlyGrowth}%`,
-				isPositive: true,
-				text: "vs mois dernier",
+				value: `${stats.monthlyGrowth >= 0 ? "+" : ""}${stats.monthlyGrowth}%`,
+				isPositive: stats.monthlyGrowth >= 0,
+				text: card("vsLastMonth"),
 			},
-			link: "/consumer/statistics",
-		},
-		{
-			title: "Commandes",
-			value: stats.totalOrders.toString(),
-			icon: FiShoppingCart,
-			color: "bg-cyan-500",
-			link: "/consumer/orders",
-		},
-		{
-			title: "Points Fidélité",
-			value: stats.loyaltyPoints.toLocaleString(),
-			icon: FiAward,
-			color: "bg-amber-500",
-			link: "/loyalty",
-		},
-		{
-			title: "Avis Donnés",
-			value: stats.reviewsWritten.toString(),
-			icon: FiStar,
-			color: "bg-indigo-500",
-			link: "/consumer/reviews",
-		},
-	];
-};
+		}),
+		link: "/consumer/statistics",
+	},
+	{
+		title: card("orders"),
+		value: formatNumber(stats.totalOrders),
+		icon: FiShoppingCart,
+		color: "bg-cyan-500",
+		link: "/consumer/orders",
+	},
+	{
+		title: card("loyaltyPoints"),
+		value: formatNumber(stats.loyaltyPoints),
+		icon: FiAward,
+		color: "bg-amber-500",
+		link: "/loyalty",
+	},
+	{
+		title: card("reviewsGiven"),
+		value: formatNumber(stats.reviewsWritten),
+		icon: FiStar,
+		color: "bg-indigo-500",
+		link: "/consumer/reviews",
+	},
+];

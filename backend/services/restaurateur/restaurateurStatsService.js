@@ -254,12 +254,11 @@ async function getSalesAnalytics(restaurateurId) {
 		createdAt: { $gte: twelveMonthsAgo },
 	});
 
+	// Jour 53 : mois ISO (AAAA-MM), triable et formaté côté interface selon
+	// la langue (était « sept. 2026 », en français et non trié)
 	const monthlySales = {};
 	orders.forEach((order) => {
-		const month = new Date(order.createdAt).toLocaleDateString("fr-FR", {
-			year: "numeric",
-			month: "short",
-		});
+		const month = new Date(order.createdAt).toISOString().slice(0, 7);
 		if (!monthlySales[month]) {
 			monthlySales[month] = {
 				orders: 0,
@@ -275,10 +274,10 @@ async function getSalesAnalytics(restaurateurId) {
 	});
 
 	return {
-		monthlySales: Object.entries(monthlySales).map(([month, data]) => ({
-			month,
-			...data,
-		})),
+		// Du plus récent au plus ancien (l'interface affiche les premiers)
+		monthlySales: Object.entries(monthlySales)
+			.map(([month, data]) => ({ month, ...data }))
+			.sort((a, b) => b.month.localeCompare(a.month)),
 	};
 }
 
@@ -294,10 +293,7 @@ async function getRevenueAnalytics(restaurateurId) {
 
 	const monthlyRevenue = {};
 	orders.forEach((order) => {
-		const month = new Date(order.createdAt).toLocaleDateString("fr-FR", {
-			year: "numeric",
-			month: "short",
-		});
+		const month = new Date(order.createdAt).toISOString().slice(0, 7);
 		if (!monthlyRevenue[month]) {
 			monthlyRevenue[month] = 0;
 		}
@@ -317,10 +313,9 @@ async function getRevenueAnalytics(restaurateurId) {
 		.reduce((sum, order) => sum + (order.total || 0), 0);
 
 	return {
-		monthlyRevenue: Object.entries(monthlyRevenue).map(([month, revenue]) => ({
-			month,
-			revenue,
-		})),
+		monthlyRevenue: Object.entries(monthlyRevenue)
+			.map(([month, revenue]) => ({ month, revenue }))
+			.sort((a, b) => b.month.localeCompare(a.month)),
 		currentMonthRevenue,
 		totalRevenue: orders.reduce((sum, order) => sum + (order.total || 0), 0),
 	};

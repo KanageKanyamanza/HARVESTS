@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
 	FiHeart,
 	FiShoppingCart,
-	FiStar,
 	FiMapPin,
 	FiClock,
 	FiRefreshCw,
@@ -15,23 +15,20 @@ import { consumerService } from "../../../services/genericService";
 import CardGridSkeleton from "../../../components/common/CardGridSkeleton";
 import DataValue from "../../../components/common/DataValue";
 import ErrorMessage from "../../../components/common/ErrorMessage";
-import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
+import { formatPrice } from "../../../utils/currencyUtils";
+import { toPlainText } from "../../../utils/textHelpers";
+import { getCategoryLabel } from "../../../utils/productHelpers";
+import { UNITS } from "../../../config/units";
 import CloudinaryImage from "../../../components/common/CloudinaryImage";
 
 const FavoriteCard = ({ favorite, onRemove }) => {
+	const { t, i18n } = useTranslation(["dashboard-consumer", "common"]);
 	const product = favorite.product;
-	const productName =
-		product.name?.fr || product.name?.en || product.name || "Produit";
+	// Nom dans la langue de l'interface (était toujours le français)
+	const productName = toPlainText(product.name, t("favorites.unknownProduct"));
 	const primaryImage =
 		product.images?.find((img) => img.isPrimary) || product.images?.[0];
-
-	const formatCurrency = (val) => {
-		return new Intl.NumberFormat("fr-FR", {
-			style: "currency",
-			currency: "XAF",
-			minimumFractionDigits: 0,
-		}).format(val || 0);
-	};
+	const unit = UNITS.find((u) => u.value === product.unit);
 
 	return (
 		<div className="group bg-white/70 backdrop-blur-xl rounded-[2.5rem] border border-white/60 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 overflow-hidden flex flex-col h-full">
@@ -50,32 +47,26 @@ const FavoriteCard = ({ favorite, onRemove }) => {
 					</div>
 				}
 
-				{/* Top Badges */}
-				<div className="absolute top-4 left-4 flex gap-2">
-					<div className="bg-white/90 backdrop-blur-md px-3 py-1 rounded-full border border-white/50 shadow-sm flex items-center gap-1.5">
-						<FiStar className="w-3 h-3 text-amber-500 fill-amber-500" />
-						<span className="text-[10px] font-black text-gray-900 font-mono">
-							4.8
-						</span>
-					</div>
-				</div>
-
 				<button
 					onClick={(e) => {
 						e.preventDefault();
 						onRemove(product._id);
 					}}
+					title={t("favorites.remove")}
+					aria-label={t("favorites.remove")}
 					className="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md rounded-2xl flex items-center justify-center text-rose-500 shadow-sm border border-white/50 hover:bg-rose-500 hover:text-white transition-all transform active:scale-95"
 				>
 					<FiTrash2 className="w-4 h-4" />
 				</button>
 
-				{/* Category Badge overlay */}
-				<div className="absolute bottom-4 left-4">
-					<span className="px-3 py-1 bg-blue-600/80 backdrop-blur-md text-white text-[9px] font-black uppercase tracking-widest rounded-lg shadow-lg">
-						{product.category || "Bio"}
-					</span>
-				</div>
+				{/* Catégorie réelle du produit (affichait « Bio » par défaut) */}
+				{product.category && (
+					<div className="absolute bottom-4 left-4">
+						<span className="px-3 py-1 bg-blue-600/80 backdrop-blur-md text-white text-[9px] font-black uppercase tracking-widest rounded-lg shadow-lg">
+							{getCategoryLabel(product.category, i18n.language)}
+						</span>
+					</div>
+				)}
 			</div>
 
 			{/* Info Section */}
@@ -84,7 +75,7 @@ const FavoriteCard = ({ favorite, onRemove }) => {
 					<div className="flex items-center gap-2 mb-2 text-blue-600">
 						<FiMapPin className="w-3 h-3" />
 						<span className="text-[9px] font-black uppercase tracking-widest">
-							{product.producer?.farmName || "Producteur local"}
+							{product.producer?.farmName || t("favorites.localProducer")}
 						</span>
 					</div>
 					<h3 className="text-lg font-[1000] text-gray-900 tracking-tight leading-tight mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
@@ -95,18 +86,22 @@ const FavoriteCard = ({ favorite, onRemove }) => {
 				<div className="mt-4 pt-4 border-t border-gray-100/50 flex items-center justify-between">
 					<div className="flex flex-col">
 						<span className="text-[9px] font-black text-gray-600 uppercase tracking-widest leading-none mb-1">
-							Prix actuel
+							{t("favorites.currentPrice")}
 						</span>
 						<span className="text-xl font-[1000] text-gray-900 tracking-tighter">
-							{formatCurrency(product.price)}
-							<span className="text-[10px] font-bold text-gray-400 ml-1">
-								/{product.unit || "kg"}
-							</span>
+							{formatPrice(product.price || 0, product.currency || "XOF")}
+							{product.unit && (
+								<span className="text-[10px] font-bold text-gray-400 ml-1">
+									/{unit ? t(`common:units.${unit.key}`) : product.unit}
+								</span>
+							)}
 						</span>
 					</div>
 
 					<Link
 						to={`/products/${product.slug || product._id}`}
+						title={t("favorites.viewProduct")}
+						aria-label={t("favorites.viewProduct")}
 						className="w-12 h-12 bg-gray-900 rounded-2xl flex items-center justify-center text-white hover:bg-blue-600 transition-all shadow-xl shadow-gray-200 group-hover:shadow-blue-200"
 					>
 						<FiShoppingCart className="w-5 h-5" />
@@ -118,6 +113,7 @@ const FavoriteCard = ({ favorite, onRemove }) => {
 };
 
 const Favorites = () => {
+	const { t } = useTranslation("dashboard-consumer");
 	const [favorites, setFavorites] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
@@ -152,7 +148,7 @@ const Favorites = () => {
 			setFavorites(validFavorites);
 		} catch (err) {
 			console.error("Erreur lors du chargement des favoris:", err);
-			setError("Impossible de charger vos produits favoris");
+			setError(t("favorites.loadError"));
 		} finally {
 			setLoading(false);
 		}
@@ -166,6 +162,7 @@ const Favorites = () => {
 			);
 		} catch (err) {
 			console.error("Erreur lors de la suppression du favori:", err);
+			setError(t("favorites.removeError"));
 		}
 	};
 
@@ -185,19 +182,19 @@ const Favorites = () => {
 						<div className="space-y-3">
 							<div className="flex items-center gap-2 text-blue-600 font-black text-[9px] uppercase tracking-widest mb-2">
 								<div className="w-5 h-[2px] bg-blue-600 rounded-full"></div>
-								<span>Collection Privée</span>
+								<span>{t("favorites.eyebrow")}</span>
 							</div>
 							<h1 className="text-3xl font-[1000] text-gray-900 tracking-tighter leading-none mb-2">
-								Produits{" "}
+								{t("favorites.titleStart")}{" "}
 								<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-sky-500 italic">
-									Favoris.
+									{t("favorites.titleHighlight")}
 								</span>
 							</h1>
 							<p className="text-xs text-gray-500 font-medium max-w-xl">
-								Retrouvez tous les produits que vous avez aimés.{" "}
-								<DataValue loading={loading} className="w-4 h-[0.9em]">{favorites.length}</DataValue> article
-								{favorites.length > 1 ? "s" : ""} enregistré
-								{favorites.length > 1 ? "s" : ""}.
+								{t("favorites.subtitle")}{" "}
+								<DataValue loading={loading} className="w-16 h-[0.9em]">
+									{t("favorites.savedCount", { count: favorites.length })}
+								</DataValue>
 							</p>
 						</div>
 
@@ -207,10 +204,12 @@ const Favorites = () => {
 								className="group relative inline-flex items-center justify-center px-6 py-3 bg-gray-900 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all duration-300 hover:bg-blue-600 shadow-sm"
 							>
 								<FiSearch className="mr-2" />
-								Découvrir plus
+								{t("favorites.discoverMore")}
 							</Link>
 							<button
 								onClick={loadFavorites}
+								title={t("favorites.refresh")}
+								aria-label={t("favorites.refresh")}
 								className="w-12 h-12 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/60 shadow-sm flex items-center justify-center text-gray-500 hover:text-blue-600 transition-colors group"
 							>
 								<FiRefreshCw className="w-4 h-4 group-active:rotate-180 transition-transform duration-500" />
@@ -234,17 +233,16 @@ const Favorites = () => {
 									<FiHeart className="w-10 h-10" />
 								</div>
 								<h3 className="text-2xl font-[1000] text-gray-900 tracking-tight mb-2">
-									Votre liste est vide
+									{t("favorites.emptyTitle")}
 								</h3>
 								<p className="text-gray-500 font-medium mb-8 max-w-sm mx-auto">
-									Parcourez notre catalogue et ajoutez vos produits préférés à
-									vos favoris pour les retrouver ici.
+									{t("favorites.emptyText")}
 								</p>
 								<Link
 									to="/products"
 									className="inline-flex items-center px-10 py-4 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-xl shadow-blue-200"
 								>
-									Explorer le catalogue
+									{t("favorites.explore")}
 								</Link>
 							</div>
 						:	<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 md:gap-10">
