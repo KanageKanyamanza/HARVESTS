@@ -199,5 +199,102 @@
 		"notAvailable": "N/A",
 		"noDataTitle": "No data available",
 		"noDataText": "Your detailed statistics will appear after your first delivery job."
+	},
+	"exporter": {
+		"dashboard": {
+			"eyebrow": "Exporter space",
+			"subtitle": "Manage your exports and international markets with <brand>Harvests</brand>. Track your performance and your fleet in real time.",
+			"quotaReachedText": "You can no longer accept new exports this week. Upgrade to the Standard or Premium plan to lift this limit.",
+			"quotaNearTitle": "Export limit almost reached ({{count}}/{{max}})",
+			"quotaNearText": "You are approaching your weekly export limit. Plan ahead by upgrading to a higher plan.",
+			"recentOrders": "Recent orders"
+		},
+		"cards": {
+			"exports": "Exports",
+			"pending": "{{count}} pending",
+			"revenue": "Revenue",
+			"grossRevenue": "Delivery fees earned",
+			"countries": "Countries served",
+			"markets": "International markets"
+		},
+		"charts": {
+			"revenueTitle": "Revenue trend",
+			"revenueSubtitle": "Last 6 months",
+			"growth": "{{value}}% growth",
+			"volumeTitle": "Export volume",
+			"volumeSubtitle": "Exports handled per month",
+			"revenue": "Revenue",
+			"exports": "Exports"
+		},
+		"fleet": {
+			"eyebrow": "Logistics operations",
+			"subtitle": "Manage your transport resources and containers for an optimised supply chain.",
+			"searchPlaceholder": "Search by type, registration or container...",
+			"emptyTitle": "No vehicles",
+			"noResultText": "Nothing in your fleet matches your search.",
+			"emptyText": "Your fleet is currently empty.",
+			"addFirst": "Add your first vehicle",
+			"noIdentifier": "No identifier",
+			"available": "Available",
+			"inUse": "In use",
+			"partners": "Logistics partners",
+			"globalNetwork": "Global network"
+		},
+		"vehicleForm": {
+			"addEyebrow": "Fleet setup",
+			"addTitleStart": "New",
+			"addTitleHighlight": "Vehicle.",
+			"addSubtitle": "Register a new vehicle for your exports.",
+			"editEyebrow": "Editing vehicle",
+			"editSubtitle": "Update your vehicle's settings.",
+			"generalInfo": "General information",
+			"unitType": "Unit type",
+			"registrationId": "Registration / identifier",
+			"registrationPlaceholder": "e.g. ABC-123-XY",
+			"containerOptional": "Container number (optional)",
+			"containerPlaceholder": "e.g. ABCD1234567",
+			"currentCondition": "Current condition",
+			"loadSpecs": "Load specifications",
+			"options": "Options and features",
+			"availability": "Availability",
+			"availableForMissions": "Available for jobs",
+			"processing": "Processing...",
+			"updating": "Updating...",
+			"imageUpdated": "Image updated",
+			"loadError": "Error while loading the data",
+			"updated": "Vehicle updated successfully",
+			"updateError": "Error while updating"
+		},
+		"orders": {
+			"eyebrow": "Logistics and export",
+			"titleStart": "My",
+			"titleHighlight": "Orders.",
+			"subtitle": "Manage your exports, track shipments in real time and keep your customers satisfied.",
+			"searchPlaceholder": "Search by order number...",
+			"emptyTitle": "No orders",
+			"emptyFiltered": "No results match your search criteria.",
+			"emptyText": "Your order book is currently empty.",
+			"resetFilters": "Reset filters",
+			"defaultName": "the exporter"
+		},
+		"stats": {
+			"eyebrow": "Analytics and reports",
+			"titleStart": "Detailed",
+			"titleHighlight": "Statistics.",
+			"subtitle": "Explore the performance indicators of your international business.",
+			"overview": "Overview",
+			"keyIndicators": "Key indicators",
+			"timeline": "Trends",
+			"activeOrders": "Active orders",
+			"inProgress": "In progress",
+			"licences": "Licences",
+			"compliance": "Compliance",
+			"monthlyRevenue": "This month's revenue",
+			"thisMonth": "This month",
+			"successRate": "Success rate",
+			"deliveries": "Deliveries",
+			"noDataTitle": "No data available",
+			"noDataText": "Your detailed statistics will appear here after your first export."
+		}
 	}
 }

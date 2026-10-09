@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
 	FileText,
 	ShieldCheck,
@@ -12,6 +13,7 @@ import {
 	ArrowRight,
 } from "lucide-react";
 import { useAuth } from "../../../hooks/useAuth";
+import { useNotifications } from "../../../hooks/useNotifications";
 
 import DocumentsSection from "../../../components/profile/specific/DocumentsSection";
 import CertificationsSection from "../../../components/profile/specific/CertificationsSection";
@@ -26,6 +28,8 @@ import {
 import DashboardPageSkeleton from "../../../components/common/DashboardPageSkeleton";
 
 const DocumentsPage = () => {
+	const { t } = useTranslation("common");
+	const { showSuccess, showError } = useNotifications();
 	const { user, isAuthenticated, refreshUser, setUser, updateProfile } =
 		useAuth();
 	const [saving, setSaving] = useState(false);
@@ -91,9 +95,10 @@ const DocumentsPage = () => {
 				await refreshUser();
 			}
 
-			// Better success feedback could be added here
+			showSuccess(t("documentsPage.saved"));
 		} catch (error) {
 			console.error("Erreur sauvegarde:", error);
+			showError(error.response?.data?.message || t("documentsPage.saveError"));
 		} finally {
 			setSaving(false);
 		}
@@ -140,17 +145,16 @@ const DocumentsPage = () => {
 					<div className="space-y-4">
 						<div className="flex items-center gap-2 text-emerald-600 font-black text-[9px] uppercase tracking-widest mb-2">
 							<div className="w-5 h-[2px] bg-emerald-600 rounded-full"></div>
-							<span>Conformité</span>
+							<span>{t("documentsPage.eyebrow")}</span>
 						</div>
 						<h1 className="text-3xl font-[1000] text-gray-900 tracking-tighter leading-none mb-2">
-							Documents &{" "}
+							{t("documentsPage.titleStart")}{" "}
 							<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">
-								Certifications.
+								{t("documentsPage.titleHighlight")}
 							</span>
 						</h1>
 						<p className="text-xs text-gray-500 font-medium max-w-xl">
-							Gérez vos documents légaux et valorisez votre savoir-faire par des
-							certifications reconnues.
+							{t("documentsPage.subtitle")}
 						</p>
 					</div>
 
@@ -160,13 +164,15 @@ const DocumentsPage = () => {
 						</div>
 						<div>
 							<p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
-								Statut Profil
+								{t("documentsPage.profileStatus")}
 							</p>
 							<div className="flex items-center gap-2">
 								<span className="text-lg font-[1000] text-gray-900 tracking-tight">
-									Verifié Harvests
+									{user.isApproved ? t("documentsPage.verified") : t("documentsPage.pending")}
 								</span>
-								<CheckCircle2 className="h-4 w-4 text-emerald-500" />
+								{user.isApproved ?
+									<CheckCircle2 className="h-4 w-4 text-emerald-500" />
+								:	<Clock className="h-4 w-4 text-amber-500" />}
 							</div>
 						</div>
 					</div>
@@ -183,19 +189,11 @@ const DocumentsPage = () => {
 						</div>
 						<div className="space-y-2 text-center md:text-left">
 							<h3 className="text-xl font-[1000] tracking-tight">
-								Confidentialité & Sécurité
+								{t("documentsPage.privacyTitle")}
 							</h3>
 							<p className="text-blue-50/80 font-medium text-sm leading-relaxed max-w-2xl">
-								Vos documents administratifs sont strictement confidentiels. Ils
-								sont utilisés uniquement par nos experts pour valider
-								l'authenticité de votre activité et renforcer la confiance de
-								vos futurs partenaires.
+								{t("documentsPage.privacyText")}
 							</p>
-						</div>
-						<div className="md:ml-auto">
-							<div className="px-5 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-[9px] font-black uppercase tracking-widest">
-								Chiffrement AES-256
-							</div>
 						</div>
 					</div>
 				</div>
@@ -207,7 +205,7 @@ const DocumentsPage = () => {
 							<div className="flex items-center gap-3 px-2">
 								<div className="w-1.5 h-6 bg-emerald-600 rounded-full"></div>
 								<h2 className="text-xl font-[1000] text-gray-900 tracking-tight uppercase tracking-[0.1em]">
-									Documents Administratifs
+									{t("documentsPage.documentsTitle")}
 								</h2>
 							</div>
 							<div className="bg-white/70 backdrop-blur-xl rounded-[3rem] p-4 md:p-8 border border-white/60 shadow-sm hover:shadow-xl transition-all duration-500">
@@ -226,7 +224,7 @@ const DocumentsPage = () => {
 						<div className="flex items-center gap-3 px-2">
 							<div className="w-1.5 h-6 bg-teal-600 rounded-full"></div>
 							<h2 className="text-xl font-[1000] text-gray-900 tracking-tight uppercase tracking-[0.1em]">
-								Labels & Distinctions
+								{t("documentsPage.certificationsTitle")}
 							</h2>
 						</div>
 						<div className="bg-white/70 backdrop-blur-xl rounded-[3rem] p-4 md:p-8 border border-white/60 shadow-sm hover:shadow-xl transition-all duration-500">
@@ -254,11 +252,11 @@ const DocumentsPage = () => {
 							{saving ?
 								<>
 									<div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-									Enregistrement...
+									{t("documentsPage.saving")}
 								</>
 							:	<>
 									<Save className="h-4 w-4" />
-									Enregistrer les modifications
+									{t("documentsPage.save")}
 									<ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
 								</>
 							}

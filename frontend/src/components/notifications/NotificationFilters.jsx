@@ -1,5 +1,6 @@
 import React from "react";
-import { Filter, Search, X } from "lucide-react";
+import { Search, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const NotificationFilters = ({
 	filter,
@@ -8,14 +9,15 @@ const NotificationFilters = ({
 	setSearchTerm,
 	unreadCount,
 }) => {
+	const { t } = useTranslation("common");
 	return (
 		<div className="bg-white/50 backdrop-blur-sm rounded-xl p-1.5 border border-gray-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 shadow-inner">
 			{/* Filtres */}
 			<div className="flex bg-gray-100/50 p-1 rounded-lg gap-1 overflow-x-auto no-scrollbar">
 				{[
-					{ id: "all", label: "Toutes" },
-					{ id: "unread", label: "Non lues", count: unreadCount },
-					{ id: "read", label: "Lues" },
+					{ id: "all", label: t("notificationCenter.filterAll") },
+					{ id: "unread", label: t("notificationCenter.filterUnread"), count: unreadCount },
+					{ id: "read", label: t("notificationCenter.filterRead") },
 				].map((tab) => (
 					<button
 						key={tab.id}
@@ -57,7 +59,7 @@ const NotificationFilters = ({
 				</div>
 				<input
 					type="text"
-					placeholder="Rechercher..."
+					placeholder={t("notificationCenter.searchPlaceholder")}
 					value={searchTerm}
 					onChange={(e) => setSearchTerm(e.target.value)}
 					className="block w-full pl-9 pr-8 py-2 bg-white border border-gray-100 rounded-lg text-xs font-medium placeholder-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/5 transition-all shadow-sm"
@@ -65,6 +67,8 @@ const NotificationFilters = ({
 				{searchTerm && (
 					<button
 						onClick={() => setSearchTerm("")}
+						title={t("notificationCenter.clearSearch")}
+						aria-label={t("notificationCenter.clearSearch")}
 						className="absolute inset-y-0 right-0 pr-2 flex items-center"
 					>
 						<div className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Check, Trash2, Clock } from 'lucide-react';
-import { getNotificationIcon, getNotificationColor, formatNotificationDate } from '../../utils/notificationHelpers';
+import { useTranslation } from 'react-i18next';
+import { getNotificationIcon, getNotificationColor, formatNotificationDate, getNotificationCategoryLabel } from '../../utils/notificationHelpers';
 
 const NotificationCard = ({ 
   notification, 
@@ -9,6 +10,7 @@ const NotificationCard = ({
   onMarkAsRead, 
   onDelete 
 }) => {
+  const { t } = useTranslation('common');
   return (
     <div
       className={`bg-white rounded-lg shadow p-4 border-l-4 ${
@@ -50,10 +52,10 @@ const NotificationCard = ({
               {notification.data && (
                 <div className="mt-2 text-xs text-gray-500">
                   {notification.data.orderId && (
-                    <span className="block">Commande: #{notification.data.orderNumber || notification.data.orderId?.slice(-8)}</span>
+                    <span className="block">{t('notificationCenter.orderRef', { number: notification.data.orderNumber || notification.data.orderId?.slice(-8) })}</span>
                   )}
                   {notification.data.productId && (
-                    <span className="block">Produit: {notification.data.productName || notification.data.productId}</span>
+                    <span className="block">{t('notificationCenter.productRef', { name: notification.data.productName || notification.data.productId })}</span>
                   )}
                 </div>
               )}
@@ -64,7 +66,7 @@ const NotificationCard = ({
                   notification.category === 'error' ? 'bg-red-100 text-red-800' :
                   'bg-gray-100 text-gray-800'
                 }`}>
-                  {notification.category || notification.type || 'Général'}
+                  {getNotificationCategoryLabel(notification.category)}
                 </span>
                 <div className="flex items-center text-xs text-gray-500">
                   <Clock className="h-3 w-3 mr-1" />
@@ -83,7 +85,7 @@ const NotificationCard = ({
                 className="flex items-center px-3 py-1.5 text-sm text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors"
               >
                 <Check className="h-4 w-4 mr-1" />
-                Marquer lu
+                {t('notificationCenter.markReadShort')}
               </button>
             )}
             <button
@@ -92,7 +94,7 @@ const NotificationCard = ({
               className="flex items-center px-3 py-1.5 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
             >
               <Trash2 className="h-4 w-4 mr-1" />
-              Supprimer
+              {t('notificationCenter.delete')}
             </button>
           </div>
         </div>

@@ -199,5 +199,102 @@
 		"notAvailable": "N/A",
 		"noDataTitle": "Aucune donnée disponible",
 		"noDataText": "Vos statistiques détaillées apparaîtront dès votre première mission de livraison."
+	},
+	"exporter": {
+		"dashboard": {
+			"eyebrow": "Espace exportateur",
+			"subtitle": "Gérez vos exportations et vos marchés internationaux avec <brand>Harvests</brand>. Suivez vos performances et votre flotte en temps réel.",
+			"quotaReachedText": "Vous ne pouvez plus accepter de nouvelles exportations cette semaine. Passez au plan Standard ou Premium pour lever cette limite.",
+			"quotaNearTitle": "Limite d'exportations proche ({{count}}/{{max}})",
+			"quotaNearText": "Vous approchez de votre limite hebdomadaire d'exportations. Anticipez en passant à un plan supérieur.",
+			"recentOrders": "Commandes récentes"
+		},
+		"cards": {
+			"exports": "Exportations",
+			"pending": "{{count}} en attente",
+			"revenue": "Chiffre d'affaires",
+			"grossRevenue": "Frais de livraison perçus",
+			"countries": "Pays desservis",
+			"markets": "Marchés internationaux"
+		},
+		"charts": {
+			"revenueTitle": "Tendance des revenus",
+			"revenueSubtitle": "6 derniers mois",
+			"growth": "{{value}} % de croissance",
+			"volumeTitle": "Volume d'exportation",
+			"volumeSubtitle": "Exportations prises en charge par mois",
+			"revenue": "Revenus",
+			"exports": "Exportations"
+		},
+		"fleet": {
+			"eyebrow": "Opérations logistiques",
+			"subtitle": "Gérez vos moyens de transport et vos conteneurs pour une chaîne logistique optimisée.",
+			"searchPlaceholder": "Rechercher par type, immatriculation ou conteneur...",
+			"emptyTitle": "Aucun véhicule",
+			"noResultText": "Aucun élément de votre flotte ne correspond à votre recherche.",
+			"emptyText": "Votre flotte est actuellement vide.",
+			"addFirst": "Ajouter votre premier véhicule",
+			"noIdentifier": "Identifiant non renseigné",
+			"available": "Disponible",
+			"inUse": "En service",
+			"partners": "Partenaires logistiques",
+			"globalNetwork": "Réseau mondial"
+		},
+		"vehicleForm": {
+			"addEyebrow": "Configuration de la flotte",
+			"addTitleStart": "Nouveau",
+			"addTitleHighlight": "Véhicule.",
+			"addSubtitle": "Enregistrez un nouveau véhicule pour vos exportations.",
+			"editEyebrow": "Modification du véhicule",
+			"editSubtitle": "Mettez à jour les paramètres de votre véhicule.",
+			"generalInfo": "Informations générales",
+			"unitType": "Type d'unité",
+			"registrationId": "Immatriculation / identifiant",
+			"registrationPlaceholder": "Ex. : ABC-123-XY",
+			"containerOptional": "N° de conteneur (facultatif)",
+			"containerPlaceholder": "Ex. : ABCD1234567",
+			"currentCondition": "État actuel",
+			"loadSpecs": "Spécifications de charge",
+			"options": "Options et caractéristiques",
+			"availability": "Disponibilité",
+			"availableForMissions": "Disponible pour les missions",
+			"processing": "Traitement...",
+			"updating": "Mise à jour...",
+			"imageUpdated": "Image mise à jour",
+			"loadError": "Erreur lors du chargement des données",
+			"updated": "Véhicule mis à jour avec succès",
+			"updateError": "Erreur lors de la mise à jour"
+		},
+		"orders": {
+			"eyebrow": "Logistique et export",
+			"titleStart": "Mes",
+			"titleHighlight": "Commandes.",
+			"subtitle": "Gérez vos exportations, suivez les expéditions en temps réel et la satisfaction de vos clients.",
+			"searchPlaceholder": "Rechercher par numéro de commande...",
+			"emptyTitle": "Aucune commande",
+			"emptyFiltered": "Aucun résultat ne correspond à vos critères de recherche.",
+			"emptyText": "Votre carnet de commandes est actuellement vide.",
+			"resetFilters": "Réinitialiser les filtres",
+			"defaultName": "l'exportateur"
+		},
+		"stats": {
+			"eyebrow": "Analyses et rapports",
+			"titleStart": "Statistiques",
+			"titleHighlight": "détaillées.",
+			"subtitle": "Explorez les indicateurs de performance de votre activité internationale.",
+			"overview": "Vue d'ensemble",
+			"keyIndicators": "Indicateurs clés",
+			"timeline": "Évolution",
+			"activeOrders": "Commandes actives",
+			"inProgress": "En cours",
+			"licences": "Licences",
+			"compliance": "Conformité",
+			"monthlyRevenue": "Revenu du mois",
+			"thisMonth": "Ce mois",
+			"successRate": "Taux de réussite",
+			"deliveries": "Livraisons",
+			"noDataTitle": "Aucune donnée disponible",
+			"noDataText": "Vos statistiques détaillées apparaîtront ici dès votre première exportation."
+		}
 	}
 }

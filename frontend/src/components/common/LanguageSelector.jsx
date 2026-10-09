@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Globe, Check } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
 	changeLanguage,
 	getCurrentLanguage,
@@ -14,6 +15,7 @@ import {
 const DEFAULT_BUTTON_CLASSES = "flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 text-xs font-bold border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 transition-colors";
 
 const LanguageSelector = ({ className = "", buttonClassName = DEFAULT_BUTTON_CLASSES }) => {
+	const { t } = useTranslation("common");
 	const [isOpen, setIsOpen] = useState(false);
 	const [language, setLanguage] = useState(getCurrentLanguage());
 	const dropdownRef = useRef(null);
@@ -42,7 +44,7 @@ const LanguageSelector = ({ className = "", buttonClassName = DEFAULT_BUTTON_CLA
 				type="button"
 				onClick={() => setIsOpen((prev) => !prev)}
 				className={buttonClassName}
-				aria-label="Changer de langue"
+				aria-label={t("changeLanguage")}
 			>
 				<Globe className="h-3.5 w-3.5" />
 				{currentInfo.flag}

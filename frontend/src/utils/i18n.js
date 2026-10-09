@@ -1,5 +1,6 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
+import { fr, enUS } from "date-fns/locale";
 import { getConfig } from "../config/production";
 
 // Namespaces par domaine (Jour 34 - cadrage bilingue), un fichier par langue et
@@ -274,6 +275,10 @@ export const formatMonthCode = (
 		return monthCode;
 	}
 };
+
+// Langue date-fns (« il y a 3 heures » / « 3 hours ago ») selon l'interface
+export const getDateFnsLocale = (language = getCurrentLanguage()) =>
+	language === "en" ? enUS : fr;
 
 // Fonction utilitaire pour formater les nombres
 export const formatNumber = (number, language = getCurrentLanguage()) => {

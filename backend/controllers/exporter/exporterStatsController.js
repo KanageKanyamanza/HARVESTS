@@ -148,6 +148,34 @@ exports.getExportStats = catchAsync(async (req, res, next) => {
 
 	const maxWeeklyOrders = exporter.subscriptionFeatures?.maxWeeklyOrders || 5;
 
+	// Jour 55 : série des 6 derniers mois (les graphiques du tableau de bord
+	// affichaient des valeurs inventées ; export-analytics n'est pas implémenté).
+	// month : « AAAA-MM » ; exports : commandes prises en charge ; value : frais
+	// de livraison des exportations terminées (même base que totalValue).
+	const monthKeys = Array.from({ length: 6 }, (_, i) => {
+		const d = new Date();
+		d.setDate(1);
+		d.setMonth(d.getMonth() - 5 + i);
+		return d.toISOString().slice(0, 7);
+	});
+	const monthlyExports = monthKeys.map((month) => ({ month, exports: 0, value: 0 }));
+	const byMonth = Object.fromEntries(monthlyExports.map((m) => [m.month, m]));
+	for (const order of exportOrders) {
+		const bucket = byMonth[new Date(order.createdAt).toISOString().slice(0, 7)];
+		if (!bucket) continue;
+		bucket.exports += 1;
+		if (["delivered", "completed"].includes(order.status)) {
+			bucket.value += order.deliveryFee || order.delivery?.deliveryFee || 0;
+		}
+	}
+	const currentValue = monthlyExports[5].value;
+	const previousValue = monthlyExports[4].value;
+	// Pas de tendance sans mois précédent de référence
+	const monthlyGrowth =
+		previousValue > 0 ?
+			Math.round(((currentValue - previousValue) / previousValue) * 100)
+		:	null;
+
 	const stats = {
 		profileViews: profileViews,
 		ratings: {
@@ -180,6 +208,8 @@ exports.getExportStats = catchAsync(async (req, res, next) => {
 		totalOrders: deliveryData.totalExports || 0,
 		weeklyOrders,
 		maxWeeklyOrders,
+		monthlyExports,
+		monthlyGrowth,
 	};
 
 	res.status(200).json({

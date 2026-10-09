@@ -1,8 +1,10 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Check, Trash2, Clock } from "lucide-react";
 import {
 	getNotificationIcon,
 	formatNotificationDate,
+	getNotificationCategoryLabel,
 } from "../../utils/notificationHelpers";
 
 const NotificationItem = ({
@@ -12,6 +14,7 @@ const NotificationItem = ({
 	onMarkAsRead,
 	onDelete,
 }) => {
+	const { t } = useTranslation("common");
 	const iconContainerClass = `
     flex-shrink-0 h-10 w-10 rounded-xl flex items-center justify-center mr-3 transition-transform group-hover:scale-110 shadow-sm
     ${
@@ -88,7 +91,7 @@ const NotificationItem = ({
 						}
         `}
 				>
-					{notification.category || notification.type || "Général"}
+					{getNotificationCategoryLabel(notification.category)}
 				</span>
 			</td>
 
@@ -106,7 +109,8 @@ const NotificationItem = ({
 							type="button"
 							onClick={onMarkAsRead}
 							className="group/btn p-1.5 rounded-lg hover:bg-emerald-50 text-gray-300 hover:text-emerald-600 transition-all"
-							title="Marquer comme lu"
+							title={t("notificationCenter.markRead")}
+							aria-label={t("notificationCenter.markRead")}
 						>
 							<Check className="h-4 w-4" />
 						</button>
@@ -115,7 +119,8 @@ const NotificationItem = ({
 						type="button"
 						onClick={onDelete}
 						className="group/btn p-1.5 rounded-lg hover:bg-rose-50 text-gray-300 hover:text-rose-600 transition-all"
-						title="Supprimer"
+						title={t("notificationCenter.delete")}
+						aria-label={t("notificationCenter.delete")}
 					>
 						<Trash2 className="h-4 w-4" />
 					</button>
