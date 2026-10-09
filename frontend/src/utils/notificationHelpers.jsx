@@ -1,3 +1,4 @@
+import i18n, { formatDateTime } from './i18n';
 import {
   ShoppingCart,
   Package,
@@ -68,21 +69,28 @@ export const getNotificationColor = (type, category) => {
   }
 };
 
+/** Libellé traduit d'une catégorie de notification (order, payment…). */
+export const getNotificationCategoryLabel = (category) =>
+  i18n.t(`notificationCenter.categories.${category || 'general'}`, { ns: 'common', defaultValue: category });
+
 /**
  * Formater une date pour l'affichage
  */
+// Jour 56 : libellés traduits (common.notificationCenter.time) et date au
+// format de la langue de l'interface
 export const formatNotificationDate = (dateString) => {
   const date = new Date(dateString);
+  const t = (key, options) => i18n.t(`notificationCenter.time.${key}`, { ns: 'common', ...options });
   const now = new Date();
   const diffMs = now - date;
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return 'À l\'instant';
-  if (diffMins < 60) return `Il y a ${diffMins} min`;
-  if (diffHours < 24) return `Il y a ${diffHours}h`;
-  if (diffDays < 7) return `Il y a ${diffDays}j`;
-  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+  if (diffMins < 1) return t('justNow');
+  if (diffMins < 60) return t('minutesAgo', { count: diffMins });
+  if (diffHours < 24) return t('hoursAgo', { count: diffHours });
+  if (diffDays < 7) return t('daysAgo', { count: diffDays });
+  return formatDateTime(date, i18n.language, { day: 'numeric', month: 'short', year: 'numeric' });
 };
 

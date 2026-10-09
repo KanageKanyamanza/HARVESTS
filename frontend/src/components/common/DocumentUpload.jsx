@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import { FiUpload, FiX, FiCheck, FiFileText, FiImage, FiLoader } from "react-icons/fi";
 import { uploadService } from "../../services";
 
@@ -11,6 +12,7 @@ const DocumentUpload = ({
 	className = "",
 	disabled = false,
 }) => {
+	const { t } = useTranslation("common");
 	const [uploading, setUploading] = useState(false);
 	const [error, setError] = useState("");
 	const [showPreview, setShowPreview] = useState(false);
@@ -36,11 +38,11 @@ const DocumentUpload = ({
 
 		// Validation
 		if (!uploadService.validateFileType(file, allowedTypes)) {
-			setError("Format non supporté. Utilisez PDF, JPEG ou PNG.");
+			setError(t("documentUpload.unsupported"));
 			return;
 		}
 		if (!uploadService.validateFileSize(file, maxSize)) {
-			setError("Fichier trop volumineux (Max 10MB).");
+			setError(t("documentUpload.tooLarge"));
 			return;
 		}
 
@@ -57,11 +59,11 @@ const DocumentUpload = ({
 			} else if (response.data?.data?.secure_url) {
 				onFileChange(response.data.data.secure_url);
 			} else {
-				throw new Error("Réponse inattendue du serveur");
+				throw new Error(t("documentUpload.unexpectedResponse"));
 			}
 		} catch (err) {
 			console.error("Upload error:", err);
-			setError("Erreur lors de l'upload.");
+			setError(t("documentUpload.uploadError"));
 		} finally {
 			setUploading(false);
 		}
@@ -92,12 +94,12 @@ const DocumentUpload = ({
 				>
 					{uploading ? (
 						<div className="flex items-center justify-center text-sm text-blue-600">
-							<FiLoader className="animate-spin mr-2" /> Upload en cours...
+							<FiLoader className="animate-spin mr-2" /> {t("documentUpload.uploading")}
 						</div>
 					) : (
 						<div className="flex flex-col items-center justify-center text-gray-500">
 							<FiUpload className="w-6 h-6 mb-1" />
-							<span className="text-xs">Cliquez pour uploader (PDF/Image)</span>
+							<span className="text-xs">{t("documentUpload.clickToUpload")}</span>
 						</div>
 					)}
 				</div>
@@ -116,10 +118,10 @@ const DocumentUpload = ({
 							onClick={() => setShowPreview(true)}
 							className="text-sm font-medium text-blue-600 hover:underline truncate block focus:outline-none"
 						>
-							Voir le document
+							{t("documentUpload.view")}
 						</button>
 						<span className="text-xs text-green-600 flex items-center mt-1">
-							<FiCheck className="mr-1" /> Uploadé
+							<FiCheck className="mr-1" /> {t("documentUpload.uploaded")}
 						</span>
 					</div>
 					{!disabled && (
@@ -143,7 +145,8 @@ const DocumentUpload = ({
 								onFileRemove();
 							}}
 							className="ml-2 p-1 text-gray-400 hover:text-red-500"
-							title="Supprimer"
+							title={t("documentUpload.remove")}
+							aria-label={t("documentUpload.remove")}
 						>
 							<FiX />
 						</button>
@@ -178,7 +181,7 @@ const DocumentUpload = ({
 							{/* En-tête du modal */}
 							<div className="flex justify-between items-center p-4 border-b bg-gray-50 flex-shrink-0">
 								<h3 className="text-lg font-semibold text-gray-800">
-									Prévisualisation du document
+									{t("documentUpload.previewTitle")}
 								</h3>
 								<button
 									onClick={() => setShowPreview(false)}
@@ -199,7 +202,7 @@ const DocumentUpload = ({
 													src={currentFile
 														.replace(/\.pdf$/i, ".jpg")
 														.replace(/\/upload\/?/, `/upload/pg_${pdfPage}/`)}
-													alt={`Page ${pdfPage}`}
+													alt={t("documentUpload.page", { page: pdfPage })}
 													className="max-w-full max-h-[75vh] object-contain rounded shadow-sm"
 													onError={(e) => {
 														e.target.onerror = null;
@@ -236,7 +239,7 @@ const DocumentUpload = ({
 													</svg>
 												</button>
 												<span className="font-medium text-gray-700">
-													Page {pdfPage}
+													{t("documentUpload.page", { page: pdfPage })}
 												</span>
 												<button
 													onClick={() => setPdfPage((p) => p + 1)}
@@ -262,14 +265,14 @@ const DocumentUpload = ({
 									) : (
 										<iframe
 											src={`${currentFile}#toolbar=0`}
-											title="Document PDF"
+											title={t("documentUpload.pdfDocument")}
 											className="w-[85vw] md:w-[800px] h-[70vh] rounded border border-gray-200 bg-white"
 										/>
 									)
 								) : (
 									<img
 										src={currentFile}
-										alt="Document preview"
+										alt={t("documentUpload.previewAlt")}
 										className="max-w-full max-h-[80vh] object-contain rounded shadow-sm"
 									/>
 								)}

@@ -2,18 +2,17 @@ import React, { useState, useEffect, useRef } from "react";
 import {
 	Send,
 	Paperclip,
-	MoreVertical,
-	Phone,
-	Video,
 	ArrowLeft,
 	X,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import ChatBubble from "./ChatBubble";
 import CloudinaryImage from "../common/CloudinaryImage";
 import { useSocket } from "../../contexts/SocketContext";
 import messageService from "../../services/messageService";
 
 const ChatWindow = ({ conversation, currentUser, mobileView, onBack }) => {
+	const { t } = useTranslation("common");
 	const [messages, setMessages] = useState([]);
 	const [newMessage, setNewMessage] = useState("");
 	const [attachments, setAttachments] = useState([]);
@@ -31,7 +30,7 @@ const ChatWindow = ({ conversation, currentUser, mobileView, onBack }) => {
 		conversation?.type === "group" ? conversation.title
 		: otherParticipant ?
 			`${otherParticipant.firstName} ${otherParticipant.lastName}`
-		:	"Utilisateur inconnu";
+		:	t("messaging.unknownUser");
 
 	const displayAvatar =
 		conversation?.type === "group" ?
@@ -136,7 +135,7 @@ const ChatWindow = ({ conversation, currentUser, mobileView, onBack }) => {
 			}
 		} catch (error) {
 			console.error("Erreur envoi message:", error);
-			alert("Erreur lors de l'envoi");
+			alert(t("messaging.sendError"));
 		}
 	};
 
@@ -144,27 +143,29 @@ const ChatWindow = ({ conversation, currentUser, mobileView, onBack }) => {
 		return (
 			<div className="flex-1 flex items-center justify-center bg-gray-50">
 				<div className="text-center text-gray-500">
-					<p className="mb-2">Sélectionnez une conversation pour commencer</p>
+					<p className="mb-2">{t("messaging.selectText")}</p>
 				</div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="flex-1 flex flex-col h-full bg-gray-50">
+		<div className="flex-1 flex flex-col h-full min-h-0">
 			{/* Header */}
-			<div className="h-16 bg-white border-b flex items-center px-4 justify-between shadow-sm z-10">
-				<div className="flex items-center">
+			<div className="h-[72px] shrink-0 bg-white/80 backdrop-blur-md border-b border-gray-100 flex items-center px-4 md:px-6 justify-between z-10">
+				<div className="flex items-center min-w-0">
 					{mobileView && (
 						<button
 							onClick={onBack}
-							className="mr-3 text-gray-600 hover:text-gray-900"
+							title={t("messaging.back")}
+							aria-label={t("messaging.back")}
+							className="mr-3 p-2 rounded-xl text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
 						>
 							<ArrowLeft size={20} />
 						</button>
 					)}
 
-					<div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden mr-3">
+					<div className="w-11 h-11 shrink-0 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 overflow-hidden mr-3 shadow-sm">
 						{displayAvatar ?
 							<CloudinaryImage
 								publicId={displayAvatar}
@@ -173,19 +174,21 @@ const ChatWindow = ({ conversation, currentUser, mobileView, onBack }) => {
 								height={40}
 								className="w-full h-full object-cover"
 							/>
-						:	<div className="w-full h-full flex items-center justify-center text-gray-500 font-bold">
+						:	<div className="w-full h-full flex items-center justify-center text-white font-black">
 								{displayName.charAt(0)}
 							</div>
 						}
 					</div>
 
-					<div>
-						<h3 className="font-semibold text-gray-900 leading-tight">
+					<div className="min-w-0">
+						<h3 className="font-[1000] text-gray-900 tracking-tight leading-tight truncate">
 							{displayName}
 						</h3>
 						{otherParticipant?.userType && (
-							<p className="text-xs text-green-600 font-medium capitalize">
-								{otherParticipant.userType}
+							<p className="text-[9px] font-black uppercase tracking-widest text-emerald-600 mt-0.5">
+								{t(`userTypes.${otherParticipant.userType}`, {
+									defaultValue: otherParticipant.userType,
+								})}
 							</p>
 						)}
 					</div>
@@ -193,7 +196,7 @@ const ChatWindow = ({ conversation, currentUser, mobileView, onBack }) => {
 			</div>
 
 			{/* Messages */}
-			<div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#e5ddd5]/10">
+			<div className="flex-1 overflow-y-auto px-4 md:px-6 py-5 space-y-2 bg-gradient-to-b from-gray-50/60 via-white/30 to-emerald-50/20">
 				{loading ?
 					<div className="space-y-4 animate-pulse" aria-busy="true">
 						{["w-2/3", "w-1/2 ml-auto", "w-3/5", "w-2/5 ml-auto"].map((width) => (
@@ -233,18 +236,20 @@ const ChatWindow = ({ conversation, currentUser, mobileView, onBack }) => {
 			</div>
 
 			{/* Input */}
-			<div className="bg-white p-3 border-t">
+			<div className="shrink-0 bg-white/80 backdrop-blur-md p-3 md:p-4 border-t border-gray-100">
 				{/* Preview attachments */}
 				{attachments.length > 0 && (
 					<div className="flex gap-2 mb-2 overflow-x-auto pb-2 px-2">
 						{attachments.map((file, index) => (
 							<div
 								key={index}
-								className="relative bg-gray-100 rounded-lg p-2 min-w-[100px] max-w-[150px] flex items-center gap-2 border border-gray-200"
+								className="relative bg-emerald-50 rounded-xl p-2 min-w-[100px] max-w-[150px] flex items-center gap-2 border border-emerald-100"
 							>
 								<span className="text-xs truncate w-full">{file.name}</span>
 								<button
 									onClick={() => removeAttachment(index)}
+									title={t("messaging.removeAttachment")}
+									aria-label={t("messaging.removeAttachment")}
 									className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 shadow-sm"
 									type="button"
 								>
@@ -269,12 +274,14 @@ const ChatWindow = ({ conversation, currentUser, mobileView, onBack }) => {
 					<button
 						onClick={triggerFileInput}
 						type="button"
-						className="p-3 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+						title={t("messaging.attachFile")}
+						aria-label={t("messaging.attachFile")}
+						className="p-3 text-gray-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-2xl transition-colors"
 					>
 						<Paperclip size={20} />
 					</button>
 
-					<div className="flex-1 bg-gray-100 rounded-3xl flex items-center">
+					<div className="flex-1 bg-gray-50 border border-gray-100 rounded-2xl flex items-center focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all">
 						<textarea
 							value={newMessage}
 							onChange={(e) => setNewMessage(e.target.value)}
@@ -284,7 +291,7 @@ const ChatWindow = ({ conversation, currentUser, mobileView, onBack }) => {
 									handleSendMessage(e);
 								}
 							}}
-							placeholder="Écrivez un message..."
+							placeholder={t("messaging.placeholder")}
 							className="w-full bg-transparent border-none focus:ring-0 px-4 py-3 max-h-32 min-h-[44px] resize-none text-gray-800 placeholder-gray-500"
 							rows={1}
 						/>
@@ -292,10 +299,12 @@ const ChatWindow = ({ conversation, currentUser, mobileView, onBack }) => {
 
 					<button
 						type="submit"
+						title={t("messaging.send")}
+						aria-label={t("messaging.send")}
 						disabled={!newMessage.trim() && attachments.length === 0}
-						className={`p-3 rounded-full flex items-center justify-center transition-colors ${
+						className={`p-3 rounded-2xl flex items-center justify-center transition-all ${
 							newMessage.trim() || attachments.length > 0 ?
-								"bg-harvests-green text-white shadow-md hover:bg-green-700"
+								"bg-gradient-to-br from-emerald-600 to-teal-500 text-white shadow-lg shadow-emerald-900/20 hover:scale-105"
 							:	"bg-gray-200 text-gray-400 cursor-not-allowed"
 						}`}
 					>

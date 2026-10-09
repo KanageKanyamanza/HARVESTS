@@ -1,4 +1,6 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
+import i18n, { formatDateTime } from "../../utils/i18n";
 import {
 	User,
 	Phone,
@@ -15,7 +17,7 @@ import { useCurrency } from "../../contexts/CurrencyContext";
 import { convertPrice, formatPrice } from "../../utils/currencyUtils";
 
 const formatDate = (dateString) =>
-	new Date(dateString).toLocaleDateString("fr-FR", {
+	formatDateTime(dateString, i18n.language, {
 		year: "numeric",
 		month: "long",
 		day: "numeric",
@@ -39,15 +41,8 @@ const useOrderCurrency = (order) => {
 	return { formatAmount, userCurrency };
 };
 
-const deliveryMethodLabels = {
-	pickup: "Retrait sur place",
-	"standard-delivery": "Livraison standard",
-	"express-delivery": "Livraison express",
-	"same-day": "Livraison jour même",
-	scheduled: "Livraison programmée",
-};
-
 export const DeliveryAddressCard = ({ order, user }) => {
+	const { t } = useTranslation("common");
 	const isProducerView =
 		user?.userType === "producer" || user?.userType === "transformer";
 	const isAdmin = user?.role === "admin" || user?.userType === "admin";
@@ -56,7 +51,7 @@ export const DeliveryAddressCard = ({ order, user }) => {
 	return (
 		<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-4 md:p-10 border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)]">
 			<h3 className="text-xl font-[1000] text-gray-900 mb-8 uppercase tracking-tight">
-				{showUserInfo ? "Informations client" : "Adresse de livraison"}
+				{showUserInfo ? t("orderDetail.customerInfo") : t("orderDetail.deliveryAddress")}
 			</h3>
 
 			<div className="space-y-6">
@@ -79,7 +74,7 @@ export const DeliveryAddressCard = ({ order, user }) => {
 								{order.buyer?.firstName} {order.buyer?.lastName}
 							</p>
 							<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate">
-								Client Harvests
+								{t("orderDetail.harvestsCustomer")}
 							</p>
 							<div className="flex items-center gap-2 mt-3 text-xs font-bold text-gray-500 bg-white/50 w-fit px-3 py-1 rounded-full border border-gray-100">
 								<Mail className="h-3 w-3" />
@@ -116,7 +111,7 @@ export const DeliveryAddressCard = ({ order, user }) => {
 							</div>
 							<div>
 								<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">
-									Téléphone
+									{t("orderDetail.phone")}
 								</p>
 								<p className="text-sm font-black text-gray-900 tracking-tight">
 									{order.buyer?.phone || order.delivery.deliveryAddress.phone}
@@ -132,7 +127,7 @@ export const DeliveryAddressCard = ({ order, user }) => {
 							</div>
 							<div>
 								<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">
-									Adresse
+									{t("orderDetail.address")}
 								</p>
 								<AddressDisplay address={order.delivery.deliveryAddress} />
 							</div>
@@ -140,7 +135,7 @@ export const DeliveryAddressCard = ({ order, user }) => {
 					) : (
 						!showUserInfo && (
 							<p className="text-sm text-gray-500 italic font-medium">
-								Adresse non disponible
+								{t("orderDetail.addressUnavailable")}
 							</p>
 						)
 					)}
@@ -150,7 +145,7 @@ export const DeliveryAddressCard = ({ order, user }) => {
 							<Navigation className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
 							<p className="text-xs text-amber-900 font-bold leading-relaxed">
 								<span className="text-[10px] font-black uppercase tracking-widest block mb-1">
-									Instructions de livraison :
+									{t("orderDetail.deliveryInstructions")}
 								</span>
 								{order.delivery.deliveryAddress.deliveryInstructions}
 							</p>
@@ -178,17 +173,18 @@ export const OrderSummaryCard = ({
 	order,
 	isSellerView,
 }) => {
+	const { t } = useTranslation("common");
 	const { formatAmount } = useOrderCurrency(order);
 
 	return (
 		<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-8 md:p-10 border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)]">
 			<h3 className="text-xl font-[1000] text-gray-900 mb-8 uppercase tracking-tight">
-				Résumé financier
+				{t("orderDetail.financialSummary")}
 			</h3>
 			<div className="space-y-6">
 				<div className="flex justify-between items-center px-2">
 					<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-						Sous-total
+						{t("orderDetail.subtotal")}
 					</span>
 					<span className="text-base font-black text-gray-900 tracking-tighter">
 						{formatAmount(
@@ -207,7 +203,7 @@ export const OrderSummaryCard = ({
 					(isSellerView && order.segment?.discount > 0)) && (
 					<div className="flex justify-between items-center px-2 py-3 bg-emerald-50 rounded-2xl border border-emerald-100">
 						<span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
-							Réduction coupon
+							{t("orderDetail.couponDiscount")}
 						</span>
 						<span className="text-base font-black text-emerald-600 tracking-tighter">
 							-
@@ -223,7 +219,7 @@ export const OrderSummaryCard = ({
 				<div className="pt-6 border-t border-gray-100">
 					<div className="flex justify-between items-center px-2">
 						<span className="text-lg font-[1000] text-gray-900 uppercase tracking-tighter">
-							Total
+							{t("orderDetail.total")}
 						</span>
 						<div className="text-right">
 							<span className="text-3xl font-[1000] text-green-600 tracking-tighter block mb-1">
@@ -239,7 +235,7 @@ export const OrderSummaryCard = ({
 								)}
 							</span>
 							<p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">
-								TVA & Taxes incluses
+								{t("orderDetail.taxesIncluded")}
 							</p>
 						</div>
 					</div>
@@ -249,10 +245,12 @@ export const OrderSummaryCard = ({
 	);
 };
 
-export const DeliveryInfoCard = ({ order }) => (
+export const DeliveryInfoCard = ({ order }) => {
+	const { t } = useTranslation("common");
+	return (
 	<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-8 md:p-10 border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)]">
 		<h3 className="text-xl font-[1000] text-gray-900 mb-8 uppercase tracking-tight">
-			Méthode de livraison
+			{t("orderDetail.deliveryMethodTitle")}
 		</h3>
 		<div className="space-y-8">
 			<div className="flex items-center gap-6">
@@ -261,10 +259,12 @@ export const DeliveryInfoCard = ({ order }) => (
 				</div>
 				<div>
 					<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 leading-none">
-						Mode d'expédition
+						{t("orderDetail.shippingMode")}
 					</p>
 					<p className="text-lg font-[1000] text-gray-900 tracking-tight leading-none">
-						{deliveryMethodLabels[order.delivery?.method] || "Standard"}
+						{t(`orderDetail.deliveryMethods.${order.delivery?.method || "standard-delivery"}`, {
+							defaultValue: order.delivery?.method,
+						})}
 					</p>
 				</div>
 			</div>
@@ -272,16 +272,20 @@ export const DeliveryInfoCard = ({ order }) => (
 			<div className="p-6 bg-gray-50/50 rounded-3xl border border-gray-100/50 space-y-4">
 				<div className="flex justify-between items-center">
 					<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-						Statut actuel
+						{t("orderDetail.currentStatus")}
 					</span>
 					<span className="px-3 py-1 bg-white rounded-full text-[9px] font-black uppercase tracking-widest border border-gray-100 text-gray-600 shadow-sm">
-						{order.delivery?.status || "Inconnu"}
+						{order.delivery?.status ?
+							t(`orderDetail.deliveryStatuses.${order.delivery.status}`, {
+								defaultValue: order.delivery.status,
+							})
+						:	t("orderDetail.unknown")}
 					</span>
 				</div>
 				{order.delivery?.estimatedDeliveryDate && (
 					<div className="flex justify-between items-center pt-4 border-t border-gray-100/50">
 						<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-							Estimation
+							{t("orderDetail.estimate")}
 						</span>
 						<span className="text-xs font-black text-gray-900 tracking-tight">
 							{formatDate(order.delivery.estimatedDeliveryDate)}
@@ -291,9 +295,11 @@ export const DeliveryInfoCard = ({ order }) => (
 			</div>
 		</div>
 	</div>
-);
+	);
+};
 
 export const TransporterCard = ({ order }) => {
+	const { t } = useTranslation("common");
 	if (!order.delivery?.transporter) return null;
 
 	return (
@@ -302,7 +308,7 @@ export const TransporterCard = ({ order }) => {
 				<div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 border border-amber-100">
 					<Truck className="h-5 w-5" />
 				</div>
-				Partenaire Logistique
+				{t("orderDetail.logisticsPartner")}
 			</h3>
 
 			<div className="space-y-8">
@@ -318,7 +324,7 @@ export const TransporterCard = ({ order }) => {
 								`${order.delivery.transporter?.firstName || ""} ${
 									order.delivery.transporter?.lastName || ""
 								}`.trim() ||
-								"Livreur"}
+								t("orderDetail.courier")}
 						</p>
 						{order.delivery.transporter?.userType && (
 							<span
@@ -328,9 +334,9 @@ export const TransporterCard = ({ order }) => {
 										: "bg-blue-500/10 text-blue-400 border-blue-500/20"
 								}`}
 							>
-								{order.delivery.transporter.userType === "exporter"
-									? "Exportateur"
-									: "Transporteur"}
+								{t(`userTypes.${order.delivery.transporter.userType}`, {
+									defaultValue: order.delivery.transporter.userType,
+								})}
 							</span>
 						)}
 					</div>
@@ -359,7 +365,7 @@ export const TransporterCard = ({ order }) => {
 				{order.delivery?.timeline?.length > 0 && (
 					<div className="pt-8 border-t border-gray-100">
 						<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">
-							Historique du transit
+							{t("orderDetail.transitHistory")}
 						</p>
 						<div className="space-y-8 pl-4 border-l-2 border-gray-100 ml-4">
 							{order.delivery.timeline.map((event, idx) => (
@@ -367,13 +373,9 @@ export const TransporterCard = ({ order }) => {
 									<div className="absolute -left-[2.1rem] top-1.5 w-3.5 h-3.5 rounded-full bg-white border-4 border-amber-500 shadow-sm"></div>
 									<div className="bg-gray-50/50 p-4 rounded-2xl border border-gray-100/50 relative hover:bg-white transition-all duration-300">
 										<p className="text-sm font-[1000] text-gray-900 tracking-tight uppercase leading-none mb-1">
-											{event.status === "picked-up"
-												? "Collectée"
-												: event.status === "in-transit"
-												? "En transit"
-												: event.status === "delivered"
-												? "Livrée"
-												: event.status}
+											{t(`orderDetail.deliveryStatuses.${event.status}`, {
+												defaultValue: event.status,
+											})}
 										</p>
 										<div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
 											<Calendar className="h-3 w-3" />

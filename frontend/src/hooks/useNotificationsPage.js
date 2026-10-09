@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import i18n from '../utils/i18n';
 import { notificationService } from '../services/notificationService';
 import { useNotifications } from '../hooks/useNotifications';
 
@@ -90,7 +91,7 @@ export const useNotificationsPage = () => {
   };
 
   const handleDelete = async (notificationId) => {
-    if (!window.confirm('Voulez-vous vraiment supprimer cette notification ?')) return;
+    if (!window.confirm(i18n.t('notificationCenter.confirmDelete', { ns: 'common' }))) return;
     
     try {
       await removeNotification(notificationId);
@@ -105,7 +106,7 @@ export const useNotificationsPage = () => {
 
   const handleDeleteSelected = async () => {
     if (selectedNotifications.length === 0) return;
-    if (!window.confirm(`Voulez-vous vraiment supprimer ${selectedNotifications.length} notification(s) ?`)) return;
+    if (!window.confirm(i18n.t('notificationCenter.confirmDeleteMany', { ns: 'common', count: selectedNotifications.length }))) return;
 
     try {
       await Promise.all(selectedNotifications.map(id => removeNotification(id)));

@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../hooks/useAuth";
 import { exporterService } from "../../../services";
-import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 import OrderList from "../../../components/orders/OrderList";
 import CardGridSkeleton from "../../../components/common/CardGridSkeleton";
 import { FiSearch, FiRefreshCw, FiFilter, FiPackage } from "react-icons/fi";
 
+// Statuts proposés au filtre (libellés : common.orderStatus)
+const STATUS_FILTERS = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"];
+
 const Orders = () => {
+	const { t } = useTranslation(["dashboard-transporter", "common"]);
 	const { user } = useAuth();
 	const [orders, setOrders] = useState([]);
 	const [loading, setLoading] = useState(true);
@@ -65,7 +69,9 @@ const Orders = () => {
 			const response = await exporterService.updateOrderStatus(order._id, {
 				status: deliveryStatus,
 				location: order.delivery?.deliveryAddress?.city || null,
-				note: `Statut mis à jour par ${user?.firstName || "Exportateur"}`,
+				note: t("orders.statusNote", {
+					name: user?.firstName || t("exporter.orders.defaultName"),
+				}),
 			});
 
 			if (response.data?.status === "success") {
@@ -74,8 +80,7 @@ const Orders = () => {
 		} catch (error) {
 			console.error("Erreur lors de la mise à jour du statut:", error);
 			alert(
-				error.response?.data?.message ||
-					"Erreur lors de la mise à jour du statut",
+				error.response?.data?.message || t("orders.updateError"),
 			);
 		} finally {
 			setUpdatingOrders((prev) => {
@@ -115,17 +120,16 @@ const Orders = () => {
 					<div>
 						<div className="flex items-center gap-2 text-emerald-600 font-black text-[9px] uppercase tracking-widest mb-2">
 							<div className="w-5 h-[2px] bg-emerald-600"></div>
-							<span>Logistique & Export</span>
+							<span>{t("exporter.orders.eyebrow")}</span>
 						</div>
 						<h1 className="text-3xl font-[1000] text-gray-900 tracking-tighter leading-none mb-2">
-							Mes{" "}
+							{t("exporter.orders.titleStart")}{" "}
 							<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-blue-500 italic">
-								Commandes.
+								{t("exporter.orders.titleHighlight")}
 							</span>
 						</h1>
 						<p className="text-xs text-gray-500 font-medium max-w-xl">
-							Gérez vos flux d'exportation, suivez les expéditions en temps réel
-							et maintenez la satisfaction client.
+							{t("exporter.orders.subtitle")}
 						</p>
 					</div>
 
@@ -136,7 +140,7 @@ const Orders = () => {
 						<FiRefreshCw
 							className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`}
 						/>
-						Actualiser
+						{t("orders.refresh")}
 					</button>
 				</div>
 
@@ -148,7 +152,7 @@ const Orders = () => {
 						</div>
 						<input
 							type="text"
-							placeholder="Rechercher par numéro ou ID..."
+							placeholder={t("exporter.orders.searchPlaceholder")}
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
 							className="block w-full pl-11 pr-4 py-3 bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-sm group-hover:shadow-md"
@@ -164,13 +168,12 @@ const Orders = () => {
 							onChange={(e) => setStatusFilter(e.target.value)}
 							className="block w-full pl-10 pr-10 py-3 bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-sm cursor-pointer appearance-none hover:bg-white"
 						>
-							<option value="all">Tous les statuts</option>
-							<option value="pending">En attente</option>
-							<option value="confirmed">Confirmées</option>
-							<option value="processing">En préparation</option>
-							<option value="shipped">Expédiées</option>
-							<option value="delivered">Livrées</option>
-							<option value="cancelled">Annulées</option>
+							<option value="all">{t("orders.allStatuses")}</option>
+							{STATUS_FILTERS.map((status) => (
+								<option key={status} value={status}>
+									{t(`common:orderStatus.${status}`)}
+								</option>
+							))}
 						</select>
 						<div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400">
 							<svg
@@ -204,12 +207,12 @@ const Orders = () => {
 								<FiPackage className="w-8 h-8" />
 							</div>
 							<h3 className="text-xl font-black text-gray-900 mb-2 uppercase tracking-tighter">
-								Aucune commande
+								{t("exporter.orders.emptyTitle")}
 							</h3>
 							<p className="text-gray-500 text-sm font-medium mb-8">
 								{searchTerm || statusFilter !== "all" ?
-									"Aucun résultat ne correspond à vos critères de recherche."
-								:	"Votre carnet de commandes est actuellement vide."}
+									t("exporter.orders.emptyFiltered")
+								:	t("exporter.orders.emptyText")}
 							</p>
 							{(searchTerm || statusFilter !== "all") && (
 								<button
@@ -219,7 +222,7 @@ const Orders = () => {
 									}}
 									className="px-6 py-3 bg-gray-900 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-emerald-600 transition-all active:scale-95"
 								>
-									Réinitialiser les filtres
+									{t("exporter.orders.resetFilters")}
 								</button>
 							)}
 						</div>

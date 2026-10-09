@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../hooks/useAuth";
 import { exporterService } from "../../../services";
-import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
+import { formatNumber } from "../../../utils/i18n";
+import { formatPrice } from "../../../utils/currencyUtils";
 import ExporterStatsOverview from "../../../components/dashboard/exporter/ExporterStatsOverview";
 import ExporterCharts from "../../../components/dashboard/exporter/ExporterCharts";
 import {
@@ -14,6 +16,7 @@ import {
 import StatCards from "../../admin/adminDashboard/StatCards";
 
 const Statistics = () => {
+	const { t } = useTranslation("dashboard-transporter");
 	const { user } = useAuth();
 	const [stats, setStats] = useState(null);
 	const [loading, setLoading] = useState(true);
@@ -42,40 +45,41 @@ const Statistics = () => {
 	}, [user]);
 
 
+	// Jour 55 : champs réellement renvoyés par le serveur (activeOrders,
+	// pendingOrders et monthlyRevenue n'existent pas ; le taux de réussite
+	// valait 100 % par défaut)
+	const currentMonth = stats?.monthlyExports?.[stats.monthlyExports.length - 1];
 	const secondaryStats = [
 		{
-			title: "Commandes Actives",
-			value: (stats?.activeOrders || stats?.pendingOrders || 0).toString(),
+			title: t("exporter.stats.activeOrders"),
+			value: formatNumber((stats?.pendingExports || 0) + (stats?.inTransitExports || 0)),
 			icon: TrendingUp,
 			color: "bg-orange-500",
-			change: "En cours",
+			change: t("exporter.stats.inProgress"),
 			link: "/exporter/orders",
 		},
 		{
-			title: "Licences",
-			value: (stats?.activeLicenses || 0).toString(),
+			title: t("exporter.stats.licences"),
+			value: formatNumber(stats?.activeLicenses || 0),
 			icon: Package,
 			color: "bg-indigo-500",
-			change: "Conformité",
+			change: t("exporter.stats.compliance"),
 			link: "/exporter/profile",
 		},
 		{
-			title: "Revenu Mensuel",
-			value:
-				stats?.monthlyRevenue ?
-					`${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(stats.monthlyRevenue)} FCFA`
-				:	"0 FCFA",
+			title: t("exporter.stats.monthlyRevenue"),
+			value: formatPrice(currentMonth?.value || 0, "XOF"),
 			icon: DollarSign,
 			color: "bg-pink-500",
-			change: "Ce mois",
-			link: "/exporter/stats",
+			change: t("exporter.stats.thisMonth"),
+			link: "/exporter/statistics",
 		},
 		{
-			title: "Taux Succès",
-			value: `${stats?.successfulDeliveryRate || 100}%`,
+			title: t("exporter.stats.successRate"),
+			value: `${Math.round(stats?.successfulDeliveryRate || 0)}%`,
 			icon: CheckCircle,
 			color: "bg-emerald-500",
-			change: "Livraisons",
+			change: t("exporter.stats.deliveries"),
 			link: "/exporter/orders",
 		},
 	];
@@ -95,17 +99,16 @@ const Statistics = () => {
 					<div>
 						<div className="flex items-center gap-2 text-indigo-600 font-black text-[10px] uppercase tracking-[0.2em] mb-1.5">
 							<div className="w-5 h-[2px] bg-indigo-600"></div>
-							<span className="text-[9px]">Analyses & Rapports</span>
+							<span className="text-[9px]">{t("exporter.stats.eyebrow")}</span>
 						</div>
 						<h1 className="text-2xl font-[1000] text-gray-900 tracking-tighter leading-[1] mb-1.5">
-							Statistiques
+							{t("exporter.stats.titleStart")}
 							<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-500 italic ml-1.5">
-								Détaillées.
+								{t("exporter.stats.titleHighlight")}
 							</span>
 						</h1>
 						<p className="text-xs text-gray-500 max-w-2xl font-medium leading-relaxed">
-							Explorez en profondeur les indicateurs de performance de votre
-							activité internationale.
+							{t("exporter.stats.subtitle")}
 						</p>
 					</div>
 				</div>
@@ -115,7 +118,7 @@ const Statistics = () => {
 					<div className="flex items-center gap-2 mb-4 px-2">
 						<BarChart3 className="w-4 h-4 text-emerald-600" />
 						<span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
-							Vue d'ensemble
+							{t("exporter.stats.overview")}
 						</span>
 					</div>
 					<ExporterStatsOverview stats={stats} loading={loading} />
@@ -126,7 +129,7 @@ const Statistics = () => {
 					<div className="flex items-center gap-2 mb-4 px-2">
 						<TrendingUp className="w-4 h-4 text-indigo-600" />
 						<span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
-							Indicateurs clés
+							{t("exporter.stats.keyIndicators")}
 						</span>
 					</div>
 					<StatCards statCards={secondaryStats} loading={loading && !stats} />
@@ -137,7 +140,7 @@ const Statistics = () => {
 					<div className="flex items-center gap-2 mb-4 px-2">
 						<BarChart3 className="w-4 h-4 text-blue-600" />
 						<span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
-							Analyse Temporelle
+							{t("exporter.stats.timeline")}
 						</span>
 					</div>
 					<ExporterCharts loading={loading} stats={stats} />
@@ -150,11 +153,10 @@ const Statistics = () => {
 							<BarChart3 className="h-10 w-10 text-gray-300" />
 						</div>
 						<h3 className="text-xl font-bold text-gray-900 tracking-tight">
-							Aucune donnée disponible
+							{t("exporter.stats.noDataTitle")}
 						</h3>
 						<p className="mt-2 text-gray-500 max-w-sm mx-auto text-xs font-medium">
-							Vos statistiques détaillées apparaîtront ici dès que vous aurez
-							enregistré votre première exportation.
+							{t("exporter.stats.noDataText")}
 						</p>
 					</div>
 				)}

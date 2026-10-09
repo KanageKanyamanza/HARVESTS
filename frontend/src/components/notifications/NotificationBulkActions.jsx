@@ -1,7 +1,9 @@
 import React from "react";
-import { Check, Trash2 } from "lucide-react";
+import { Check } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const NotificationBulkActions = ({ selectedCount, onMarkAsRead, onDelete }) => {
+	const { t } = useTranslation("common");
 	if (selectedCount === 0) return null;
 
 	return (
@@ -11,8 +13,7 @@ const NotificationBulkActions = ({ selectedCount, onMarkAsRead, onDelete }) => {
 					<Check className="h-5 w-5" />
 				</div>
 				<span className="text-sm font-bold text-emerald-800">
-					{selectedCount} notification{selectedCount > 1 ? "s" : ""}{" "}
-					sélectionnée{selectedCount > 1 ? "s" : ""}
+					{t("notificationCenter.selected", { count: selectedCount })}
 				</span>
 			</div>
 			<div className="flex items-center gap-3">
@@ -21,14 +22,14 @@ const NotificationBulkActions = ({ selectedCount, onMarkAsRead, onDelete }) => {
 					onClick={onMarkAsRead}
 					className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-bold transition-all shadow-sm shadow-emerald-200"
 				>
-					Marquer comme lu
+					{t("notificationCenter.markRead")}
 				</button>
 				<button
 					type="button"
 					onClick={onDelete}
 					className="px-4 py-2 bg-white text-rose-600 border border-rose-100 hover:bg-rose-50 rounded-xl text-sm font-bold transition-all"
 				>
-					Supprimer
+					{t("notificationCenter.delete")}
 				</button>
 			</div>
 		</div>

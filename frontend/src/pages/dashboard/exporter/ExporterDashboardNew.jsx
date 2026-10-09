@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
+import { useTranslation, Trans } from "react-i18next";
 import ExporterStatsOverview from "../../../components/dashboard/exporter/ExporterStatsOverview";
 import ExporterCharts from "../../../components/dashboard/exporter/ExporterCharts";
 import OrdersSection from "../../../components/dashboard/sections/OrdersSection";
@@ -10,6 +10,7 @@ import { exporterService } from "../../../services";
 import { FiPackage, FiTruck, FiStar } from "react-icons/fi";
 
 const ExporterDashboard = () => {
+	const { t } = useTranslation("dashboard-transporter");
 	const [exporterStats, setExporterStats] = useState(null);
 	const [loading, setLoading] = useState(true);
 
@@ -35,11 +36,11 @@ const ExporterDashboard = () => {
 	};
 
 
+	const limited = !loading && exporterStats?.maxWeeklyOrders > 0;
 	const reachedQuota =
-		exporterStats?.maxWeeklyOrders !== -1 &&
-		exporterStats?.weeklyOrders >= exporterStats?.maxWeeklyOrders;
+		limited && exporterStats.weeklyOrders >= exporterStats.maxWeeklyOrders;
 	const nearQuota =
-		exporterStats?.maxWeeklyOrders !== -1 &&
+		limited &&
 		!reachedQuota &&
 		exporterStats?.weeklyOrders >= exporterStats?.maxWeeklyOrders * 0.8;
 
@@ -72,13 +73,13 @@ const ExporterDashboard = () => {
 							</div>
 							<div className="ml-3">
 								<p className="text-sm text-red-700 font-bold">
-									Quota hebdomadaire atteint ({exporterStats.weeklyOrders}/
-									{exporterStats.maxWeeklyOrders})
+									{t("dashboard.quotaReachedTitle", {
+										count: exporterStats.weeklyOrders,
+										max: exporterStats.maxWeeklyOrders,
+									})}
 								</p>
 								<p className="text-xs text-red-600">
-									Vous ne pouvez plus accepter de nouvelles exportations cette
-									semaine. Passez au plan Standard ou Premium pour lever cette
-									limite.
+									{t("exporter.dashboard.quotaReachedText")}
 								</p>
 							</div>
 							<div className="ml-auto">
@@ -86,7 +87,7 @@ const ExporterDashboard = () => {
 									onClick={() => (window.location.href = "/pricing")}
 									className="text-xs bg-red-600 text-white px-3 py-1 rounded font-bold hover:bg-red-700 transition-colors uppercase tracking-wider"
 								>
-									Upgrade
+									{t("dashboard.upgrade")}
 								</button>
 							</div>
 						</div>
@@ -111,12 +112,13 @@ const ExporterDashboard = () => {
 							</div>
 							<div className="ml-3">
 								<p className="text-sm text-amber-700 font-bold">
-									Limite d'exportations proche ({exporterStats.weeklyOrders}/
-									{exporterStats.maxWeeklyOrders})
+									{t("exporter.dashboard.quotaNearTitle", {
+										count: exporterStats.weeklyOrders,
+										max: exporterStats.maxWeeklyOrders,
+									})}
 								</p>
 								<p className="text-xs text-amber-600">
-									Vous approchez de votre limite hebdomadaire d'exportations.
-									Anticipez en passant à un plan supérieur.
+									{t("exporter.dashboard.quotaNearText")}
 								</p>
 							</div>
 							<div className="ml-auto">
@@ -124,7 +126,7 @@ const ExporterDashboard = () => {
 									onClick={() => (window.location.href = "/pricing")}
 									className="text-xs bg-amber-600 text-white px-3 py-1 rounded font-bold hover:bg-amber-700 transition-colors uppercase tracking-wider"
 								>
-									Upgrade
+									{t("dashboard.upgrade")}
 								</button>
 							</div>
 						</div>
@@ -136,18 +138,20 @@ const ExporterDashboard = () => {
 					<div>
 						<div className="flex items-center gap-2 text-emerald-600 font-black text-[10px] uppercase tracking-[0.2em] mb-1.5">
 							<div className="w-5 h-[2px] bg-emerald-600"></div>
-							<span className="text-[9px]">Espace Exportateur</span>
+							<span className="text-[9px]">{t("exporter.dashboard.eyebrow")}</span>
 						</div>
 						<h1 className="text-2xl font-[1000] text-gray-900 tracking-tighter leading-[1] mb-1.5">
-							Tableau de
+							{t("dashboard.titleStart")}
 							<span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-emerald-500 italic ml-1.5">
-								Bord.
+								{t("dashboard.titleHighlight")}
 							</span>
 						</h1>
 						<p className="text-xs text-gray-500 max-w-2xl font-medium leading-relaxed">
-							Gérez vos exportations et marchés internationaux avec{" "}
-							<span className="text-emerald-600 font-black">Harvests</span>.
-							Suivez vos performances et votre flotte en temps réel.
+							<Trans
+								i18nKey="exporter.dashboard.subtitle"
+								ns="dashboard-transporter"
+								components={{ brand: <span className="text-emerald-600 font-black" /> }}
+							/>
 						</p>
 					</div>
 				</div>
@@ -171,14 +175,14 @@ const ExporterDashboard = () => {
 									<FiPackage className="h-4 w-4" />
 								</div>
 								<h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">
-									Commandes Récentes
+									{t("exporter.dashboard.recentOrders")}
 								</h3>
 							</div>
 							<a
 								href="/exporter/orders"
-								className="text-[10px] font-black text-blue-600 hover:underline"
+								className="text-[10px] font-black uppercase text-blue-600 hover:underline"
 							>
-								VOIR TOUT
+								{t("dashboard.seeAll")}
 							</a>
 						</div>
 						<div className="p-4">
@@ -197,14 +201,14 @@ const ExporterDashboard = () => {
 									<FiTruck className="h-4 w-4" />
 								</div>
 								<h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">
-									Ma Flotte
+									{t("dashboard.myFleet")}
 								</h3>
 							</div>
 							<a
 								href="/exporter/fleet"
-								className="text-[10px] font-black text-orange-600 hover:underline"
+								className="text-[10px] font-black uppercase text-orange-600 hover:underline"
 							>
-								GÉRER
+								{t("dashboard.manage")}
 							</a>
 						</div>
 						<div className="p-4">
@@ -225,7 +229,7 @@ const ExporterDashboard = () => {
 									<FiStar className="h-4 w-4" />
 								</div>
 								<h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">
-									Abonnement
+									{t("dashboard.subscription")}
 								</h3>
 							</div>
 						</div>
@@ -238,7 +242,7 @@ const ExporterDashboard = () => {
 						<div className="absolute inset-0 bg-gradient-to-br from-teal-500/10 to-transparent opacity-50"></div>
 						<div className="p-4 border-b border-white/5 relative z-10">
 							<h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">
-								Actions Rapides
+								{t("dashboard.quickActions")}
 							</h3>
 						</div>
 						<div className="p-4 relative z-10">

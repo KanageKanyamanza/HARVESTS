@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../hooks/useAuth";
 import {
 	consumerService,
@@ -13,6 +14,8 @@ import {
 import { adminService } from "../../services/adminService";
 import OrderStatusBadge from "../../components/orders/OrderStatusBadge";
 import { getStatusConfig } from "../../utils/orderStatusBadgeHelpers";
+import i18n, { formatDateTime, formatDate as formatDayDate } from "../../utils/i18n";
+import { DEFAULT_CURRENCY } from "../../config/currencies";
 import OrderActions from "../../components/orders/OrderActions";
 import OrderItemsList from "../../components/orders/OrderItemsList";
 import {
@@ -33,8 +36,8 @@ import {
 } from "react-icons/fi";
 
 const formatDate = (dateString) => {
-	if (!dateString) return "N/A";
-	return new Date(dateString).toLocaleDateString("fr-FR", {
+	if (!dateString) return "—";
+	return formatDateTime(dateString, i18n.language, {
 		year: "numeric",
 		month: "long",
 		day: "numeric",
@@ -44,6 +47,7 @@ const formatDate = (dateString) => {
 };
 
 const OrderDetail = () => {
+	const { t } = useTranslation("common");
 	const { id, orderId } = useParams();
 	const orderIdParam = id || orderId;
 	const navigate = useNavigate();
@@ -53,6 +57,7 @@ const OrderDetail = () => {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [updating, setUpdating] = useState(false);
+	const [downloading, setDownloading] = useState(false);
 
 	const isAdminContext = location.pathname.startsWith("/admin/orders");
 
@@ -71,7 +76,7 @@ const OrderDetail = () => {
 				response = await adminService.getOrderById(orderIdParam);
 				if (response.status === "success" && response.data?.order)
 					setOrder(response.data.order);
-				else setError("Commande non trouvée");
+				else setError(t("orderDetail.notFound"));
 			} else {
 				const services = {
 					consumer: consumerService.getMyOrder,
@@ -86,14 +91,16 @@ const OrderDetail = () => {
 
 				if (response.data.status === "success")
 					setOrder(response.data.data.order);
-				else setError("Commande non trouvée");
+				else setError(t("orderDetail.notFound"));
 			}
 		} catch (error) {
 			console.error("Erreur chargement commande:", error);
-			setError("Erreur lors du chargement");
+			setError(t("orderDetail.loadError"));
 		} finally {
 			setLoading(false);
 		}
+		// `t` exclu : changer de langue ne doit pas recharger la commande
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [orderIdParam, user, navigate, isAdminContext]);
 
 	useEffect(() => {
@@ -137,7 +144,7 @@ const OrderDetail = () => {
 				await service.updateOrderStatus(order._id, {
 					status: deliveryStatus,
 					location: order.delivery?.deliveryAddress?.city || null,
-					note: `Statut mis à jour par ${user?.firstName || user.userType}`,
+					note: t("orderDetail.statusNote", { name: user?.firstName || user.userType }),
 				});
 			} else {
 				await orderService.updateOrderStatus(order._id, payload);
@@ -147,6 +154,32 @@ const OrderDetail = () => {
 			console.error(`Erreur mise à jour statut:`, error);
 		} finally {
 			setUpdating(false);
+		}
+	};
+
+	// Facture PDF (le bloc « Télécharger la facture » n'avait aucune action)
+	const handleDownloadInvoice = async () => {
+		if (!order || downloading) return;
+		try {
+			setDownloading(true);
+			const response = await orderService.generateInvoice(order._id, DEFAULT_CURRENCY, 1);
+			const url = window.URL.createObjectURL(
+				new Blob([response.data], { type: "application/pdf" }),
+			);
+			const link = document.createElement("a");
+			link.href = url;
+			link.download = t("orderDetail.invoiceFile", {
+				number: order.invoiceNumber || order.orderNumber || order._id.slice(-8).toUpperCase(),
+			});
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			window.URL.revokeObjectURL(url);
+		} catch (error) {
+			console.error("Erreur téléchargement facture:", error);
+			window.alert(t("orderDetail.invoiceError"));
+		} finally {
+			setDownloading(false);
 		}
 	};
 
@@ -165,13 +198,15 @@ const OrderDetail = () => {
 					<div className="flex items-center gap-4 mb-10">
 						<button
 							onClick={() => navigate(-1)}
+							title={t("orderDetail.back")}
+							aria-label={t("orderDetail.back")}
 							className="w-12 h-12 bg-white/70 backdrop-blur-xl rounded-2xl flex items-center justify-center text-gray-400 hover:text-gray-900 border border-white/60 shadow-sm transition-all hover:-translate-x-1"
 						>
 							<FiArrowLeft className="h-5 w-5" />
 						</button>
 						<div className="flex flex-col">
 							<span className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-0.5">
-								Détails de transaction
+								{t("orderDetail.eyebrow")}
 							</span>
 							<div className="h-6 w-48 bg-gray-200/80 rounded-md animate-pulse" />
 						</div>
@@ -195,18 +230,17 @@ const OrderDetail = () => {
 						<FiAlertCircle className="h-12 w-12 text-rose-500" />
 					</div>
 					<h3 className="text-3xl font-[1000] text-gray-900 tracking-tight mb-4">
-						{error || "Commande non identifiée"}
+						{error || t("orderDetail.unidentified")}
 					</h3>
 					<p className="text-gray-500 mb-10 max-w-md mx-auto font-medium">
-						Nous n'avons pas pu accéder à cette commande. Elle a peut-être été
-						supprimée ou vous n'avez pas les droits nécessaires.
+						{t("orderDetail.errorText")}
 					</p>
 					<button
 						onClick={() => navigate(-1)}
 						className="inline-flex items-center px-12 py-4 bg-gray-900 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all duration-300 shadow-xl shadow-gray-200"
 					>
 						<FiArrowLeft className="mr-3 h-4 w-4" />
-						Retourner à la liste
+						{t("orderDetail.backToList")}
 					</button>
 				</div>
 			</div>
@@ -248,13 +282,15 @@ const OrderDetail = () => {
 				<div className="flex items-center gap-4 mb-10 animate-fade-in-down">
 					<button
 						onClick={() => navigate(-1)}
+						title={t("orderDetail.back")}
+						aria-label={t("orderDetail.back")}
 						className="w-12 h-12 bg-white/70 backdrop-blur-xl rounded-2xl flex items-center justify-center text-gray-400 hover:text-gray-900 border border-white/60 shadow-sm transition-all hover:-translate-x-1"
 					>
 						<FiArrowLeft className="h-5 w-5" />
 					</button>
 					<div className="flex flex-col">
 						<span className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-0.5">
-							Détails de transaction
+							{t("orderDetail.eyebrow")}
 						</span>
 						<div className="flex flex-wrap items-center gap-2">
 							<h4 className="text-gray-900 font-[1000] text-xl tracking-tight">
@@ -283,13 +319,13 @@ const OrderDetail = () => {
 										</div>
 										<div>
 											<h1 className="text-3xl md:text-5xl font-[1000] text-gray-900 tracking-tighter leading-none mb-2">
-												Bon de{" "}
-												<span className="text-emerald-600">Commande.</span>
+												{t("orderDetail.titleStart")}{" "}
+												<span className="text-emerald-600">{t("orderDetail.titleHighlight")}</span>
 											</h1>
 											<div className="flex items-center gap-2">
 												<FiShield className="text-emerald-500 h-3.5 w-3.5" />
 												<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-													Transaction sécurisée par Harvests
+													{t("orderDetail.secured")}
 												</span>
 											</div>
 										</div>
@@ -306,7 +342,7 @@ const OrderDetail = () => {
 										<FiRefreshCw
 											className={`h-3 w-3 ${updating ? "animate-spin" : ""}`}
 										/>
-										Actualiser les données
+										{t("orderDetail.refresh")}
 									</button>
 								</div>
 							</div>
@@ -316,7 +352,7 @@ const OrderDetail = () => {
 							<div className="absolute bottom-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mb-10 -mr-10"></div>
 							<div className="relative z-10">
 								<p className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-4">
-									Actions rapides
+									{t("orderDetail.quickActions")}
 								</p>
 								<OrderActions
 									displayedStatus={displayedStatus}
@@ -351,8 +387,8 @@ const OrderDetail = () => {
 						<div className="flex-1">
 							<h3 className="text-xl font-black text-white/80 tracking-tight uppercase mb-2 text-[11px] tracking-[0.2em]">
 								{isSellerView ?
-									"Instructions de traitement"
-								:	"Suivi de votre commande"}
+									t("orderDetail.sellerInstructions")
+								:	t("orderDetail.buyerTracking")}
 							</h3>
 							<p className="text-white font-bold text-2xl md:text-3xl tracking-tight leading-tight">
 								{statusConfig.description}
@@ -361,16 +397,12 @@ const OrderDetail = () => {
 						{order.delivery?.estimatedDeliveryDate && (
 							<div className="bg-white/10 backdrop-blur-md rounded-[2rem] px-4 py-4 border border-white/20">
 								<p className="text-[9px] font-black text-emerald-100 uppercase tracking-widest mb-1">
-									Livraison estimée
+									{t("orderDetail.estimatedDelivery")}
 								</p>
 								<div className="flex items-center gap-3">
 									<FiCalendar className="text-emerald-300" />
 									<span className="text-lg font-black tracking-tight">
-										{
-											formatDate(order.delivery.estimatedDeliveryDate).split(
-												" à ",
-											)[0]
-										}
+										{formatDayDate(order.delivery.estimatedDeliveryDate, i18n.language)}
 									</span>
 								</div>
 							</div>
@@ -401,21 +433,26 @@ const OrderDetail = () => {
 						<DeliveryInfoCard order={order} />
 
 						{/* Download Quote/Invoice Placeholders */}
-						<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white/60 shadow-sm flex items-center justify-between group hover:border-emerald-200 transition-all cursor-pointer">
+						<button
+							type="button"
+							onClick={handleDownloadInvoice}
+							disabled={downloading}
+							className="w-full text-left bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white/60 shadow-sm flex items-center justify-between group hover:border-emerald-200 transition-all cursor-pointer disabled:opacity-60"
+						>
 							<div className="flex items-center gap-4">
 								<div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-all">
 									<FiDownload className="h-5 w-5" />
 								</div>
 								<div>
 									<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-										Documents
+										{t("orderDetail.documents")}
 									</p>
 									<h4 className="font-black text-gray-900 tracking-tight">
-										Télécharger la facture
+										{downloading ? t("orderDetail.downloading") : t("orderDetail.downloadInvoice")}
 									</h4>
 								</div>
 							</div>
-						</div>
+						</button>
 					</div>
 				</div>
 			</div>

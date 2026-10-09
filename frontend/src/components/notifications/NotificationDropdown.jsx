@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { formatNotificationDate } from "../../utils/notificationHelpers";
 import {
 	FiBell,
 	FiX,
@@ -16,6 +18,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { getNotificationsRoute } from "../../utils/routeUtils";
 
 const NotificationDropdown = ({ shouldBeTransparent }) => {
+	const { t } = useTranslation("common");
 	const [isOpen, setIsOpen] = useState(false);
 	const [isRefreshing, setIsRefreshing] = useState(false);
 	const dropdownRef = useRef(null);
@@ -86,19 +89,6 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 		}
 	};
 
-	// Formater la date relative
-	const formatRelativeTime = (timestamp) => {
-		const now = new Date();
-		const notificationTime = new Date(timestamp);
-		const diffInMinutes = Math.floor((now - notificationTime) / (1000 * 60));
-
-		if (diffInMinutes < 1) return "À l'instant";
-		if (diffInMinutes < 60) return `Il y a ${diffInMinutes}min`;
-		if (diffInMinutes < 1440)
-			return `Il y a ${Math.floor(diffInMinutes / 60)}h`;
-		return `Il y a ${Math.floor(diffInMinutes / 1440)}j`;
-	};
-
 	// Gérer le clic sur une notification
 	const handleNotificationClick = async (notification) => {
 		// Marquer comme lue
@@ -146,6 +136,7 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 			<button
 				type="button"
 				onClick={() => setIsOpen(!isOpen)}
+				aria-label={t("notificationCenter.dropdown.open")}
 				className={`relative p-2 rounded-lg transition-colors duration-500 ease-in-out ${
 					shouldBeTransparent
 						? "text-white hover:text-primary-200"
@@ -166,12 +157,13 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 					{/* Header */}
 					<div className="px-5 py-2 border-b border-gray-200 flex items-center justify-between">
 						<h3 className="text-lg font-semibold text-gray-900">
-							Notifications
+							{t("notificationCenter.titleHighlight")}
 						</h3>
 
 						<button
 							type="button"
 							onClick={() => setIsOpen(false)}
+							aria-label={t("notificationCenter.dropdown.close")}
 							className="text-gray-400 hover:text-gray-500 ml-auto"
 						>
 							<FiX className="h-4 w-4" />
@@ -188,7 +180,8 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 							className={`text-gray-400 ml-2 hover:text-gray-500 p-1 ${
 								isRefreshing ? "animate-spin" : ""
 							}`}
-							title="Rafraîchir les notifications"
+							title={t("notificationCenter.dropdown.refresh")}
+							aria-label={t("notificationCenter.dropdown.refresh")}
 							disabled={isRefreshing}
 						>
 							<FiRefreshCw className="h-4 w-4" />
@@ -199,7 +192,7 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 								onClick={markAllAsRead}
 								className="text-xs text-blue-600 hover:text-blue-700 font-medium"
 							>
-								Tout marquer comme lu
+								{t("notificationCenter.markAllRead")}
 							</button>
 						)}
 					</div>
@@ -209,7 +202,7 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 						{notifications.length === 0 ? (
 							<div className="px-4 py-8 text-center text-gray-500">
 								<FiBell className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-								<p>Aucune notification</p>
+								<p>{t("notificationCenter.dropdown.none")}</p>
 							</div>
 						) : (
 							notifications.map((notification) => (
@@ -241,7 +234,7 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 														{notification.message}
 													</p>
 													<p className="text-xs text-gray-400 mt-1">
-														{formatRelativeTime(notification.timestamp)}
+														{formatNotificationDate(notification.timestamp)}
 													</p>
 												</div>
 
@@ -255,7 +248,8 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 															markAsRead(notification.id);
 														}}
 														className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-														title="Marquer comme lu"
+														title={t("notificationCenter.markRead")}
+														aria-label={t("notificationCenter.markRead")}
 													>
 														<FiCheck className="h-3 w-3" />
 													</button>
@@ -267,7 +261,8 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 															removeNotification(notification.id);
 														}}
 														className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-														title="Supprimer"
+														title={t("notificationCenter.delete")}
+														aria-label={t("notificationCenter.delete")}
 													>
 														<FiTrash2 className="h-3 w-3" />
 													</button>
@@ -285,11 +280,10 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 						{notifications.length > 0 ? (
 							<div className="flex items-center justify-between">
 								<p className="text-xs text-gray-500">
-									{notifications.length} notification
-									{notifications.length > 1 ? "s" : ""}
+									{t("notificationCenter.dropdown.count", { count: notifications.length })}
 									{unreadCount > 0 && (
 										<span className="ml-1">
-											({unreadCount} non lue{unreadCount > 1 ? "s" : ""})
+											{t("notificationCenter.dropdown.unread", { count: unreadCount })}
 										</span>
 									)}
 								</p>
@@ -301,7 +295,7 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 									}}
 									className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
 								>
-									Voir toutes →
+									{t("notificationCenter.dropdown.seeAll")}
 								</button>
 							</div>
 						) : (
@@ -313,7 +307,7 @@ const NotificationDropdown = ({ shouldBeTransparent }) => {
 								}}
 								className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors w-full text-center"
 							>
-								Voir toutes les notifications →
+								{t("notificationCenter.dropdown.seeAllNotifications")}
 							</button>
 						)}
 					</div>

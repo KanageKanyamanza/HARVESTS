@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../hooks/useAuth";
 import { exporterService } from "../../../services";
-import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
 import {
 	FiTruck,
 	FiPlus,
@@ -21,6 +21,7 @@ import CloudinaryImage from "../../../components/common/CloudinaryImage";
 import CardGridSkeleton from "../../../components/common/CardGridSkeleton";
 
 const Fleet = () => {
+	const { t } = useTranslation("dashboard-transporter");
 	const { user } = useAuth();
 	const navigate = useNavigate();
 	const { showSuccess, showError } = useNotifications();
@@ -61,54 +62,44 @@ const Fleet = () => {
 
 	const handleDeleteVehicle = useCallback(
 		async (vehicleId) => {
-			if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce véhicule ?")) {
+			if (!window.confirm(t("fleet.confirmDelete"))) {
 				return;
 			}
 
 			try {
 				await exporterService.removeFleetVehicle(vehicleId);
-				showSuccess("Véhicule supprimé avec succès");
+				showSuccess(t("fleet.deleted"));
 				setFleet((prev) => prev.filter((v) => v._id !== vehicleId));
 			} catch (error) {
 				console.error("Erreur lors de la suppression:", error);
-				showError("Erreur lors de la suppression du véhicule");
+				showError(t("fleet.deleteError"));
 			}
 		},
-		[showSuccess, showError],
+		[showSuccess, showError, t],
+	);
+
+	const getVehicleTypeLabel = useCallback(
+		(type) =>
+			type ?
+				t(`vehicle.types.${type}`, { defaultValue: type })
+			:	t("vehicle.fallbackName"),
+		[t],
 	);
 
 	const filteredFleet = useMemo(() => {
+		const term = searchTerm.toLowerCase();
 		return fleet.filter((vehicle) => {
 			if (!vehicle) return false;
-
-			const matchesSearch =
-				searchTerm === "" ||
-				vehicle.vehicleType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				vehicle.registrationNumber
-					?.toLowerCase()
-					.includes(searchTerm.toLowerCase()) ||
-				vehicle.containerNumber
-					?.toLowerCase()
-					.includes(searchTerm.toLowerCase());
-
-			return matchesSearch;
+			// La recherche porte aussi sur le libellé traduit (« conteneur », « container »)
+			return (
+				term === "" ||
+				vehicle.vehicleType?.toLowerCase().includes(term) ||
+				getVehicleTypeLabel(vehicle.vehicleType).toLowerCase().includes(term) ||
+				vehicle.registrationNumber?.toLowerCase().includes(term) ||
+				vehicle.containerNumber?.toLowerCase().includes(term)
+			);
 		});
-	}, [fleet, searchTerm]);
-
-	const getVehicleTypeLabel = (type) => {
-		const types = {
-			container: "Conteneur",
-			"container-20ft": "Conteneur 20 pieds",
-			"container-40ft": "Conteneur 40 pieds",
-			"container-refrigerated": "Conteneur frigorifique",
-			truck: "Camion",
-			"refrigerated-truck": "Camion frigorifique",
-			trailer: "Remorque",
-			vessel: "Navire",
-			aircraft: "Avion cargo",
-		};
-		return types[type] || type || "Véhicule";
-	};
+	}, [fleet, searchTerm, getVehicleTypeLabel]);
 
 	const getVehicleIcon = (type) => {
 		if (
@@ -136,17 +127,16 @@ const Fleet = () => {
 					<div>
 						<div className="flex items-center gap-2 text-emerald-600 font-black text-[9px] uppercase tracking-widest mb-2">
 							<div className="w-5 h-[2px] bg-emerald-600"></div>
-							<span>Opérations Logistiques</span>
+							<span>{t("exporter.fleet.eyebrow")}</span>
 						</div>
 						<h1 className="text-3xl font-[1000] text-gray-900 tracking-tighter leading-none mb-2">
-							Ma{" "}
+							{t("fleet.titleStart")}{" "}
 							<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500 italic">
-								Flotte.
+								{t("fleet.titleHighlight")}
 							</span>
 						</h1>
 						<p className="text-xs text-gray-500 font-medium max-w-xl">
-							Gérez vos ressources de transport et conteneurs pour une chaîne
-							logistique optimisée.
+							{t("exporter.fleet.subtitle")}
 						</p>
 					</div>
 
@@ -155,7 +145,7 @@ const Fleet = () => {
 						className="group relative inline-flex items-center justify-center px-6 py-3 bg-gray-900 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all duration-300 hover:bg-emerald-600 hover:-translate-y-1 shadow-lg active:scale-95"
 					>
 						<FiPlus className="w-4 h-4 mr-2" />
-						Ajouter un véhicule
+						{t("fleet.addVehicle")}
 					</button>
 				</div>
 
@@ -167,7 +157,7 @@ const Fleet = () => {
 						</div>
 						<input
 							type="text"
-							placeholder="Rechercher par type, immatriculation..."
+							placeholder={t("exporter.fleet.searchPlaceholder")}
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
 							className="block w-full pl-11 pr-4 py-3 bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-sm group-hover:shadow-md"
@@ -188,19 +178,19 @@ const Fleet = () => {
 								<FiTruck className="w-8 h-8" />
 							</div>
 							<h3 className="text-xl font-black text-gray-900 mb-2 uppercase tracking-tighter">
-								Aucun véhicule
+								{t("exporter.fleet.emptyTitle")}
 							</h3>
 							<p className="text-gray-500 text-sm font-medium mb-8">
 								{searchTerm ?
-									"Aucun élément de votre flotte ne correspond à votre recherche."
-								:	"Votre inventaire logistique est actuellement vide."}
+									t("exporter.fleet.noResultText")
+								:	t("exporter.fleet.emptyText")}
 							</p>
 							{!searchTerm && (
 								<button
 									onClick={() => navigate("/exporter/fleet/add")}
 									className="px-6 py-3 bg-emerald-600 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:bg-emerald-700 transition-all active:scale-95 shadow-md"
 								>
-									Ajouter votre premier véhicule
+									{t("exporter.fleet.addFirst")}
 								</button>
 							)}
 						</div>
@@ -235,7 +225,7 @@ const Fleet = () => {
 													:	"bg-red-500/90 text-white border-red-400/50"
 												}`}
 											>
-												{vehicle.isAvailable ? "Disponible" : "En service"}
+												{vehicle.isAvailable ? t("exporter.fleet.available") : t("exporter.fleet.inUse")}
 											</span>
 										</div>
 									</div>
@@ -253,7 +243,7 @@ const Fleet = () => {
 												<p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
 													{vehicle.registrationNumber ||
 														vehicle.containerNumber ||
-														"IDENTIFIANT N/A"}
+														t("exporter.fleet.noIdentifier")}
 												</p>
 											</div>
 										</div>
@@ -261,20 +251,24 @@ const Fleet = () => {
 										<div className="grid grid-cols-2 gap-3 mb-6">
 											<div className="bg-gray-50/50 rounded-2xl p-3 border border-gray-100">
 												<p className="text-[9px] font-black text-gray-600 uppercase tracking-widest mb-1">
-													Capacité
+													{t("fleet.weightCapacity")}
 												</p>
 												<p className="text-xs font-bold text-gray-900">
 													{vehicle.capacity?.weight?.value || "0"}{" "}
-													{vehicle.capacity?.weight?.unit || "tons"}
+													{t(`vehicle.units.${vehicle.capacity?.weight?.unit || "tons"}`, {
+														defaultValue: vehicle.capacity?.weight?.unit,
+													})}
 												</p>
 											</div>
 											<div className="bg-gray-50/50 rounded-2xl p-3 border border-gray-100">
 												<p className="text-[9px] font-black text-gray-600 uppercase tracking-widest mb-1">
-													Volume
+													{t("fleet.volume")}
 												</p>
 												<p className="text-xs font-bold text-gray-900">
 													{vehicle.capacity?.volume?.value || "0"}{" "}
-													{vehicle.capacity?.volume?.unit || "m³"}
+													{t(`vehicle.units.${vehicle.capacity?.volume?.unit || "m³"}`, {
+														defaultValue: vehicle.capacity?.volume?.unit,
+													})}
 												</p>
 											</div>
 										</div>
@@ -288,7 +282,7 @@ const Fleet = () => {
 															key={fIdx}
 															className="px-2 py-1 bg-white border border-gray-100 rounded-lg text-[8px] font-black text-gray-500 uppercase tracking-tighter"
 														>
-															{feature}
+															{t(`vehicle.features.${feature}`, { defaultValue: feature })}
 														</span>
 													))}
 												</div>
@@ -305,7 +299,11 @@ const Fleet = () => {
 													}`}
 												/>
 												<span className="text-[10px] font-bold text-gray-600 uppercase">
-													{vehicle.condition || "Standard"}
+													{vehicle.condition ?
+														t(`vehicle.conditions.${vehicle.condition}`, {
+															defaultValue: vehicle.condition,
+														})
+													:	t("fleet.standard")}
 												</span>
 											</div>
 											<div className="flex gap-1.5">
@@ -313,12 +311,16 @@ const Fleet = () => {
 													onClick={() =>
 														navigate(`/exporter/fleet/edit/${vehicle._id}`)
 													}
+													title={t("fleet.edit")}
+													aria-label={t("fleet.edit")}
 													className="p-2.5 bg-white border border-gray-100 text-gray-400 hover:text-blue-600 hover:border-blue-100 rounded-xl transition-all shadow-sm"
 												>
 													<FiEdit className="h-4 w-4" />
 												</button>
 												<button
 													onClick={() => handleDeleteVehicle(vehicle._id)}
+													title={t("fleet.delete")}
+													aria-label={t("fleet.delete")}
 													className="p-2.5 bg-white border border-gray-100 text-gray-400 hover:text-red-600 hover:border-red-100 rounded-xl transition-all shadow-sm"
 												>
 													<FiTrash2 className="h-4 w-4" />
@@ -338,7 +340,7 @@ const Fleet = () => {
 						<div className="flex items-center gap-3 mb-6">
 							<FiGlobe className="h-6 w-6 text-emerald-600" />
 							<h2 className="text-xl font-black text-gray-900 tracking-tighter uppercase">
-								Partenaires Logistiques
+								{t("exporter.fleet.partners")}
 							</h2>
 						</div>
 
@@ -358,7 +360,7 @@ const Fleet = () => {
 											</h3>
 											<p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
 												{partner.serviceType} •{" "}
-												{partner.routes?.join(", ") || "Réseau global"}
+												{partner.routes?.join(", ") || t("exporter.fleet.globalNetwork")}
 											</p>
 										</div>
 									</div>

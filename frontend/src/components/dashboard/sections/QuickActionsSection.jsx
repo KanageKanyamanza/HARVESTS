@@ -10,7 +10,6 @@ import {
   FiShield,
   FiTrendingUp,
   FiUsers,
-  FiPackage,
   FiShoppingCart
 } from 'react-icons/fi';
 import { 
@@ -161,15 +160,15 @@ const QuickActionsSection = ({ userType, actions = [] }) => {
       case 'exporter':
         return [
           {
-            icon: <FiPackage className="h-5 w-5" />,
-            key: 'exportProducts',
-            href: `/${userType}/products`,
+            icon: <FiTruck className="h-5 w-5" />,
+            key: 'fleet',
+            href: `/${userType}/fleet`,
             color: 'bg-blue-500 hover:bg-blue-600'
           },
           {
             icon: <FiTrendingUp className="h-5 w-5" />,
             key: 'analytics',
-            href: `/${userType}/analytics`,
+            href: `/${userType}/statistics`,
             color: 'bg-purple-500 hover:bg-purple-600'
           },
           {

@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import VehicleImageUpload from "../../../components/vehicles/VehicleImageUpload";
 import VehicleCapacity from "../../../components/vehicles/VehicleCapacity";
 import { FiArrowLeft, FiSave, FiInfo, FiZap } from "react-icons/fi";
@@ -10,6 +11,7 @@ import {
 } from "../../../utils/vehicleConstants";
 
 const AddVehicle = () => {
+	const { t } = useTranslation("dashboard-transporter");
 	const navigate = useNavigate();
 	const {
 		loading,
@@ -43,22 +45,21 @@ const AddVehicle = () => {
 						className="group inline-flex items-center text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-emerald-600 transition-colors mb-6"
 					>
 						<FiArrowLeft className="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-						Retour à la flotte
+						{t("vehicle.form.backToFleet")}
 					</button>
 
 					<div className="flex items-center gap-2 text-emerald-600 font-black text-[9px] uppercase tracking-widest mb-2">
 						<div className="w-5 h-[2px] bg-emerald-600"></div>
-						<span>Configuration Flotte</span>
+						<span>{t("exporter.vehicleForm.addEyebrow")}</span>
 					</div>
 					<h1 className="text-3xl font-black text-gray-900 tracking-tighter leading-none mb-2">
-						Nouveau{" "}
+						{t("exporter.vehicleForm.addTitleStart")}{" "}
 						<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500 italic">
-							Véhicule.
+							{t("exporter.vehicleForm.addTitleHighlight")}
 						</span>
 					</h1>
 					<p className="text-xs text-gray-500 font-medium max-w-xl">
-						Enregistrez une nouvelle unité logistique pour optimiser vos
-						exportations.
+						{t("exporter.vehicleForm.addSubtitle")}
 					</p>
 				</div>
 
@@ -87,14 +88,14 @@ const AddVehicle = () => {
 							<div className="flex items-center gap-2 mb-4">
 								<FiInfo className="text-emerald-500 w-4 h-4" />
 								<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">
-									Informations Générales
+									{t("exporter.vehicleForm.generalInfo")}
 								</h3>
 							</div>
 
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 								<div className="space-y-2">
 									<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-										Type d'unité
+										{t("exporter.vehicleForm.unitType")}
 									</label>
 									<select
 										name="vehicleType"
@@ -103,10 +104,10 @@ const AddVehicle = () => {
 										required
 										className="w-full px-5 py-4 bg-white/50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all cursor-pointer"
 									>
-										<option value="">Sélectionnez un type</option>
+										<option value="">{t("vehicle.form.selectType")}</option>
 										{(vehicleTypes || []).map((type) => (
 											<option key={type.value} value={type.value}>
-												{type.label}
+												{t(`vehicle.types.${type.value}`, { defaultValue: type.label })}
 											</option>
 										))}
 									</select>
@@ -119,35 +120,35 @@ const AddVehicle = () => {
 
 								<div className="space-y-2">
 									<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-										Immatriculation / ID
+										{t("exporter.vehicleForm.registrationId")}
 									</label>
 									<input
 										type="text"
 										name="registrationNumber"
 										value={formData.registrationNumber || ""}
 										onChange={handleInputChange}
-										placeholder="Ex: ABC-123-XY"
+										placeholder={t("exporter.vehicleForm.registrationPlaceholder")}
 										className="w-full px-5 py-4 bg-white/50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all"
 									/>
 								</div>
 
 								<div className="space-y-2">
 									<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-										N° de Conteneur (Optionnel)
+										{t("exporter.vehicleForm.containerOptional")}
 									</label>
 									<input
 										type="text"
 										name="containerNumber"
 										value={formData.containerNumber || ""}
 										onChange={handleInputChange}
-										placeholder="Ex: ABCD1234567"
+										placeholder={t("exporter.vehicleForm.containerPlaceholder")}
 										className="w-full px-5 py-4 bg-white/50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all"
 									/>
 								</div>
 
 								<div className="space-y-2">
 									<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-										État actuel
+										{t("exporter.vehicleForm.currentCondition")}
 									</label>
 									<select
 										name="condition"
@@ -155,10 +156,11 @@ const AddVehicle = () => {
 										onChange={handleInputChange}
 										className="w-full px-5 py-4 bg-white/50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all cursor-pointer"
 									>
-										<option value="excellent">Excellent</option>
-										<option value="good">Bon</option>
-										<option value="fair">Moyen</option>
-										<option value="needs-maintenance">Entretien requis</option>
+										{["excellent", "good", "fair", "needs-maintenance"].map((condition) => (
+											<option key={condition} value={condition}>
+												{t(`vehicle.conditions.${condition}`)}
+											</option>
+										))}
 									</select>
 								</div>
 							</div>
@@ -169,7 +171,7 @@ const AddVehicle = () => {
 							<div className="flex items-center gap-2 mb-6">
 								<FiZap className="text-emerald-500 w-4 h-4" />
 								<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">
-									Spécifications de Charge
+									{t("exporter.vehicleForm.loadSpecs")}
 								</h3>
 							</div>
 							<VehicleCapacity
@@ -188,7 +190,7 @@ const AddVehicle = () => {
 							<div className="flex items-center gap-2 mb-4">
 								<div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
 								<h3 className="text-[10px] font-black text-gray-600 uppercase tracking-[0.2em]">
-									Options & Caractéristiques
+									{t("exporter.vehicleForm.options")}
 								</h3>
 							</div>
 							<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -208,7 +210,7 @@ const AddVehicle = () => {
 											className="peer sr-only"
 										/>
 										<div className="px-4 py-3 bg-white/50 border border-gray-100 rounded-2xl text-[10px] font-black text-gray-500 uppercase tracking-tight transition-all peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-500 peer-checked:shadow-lg peer-checked:shadow-emerald-200 group-hover:border-emerald-200">
-											{feature.label}
+											{t(`vehicle.features.${feature.value}`, { defaultValue: feature.label })}
 										</div>
 									</label>
 								))}
@@ -219,7 +221,7 @@ const AddVehicle = () => {
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-6 border-t border-gray-100 pt-8">
 							<div className="space-y-4">
 								<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-									Disponibilité
+									{t("exporter.vehicleForm.availability")}
 								</label>
 								<label className="flex items-center cursor-pointer group w-fit">
 									<div className="relative">
@@ -233,14 +235,14 @@ const AddVehicle = () => {
 										<div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
 									</div>
 									<span className="ml-3 text-[10px] font-black text-gray-700 uppercase tracking-widest">
-										Actif en ligne
+										{t("exporter.vehicleForm.availableForMissions")}
 									</span>
 								</label>
 							</div>
 
 							<div className="space-y-2">
 								<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-									Dernière Maintenance
+									{t("vehicle.form.lastMaintenance")}
 								</label>
 								<input
 									type="date"
@@ -253,7 +255,7 @@ const AddVehicle = () => {
 
 							<div className="space-y-2">
 								<label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-									Prochaine Échéance
+									{t("vehicle.form.nextMaintenance")}
 								</label>
 								<input
 									type="date"
@@ -278,7 +280,7 @@ const AddVehicle = () => {
 							onClick={() => navigate(-1)}
 							className="px-8 py-4 bg-white border border-gray-100 rounded-2xl text-[10px] font-black text-gray-600 uppercase tracking-[0.2em] hover:bg-gray-50 hover:text-gray-600 transition-all active:scale-95"
 						>
-							Annuler
+							{t("vehicle.form.cancel")}
 						</button>
 						<button
 							type="submit"
@@ -289,11 +291,11 @@ const AddVehicle = () => {
 								{loading ?
 									<>
 										<div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-3"></div>
-										Traitement...
+										{t("exporter.vehicleForm.processing")}
 									</>
 								:	<>
 										<FiSave className="h-4 w-4 mr-2" />
-										Enregistrer l'unité
+										{t("vehicle.form.save")}
 									</>
 								}
 							</div>

@@ -1,4 +1,6 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
+import { UNITS } from "../../config/units";
 import { Package, CheckCircle, Info, Tag } from "lucide-react";
 import CloudinaryImage from "../common/CloudinaryImage";
 import { parseProductName } from "../../utils/productUtils";
@@ -55,6 +57,12 @@ const OrderItemsList = ({
 	updateOrderStatus,
 	updating,
 }) => {
+	const { t } = useTranslation("common");
+	// Unité traduite (valeur stockée en base → common.units.*)
+	const unitLabel = (value) => {
+		const unit = UNITS.find((u) => u.value === value);
+		return unit ? t(`units.${unit.key}`) : value;
+	};
 	const items = isSellerView
 		? order.segment?.items || order.items || []
 		: order.items || [];
@@ -65,11 +73,11 @@ const OrderItemsList = ({
 		<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-8 md:p-10 border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)]">
 			<div className="flex flex-wrap gap-2 items-center justify-between mb-8">
 				<h3 className="text-xl font-[1000] text-gray-900 uppercase tracking-tight">
-					Articles commandés
+					{t("orderDetail.itemsTitle")}
 				</h3>
 				<div className="px-5 py-2 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
 					<Tag className="h-3 w-3 text-green-400" />
-					{items.length} Référence(s)
+					{t("orderDetail.references", { count: items.length })}
 				</div>
 			</div>
 
@@ -88,7 +96,7 @@ const OrderItemsList = ({
 						productData.name ||
 						productSnapshot.name ||
 						item.name ||
-						"Produit inconnu";
+						t("orderDetail.unknownProduct");
 
 					const productImages =
 						(productData.images?.length ? productData.images : null) ||
@@ -189,16 +197,16 @@ const OrderItemsList = ({
 											<div className="flex items-center gap-3 text-xs font-bold text-gray-400">
 												<span className="flex items-center gap-1.5 px-2.5 py-1 bg-white rounded-lg border border-gray-100 text-gray-500">
 													<Info className="h-3 w-3" />
-													{productUnit}
+													{unitLabel(productUnit)}
 												</span>
 												<span>
-													PU: {formatPrice(displayedPrice, globalCurrency)}
+													{t("orderDetail.unitPrice", { price: formatPrice(displayedPrice, globalCurrency) })}
 												</span>
 											</div>
 										</div>
 										<div className="text-right">
 											<p className="text-sm font-black text-gray-400 uppercase tracking-widest mb-1 leading-none">
-												Sous-total
+												{t("orderDetail.subtotal")}
 											</p>
 											<p className="text-2xl font-[1000] text-gray-900 tracking-tighter leading-none">
 												{formatPrice(displayedTotalPrice, globalCurrency)}
@@ -222,7 +230,7 @@ const OrderItemsList = ({
 												className="flex items-center gap-2 px-6 py-2.5 bg-green-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-green-700 transition-all shadow-lg shadow-green-100 disabled:opacity-50"
 											>
 												<CheckCircle className="h-4 w-4" />
-												{updating ? "Validation..." : "Confirmer"}
+												{updating ? t("orderDetail.validating") : t("orderDetail.confirm")}
 											</button>
 										)}
 									</div>

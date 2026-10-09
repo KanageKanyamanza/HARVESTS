@@ -1,4 +1,5 @@
 ﻿import React from "react";
+import { useTranslation } from "react-i18next";
 import {
 	ShieldCheck,
 	FileText,
@@ -9,23 +10,13 @@ import {
 } from "lucide-react";
 import DocumentUpload from "../../common/DocumentUpload";
 
-const LABELS = {
-	nationalId: "Carte d'Identité / Passeport",
-	businessLicense: "Registre de Commerce (RCCM)",
-	taxId: "Numéro d'Identification Fiscale (NINEA)",
-	healthPermit: "Permis sanitaire",
-	transportLicense: "Licence de transport",
-	insuranceCertificate: "Attestation d'assurance",
-	firePermit: "Permis incendie",
-	certification: "Certificat / Label",
-};
-
 const DocumentsSection = ({
 	documents = {},
 	onInputChange,
 	docTypes = ["businessLicense", "taxId"],
 	editing = true,
 }) => {
+	const { t } = useTranslation("common");
 	if (!editing) return null;
 
 	const handleDocChange = (type, field, value) => {
@@ -53,10 +44,10 @@ const DocumentsSection = ({
 								</div>
 								<div>
 									<h4 className="text-lg font-[1000] text-gray-900 tracking-tight">
-										{LABELS[type] || type}
+										{t(`documentsPage.docTypes.${type}`, { defaultValue: type })}
 									</h4>
 									<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-										Document Obligatoire
+										{t("documentsPage.required")}
 									</p>
 								</div>
 							</div>
@@ -65,15 +56,16 @@ const DocumentsSection = ({
 								{documents[type]?.isVerified ?
 									<div className="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100">
 										<CheckCircle2 className="h-3.5 w-3.5" />
-										Document Vérifié
+										{t("documentsPage.docVerified")}
 									</div>
 								: documents[type]?.document ?
 									<div className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-100">
 										<Clock className="h-3.5 w-3.5" />
-										En cours d'analyse
+										{t("documentsPage.underReview")}
 									</div>
 								:	<div className="inline-flex items-center gap-2 px-4 py-1.5 bg-gray-100 text-gray-500 rounded-full text-[10px] font-black uppercase tracking-widest border border-gray-200">
-										<AlertCircle className="h-3.5 w-3.5" />À fournir
+										<AlertCircle className="h-3.5 w-3.5" />
+										{t("documentsPage.toProvide")}
 									</div>
 								}
 							</div>
@@ -83,13 +75,13 @@ const DocumentsSection = ({
 							{/* Number Input */}
 							<div className="space-y-2">
 								<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-									Numéro / Référence
+									{t("documentsPage.number")}
 								</label>
 								<div className="relative group/input">
 									<input
 										type="text"
 										className="w-full bg-white px-2 py-2 border-2 border-gray-50 rounded-2xl text-gray-900 font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all placeholder-gray-200"
-										placeholder="EX: RC-SN-DQR-2024-B-..."
+										placeholder={t("documentsPage.numberPlaceholder")}
 										value={documents[type]?.number || ""}
 										onChange={(e) =>
 											handleDocChange(type, "number", e.target.value)
@@ -104,7 +96,7 @@ const DocumentsSection = ({
 							{/* File Upload */}
 							<div className="space-y-2">
 								<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-									Scan du document (PDF/Image)
+									{t("documentsPage.scan")}
 								</label>
 								<div className="rounded-2xl overflow-hidden border-2 border-dashed border-gray-100 hover:border-emerald-200 transition-colors">
 									<DocumentUpload
