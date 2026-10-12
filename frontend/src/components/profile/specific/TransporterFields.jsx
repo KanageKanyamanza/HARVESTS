@@ -1,13 +1,16 @@
 ﻿import React from "react";
-import { Truck, DollarSign, Map, Check, ChevronDown } from "lucide-react";
+import { Truck, DollarSign, Check, ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { DEFAULT_CURRENCY } from "../../../config/currencies";
 
 const TransporterFields = ({ formData, editing, onInputChange }) => {
+	const { t } = useTranslation("profile");
 	const TRANSPORT_TYPES = [
-		{ value: "road", label: "Routier" },
-		{ value: "rail", label: "Ferroviaire" },
-		{ value: "air", label: "Aérien" },
-		{ value: "sea", label: "Maritime" },
-		{ value: "multimodal", label: "Multimodal" },
+		{ value: "road", label: t("public:vendorProfile.transporter.transportTypes.road") },
+		{ value: "rail", label: t("public:vendorProfile.transporter.transportTypes.rail") },
+		{ value: "air", label: t("public:vendorProfile.transporter.transportTypes.air") },
+		{ value: "sea", label: t("public:vendorProfile.transporter.transportTypes.sea") },
+		{ value: "multimodal", label: t("public:vendorProfile.transporter.transportTypes.multimodal") },
 	];
 
 	return (
@@ -17,7 +20,7 @@ const TransporterFields = ({ formData, editing, onInputChange }) => {
 				<div className="flex items-center gap-3 px-2">
 					<Truck className="h-5 w-5 text-indigo-600/50" />
 					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
-						Services de Transport
+						{t("transporter.title")}
 					</h3>
 				</div>
 
@@ -25,7 +28,7 @@ const TransporterFields = ({ formData, editing, onInputChange }) => {
 					{/* Transport Types */}
 					<div className="col-span-1 md:col-span-2 space-y-4">
 						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-							Modes de Transport Proposés
+							{t("transporter.modes")}
 						</label>
 						{editing ?
 							<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -81,7 +84,7 @@ const TransporterFields = ({ formData, editing, onInputChange }) => {
 										</div>
 									))
 								:	<p className="text-xs font-medium text-gray-400 italic">
-										Non renseigné
+										{t("notProvided")}
 									</p>
 								}
 							</div>
@@ -91,7 +94,7 @@ const TransporterFields = ({ formData, editing, onInputChange }) => {
 					{/* Pricing Model */}
 					<div className="space-y-2 group/field">
 						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-							Modèle de Tarification
+							{t("transporter.pricingModel")}
 						</label>
 						{editing ?
 							<div className="relative">
@@ -101,10 +104,10 @@ const TransporterFields = ({ formData, editing, onInputChange }) => {
 									onChange={onInputChange}
 									className="w-full bg-gray-50/50 pl-12 pr-10 py-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all appearance-none cursor-pointer shadow-inner"
 								>
-									<option value="per-km">Par kilomètre</option>
-									<option value="per-kg">Par kilogramme</option>
-									<option value="flat-rate">Forfait</option>
-									<option value="custom">Sur devis</option>
+									<option value="per-km">{t("transporter.pricingModels.per-km")}</option>
+									<option value="per-kg">{t("transporter.pricingModels.per-kg")}</option>
+									<option value="flat-rate">{t("transporter.pricingModels.flat-rate")}</option>
+									<option value="custom">{t("transporter.pricingModels.custom")}</option>
 								</select>
 								<DollarSign className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-600/50" />
 								<ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300 pointer-events-none" />
@@ -112,14 +115,11 @@ const TransporterFields = ({ formData, editing, onInputChange }) => {
 						:	<div className="bg-gray-50/30 px-2 py-2 rounded-2xl border border-gray-100/50 flex items-center gap-3">
 								<DollarSign className="h-4 w-4 text-emerald-600/50" />
 								<p className="text-sm font-bold text-gray-900">
-									{{
-										"per-km": "Par kilomètre",
-										"per-kg": "Par kilogramme",
-										"flat-rate": "Forfait",
-										custom: "Sur devis",
-									}[formData.pricingStructure?.model] ||
-										formData.pricingStructure?.model ||
-										"Non renseigné"}
+									{formData.pricingStructure?.model ?
+									t(`transporter.pricingModels.${formData.pricingStructure.model}`, {
+										defaultValue: formData.pricingStructure.model,
+									})
+								:	t("notProvided")}
 								</p>
 							</div>
 						}
@@ -128,7 +128,7 @@ const TransporterFields = ({ formData, editing, onInputChange }) => {
 					{/* Base Rate */}
 					<div className="space-y-2 group/field">
 						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-							Tarif de Base
+							{t("transporter.baseRate")}
 						</label>
 						{editing ?
 							<div className="relative">
@@ -142,17 +142,17 @@ const TransporterFields = ({ formData, editing, onInputChange }) => {
 									placeholder="0"
 								/>
 								<span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-300 uppercase tracking-widest">
-									XAF
+									{DEFAULT_CURRENCY}
 								</span>
 							</div>
 						:	<div className="bg-gray-50/30 px-2 py-2 rounded-2xl border border-gray-100/50 flex items-center gap-3">
 								<div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 font-black text-[10px]">
-									XAF
+									{DEFAULT_CURRENCY}
 								</div>
 								<p className="text-sm font-bold text-gray-900">
 									{formData.pricingStructure?.baseRate ?
-										`${formData.pricingStructure.baseRate} XAF`
-									:	"Non renseigné"}
+										`${formData.pricingStructure.baseRate} ${DEFAULT_CURRENCY}`
+									:	t("notProvided")}
 								</p>
 							</div>
 						}

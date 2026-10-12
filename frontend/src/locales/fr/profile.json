@@ -1,0 +1,201 @@
+{
+	"notProvided": "Non renseigné",
+	"notDefined": "Non défini",
+	"page": {
+		"eyebrow": "Mon compte",
+		"titleStart": "Profil",
+		"titleHighlight": "utilisateur.",
+		"subtitle": "Gérez vos informations personnelles, votre image de marque et suivez vos statistiques de performance.",
+		"edit": "Modifier le profil",
+		"generalInfo": "Informations générales",
+		"status": "Statut",
+		"shopTitle": "Ma boutique & identité visuelle",
+		"cancel": "Annuler",
+		"save": "Enregistrer les modifications",
+		"saving": "Sauvegarde...",
+		"saveSuccess": "Profil mis à jour avec succès",
+		"saveError": "Erreur lors de la sauvegarde du profil. Vérifiez les champs et réessayez."
+	},
+	"header": {
+		"phone": "Téléphone",
+		"location": "Localisation",
+		"reputation": "Réputation",
+		"reviewsCount_one": "({{count}} avis)",
+		"reviewsCount_other": "({{count}} avis)",
+		"memberSince": "Membre depuis {{date}}"
+	},
+	"verification": {
+		"title": "Niveau de vérification",
+		"refresh": "Actualiser les statuts",
+		"email": "Validation e-mail",
+		"emailVerified": "Authentifié",
+		"emailPending": "Action requise",
+		"phone": "Validation mobile",
+		"phoneVerified": "Vérifié",
+		"phonePending": "SMS non validé",
+		"overall": "Statut du compte",
+		"levels": {
+			"approved": "Compte validé par Harvests",
+			"pending": "En attente de validation",
+			"unverified": "Non vérifié"
+		}
+	},
+	"shop": {
+		"eyebrow": "Identité visuelle",
+		"title": "Ma vitrine commerciale",
+		"banner": "Bannière de boutique",
+		"bannerHint": "1200×400 px recommandé",
+		"logo": "Logo de marque",
+		"logoHint": "400×400 px recommandé",
+		"preview": "Aperçu public de votre vitrine",
+		"logoAlt": "Logo de boutique",
+		"defaultName": "Ma boutique Harvests",
+		"runBy": "Exploitée par {{name}}",
+		"viewPublic": "Voir la boutique publique"
+	},
+	"fields": {
+		"firstName": "Prénom",
+		"lastName": "Nom",
+		"companyName": "Nom de l'entreprise",
+		"farmName": "Nom de la ferme",
+		"restaurantName": "Nom du restaurant",
+		"email": "E-mail personnel / pro",
+		"phone": "Téléphone mobile",
+		"address": "Adresse de résidence",
+		"city": "Ville / commune",
+		"region": "Région / État",
+		"country": "Pays",
+		"select": "Sélectionner...",
+		"addressInfoStart": "Vos adresses de livraison se gèrent depuis",
+		"addressInfoLink": "Paramètres → Adresses",
+		"addressInfoEnd": ", où vous pouvez en enregistrer plusieurs et définir celle par défaut.",
+		"bio": "Biographie & présentation",
+		"bioPlaceholder": "Partagez votre histoire, vos valeurs et votre passion...",
+		"bioEmpty": "Aucune biographie renseignée pour le moment. Cliquez sur « Modifier le profil » pour ajouter une présentation."
+	},
+	"units": {
+		"km": "km",
+		"distanceKm": "{{value}} km",
+		"hectares": "hectares",
+		"acres": "acres",
+		"m²": "m²",
+		"tons": "tonnes",
+		"kg": "kg",
+		"m³": "m³"
+	},
+	"hours": {
+		"closed": "Fermé",
+		"openingTitle": "Horaires d'ouverture"
+	},
+	"producer": {
+		"productionTitle": "Détails de la production",
+		"farmingType": "Type d'agriculture",
+		"farmingTypes": {
+			"organic": "Biologique",
+			"conventional": "Conventionnel",
+			"mixed": "Mixte"
+		},
+		"farmSize": "Taille de l'exploitation",
+		"storageCapacity": "Capacité de stockage",
+		"moq": "Commande minimum",
+		"moqUnitPlaceholder": "Unité (kg)",
+		"cropsTitle": "Cultures & produits",
+		"add": "Ajouter",
+		"cropName": "Nom de la culture",
+		"cropCategory": "Catégorie",
+		"cropCategories": {
+			"cereals": "Céréales",
+			"vegetables": "Légumes",
+			"fruits": "Fruits",
+			"legumes": "Légumineuses",
+			"tubers": "Tubercules"
+		},
+		"removeCrop": "Retirer cette culture",
+		"noCrops": "Aucune culture renseignée",
+		"logisticsTitle": "Options de logistique",
+		"ownDelivery": "Service de livraison propre",
+		"ownDeliveryYes": "Livraison propre disponible",
+		"ownDeliveryNo": "Pas de livraison propre",
+		"deliveryRadius": "Rayon d'action (km)",
+		"availabilityTitle": "Disponibilités hebdomadaires"
+	},
+	"consumer": {
+		"dietaryTitle": "Préférences alimentaires",
+		"dietary": {
+			"organic": "Bio",
+			"vegetarian": "Végétarien",
+			"vegan": "Végane",
+			"gluten-free": "Sans gluten",
+			"halal": "Halal",
+			"local": "Produits locaux"
+		},
+		"noDietary": "Aucune préférence renseignée",
+		"habitsTitle": "Habitudes d'achat",
+		"deliveryTime": "Moment de livraison préféré",
+		"deliveryTimes": {
+			"morning": "Matin (8h-12h)",
+			"afternoon": "Après-midi (12h-18h)",
+			"evening": "Soir (18h-21h)",
+			"weekend": "Week-end",
+			"flexible": "Flexible"
+		},
+		"maxDistance": "Distance max. souhaitée",
+		"budget": "Budget moyen par commande"
+	},
+	"restaurateur": {
+		"establishmentTitle": "Informations sur l'établissement",
+		"type": "Type d'établissement",
+		"capacity": "Capacité d'accueil",
+		"seats": "places",
+		"covers_one": "{{count}} couvert",
+		"covers_other": "{{count}} couverts",
+		"cuisines": "Spécialités culinaires"
+	},
+	"transformer": {
+		"activitiesTitle": "Activités de transformation",
+		"type": "Type d'activité principal",
+		"types": {
+			"processing": "Transformation",
+			"packaging": "Emballage",
+			"preservation": "Conservation",
+			"manufacturing": "Fabrication",
+			"mixed": "Mixte"
+		},
+		"pricingModel": "Modèle de facturation",
+		"pricingModels": {
+			"per-unit": "Par unité",
+			"per-kg": "Par kg",
+			"per-batch": "Par lot",
+			"hourly": "Horaire"
+		},
+		"servicesTitle": "Catalogue de services",
+		"services": {
+			"packaging": "Emballage",
+			"customProcessing": "Transformation sur mesure",
+			"privateLabeling": "Marque blanche",
+			"qualityTesting": "Contrôle qualité",
+			"consultation": "Conseils techniques"
+		},
+		"noServices": "Aucun service renseigné"
+	},
+	"transporter": {
+		"title": "Services de transport",
+		"modes": "Modes de transport proposés",
+		"pricingModel": "Modèle de tarification",
+		"pricingModels": {
+			"per-km": "Par kilomètre",
+			"per-kg": "Par kilogramme",
+			"flat-rate": "Forfait",
+			"custom": "Sur devis"
+		},
+		"baseRate": "Tarif de base"
+	},
+	"exporter": {
+		"title": "Informations internationales",
+		"registration": "Numéro d'enregistrement commercial (RCCM)",
+		"registrationPlaceholder": "Ex. : RB/ABC/2023/B/1234",
+		"termsTitle": "Conditions commerciales",
+		"incoterms": "Incoterms acceptés (logistique)",
+		"currencies": "Devises de transaction"
+	}
+}

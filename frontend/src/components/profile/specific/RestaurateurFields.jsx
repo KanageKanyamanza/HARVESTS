@@ -1,16 +1,6 @@
 import React from "react";
 import { Info, Users, Clock, Utensils, ChevronDown, Check } from "lucide-react";
-
-const RESTAURANT_TYPES = [
-	{ value: "fine-dining", label: "Restaurant gastronomique" },
-	{ value: "casual", label: "Restaurant décontracté" },
-	{ value: "fast-food", label: "Restaurant rapide" },
-	{ value: "cafe", label: "Café" },
-	{ value: "bar", label: "Bar" },
-	{ value: "catering", label: "Traiteur" },
-	{ value: "food-truck", label: "Food truck" },
-	{ value: "bakery", label: "Boulangerie" },
-];
+import { useTranslation } from "react-i18next";
 
 const RestaurateurFields = ({
 	formData,
@@ -18,29 +8,42 @@ const RestaurateurFields = ({
 	onInputChange,
 	onCuisineTypeChange,
 }) => {
+	const { t } = useTranslation("profile");
+	const RESTAURANT_TYPES = [
+		"fine-dining",
+		"casual",
+		"fast-food",
+		"cafe",
+		"bar",
+		"catering",
+		"food-truck",
+		"bakery",
+	].map((value) => ({
+		value,
+		label: t(`public:vendorProfile.restaurateur.restaurantTypes.${value}`),
+	}));
+
 	const DAYS = [
-		{ key: "monday", label: "Lundi" },
-		{ key: "tuesday", label: "Mardi" },
-		{ key: "wednesday", label: "Mercredi" },
-		{ key: "thursday", label: "Jeudi" },
-		{ key: "friday", label: "Vendredi" },
-		{ key: "saturday", label: "Samedi" },
-		{ key: "sunday", label: "Dimanche" },
+		{ key: "monday", label: t("public:vendorProfile.days.monday") },
+		{ key: "tuesday", label: t("public:vendorProfile.days.tuesday") },
+		{ key: "wednesday", label: t("public:vendorProfile.days.wednesday") },
+		{ key: "thursday", label: t("public:vendorProfile.days.thursday") },
+		{ key: "friday", label: t("public:vendorProfile.days.friday") },
+		{ key: "saturday", label: t("public:vendorProfile.days.saturday") },
+		{ key: "sunday", label: t("public:vendorProfile.days.sunday") },
 	];
 
 	const CUISINE_OPTIONS = [
-		{ value: "african", label: "Africaine" },
-		{ value: "french", label: "Française" },
-		{ value: "italian", label: "Italienne" },
-		{ value: "asian", label: "Asiatique" },
-		{ value: "american", label: "Américaine" },
-		{ value: "mediterranean", label: "Méditerranéenne" },
-		{ value: "fusion", label: "Fusion" },
-		{ value: "vegetarian", label: "Végétarienne" },
-		{ value: "vegan", label: "Végane" },
+		{ value: "african", label: t("public:restaurateurs.cuisineTypes.african") },
+		{ value: "french", label: t("public:restaurateurs.cuisineTypes.french") },
+		{ value: "italian", label: t("public:restaurateurs.cuisineTypes.italian") },
+		{ value: "asian", label: t("public:restaurateurs.cuisineTypes.asian") },
+		{ value: "american", label: t("public:restaurateurs.cuisineTypes.american") },
+		{ value: "mediterranean", label: t("public:restaurateurs.cuisineTypes.mediterranean") },
+		{ value: "fusion", label: t("public:restaurateurs.cuisineTypes.fusion") },
+		{ value: "vegetarian", label: t("public:restaurateurs.cuisineTypes.vegetarian") },
+		{ value: "vegan", label: t("public:restaurateurs.cuisineTypes.vegan") },
 	];
-
-
 
 	return (
 		<div className="space-y-12">
@@ -49,7 +52,7 @@ const RestaurateurFields = ({
 				<div className="flex items-center gap-3 px-2">
 					<Info className="h-5 w-5 text-emerald-600/50" />
 					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
-						Informations sur l'établissement
+						{t("restaurateur.establishmentTitle")}
 					</h3>
 				</div>
 
@@ -57,7 +60,7 @@ const RestaurateurFields = ({
 					{/* Restaurant Type */}
 					<div className="space-y-2 group/field">
 						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-							Type d'établissement
+							{t("restaurateur.type")}
 						</label>
 						{editing ?
 							<div className="relative">
@@ -88,7 +91,7 @@ const RestaurateurFields = ({
 					{/* Seating Capacity */}
 					<div className="space-y-2 group/field">
 						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-							Capacité d'accueil
+							{t("restaurateur.capacity")}
 						</label>
 						{editing ?
 							<div className="relative">
@@ -103,15 +106,15 @@ const RestaurateurFields = ({
 								/>
 								<Users className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-600/50" />
 								<span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-300 uppercase tracking-widest">
-									PLACES
+									{t("restaurateur.seats")}
 								</span>
 							</div>
 						:	<div className="bg-gray-50/30 px-2 py-2 rounded-2xl border border-gray-100/50 flex items-center gap-3">
 								<Users className="h-4 w-4 text-blue-600/50" />
 								<p className="text-sm font-bold text-gray-900">
 									{formData.seatingCapacity ?
-										`${formData.seatingCapacity} couverts`
-									:	"Non renseigné"}
+										t("restaurateur.covers", { count: Number(formData.seatingCapacity) })
+									:	t("notProvided")}
 								</p>
 							</div>
 						}
@@ -120,7 +123,7 @@ const RestaurateurFields = ({
 					{/* Cuisine Types */}
 					<div className="col-span-1 md:col-span-2 space-y-4">
 						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-							Spécialités Culinaires
+							{t("restaurateur.cuisines")}
 						</label>
 						{editing ?
 							<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -162,7 +165,7 @@ const RestaurateurFields = ({
 										</div>
 									))
 								:	<p className="text-xs font-medium text-gray-400 italic">
-										Non renseigné
+										{t("notProvided")}
 									</p>
 								}
 							</div>
@@ -176,7 +179,7 @@ const RestaurateurFields = ({
 				<div className="flex items-center gap-3 px-2">
 					<Clock className="h-5 w-5 text-amber-600/50" />
 					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
-						Horaires d'Ouverture
+						{t("hours.openingTitle")}
 					</h3>
 				</div>
 
@@ -237,7 +240,7 @@ const RestaurateurFields = ({
 									}
 								</div>
 							:	<div className="px-3 py-2 bg-gray-100/50 rounded-xl text-[10px] font-black text-gray-400 text-center uppercase tracking-widest">
-									Fermé
+									{t("hours.closed")}
 								</div>
 							}
 						</div>

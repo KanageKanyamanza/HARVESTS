@@ -89,7 +89,8 @@ export const useVerificationStatus = (user) => {
       setVerificationStatus({
         email: { verified: user.isEmailVerified },
         phone: { verified: user.isPhoneVerified },
-        overall: { level: user.verificationLevel || 'Non vérifié' }
+        // Validation du compte par l'équipe Harvests (isApproved), sinon e-mail confirmé = en attente
+        overall: { level: user.isApproved ? 'approved' : user.isEmailVerified ? 'pending' : 'unverified' }
       });
     }
   }, [user]);

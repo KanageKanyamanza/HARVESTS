@@ -1,0 +1,201 @@
+{
+	"notProvided": "Not provided",
+	"notDefined": "Not set",
+	"page": {
+		"eyebrow": "My account",
+		"titleStart": "User",
+		"titleHighlight": "profile.",
+		"subtitle": "Manage your personal information and your brand image, and track your performance statistics.",
+		"edit": "Edit profile",
+		"generalInfo": "General information",
+		"status": "Status",
+		"shopTitle": "My shop & visual identity",
+		"cancel": "Cancel",
+		"save": "Save changes",
+		"saving": "Saving...",
+		"saveSuccess": "Profile updated successfully",
+		"saveError": "Error while saving the profile. Check the fields and try again."
+	},
+	"header": {
+		"phone": "Phone",
+		"location": "Location",
+		"reputation": "Reputation",
+		"reviewsCount_one": "({{count}} review)",
+		"reviewsCount_other": "({{count}} reviews)",
+		"memberSince": "Member since {{date}}"
+	},
+	"verification": {
+		"title": "Verification level",
+		"refresh": "Refresh statuses",
+		"email": "Email verification",
+		"emailVerified": "Verified",
+		"emailPending": "Action required",
+		"phone": "Mobile verification",
+		"phoneVerified": "Verified",
+		"phonePending": "SMS not confirmed",
+		"overall": "Account status",
+		"levels": {
+			"approved": "Account approved by Harvests",
+			"pending": "Pending approval",
+			"unverified": "Not verified"
+		}
+	},
+	"shop": {
+		"eyebrow": "Visual identity",
+		"title": "My storefront",
+		"banner": "Shop banner",
+		"bannerHint": "1200×400 px recommended",
+		"logo": "Brand logo",
+		"logoHint": "400×400 px recommended",
+		"preview": "Public preview of your storefront",
+		"logoAlt": "Shop logo",
+		"defaultName": "My Harvests shop",
+		"runBy": "Run by {{name}}",
+		"viewPublic": "View public shop"
+	},
+	"fields": {
+		"firstName": "First name",
+		"lastName": "Last name",
+		"companyName": "Company name",
+		"farmName": "Farm name",
+		"restaurantName": "Restaurant name",
+		"email": "Personal / business email",
+		"phone": "Mobile phone",
+		"address": "Home address",
+		"city": "City / town",
+		"region": "Region / state",
+		"country": "Country",
+		"select": "Select...",
+		"addressInfoStart": "Your delivery addresses are managed from",
+		"addressInfoLink": "Settings → Addresses",
+		"addressInfoEnd": ", where you can save several and choose your default one.",
+		"bio": "Biography & introduction",
+		"bioPlaceholder": "Share your story, your values and your passion...",
+		"bioEmpty": "No biography yet. Click “Edit profile” to add an introduction."
+	},
+	"units": {
+		"km": "km",
+		"distanceKm": "{{value}} km",
+		"hectares": "hectares",
+		"acres": "acres",
+		"m²": "m²",
+		"tons": "tons",
+		"kg": "kg",
+		"m³": "m³"
+	},
+	"hours": {
+		"closed": "Closed",
+		"openingTitle": "Opening hours"
+	},
+	"producer": {
+		"productionTitle": "Production details",
+		"farmingType": "Farming type",
+		"farmingTypes": {
+			"organic": "Organic",
+			"conventional": "Conventional",
+			"mixed": "Mixed"
+		},
+		"farmSize": "Farm size",
+		"storageCapacity": "Storage capacity",
+		"moq": "Minimum order",
+		"moqUnitPlaceholder": "Unit (kg)",
+		"cropsTitle": "Crops & products",
+		"add": "Add",
+		"cropName": "Crop name",
+		"cropCategory": "Category",
+		"cropCategories": {
+			"cereals": "Cereals",
+			"vegetables": "Vegetables",
+			"fruits": "Fruits",
+			"legumes": "Legumes",
+			"tubers": "Tubers"
+		},
+		"removeCrop": "Remove this crop",
+		"noCrops": "No crops listed",
+		"logisticsTitle": "Logistics options",
+		"ownDelivery": "Own delivery service",
+		"ownDeliveryYes": "Own delivery available",
+		"ownDeliveryNo": "No own delivery",
+		"deliveryRadius": "Delivery radius (km)",
+		"availabilityTitle": "Weekly availability"
+	},
+	"consumer": {
+		"dietaryTitle": "Dietary preferences",
+		"dietary": {
+			"organic": "Organic",
+			"vegetarian": "Vegetarian",
+			"vegan": "Vegan",
+			"gluten-free": "Gluten-free",
+			"halal": "Halal",
+			"local": "Local products"
+		},
+		"noDietary": "No preferences set",
+		"habitsTitle": "Shopping habits",
+		"deliveryTime": "Preferred delivery time",
+		"deliveryTimes": {
+			"morning": "Morning (8am-12pm)",
+			"afternoon": "Afternoon (12pm-6pm)",
+			"evening": "Evening (6pm-9pm)",
+			"weekend": "Weekend",
+			"flexible": "Flexible"
+		},
+		"maxDistance": "Max. preferred distance",
+		"budget": "Average budget per order"
+	},
+	"restaurateur": {
+		"establishmentTitle": "Establishment information",
+		"type": "Establishment type",
+		"capacity": "Seating capacity",
+		"seats": "seats",
+		"covers_one": "{{count}} seat",
+		"covers_other": "{{count}} seats",
+		"cuisines": "Culinary specialties"
+	},
+	"transformer": {
+		"activitiesTitle": "Processing activities",
+		"type": "Main activity type",
+		"types": {
+			"processing": "Processing",
+			"packaging": "Packaging",
+			"preservation": "Preservation",
+			"manufacturing": "Manufacturing",
+			"mixed": "Mixed"
+		},
+		"pricingModel": "Billing model",
+		"pricingModels": {
+			"per-unit": "Per unit",
+			"per-kg": "Per kg",
+			"per-batch": "Per batch",
+			"hourly": "Hourly"
+		},
+		"servicesTitle": "Service catalogue",
+		"services": {
+			"packaging": "Packaging",
+			"customProcessing": "Custom processing",
+			"privateLabeling": "Private labelling",
+			"qualityTesting": "Quality control",
+			"consultation": "Technical advice"
+		},
+		"noServices": "No services listed"
+	},
+	"transporter": {
+		"title": "Transport services",
+		"modes": "Transport modes offered",
+		"pricingModel": "Pricing model",
+		"pricingModels": {
+			"per-km": "Per kilometre",
+			"per-kg": "Per kilogram",
+			"flat-rate": "Flat rate",
+			"custom": "On quote"
+		},
+		"baseRate": "Base rate"
+	},
+	"exporter": {
+		"title": "International information",
+		"registration": "Business registration number (RCCM)",
+		"registrationPlaceholder": "e.g. RB/ABC/2023/B/1234",
+		"termsTitle": "Trading terms",
+		"incoterms": "Accepted Incoterms (logistics)",
+		"currencies": "Transaction currencies"
+	}
+}
