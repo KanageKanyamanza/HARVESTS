@@ -1,0 +1,198 @@
+{
+	"page": {
+		"eyebrow": "Configuration",
+		"titleStart": "Account",
+		"titleHighlight": "settings.",
+		"subtitle": "Customise your Harvests experience and manage your security and payment preferences."
+	},
+	"tabs": {
+		"financial": "Financial",
+		"notifications": "Alerts",
+		"security": "Security",
+		"addresses": "Addresses"
+	},
+	"sidebar": {
+		"eyebrow": "Your account",
+		"emailVerified": "Email verified",
+		"emailNotVerified": "Email not verified",
+		"phoneVerified": "Phone verified",
+		"phoneNotVerified": "Phone not verified"
+	},
+	"security": {
+		"title": "Account security",
+		"refresh": "Refresh",
+		"emailTitle": "Email verification",
+		"emailVerified": "Verified",
+		"emailResend": "Resend email",
+		"emailSending": "Sending...",
+		"emailResent": "Verification email sent to {{email}}",
+		"emailResendError": "Could not send the verification email. Please try again later.",
+		"emailText": "Essential to receive your invoices and critical alerts.",
+		"passwordTitle": "Password",
+		"passwordText": "Change your password regularly to keep your account secure.",
+		"edit": "Change",
+		"cancel": "Cancel",
+		"currentPassword": "Current password",
+		"newPassword": "New password (upper, lower, digit, 8+ chars)",
+		"confirmPassword": "Confirm new password",
+		"showPassword": "Show password",
+		"hidePassword": "Hide password",
+		"passwordTooShort": "The new password must be at least 8 characters long.",
+		"passwordMismatch": "The passwords do not match.",
+		"passwordError": "Error while updating the password.",
+		"passwordSuccess": "Password updated successfully.",
+		"passwordSaving": "Saving...",
+		"passwordSave": "Save new password"
+	},
+	"export": {
+		"title": "Download my data",
+		"text": "Export a copy of your personal data (profile, orders, products and reviews depending on your account type) in JSON format.",
+		"preparing": "Preparing...",
+		"error": "Error while exporting your data.",
+		"filePrefix": "harvests-my-data"
+	},
+	"deleteAccount": {
+		"title": "Delete my account",
+		"text": "Permanent action: your personal data will be anonymised and your account deactivated. Your existing orders are kept for legal reasons.",
+		"modalTitle": "Confirm deletion",
+		"modalText": "This action cannot be undone. Confirm your identity with your password or your account email to continue.",
+		"byPassword": "Password",
+		"byEmail": "Email",
+		"passwordPlaceholder": "Your password",
+		"emailPlaceholder": "Your email",
+		"emptyPassword": "Please enter your password.",
+		"emptyEmail": "Please enter your email.",
+		"error": "Error while deleting the account.",
+		"cancel": "Cancel",
+		"close": "Close",
+		"deleting": "Deleting...",
+		"confirm": "Delete permanently"
+	},
+	"addresses": {
+		"title": "Delivery addresses",
+		"add": "Add",
+		"empty": "No saved addresses",
+		"emptyText": "Add an address to make your future purchases easier.",
+		"loadError": "Could not load your addresses.",
+		"default": "Default",
+		"setDefault": "Set as default",
+		"edit": "Edit",
+		"delete": "Delete",
+		"deleteConfirm": "Delete the address “{{label}}”?",
+		"formTitleAdd": "New address",
+		"formTitleEdit": "Edit address",
+		"label": "Address name",
+		"labelPlaceholder": "Home, office...",
+		"street": "Address",
+		"streetPlaceholder": "Street, neighbourhood, landmark",
+		"city": "City",
+		"region": "Region",
+		"country": "Country",
+		"postalCode": "Postal code",
+		"instructions": "Delivery instructions",
+		"instructionsPlaceholder": "Floor, gate, person to call...",
+		"isDefault": "Use as default address",
+		"required": "Name, address, city and region are required.",
+		"save": "Save",
+		"saving": "Saving...",
+		"cancel": "Cancel",
+		"saved": "Address saved",
+		"deleted": "Address deleted",
+		"error": "Could not save the address."
+	},
+	"financial": {
+		"title": "Financial information",
+		"edit": "Edit",
+		"cancel": "Cancel",
+		"save": "Save",
+		"saved": "Financial information updated successfully",
+		"error": "Error while updating",
+		"bankSection": "Main bank account",
+		"accountName": "Account holder",
+		"accountNamePlaceholder": "Full name",
+		"accountNumber": "Account number / IBAN",
+		"accountNumberShort": "IBAN / number",
+		"accountNumberPlaceholder": "Account number",
+		"bankName": "Bank",
+		"bankNameLabel": "Bank institution",
+		"bankNamePlaceholder": "e.g. Ecobank, Société Générale...",
+		"bankCode": "Branch / bank code",
+		"bankCodePlaceholder": "Bank code",
+		"swift": "SWIFT / BIC code (optional)",
+		"swiftShort": "SWIFT code",
+		"swiftPlaceholder": "SWIFT code",
+		"notProvided": "Not provided",
+		"methodsSection": "Accepted payment methods",
+		"activeMethods": "Active payment methods",
+		"noMethods": "No method selected",
+		"methods": {
+			"cash": "Cash payment (on delivery)",
+			"paypal": "PayPal Pro account"
+		},
+		"verified": "Bank account verified",
+		"pendingVerification": "Account pending verification",
+		"empty": "No bank account",
+		"emptyText": "Set up your transfer details to receive your payments directly into your account."
+	},
+	"notifications": {
+		"title": "Notification preferences",
+		"configure": "Configure",
+		"cancel": "Cancel",
+		"save": "Save",
+		"saved": "Notification preferences updated",
+		"error": "Update failed",
+		"on": "On",
+		"off": "Muted",
+		"options": {
+			"email": {
+				"label": "Email",
+				"description": "Invoices, monthly reports and account alerts."
+			},
+			"sms": {
+				"label": "SMS alerts",
+				"description": "Urgent notifications for deliveries in progress."
+			},
+			"push": {
+				"label": "Real-time notifications",
+				"description": "Instant alerts on your mobile devices and computers."
+			},
+			"orderUpdates": {
+				"label": "Order tracking",
+				"description": "Every step of your orders, from farm to table."
+			},
+			"priceAlerts": {
+				"label": "Price alerts",
+				"description": "Price changes on the products you follow."
+			},
+			"marketing": {
+				"label": "Offers & newsletter",
+				"description": "New producers, promo codes and Harvests news."
+			}
+		},
+		"privacyTitle": "Personal data protection",
+		"privacyText": "Some notifications related to your account security or your transactions cannot be turned off.",
+		"pushTitle": "Mobile push notifications"
+	},
+	"push": {
+		"unsupportedTitle": "Push notifications",
+		"unsupportedText": "Your browser does not support push notifications. Try Chrome, Edge or Firefox.",
+		"deniedTitle": "Notifications blocked",
+		"deniedTextStart": "Notifications have been blocked in your browser. To turn them back on, click the padlock",
+		"deniedTextEnd": "in the address bar → Notifications → Allow.",
+		"howTo": "How to allow them? →",
+		"title": "Mobile push notifications",
+		"activeText": "On: you will receive alerts even when the app is closed.",
+		"inactiveText": "Off: turn them on to receive real-time alerts on this device.",
+		"enable": "Turn on push notifications",
+		"disable": "Turn off push notifications",
+		"activeBadge": "Push on for this device",
+		"defaultBadge": "The browser will ask for your permission when you turn them on",
+		"offBadge": "Push off",
+		"enabled": "Push notifications turned on!",
+		"denied": "Permission denied. Allow notifications in your browser settings.",
+		"cancelled": "Activation cancelled or not supported.",
+		"enableError": "Error while turning them on. Please try again.",
+		"disabled": "Push notifications turned off.",
+		"disableError": "Error while turning them off. Please try again."
+	}
+}

@@ -19,6 +19,7 @@ import frAuth from "../locales/fr/auth.json";
 import frBlog from "../locales/fr/blog.json";
 import frSeo from "../locales/fr/seo.json";
 import frProfile from "../locales/fr/profile.json";
+import frSettings from "../locales/fr/settings.json";
 
 import enCommon from "../locales/en/common.json";
 import enNavigation from "../locales/en/navigation.json";
@@ -32,6 +33,7 @@ import enAuth from "../locales/en/auth.json";
 import enBlog from "../locales/en/blog.json";
 import enSeo from "../locales/en/seo.json";
 import enProfile from "../locales/en/profile.json";
+import enSettings from "../locales/en/settings.json";
 
 export const NAMESPACES = [
 	"common",
@@ -46,6 +48,7 @@ export const NAMESPACES = [
 	"blog",
 	"seo",
 	"profile",
+	"settings",
 ];
 
 // Configuration des ressources de traduction
@@ -63,6 +66,7 @@ const resources = {
 		blog: frBlog,
 		seo: frSeo,
 		profile: frProfile,
+		settings: frSettings,
 	},
 	en: {
 		common: enCommon,
@@ -77,6 +81,7 @@ const resources = {
 		blog: enBlog,
 		seo: enSeo,
 		profile: enProfile,
+		settings: enSettings,
 	},
 };
 

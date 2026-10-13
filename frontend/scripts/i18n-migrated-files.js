@@ -195,4 +195,8 @@ export const MIGRATED_FILES = [
 	"components/profile/specific/TransporterFields.jsx",
 	"components/profile/specific/ExporterFields.jsx",
 	"hooks/useProfileData.js",
+	"pages/dashboard/common/SettingsPage.jsx",
+	"components/common/FinancialInfo.jsx",
+	"components/common/NotificationSettings.jsx",
+	"components/common/PushNotificationToggle.jsx",
 ];

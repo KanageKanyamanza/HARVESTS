@@ -1,0 +1,198 @@
+{
+	"page": {
+		"eyebrow": "Configuration",
+		"titleStart": "Paramètres du",
+		"titleHighlight": "compte.",
+		"subtitle": "Personnalisez votre expérience Harvests, gérez votre sécurité et vos préférences de paiement."
+	},
+	"tabs": {
+		"financial": "Financier",
+		"notifications": "Alertes",
+		"security": "Sécurité",
+		"addresses": "Adresses"
+	},
+	"sidebar": {
+		"eyebrow": "Votre compte",
+		"emailVerified": "E-mail vérifié",
+		"emailNotVerified": "E-mail non vérifié",
+		"phoneVerified": "Téléphone vérifié",
+		"phoneNotVerified": "Téléphone non vérifié"
+	},
+	"security": {
+		"title": "Sécurité du compte",
+		"refresh": "Actualiser",
+		"emailTitle": "Validation e-mail",
+		"emailVerified": "Validé",
+		"emailResend": "Renvoyer l'e-mail",
+		"emailSending": "Envoi...",
+		"emailResent": "E-mail de vérification envoyé à {{email}}",
+		"emailResendError": "Impossible d'envoyer l'e-mail de vérification. Réessayez plus tard.",
+		"emailText": "Essentiel pour recevoir vos factures et alertes critiques.",
+		"passwordTitle": "Mot de passe",
+		"passwordText": "Modifiez votre mot de passe régulièrement pour sécuriser votre compte.",
+		"edit": "Modifier",
+		"cancel": "Annuler",
+		"currentPassword": "Mot de passe actuel",
+		"newPassword": "Nouveau mot de passe (maj., min., chiffre, 8+ car.)",
+		"confirmPassword": "Confirmer le nouveau mot de passe",
+		"showPassword": "Afficher le mot de passe",
+		"hidePassword": "Masquer le mot de passe",
+		"passwordTooShort": "Le nouveau mot de passe doit contenir au moins 8 caractères.",
+		"passwordMismatch": "Les mots de passe ne correspondent pas.",
+		"passwordError": "Erreur lors de la mise à jour du mot de passe.",
+		"passwordSuccess": "Mot de passe mis à jour avec succès.",
+		"passwordSaving": "Enregistrement...",
+		"passwordSave": "Enregistrer le nouveau mot de passe"
+	},
+	"export": {
+		"title": "Télécharger mes données",
+		"text": "Exportez une copie de vos données personnelles (profil, commandes, produits et avis selon votre type de compte) au format JSON.",
+		"preparing": "Préparation...",
+		"error": "Erreur lors de l'export de vos données.",
+		"filePrefix": "harvests-mes-donnees"
+	},
+	"deleteAccount": {
+		"title": "Supprimer mon compte",
+		"text": "Action définitive : vos données personnelles seront anonymisées et votre compte désactivé. Vos commandes existantes sont conservées pour des raisons légales.",
+		"modalTitle": "Confirmer la suppression",
+		"modalText": "Cette action est irréversible. Confirmez votre identité avec votre mot de passe ou l'e-mail de votre compte pour continuer.",
+		"byPassword": "Mot de passe",
+		"byEmail": "E-mail",
+		"passwordPlaceholder": "Votre mot de passe",
+		"emailPlaceholder": "Votre e-mail",
+		"emptyPassword": "Veuillez saisir votre mot de passe.",
+		"emptyEmail": "Veuillez saisir votre e-mail.",
+		"error": "Erreur lors de la suppression du compte.",
+		"cancel": "Annuler",
+		"close": "Fermer",
+		"deleting": "Suppression...",
+		"confirm": "Supprimer définitivement"
+	},
+	"addresses": {
+		"title": "Adresses de livraison",
+		"add": "Ajouter",
+		"empty": "Aucune adresse enregistrée",
+		"emptyText": "Ajoutez une adresse pour simplifier vos futurs achats.",
+		"loadError": "Impossible de charger vos adresses.",
+		"default": "Par défaut",
+		"setDefault": "Définir par défaut",
+		"edit": "Modifier",
+		"delete": "Supprimer",
+		"deleteConfirm": "Supprimer l'adresse « {{label}} » ?",
+		"formTitleAdd": "Nouvelle adresse",
+		"formTitleEdit": "Modifier l'adresse",
+		"label": "Nom de l'adresse",
+		"labelPlaceholder": "Maison, bureau...",
+		"street": "Adresse",
+		"streetPlaceholder": "Rue, quartier, repère",
+		"city": "Ville",
+		"region": "Région",
+		"country": "Pays",
+		"postalCode": "Code postal",
+		"instructions": "Instructions de livraison",
+		"instructionsPlaceholder": "Étage, portail, personne à appeler...",
+		"isDefault": "Utiliser comme adresse par défaut",
+		"required": "Le nom, l'adresse, la ville et la région sont obligatoires.",
+		"save": "Enregistrer",
+		"saving": "Enregistrement...",
+		"cancel": "Annuler",
+		"saved": "Adresse enregistrée",
+		"deleted": "Adresse supprimée",
+		"error": "Impossible d'enregistrer l'adresse."
+	},
+	"financial": {
+		"title": "Informations financières",
+		"edit": "Modifier",
+		"cancel": "Annuler",
+		"save": "Enregistrer",
+		"saved": "Informations financières mises à jour avec succès",
+		"error": "Erreur lors de la mise à jour",
+		"bankSection": "Compte bancaire principal",
+		"accountName": "Titulaire du compte",
+		"accountNamePlaceholder": "Nom complet",
+		"accountNumber": "Numéro de compte / IBAN",
+		"accountNumberShort": "IBAN / numéro",
+		"accountNumberPlaceholder": "Numéro de compte",
+		"bankName": "Banque",
+		"bankNameLabel": "Institution bancaire",
+		"bankNamePlaceholder": "Ex. : Ecobank, Société Générale...",
+		"bankCode": "Code guichet / banque",
+		"bankCodePlaceholder": "Code banque",
+		"swift": "Code SWIFT / BIC (facultatif)",
+		"swiftShort": "Code SWIFT",
+		"swiftPlaceholder": "Code SWIFT",
+		"notProvided": "Non renseigné",
+		"methodsSection": "Modalités de paiement acceptées",
+		"activeMethods": "Méthodes de paiement actives",
+		"noMethods": "Aucune méthode sélectionnée",
+		"methods": {
+			"cash": "Paiement en espèces (à la livraison)",
+			"paypal": "Compte PayPal Pro"
+		},
+		"verified": "Compte bancaire vérifié",
+		"pendingVerification": "Compte en attente de vérification",
+		"empty": "Aucun compte bancaire",
+		"emptyText": "Configurez vos informations de virement pour recevoir vos paiements directement sur votre compte."
+	},
+	"notifications": {
+		"title": "Préférences de notification",
+		"configure": "Configurer",
+		"cancel": "Annuler",
+		"save": "Sauvegarder",
+		"saved": "Préférences de notification mises à jour",
+		"error": "Échec de la mise à jour",
+		"on": "Actif",
+		"off": "Muet",
+		"options": {
+			"email": {
+				"label": "E-mail",
+				"description": "Factures, rapports mensuels et alertes de compte."
+			},
+			"sms": {
+				"label": "Alertes par SMS",
+				"description": "Notifications urgentes pour les livraisons en cours."
+			},
+			"push": {
+				"label": "Notifications en temps réel",
+				"description": "Alertes instantanées sur vos appareils mobiles et ordinateurs."
+			},
+			"orderUpdates": {
+				"label": "Suivi des commandes",
+				"description": "Chaque étape de vos commandes, du champ à l'assiette."
+			},
+			"priceAlerts": {
+				"label": "Alertes de prix",
+				"description": "Variations de prix des produits que vous suivez."
+			},
+			"marketing": {
+				"label": "Offres & newsletter",
+				"description": "Nouveaux producteurs, codes promo et actualités Harvests."
+			}
+		},
+		"privacyTitle": "Protection des données personnelles",
+		"privacyText": "Certaines notifications liées à la sécurité de votre compte ou à vos transactions ne peuvent pas être désactivées.",
+		"pushTitle": "Notifications push mobile"
+	},
+	"push": {
+		"unsupportedTitle": "Notifications push",
+		"unsupportedText": "Votre navigateur ne prend pas en charge les notifications push. Essayez Chrome, Edge ou Firefox.",
+		"deniedTitle": "Notifications bloquées",
+		"deniedTextStart": "Les notifications ont été bloquées dans votre navigateur. Pour les réactiver, cliquez sur le cadenas",
+		"deniedTextEnd": "dans la barre d'adresse → Notifications → Autoriser.",
+		"howTo": "Comment autoriser ? →",
+		"title": "Notifications push mobile",
+		"activeText": "Actives : vous recevrez des alertes même lorsque l'application est fermée.",
+		"inactiveText": "Désactivées : activez-les pour recevoir les alertes en temps réel sur cet appareil.",
+		"enable": "Activer les notifications push",
+		"disable": "Désactiver les notifications push",
+		"activeBadge": "Push actives sur cet appareil",
+		"defaultBadge": "Le navigateur demandera votre permission lors de l'activation",
+		"offBadge": "Push désactivées",
+		"enabled": "Notifications push activées avec succès !",
+		"denied": "Permission refusée. Autorisez les notifications dans les paramètres du navigateur.",
+		"cancelled": "Activation annulée ou non prise en charge.",
+		"enableError": "Erreur lors de l'activation. Réessayez.",
+		"disabled": "Notifications push désactivées.",
+		"disableError": "Erreur lors de la désactivation. Réessayez."
+	}
+}

@@ -14,9 +14,11 @@ import {
 } from "lucide-react";
 import { commonService } from "../../services";
 import { useNotifications } from "../../hooks/useNotifications";
+import { useTranslation } from "react-i18next";
 import PushNotificationToggle from "./PushNotificationToggle";
 
 const NotificationSettings = ({ onUpdate, loading = false, data = null }) => {
+	const { t } = useTranslation("settings");
 	const { showSuccess, showError } = useNotifications();
 	const [isEditing, setIsEditing] = useState(false);
 	const [saving, setSaving] = useState(false);
@@ -55,12 +57,12 @@ const NotificationSettings = ({ onUpdate, loading = false, data = null }) => {
 		try {
 			setSaving(true);
 			await commonService.updateNotificationPreferences(notifications);
-			showSuccess("Préférences de notification mises à jour");
+			showSuccess(t("notifications.saved"));
 			setIsEditing(false);
 			onUpdate && onUpdate();
 		} catch (error) {
 			console.error("Erreur lors de la mise à jour:", error);
-			showError("Échec de la mise à jour");
+			showError(t("notifications.error"));
 		} finally {
 			setSaving(false);
 		}
@@ -78,48 +80,48 @@ const NotificationSettings = ({ onUpdate, loading = false, data = null }) => {
 	const notificationOptions = [
 		{
 			key: "email",
-			label: "Canal Email Principal",
-			description: "Factures, rapports mensuels et alertes de compte.",
+			label: t("notifications.options.email.label"),
+			description: t("notifications.options.email.description"),
 			icon: <Mail className="h-5 w-5" />,
 			color: "text-blue-500",
 			bgColor: "bg-blue-50/50",
 		},
 		{
 			key: "sms",
-			label: "Alertes par SMS",
-			description: "Notifications urgentes pour les livraisons en cours.",
+			label: t("notifications.options.sms.label"),
+			description: t("notifications.options.sms.description"),
 			icon: <Smartphone className="h-5 w-5" />,
 			color: "text-emerald-500",
 			bgColor: "bg-emerald-50/50",
 		},
 		{
 			key: "push",
-			label: "Notifications Temps-Réel",
-			description: "Popup instantanées sur vos appareils mobiles et bureau.",
+			label: t("notifications.options.push.label"),
+			description: t("notifications.options.push.description"),
 			icon: <Monitor className="h-5 w-5" />,
 			color: "text-indigo-500",
 			bgColor: "bg-indigo-50/50",
 		},
 		{
 			key: "orderUpdates",
-			label: "Suivi Logistique",
-			description: "Chaque étape de vos commandes, du champ à l'assiette.",
+			label: t("notifications.options.orderUpdates.label"),
+			description: t("notifications.options.orderUpdates.description"),
 			icon: <Zap className="h-5 w-5" />,
 			color: "text-amber-500",
 			bgColor: "bg-amber-50/50",
 		},
 		{
 			key: "priceAlerts",
-			label: "Intelligence de Marché",
-			description: "Alertes sur les variations de prix des produits suivis.",
+			label: t("notifications.options.priceAlerts.label"),
+			description: t("notifications.options.priceAlerts.description"),
 			icon: <Bell className="h-5 w-5" />,
 			color: "text-rose-500",
 			bgColor: "bg-rose-50/50",
 		},
 		{
 			key: "marketing",
-			label: "Offres & Newsletter",
-			description: "Nouveaux producteurs, codes promo et actualités Harvests.",
+			label: t("notifications.options.marketing.label"),
+			description: t("notifications.options.marketing.description"),
 			icon: <Bell className="h-5 w-5" />,
 			color: "text-purple-500",
 			bgColor: "bg-purple-50/50",
@@ -145,7 +147,7 @@ const NotificationSettings = ({ onUpdate, loading = false, data = null }) => {
 				<div className="flex items-center gap-3 px-2">
 					<Bell className="h-5 w-5 text-amber-500/50" />
 					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
-						Préférences de Notification
+						{t("notifications.title")}
 					</h3>
 				</div>
 				{!isEditing ?
@@ -154,14 +156,14 @@ const NotificationSettings = ({ onUpdate, loading = false, data = null }) => {
 						className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-amber-500 transition-all active:scale-95"
 					>
 						<Bell className="h-4 w-4" />
-						Configurer
+						{t("notifications.configure")}
 					</button>
 				:	<div className="flex items-center gap-3">
 						<button
 							onClick={handleCancel}
 							className="px-6 py-3 text-gray-400 font-black text-[10px] uppercase tracking-widest hover:text-gray-900"
 						>
-							Annuler
+							{t("notifications.cancel")}
 						</button>
 						<button
 							onClick={handleSave}
@@ -171,7 +173,7 @@ const NotificationSettings = ({ onUpdate, loading = false, data = null }) => {
 							{saving ?
 								<div className="h-4 w-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
 							:	<Save className="h-4 w-4" />}
-							{saving ? "..." : "Sauvegarder"}
+							{saving ? "..." : t("notifications.save")}
 						</button>
 					</div>
 				}
@@ -199,6 +201,9 @@ const NotificationSettings = ({ onUpdate, loading = false, data = null }) => {
 								{isEditing ?
 									<button
 										onClick={() => handleToggle(option.key)}
+										role="switch"
+										aria-checked={Boolean(isEnabled)}
+										aria-label={option.label}
 										className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all ring-4 ${
 											isEnabled ?
 												"bg-amber-500 ring-amber-100"
@@ -207,7 +212,7 @@ const NotificationSettings = ({ onUpdate, loading = false, data = null }) => {
 									>
 										<span
 											className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-lg transition-transform ${
-												isEnabled ? "translate-x-6.5" : "translate-x-1.5"
+												isEnabled ? "translate-x-6" : "translate-x-1.5"
 											}`}
 										/>
 									</button>
@@ -218,7 +223,7 @@ const NotificationSettings = ({ onUpdate, loading = false, data = null }) => {
 											:	"bg-gray-200 text-gray-400"
 										}`}
 									>
-										{isEnabled ? "Actif" : "Muet"}
+										{isEnabled ? t("notifications.on") : t("notifications.off")}
 									</div>
 								}
 							</div>
@@ -253,13 +258,10 @@ const NotificationSettings = ({ onUpdate, loading = false, data = null }) => {
 						</div>
 						<div>
 							<h4 className="text-sm font-[1000] uppercase tracking-widest mb-1">
-								Protection des Données Personnelles
+								{t("notifications.privacyTitle")}
 							</h4>
 							<p className="text-xs text-gray-400 font-medium max-w-2xl leading-relaxed">
-								Harvests applique une politique de confidentialité stricte.
-								Certaines notifications critiques liées à la sécurité de votre
-								compte ou à vos transactions financières ne peuvent pas être
-								désactivées pour votre protection.
+								{t("notifications.privacyText")}
 							</p>
 						</div>
 					</div>
@@ -271,7 +273,7 @@ const NotificationSettings = ({ onUpdate, loading = false, data = null }) => {
 				<div className="flex items-center gap-3 px-2 mb-6">
 					<Smartphone className="h-5 w-5 text-violet-500/50" />
 					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
-						Notifications Push Mobile
+						{t("notifications.pushTitle")}
 					</h3>
 				</div>
 				<PushNotificationToggle isAdmin={false} />

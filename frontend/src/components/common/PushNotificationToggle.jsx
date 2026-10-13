@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { BellRing, BellOff, Smartphone, Loader2, ShieldAlert, CheckCircle2, XCircle, Lock } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import pushService from "../../services/pushService";
 
 /**
@@ -11,6 +12,7 @@ import pushService from "../../services/pushService";
  *  - className (string) : classes CSS additionnelles sur le container
  */
 const PushNotificationToggle = ({ isAdmin = false, className = "" }) => {
+	const { t } = useTranslation("settings");
 	// États possibles : "loading" | "unsupported" | "denied" | "granted" | "default"
 	const [permissionStatus, setPermissionStatus] = useState("loading");
 	// true si une subscription active existe en BDD
@@ -61,16 +63,16 @@ const PushNotificationToggle = ({ isAdmin = false, className = "" }) => {
 			setPermissionStatus(permission);
 			if (subscription) {
 				setIsSubscribed(true);
-				showFeedback("success", "Notifications push activées avec succès !");
+				showFeedback("success", t("push.enabled"));
 			} else if (permission === "denied") {
 				setPermissionStatus("denied");
-				showFeedback("error", "Permission refusée. Autorisez les notifications dans les paramètres du navigateur.");
+				showFeedback("error", t("push.denied"));
 			} else {
-				showFeedback("error", "Activation annulée ou non supportée.");
+				showFeedback("error", t("push.cancelled"));
 			}
 		} catch (err) {
 			console.error("[PushToggle] Erreur activation:", err);
-			showFeedback("error", "Erreur lors de l'activation. Réessayez.");
+			showFeedback("error", t("push.enableError"));
 		} finally {
 			setIsProcessing(false);
 		}
@@ -89,10 +91,10 @@ const PushNotificationToggle = ({ isAdmin = false, className = "" }) => {
 				await pushService.unsubscribeLocally(subscription);
 			}
 			setIsSubscribed(false);
-			showFeedback("success", "Notifications push désactivées.");
+			showFeedback("success", t("push.disabled"));
 		} catch (err) {
 			console.error("[PushToggle] Erreur désactivation:", err);
-			showFeedback("error", "Erreur lors de la désactivation. Réessayez.");
+			showFeedback("error", t("push.disableError"));
 		} finally {
 			setIsProcessing(false);
 		}
@@ -120,10 +122,10 @@ const PushNotificationToggle = ({ isAdmin = false, className = "" }) => {
 				</div>
 				<div>
 					<p className="text-xs font-black text-gray-700 uppercase tracking-widest mb-1">
-						Notifications Push
+						{t("push.unsupportedTitle")}
 					</p>
 					<p className="text-[11px] text-gray-500 font-medium leading-relaxed">
-						Votre navigateur ne supporte pas les notifications push. Essayez Chrome, Edge ou Firefox.
+						{t("push.unsupportedText")}
 					</p>
 				</div>
 			</div>
@@ -138,11 +140,10 @@ const PushNotificationToggle = ({ isAdmin = false, className = "" }) => {
 				</div>
 				<div>
 					<p className="text-xs font-black text-rose-700 uppercase tracking-widest mb-1">
-						Notifications Bloquées
+						{t("push.deniedTitle")}
 					</p>
 					<p className="text-[11px] text-rose-600 font-medium leading-relaxed mb-3">
-						Les notifications ont été bloquées dans votre navigateur. Pour les réactiver, cliquez sur le
-						cadenas <Lock className="inline w-4 h-4 text-gray-700" /> dans la barre d'adresse → Notifications → Autoriser.
+						{t("push.deniedTextStart")} <Lock className="inline w-4 h-4 text-gray-700" /> {t("push.deniedTextEnd")}
 					</p>
 					<a
 						href="https://support.google.com/chrome/answer/3220216"
@@ -150,7 +151,7 @@ const PushNotificationToggle = ({ isAdmin = false, className = "" }) => {
 						rel="noopener noreferrer"
 						className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-rose-600 hover:text-rose-800 transition-colors"
 					>
-						Comment autoriser ? →
+						{t("push.howTo")}
 					</a>
 				</div>
 			</div>
@@ -188,12 +189,12 @@ const PushNotificationToggle = ({ isAdmin = false, className = "" }) => {
 					</div>
 					<div>
 						<p className="text-xs font-black text-gray-900 uppercase tracking-widest mb-0.5">
-							Notifications Push Mobile
+							{t("push.title")}
 						</p>
 						<p className="text-[11px] text-gray-500 font-medium leading-snug max-w-xs">
 							{isActive
-								? "Actives — vous recevrez des alertes même lorsque l'app est fermée."
-								: "Désactivées — activez pour recevoir les alertes en temps réel sur cet appareil."}
+								? t("push.activeText")
+								: t("push.inactiveText")}
 						</p>
 					</div>
 				</div>
@@ -202,7 +203,7 @@ const PushNotificationToggle = ({ isAdmin = false, className = "" }) => {
 				<button
 					onClick={isActive ? handleDisable : handleEnable}
 					disabled={isProcessing}
-					aria-label={isActive ? "Désactiver les notifications push" : "Activer les notifications push"}
+					aria-label={isActive ? t("push.disable") : t("push.enable")}
 					className={`relative inline-flex h-8 w-14 items-center rounded-full transition-all duration-300 ring-4 shrink-0 disabled:opacity-60 disabled:cursor-not-allowed ${
 						isActive
 							? "bg-violet-500 ring-violet-100"
@@ -226,17 +227,17 @@ const PushNotificationToggle = ({ isAdmin = false, className = "" }) => {
 				{isActive ? (
 					<div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-700">
 						<CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-						Push actives sur cet appareil
+						{t("push.activeBadge")}
 					</div>
 				) : permissionStatus === "default" ? (
 					<div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400">
 						<BellRing className="h-3.5 w-3.5" />
-						Le navigateur demandera votre permission lors de l'activation
+						{t("push.defaultBadge")}
 					</div>
 				) : (
 					<div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400">
 						<XCircle className="h-3.5 w-3.5" />
-						Push désactivées
+						{t("push.offBadge")}
 					</div>
 				)}
 			</div>

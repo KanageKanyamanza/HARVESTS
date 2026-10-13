@@ -13,7 +13,9 @@ import {
 	ChevronDown,
 	Save,
 	Wallet,
+	Globe,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { commonService } from "../../services";
 import { useNotifications } from "../../hooks/useNotifications";
 
@@ -23,6 +25,7 @@ const FinancialInfo = ({
 	onUpdate,
 	loading = false,
 }) => {
+	const { t } = useTranslation("settings");
 	const { showSuccess, showError } = useNotifications();
 	const [isEditing, setIsEditing] = useState(false);
 	const [saving, setSaving] = useState(false);
@@ -63,12 +66,12 @@ const FinancialInfo = ({
 				});
 			}
 			await commonService.updatePaymentMethods(formData.paymentMethods);
-			showSuccess("Informations financières mises à jour avec succès");
+			showSuccess(t("financial.saved"));
 			setIsEditing(false);
 			onUpdate && onUpdate();
 		} catch (error) {
 			console.error("Erreur lors de la mise à jour:", error);
-			showError("Erreur lors de la mise à jour");
+			showError(t("financial.error"));
 		} finally {
 			setSaving(false);
 		}
@@ -89,12 +92,12 @@ const FinancialInfo = ({
 	const paymentMethodOptions = [
 		{
 			value: "cash",
-			label: "Paiement Espèces (Livraison)",
+			label: t("financial.methods.cash"),
 			icon: <Wallet className="h-4 w-4" />,
 		},
 		{
 			value: "paypal",
-			label: "Compte PayPal Pro",
+			label: t("financial.methods.paypal"),
 			icon: <CreditCard className="h-4 w-4" />,
 		},
 	];
@@ -135,7 +138,7 @@ const FinancialInfo = ({
 				<div className="flex items-center gap-3 px-2">
 					<CreditCard className="h-5 w-5 text-blue-600/50" />
 					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
-						Informations Financières
+						{t("financial.title")}
 					</h3>
 				</div>
 				{!isEditing ?
@@ -144,14 +147,14 @@ const FinancialInfo = ({
 						className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-blue-600 transition-all active:scale-95"
 					>
 						<Edit3 className="h-4 w-4" />
-						Modifier
+						{t("financial.edit")}
 					</button>
 				:	<div className="flex items-center gap-3">
 						<button
 							onClick={handleCancel}
 							className="px-6 py-3 text-gray-400 font-black text-[10px] uppercase tracking-widest hover:text-gray-900"
 						>
-							Annuler
+							{t("financial.cancel")}
 						</button>
 						<button
 							onClick={handleSave}
@@ -161,7 +164,7 @@ const FinancialInfo = ({
 							{saving ?
 								<div className="h-4 w-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
 							:	<Save className="h-4 w-4" />}
-							{saving ? "..." : "Enregistrer"}
+							{saving ? "..." : t("financial.save")}
 						</button>
 					</div>
 				}
@@ -174,40 +177,40 @@ const FinancialInfo = ({
 						<div className="flex items-center gap-2 px-2">
 							<Building2 className="h-4 w-4 text-emerald-500" />
 							<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-								Compte Bancaire Principal
+								{t("financial.bankSection")}
 							</span>
 						</div>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 							{renderInputField(
-								"Titulaire du compte",
+								t("financial.accountName"),
 								"accountName",
 								<User className="h-4 w-4" />,
-								"Nom complet",
+								t("financial.accountNamePlaceholder"),
 							)}
 							{renderInputField(
-								"Numéro de compte / IBAN",
+								t("financial.accountNumber"),
 								"accountNumber",
 								<Hash className="h-4 w-4" />,
-								"Numéro de compte",
+								t("financial.accountNumberPlaceholder"),
 							)}
 							{renderInputField(
-								"Institution bancaire",
+								t("financial.bankNameLabel"),
 								"bankName",
 								<Building2 className="h-4 w-4" />,
-								"Ex: Ecobank, Société Générale...",
+								t("financial.bankNamePlaceholder"),
 							)}
 							{renderInputField(
-								"Code guichet / Banque",
+								t("financial.bankCode"),
 								"bankCode",
 								<Info className="h-4 w-4" />,
-								"Code banque",
+								t("financial.bankCodePlaceholder"),
 							)}
 							<div className="md:col-span-2">
 								{renderInputField(
-									"Code SWIFT / BIC (Optionnel)",
+									t("financial.swift"),
 									"swiftCode",
 									<Globe className="h-4 w-4" />,
-									"Code SWIFT",
+									t("financial.swiftPlaceholder"),
 								)}
 							</div>
 						</div>
@@ -218,7 +221,7 @@ const FinancialInfo = ({
 						<div className="flex items-center gap-2 px-2">
 							<CreditCard className="h-4 w-4 text-amber-500" />
 							<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-								Modalités de Paiement Accessibles
+								{t("financial.methodsSection")}
 							</span>
 						</div>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -256,8 +259,8 @@ const FinancialInfo = ({
 								<ShieldCheck className="h-4 w-4" />
 								<span className="text-[10px] font-black uppercase tracking-widest">
 									{bankAccount.isVerified ?
-										"Compte Bancaire Vérifié"
-									:	"Compte en attente de vérification"}
+										t("financial.verified")
+									:	t("financial.pendingVerification")}
 								</span>
 							</div>
 
@@ -268,7 +271,7 @@ const FinancialInfo = ({
 								<div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
 									<div className="space-y-1">
 										<p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-											Titulaire du compte
+											{t("financial.accountName")}
 										</p>
 										<p className="text-lg font-[1000] text-gray-900 tracking-tight">
 											{bankAccount.accountName}
@@ -276,7 +279,7 @@ const FinancialInfo = ({
 									</div>
 									<div className="space-y-1">
 										<p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-											IBAN / Numéro
+											{t("financial.accountNumberShort")}
 										</p>
 										<p className="text-lg font-[1000] text-gray-900 tracking-tight">
 											{bankAccount.accountNumber}
@@ -284,7 +287,7 @@ const FinancialInfo = ({
 									</div>
 									<div className="space-y-1">
 										<p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-											Banque
+											{t("financial.bankName")}
 										</p>
 										<p className="text-sm font-black text-gray-700 tracking-widest uppercase">
 											{bankAccount.bankName}
@@ -292,10 +295,10 @@ const FinancialInfo = ({
 									</div>
 									<div className="space-y-1">
 										<p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-											Code SWIFT
+											{t("financial.swiftShort")}
 										</p>
 										<p className="text-sm font-black text-gray-700 tracking-widest uppercase">
-											{bankAccount.swiftCode || "N/A"}
+											{bankAccount.swiftCode || t("financial.notProvided")}
 										</p>
 									</div>
 								</div>
@@ -306,18 +309,17 @@ const FinancialInfo = ({
 								<CreditCard className="h-10 w-10" />
 							</div>
 							<p className="text-xs font-[1000] text-gray-900 uppercase tracking-widest mb-2">
-								Aucun compte bancaire
+								{t("financial.empty")}
 							</p>
 							<p className="text-xs text-gray-400 max-w-xs mx-auto font-medium">
-								Configurez vos informations de virement pour recevoir vos
-								paiements directement sur votre compte.
+								{t("financial.emptyText")}
 							</p>
 						</div>
 					}
 
 					<div className="space-y-6 pt-10 border-t border-gray-100">
 						<h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-							Méthodes de paiement actives
+							{t("financial.activeMethods")}
 						</h4>
 						<div className="flex flex-wrap gap-4">
 							{paymentMethods?.map((method) => {
@@ -340,7 +342,7 @@ const FinancialInfo = ({
 							})}
 							{(!paymentMethods || paymentMethods.length === 0) && (
 								<p className="text-xs font-medium text-gray-400 italic">
-									Aucune méthode sélectionnée
+									{t("financial.noMethods")}
 								</p>
 							)}
 						</div>
