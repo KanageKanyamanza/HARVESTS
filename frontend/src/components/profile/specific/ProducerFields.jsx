@@ -1,4 +1,5 @@
 ﻿import React from "react";
+import { useTranslation } from "react-i18next";
 import {
 	Layers,
 	Box,
@@ -13,10 +14,11 @@ import {
 } from "lucide-react";
 
 const ProducerFields = ({ formData, editing, onInputChange }) => {
+	const { t } = useTranslation("profile");
 	const FARMING_TYPES = [
-		{ value: "organic", label: "Biologique" },
-		{ value: "conventional", label: "Conventionnel" },
-		{ value: "mixed", label: "Mixte" },
+		{ value: "organic", label: t("producer.farmingTypes.organic") },
+		{ value: "conventional", label: t("producer.farmingTypes.conventional") },
+		{ value: "mixed", label: t("producer.farmingTypes.mixed") },
 	];
 
 	const STORAGE_UNITS = ["tons", "kg", "m³"];
@@ -29,7 +31,7 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 				<div className="flex items-center gap-3 px-2">
 					<Layers className="h-5 w-5 text-emerald-600/50" />
 					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
-						Détails de la production
+						{t("producer.productionTitle")}
 					</h3>
 				</div>
 
@@ -37,7 +39,7 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 					{/* Farming Type */}
 					<div className="space-y-2 group/field">
 						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-							Type d'agriculture
+							{t("producer.farmingType")}
 						</label>
 						{editing ?
 							<div className="relative">
@@ -60,7 +62,7 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 									{FARMING_TYPES.find((t) => t.value === formData.farmingType)
 										?.label ||
 										formData.farmingType ||
-										"Non renseigné"}
+										t("notProvided")}
 								</span>
 							</div>
 						}
@@ -69,7 +71,7 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 					{/* Farm Size */}
 					<div className="space-y-2 group/field">
 						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-							Taille de l'exploitation
+							{t("producer.farmSize")}
 						</label>
 						{editing ?
 							<div className="flex gap-3">
@@ -90,7 +92,7 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 									>
 										{AREA_UNITS.map((unit) => (
 											<option key={unit} value={unit}>
-												{unit}
+												{t(`units.${unit}`, { defaultValue: unit })}
 											</option>
 										))}
 									</select>
@@ -101,8 +103,8 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 								<Target className="h-4 w-4 text-emerald-600/50" />
 								<p className="text-sm font-bold text-gray-900">
 									{formData.farmSize?.value ?
-										`${formData.farmSize.value} ${formData.farmSize.unit}`
-									:	"Non renseigné"}
+										`${formData.farmSize.value} ${t(`units.${formData.farmSize.unit}`, { defaultValue: formData.farmSize.unit || "" })}`
+									:	t("notProvided")}
 								</p>
 							</div>
 						}
@@ -111,7 +113,7 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 					{/* Storage Capacity */}
 					<div className="space-y-2 group/field">
 						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-							Capacité de stockage
+							{t("producer.storageCapacity")}
 						</label>
 						{editing ?
 							<div className="flex gap-3">
@@ -132,7 +134,7 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 									>
 										{STORAGE_UNITS.map((unit) => (
 											<option key={unit} value={unit}>
-												{unit}
+												{t(`units.${unit}`, { defaultValue: unit })}
 											</option>
 										))}
 									</select>
@@ -143,8 +145,8 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 								<Box className="h-4 w-4 text-emerald-600/50" />
 								<p className="text-sm font-bold text-gray-900">
 									{formData.storageCapacity?.value ?
-										`${formData.storageCapacity.value} ${formData.storageCapacity.unit}`
-									:	"Non renseigné"}
+										`${formData.storageCapacity.value} ${t(`units.${formData.storageCapacity.unit}`, { defaultValue: formData.storageCapacity.unit || "" })}`
+									:	t("notProvided")}
 								</p>
 							</div>
 						}
@@ -153,7 +155,7 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 					{/* MOQ */}
 					<div className="space-y-2 group/field">
 						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-							Commande Minimum
+							{t("producer.moq")}
 						</label>
 						{editing ?
 							<div className="flex gap-3">
@@ -171,7 +173,7 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 									value={formData.minimumOrderQuantity?.unit || ""}
 									onChange={onInputChange}
 									className="w-1/3 bg-gray-50/50 px-2 py-2 border-2 border-transparent rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-900 focus:bg-white focus:outline-none shadow-inner"
-									placeholder="UNITÉ (KG)"
+									placeholder={t("producer.moqUnitPlaceholder")}
 								/>
 							</div>
 						:	<div className="bg-gray-50/30 px-2 py-2 rounded-2xl border border-gray-100/50 flex items-center gap-3">
@@ -179,7 +181,7 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 								<p className="text-sm font-bold text-gray-900">
 									{formData.minimumOrderQuantity?.value ?
 										`${formData.minimumOrderQuantity.value} ${formData.minimumOrderQuantity.unit || ""}`
-									:	"Non renseigné"}
+									:	t("notProvided")}
 								</p>
 							</div>
 						}
@@ -193,7 +195,7 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 					<div className="flex items-center gap-3 px-2">
 						<Package className="h-5 w-5 text-teal-600/50" />
 						<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
-							Cultures & Produits
+							{t("producer.cropsTitle")}
 						</h3>
 					</div>
 					{editing && (
@@ -211,7 +213,7 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 							className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-md active:scale-95"
 						>
 							<Plus className="h-3.5 w-3.5" />
-							Ajouter
+							{t("producer.add")}
 						</button>
 					)}
 				</div>
@@ -241,7 +243,7 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 										});
 									}}
 									className="flex-1 bg-white px-4 py-2.5 rounded-xl text-xs font-bold text-gray-900 border border-gray-100 focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all placeholder-gray-300 shadow-sm"
-									placeholder="Nom culture"
+									placeholder={t("producer.cropName")}
 								/>
 								<div className="relative w-32">
 									<select
@@ -262,12 +264,12 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 										}}
 										className="w-full bg-white px-3 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-emerald-600 border border-emerald-50 focus:outline-none focus:border-emerald-500 appearance-none cursor-pointer"
 									>
-										<option value="">CAT...</option>
-										<option value="cereals">Céréales</option>
-										<option value="vegetables">Légumes</option>
-										<option value="fruits">Fruits</option>
-										<option value="legumes">Légumineuses</option>
-										<option value="tubers">Tubercules</option>
+										<option value="">{t("producer.cropCategory")}</option>
+										<option value="cereals">{t("producer.cropCategories.cereals")}</option>
+										<option value="vegetables">{t("producer.cropCategories.vegetables")}</option>
+										<option value="fruits">{t("producer.cropCategories.fruits")}</option>
+										<option value="legumes">{t("producer.cropCategories.legumes")}</option>
+										<option value="tubers">{t("producer.cropCategories.tubers")}</option>
 									</select>
 									<ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-emerald-300 pointer-events-none" />
 								</div>
@@ -285,6 +287,8 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 											},
 										});
 									}}
+									title={t("producer.removeCrop")}
+									aria-label={t("producer.removeCrop")}
 									className="p-2 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
 								>
 									<Trash2 className="h-4 w-4" />
@@ -304,12 +308,13 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 										{crop.name}
 									</span>
 									<span className="text-[9px] font-bold text-gray-400 capitalize bg-gray-50 px-2 py-0.5 rounded-md">
-										{crop.category}
+										{crop.category &&
+											t(`producer.cropCategories.${crop.category}`, { defaultValue: crop.category })}
 									</span>
 								</div>
 							))
 						:	<p className="text-xs font-medium text-gray-400 italic">
-								Aucune culture renseignée
+								{t("producer.noCrops")}
 							</p>
 						}
 					</div>
@@ -321,7 +326,7 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 				<div className="flex items-center gap-3 px-2">
 					<Truck className="h-5 w-5 text-blue-600/50" />
 					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
-						Options de Logistique
+						{t("producer.logisticsTitle")}
 					</h3>
 				</div>
 
@@ -340,7 +345,7 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 									<Check className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white opacity-0 peer-checked:opacity-100" />
 								</div>
 								<span className="text-xs font-bold text-gray-700">
-									Service de livraison propre
+									{t("producer.ownDelivery")}
 								</span>
 							</label>
 						:	<div
@@ -349,8 +354,8 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 								<Truck className="h-4 w-4" />
 								<span className="text-[10px] font-black uppercase tracking-widest">
 									{formData.deliveryOptions?.canDeliver ?
-										"Livraison propre disponible"
-									:	"Pas de livraison propre"}
+										t("producer.ownDeliveryYes")
+									:	t("producer.ownDeliveryNo")}
 								</span>
 							</div>
 						}
@@ -359,7 +364,7 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 					{formData.deliveryOptions?.canDeliver && (
 						<div className="space-y-2 animate-fade-in">
 							<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-								Rayon d'action (km)
+								{t("producer.deliveryRadius")}
 							</label>
 							{editing ?
 								<div className="relative">
@@ -372,11 +377,11 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 										min="0"
 									/>
 									<span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-300 uppercase tracking-widest">
-										KMS
+										{t("units.km")}
 									</span>
 								</div>
 							:	<p className="text-sm font-bold text-gray-900 ml-2">
-									{formData.deliveryOptions?.deliveryRadius || 0} kilomètres
+									{t("units.distanceKm", { value: formData.deliveryOptions?.deliveryRadius || 0 })}
 								</p>
 							}
 						</div>
@@ -389,19 +394,19 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 				<div className="flex items-center gap-3 px-2">
 					<Clock className="h-5 w-5 text-amber-600/50" />
 					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
-						Disponibilités Hebdomadaires
+						{t("producer.availabilityTitle")}
 					</h3>
 				</div>
 
 				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 					{[
-						{ key: "monday", label: "Lundi" },
-						{ key: "tuesday", label: "Mardi" },
-						{ key: "wednesday", label: "Mercredi" },
-						{ key: "thursday", label: "Jeudi" },
-						{ key: "friday", label: "Vendredi" },
-						{ key: "saturday", label: "Samedi" },
-						{ key: "sunday", label: "Dimanche" },
+						{ key: "monday", label: t("public:vendorProfile.days.monday") },
+						{ key: "tuesday", label: t("public:vendorProfile.days.tuesday") },
+						{ key: "wednesday", label: t("public:vendorProfile.days.wednesday") },
+						{ key: "thursday", label: t("public:vendorProfile.days.thursday") },
+						{ key: "friday", label: t("public:vendorProfile.days.friday") },
+						{ key: "saturday", label: t("public:vendorProfile.days.saturday") },
+						{ key: "sunday", label: t("public:vendorProfile.days.sunday") },
 					].map((day) => (
 						<div
 							key={day.key}
@@ -468,7 +473,7 @@ const ProducerFields = ({ formData, editing, onInputChange }) => {
 									}
 								</div>
 							:	<div className="px-3 py-2 bg-gray-100/50 rounded-xl text-[10px] font-black text-gray-400 text-center uppercase tracking-widest">
-									Fermé
+									{t("hours.closed")}
 								</div>
 							}
 						</div>

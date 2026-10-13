@@ -8,7 +8,9 @@ import {
 	ShieldCheck,
 	Sparkles,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import ProfileImageUpload from "../common/ProfileImageUpload";
+import { formatDateTime, getCountryName } from "../../utils/i18n";
 import { formatAverageRating } from "../../utils/vendorRatings";
 
 const VENDOR_TYPES = [
@@ -29,6 +31,7 @@ const ProfileHeader = ({
 	onAvatarRemove,
 	safeDisplay,
 }) => {
+	const { t, i18n } = useTranslation("profile");
 	const isVendor = VENDOR_TYPES.includes(user.userType);
 
 	return (
@@ -74,7 +77,7 @@ const ProfileHeader = ({
 									{safeDisplay(user.lastName, "")}
 								</h2>
 								<span className="px-4 py-1.5 bg-gray-900 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full shadow-md">
-									{user.userType}
+									{t(`common:userTypes.${user.userType}`, { defaultValue: user.userType })}
 								</span>
 							</div>
 							<p className="text-gray-500 font-medium flex items-center justify-center md:justify-start gap-2">
@@ -91,7 +94,7 @@ const ProfileHeader = ({
 								</div>
 								<div>
 									<p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
-										Téléphone
+										{t("header.phone")}
 									</p>
 									<p className="text-sm font-bold text-gray-900">
 										{safeDisplay(user.phone)}
@@ -105,11 +108,11 @@ const ProfileHeader = ({
 								</div>
 								<div>
 									<p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
-										Localisation
+										{t("header.location")}
 									</p>
 									<p className="text-sm font-bold text-gray-900 mt-0.5 line-clamp-1">
 										{safeDisplay(user.address?.city || user.city)},{" "}
-										{safeDisplay(user.address?.country || user.country)}
+										{safeDisplay(getCountryName(user.address?.country || user.country, i18n.language))}
 									</p>
 								</div>
 							</div>
@@ -121,7 +124,7 @@ const ProfileHeader = ({
 									</div>
 									<div>
 										<p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">
-											Réputation
+											{t("header.reputation")}
 										</p>
 										<div className="flex items-center gap-2">
 											<span className="text-sm font-black text-gray-900">
@@ -130,7 +133,7 @@ const ProfileHeader = ({
 											<span className="text-[10px] text-gray-400 font-bold">
 												{vendorStatsLoading ?
 													"..."
-												:	`(${vendorStats?.reviewCount ?? 0} avis)`}
+												:	t("header.reviewsCount", { count: vendorStats?.reviewCount ?? 0 })}
 											</span>
 										</div>
 									</div>
@@ -141,10 +144,8 @@ const ProfileHeader = ({
 						<div className="pt-6 border-t border-gray-100/50 flex flex-wrap gap-4 items-center justify-center md:justify-start">
 							<div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
 								<Calendar className="h-3.5 w-3.5" />
-								Membre depuis{" "}
-								{new Date(user.createdAt).toLocaleDateString("fr-FR", {
-									month: "long",
-									year: "numeric",
+								{t("header.memberSince", {
+									date: formatDateTime(user.createdAt, i18n.language, { month: "long", year: "numeric" }),
 								})}
 							</div>
 						</div>

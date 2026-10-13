@@ -8,8 +8,10 @@ import {
 	Phone,
 	Info,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const VerificationStatus = ({ verificationStatus, onRefresh }) => {
+	const { t } = useTranslation("profile");
 	if (!verificationStatus) return null;
 
 	return (
@@ -17,12 +19,13 @@ const VerificationStatus = ({ verificationStatus, onRefresh }) => {
 			<div className="flex items-center justify-between mb-8">
 				<h3 className="text-lg font-[1000] text-gray-900 tracking-tight flex items-center gap-3 whitespace-nowrap">
 					<ShieldCheck className="h-6 w-6 text-emerald-600" />
-					Niveau de Vérification
+					{t("verification.title")}
 				</h3>
 				<button
 					onClick={onRefresh}
 					className="p-3 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
-					title="Actualiser les statuts"
+					title={t("verification.refresh")}
+					aria-label={t("verification.refresh")}
 				>
 					<RefreshCw className="w-4 h-4" />
 				</button>
@@ -43,12 +46,12 @@ const VerificationStatus = ({ verificationStatus, onRefresh }) => {
 						</div>
 						<div>
 							<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-								Validation Email
+								{t("verification.email")}
 							</p>
 							<p className="text-sm font-bold text-gray-900">
 								{verificationStatus.email?.verified ?
-									"Authentifié"
-								:	"Action requise"}
+									t("verification.emailVerified")
+								:	t("verification.emailPending")}
 							</p>
 						</div>
 					</div>
@@ -71,12 +74,12 @@ const VerificationStatus = ({ verificationStatus, onRefresh }) => {
 						</div>
 						<div>
 							<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-								Validation Mobile
+								{t("verification.phone")}
 							</p>
 							<p className="text-sm font-bold text-gray-900">
 								{verificationStatus.phone?.verified ?
-									"Vérifié"
-								:	"SMS non validé"}
+									t("verification.phoneVerified")
+								:	t("verification.phonePending")}
 							</p>
 						</div>
 					</div>
@@ -90,12 +93,12 @@ const VerificationStatus = ({ verificationStatus, onRefresh }) => {
 				<div className="flex items-center gap-2 mb-3">
 					<Info className="h-3.5 w-3.5 text-gray-400" />
 					<p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-						Score de Confiance Global
+						{t("verification.overall")}
 					</p>
 				</div>
 				<div className="bg-gradient-to-r from-emerald-600 to-teal-500 rounded-2xl p-5 shadow-lg shadow-emerald-100">
 					<p className="text-sm font-black text-white uppercase tracking-widest flex items-center justify-between">
-						{verificationStatus.overall?.level || "ÉVALUATION..."}
+						{t(`verification.levels.${verificationStatus.overall?.level || "unverified"}`)}
 						<ShieldCheck className="h-4 w-4 opacity-50" />
 					</p>
 				</div>

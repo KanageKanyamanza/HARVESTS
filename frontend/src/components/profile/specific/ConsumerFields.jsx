@@ -1,4 +1,6 @@
 ﻿import React from "react";
+import { DEFAULT_CURRENCY } from "../../../config/currencies";
+import { useTranslation } from "react-i18next";
 import {
 	Heart,
 	ShoppingCart,
@@ -10,21 +12,22 @@ import {
 } from "lucide-react";
 
 const ConsumerFields = ({ formData, editing, onInputChange }) => {
+	const { t } = useTranslation("profile");
 	const DIETARY_PREFERENCES = [
-		{ value: "organic", label: "Bio" },
-		{ value: "vegetarian", label: "Végétarien" },
-		{ value: "vegan", label: "Végane" },
-		{ value: "gluten-free", label: "Sans gluten" },
-		{ value: "halal", label: "Halal" },
-		{ value: "local", label: "Produits locaux" },
+		{ value: "organic", label: t("consumer.dietary.organic") },
+		{ value: "vegetarian", label: t("consumer.dietary.vegetarian") },
+		{ value: "vegan", label: t("consumer.dietary.vegan") },
+		{ value: "gluten-free", label: t("consumer.dietary.gluten-free") },
+		{ value: "halal", label: t("consumer.dietary.halal") },
+		{ value: "local", label: t("consumer.dietary.local") },
 	];
 
 	const DELIVERY_TIMES = [
-		{ value: "morning", label: "Matin (8h-12h)" },
-		{ value: "afternoon", label: "Après-midi (12h-18h)" },
-		{ value: "evening", label: "Soir (18h-21h)" },
-		{ value: "weekend", label: "Weekend" },
-		{ value: "flexible", label: "Flexible" },
+		{ value: "morning", label: t("consumer.deliveryTimes.morning") },
+		{ value: "afternoon", label: t("consumer.deliveryTimes.afternoon") },
+		{ value: "evening", label: t("consumer.deliveryTimes.evening") },
+		{ value: "weekend", label: t("consumer.deliveryTimes.weekend") },
+		{ value: "flexible", label: t("consumer.deliveryTimes.flexible") },
 	];
 
 	const handleDietaryChange = (e) => {
@@ -53,7 +56,7 @@ const ConsumerFields = ({ formData, editing, onInputChange }) => {
 				<div className="flex items-center gap-3 px-2">
 					<Heart className="h-5 w-5 text-rose-500/50" />
 					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
-						Préférences Alimentaires
+						{t("consumer.dietaryTitle")}
 					</h3>
 				</div>
 
@@ -98,7 +101,7 @@ const ConsumerFields = ({ formData, editing, onInputChange }) => {
 									</div>
 								))
 							:	<p className="text-xs font-medium text-gray-400 italic">
-									Aucune préférence renseignée
+									{t("consumer.noDietary")}
 								</p>
 							}
 						</div>
@@ -111,7 +114,7 @@ const ConsumerFields = ({ formData, editing, onInputChange }) => {
 				<div className="flex items-center gap-3 px-2">
 					<ShoppingCart className="h-5 w-5 text-blue-600/50" />
 					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
-						Habitudes d'achat
+						{t("consumer.habitsTitle")}
 					</h3>
 				</div>
 
@@ -119,7 +122,7 @@ const ConsumerFields = ({ formData, editing, onInputChange }) => {
 					{/* Preferred Delivery Time */}
 					<div className="space-y-2 group/field">
 						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-							Moment de livraison préféré
+							{t("consumer.deliveryTime")}
 						</label>
 						{editing ?
 							<div className="relative">
@@ -148,7 +151,7 @@ const ConsumerFields = ({ formData, editing, onInputChange }) => {
 										(t) =>
 											t.value ===
 											formData.shoppingPreferences?.preferredDeliveryTime,
-									)?.label || "Flexible"}
+									)?.label || t("consumer.deliveryTimes.flexible")}
 								</p>
 							</div>
 						}
@@ -157,7 +160,7 @@ const ConsumerFields = ({ formData, editing, onInputChange }) => {
 					{/* Max Distance */}
 					<div className="space-y-2 group/field">
 						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-							Distance max. souhaitée
+							{t("consumer.maxDistance")}
 						</label>
 						{editing ?
 							<div className="relative">
@@ -174,14 +177,13 @@ const ConsumerFields = ({ formData, editing, onInputChange }) => {
 								/>
 								<MapPin className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-blue-600/50" />
 								<span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-300 uppercase tracking-widest">
-									KMS
+									{t("units.km")}
 								</span>
 							</div>
 						:	<div className="bg-gray-50/30 px-2 py-2 rounded-2xl border border-gray-100/50 flex items-center gap-3">
 								<MapPin className="h-4 w-4 text-blue-600/50" />
 								<p className="text-sm font-bold text-gray-900">
-									{formData.shoppingPreferences?.maxDeliveryDistance || 25}{" "}
-									kilomètres
+									{t("units.distanceKm", { value: formData.shoppingPreferences?.maxDeliveryDistance || 25 })}
 								</p>
 							</div>
 						}
@@ -190,7 +192,7 @@ const ConsumerFields = ({ formData, editing, onInputChange }) => {
 					{/* Budget Max */}
 					<div className="space-y-2 group/field">
 						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-							Budget moyen par commande
+							{t("consumer.budget")}
 						</label>
 						{editing ?
 							<div className="relative">
@@ -205,15 +207,15 @@ const ConsumerFields = ({ formData, editing, onInputChange }) => {
 								/>
 								<Wallet className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-amber-600/50" />
 								<span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-300 uppercase tracking-widest">
-									XAF
+									{DEFAULT_CURRENCY}
 								</span>
 							</div>
 						:	<div className="bg-gray-50/30 px-2 py-2 rounded-2xl border border-gray-100/50 flex items-center gap-3">
 								<Wallet className="h-4 w-4 text-amber-600/50" />
 								<p className="text-sm font-bold text-gray-900">
 									{formData.shoppingPreferences?.budgetRange?.max ?
-										`${formData.shoppingPreferences.budgetRange.max} XAF`
-									:	"Non défini"}
+										`${formData.shoppingPreferences.budgetRange.max} ${DEFAULT_CURRENCY}`
+									:	t("notDefined")}
 								</p>
 							</div>
 						}

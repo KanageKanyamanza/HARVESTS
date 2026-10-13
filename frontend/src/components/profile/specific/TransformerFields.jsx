@@ -1,4 +1,5 @@
 ﻿import React from "react";
+import { useTranslation } from "react-i18next";
 import {
 	Activity,
 	Settings,
@@ -13,29 +14,30 @@ import {
 } from "lucide-react";
 
 const TransformerFields = ({ formData, editing, onInputChange }) => {
+	const { t } = useTranslation("profile");
 	const TRANSFORMATION_TYPES = [
-		{ value: "processing", label: "Transformation" },
-		{ value: "packaging", label: "Emballage" },
-		{ value: "preservation", label: "Conservation" },
-		{ value: "manufacturing", label: "Fabrication" },
-		{ value: "mixed", label: "Mixte" },
+		{ value: "processing", label: t("transformer.types.processing") },
+		{ value: "packaging", label: t("transformer.types.packaging") },
+		{ value: "preservation", label: t("transformer.types.preservation") },
+		{ value: "manufacturing", label: t("transformer.types.manufacturing") },
+		{ value: "mixed", label: t("transformer.types.mixed") },
 	];
 
 	const PRICING_MODELS = [
-		{ value: "per-unit", label: "Par unité" },
-		{ value: "per-kg", label: "Par kg" },
-		{ value: "per-batch", label: "Par lot" },
-		{ value: "hourly", label: "Horaire" },
+		{ value: "per-unit", label: t("transformer.pricingModels.per-unit") },
+		{ value: "per-kg", label: t("transformer.pricingModels.per-kg") },
+		{ value: "per-batch", label: t("transformer.pricingModels.per-batch") },
+		{ value: "hourly", label: t("transformer.pricingModels.hourly") },
 	];
 
 	const DAYS = [
-		{ key: "monday", label: "Lundi" },
-		{ key: "tuesday", label: "Mardi" },
-		{ key: "wednesday", label: "Mercredi" },
-		{ key: "thursday", label: "Jeudi" },
-		{ key: "friday", label: "Vendredi" },
-		{ key: "saturday", label: "Samedi" },
-		{ key: "sunday", label: "Dimanche" },
+		{ key: "monday", label: t("public:vendorProfile.days.monday") },
+		{ key: "tuesday", label: t("public:vendorProfile.days.tuesday") },
+		{ key: "wednesday", label: t("public:vendorProfile.days.wednesday") },
+		{ key: "thursday", label: t("public:vendorProfile.days.thursday") },
+		{ key: "friday", label: t("public:vendorProfile.days.friday") },
+		{ key: "saturday", label: t("public:vendorProfile.days.saturday") },
+		{ key: "sunday", label: t("public:vendorProfile.days.sunday") },
 	];
 
 	return (
@@ -45,7 +47,7 @@ const TransformerFields = ({ formData, editing, onInputChange }) => {
 				<div className="flex items-center gap-3 px-2">
 					<Activity className="h-5 w-5 text-purple-600/50" />
 					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
-						Activités de Transformation
+						{t("transformer.activitiesTitle")}
 					</h3>
 				</div>
 
@@ -53,7 +55,7 @@ const TransformerFields = ({ formData, editing, onInputChange }) => {
 					{/* Transformation Type */}
 					<div className="space-y-2 group/field">
 						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-							Type d'Activité Principal
+							{t("transformer.type")}
 						</label>
 						{editing ?
 							<div className="relative">
@@ -84,7 +86,7 @@ const TransformerFields = ({ formData, editing, onInputChange }) => {
 					{/* Pricing Model */}
 					<div className="space-y-2 group/field">
 						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-							Modèle de Facturation
+							{t("transformer.pricingModel")}
 						</label>
 						{editing ?
 							<div className="relative">
@@ -109,7 +111,7 @@ const TransformerFields = ({ formData, editing, onInputChange }) => {
 										(m) => m.value === formData.pricing?.model,
 									)?.label ||
 										formData.pricing?.model ||
-										"Non renseigné"}
+										t("notProvided")}
 								</p>
 							</div>
 						}
@@ -118,34 +120,34 @@ const TransformerFields = ({ formData, editing, onInputChange }) => {
 					{/* Services */}
 					<div className="col-span-1 md:col-span-2 space-y-4">
 						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-							Catalogue de Services
+							{t("transformer.servicesTitle")}
 						</label>
 						{editing ?
 							<div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
 								{[
 									{
 										key: "packaging",
-										label: "Emballage",
+										label: t("transformer.services.packaging"),
 										icon: <Box className="h-4 w-4" />,
 									},
 									{
 										key: "customProcessing",
-										label: "Sur mesure",
+										label: t("transformer.services.customProcessing"),
 										icon: <Layers className="h-4 w-4" />,
 									},
 									{
 										key: "privateLabeling",
-										label: "Marque blanche",
+										label: t("transformer.services.privateLabeling"),
 										icon: <Tag className="h-4 w-4" />,
 									},
 									{
 										key: "qualityTesting",
-										label: "Contrôle qualité",
+										label: t("transformer.services.qualityTesting"),
 										icon: <ShieldCheck className="h-4 w-4" />,
 									},
 									{
 										key: "consultation",
-										label: "Conseils techniques",
+										label: t("transformer.services.consultation"),
 										icon: <LifeBuoy className="h-4 w-4" />,
 									},
 								].map((service) => (
@@ -171,14 +173,14 @@ const TransformerFields = ({ formData, editing, onInputChange }) => {
 							</div>
 						:	<div className="flex flex-wrap gap-3">
 								{[
-									{ key: "packaging", label: "Emballage" },
+									{ key: "packaging", label: t("transformer.services.packaging") },
 									{
 										key: "customProcessing",
-										label: "Transformation sur mesure",
+										label: t("transformer.services.customProcessing"),
 									},
-									{ key: "privateLabeling", label: "Marque blanche" },
-									{ key: "qualityTesting", label: "Tests qualité" },
-									{ key: "consultation", label: "Conseil" },
+									{ key: "privateLabeling", label: t("transformer.services.privateLabeling") },
+									{ key: "qualityTesting", label: t("transformer.services.qualityTesting") },
+									{ key: "consultation", label: t("transformer.services.consultation") },
 								].map(
 									(service, idx) =>
 										formData.services?.[service.key] && (
@@ -195,7 +197,7 @@ const TransformerFields = ({ formData, editing, onInputChange }) => {
 								)}
 								{!Object.values(formData.services || {}).some(Boolean) && (
 									<p className="text-xs font-medium text-gray-400 italic">
-										Aucun service renseigné
+										{t("transformer.noServices")}
 									</p>
 								)}
 							</div>
@@ -209,7 +211,7 @@ const TransformerFields = ({ formData, editing, onInputChange }) => {
 				<div className="flex items-center gap-3 px-2">
 					<Clock className="h-5 w-5 text-amber-600/50" />
 					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
-						Horaires d'Ouverture
+						{t("hours.openingTitle")}
 					</h3>
 				</div>
 
@@ -270,7 +272,7 @@ const TransformerFields = ({ formData, editing, onInputChange }) => {
 									}
 								</div>
 							:	<div className="px-3 py-2 bg-gray-100/50 rounded-xl text-[10px] font-black text-gray-400 text-center uppercase tracking-widest">
-									Fermé
+									{t("hours.closed")}
 								</div>
 							}
 						</div>

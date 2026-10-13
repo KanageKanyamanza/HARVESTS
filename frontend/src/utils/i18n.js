@@ -18,6 +18,8 @@ import frDashboardRestaurateur from "../locales/fr/dashboard-restaurateur.json";
 import frAuth from "../locales/fr/auth.json";
 import frBlog from "../locales/fr/blog.json";
 import frSeo from "../locales/fr/seo.json";
+import frProfile from "../locales/fr/profile.json";
+import frSettings from "../locales/fr/settings.json";
 
 import enCommon from "../locales/en/common.json";
 import enNavigation from "../locales/en/navigation.json";
@@ -30,6 +32,8 @@ import enDashboardRestaurateur from "../locales/en/dashboard-restaurateur.json";
 import enAuth from "../locales/en/auth.json";
 import enBlog from "../locales/en/blog.json";
 import enSeo from "../locales/en/seo.json";
+import enProfile from "../locales/en/profile.json";
+import enSettings from "../locales/en/settings.json";
 
 export const NAMESPACES = [
 	"common",
@@ -43,6 +47,8 @@ export const NAMESPACES = [
 	"auth",
 	"blog",
 	"seo",
+	"profile",
+	"settings",
 ];
 
 // Configuration des ressources de traduction
@@ -59,6 +65,8 @@ const resources = {
 		auth: frAuth,
 		blog: frBlog,
 		seo: frSeo,
+		profile: frProfile,
+		settings: frSettings,
 	},
 	en: {
 		common: enCommon,
@@ -72,6 +80,8 @@ const resources = {
 		auth: enAuth,
 		blog: enBlog,
 		seo: enSeo,
+		profile: enProfile,
+		settings: enSettings,
 	},
 };
 
@@ -279,6 +289,16 @@ export const formatMonthCode = (
 // Langue date-fns (« il y a 3 heures » / « 3 hours ago ») selon l'interface
 export const getDateFnsLocale = (language = getCurrentLanguage()) =>
 	language === "en" ? enUS : fr;
+
+// Nom d'un pays dans la langue de l'interface à partir de son code ISO (« SN » → « Sénégal » / « Senegal »)
+export const getCountryName = (code, language = getCurrentLanguage()) => {
+	if (!code) return "";
+	try {
+		return new Intl.DisplayNames([language], { type: "region" }).of(String(code).toUpperCase()) || code;
+	} catch {
+		return code;
+	}
+};
 
 // Fonction utilitaire pour formater les nombres
 export const formatNumber = (number, language = getCurrentLanguage()) => {

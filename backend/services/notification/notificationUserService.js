@@ -173,30 +173,43 @@ async function deleteNotification(notificationId, userId) {
 /**
  * Obtenir les préférences de notification
  */
+// Le champ `notifications` est déclaré dans chaque modèle de rôle (Producer, Consumer...)
+// et non dans User : passer par le modèle de base le retire silencieusement des requêtes.
+async function getRoleModel(userId) {
+	const base = await User.findById(userId).select("userType").lean();
+	if (!base) throw new Error("Utilisateur non trouvé");
+	return User.discriminators?.[base.userType] || User;
+}
+
 async function getNotificationPreferences(userId) {
-	const user = await User.findById(userId).select("notifications");
-	return user.notifications;
+	const Model = await getRoleModel(userId);
+	const user = await Model.findById(userId).select("notifications").lean();
+	return user?.notifications || {};
 }
 
 /**
  * Mettre à jour les préférences de notification
  */
 async function updateNotificationPreferences(userId, preferences) {
-	const allowedFields = ["email", "sms", "push"];
+	const allowedFields = ["email", "sms", "push", "marketing", "orderUpdates", "priceAlerts"];
 	const filteredPrefs = {};
 
 	Object.keys(preferences).forEach((key) => {
 		if (allowedFields.includes(key)) {
-			filteredPrefs[`notifications.${key}`] = preferences[key];
+			filteredPrefs[`notifications.${key}`] = Boolean(preferences[key]);
 		}
 	});
 
-	const user = await User.findByIdAndUpdate(userId, filteredPrefs, {
-		new: true,
-		runValidators: true,
-	}).select("notifications");
+	const Model = await getRoleModel(userId);
+	const user = await Model.findByIdAndUpdate(
+		userId,
+		{ $set: filteredPrefs },
+		{ new: true, runValidators: true },
+	)
+		.select("notifications")
+		.lean();
 
-	return user.notifications;
+	return user?.notifications || {};
 }
 
 /**

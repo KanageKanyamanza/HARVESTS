@@ -9,6 +9,7 @@ import {
 	Edit3,
 	ArrowRight,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../hooks/useAuth";
 import { useNotifications } from "../../../hooks/useNotifications";
 import ModularDashboardLayout from "../../../components/layout/ModularDashboardLayout";
@@ -33,6 +34,7 @@ import {
 import DashboardPageSkeleton from "../../../components/common/DashboardPageSkeleton";
 
 const ProfilePage = () => {
+	const { t } = useTranslation("profile");
 	const { user, isAuthenticated, refreshUser, updateProfile, setUser } =
 		useAuth();
 	const { showSuccess, showError } = useNotifications();
@@ -54,7 +56,7 @@ const ProfilePage = () => {
 		}
 	}, [user]);
 
-	const safeDisplay = (value, fallback = "Non renseigné") => {
+	const safeDisplay = (value, fallback = t("notProvided")) => {
 		if (value === null || value === undefined) return fallback;
 		if (typeof value === "object") {
 			return (
@@ -142,12 +144,12 @@ const ProfilePage = () => {
 
 			setEditing(false);
 			setFormData({});
-			showSuccess("Profil mis à jour avec succès");
+			showSuccess(t("page.saveSuccess"));
 		} catch (error) {
 			console.error("Erreur sauvegarde:", error);
 			showError(
 				error.response?.data?.message ||
-					"Erreur lors de la sauvegarde du profil. Vérifiez les champs et réessayez.",
+					t("page.saveError"),
 			);
 		} finally {
 			setSaving(false);
@@ -226,17 +228,16 @@ const ProfilePage = () => {
 					<div className="space-y-4">
 						<div className="flex items-center gap-2 text-emerald-600 font-black text-[9px] uppercase tracking-widest mb-2">
 							<div className="w-5 h-[2px] bg-emerald-600"></div>
-							<span>Mon Compte</span>
+							<span>{t("page.eyebrow")}</span>
 						</div>
 						<h1 className="text-3xl font-[1000] text-gray-900 tracking-tighter leading-none mb-2">
-							Profil{" "}
+							{t("page.titleStart")}{" "}
 							<span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">
-								Utilisateur.
+								{t("page.titleHighlight")}
 							</span>
 						</h1>
 						<p className="text-xs text-gray-500 font-medium max-w-xl">
-							Gérez vos informations personnelles, votre image de marque et
-							suivez vos statistiques de performance.
+							{t("page.subtitle")}
 						</p>
 					</div>
 
@@ -246,7 +247,7 @@ const ProfilePage = () => {
 							className="group relative inline-flex items-center justify-center px-6 py-3 bg-gray-900 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl overflow-hidden transition-all duration-300 hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-200 hover:-translate-y-1"
 						>
 							<Edit3 className="w-4 h-4 mr-2" />
-							Modifier le profil
+							{t("page.edit")}
 						</button>
 					)}
 				</div>
@@ -275,7 +276,7 @@ const ProfilePage = () => {
 								<div className="flex items-center gap-3 px-1 mb-6">
 									<div className="w-1.5 h-6 bg-emerald-600 rounded-full"></div>
 									<h2 className="text-xl font-[1000] text-gray-900 tracking-tight uppercase tracking-[0.1em]">
-										Informations Générales
+										{t("page.generalInfo")}
 									</h2>
 								</div>
 								<div className="bg-white/70 backdrop-blur-xl rounded-[2.5rem] p-3 md:p-6  border border-white/60 shadow-sm">
@@ -297,7 +298,7 @@ const ProfilePage = () => {
 								<div className="flex items-center gap-3 px-2 mb-6">
 									<div className="w-1.5 h-6 bg-blue-600 rounded-full"></div>
 									<h2 className="text-xl font-[1000] text-gray-900 tracking-tight uppercase tracking-[0.1em]">
-										Statut
+										{t("page.status")}
 									</h2>
 								</div>
 								<VerificationStatus
@@ -314,7 +315,7 @@ const ProfilePage = () => {
 							<div className="flex items-center gap-3 px-2 mb-6">
 								<div className="w-1.5 h-6 bg-amber-500 rounded-full shadow-[0_0_10px_rgba(245,158,11,0.3)]"></div>
 								<h2 className="text-xl font-[1000] text-gray-900 tracking-tight uppercase tracking-[0.1em]">
-									Ma Boutique & Identité Visuelle
+									{t("page.shopTitle")}
 								</h2>
 							</div>
 							<ShopSection
@@ -338,7 +339,7 @@ const ProfilePage = () => {
 								className="pointer-events-auto flex items-center gap-2 px-8 py-4 bg-white/90 backdrop-blur-md border border-gray-100 rounded-[2rem] text-gray-900 font-[1000] text-[10px] uppercase tracking-widest shadow-xl hover:bg-gray-50 transition-all active:scale-95"
 							>
 								<X className="h-4 w-4" />
-								Annuler
+								{t("page.cancel")}
 							</button>
 							<button
 								onClick={handleSave}
@@ -348,7 +349,7 @@ const ProfilePage = () => {
 								{saving ?
 									<div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
 								:	<Save className="h-4 w-4" />}
-								{saving ? "Sauvegarde..." : "Enregistrer les modifications"}
+								{saving ? t("page.saving") : t("page.save")}
 								<ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
 							</button>
 						</div>

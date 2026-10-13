@@ -1,7 +1,9 @@
 ﻿import React from "react";
+import { useTranslation } from "react-i18next";
 import { Globe, FileText, Check, ShieldCheck, CreditCard } from "lucide-react";
 
 const ExporterFields = ({ formData, editing, onInputChange }) => {
+	const { t } = useTranslation("profile");
 	const INCOTERMS = ["EXW", "FCA", "FOB", "CIF", "DDP"];
 	const CURRENCIES = ["USD", "EUR", "XAF", "XOF"];
 
@@ -28,7 +30,7 @@ const ExporterFields = ({ formData, editing, onInputChange }) => {
 				<div className="flex items-center gap-3 px-2">
 					<Globe className="h-5 w-5 text-blue-600/50" />
 					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
-						Informations Internationales
+						{t("exporter.title")}
 					</h3>
 				</div>
 
@@ -36,7 +38,7 @@ const ExporterFields = ({ formData, editing, onInputChange }) => {
 					{/* Business Registration */}
 					<div className="col-span-1 md:col-span-2 space-y-2 group/field">
 						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-							Numéro d'Enregistrement Commercial (RCCM)
+							{t("exporter.registration")}
 						</label>
 						{editing ?
 							<div className="relative">
@@ -46,14 +48,14 @@ const ExporterFields = ({ formData, editing, onInputChange }) => {
 									value={formData.businessRegistrationNumber || ""}
 									onChange={onInputChange}
 									className="w-full bg-gray-50/50 px-12 py-2 border-2 border-transparent rounded-2xl text-sm font-bold text-gray-900 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 transition-all shadow-inner"
-									placeholder="Ex: RB/ABC/2023/B/1234"
+									placeholder={t("exporter.registrationPlaceholder")}
 								/>
 								<ShieldCheck className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-600/50" />
 							</div>
 						:	<div className="bg-gray-50/30 px-2 py-2 rounded-2xl border border-gray-100/50 flex items-center gap-3">
 								<ShieldCheck className="h-4 w-4 text-emerald-600/50" />
 								<p className="text-sm font-black text-gray-900 tracking-tight">
-									{formData.businessRegistrationNumber || "Non renseigné"}
+									{formData.businessRegistrationNumber || t("notProvided")}
 								</p>
 							</div>
 						}
@@ -66,7 +68,7 @@ const ExporterFields = ({ formData, editing, onInputChange }) => {
 				<div className="flex items-center gap-3 px-2">
 					<FileText className="h-5 w-5 text-amber-600/50" />
 					<h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">
-						Conditions Commerciales
+						{t("exporter.termsTitle")}
 					</h3>
 				</div>
 
@@ -74,7 +76,7 @@ const ExporterFields = ({ formData, editing, onInputChange }) => {
 					{/* Incoterms */}
 					<div className="space-y-4">
 						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-							Incoterms Acceptés (Logistique)
+							{t("exporter.incoterms")}
 						</label>
 						<div className="flex flex-wrap gap-3">
 							{INCOTERMS.map((term) => {
@@ -107,7 +109,7 @@ const ExporterFields = ({ formData, editing, onInputChange }) => {
 					{/* Currencies */}
 					<div className="space-y-4">
 						<label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
-							Devises de Transaction
+							{t("exporter.currencies")}
 						</label>
 						<div className="flex flex-wrap gap-3">
 							{CURRENCIES.map((curr) => {
