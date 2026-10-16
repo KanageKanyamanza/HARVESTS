@@ -1,5 +1,6 @@
 const Product = require("../../models/Product");
 const { toPlainText } = require("../../utils/localization");
+const { assertProductLimit } = require("../../utils/subscriptionLimits");
 const {
 	resolveCreateStatus,
 	resolveUpdateStatus,
@@ -34,30 +35,7 @@ async function getProduct(productId, transformerId) {
 
 async function createProduct(transformerId, productData) {
 	// Vérifier les limites de produits selon le plan
-	const mongoose = require("mongoose");
-	const Subscription = mongoose.model("Subscription");
-	const activeSubscription = await Subscription.findOne({
-		user: transformerId,
-		status: "active",
-	});
-
-	const plans = Subscription.getAvailablePlans();
-	const currentPlan =
-		activeSubscription ? plans[activeSubscription.planId] : plans.gratuit;
-
-	const productCount = await Product.countDocuments({
-		transformer: transformerId,
-		status: { $ne: "inactive" },
-	});
-
-	if (
-		currentPlan.features.maxProducts !== -1 &&
-		productCount >= currentPlan.features.maxProducts
-	) {
-		throw new Error(
-			`Limite de produits atteinte pour votre plan ${currentPlan.name} (${currentPlan.features.maxProducts} produits max).`,
-		);
-	}
+	await assertProductLimit("transformer", transformerId);
 
 	const {
 		name,

@@ -7,7 +7,7 @@ const Producer = require("../../models/Producer");
 async function getProducerProfile(producerId) {
 	const producer = await Producer.findById(producerId);
 	if (!producer) {
-		throw new Error("Producteur non trouvé");
+		throw new Error("producer.not_found");
 	}
 	return producer;
 }
@@ -47,7 +47,7 @@ async function updateProducerProfile(producerId, updateData) {
 	});
 
 	if (!producer) {
-		throw new Error("Producteur non trouvé");
+		throw new Error("producer.not_found");
 	}
 
 	return producer;

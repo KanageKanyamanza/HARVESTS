@@ -9,7 +9,7 @@ const multerFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image')) {
     cb(null, true);
   } else {
-    cb(new AppError('Veuillez télécharger uniquement des images!', 400), false);
+    cb(new AppError('product.images_only', 400), false);
   }
 };
 

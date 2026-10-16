@@ -107,7 +107,7 @@ function resolveSegmentsForUpdate(order, userId, userType, segmentId) {
       seg.seller && seg.seller.toString() === userId.toString()
     );
     if (!segment) {
-      throw new AppError('Vous n\'avez pas de segment associé à cette commande', 403);
+      throw new AppError('order.no_segment', 403);
     }
     return [segment];
   }
@@ -129,10 +129,11 @@ function validateStatusTransition(currentStatus, newStatus, userType, userRole) 
   }
   
   if (!validTransitions.includes(statusToCheck)) {
-    throw new AppError(
-      `Vous n'avez pas le droit de passer la commande de "${currentStatus}" à "${newStatus}". Transitions autorisées: ${validTransitions.join(', ')}`,
-      403
-    );
+    throw new AppError('order.transition_forbidden', 403, {
+      from: currentStatus,
+      to: newStatus,
+      allowed: validTransitions.join(', ') || '—',
+    });
   }
 
   return true;
@@ -197,10 +198,11 @@ async function updateOrderStatus(order, status, user, options = {}) {
     }
     
     if (!validTransitions.includes(statusToCheck) && !itemIds?.length) {
-      throw new AppError(
-        `Vous n'avez pas le droit de passer la commande de "${currentStatusToCheck}" à "${status}". Transitions autorisées: ${validTransitions.join(', ')}`,
-        403
-      );
+      throw new AppError('order.transition_forbidden', 403, {
+        from: currentStatusToCheck,
+        to: status,
+        allowed: validTransitions.join(', ') || '—',
+      });
     }
   }
 
@@ -224,7 +226,7 @@ async function updateOrderStatus(order, status, user, options = {}) {
       seg.seller && seg.seller.toString() === user._id.toString()
     );
     if (!segment) {
-      throw new AppError('Vous n\'avez pas de segment associé à cette commande', 403);
+      throw new AppError('order.no_segment', 403);
     }
     targetSegments = [segment];
   } else {
@@ -376,7 +378,7 @@ async function updateOrderStatus(order, status, user, options = {}) {
     }
 
     if (itemMatchedCount === 0) {
-      throw new AppError('Aucun article correspondant trouvé pour cette commande', 404);
+      throw new AppError('order.item_not_found', 404);
     }
 
     if (['confirmed', 'preparing', 'ready-for-pickup', 'in-transit', 'delivered', 'completed', 'cancelled'].includes(status)) {

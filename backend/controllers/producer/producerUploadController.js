@@ -13,7 +13,7 @@ const createUploadMiddleware = (contentType, category = null, fieldName = 'image
       if (file.mimetype.startsWith('image') || file.mimetype === 'application/pdf') {
         cb(null, true);
       } else {
-        cb(new AppError('Veuillez télécharger uniquement des images ou des PDF!', 400), false);
+        cb(new AppError('producer.images_or_pdf_only', 400), false);
       }
     }
   });

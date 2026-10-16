@@ -7,6 +7,7 @@ import {
 	Loader2,
 	Trash2,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { profileService } from "../../services";
 import CloudinaryImage from "./CloudinaryImage";
 
@@ -20,6 +21,7 @@ const ProfileImageUpload = ({
 	className = "",
 	disabled = false,
 }) => {
+	const { t } = useTranslation("common");
 	const [uploading, setUploading] = useState(false);
 	const [dragOver, setDragOver] = useState(false);
 	const [error, setError] = useState("");
@@ -47,14 +49,12 @@ const ProfileImageUpload = ({
 		setError("");
 
 		if (!profileService.validateFileType(file, config.allowedTypes)) {
-			setError("Format non supporté (JPEG, PNG, WebP uniquement)");
+			setError(t("profileImageUpload.unsupported"));
 			return;
 		}
 
 		if (!profileService.validateFileSize(file, config.maxSize)) {
-			setError(
-				`Trop volumineux (Max ${Math.round(config.maxSize / 1024 / 1024)}MB)`,
-			);
+			setError(t("profileImageUpload.tooLarge", { size: Math.round(config.maxSize / 1024 / 1024) }));
 			return;
 		}
 
@@ -74,11 +74,11 @@ const ProfileImageUpload = ({
 				onImageChange(imageUrl);
 			} else {
 				console.error("Aucune URL trouvée dans la réponse:", response.data);
-				setError("Erreur lors de la récupération de l'image");
+				setError(t("profileImageUpload.fetchError"));
 			}
 		} catch (error) {
 			console.error("Erreur upload:", error);
-			setError("Échec de l'upload");
+			setError(t("profileImageUpload.uploadFailed"));
 		} finally {
 			setUploading(false);
 		}
@@ -128,7 +128,7 @@ const ProfileImageUpload = ({
 					<div className="relative w-full h-full group/img">
 						<CloudinaryImage
 							src={currentImage}
-							alt="Upload preview"
+							alt={t("profileImageUpload.previewAlt")}
 							className="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-110"
 						/>
 						{!disabled && (
@@ -137,11 +137,12 @@ const ProfileImageUpload = ({
 									<div
 										className="p-3 bg-white/20 backdrop-blur-md rounded-full border border-white/30 text-white hover:bg-rose-500 hover:border-rose-400 transition-all transform translate-y-2 group-hover/img:translate-y-0"
 										onClick={handleRemove}
+										title={t("profileImageUpload.remove")}
 									>
 										<Trash2 className="h-5 w-5" />
 									</div>
 									<span className="text-[10px] font-black text-white uppercase tracking-widest opacity-0 group-hover/img:opacity-100 transition-opacity">
-										Changer
+										{t("profileImageUpload.change")}
 									</span>
 								</div>
 							</div>
@@ -152,7 +153,7 @@ const ProfileImageUpload = ({
 							<div className="flex flex-col items-center gap-3">
 								<Loader2 className="h-8 w-8 text-emerald-500 animate-spin" />
 								<span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
-									Traitement...
+									{t("profileImageUpload.processing")}
 								</span>
 							</div>
 						:	<div className="flex flex-col items-center gap-2">
@@ -161,12 +162,10 @@ const ProfileImageUpload = ({
 								</div>
 								<div className="mt-2">
 									<p className="text-[10px] font-black text-gray-900 uppercase tracking-widest">
-										{imageType === "avatar" && "Photo Profil"}
-										{imageType === "banner" && "Bannière"}
-										{imageType === "logo" && "Logo"}
+										{t(`profileImageUpload.types.${imageType}`, { defaultValue: "" })}
 									</p>
 									<p className="text-[9px] font-bold text-gray-400 uppercase tracking-tight mt-1">
-										PNG, JPG ou WebP
+										{t("profileImageUpload.formats")}
 									</p>
 								</div>
 							</div>

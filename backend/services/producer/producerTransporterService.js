@@ -10,7 +10,7 @@ async function getPreferredTransporters(producerId) {
     .populate('preferredTransporters', 'companyName phone address performanceStats');
   
   if (!producer) {
-    throw new Error('Producteur non trouvé');
+    throw new Error('producer.not_found');
   }
   
   return producer.preferredTransporters;
@@ -19,11 +19,11 @@ async function getPreferredTransporters(producerId) {
 async function addPreferredTransporter(producerId, transporterId) {
   const producer = await Producer.findById(producerId);
   if (!producer) {
-    throw new Error('Producteur non trouvé');
+    throw new Error('producer.not_found');
   }
   
   if (producer.preferredTransporters.includes(transporterId)) {
-    throw new Error('Ce transporteur est déjà dans vos préférés');
+    throw new Error('producer.transporter_already_favorite');
   }
 
   producer.preferredTransporters.push(transporterId);
@@ -33,7 +33,7 @@ async function addPreferredTransporter(producerId, transporterId) {
 async function removePreferredTransporter(producerId, transporterId) {
   const producer = await Producer.findById(producerId);
   if (!producer) {
-    throw new Error('Producteur non trouvé');
+    throw new Error('producer.not_found');
   }
   
   producer.preferredTransporters.pull(transporterId);

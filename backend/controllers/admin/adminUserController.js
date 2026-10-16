@@ -5,6 +5,7 @@ const User = require("../../models/User");
 const Product = require("../../models/Product");
 const catchAsync = require("../../utils/catchAsync");
 const AppError = require("../../utils/appError");
+const { parseCloudinaryUrl } = require("../../utils/cloudinaryAsset");
 const { logAudit, AUDIT_ACTIONS } = require("../../utils/auditLogger");
 const adminNotifications = require("../../utils/adminNotifications");
 const emailQueue = require("../../services/emailQueueService");
@@ -470,33 +471,16 @@ exports.proxyDownloadDocument = catchAsync(async (req, res, next) => {
 			api_secret: (process.env.CLOUDINARY_API_SECRET || "").trim(),
 		});
 
-		const { publicId } = extractPublicIdAndVersion(url);
-		if (!publicId) throw new Error("Public ID non trouvé");
+		// Analyseur commun : documents publics (« upload ») comme protégés
+		// (« authenticated », Jour 59), images comme fichiers raw
+		const parsed = parseCloudinaryUrl(url);
+		if (!parsed) throw new Error("URL Cloudinary non reconnue");
 
-		console.log(`[Proxy] Signature simplifiée pour: ${publicId}`);
-
-		// Étape 1: Métadonnées
-		let resource;
-		try {
-			resource = await cloudinary.api.resource(publicId, {
-				resource_type: "image",
-			});
-		} catch (e) {
-			resource = await cloudinary.api.resource(publicId, {
-				resource_type: "raw",
-			});
-		}
-
-		// Étape 2: Signature sans 'version' (souvent la cause du 401 si mal placé)
-		const signedUrl = cloudinary.url(publicId, {
-			resource_type: resource.resource_type,
-			type: resource.type,
-			format: resource.format,
-			sign_url: true,
-			secure: true,
+		const signedUrl = cloudinary.utils.private_download_url(parsed.publicId, parsed.format, {
+			resource_type: parsed.resourceType,
+			type: parsed.type,
+			expires_at: Math.floor(Date.now() / 1000) + 300,
 		});
-
-		console.log(`[Proxy] Target: ${signedUrl}`);
 
 		const response = await axios({
 			method: "GET",
@@ -524,30 +508,6 @@ exports.proxyDownloadDocument = catchAsync(async (req, res, next) => {
 	}
 });
 
-function extractPublicIdAndVersion(url) {
-	if (!url || !url.includes("cloudinary.com"))
-		return { publicId: null, version: null };
-	const parts = url.split("/");
-	const uploadIndex = parts.findIndex((part) => part === "upload");
-	if (uploadIndex === -1 || uploadIndex + 1 >= parts.length)
-		return { publicId: null, version: null };
-
-	let pathSegments = parts.slice(uploadIndex + 1);
-	let version = null;
-	const vIndex = pathSegments.findIndex((s) => s.match(/^v\d+$/));
-	if (vIndex !== -1) {
-		version = pathSegments[vIndex].substring(1);
-		pathSegments = pathSegments.slice(vIndex + 1);
-	} else {
-		while (
-			pathSegments.length > 0 &&
-			(pathSegments[0].includes(",") || pathSegments[0].match(/^[a-z]_.+/))
-		) {
-			pathSegments.shift();
-		}
-	}
-	return { publicId: pathSegments.join("/").split(".")[0], version };
-}
 
 // @desc    Relancer les utilisateurs avec un profil incomplet
 exports.remindIncompleteProfiles = catchAsync(async (req, res, next) => {

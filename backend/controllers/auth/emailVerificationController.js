@@ -78,18 +78,18 @@ exports.resendVerificationEmail = catchAsync(async (req, res, next) => {
   const { email } = req.body;
 
   if (!email) {
-    return next(new AppError('Email requis', 400));
+    return next(new AppError('auth.email_required', 400));
   }
 
-  // Trouver l'utilisateur
+  // Jour 59 (sécurité) : réponse identique que le compte existe, soit déjà vérifié
+  // ou non (comme « mot de passe oublié ») — un 404 permettait de tester si une
+  // adresse a un compte Harvests
   const user = await User.findOne({ email });
-  if (!user) {
-    return next(new AppError('Aucun utilisateur trouvé avec cet email', 404));
-  }
-
-  // Vérifier si l'email est déjà vérifié
-  if (user.isEmailVerified) {
-    return next(new AppError('Cet email est déjà vérifié', 400));
+  if (!user || user.isEmailVerified) {
+    return res.status(200).json({
+      status: 'success',
+      message: req.t('auth.verification_email_neutral')
+    });
   }
 
   // Générer un nouveau token de vérification
@@ -105,7 +105,7 @@ exports.resendVerificationEmail = catchAsync(async (req, res, next) => {
 
     res.status(200).json({
       status: 'success',
-      message: req.t ? req.t('auth.verification_email_sent') : 'Email de vérification renvoyé avec succès'
+      message: req.t('auth.verification_email_sent')
     });
   } catch (emailError) {
     // Supprimer le token si l'envoi échoue
@@ -114,7 +114,7 @@ exports.resendVerificationEmail = catchAsync(async (req, res, next) => {
     await user.save({ validateBeforeSave: false });
 
     console.error('Erreur envoi email de vérification:', emailError);
-    return next(new AppError('Erreur lors de l\'envoi de l\'email. Veuillez réessayer plus tard.', 500));
+    return next(new AppError('auth.email_send_error', 500));
   }
 });
 
@@ -123,20 +123,15 @@ exports.retryEmailVerification = catchAsync(async (req, res, next) => {
   const { email } = req.body;
   
   if (!email) {
-    return next(new AppError('Email requis', 400));
+    return next(new AppError('auth.email_required', 400));
   }
 
-  // Trouver l'utilisateur
+  // Réponse neutre : même raison que resendVerificationEmail (Jour 59)
   const user = await User.findOne({ email });
-  if (!user) {
-    return next(new AppError('Utilisateur non trouvé', 404));
-  }
-
-  // Vérifier si l'email est déjà vérifié
-  if (user.isEmailVerified) {
+  if (!user || user.isEmailVerified) {
     return res.status(200).json({
       status: 'success',
-      message: 'Email déjà vérifié'
+      message: req.t('auth.verification_email_neutral')
     });
   }
 
@@ -159,7 +154,7 @@ exports.retryEmailVerification = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    message: 'Email de vérification renvoyé en arrière-plan'
+    message: req.t('auth.verification_email_queued')
   });
 });
 

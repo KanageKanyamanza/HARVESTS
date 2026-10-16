@@ -7,7 +7,7 @@ const Producer = require('../../models/Producer');
 async function getCrops(producerId) {
   const producer = await Producer.findById(producerId).select('crops');
   if (!producer) {
-    throw new Error('Producteur non trouvé');
+    throw new Error('producer.not_found');
   }
   return producer.crops;
 }
@@ -15,7 +15,7 @@ async function getCrops(producerId) {
 async function addCrop(producerId, cropData) {
   const producer = await Producer.findById(producerId);
   if (!producer) {
-    throw new Error('Producteur non trouvé');
+    throw new Error('producer.not_found');
   }
   
   producer.crops.push(cropData);
@@ -27,12 +27,12 @@ async function addCrop(producerId, cropData) {
 async function updateCrop(producerId, cropId, updateData) {
   const producer = await Producer.findById(producerId);
   if (!producer) {
-    throw new Error('Producteur non trouvé');
+    throw new Error('producer.not_found');
   }
   
   const crop = producer.crops.id(cropId);
   if (!crop) {
-    throw new Error('Culture non trouvée');
+    throw new Error('producer.crop_not_found');
   }
   
   Object.keys(updateData).forEach(key => {
@@ -46,7 +46,7 @@ async function updateCrop(producerId, cropId, updateData) {
 async function removeCrop(producerId, cropId) {
   const producer = await Producer.findById(producerId);
   if (!producer) {
-    throw new Error('Producteur non trouvé');
+    throw new Error('producer.not_found');
   }
   
   producer.crops.pull(cropId);

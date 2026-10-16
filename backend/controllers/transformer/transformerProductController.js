@@ -1,5 +1,6 @@
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
+const { isNotFound } = require('../../utils/translate');
 const transformerProductService = require('../../services/transformer/transformerProductService');
 
 // Produits de la boutique
@@ -29,7 +30,7 @@ exports.getProduct = catchAsync(async (req, res, next) => {
 
 exports.createProduct = catchAsync(async (req, res, next) => {
   if (!req.body.name || !req.body.description || !req.body.category || !req.body.price || req.body.stock === undefined) {
-    return next(new AppError('Tous les champs obligatoires doivent être remplis', 400));
+    return next(new AppError('product.required_fields', 400));
   }
 
   try {
@@ -39,7 +40,7 @@ exports.createProduct = catchAsync(async (req, res, next) => {
       data: { product }
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 
@@ -51,7 +52,7 @@ exports.updateProduct = catchAsync(async (req, res, next) => {
       data: { product }
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message === 'Produit non trouvé' ? 404 : 400));
+    return next(new AppError(error.message, isNotFound(error.message) ? 404 : 400));
   }
 });
 

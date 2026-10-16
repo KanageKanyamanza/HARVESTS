@@ -74,12 +74,12 @@ const OrdersList = () => {
 			setError(null);
 		} catch (error) {
 			console.error("Erreur lors du chargement des commandes:", error);
-			setError("Erreur lors du chargement des commandes");
+			setError(t("orders.loadError"));
 			setOrders([]);
 		} finally {
 			setLoading(false);
 		}
-	}, []);
+	}, [t]);
 
 	useEffect(() => {
 		loadOrders();

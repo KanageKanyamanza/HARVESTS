@@ -556,7 +556,10 @@
 		"nextPage": "Next page",
 		"pdfDocument": "PDF document",
 		"previewAlt": "Document preview",
-		"defaultLabel": "Document"
+		"defaultLabel": "Document",
+		"previewLoading": "Loading preview...",
+		"previewError": "Unable to display this document.",
+		"openError": "Unable to open this document. Please log in again and retry."
 	},
 	"orderDetail": {
 		"eyebrow": "Transaction details",
@@ -624,5 +627,115 @@
 		"unitPrice": "Unit price: {{price}}",
 		"validating": "Validating...",
 		"confirm": "Confirm"
+	},
+	"errorMessage": {
+		"title": "Something went wrong",
+		"default": "An unexpected error occurred. Please try again.",
+		"retry": "Try again"
+	},
+	"errorBoundary": {
+		"title": "Oops, something went wrong",
+		"text": "We ran into an unexpected problem. You can try again or go back to the home page.",
+		"retry": "Try again",
+		"home": "Home",
+		"devDetails": "Crash details (development only)"
+	},
+	"profileImageUpload": {
+		"unsupported": "Unsupported format (JPEG, PNG, WebP only)",
+		"tooLarge": "File too large (max {{size}} MB)",
+		"fetchError": "Error while retrieving the image",
+		"uploadFailed": "Image upload failed",
+		"processing": "Processing...",
+		"change": "Change",
+		"remove": "Remove image",
+		"previewAlt": "Image preview",
+		"types": {
+			"avatar": "Profile photo",
+			"banner": "Banner",
+			"logo": "Logo"
+		},
+		"formats": "PNG, JPG or WebP"
+	},
+	"cart": {
+		"outOfStock": "This product is out of stock",
+		"insufficientStock": "Insufficient stock. Available: {{stock}}, already in cart: {{inCart}}"
+	},
+	"orderAlerts": {
+		"newOrdersTitle_one": "New order received",
+		"newOrdersTitle_other": "New orders received",
+		"newOrdersMessage_one": "You have received {{count}} new order.",
+		"newOrdersMessage_other": "You have received {{count}} new orders."
+	},
+	"reviewForm": {
+		"byProducer": "By {{name}}",
+		"unknownProducer": "Unknown producer",
+		"rating": "Overall rating *",
+		"ratingRequired": "Please give a rating",
+		"order": "Related order (optional)",
+		"noSpecificOrder": "No specific order",
+		"orderOption": "Order #{{number}} — {{date}} — {{amount}}",
+		"noOrderFound": "No order found for this product",
+		"noOrderHint": "You can still leave a general review",
+		"comment": "Your review",
+		"commentPlaceholder": "Share your experience with this product (optional)...",
+		"media": "Photos or videos (optional)",
+		"mediaAdd": "Click to add photos or videos",
+		"mediaHint": "PNG, JPG, MP4 up to 10 MB",
+		"mediaPreviewAlt": "Preview {{index}}",
+		"video": "Video",
+		"removeMedia": "Remove this file",
+		"cancel": "Cancel",
+		"submitting": "Sending...",
+		"submit": "Post review"
+	},
+	"reviewList": {
+		"count_one": "{{count}} review",
+		"count_other": "{{count}} reviews",
+		"distribution": "Rating distribution",
+		"filters": "Filters",
+		"rating": "Rating",
+		"allRatings": "All ratings",
+		"stars_one": "{{count}} star",
+		"stars_other": "{{count}} stars",
+		"type": "Review type",
+		"allReviews": "All reviews",
+		"verifiedOnly": "Verified purchases",
+		"sortBy": "Sort by",
+		"sort": {
+			"most-helpful": "Most helpful",
+			"newest": "Newest",
+			"oldest": "Oldest",
+			"highest-rating": "Highest rating",
+			"lowest-rating": "Lowest rating"
+		},
+		"empty": "No reviews found",
+		"emptyFiltered": "No reviews match your filters.",
+		"beFirst": "Be the first to leave a review!"
+	},
+	"reviewCard": {
+		"verifiedPurchase": "Verified purchase",
+		"byProducer": "By {{name}}",
+		"imageAlt": "Image {{index}}",
+		"producerResponse": "Producer's response",
+		"like": "Like",
+		"reply": "Reply",
+		"helpful": "Helpful",
+		"notHelpful": "Not helpful",
+		"loginToReply": "Log in to reply",
+		"replyPlaceholder": "Write a comment...",
+		"sendReply": "Send"
+	},
+	"searchModal": {
+		"placeholder": "Search for products...",
+		"clear": "Clear search",
+		"close": "Close",
+		"startTyping": "Start typing to search for products",
+		"noResults": "No products found for “{{query}}”",
+		"resultsCount_one": "{{count}} result found",
+		"resultsCount_other": "{{count}} results found",
+		"viewAll": "View all results →",
+		"viewAllFor": "View all results for “{{query}}”",
+		"priceUnavailable": "Price not available",
+		"error": "Error while searching"
 	}
 }

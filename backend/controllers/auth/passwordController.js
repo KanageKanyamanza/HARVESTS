@@ -1,4 +1,3 @@
-const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const User = require('../../models/User');
 const catchAsync = require('../../utils/catchAsync');
@@ -6,35 +5,11 @@ const AppError = require('../../utils/appError');
 const Email = require('../../utils/email');
 const { logAudit, AUDIT_ACTIONS } = require('../../utils/auditLogger');
 
-// Fonction pour créer et envoyer un token (dupliquée pour éviter dépendance circulaire)
-const createSendToken = (user, statusCode, req, res) => {
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
-    algorithm: 'HS256',
-  });
-
-  const cookieOptions = {
-    expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-    ),
-    httpOnly: true,
-    secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
-    sameSite: 'strict'
-  };
-
-  res.cookie('jwt', token, cookieOptions);
-  user.password = undefined;
-
-  res.status(statusCode).json({
-    status: 'success',
-    token,
-    data: {
-      user,
-      emailVerified: user.isEmailVerified,
-      requiresEmailVerification: !user.isEmailVerified
-    },
-  });
-};
+// Jour 59 (sécurité) : même émission de jetons que la connexion (access 15 min +
+// refresh 7 j en cookie httpOnly). La copie locale émettait l'ancien jeton longue
+// durée (JWT_EXPIRES_IN, cookie `jwt`). authController n'importe pas ce fichier :
+// pas de dépendance circulaire.
+const { createSendToken } = require('./authController');
 
 // Mot de passe oublié
 exports.forgotPassword = catchAsync(async (req, res, next) => {
@@ -42,12 +17,13 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
 
   // Réponse identique que l'email existe ou non (anti-énumération)
-  const neutralResponse = res.status(200).json({
-    status: 'success',
-    message: 'Si un compte existe avec cet email, vous recevrez un lien de réinitialisation.',
-  });
+  const sendNeutralResponse = () =>
+    res.status(200).json({
+      status: 'success',
+      message: req.t('auth.password_reset_neutral'),
+    });
 
-  if (!user) return neutralResponse;
+  if (!user) return sendNeutralResponse();
 
   // 2) Générer le token de reset aléatoire
   const resetToken = user.createPasswordResetToken();
@@ -60,14 +36,14 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
 
     await new Email(user, resetURL).sendPasswordReset();
 
-    return neutralResponse;
+    return sendNeutralResponse();
   } catch (err) {
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save({ validateBeforeSave: false });
 
     return next(
-      new AppError('Erreur lors de l\'envoi de l\'email. Veuillez réessayer plus tard.', 500)
+      new AppError('auth.email_send_error', 500)
     );
   }
 });
@@ -87,7 +63,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 
   // 2) Si le token n'a pas expiré et qu'il y a un utilisateur, définir le nouveau mot de passe
   if (!user) {
-    return next(new AppError('Token invalide ou expiré', 400));
+    return next(new AppError('auth.reset_token_invalid', 400));
   }
 
   user.password = req.body.password;
@@ -117,7 +93,7 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
 
   // 2) Vérifier si le mot de passe actuel est correct
   if (!(await user.comparePassword(req.body.passwordCurrent))) {
-    return next(new AppError('Votre mot de passe actuel est incorrect', 401));
+    return next(new AppError('auth.current_password_incorrect', 401));
   }
 
   // 3) Si oui, mettre à jour le mot de passe

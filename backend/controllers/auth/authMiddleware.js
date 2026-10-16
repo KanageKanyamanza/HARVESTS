@@ -20,10 +20,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 
 	if (!token) {
 		return next(
-			new AppError(
-				"Vous n'êtes pas connecté! Veuillez vous connecter pour accéder.",
-				401
-			)
+			new AppError("auth.not_logged_in", 401)
 		);
 	}
 
@@ -34,28 +31,25 @@ exports.protect = catchAsync(async (req, res, next) => {
 	const currentUser = await User.findById(decoded.id);
 	if (!currentUser) {
 		return next(
-			new AppError("L'utilisateur propriétaire de ce token n'existe plus.", 401)
+			new AppError("auth.user_no_longer_exists", 401)
 		);
 	}
 
 	// Vérifier si le mot de passe a été changé après l'émission du token
 	if (currentUser.changedPasswordAfter(decoded.iat)) {
 		return next(
-			new AppError(
-				"L'utilisateur a récemment changé de mot de passe! Veuillez vous reconnecter.",
-				401
-			)
+			new AppError("auth.password_changed_relogin", 401)
 		);
 	}
 
 	// Vérifier si le compte est actif
 	if (!currentUser.isActive) {
-		return next(new AppError("Votre compte a été désactivé", 401));
+		return next(new AppError("auth.account_disabled", 401));
 	}
 
 	// Vérifier si le compte n'est pas suspendu
 	if (currentUser.suspendedUntil && currentUser.suspendedUntil > new Date()) {
-		return next(new AppError("Votre compte est temporairement suspendu", 403));
+		return next(new AppError("auth.account_suspended_temp", 403));
 	}
 
 	// Ajouter l'utilisateur à la requête
@@ -123,10 +117,7 @@ exports.restrictTo = (...userTypes) => {
 	return (req, res, next) => {
 		if (!userTypes.includes(req.user.userType)) {
 			return next(
-				new AppError(
-					"Vous n'avez pas la permission d'effectuer cette action",
-					403
-				)
+				new AppError("auth.forbidden_action", 403)
 			);
 		}
 		next();
@@ -141,24 +132,14 @@ exports.requireVerification = (req, res, next) => {
 	if (!req.user.isEmailVerified) {
 		return res.status(403).json({
 			status: "error",
-			message: "Cette fonctionnalité nécessite une vérification d'email",
+			message: req.t("auth.verification_required"),
 			code: "EMAIL_VERIFICATION_REQUIRED",
 			data: {
 				emailVerified: false,
 				requiresEmailVerification: true,
-				suggestion: "Vérifiez votre email pour débloquer cette fonctionnalité",
-				allowedActions: [
-					"Voir le profil",
-					"Modifier les informations de base",
-					"Consulter les commandes existantes",
-					"Voir les notifications",
-				],
-				restrictedActions: [
-					"Créer des commandes",
-					"Effectuer des paiements",
-					"Publier des produits",
-					"Gérer la boutique",
-				],
+				suggestion: req.t("auth.verification_suggestion"),
+				allowedActions: req.t("auth.verification_allowed_actions"),
+				restrictedActions: req.t("auth.verification_restricted_actions"),
 			},
 		});
 	}
@@ -170,7 +151,7 @@ exports.requireVerificationFlexible = (options = {}) => {
 	const {
 		allowReadOnly = true,
 		allowedMethods = ["GET", "HEAD", "OPTIONS"],
-		customMessage = "Cette action nécessite une vérification d'email",
+		customMessage = "auth.verification_required_action",
 	} = options;
 
 	return (req, res, next) => {
@@ -182,13 +163,12 @@ exports.requireVerificationFlexible = (options = {}) => {
 
 			return res.status(403).json({
 				status: "error",
-				message: customMessage,
+				message: req.t(customMessage),
 				code: "EMAIL_VERIFICATION_REQUIRED",
 				data: {
 					emailVerified: false,
 					requiresEmailVerification: true,
-					suggestion:
-						"Vérifiez votre email pour débloquer cette fonctionnalité",
+					suggestion: req.t("auth.verification_suggestion"),
 				},
 			});
 		}
@@ -205,10 +185,7 @@ exports.requireApproval = (req, res, next) => {
 		!req.user.isApproved
 	) {
 		return next(
-			new AppError(
-				"Votre compte doit être approuvé pour accéder à cette fonctionnalité",
-				403
-			)
+			new AppError("auth.approval_required", 403)
 		);
 	}
 	next();

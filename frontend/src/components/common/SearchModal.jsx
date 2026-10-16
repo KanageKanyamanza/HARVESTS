@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { X, Search, Leaf } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { productService } from '../../services';
+import i18n, { formatPrice } from '../../utils/i18n';
 import { toPlainText } from '../../utils/textHelpers';
 import LoadingSpinner from './LoadingSpinner';
 
@@ -49,30 +51,11 @@ const ProductImage = ({ product, className = "" }) => {
 };
 
 // Fonction utilitaire pour les labels de catégories
-const getCategoryLabel = (category) => {
-  const categories = {
-    cereals: "Céréales",
-    vegetables: "Légumes",
-    fruits: "Fruits",
-    legumes: "Légumineuses",
-    tubers: "Tubercules",
-    spices: "Épices",
-    herbs: "Herbes",
-    grains: "Grains",
-    nuts: "Noix",
-    seeds: "Graines",
-    dairy: "Produits laitiers",
-    meat: "Viande",
-    poultry: "Volaille",
-    fish: "Poisson",
-    "processed-foods": "Aliments transformés",
-    beverages: "Boissons",
-    other: "Autres",
-  };
-  return categories[category] || category;
-};
+const getCategoryLabel = (category) =>
+  i18n.t(`public:categories.labels.${category}`, { defaultValue: category || '' });
 
 const SearchModal = ({ isOpen, onClose, onProductClick }) => {
+  const { t } = useTranslation('common');
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -114,7 +97,7 @@ const SearchModal = ({ isOpen, onClose, onProductClick }) => {
         }
       } catch (error) {
         console.error('Erreur lors de la recherche:', error);
-        setError('Erreur lors de la recherche');
+        setError(t('searchModal.error'));
         setResults([]);
       } finally {
         setLoading(false);
@@ -122,7 +105,7 @@ const SearchModal = ({ isOpen, onClose, onProductClick }) => {
     }, 300); // Debounce de 300ms
 
     return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
+  }, [searchQuery, t]);
 
   // Fermer avec Escape
   useEffect(() => {
@@ -192,7 +175,7 @@ const SearchModal = ({ isOpen, onClose, onProductClick }) => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="block w-full pl-10 md:pl-12 pr-10 md:pr-4 py-3 md:py-4 text-base md:text-lg border-2 border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                placeholder="Rechercher des produits..."
+                placeholder={t('searchModal.placeholder')}
                 autoComplete="off"
               />
               {searchQuery && (
@@ -209,7 +192,7 @@ const SearchModal = ({ isOpen, onClose, onProductClick }) => {
           <button
             onClick={onClose}
             className="flex-shrink-0 ml-2 md:ml-4 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-            aria-label="Fermer"
+            aria-label={t('searchModal.close')}
           >
             <X className="h-5 w-5 md:h-6 md:w-6" />
           </button>
@@ -221,7 +204,7 @@ const SearchModal = ({ isOpen, onClose, onProductClick }) => {
             {!searchQuery || searchQuery.length < 2 ? (
               <div className="text-center py-12">
                 <Search className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">Commencez à taper pour rechercher des produits</p>
+                <p className="text-gray-500 text-lg">{t('searchModal.startTyping')}</p>
               </div>
             ) : loading ? (
               <div className="py-12 text-center">
@@ -233,19 +216,19 @@ const SearchModal = ({ isOpen, onClose, onProductClick }) => {
               </div>
             ) : results.length === 0 ? (
               <div className="py-12 text-center">
-                <p className="text-gray-500 text-lg">Aucun produit trouvé pour "{searchQuery}"</p>
+                <p className="text-gray-500 text-lg">{t('searchModal.noResults', { query: searchQuery })}</p>
               </div>
             ) : (
               <div className="space-y-3 md:space-y-4">
                 <div className="flex items-center justify-between mb-3 md:mb-4">
                   <h3 className="text-base md:text-lg font-semibold text-gray-900">
-                    {results.length} résultat{results.length > 1 ? 's' : ''} trouvé{results.length > 1 ? 's' : ''}
+                    {t('searchModal.resultsCount', { count: results.length })}
                   </h3>
                   <button
                     onClick={handleViewAllResults}
                     className="text-primary-600 hover:text-primary-700 font-medium text-xs md:text-sm whitespace-nowrap"
                   >
-                    Voir tous les résultats →
+                    {t('searchModal.viewAll')}
                   </button>
                 </div>
 
@@ -287,7 +270,7 @@ const SearchModal = ({ isOpen, onClose, onProductClick }) => {
                         {/* Prix */}
                         <div className="mt-auto pt-1 md:pt-2">
                           <p className="text-base md:text-lg font-bold text-green-600">
-                            {product.price ? `${product.price.toLocaleString()} F CFA` : 'Prix non disponible'}
+                            {product.price ? formatPrice(product.price, product.currency) : t('searchModal.priceUnavailable')}
                           </p>
                         </div>
                       </div>
@@ -302,7 +285,7 @@ const SearchModal = ({ isOpen, onClose, onProductClick }) => {
                       onClick={handleViewAllResults}
                       className="w-full md:w-auto px-4 md:px-6 py-2.5 md:py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm md:text-base"
                     >
-                      Voir tous les résultats pour "{searchQuery}"
+                      {t('searchModal.viewAllFor', { query: searchQuery })}
                     </button>
                   </div>
                 )}

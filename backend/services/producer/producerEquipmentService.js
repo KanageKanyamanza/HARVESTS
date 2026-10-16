@@ -7,7 +7,7 @@ const Producer = require('../../models/Producer');
 async function getEquipment(producerId) {
   const producer = await Producer.findById(producerId).select('equipment');
   if (!producer) {
-    throw new Error('Producteur non trouvé');
+    throw new Error('producer.not_found');
   }
   return producer.equipment;
 }
@@ -15,7 +15,7 @@ async function getEquipment(producerId) {
 async function addEquipment(producerId, equipmentData) {
   const producer = await Producer.findById(producerId);
   if (!producer) {
-    throw new Error('Producteur non trouvé');
+    throw new Error('producer.not_found');
   }
   
   producer.equipment.push(equipmentData);
@@ -27,12 +27,12 @@ async function addEquipment(producerId, equipmentData) {
 async function updateEquipment(producerId, equipmentId, updateData) {
   const producer = await Producer.findById(producerId);
   if (!producer) {
-    throw new Error('Producteur non trouvé');
+    throw new Error('producer.not_found');
   }
   
   const equipment = producer.equipment.id(equipmentId);
   if (!equipment) {
-    throw new Error('Équipement non trouvé');
+    throw new Error('producer.equipment_not_found');
   }
   
   Object.keys(updateData).forEach(key => {
@@ -46,7 +46,7 @@ async function updateEquipment(producerId, equipmentId, updateData) {
 async function removeEquipment(producerId, equipmentId) {
   const producer = await Producer.findById(producerId);
   if (!producer) {
-    throw new Error('Producteur non trouvé');
+    throw new Error('producer.not_found');
   }
   
   producer.equipment.pull(equipmentId);

@@ -24,7 +24,7 @@ exports.createProduct = catchAsync(async (req, res, next) => {
       data: { product }
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 

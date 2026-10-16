@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const AppError = require("./appError");
 
 /**
  * Checks if a user has reached their weekly order limit.
@@ -57,12 +58,40 @@ async function checkWeeklyOrderLimit(userId) {
 			console.error("Erreur notification quota atteint:", notifyError);
 		}
 
-		throw new Error(
-			`Limite hebdomadaire de commandes atteinte (${limit}). Veuillez passer à un plan supérieur pour recevoir plus de commandes.`,
-		);
+		throw new AppError("order.weekly_limit_reached", 403, { limit });
+	}
+}
+
+/**
+ * Vérifie la limite de produits du plan d'abonnement avant une création.
+ * Jour 59 : partagée par toutes les routes de création (producteur via
+ * /producers/me/products, producteur via /products, transformateur) — la
+ * route de l'interface producteur ne la vérifiait pas : un appel direct à
+ * l'API permettait de dépasser le plan.
+ * @param {"producer"|"transformer"} ownerField - champ propriétaire du produit
+ * @param {string} ownerId - identifiant du vendeur
+ * @throws {AppError} 403 si la limite est atteinte
+ */
+async function assertProductLimit(ownerField, ownerId) {
+	const Subscription = mongoose.model("Subscription");
+	const Product = mongoose.model("Product");
+	const activeSubscription = await Subscription.findOne({ user: ownerId, status: "active" });
+
+	const plans = Subscription.getAvailablePlans();
+	const currentPlan = (activeSubscription && plans[activeSubscription.planId]) || plans.gratuit;
+	const maxProducts = currentPlan.features.maxProducts;
+	if (maxProducts === -1) return;
+
+	const productCount = await Product.countDocuments({
+		[ownerField]: ownerId,
+		status: { $ne: "inactive" },
+	});
+	if (productCount >= maxProducts) {
+		throw new AppError("product.limit_reached", 403, { plan: currentPlan.name, max: maxProducts });
 	}
 }
 
 module.exports = {
 	checkWeeklyOrderLimit,
+	assertProductLimit,
 };
