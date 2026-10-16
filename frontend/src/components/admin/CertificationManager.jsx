@@ -13,6 +13,7 @@ import {
 	FiDownload,
 } from "react-icons/fi";
 import { isProtectedDocument, openDocument } from "../../utils/documentAccess";
+import { useNotifications } from "../../hooks/useNotifications";
 
 const CertificationManager = ({
 	certifications = [],
@@ -20,6 +21,7 @@ const CertificationManager = ({
 	isAdmin = false,
 	canEdit = false,
 }) => {
+	const { showError } = useNotifications();
 	const [editingIndex, setEditingIndex] = useState(null);
 	const [showAddForm, setShowAddForm] = useState(false);
 	const [formData, setFormData] = useState({
@@ -210,7 +212,7 @@ const CertificationManager = ({
 											{/* Document protégé (Jour 59) : lien temporaire demandé au serveur */}
 											<button
 												type="button"
-												onClick={() => openDocument(cert.document).catch(() => {})}
+												onClick={() => openDocument(cert.document).catch(() => showError("Impossible d'ouvrir ce document. Reconnectez-vous puis réessayez."))}
 												className="inline-flex items-center text-sm text-harvests-green hover:text-green-600 mr-4"
 											>
 												<FiExternalLink className="h-4 w-4 mr-1" />
@@ -222,7 +224,7 @@ const CertificationManager = ({
 													// Le lien temporaire est déjà un lien de téléchargement
 													<button
 														type="button"
-														onClick={() => openDocument(cert.document).catch(() => {})}
+														onClick={() => openDocument(cert.document).catch(() => showError("Impossible d'ouvrir ce document. Reconnectez-vous puis réessayez."))}
 														className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
 														title="Télécharger le document"
 													>

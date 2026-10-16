@@ -558,7 +558,8 @@
 		"previewAlt": "Document preview",
 		"defaultLabel": "Document",
 		"previewLoading": "Loading preview...",
-		"previewError": "Unable to display this document."
+		"previewError": "Unable to display this document.",
+		"openError": "Unable to open this document. Please log in again and retry."
 	},
 	"orderDetail": {
 		"eyebrow": "Transaction details",

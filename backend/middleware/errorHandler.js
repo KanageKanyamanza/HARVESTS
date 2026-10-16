@@ -11,7 +11,11 @@ const handleCastErrorDB = (err) =>
  * Gère les erreurs de champs dupliqués dans MongoDB
  */
 const handleDuplicateFieldsDB = (err) => {
-	const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
+	// errmsg est un accesseur de MongoServerError : à lire sur l'erreur d'origine
+	// (la copie { ...err } ne le contient pas)
+	const source = err.errmsg || err.message || "";
+	const quoted = source.match(/(["'])(\\?.)*?\1/);
+	const value = quoted ? quoted[0] : Object.values(err.keyValue || {}).join(", ");
 	return new AppError("errors.duplicate_field", 400, { value });
 };
 
@@ -91,7 +95,7 @@ module.exports = (err, req, res, next) => {
 
 	// Traitement des erreurs spécifiques MongoDB et JWT
 	if (error.name === "CastError") error = handleCastErrorDB(error);
-	if (error.code === 11000) error = handleDuplicateFieldsDB(error);
+	if (error.code === 11000) error = handleDuplicateFieldsDB(err);
 	if (error.name === "ValidationError") error = handleValidationErrorDB(error);
 	if (error.name === "JsonWebTokenError") error = handleJWTError();
 	if (error.name === "TokenExpiredError") error = handleJWTExpiredError();

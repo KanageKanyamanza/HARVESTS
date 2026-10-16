@@ -3,23 +3,28 @@ import { apiRequest } from "../services/api";
 
 /**
  * Jour 59 (sécurité) — documents administratifs protégés.
- * Les documents envoyés sur Cloudinary sont désormais en accès « authenticated » :
- * leur URL brute renvoie 401. On demande au serveur un lien temporaire (5 min),
- * accordé seulement au propriétaire du document ou à un admin. Les anciens
- * documents publics (type « upload ») restent ouverts directement.
+ * Les documents envoyés sur Cloudinary sont en accès « authenticated » : leur
+ * URL brute renvoie 401. Le serveur (propriétaire ou admin seulement) renvoie
+ * le fichier lui-même ; on l'affiche via une URL locale (blob:), ce qui permet
+ * l'aperçu dans la page et ne laisse circuler aucun lien vers le document.
+ * Les anciens documents publics (type « upload ») restent ouverts directement.
  */
 export const isProtectedDocument = (url) =>
 	typeof url === "string" && /res\.cloudinary\.com\/[^/]+\/(image|raw|video)\/(authenticated|private)\//i.test(url);
 
-export const getDocumentAccessUrl = async (url) => {
-	if (!isProtectedDocument(url)) return url;
-	const response = await apiRequest.get("/upload/documents/access", { params: { url } });
-	return response.data?.data?.url || null;
+/** URL locale (blob:) du contenu d'un document protégé — à libérer avec URL.revokeObjectURL. */
+export const fetchDocumentObjectUrl = async (url) => {
+	const response = await apiRequest.get("/upload/documents/file", {
+		params: { url },
+		responseType: "blob",
+	});
+	return URL.createObjectURL(response.data);
 };
 
 /**
  * Ouvre un document dans un nouvel onglet. L'onglet est ouvert avant l'appel
  * réseau pour ne pas être bloqué par le navigateur (fenêtre surgissante).
+ * Rejette en cas d'échec (accès refusé, session expirée) : à signaler à l'utilisateur.
  */
 export const openDocument = async (url) => {
 	if (!url) return;
@@ -29,14 +34,10 @@ export const openDocument = async (url) => {
 	}
 	const tab = window.open("", "_blank");
 	try {
-		const accessUrl = await getDocumentAccessUrl(url);
-		if (!accessUrl) throw new Error("no access url");
-		if (tab) {
-			tab.opener = null;
-			tab.location.href = accessUrl;
-		} else {
-			window.location.assign(accessUrl);
-		}
+		const objectUrl = await fetchDocumentObjectUrl(url);
+		if (tab) tab.location.href = objectUrl;
+		else window.location.assign(objectUrl);
+		setTimeout(() => URL.revokeObjectURL(objectUrl), 60 * 1000);
 	} catch (error) {
 		tab?.close();
 		throw error;
@@ -45,13 +46,14 @@ export const openDocument = async (url) => {
 
 /**
  * URL affichable d'un document (aperçu image / PDF) : l'URL d'origine pour un
- * document public, un lien temporaire pour un document protégé.
+ * document public, une URL locale pour un document protégé.
  */
 export const useDocumentUrl = (url, enabled = true) => {
 	const [state, setState] = useState({ url: null, loading: false, error: false });
 
 	useEffect(() => {
 		let cancelled = false;
+		let objectUrl = null;
 		if (!url || !enabled) {
 			setState({ url: null, loading: false, error: false });
 			return undefined;
@@ -61,11 +63,16 @@ export const useDocumentUrl = (url, enabled = true) => {
 			return undefined;
 		}
 		setState({ url: null, loading: true, error: false });
-		getDocumentAccessUrl(url)
-			.then((accessUrl) => !cancelled && setState({ url: accessUrl, loading: false, error: !accessUrl }))
+		fetchDocumentObjectUrl(url)
+			.then((result) => {
+				objectUrl = result;
+				if (cancelled) URL.revokeObjectURL(result);
+				else setState({ url: result, loading: false, error: false });
+			})
 			.catch(() => !cancelled && setState({ url: null, loading: false, error: true }));
 		return () => {
 			cancelled = true;
+			if (objectUrl) URL.revokeObjectURL(objectUrl);
 		};
 	}, [url, enabled]);
 

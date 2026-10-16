@@ -4,6 +4,7 @@ const { promisify } = require("util");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const User = require("../models/User");
+const axios = require("axios");
 const { parseCloudinaryUrl } = require("../utils/cloudinaryAsset");
 
 // Configuration Cloudinary
@@ -163,15 +164,17 @@ exports.deleteImageByUrl = catchAsync(async (req, res, next) => {
 
 	try {
 		// Extraire le public_id de l'URL Cloudinary
-		const publicId = extractPublicIdFromUrl(imageUrl);
+		// Analyseur commun (gère les documents « authenticated », les fichiers raw et les
+		// URL signées) ; l'ancien extracteur ne reconnaissait que /upload/
+		const parsed = parseCloudinaryUrl(imageUrl);
+		const publicId = parsed?.publicId || extractPublicIdFromUrl(imageUrl);
 
 		if (!publicId) {
 			return next(new AppError("URL d'image invalide", 400));
 		}
 
-		const parsed = parseCloudinaryUrl(imageUrl);
 		const result = await cloudinary.uploader.destroy(
-			parsed?.publicId || publicId,
+			publicId,
 			parsed ? { type: parsed.type, resource_type: parsed.resourceType } : undefined,
 		);
 
@@ -256,6 +259,8 @@ exports.uploadDocumentToCloudinary = catchAsync(async (req, res, next) => {
 					// Jour 59 (sécurité) : pièces d'identité, RCCM, NINEA… ne sont plus
 					// publics ; lecture via /upload/documents/access (lien signé temporaire)
 					type: "authenticated",
+					// Auteur de l'envoi : autorise l'aperçu avant l'enregistrement du formulaire
+					context: { uploader: String(req.user?._id || req.admin?._id || "") },
 					resource_type: "auto", // Permet de détecter PDF vs Image
 					format: req.file.mimetype === "application/pdf" ? "pdf" : undefined,
 				},
@@ -293,38 +298,92 @@ exports.uploadDocumentToCloudinary = catchAsync(async (req, res, next) => {
 // Durée de validité d'un lien de consultation de document
 const DOCUMENT_ACCESS_TTL_SECONDS = 5 * 60;
 
+// Champs où un document peut être enregistré sur le profil. La propriété n'est
+// reconnue que dans ces champs : une URL collée dans la bio ou l'adresse ne
+// donne aucun accès au document d'un autre utilisateur.
+const DOCUMENT_KEY_RE = /document|certif|licen|permit|attestation|identity|registration|rccm|ninea|kyc|proof|file/i;
+
+const userHoldsDocument = (node, parsed, inDocumentField = false) => {
+	if (typeof node === "string") {
+		if (!inDocumentField) return false;
+		const candidate = parseCloudinaryUrl(node);
+		return Boolean(candidate && candidate.publicId === parsed.publicId && candidate.type === parsed.type);
+	}
+	if (Array.isArray(node)) return node.some((item) => userHoldsDocument(item, parsed, inDocumentField));
+	if (node && typeof node === "object" && !node._bsontype && !(node instanceof Date)) {
+		return Object.entries(node).some(([key, value]) =>
+			userHoldsDocument(value, parsed, inDocumentField || DOCUMENT_KEY_RE.test(key)),
+		);
+	}
+	return false;
+};
+
 /**
- * Lien de consultation temporaire d'un document protégé (Jour 59).
- * Accès : un admin pour tout document ; un utilisateur seulement pour un
- * document enregistré sur son propre compte. Les anciens documents publics
- * (type « upload », pas encore migrés) sont renvoyés tels quels.
+ * Contrôle d'accès commun aux documents protégés (Jour 59) : un admin pour
+ * tout document ; un utilisateur pour un document enregistré dans un champ
+ * document de son compte, ou qu'il vient d'envoyer (auteur noté sur Cloudinary).
+ * Renvoie l'URL analysée, ou null pour un ancien document public (type « upload »).
  */
-exports.getDocumentAccessUrl = catchAsync(async (req, res, next) => {
-	const { url } = req.query;
+const resolveProtectedDocument = async (req, url) => {
 	const parsed = parseCloudinaryUrl(url);
-	if (!parsed) return next(new AppError("upload.invalid_document_url", 400));
+	if (!parsed) throw new AppError("upload.invalid_document_url", 400);
+	if (parsed.type === "upload") return { parsed, isPublic: true };
+	if (req.admin) return { parsed, isPublic: false };
 
-	if (parsed.type === "upload") {
-		return res.status(200).json({ status: "success", data: { url, expiresIn: null } });
+	const owner = await User.findById(req.user._id).lean();
+	if (owner && userHoldsDocument(owner, parsed)) return { parsed, isPublic: false };
+
+	try {
+		const resource = await cloudinary.api.resource(parsed.publicId, {
+			type: parsed.type,
+			resource_type: parsed.resourceType,
+			context: true,
+		});
+		if (resource?.context?.custom?.uploader === String(req.user._id)) return { parsed, isPublic: false };
+	} catch {
+		// asset introuvable : refus ci-dessous
 	}
+	throw new AppError("upload.document_forbidden", 403);
+};
 
-	if (!req.admin) {
-		const owner = await User.findById(req.user._id).lean();
-		if (!owner || !JSON.stringify(owner).includes(parsed.publicId)) {
-			return next(new AppError("upload.document_forbidden", 403));
-		}
-	}
-
-	const accessUrl = cloudinary.utils.private_download_url(parsed.publicId, parsed.format, {
+const signedDownloadUrl = (parsed) =>
+	cloudinary.utils.private_download_url(parsed.publicId, parsed.format, {
 		resource_type: parsed.resourceType,
 		type: parsed.type,
 		expires_at: Math.floor(Date.now() / 1000) + DOCUMENT_ACCESS_TTL_SECONDS,
 	});
 
+const CONTENT_TYPES = { pdf: "application/pdf", jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp" };
+
+/** Lien de téléchargement temporaire d'un document protégé. */
+exports.getDocumentAccessUrl = catchAsync(async (req, res) => {
+	const { parsed, isPublic } = await resolveProtectedDocument(req, req.query.url);
 	res.status(200).json({
 		status: "success",
-		data: { url: accessUrl, expiresIn: DOCUMENT_ACCESS_TTL_SECONDS },
+		data: isPublic ?
+				{ url: req.query.url, expiresIn: null }
+			:	{ url: signedDownloadUrl(parsed), expiresIn: DOCUMENT_ACCESS_TTL_SECONDS },
 	});
+});
+
+/**
+ * Contenu d'un document protégé, affichable dans la page (aperçu PDF / image).
+ * Le lien signé de Cloudinary force le téléchargement : le serveur le lit et
+ * renvoie le fichier en « inline », jamais mis en cache par le navigateur.
+ */
+exports.streamDocument = catchAsync(async (req, res, next) => {
+	const { parsed, isPublic } = await resolveProtectedDocument(req, req.query.url);
+	const sourceUrl = isPublic ? req.query.url : signedDownloadUrl(parsed);
+	try {
+		const upstream = await axios.get(sourceUrl, { responseType: "stream", timeout: 30000 });
+		res.setHeader("Content-Type", CONTENT_TYPES[parsed.format] || upstream.headers["content-type"] || "application/octet-stream");
+		res.setHeader("Content-Disposition", "inline");
+		res.setHeader("Cache-Control", "private, no-store");
+		upstream.data.pipe(res);
+	} catch (error) {
+		console.error("Erreur lecture document Cloudinary:", error.message);
+		return next(new AppError("upload.document_upload_error", 502));
+	}
 });
 
 // Obtenir une URL optimisée

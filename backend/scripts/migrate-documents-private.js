@@ -20,7 +20,13 @@
 require("dotenv").config({ path: require("path").join(__dirname, "../.env") });
 const mongoose = require("mongoose");
 const cloudinary = require("cloudinary").v2;
+const fs = require("fs");
+const path = require("path");
 const { parseCloudinaryUrl } = require("../utils/cloudinaryAsset");
+
+// Journal de reprise : chaque correspondance ancienne → nouvelle URL est écrite AVANT la
+// mise à jour de la base. Si le script s'interrompt, le fichier permet de réparer.
+const RECOVERY_LOG = path.join(__dirname, `migrate-documents-private.${new Date().toISOString().slice(0, 10)}.log.jsonl`);
 
 const APPLY = process.argv.includes("--apply");
 const limitArg = process.argv.find((a) => a.startsWith("--limit="));
@@ -47,7 +53,12 @@ const isPublicDocument = (url) => {
 
 // Remplace les URL dans toute la structure (chaînes imbriquées dans objets / tableaux)
 const replaceDeep = (value, mapping) => {
-	if (typeof value === "string") return mapping.get(value) ?? value;
+	// Remplacement aussi à l'intérieur d'une chaîne plus longue
+	if (typeof value === "string") {
+		let out = value;
+		for (const [from, to] of mapping) if (out.includes(from)) out = out.split(from).join(to);
+		return out;
+	}
 	if (Array.isArray(value)) return value.map((v) => replaceDeep(v, mapping));
 	// ObjectId, Date, Binary… (valeurs BSON) laissés tels quels
 	if (value && typeof value === "object" && !(value instanceof Date) && !value._bsontype) {
@@ -97,12 +108,28 @@ async function migrate() {
 				filesMigrated += 1;
 				console.log(`   ✓ ${parsed.publicId}`);
 			} catch (error) {
+				// Relance après interruption : fichier déjà basculé mais base pas encore à jour
+				try {
+					const existing = await cloudinary.api.resource(parsed.publicId, {
+						resource_type: parsed.resourceType,
+						type: "authenticated",
+					});
+					mapping.set(url, existing.secure_url);
+					console.log(`   ↻ ${parsed.publicId} (déjà protégé, fiche réparée)`);
+					continue;
+				} catch {
+					// vraiment en échec
+				}
 				failures.push({ email: user.email, url, error: error.message || String(error) });
 				console.log(`   ✗ ${parsed.publicId} : ${error.message || error}`);
 			}
 		}
 
 		if (APPLY && mapping.size > 0) {
+			fs.appendFileSync(
+				RECOVERY_LOG,
+				JSON.stringify({ userId: String(user._id), email: user.email, mapping: Object.fromEntries(mapping) }) + "\n",
+			);
 			// Mise à jour des seuls champs de premier niveau qui contiennent une URL migrée
 			const $set = {};
 			for (const [field, value] of Object.entries(user)) {
@@ -115,7 +142,7 @@ async function migrate() {
 	}
 
 	console.log(`\n📊 ${scanned} utilisateur(s) parcouru(s), ${usersWithDocs} avec des documents publics.`);
-	if (APPLY) console.log(`   ${filesMigrated} fichier(s) basculé(s) en accès protégé, ${failures.length} échec(s).`);
+	if (APPLY) console.log(`   ${filesMigrated} fichier(s) basculé(s) en accès protégé, ${failures.length} échec(s). Journal : ${RECOVERY_LOG}`);
 	else console.log("   Relancer avec --apply pour migrer réellement.");
 	if (failures.length) console.log(JSON.stringify(failures, null, 2));
 

@@ -558,7 +558,8 @@
 		"previewAlt": "Aperçu du document",
 		"defaultLabel": "Document",
 		"previewLoading": "Chargement de l'aperçu...",
-		"previewError": "Impossible d'afficher ce document."
+		"previewError": "Impossible d'afficher ce document.",
+		"openError": "Impossible d'ouvrir ce document. Reconnectez-vous puis réessayez."
 	},
 	"orderDetail": {
 		"eyebrow": "Détails de la transaction",

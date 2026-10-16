@@ -128,7 +128,9 @@
     "seller_weekly_limit": "Seller “{{seller}}” has reached their weekly order limit. Affected products: {{products}}. Please remove them to continue.",
     "weekly_limit_reached": "Weekly order limit reached ({{limit}}). Upgrade to a higher plan to receive more orders.",
     "cannot_cancel": "This order can no longer be cancelled",
-    "a_seller": "a seller"
+    "a_seller": "a seller",
+    "cancel_forbidden": "You are not allowed to cancel this order",
+    "cancelled_success": "Order cancelled successfully"
   },
   "payment": {
     "processing": "Payment being processed",

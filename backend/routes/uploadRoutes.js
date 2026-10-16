@@ -210,5 +210,7 @@ router.post(
 
 // Lien temporaire pour consulter un document protégé (propriétaire ou admin)
 router.get("/documents/access", uploadController.getDocumentAccessUrl);
+// Contenu d'un document protégé, pour l'aperçu dans la page
+router.get("/documents/file", uploadController.streamDocument);
 
 module.exports = router;

@@ -253,7 +253,7 @@ exports.cancelOrder = catchAsync(async (req, res, next) => {
 
 	if (!orderService.checkCancelPermission(order, req.user._id, req.user.role)) {
 		return next(
-			new AppError("Vous n'avez pas le droit d'annuler cette commande", 403)
+			new AppError("order.cancel_forbidden", 403)
 		);
 	}
 

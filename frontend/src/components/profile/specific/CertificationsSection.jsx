@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import DocumentUpload from "../../common/DocumentUpload";
 import { openDocument } from "../../../utils/documentAccess";
+import { useNotifications } from "../../../hooks/useNotifications";
 
 const CertificationsSection = ({
 	certifications = [],
@@ -19,6 +20,7 @@ const CertificationsSection = ({
 	editing = true,
 }) => {
 	const { t } = useTranslation("public");
+	const { showError } = useNotifications();
 	if (!editing && (!certifications || certifications.length === 0)) return null;
 
 	const handleAdd = () => {
@@ -209,7 +211,9 @@ const CertificationsSection = ({
 									<button
 										type="button"
 										// Document protégé : lien temporaire demandé au serveur (Jour 59)
-										onClick={() => openDocument(cert.document).catch(() => {})}
+										onClick={() =>
+											openDocument(cert.document).catch(() => showError(t("common:documentUpload.openError")))
+										}
 										className="inline-flex items-center gap-3 px-2 py-3 bg-emerald-50 text-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-100 hover:shadow-md transition-all group"
 									>
 										<FileText className="h-4 w-4 transition-transform group-hover:scale-110" />

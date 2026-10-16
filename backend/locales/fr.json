@@ -128,7 +128,9 @@
     "seller_weekly_limit": "Le vendeur « {{seller}} » a atteint sa limite de commandes hebdomadaire. Produits concernés : {{products}}. Veuillez les retirer pour continuer.",
     "weekly_limit_reached": "Limite hebdomadaire de commandes atteinte ({{limit}}). Passez à un plan supérieur pour recevoir plus de commandes.",
     "cannot_cancel": "Cette commande ne peut plus être annulée",
-    "a_seller": "un vendeur"
+    "a_seller": "un vendeur",
+    "cancel_forbidden": "Vous n'avez pas le droit d'annuler cette commande",
+    "cancelled_success": "Commande annulée avec succès"
   },
   "payment": {
     "processing": "Paiement en cours de traitement",
