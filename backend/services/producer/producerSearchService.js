@@ -184,7 +184,7 @@ async function getProducer(id) {
 		isEmailVerified: true,
 	});
 	if (!producer) {
-		throw new Error("Producteur non trouvé");
+		throw new Error("producer.not_found");
 	}
 	return producer;
 }
@@ -201,7 +201,7 @@ async function getProducerProducts(producerId) {
 async function getProducerReviews(producerId) {
 	const producer = await Producer.findById(producerId);
 	if (!producer) {
-		throw new Error("Producteur non trouvé");
+		throw new Error("producer.not_found");
 	}
 
 	const products = await Product.find({

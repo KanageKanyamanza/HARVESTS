@@ -1,5 +1,6 @@
 const Product = require('../../models/Product');
 const { toPlainText } = require('../../utils/localization');
+const { assertProductLimit } = require('../../utils/subscriptionLimits');
 const {
   stripProtectedFields,
   resolveCreateStatus,
@@ -24,8 +25,11 @@ async function createProduct(producerId, productData) {
   } = productData;
 
   if (!name || !description || !category || !price || stock === undefined) {
-    throw new Error('Tous les champs obligatoires doivent être remplis');
+    throw new Error('product.required_fields');
   }
+
+  // Jour 59 (sécurité) : la limite du plan n'était vérifiée que côté interface
+  await assertProductLimit('producer', producerId);
 
   // Jour 45 (bascule bilingue) : on ne fige plus name/description/
   // shortDescription en chaîne ici — la forme brute (chaîne legacy ou
@@ -35,7 +39,7 @@ async function createProduct(producerId, productData) {
   const plainDescriptionForValidation = toPlainText(description, '');
 
   if (!plainNameForValidation || !plainDescriptionForValidation) {
-    throw new Error('Le nom et la description doivent être fournis');
+    throw new Error('product.name_description_required');
   }
 
   const productDataToCreate = {
@@ -75,7 +79,7 @@ async function getProduct(productId, producerId) {
   });
   
   if (!product) {
-    throw new Error('Produit non trouvé');
+    throw new Error('product.not_found');
   }
   
   return product;
@@ -88,7 +92,7 @@ async function updateProduct(productId, producerId, updateData) {
   });
   
   if (!product) {
-    throw new Error('Produit non trouvé');
+    throw new Error('product.not_found');
   }
 
   // Jour 45 (bascule bilingue) : name/description/shortDescription passent
@@ -117,7 +121,7 @@ async function deleteProduct(productId, producerId) {
   });
   
   if (!product) {
-    throw new Error('Produit non trouvé');
+    throw new Error('product.not_found');
   }
   
   return product;

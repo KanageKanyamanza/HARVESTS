@@ -5,6 +5,7 @@ const User = require("../../models/User");
 const Product = require("../../models/Product");
 const catchAsync = require("../../utils/catchAsync");
 const AppError = require("../../utils/appError");
+const { parseCloudinaryUrl } = require("../../utils/cloudinaryAsset");
 const { logAudit, AUDIT_ACTIONS } = require("../../utils/auditLogger");
 const adminNotifications = require("../../utils/adminNotifications");
 const emailQueue = require("../../services/emailQueueService");
@@ -476,14 +477,20 @@ exports.proxyDownloadDocument = catchAsync(async (req, res, next) => {
 		console.log(`[Proxy] Signature simplifiée pour: ${publicId}`);
 
 		// Étape 1: Métadonnées
+		// Type de livraison lu dans l'URL : les documents protégés (Jour 59) sont
+		// « authenticated », introuvables si l'on interroge le type par défaut « upload »
+		const parsed = parseCloudinaryUrl(url);
+		const deliveryType = parsed?.type || "upload";
 		let resource;
 		try {
-			resource = await cloudinary.api.resource(publicId, {
-				resource_type: "image",
+			resource = await cloudinary.api.resource(parsed?.resourceType === "raw" ? parsed.publicId : publicId, {
+				resource_type: parsed?.resourceType === "raw" ? "raw" : "image",
+				type: deliveryType,
 			});
 		} catch (e) {
-			resource = await cloudinary.api.resource(publicId, {
+			resource = await cloudinary.api.resource(parsed?.publicId || publicId, {
 				resource_type: "raw",
+				type: deliveryType,
 			});
 		}
 

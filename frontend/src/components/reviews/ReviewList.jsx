@@ -6,6 +6,7 @@ import {
   SortAsc,
   SortDesc
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import ReviewCard from './ReviewCard';
 import StarRating from './StarRating';
 
@@ -18,6 +19,7 @@ const ReviewList = ({
   showProductInfo = false,
   loading = false
 }) => {
+  const { t } = useTranslation('common');
   const [filteredReviews, setFilteredReviews] = useState(reviews);
   const [filters, setFilters] = useState({
     rating: 'all',
@@ -119,14 +121,14 @@ const ReviewList = ({
                   </div>
                   <StarRating rating={stats.averageRating || 0} size="lg" />
                   <div className="text-sm text-gray-600 mt-1">
-                    {stats.totalReviews || 0} avis
+                    {t('reviewList.count', { count: stats.totalReviews || 0 })}
                   </div>
                 </div>
               </div>
 
               {/* Distribution des notes */}
               <div className="flex-1 max-w-md">
-                <h4 className="text-sm font-medium text-gray-900 mb-3">Distribution des notes</h4>
+                <h4 className="text-sm font-medium text-gray-900 mb-3">{t('reviewList.distribution')}</h4>
                 <div className="space-y-2">
                   {getRatingDistribution()?.map(({ rating, count, percentage }) => (
                     <div key={rating} className="flex items-center space-x-2">
@@ -154,7 +156,7 @@ const ReviewList = ({
             className="flex items-center space-x-2 text-sm text-gray-600 hover:text-gray-900"
           >
             <Filter className="h-4 w-4" />
-            <span>Filtres</span>
+            <span>{t('reviewList.filters')}</span>
             <ChevronDown className={`h-4 w-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
           </button>
 
@@ -163,52 +165,52 @@ const ReviewList = ({
               {/* Filtre par note */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Note
+                  {t('reviewList.rating')}
                 </label>
                 <select
                   value={filters.rating}
                   onChange={(e) => handleFilterChange('rating', e.target.value)}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
-                  <option value="all">Toutes les notes</option>
-                  <option value="5">5 étoiles</option>
-                  <option value="4">4 étoiles</option>
-                  <option value="3">3 étoiles</option>
-                  <option value="2">2 étoiles</option>
-                  <option value="1">1 étoile</option>
+                  <option value="all">{t('reviewList.allRatings')}</option>
+                  <option value="5">{t('reviewList.stars', { count: 5 })}</option>
+                  <option value="4">{t('reviewList.stars', { count: 4 })}</option>
+                  <option value="3">{t('reviewList.stars', { count: 3 })}</option>
+                  <option value="2">{t('reviewList.stars', { count: 2 })}</option>
+                  <option value="1">{t('reviewList.stars', { count: 1 })}</option>
                 </select>
               </div>
 
               {/* Filtre par achat vérifié */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Type d'avis
+                  {t('reviewList.type')}
                 </label>
                 <select
                   value={filters.verified}
                   onChange={(e) => handleFilterChange('verified', e.target.value)}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
-                  <option value="all">Tous les avis</option>
-                  <option value="verified">Achats vérifiés</option>
+                  <option value="all">{t('reviewList.allReviews')}</option>
+                  <option value="verified">{t('reviewList.verifiedOnly')}</option>
                 </select>
               </div>
 
               {/* Tri */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Trier par
+                  {t('reviewList.sortBy')}
                 </label>
                 <select
                   value={filters.sort}
                   onChange={(e) => handleFilterChange('sort', e.target.value)}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
-                  <option value="most-helpful">Plus utiles</option>
-                  <option value="newest">Plus récents</option>
-                  <option value="oldest">Plus anciens</option>
-                  <option value="highest-rating">Meilleures notes</option>
-                  <option value="lowest-rating">Moins bonnes notes</option>
+                  <option value="most-helpful">{t('reviewList.sort.most-helpful')}</option>
+                  <option value="newest">{t('reviewList.sort.newest')}</option>
+                  <option value="oldest">{t('reviewList.sort.oldest')}</option>
+                  <option value="highest-rating">{t('reviewList.sort.highest-rating')}</option>
+                  <option value="lowest-rating">{t('reviewList.sort.lowest-rating')}</option>
                 </select>
               </div>
             </div>
@@ -222,12 +224,12 @@ const ReviewList = ({
           <div className="col-span-full text-center py-16">
             <Star className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Aucun avis trouvé
+              {t('reviewList.empty')}
             </h3>
             <p className="text-gray-600">
               {filters.rating !== 'all' || filters.verified !== 'all'
-                ? 'Aucun avis ne correspond à vos filtres.'
-                : 'Soyez le premier à laisser un avis !'
+                ? t('reviewList.emptyFiltered')
+                : t('reviewList.beFirst')
               }
             </p>
           </div>

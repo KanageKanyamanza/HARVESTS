@@ -199,4 +199,13 @@ export const MIGRATED_FILES = [
 	"components/common/FinancialInfo.jsx",
 	"components/common/NotificationSettings.jsx",
 	"components/common/PushNotificationToggle.jsx",
+	"components/common/ErrorMessage.jsx",
+	"components/common/ErrorBoundary.jsx",
+	"components/common/ProfileImageUpload.jsx",
+	"components/common/SearchModal.jsx",
+	"components/reviews/SimpleReviewForm.jsx",
+	"components/reviews/ReviewList.jsx",
+	"components/reviews/ReviewCard.jsx",
+	"hooks/useCartActions.js",
+	"hooks/useOrderNotifications.js",
 ];

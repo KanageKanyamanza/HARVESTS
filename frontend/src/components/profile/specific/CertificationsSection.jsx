@@ -11,6 +11,7 @@ import {
 	ExternalLink,
 } from "lucide-react";
 import DocumentUpload from "../../common/DocumentUpload";
+import { openDocument } from "../../../utils/documentAccess";
 
 const CertificationsSection = ({
 	certifications = [],
@@ -205,16 +206,16 @@ const CertificationsSection = ({
 										/>
 									</div>
 								: cert.document ?
-									<a
-										href={cert.document}
-										target="_blank"
-										rel="noopener noreferrer"
+									<button
+										type="button"
+										// Document protégé : lien temporaire demandé au serveur (Jour 59)
+										onClick={() => openDocument(cert.document).catch(() => {})}
 										className="inline-flex items-center gap-3 px-2 py-3 bg-emerald-50 text-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-100 hover:shadow-md transition-all group"
 									>
 										<FileText className="h-4 w-4 transition-transform group-hover:scale-110" />
 										{t("vendorProfile.certificationsSection.viewDocument")}
 										<ExternalLink className="h-3 w-3" />
-									</a>
+									</button>
 								:	<span className="text-[10px] font-black text-gray-300 uppercase tracking-widest italic ml-2">
 										{t("vendorProfile.certificationsSection.noDocument")}
 									</span>

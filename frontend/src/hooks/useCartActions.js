@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { buildCartItem } from '../utils/cartItemBuilder';
 import { CART_ACTIONS } from '../utils/cartReducer';
+import i18n from '../utils/i18n';
 
 /**
  * Hook pour les actions du panier
@@ -16,7 +17,7 @@ export const useCartActions = (dispatch, state, buildCartItemFn = buildCartItem)
     if (product.trackQuantity !== false) {
       const stock = product.stock ?? product.inventory?.quantity ?? null;
       if (stock !== null && stock <= 0) {
-        alert('Ce produit est en rupture de stock');
+        alert(i18n.t('common:cart.outOfStock'));
         return;
       }
       
@@ -28,7 +29,7 @@ export const useCartActions = (dispatch, state, buildCartItemFn = buildCartItem)
       const totalQuantity = currentQuantity + requestedQuantity;
       
       if (stock !== null && totalQuantity > stock) {
-        alert(`Stock insuffisant. Disponible: ${stock}, déjà dans le panier: ${currentQuantity}`);
+        alert(i18n.t('common:cart.insufficientStock', { stock, inCart: currentQuantity }));
         return;
       }
     }

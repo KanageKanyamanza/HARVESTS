@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { FiUpload, FiX, FiCheck, FiFileText, FiImage, FiLoader } from "react-icons/fi";
 import { uploadService } from "../../services";
+import { isProtectedDocument, useDocumentUrl } from "../../utils/documentAccess";
 
 const DocumentUpload = ({
 	currentFile, // URL of the uploaded file
@@ -18,6 +19,9 @@ const DocumentUpload = ({
 	const [showPreview, setShowPreview] = useState(false);
 	const [pdfPage, setPdfPage] = useState(1);
 	const fileInputRef = useRef(null);
+	// Document protégé (Jour 59) : aperçu via un lien temporaire demandé à l'ouverture
+	const protectedDoc = isProtectedDocument(currentFile);
+	const preview = useDocumentUrl(currentFile, showPreview);
 
 	// Reset pdf page when opening new preview
 	React.useEffect(() => {
@@ -193,8 +197,12 @@ const DocumentUpload = ({
 
 							{/* Contenu du document */}
 							<div className="overflow-auto bg-gray-100 flex items-center justify-center p-4">
-								{isPdf ? (
-									currentFile?.includes("cloudinary") ? (
+								{preview.loading || preview.error ? (
+									<p className="py-16 text-sm text-gray-500">
+										{preview.error ? t("documentUpload.previewError") : t("documentUpload.previewLoading")}
+									</p>
+								) : isPdf ? (
+									currentFile?.includes("cloudinary") && !protectedDoc ? (
 										<div className="flex flex-col items-center w-full h-full">
 											<div className="flex-1 flex items-center justify-center overflow-hidden w-full relative">
 												<img
@@ -264,14 +272,14 @@ const DocumentUpload = ({
 										</div>
 									) : (
 										<iframe
-											src={`${currentFile}#toolbar=0`}
+											src={`${preview.url}#toolbar=0`}
 											title={t("documentUpload.pdfDocument")}
 											className="w-[85vw] md:w-[800px] h-[70vh] rounded border border-gray-200 bg-white"
 										/>
 									)
 								) : (
 									<img
-										src={currentFile}
+										src={preview.url}
 										alt={t("documentUpload.previewAlt")}
 										className="max-w-full max-h-[80vh] object-contain rounded shadow-sm"
 									/>

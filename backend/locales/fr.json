@@ -37,7 +37,55 @@
     "token_expired": "Token expiré",
     "unauthorized": "Non autorisé",
     "verification_email_sent": "Email de vérification renvoyé avec succès",
-    "email_not_verified": "Veuillez vérifier votre email avant de vous connecter"
+    "email_not_verified": "Veuillez vérifier votre email avant de vous connecter",
+    "session_expired": "Session expirée. Veuillez vous reconnecter.",
+    "invalid_token": "Jeton invalide.",
+    "invalid_token_relogin": "Jeton invalide. Veuillez vous reconnecter.",
+    "token_expired_relogin": "Votre session a expiré. Veuillez vous reconnecter.",
+    "user_not_found_or_inactive": "Utilisateur introuvable ou inactif.",
+    "invalid_user_type": "Type d'utilisateur invalide",
+    "terms_required": "Vous devez accepter les Conditions d'utilisation et la Politique de confidentialité",
+    "email_exists": "Un utilisateur avec cet e-mail existe déjà",
+    "email_exists_suggestion": "Essayez de vous connecter ou utilisez un autre e-mail",
+    "last_name_required": "Le nom est requis pour les consommateurs",
+    "signup_success_pending": "Inscription réussie ! Un e-mail de vérification vous sera envoyé sous peu.",
+    "credentials_required": "Veuillez fournir un e-mail et un mot de passe",
+    "account_locked": "Compte temporairement verrouillé en raison de tentatives de connexion répétées",
+    "wrong_credentials": "E-mail ou mot de passe incorrect",
+    "account_disabled_contact": "Votre compte a été désactivé. Contactez le support.",
+    "account_suspended_until": "Votre compte est suspendu jusqu'au {{date}}. Raison : {{reason}}",
+    "not_logged_in": "Vous n'êtes pas connecté. Veuillez vous connecter pour continuer.",
+    "user_no_longer_exists": "L'utilisateur associé à cette session n'existe plus.",
+    "password_changed_relogin": "Votre mot de passe a été modifié récemment. Veuillez vous reconnecter.",
+    "account_disabled": "Votre compte a été désactivé",
+    "account_suspended_temp": "Votre compte est temporairement suspendu",
+    "forbidden_action": "Vous n'avez pas la permission d'effectuer cette action",
+    "verification_required": "Cette fonctionnalité nécessite la vérification de votre e-mail",
+    "verification_required_action": "Cette action nécessite la vérification de votre e-mail",
+    "verification_suggestion": "Vérifiez votre e-mail pour débloquer cette fonctionnalité",
+    "verification_allowed_actions": [
+      "Voir le profil",
+      "Modifier les informations de base",
+      "Consulter les commandes existantes",
+      "Voir les notifications"
+    ],
+    "verification_restricted_actions": [
+      "Créer des commandes",
+      "Effectuer des paiements",
+      "Publier des produits",
+      "Gérer la boutique"
+    ],
+    "approval_required": "Votre compte doit être approuvé pour accéder à cette fonctionnalité",
+    "email_required": "E-mail requis",
+    "no_user_with_email": "Aucun utilisateur trouvé avec cet e-mail",
+    "user_not_found": "Utilisateur non trouvé",
+    "email_already_verified": "Cet e-mail est déjà vérifié",
+    "email_send_error": "Erreur lors de l'envoi de l'e-mail. Veuillez réessayer plus tard.",
+    "verification_email_queued": "E-mail de vérification renvoyé en arrière-plan",
+    "password_reset_neutral": "Si un compte existe avec cet e-mail, vous recevrez un lien de réinitialisation.",
+    "reset_token_invalid": "Lien de réinitialisation invalide ou expiré",
+    "current_password_incorrect": "Votre mot de passe actuel est incorrect",
+    "verification_email_neutral": "Si un compte non vérifié existe avec cet e-mail, un nouvel e-mail de vérification vient d'être envoyé."
   },
   "user": {
     "profile_updated": "Profil mis à jour avec succès",
@@ -52,7 +100,12 @@
     "deleted": "Produit supprimé avec succès",
     "not_found": "Produit non trouvé",
     "out_of_stock": "Produit en rupture de stock",
-    "insufficient_stock": "Stock insuffisant"
+    "insufficient_stock": "Stock insuffisant",
+    "variant_not_found": "Variante non trouvée",
+    "required_fields": "Tous les champs obligatoires doivent être remplis",
+    "name_description_required": "Le nom et la description doivent être fournis",
+    "limit_reached": "Limite de produits atteinte pour votre plan {{plan}} ({{max}} produits max).",
+    "images_only": "Veuillez envoyer uniquement des images."
   },
   "order": {
     "created": "Commande créée avec succès",
@@ -63,7 +116,19 @@
     "ready_for_pickup": "Commande prête pour enlèvement",
     "in_transit": "Commande en transit",
     "delivered": "Commande livrée",
-    "not_found": "Commande non trouvée"
+    "not_found": "Commande non trouvée",
+    "access_denied": "Accès non autorisé à cette commande",
+    "access_denied_generic": "Accès non autorisé",
+    "status_unchanged": "Le statut de la commande est déjà à ce niveau",
+    "no_segment": "Vous n'avez pas de partie associée à cette commande",
+    "transition_forbidden": "Vous ne pouvez pas faire passer la commande de « {{from}} » à « {{to}} ». Transitions autorisées : {{allowed}}",
+    "item_not_found": "Aucun article correspondant trouvé pour cette commande",
+    "seller_undetermined_product": "Impossible de déterminer un vendeur valide pour le produit {{productId}}",
+    "seller_undetermined": "Impossible de déterminer un vendeur pour cette commande",
+    "seller_weekly_limit": "Le vendeur « {{seller}} » a atteint sa limite de commandes hebdomadaire. Produits concernés : {{products}}. Veuillez les retirer pour continuer.",
+    "weekly_limit_reached": "Limite hebdomadaire de commandes atteinte ({{limit}}). Passez à un plan supérieur pour recevoir plus de commandes.",
+    "cannot_cancel": "Cette commande ne peut plus être annulée",
+    "a_seller": "un vendeur"
   },
   "payment": {
     "processing": "Paiement en cours de traitement",
@@ -104,7 +169,11 @@
     "not_found": "Ressource non trouvée",
     "forbidden": "Accès interdit",
     "bad_request": "Requête invalide",
-    "rate_limit": "Trop de requêtes. Veuillez réessayer plus tard."
+    "rate_limit": "Trop de requêtes. Veuillez réessayer plus tard.",
+    "generic": "Une erreur est survenue !",
+    "cast_error": "Ressource invalide : {{path}} = {{value}}",
+    "duplicate_field": "Valeur déjà utilisée : {{value}}. Veuillez en choisir une autre.",
+    "validation_failed": "Données invalides : {{details}}"
   },
   "email": {
     "subjects": {
@@ -152,5 +221,22 @@
     "box": "boîte",
     "bag": "sac",
     "liter": "litre"
+  },
+  "producer": {
+    "not_found": "Producteur non trouvé",
+    "equipment_not_found": "Équipement non trouvé",
+    "crop_not_found": "Culture non trouvée",
+    "certification_not_found": "Certification non trouvée",
+    "transporter_already_favorite": "Ce transporteur est déjà dans vos préférés",
+    "transporter_added_favorite": "Transporteur ajouté aux préférés",
+    "document_required": "Veuillez envoyer un document",
+    "images_or_pdf_only": "Veuillez envoyer uniquement des images ou des PDF."
+  },
+  "upload": {
+    "invalid_document_url": "Adresse de document invalide",
+    "document_forbidden": "Vous n'avez pas accès à ce document",
+    "document_uploaded": "Document envoyé avec succès",
+    "document_upload_error": "Erreur lors de l'envoi du document",
+    "no_file": "Aucun fichier fourni"
   }
 }

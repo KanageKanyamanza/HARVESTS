@@ -556,7 +556,9 @@
 		"nextPage": "Page suivante",
 		"pdfDocument": "Document PDF",
 		"previewAlt": "Aperçu du document",
-		"defaultLabel": "Document"
+		"defaultLabel": "Document",
+		"previewLoading": "Chargement de l'aperçu...",
+		"previewError": "Impossible d'afficher ce document."
 	},
 	"orderDetail": {
 		"eyebrow": "Détails de la transaction",
@@ -624,5 +626,115 @@
 		"unitPrice": "PU : {{price}}",
 		"validating": "Validation...",
 		"confirm": "Confirmer"
+	},
+	"errorMessage": {
+		"title": "Une erreur s'est produite",
+		"default": "Une erreur inattendue s'est produite. Veuillez réessayer.",
+		"retry": "Réessayer"
+	},
+	"errorBoundary": {
+		"title": "Oups, une erreur s'est produite",
+		"text": "Nous avons rencontré un problème inattendu. Vous pouvez réessayer ou revenir à l'accueil.",
+		"retry": "Réessayer",
+		"home": "Accueil",
+		"devDetails": "Détails du crash (développement uniquement)"
+	},
+	"profileImageUpload": {
+		"unsupported": "Format non pris en charge (JPEG, PNG, WebP uniquement)",
+		"tooLarge": "Fichier trop volumineux (max {{size}} Mo)",
+		"fetchError": "Erreur lors de la récupération de l'image",
+		"uploadFailed": "Échec de l'envoi de l'image",
+		"processing": "Traitement...",
+		"change": "Changer",
+		"remove": "Retirer l'image",
+		"previewAlt": "Aperçu de l'image",
+		"types": {
+			"avatar": "Photo de profil",
+			"banner": "Bannière",
+			"logo": "Logo"
+		},
+		"formats": "PNG, JPG ou WebP"
+	},
+	"cart": {
+		"outOfStock": "Ce produit est en rupture de stock",
+		"insufficientStock": "Stock insuffisant. Disponible : {{stock}}, déjà dans le panier : {{inCart}}"
+	},
+	"orderAlerts": {
+		"newOrdersTitle_one": "Nouvelle commande reçue",
+		"newOrdersTitle_other": "Nouvelles commandes reçues",
+		"newOrdersMessage_one": "Vous avez reçu {{count}} nouvelle commande.",
+		"newOrdersMessage_other": "Vous avez reçu {{count}} nouvelles commandes."
+	},
+	"reviewForm": {
+		"byProducer": "Par {{name}}",
+		"unknownProducer": "Producteur inconnu",
+		"rating": "Note globale *",
+		"ratingRequired": "Veuillez donner une note",
+		"order": "Commande associée (facultatif)",
+		"noSpecificOrder": "Aucune commande spécifique",
+		"orderOption": "Commande #{{number}} — {{date}} — {{amount}}",
+		"noOrderFound": "Aucune commande trouvée pour ce produit",
+		"noOrderHint": "Vous pouvez quand même laisser un avis général",
+		"comment": "Votre avis",
+		"commentPlaceholder": "Partagez votre expérience avec ce produit (facultatif)...",
+		"media": "Photos ou vidéos (facultatif)",
+		"mediaAdd": "Cliquez pour ajouter des photos ou vidéos",
+		"mediaHint": "PNG, JPG, MP4 jusqu'à 10 Mo",
+		"mediaPreviewAlt": "Aperçu {{index}}",
+		"video": "Vidéo",
+		"removeMedia": "Retirer ce fichier",
+		"cancel": "Annuler",
+		"submitting": "Envoi en cours...",
+		"submit": "Publier l'avis"
+	},
+	"reviewList": {
+		"count_one": "{{count}} avis",
+		"count_other": "{{count}} avis",
+		"distribution": "Distribution des notes",
+		"filters": "Filtres",
+		"rating": "Note",
+		"allRatings": "Toutes les notes",
+		"stars_one": "{{count}} étoile",
+		"stars_other": "{{count}} étoiles",
+		"type": "Type d'avis",
+		"allReviews": "Tous les avis",
+		"verifiedOnly": "Achats vérifiés",
+		"sortBy": "Trier par",
+		"sort": {
+			"most-helpful": "Plus utiles",
+			"newest": "Plus récents",
+			"oldest": "Plus anciens",
+			"highest-rating": "Meilleures notes",
+			"lowest-rating": "Moins bonnes notes"
+		},
+		"empty": "Aucun avis trouvé",
+		"emptyFiltered": "Aucun avis ne correspond à vos filtres.",
+		"beFirst": "Soyez le premier à laisser un avis !"
+	},
+	"reviewCard": {
+		"verifiedPurchase": "Achat vérifié",
+		"byProducer": "Par {{name}}",
+		"imageAlt": "Image {{index}}",
+		"producerResponse": "Réponse du producteur",
+		"like": "J'aime",
+		"reply": "Répondre",
+		"helpful": "Utile",
+		"notHelpful": "Pas utile",
+		"loginToReply": "Connectez-vous pour répondre",
+		"replyPlaceholder": "Écrire un commentaire...",
+		"sendReply": "Envoyer"
+	},
+	"searchModal": {
+		"placeholder": "Rechercher des produits...",
+		"clear": "Effacer la recherche",
+		"close": "Fermer",
+		"startTyping": "Commencez à taper pour rechercher des produits",
+		"noResults": "Aucun produit trouvé pour « {{query}} »",
+		"resultsCount_one": "{{count}} résultat trouvé",
+		"resultsCount_other": "{{count}} résultats trouvés",
+		"viewAll": "Voir tous les résultats →",
+		"viewAllFor": "Voir tous les résultats pour « {{query}} »",
+		"priceUnavailable": "Prix non disponible",
+		"error": "Erreur lors de la recherche"
 	}
 }

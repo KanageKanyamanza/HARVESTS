@@ -41,7 +41,7 @@ exports.estimateOrderCosts = catchAsync(async (req, res, next) => {
 			data: costs,
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 400));
+		return next(AppError.from(error, 400));
 	}
 });
 
@@ -104,7 +104,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
 			},
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 400));
+		return next(AppError.from(error, 400));
 	}
 });
 
@@ -176,7 +176,7 @@ exports.getOrder = catchAsync(async (req, res, next) => {
 		.populate("delivery.transporter", "companyName firstName lastName phone");
 
 	if (!order) {
-		return next(new AppError("Commande non trouvée", 404));
+		return next(new AppError("order.not_found", 404));
 	}
 
 	const segmentsCreated = ensureSegmentsForOrder(order);
@@ -185,7 +185,7 @@ exports.getOrder = catchAsync(async (req, res, next) => {
 	}
 
 	if (!orderService.checkOrderAccess(order, req.user._id, req.user.role)) {
-		return next(new AppError("Accès non autorisé à cette commande", 403));
+		return next(new AppError("order.access_denied", 403));
 	}
 
 	const orderData = orderService.formatOrder(
@@ -205,7 +205,7 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
 
 	const order = await Order.findById(req.params.id);
 	if (!order) {
-		return next(new AppError("Commande non trouvée", 404));
+		return next(new AppError("order.not_found", 404));
 	}
 
 	try {
@@ -229,7 +229,7 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
 		if (!result.changed) {
 			return res.status(200).json({
 				status: "success",
-				message: "Le statut de la commande est déjà à ce niveau",
+				message: req.t("order.status_unchanged"),
 				data: { order: result.order },
 			});
 		}
@@ -248,7 +248,7 @@ exports.cancelOrder = catchAsync(async (req, res, next) => {
 	const { reason } = req.body;
 	const order = await Order.findById(req.params.id);
 	if (!order) {
-		return next(new AppError("Commande non trouvée", 404));
+		return next(new AppError("order.not_found", 404));
 	}
 
 	if (!orderService.checkCancelPermission(order, req.user._id, req.user.role)) {
@@ -276,7 +276,7 @@ exports.cancelOrder = catchAsync(async (req, res, next) => {
 			data: { order: cancelledOrder },
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 400));
+		return next(AppError.from(error, 400));
 	}
 });
 
@@ -287,11 +287,11 @@ exports.trackOrder = catchAsync(async (req, res, next) => {
 		.select("orderNumber status delivery statusHistory");
 
 	if (!order) {
-		return next(new AppError("Commande non trouvée", 404));
+		return next(new AppError("order.not_found", 404));
 	}
 
 	if (!orderService.checkOrderAccess(order, req.user._id, req.user.role)) {
-		return next(new AppError("Accès non autorisé", 403));
+		return next(new AppError("order.access_denied_generic", 403));
 	}
 
 	res.status(200).json({

@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const AppError = require("../utils/appError");
 const Order = require("../models/Order");
 const Product = require("../models/Product");
 const { toPlainText } = require("../utils/localization");
@@ -83,9 +84,7 @@ async function processOrderItems(items) {
 			:	null);
 
 		if (!sellerIdRaw || !mongoose.Types.ObjectId.isValid(sellerIdRaw)) {
-			throw new Error(
-				`Impossible de déterminer un vendeur valide pour le produit ${product._id}`,
-			);
+			throw new AppError("order.seller_undetermined_product", 400, { productId: product._id });
 		}
 
 		const sellerObjectId = new mongoose.Types.ObjectId(sellerIdRaw);
@@ -380,7 +379,7 @@ async function createOrder(orderData, user) {
 		.filter((sellerId) => !!sellerId);
 
 	if (uniqueSellerIds.length === 0) {
-		throw new Error("Impossible de déterminer un vendeur pour cette commande");
+		throw new AppError("order.seller_undetermined", 400);
 	}
 
 	// Vérifier les limites de commandes hebdomadaires pour les vendeurs
@@ -396,7 +395,7 @@ async function createOrder(orderData, user) {
 				sellerUser?.farmName ||
 				sellerUser?.companyName ||
 				`${sellerUser?.firstName || ""} ${sellerUser?.lastName || ""}`.trim() ||
-				"un vendeur";
+				"—";
 
 			// Identifier les produits concernés dans le panier
 			const affectedProducts = processedItems
@@ -405,9 +404,7 @@ async function createOrder(orderData, user) {
 
 			const productsList = affectedProducts.join(", ");
 
-			throw new Error(
-				`Erreur : Le vendeur "${sellerName}" a atteint sa limite de commandes hebdomadaire. Produits concernés : ${productsList}. Veuillez les retirer pour continuer.`,
-			);
+			throw new AppError("order.seller_weekly_limit", 403, { seller: sellerName, products: productsList });
 		}
 	}
 
@@ -485,7 +482,7 @@ async function cancelOrder(order, userId, reason) {
 	} = require("../utils/orderSegments");
 
 	if (!order.canBeCancelled) {
-		throw new Error("Cette commande ne peut plus être annulée");
+		throw new AppError("order.cannot_cancel", 400);
 	}
 
 	// Libérer le stock

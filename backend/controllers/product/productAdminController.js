@@ -1,5 +1,6 @@
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
+const { isNotFound } = require('../../utils/translate');
 const productAdminService = require('../../services/product/productAdminService');
 
 // Approuver un produit
@@ -14,7 +15,7 @@ exports.approveProduct = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('non trouvé') ? 404 : 400));
+    return next(new AppError(error.message, isNotFound(error.message) ? 404 : 400));
   }
 });
 
@@ -31,7 +32,7 @@ exports.rejectProduct = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('non trouvé') ? 404 : 400));
+    return next(new AppError(error.message, isNotFound(error.message) ? 404 : 400));
   }
 });
 

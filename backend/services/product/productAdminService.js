@@ -25,7 +25,7 @@ async function approveProduct(productId) {
   .populate('restaurateur', 'firstName lastName companyName restaurantName email phone notifications');
 
   if (!product) {
-    throw new Error('Produit non trouvé');
+    throw new Error('product.not_found');
   }
 
   // Envoyer notification au(x) propriétaire(s)
@@ -55,7 +55,7 @@ async function rejectProduct(productId, reason) {
   .populate('restaurateur', 'firstName lastName companyName restaurantName email phone notifications');
 
   if (!product) {
-    throw new Error('Produit non trouvé');
+    throw new Error('product.not_found');
   }
 
   // Envoyer notification au(x) propriétaire(s)
@@ -118,7 +118,7 @@ async function featureProduct(productId) {
   );
 
   if (!product) {
-    throw new Error('Produit non trouvé');
+    throw new Error('product.not_found');
   }
 
   return product;
@@ -135,7 +135,7 @@ async function unfeatureProduct(productId) {
   );
 
   if (!product) {
-    throw new Error('Produit non trouvé');
+    throw new Error('product.not_found');
   }
 
   return product;

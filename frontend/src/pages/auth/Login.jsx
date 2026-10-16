@@ -77,9 +77,10 @@ const Login = () => {
 				// Vérifier si l'erreur est liée à un email non vérifié
 				const errorMessage = result.error.toLowerCase();
 
+				// Message du serveur dans la langue de l'interface (Jour 58) : fr ou en
 				if (
-					errorMessage.includes("vérifier") &&
-					errorMessage.includes("email")
+					(errorMessage.includes("vérifi") || errorMessage.includes("verif")) &&
+					(errorMessage.includes("email") || errorMessage.includes("e-mail"))
 				) {
 					// Utiliser le gestionnaire de modales global
 					openEmailVerificationModal(formData.email, false);

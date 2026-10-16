@@ -11,7 +11,9 @@ import {
 	Heart,
 	Send,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import StarRating from "./StarRating";
+import { formatDate as formatLocalizedDate } from "../../utils/i18n";
 import CloudinaryImage from "../common/CloudinaryImage";
 import { reviewService } from "../../services/reviewService";
 
@@ -23,6 +25,7 @@ const ReviewCard = ({
 	onVoteUnhelpful = null,
 	currentUserId = null,
 }) => {
+	const { t, i18n } = useTranslation("common");
 	const [review, setReview] = useState(initialReview);
 
 	// Mettre à jour l'état local si l'avis change (ex: rechargement parent)
@@ -36,13 +39,7 @@ const ReviewCard = ({
 	const [isSubmittingReply, setIsSubmittingReply] = useState(false);
 	const [isLiking, setIsLiking] = useState(false);
 
-	const formatDate = (date) => {
-		return new Date(date).toLocaleDateString("fr-FR", {
-			year: "numeric",
-			month: "long",
-			day: "numeric",
-		});
-	};
+	const formatDate = (date) => formatLocalizedDate(date, i18n.language);
 
 	const handleVote = async (voteType) => {
 		if (!onVoteHelpful || !onVoteUnhelpful || isVoting) return;
@@ -156,7 +153,7 @@ const ReviewCard = ({
 								{review.isVerifiedPurchase && (
 									<CheckCircle
 										className="h-4 w-4 text-green-500"
-										title="Achat vérifié"
+										aria-label={t("reviewCard.verifiedPurchase")}
 									/>
 								)}
 							</div>
@@ -188,7 +185,7 @@ const ReviewCard = ({
 									{review.product.name}
 								</h5>
 								<p className="text-xs text-gray-500">
-									Par {review.producer?.firstName} {review.producer?.lastName}
+									{t("reviewCard.byProducer", { name: [review.producer?.firstName, review.producer?.lastName].filter(Boolean).join(" ") })}
 								</p>
 							</div>
 						</div>
@@ -219,7 +216,7 @@ const ReviewCard = ({
 									{media.type === "image" ? (
 										<CloudinaryImage
 											src={media.url}
-											alt={`Image ${index + 1}`}
+											alt={t("reviewCard.imageAlt", { index: index + 1 })}
 											className="w-full h-full object-cover hover:scale-105 transition-transform"
 										/>
 									) : (
@@ -238,7 +235,7 @@ const ReviewCard = ({
 					<div className="mb-4 p-3 bg-primary-50 border-l-4 border-primary-400 rounded-r-lg">
 						<div className="flex items-center justify-between mb-1">
 							<h5 className="text-xs font-bold text-primary-800 uppercase tracking-wider">
-								Réponse du producteur
+								{t("reviewCard.producerResponse")}
 							</h5>
 							<span className="text-[10px] text-primary-600">
 								{formatDate(review.producerResponse.respondedAt)}
@@ -301,6 +298,8 @@ const ReviewCard = ({
 						{/* Nouveau système de Like */}
 						<button
 							onClick={handleLikeReview}
+							title={t("reviewCard.like")}
+							aria-label={t("reviewCard.like")}
 							className={`flex items-center space-x-1.5 text-sm transition-all ${
 								isLikedByMe
 									? "text-primary-600 font-bold scale-110"
@@ -323,7 +322,7 @@ const ReviewCard = ({
 							}`}
 						>
 							<MessageCircle className="h-4 w-4" />
-							<span>Répondre</span>
+							<span>{t("reviewCard.reply")}</span>
 						</button>
 					</div>
 
@@ -336,7 +335,7 @@ const ReviewCard = ({
 									? "text-gray-600 hover:bg-green-50 hover:text-green-600"
 									: "text-gray-300 cursor-not-allowed"
 							}`}
-							title="Utile"
+							title={t("reviewCard.helpful")}
 						>
 							<ThumbsUp className="h-3.5 w-3.5" />
 							<span>{review.helpfulVotes || 0}</span>
@@ -350,7 +349,7 @@ const ReviewCard = ({
 									? "text-gray-600 hover:bg-red-50 hover:text-red-600"
 									: "text-gray-300 cursor-not-allowed"
 							}`}
-							title="Pas utile"
+							title={t("reviewCard.notHelpful")}
 						>
 							<ThumbsDown className="h-3.5 w-3.5" />
 							<span>{review.unhelpfulVotes || 0}</span>
@@ -363,7 +362,7 @@ const ReviewCard = ({
 					<form onSubmit={handleSubmitReply} className="mt-3 relative">
 						{!currentUserId ? (
 							<p className="text-xs text-center text-gray-500 py-2 border border-dashed border-gray-200 rounded">
-								Connectez-vous pour répondre
+								{t("reviewCard.loginToReply")}
 							</p>
 						) : (
 							<div className="flex items-end space-x-2">
@@ -371,7 +370,7 @@ const ReviewCard = ({
 									<textarea
 										value={replyContent}
 										onChange={(e) => setReplyContent(e.target.value)}
-										placeholder="Écrire un commentaire..."
+										placeholder={t("reviewCard.replyPlaceholder")}
 										className="w-full text-sm border border-gray-200 rounded-lg p-2 focus:ring-1 focus:ring-primary-400 focus:border-primary-400 outline-none resize-none"
 										rows="2"
 										maxLength="500"
@@ -382,6 +381,8 @@ const ReviewCard = ({
 								</div>
 								<button
 									type="submit"
+									title={t("reviewCard.sendReply")}
+									aria-label={t("reviewCard.sendReply")}
 									disabled={!replyContent.trim() || isSubmittingReply}
 									className={`p-2 rounded-lg bg-primary-600 text-white transition-all ${
 										!replyContent.trim() || isSubmittingReply

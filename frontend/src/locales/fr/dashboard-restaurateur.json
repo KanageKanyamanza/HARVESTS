@@ -125,7 +125,8 @@
 		"placed": "Achats (passées)",
 		"allStatuses": "Tous les statuts",
 		"statusUpdated": "Statut mis à jour avec succès",
-		"updateError": "Erreur lors de la mise à jour"
+		"updateError": "Erreur lors de la mise à jour",
+		"loadError": "Erreur lors du chargement des commandes"
 	},
 	"stats": {
 		"subtitle": "Analysez les performances de votre restaurant",

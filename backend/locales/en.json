@@ -37,7 +37,55 @@
     "token_expired": "Token expired",
     "unauthorized": "Unauthorized",
     "verification_email_sent": "Verification email sent successfully",
-    "email_not_verified": "Please verify your email before logging in"
+    "email_not_verified": "Please verify your email before logging in",
+    "session_expired": "Session expired. Please log in again.",
+    "invalid_token": "Invalid token.",
+    "invalid_token_relogin": "Invalid token. Please log in again.",
+    "token_expired_relogin": "Your session has expired. Please log in again.",
+    "user_not_found_or_inactive": "User not found or inactive.",
+    "invalid_user_type": "Invalid user type",
+    "terms_required": "You must accept the Terms of Use and the Privacy Policy",
+    "email_exists": "A user with this email already exists",
+    "email_exists_suggestion": "Try logging in or use another email",
+    "last_name_required": "Last name is required for consumers",
+    "signup_success_pending": "Registration successful! A verification email will be sent to you shortly.",
+    "credentials_required": "Please provide an email and a password",
+    "account_locked": "Account temporarily locked after repeated login attempts",
+    "wrong_credentials": "Incorrect email or password",
+    "account_disabled_contact": "Your account has been deactivated. Please contact support.",
+    "account_suspended_until": "Your account is suspended until {{date}}. Reason: {{reason}}",
+    "not_logged_in": "You are not logged in. Please log in to continue.",
+    "user_no_longer_exists": "The user for this session no longer exists.",
+    "password_changed_relogin": "Your password was changed recently. Please log in again.",
+    "account_disabled": "Your account has been deactivated",
+    "account_suspended_temp": "Your account is temporarily suspended",
+    "forbidden_action": "You do not have permission to perform this action",
+    "verification_required": "This feature requires email verification",
+    "verification_required_action": "This action requires email verification",
+    "verification_suggestion": "Verify your email to unlock this feature",
+    "verification_allowed_actions": [
+      "View profile",
+      "Edit basic information",
+      "View existing orders",
+      "View notifications"
+    ],
+    "verification_restricted_actions": [
+      "Create orders",
+      "Make payments",
+      "Publish products",
+      "Manage the shop"
+    ],
+    "approval_required": "Your account must be approved to access this feature",
+    "email_required": "Email required",
+    "no_user_with_email": "No user found with this email",
+    "user_not_found": "User not found",
+    "email_already_verified": "This email is already verified",
+    "email_send_error": "Error while sending the email. Please try again later.",
+    "verification_email_queued": "Verification email resent in the background",
+    "password_reset_neutral": "If an account exists with this email, you will receive a reset link.",
+    "reset_token_invalid": "Invalid or expired reset link",
+    "current_password_incorrect": "Your current password is incorrect",
+    "verification_email_neutral": "If an unverified account exists with this email, a new verification email has just been sent."
   },
   "user": {
     "profile_updated": "Profile updated successfully",
@@ -52,7 +100,12 @@
     "deleted": "Product deleted successfully",
     "not_found": "Product not found",
     "out_of_stock": "Product out of stock",
-    "insufficient_stock": "Insufficient stock"
+    "insufficient_stock": "Insufficient stock",
+    "variant_not_found": "Variant not found",
+    "required_fields": "All required fields must be filled in",
+    "name_description_required": "Name and description must be provided",
+    "limit_reached": "Product limit reached for your {{plan}} plan ({{max}} products max).",
+    "images_only": "Please upload images only."
   },
   "order": {
     "created": "Order created successfully",
@@ -63,7 +116,19 @@
     "ready_for_pickup": "Order ready for pickup",
     "in_transit": "Order in transit",
     "delivered": "Order delivered",
-    "not_found": "Order not found"
+    "not_found": "Order not found",
+    "access_denied": "Unauthorised access to this order",
+    "access_denied_generic": "Unauthorised access",
+    "status_unchanged": "The order status is already at this level",
+    "no_segment": "You have no part linked to this order",
+    "transition_forbidden": "You cannot move the order from “{{from}}” to “{{to}}”. Allowed transitions: {{allowed}}",
+    "item_not_found": "No matching item found for this order",
+    "seller_undetermined_product": "Could not determine a valid seller for product {{productId}}",
+    "seller_undetermined": "Could not determine a seller for this order",
+    "seller_weekly_limit": "Seller “{{seller}}” has reached their weekly order limit. Affected products: {{products}}. Please remove them to continue.",
+    "weekly_limit_reached": "Weekly order limit reached ({{limit}}). Upgrade to a higher plan to receive more orders.",
+    "cannot_cancel": "This order can no longer be cancelled",
+    "a_seller": "a seller"
   },
   "payment": {
     "processing": "Payment being processed",
@@ -104,7 +169,11 @@
     "not_found": "Resource not found",
     "forbidden": "Access forbidden",
     "bad_request": "Bad request",
-    "rate_limit": "Too many requests. Please try again later."
+    "rate_limit": "Too many requests. Please try again later.",
+    "generic": "Something went wrong!",
+    "cast_error": "Invalid resource: {{path}} = {{value}}",
+    "duplicate_field": "Value already in use: {{value}}. Please choose another one.",
+    "validation_failed": "Invalid data: {{details}}"
   },
   "email": {
     "subjects": {
@@ -152,5 +221,22 @@
     "box": "box",
     "bag": "bag",
     "liter": "liter"
+  },
+  "producer": {
+    "not_found": "Producer not found",
+    "equipment_not_found": "Equipment not found",
+    "crop_not_found": "Crop not found",
+    "certification_not_found": "Certification not found",
+    "transporter_already_favorite": "This transporter is already in your favourites",
+    "transporter_added_favorite": "Transporter added to favourites",
+    "document_required": "Please upload a document",
+    "images_or_pdf_only": "Please upload images or PDF files only."
+  },
+  "upload": {
+    "invalid_document_url": "Invalid document address",
+    "document_forbidden": "You do not have access to this document",
+    "document_uploaded": "Document uploaded successfully",
+    "document_upload_error": "Error while uploading the document",
+    "no_file": "No file provided"
   }
 }

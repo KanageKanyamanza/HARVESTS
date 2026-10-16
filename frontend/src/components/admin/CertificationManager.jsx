@@ -12,6 +12,7 @@ import {
 	FiX,
 	FiDownload,
 } from "react-icons/fi";
+import { isProtectedDocument, openDocument } from "../../utils/documentAccess";
 
 const CertificationManager = ({
 	certifications = [],
@@ -206,31 +207,41 @@ const CertificationManager = ({
 
 									{cert.document && (
 										<div className="mt-2">
-											<a
-												href={cert.document}
-												target="_blank"
-												rel="noopener noreferrer"
+											{/* Document protégé (Jour 59) : lien temporaire demandé au serveur */}
+											<button
+												type="button"
+												onClick={() => openDocument(cert.document).catch(() => {})}
 												className="inline-flex items-center text-sm text-harvests-green hover:text-green-600 mr-4"
 											>
 												<FiExternalLink className="h-4 w-4 mr-1" />
 												Voir le document
-											</a>
+											</button>
 
-											{isAdmin && (
-												<a
-													href={cert.document.replace(
-														"/upload/",
-														"/upload/fl_attachment/"
-													)}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
-													title="Télécharger le document"
-												>
-													<FiDownload className="h-4 w-4 mr-1" />
-													Télécharger
-												</a>
-											)}
+											{isAdmin &&
+												(isProtectedDocument(cert.document) ?
+													// Le lien temporaire est déjà un lien de téléchargement
+													<button
+														type="button"
+														onClick={() => openDocument(cert.document).catch(() => {})}
+														className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
+														title="Télécharger le document"
+													>
+														<FiDownload className="h-4 w-4 mr-1" />
+														Télécharger
+													</button>
+												:	<a
+														href={cert.document.replace(
+															"/upload/",
+															"/upload/fl_attachment/"
+														)}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
+														title="Télécharger le document"
+													>
+														<FiDownload className="h-4 w-4 mr-1" />
+														Télécharger
+													</a>)}
 										</div>
 									)}
 								</div>

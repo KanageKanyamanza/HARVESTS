@@ -55,7 +55,7 @@ exports.cancelOrder = catchAsync(async (req, res, next) => {
       data: { order }
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('ne peut pas') ? 400 : 404));
+    return next(error.params ? AppError.from(error) : new AppError(error.message, /ne peut pas|ne peut plus|cannot_cancel/.test(error.message) ? 400 : 404));
   }
 });
 
