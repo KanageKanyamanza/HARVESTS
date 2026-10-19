@@ -37,10 +37,7 @@ const protectUserOrAdmin = catchAsync(async (req, res, next) => {
 
 	if (!token) {
 		return next(
-			new AppError(
-				"Vous n'êtes pas connecté. Veuillez vous connecter pour accéder à cette page.",
-				401
-			)
+			new AppError("auth.not_logged_in", 401)
 		);
 	}
 
@@ -58,23 +55,20 @@ const protectUserOrAdmin = catchAsync(async (req, res, next) => {
 	const user = await User.findById(decoded.id);
 	if (!user) {
 		return next(
-			new AppError("L'utilisateur propriétaire de ce token n'existe plus.", 401)
+			new AppError("auth.user_no_longer_exists", 401)
 		);
 	}
 
 	// 5) Vérifier si l'utilisateur a changé de mot de passe après l'émission du token
 	if (user.changedPasswordAfter && user.changedPasswordAfter(decoded.iat)) {
 		return next(
-			new AppError(
-				"L'utilisateur a récemment changé de mot de passe! Veuillez vous reconnecter.",
-				401
-			)
+			new AppError("auth.password_changed_relogin", 401)
 		);
 	}
 
 	// 6) Vérifier si le compte est actif
 	if (!user.isActive) {
-		return next(new AppError("Votre compte a été désactivé.", 401));
+		return next(new AppError("auth.account_disabled", 401));
 	}
 
 	// 7) Donner accès à la route protégée
@@ -213,5 +207,10 @@ router.post(
 	// Let's rely on multer filter which we implemented in controller.
 	uploadController.uploadDocumentToCloudinary
 );
+
+// Lien temporaire pour consulter un document protégé (propriétaire ou admin)
+router.get("/documents/access", uploadController.getDocumentAccessUrl);
+// Contenu d'un document protégé, pour l'aperçu dans la page
+router.get("/documents/file", uploadController.streamDocument);
 
 module.exports = router;

@@ -9,7 +9,9 @@ import {
   User,
   ShoppingBag
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import StarRating from './StarRating';
+import { formatDate, formatPrice } from '../../utils/i18n';
 import CloudinaryImage from '../common/CloudinaryImage';
 import { parseProductName } from '../../utils/productUtils';
 import { consumerService } from '../../services';
@@ -21,6 +23,7 @@ const SimpleReviewForm = ({
   onCancel,
   loading = false 
 }) => {
+  const { t, i18n } = useTranslation('common');
   const [formData, setFormData] = useState({
     rating: 0,
     comment: '',
@@ -116,7 +119,7 @@ const SimpleReviewForm = ({
     const newErrors = {};
 
     if (formData.rating === 0) {
-      newErrors.rating = 'Veuillez donner une note';
+      newErrors.rating = t('reviewForm.ratingRequired');
     }
 
 
@@ -162,7 +165,7 @@ const SimpleReviewForm = ({
             <h4 className="font-medium text-gray-900">{parseProductName(product.name)}</h4>
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <User className="h-4 w-4" />
-              <span>Par {producer ? `${producer.firstName || ''} ${producer.lastName || ''}`.trim() : 'Producteur inconnu'}</span>
+              <span>{t('reviewForm.byProducer', { name: producer ? `${producer.firstName || ''} ${producer.lastName || ''}`.trim() : t('reviewForm.unknownProducer') })}</span>
             </div>
           </div>
         </div>
@@ -172,7 +175,7 @@ const SimpleReviewForm = ({
         {/* Note globale */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Note globale *
+            {t('reviewForm.rating')}
           </label>
           <StarRating
             rating={formData.rating}
@@ -193,7 +196,7 @@ const SimpleReviewForm = ({
         {relevantOrders.length > 0 ? (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Commande associée (optionnel)
+              {t('reviewForm.order')}
             </label>
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
@@ -207,7 +210,7 @@ const SimpleReviewForm = ({
                   className="text-green-600 focus:ring-green-500"
                 />
                 <label htmlFor="no-order" className="text-sm text-gray-700">
-                  Aucune commande spécifique
+                  {t('reviewForm.noSpecificOrder')}
                 </label>
               </div>
               {relevantOrders.map((order) => (
@@ -223,9 +226,11 @@ const SimpleReviewForm = ({
                   />
                   <label htmlFor={`order-${order._id}`} className="text-sm text-gray-700 flex items-center">
                     <ShoppingBag className="h-4 w-4 mr-2" />
-                    Commande #{order.orderNumber || order._id.slice(-6)} - 
-                    {new Date(order.createdAt).toLocaleDateString('fr-FR')} - 
-                    {order.totalAmount} FCFA
+                    {t('reviewForm.orderOption', {
+                      number: order.orderNumber || order._id.slice(-6),
+                      date: formatDate(order.createdAt, i18n.language),
+                      amount: formatPrice(order.totalAmount ?? order.total ?? 0, order.currency, i18n.language),
+                    })}
                   </label>
                 </div>
               ))}
@@ -237,10 +242,10 @@ const SimpleReviewForm = ({
               <ShoppingBag className="h-5 w-5 text-gray-400" />
               <div>
                 <p className="text-sm text-gray-600">
-                  Aucune commande trouvée pour ce produit
+                  {t('reviewForm.noOrderFound')}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  Vous pouvez quand même laisser un avis général
+                  {t('reviewForm.noOrderHint')}
                 </p>
               </div>
             </div>
@@ -251,12 +256,12 @@ const SimpleReviewForm = ({
         {/* Commentaire */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Votre avis
+            {t('reviewForm.comment')}
           </label>
           <textarea
             value={formData.comment}
             onChange={(e) => handleInputChange('comment', e.target.value)}
-            placeholder="Partagez votre expérience avec ce produit (optionnel)..."
+            placeholder={t('reviewForm.commentPlaceholder')}
             rows={4}
             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             maxLength={2000}
@@ -279,7 +284,7 @@ const SimpleReviewForm = ({
         {/* Médias */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Photos ou vidéos (optionnel)
+            {t('reviewForm.media')}
           </label>
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
             <input
@@ -296,10 +301,10 @@ const SimpleReviewForm = ({
             >
               <Upload className="h-8 w-8 text-gray-400 mb-2" />
               <span className="text-sm text-gray-600">
-                Cliquez pour ajouter des photos ou vidéos
+                {t('reviewForm.mediaAdd')}
               </span>
               <span className="text-xs text-gray-500 mt-1">
-                PNG, JPG, MP4 jusqu'à 10MB
+                {t('reviewForm.mediaHint')}
               </span>
             </label>
           </div>
@@ -312,17 +317,19 @@ const SimpleReviewForm = ({
                   {media.type === 'image' ? (
                     <img
                       src={media.url}
-                      alt={`Aperçu ${index + 1}`}
+                      alt={t('reviewForm.mediaPreviewAlt', { index: index + 1 })}
                       className="w-full h-20 object-cover rounded"
                     />
                   ) : (
                     <div className="w-full h-20 bg-gray-200 rounded flex items-center justify-center">
-                      <span className="text-xs text-gray-600">Vidéo</span>
+                      <span className="text-xs text-gray-600">{t('reviewForm.video')}</span>
                     </div>
                   )}
                   <button
                     type="button"
                     onClick={() => removeMedia(index)}
+                    title={t('reviewForm.removeMedia')}
+                    aria-label={t('reviewForm.removeMedia')}
                     className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                   >
                     <X className="h-3 w-3" />
@@ -340,7 +347,7 @@ const SimpleReviewForm = ({
             onClick={onCancel}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-harvests-light focus:outline-none focus:ring-2 focus:ring-green-500"
           >
-            Annuler
+            {t('reviewForm.cancel')}
           </button>
           <button
             type="submit"
@@ -350,12 +357,12 @@ const SimpleReviewForm = ({
             {isSubmitting ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>Envoi en cours...</span>
+                <span>{t('reviewForm.submitting')}</span>
               </>
             ) : (
               <>
                 <CheckCircle className="h-4 w-4" />
-                <span>Publier l'avis</span>
+                <span>{t('reviewForm.submit')}</span>
               </>
             )}
           </button>

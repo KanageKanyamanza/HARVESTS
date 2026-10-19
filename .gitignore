@@ -79,3 +79,6 @@ model.nlp
 
 # Security audit (internal document)
 SECURITY_AUDIT.md
+
+# Journaux de reprise de la migration des documents (Jour 59) : URL de documents privés
+backend/scripts/migrate-documents-private.*.log.jsonl

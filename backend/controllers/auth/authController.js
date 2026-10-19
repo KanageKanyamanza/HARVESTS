@@ -67,23 +67,29 @@ const createSendToken = (user, statusCode, req, res) => {
 exports.refreshToken = catchAsync(async (req, res, next) => {
 	const token = req.cookies.refreshToken;
 	if (!token) {
-		return next(new AppError('Session expirée. Veuillez vous reconnecter.', 401));
+		return next(new AppError('auth.session_expired', 401));
 	}
 
 	let decoded;
 	try {
 		decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, { algorithms: ['HS256'] });
 	} catch {
-		return next(new AppError('Session expirée. Veuillez vous reconnecter.', 401));
+		return next(new AppError('auth.session_expired', 401));
 	}
 
 	if (decoded.type !== 'refresh') {
-		return next(new AppError('Token invalide.', 401));
+		return next(new AppError('auth.invalid_token', 401));
 	}
 
 	const user = await User.findById(decoded.id);
 	if (!user || !user.isActive) {
-		return next(new AppError('Utilisateur introuvable ou inactif.', 401));
+		return next(new AppError('auth.user_not_found_or_inactive', 401));
+	}
+
+	// Jour 59 (sécurité) : un refresh token émis avant le dernier changement de
+	// mot de passe ne renouvelle plus la session (jeton volé, autre appareil)
+	if (user.changedPasswordAfter(decoded.iat)) {
+		return next(new AppError('auth.password_changed_relogin', 401));
 	}
 
 	// Rotation : nouveau access token + nouveau refresh token
@@ -112,15 +118,12 @@ exports.signup = catchAsync(async (req, res, next) => {
 		"transporter",
 	];
 	if (!validUserTypes.includes(userType)) {
-		return next(new AppError("Type d'utilisateur invalide", 400));
+		return next(new AppError("auth.invalid_user_type", 400));
 	}
 
 	if (req.body.acceptedTerms !== true) {
 		return next(
-			new AppError(
-				"Vous devez accepter les Conditions d'Utilisation et la Politique de Confidentialité",
-				400,
-			),
+			new AppError("auth.terms_required", 400),
 		);
 	}
 
@@ -130,9 +133,9 @@ exports.signup = catchAsync(async (req, res, next) => {
 		// Retourner une réponse plus informative
 		return res.status(400).json({
 			status: "fail",
-			message: "Un utilisateur avec cet email existe déjà",
+			message: req.t("auth.email_exists"),
 			code: "USER_EXISTS",
-			suggestion: "Essayez de vous connecter ou utilisez un autre email",
+			suggestion: req.t("auth.email_exists_suggestion"),
 		});
 	}
 
@@ -162,7 +165,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 		userData.lastName = req.body.lastName;
 		if (!userData.lastName) {
 			return next(
-				new AppError("Le nom est requis pour les consommateurs", 400),
+				new AppError("auth.last_name_required", 400),
 			);
 		}
 	} else {
@@ -223,8 +226,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 	// Réponse immédiate de succès d'inscription
 	res.status(201).json({
 		status: "success",
-		message:
-			"Inscription réussie ! Un email de vérification vous sera envoyé sous peu.",
+		message: req.t("auth.signup_success_pending"),
 		data: successResponse,
 	});
 });
@@ -236,7 +238,7 @@ exports.login = catchAsync(async (req, res, next) => {
 	// 1) Vérifier si email et mot de passe sont fournis
 	if (!email || !password) {
 		return next(
-			new AppError("Veuillez fournir un email et un mot de passe", 400),
+			new AppError("auth.credentials_required", 400),
 		);
 	}
 
@@ -248,10 +250,7 @@ exports.login = catchAsync(async (req, res, next) => {
 	// Vérifier si le compte est verrouillé
 	if (user && user.isLocked()) {
 		return next(
-			new AppError(
-				"Compte temporairement verrouillé en raison de tentatives de connexion répétées",
-				423,
-			),
+			new AppError("auth.account_locked", 423),
 		);
 	}
 
@@ -269,7 +268,7 @@ exports.login = catchAsync(async (req, res, next) => {
 			status: "failure",
 			details: { reason: "Invalid credentials" },
 		});
-		return next(new AppError("Email ou mot de passe incorrect", 401));
+		return next(new AppError("auth.wrong_credentials", 401));
 	}
 
 	// 3) Vérifier si l'email est vérifié (avertissement mais pas d'erreur)
@@ -283,7 +282,7 @@ exports.login = catchAsync(async (req, res, next) => {
 	// 4) Vérifier si le compte est actif
 	if (!user.isActive) {
 		return next(
-			new AppError("Votre compte a été désactivé. Contactez le support.", 401),
+			new AppError("auth.account_disabled_contact", 401),
 		);
 	}
 
@@ -292,10 +291,10 @@ exports.login = catchAsync(async (req, res, next) => {
 	// 6) Vérifier si le compte n'est pas suspendu
 	if (user.suspendedUntil && user.suspendedUntil > new Date()) {
 		return next(
-			new AppError(
-				`Votre compte est suspendu jusqu'au ${user.suspendedUntil}. Raison: ${user.suspensionReason}`,
-				403,
-			),
+			new AppError("auth.account_suspended_until", 403, {
+				date: user.suspendedUntil.toLocaleDateString(req.language === "en" ? "en-GB" : "fr-FR"),
+				reason: user.suspensionReason || "—",
+			}),
 		);
 	}
 

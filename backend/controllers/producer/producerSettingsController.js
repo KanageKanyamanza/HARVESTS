@@ -23,7 +23,7 @@ exports.addPreferredTransporter = catchAsync(async (req, res, next) => {
     await producerTransporterService.addPreferredTransporter(req.user._id, req.body.transporterId);
     res.status(201).json({
       status: 'success',
-      message: 'Transporteur ajouté aux préférés'
+      message: req.t('producer.transporter_added_favorite')
     });
   } catch (error) {
     return next(new AppError(error.message, 400));
@@ -58,7 +58,7 @@ exports.getMyDocuments = catchAsync(async (req, res, next) => {
 exports.addDocument = catchAsync(async (req, res, next) => {
   try {
     if (!req.file) {
-      return next(new AppError('Veuillez télécharger un document', 400));
+      return next(new AppError('producer.document_required', 400));
     }
     const documentData = {
       ...req.body,

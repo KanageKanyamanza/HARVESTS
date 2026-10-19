@@ -54,11 +54,12 @@ const FOLDERS = {
 };
 
 // Storage configurations pour différents types d'images
-const createStorage = (folder, transformation = {}) => {
+const createStorage = (folder, transformation = {}, extraParams = {}) => {
   return new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
       folder: folder,
+      ...extraParams,
       allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
       transformation: {
         quality: 'auto:best',
@@ -87,10 +88,11 @@ const storages = {
   }),
   
   // Documents - optimisés pour lisibilité
+  // Jour 59 (sécurité) : documents non publics, lus via /upload/documents/access
   document: createStorage(FOLDERS.DOCUMENTS.CERTIFICATIONS, {
     quality: 'auto:best',
     format: 'jpg'
-  }),
+  }, { type: 'authenticated' }),
   
   // Banners marketing - grand format
   banner: createStorage(FOLDERS.MARKETING.BANNERS, {
@@ -160,7 +162,8 @@ const createDynamicStorage = (userType, contentType, category = null) => {
       break;
   }
   
-  return createStorage(folder, transformation);
+  // Jour 59 (sécurité) : documents administratifs non publics (lien signé temporaire)
+  return createStorage(folder, transformation, contentType === 'document' ? { type: 'authenticated' } : {});
 };
 
 // Fonction utilitaire pour supprimer une image

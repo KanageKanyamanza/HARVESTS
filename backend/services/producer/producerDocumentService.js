@@ -7,7 +7,7 @@ const Producer = require('../../models/Producer');
 async function getDocuments(producerId) {
   const producer = await Producer.findById(producerId).select('documents');
   if (!producer) {
-    throw new Error('Producteur non trouvé');
+    throw new Error('producer.not_found');
   }
   return producer.documents;
 }
@@ -15,11 +15,11 @@ async function getDocuments(producerId) {
 async function addDocument(producerId, documentData) {
   const producer = await Producer.findById(producerId);
   if (!producer) {
-    throw new Error('Producteur non trouvé');
+    throw new Error('producer.not_found');
   }
   
   if (!documentData.document) {
-    throw new Error('Veuillez télécharger un document');
+    throw new Error('producer.document_required');
   }
 
   const { documentType } = documentData;

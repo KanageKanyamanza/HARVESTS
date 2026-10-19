@@ -1,5 +1,6 @@
 import React from 'react';
 import { FiAlertTriangle, FiRefreshCw, FiHome } from 'react-icons/fi';
+import i18n from '../../utils/i18n';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -70,11 +71,10 @@ class ErrorBoundary extends React.Component {
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-[1000] text-gray-900 tracking-tight mb-3">
-              Oups, une erreur s'est produite
+              {i18n.t('common:errorBoundary.title')}
             </h1>
             <p className="text-gray-500 font-medium mb-8 max-w-sm mx-auto">
-              Nous avons rencontré un problème inattendu. Vous pouvez réessayer
-              ou revenir à l'accueil.
+              {i18n.t('common:errorBoundary.text')}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -84,7 +84,7 @@ class ErrorBoundary extends React.Component {
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-200"
               >
                 <FiRefreshCw className="h-4 w-4" />
-                Réessayer
+                {i18n.t('common:errorBoundary.retry')}
               </button>
 
               <button
@@ -93,14 +93,14 @@ class ErrorBoundary extends React.Component {
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 font-bold text-sm hover:bg-gray-50 transition-colors shadow-sm"
               >
                 <FiHome className="h-4 w-4" />
-                Accueil
+                {i18n.t('common:errorBoundary.home')}
               </button>
             </div>
 
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <div className="mt-8 text-left border-t border-gray-100 pt-6">
                 <h4 className="text-xs font-black uppercase tracking-widest text-rose-500 mb-2">
-                  Détails du crash (développement uniquement)
+                  {i18n.t('common:errorBoundary.devDetails')}
                 </h4>
                 <pre className="text-xs text-rose-600 bg-rose-50 p-3 rounded-xl overflow-auto max-h-64 border border-rose-100 shadow-inner whitespace-pre-wrap">
                   <span className="font-bold block mb-1">{this.state.error.toString()}</span>

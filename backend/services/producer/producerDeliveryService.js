@@ -7,7 +7,7 @@ const Producer = require('../../models/Producer');
 async function getDeliverySettings(producerId) {
   const producer = await Producer.findById(producerId).select('deliveryOptions');
   if (!producer) {
-    throw new Error('Producteur non trouvé');
+    throw new Error('producer.not_found');
   }
   return producer.deliveryOptions;
 }
@@ -20,7 +20,7 @@ async function updateDeliverySettings(producerId, deliveryOptions) {
   ).select('deliveryOptions');
   
   if (!producer) {
-    throw new Error('Producteur non trouvé');
+    throw new Error('producer.not_found');
   }
   
   return producer.deliveryOptions;

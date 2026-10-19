@@ -125,7 +125,8 @@
 		"placed": "Purchases (placed)",
 		"allStatuses": "All statuses",
 		"statusUpdated": "Status updated successfully",
-		"updateError": "Error while updating"
+		"updateError": "Error while updating",
+		"loadError": "Error while loading orders"
 	},
 	"stats": {
 		"subtitle": "Analyse your restaurant's performance",

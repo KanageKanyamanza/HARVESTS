@@ -7,7 +7,7 @@ const Producer = require('../../models/Producer');
 async function getCertifications(producerId) {
   const producer = await Producer.findById(producerId).select('certifications');
   if (!producer) {
-    throw new Error('Producteur non trouvé');
+    throw new Error('producer.not_found');
   }
   return producer.certifications;
 }
@@ -15,7 +15,7 @@ async function getCertifications(producerId) {
 async function addCertification(producerId, certificationData) {
   const producer = await Producer.findById(producerId);
   if (!producer) {
-    throw new Error('Producteur non trouvé');
+    throw new Error('producer.not_found');
   }
   
   producer.certifications.push(certificationData);
@@ -27,12 +27,12 @@ async function addCertification(producerId, certificationData) {
 async function updateCertification(producerId, certId, updateData) {
   const producer = await Producer.findById(producerId);
   if (!producer) {
-    throw new Error('Producteur non trouvé');
+    throw new Error('producer.not_found');
   }
   
   const certification = producer.certifications.id(certId);
   if (!certification) {
-    throw new Error('Certification non trouvée');
+    throw new Error('producer.certification_not_found');
   }
   
   Object.keys(updateData).forEach(key => {
@@ -46,7 +46,7 @@ async function updateCertification(producerId, certId, updateData) {
 async function removeCertification(producerId, certId) {
   const producer = await Producer.findById(producerId);
   if (!producer) {
-    throw new Error('Producteur non trouvé');
+    throw new Error('producer.not_found');
   }
   
   producer.certifications.pull(certId);

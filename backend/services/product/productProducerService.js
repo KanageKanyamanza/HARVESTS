@@ -9,6 +9,7 @@ const {
 } = require("../../utils/vendorProductGuard");
 const notificationSystemService = require("../notification/notificationSystemService");
 const adminNotifications = require("../../utils/adminNotifications");
+const { assertProductLimit } = require("../../utils/subscriptionLimits");
 
 /**
  * Service pour la gestion des produits par les producteurs
@@ -47,29 +48,7 @@ async function getProducerProducts(producerId, queryParams = {}) {
  */
 async function createProduct(producerId, productData) {
 	// Vérifier les limites de produits selon le plan
-	const Subscription = mongoose.model("Subscription");
-	const activeSubscription = await Subscription.findOne({
-		user: producerId,
-		status: "active",
-	});
-
-	const plans = Subscription.getAvailablePlans();
-	const currentPlan =
-		activeSubscription ? plans[activeSubscription.planId] : plans.gratuit;
-
-	const productCount = await Product.countDocuments({
-		producer: producerId,
-		status: { $ne: "inactive" },
-	});
-
-	if (
-		currentPlan.features.maxProducts !== -1 &&
-		productCount >= currentPlan.features.maxProducts
-	) {
-		throw new Error(
-			`Limite de produits atteinte pour votre plan ${currentPlan.name} (${currentPlan.features.maxProducts} produits max).`,
-		);
-	}
+	await assertProductLimit("producer", producerId);
 
 	// Le corps de la requête était enregistré tel quel (statut compris) :
 	// champs réservés retirés, statut limité à brouillon / révision
@@ -141,7 +120,7 @@ async function getProducerProduct(productId, producerId) {
 	});
 
 	if (!product) {
-		throw new Error("Produit non trouvé");
+		throw new Error("product.not_found");
 	}
 
 	return product;
@@ -200,7 +179,7 @@ async function updateProducerProduct(productId, producerId, updateData) {
 	);
 
 	if (!product) {
-		throw new Error("Produit non trouvé");
+		throw new Error("product.not_found");
 	}
 
 	return product;
@@ -216,7 +195,7 @@ async function deleteProducerProduct(productId, producerId) {
 	});
 
 	if (!product) {
-		throw new Error("Produit non trouvé");
+		throw new Error("product.not_found");
 	}
 
 	product.isActive = false;
@@ -236,7 +215,7 @@ async function addVariant(productId, producerId, variantData) {
 	});
 
 	if (!product) {
-		throw new Error("Produit non trouvé");
+		throw new Error("product.not_found");
 	}
 
 	product.variants.push(variantData);
@@ -256,12 +235,12 @@ async function updateVariant(productId, producerId, variantId, variantData) {
 	});
 
 	if (!product) {
-		throw new Error("Produit non trouvé");
+		throw new Error("product.not_found");
 	}
 
 	const variant = product.variants.id(variantId);
 	if (!variant) {
-		throw new Error("Variante non trouvée");
+		throw new Error("product.variant_not_found");
 	}
 
 	Object.keys(variantData).forEach((key) => {
@@ -283,7 +262,7 @@ async function deleteVariant(productId, producerId, variantId) {
 	});
 
 	if (!product) {
-		throw new Error("Produit non trouvé");
+		throw new Error("product.not_found");
 	}
 
 	product.variants.pull(variantId);
@@ -307,13 +286,13 @@ async function updateStock(productId, producerId, { quantity, variantId }) {
 	});
 
 	if (!product) {
-		throw new Error("Produit non trouvé");
+		throw new Error("product.not_found");
 	}
 
 	if (product.hasVariants && variantId) {
 		const variant = product.variants.id(variantId);
 		if (!variant) {
-			throw new Error("Variante non trouvée");
+			throw new Error("product.variant_not_found");
 		}
 		variant.inventory.quantity = quantity;
 	} else {

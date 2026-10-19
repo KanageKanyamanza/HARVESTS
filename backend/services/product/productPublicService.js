@@ -691,7 +691,7 @@ async function getProductById(productId) {
   .populate('restaurateur', 'restaurantName firstName lastName address salesStats certifications createdAt country region userType shopLogo shopBanner avatar isBio');
 
   if (!product) {
-    throw new Error('Produit non trouvé');
+    throw new Error('product.not_found');
   }
 
   // Incrémenter les vues

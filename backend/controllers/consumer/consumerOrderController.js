@@ -1,5 +1,6 @@
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
+const Order = require('../../models/Order');
 const orderController = require('../orderController');
 const consumerOrderService = require('../../services/consumer/consumerOrderService');
 const orderServiceMain = require('../../services/orderService');
@@ -47,15 +48,23 @@ exports.getMyOrder = catchAsync(async (req, res, next) => {
 });
 
 exports.cancelOrder = catchAsync(async (req, res, next) => {
+  // Le service attend la commande elle-même : l'identifiant transmis tel quel
+  // faisait échouer toute annulation (« ne peut plus être annulée »)
+  const order = await Order.findById(req.params.orderId);
+  if (!order) return next(new AppError('order.not_found', 404));
+  if (!orderServiceMain.checkCancelPermission(order, req.user._id, req.user.role)) {
+    return next(new AppError('order.cancel_forbidden', 403));
+  }
+
   try {
-    const order = await orderServiceMain.cancelOrder(req.params.orderId, req.user.id, req.body.reason);
+    const cancelledOrder = await orderServiceMain.cancelOrder(order, req.user._id, req.body.reason);
     res.status(200).json({
       status: 'success',
-      message: 'Commande annulée avec succès',
-      data: { order }
+      message: req.t('order.cancelled_success'),
+      data: { order: cancelledOrder }
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('ne peut pas') ? 400 : 404));
+    return next(AppError.from(error, 400));
   }
 });
 
