@@ -19,6 +19,15 @@ class AppError extends Error {
   // ses paramètres, une Error simple devient une AppError au statut indiqué
   static from(error, statusCode = 400) {
     if (error instanceof AppError) return error;
+
+    // Erreur de validation Mongoose : conserver les détails par champ pour
+    // que le gestionnaire d'erreurs puisse les traduire (Jour 62).
+    if (error && error.name === 'ValidationError' && error.errors) {
+      const validationError = new AppError('errors.validation_failed', 400);
+      validationError.validationError = error;
+      return validationError;
+    }
+
     return new AppError(error.message, statusCode, error.params);
   }
 }

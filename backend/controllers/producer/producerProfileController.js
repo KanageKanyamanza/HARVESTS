@@ -12,7 +12,7 @@ exports.getMyProfile = catchAsync(async (req, res, next) => {
       data: { producer }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -25,7 +25,7 @@ exports.updateMyProfile = catchAsync(async (req, res, next) => {
       data: { producer }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -39,7 +39,7 @@ exports.getMyCertifications = catchAsync(async (req, res, next) => {
       data: { certifications }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -53,7 +53,7 @@ exports.addCertification = catchAsync(async (req, res, next) => {
       data: { certification }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -65,7 +65,7 @@ exports.updateCertification = catchAsync(async (req, res, next) => {
       data: { certification }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -77,7 +77,7 @@ exports.removeCertification = catchAsync(async (req, res, next) => {
       data: null
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

@@ -12,7 +12,7 @@ exports.getSubscriptions = catchAsync(async (req, res, next) => {
       data: { subscriptions }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -24,7 +24,7 @@ exports.createSubscription = catchAsync(async (req, res, next) => {
       data: { subscription }
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 
@@ -36,7 +36,7 @@ exports.getSubscription = catchAsync(async (req, res, next) => {
       data: { subscription }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -48,7 +48,7 @@ exports.updateSubscription = catchAsync(async (req, res, next) => {
       data: { subscription }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -60,7 +60,7 @@ exports.cancelSubscription = catchAsync(async (req, res, next) => {
       data: null
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -72,7 +72,7 @@ exports.pauseSubscription = catchAsync(async (req, res, next) => {
       message: 'Abonnement mis en pause'
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -84,7 +84,7 @@ exports.resumeSubscription = catchAsync(async (req, res, next) => {
       message: 'Abonnement repris'
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

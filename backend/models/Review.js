@@ -49,8 +49,8 @@ const reviewReplySchema = new mongoose.Schema({
 	},
 	content: {
 		type: String,
-		required: [true, "Le contenu du commentaire est requis"],
-		maxlength: [1000, "Le commentaire ne peut pas dépasser 1000 caractères"],
+		required: [true, "validation.review_content_required"],
+		maxlength: [1000, "validation.review_content_maxlength"],
 		trim: true,
 	},
 	likes: [
@@ -96,33 +96,33 @@ const reviewSchema = new mongoose.Schema(
 		reviewer: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "User",
-			required: [true, "Évaluateur requis"],
+			required: [true, "validation.reviewer_required"],
 		},
 
 		product: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "Product",
-			required: [true, "Produit requis"],
+			required: [true, "validation.product_required"],
 		},
 
 		order: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "Order",
-			required: [true, "Commande requise"],
+			required: [true, "validation.order_required"],
 		},
 
 		producer: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "User",
-			required: [true, "Producteur requis"],
+			required: [true, "validation.producer_required"],
 		},
 
 		// Évaluation globale
 		rating: {
 			type: Number,
-			required: [true, "Note globale requise"],
-			min: [1, "La note minimum est 1"],
-			max: [5, "La note maximum est 5"],
+			required: [true, "validation.rating_required"],
+			min: [1, "validation.rating_min_1"],
+			max: [5, "validation.rating_max_5"],
 		},
 
 		// Évaluation détaillée
@@ -132,7 +132,7 @@ const reviewSchema = new mongoose.Schema(
 		title: {
 			type: String,
 			required: false,
-			maxlength: [200, "Le titre ne peut pas dépasser 200 caractères"],
+			maxlength: [200, "validation.title_maxlength_200"],
 			trim: true,
 			default: "",
 		},
@@ -140,7 +140,7 @@ const reviewSchema = new mongoose.Schema(
 		comment: {
 			type: String,
 			required: false,
-			maxlength: [2000, "Le commentaire ne peut pas dépasser 2000 caractères"],
+			maxlength: [2000, "validation.review_comment_maxlength"],
 			trim: true,
 			default: "",
 		},
@@ -160,7 +160,7 @@ const reviewSchema = new mongoose.Schema(
 		producerResponse: {
 			comment: {
 				type: String,
-				maxlength: [1000, "La réponse ne peut pas dépasser 1000 caractères"],
+				maxlength: [1000, "validation.review_response_maxlength"],
 			},
 			respondedAt: Date,
 			respondedBy: {
@@ -592,8 +592,8 @@ reviewSchema.methods.generateAutoTags = function () {
 };
 
 // Méthodes statiques
-reviewSchema.statics.getProductRatingStats = function (productId) {
-	const match = { status: "approved" };
+reviewSchema.statics.getProductRatingStats = function (productId, extraMatch = {}) {
+	const match = { status: "approved", ...extraMatch };
 
 	if (productId) {
 		if (mongoose.Types.ObjectId.isValid(productId)) {
@@ -662,8 +662,12 @@ reviewSchema.statics.getProductRatingStats = function (productId) {
 	]);
 };
 
-reviewSchema.statics.getProducerRatingStats = async function (producerId) {
-	const reviews = await this.find({ producer: producerId, status: "approved" });
+reviewSchema.statics.getProducerRatingStats = async function (producerId, extraMatch = {}) {
+	const reviews = await this.find({
+		producer: producerId,
+		status: "approved",
+		...extraMatch,
+	});
 
 	if (reviews.length === 0) {
 		return [
@@ -741,10 +745,15 @@ reviewSchema.statics.getProducerRatingStats = async function (producerId) {
 	];
 };
 
-reviewSchema.statics.getFeaturedReviews = function (productId, limit = 5) {
+reviewSchema.statics.getFeaturedReviews = function (
+	productId,
+	limit = 5,
+	extraMatch = {}
+) {
 	return this.find({
 		product: productId,
 		status: "approved",
+		...extraMatch,
 	})
 		.populate("reviewer", "firstName lastName avatar")
 		.sort({

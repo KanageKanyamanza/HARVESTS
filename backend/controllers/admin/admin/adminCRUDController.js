@@ -23,7 +23,7 @@ exports.createAdmin = catchAsync(async (req, res, next) => {
 	const existingAdmin = await Admin.findOne({ email });
 	if (existingAdmin) {
 		return next(
-			new AppError("Un administrateur avec cet email existe déjà", 400)
+			new AppError("admin.email_exists", 400)
 		);
 	}
 
@@ -58,7 +58,7 @@ exports.createAdmin = catchAsync(async (req, res, next) => {
 
 	res.status(201).json({
 		status: "success",
-		message: "Administrateur créé avec succès",
+		message: req.t("admin.created"),
 		data: {
 			admin: {
 				id: admin._id,
@@ -139,7 +139,7 @@ exports.getAdmin = catchAsync(async (req, res, next) => {
 		.populate("createdBy", "firstName lastName email");
 
 	if (!admin) {
-		return next(new AppError("Administrateur non trouvé", 404));
+		return next(new AppError("admin.not_found", 404));
 	}
 
 	res.status(200).json({
@@ -168,7 +168,7 @@ exports.updateAdmin = catchAsync(async (req, res, next) => {
 
 	const admin = await Admin.findById(req.params.id);
 	if (!admin) {
-		return next(new AppError("Administrateur non trouvé", 404));
+		return next(new AppError("admin.not_found", 404));
 	}
 
 	// Vérifier les permissions
@@ -177,7 +177,7 @@ exports.updateAdmin = catchAsync(async (req, res, next) => {
 		req.admin._id.toString() !== req.params.id
 	) {
 		return next(
-			new AppError("Vous ne pouvez modifier que votre propre profil", 403)
+			new AppError("admin.own_profile_only", 403)
 		);
 	}
 
@@ -190,7 +190,7 @@ exports.updateAdmin = catchAsync(async (req, res, next) => {
 		if (existingAdmin) {
 			return next(
 				new AppError(
-					"Cet email est déjà utilisé par un autre administrateur",
+					"admin.email_in_use",
 					400
 				)
 			);
@@ -232,7 +232,7 @@ exports.updateAdmin = catchAsync(async (req, res, next) => {
 
 	res.status(200).json({
 		status: "success",
-		message: "Administrateur mis à jour avec succès",
+		message: req.t("admin.updated"),
 		data: {
 			admin: updatedAdmin,
 		},
@@ -245,13 +245,13 @@ exports.updateAdmin = catchAsync(async (req, res, next) => {
 exports.deleteAdmin = catchAsync(async (req, res, next) => {
 	const admin = await Admin.findById(req.params.id);
 	if (!admin) {
-		return next(new AppError("Administrateur non trouvé", 404));
+		return next(new AppError("admin.not_found", 404));
 	}
 
 	// Empêcher la suppression de son propre compte
 	if (req.admin._id.toString() === req.params.id) {
 		return next(
-			new AppError("Vous ne pouvez pas supprimer votre propre compte", 400)
+			new AppError("admin.cannot_delete_self", 400)
 		);
 	}
 
@@ -261,7 +261,7 @@ exports.deleteAdmin = catchAsync(async (req, res, next) => {
 		if (superAdminCount <= 1) {
 			return next(
 				new AppError(
-					"Impossible de supprimer le dernier super-administrateur",
+					"admin.cannot_delete_last_super",
 					400
 				)
 			);
@@ -281,6 +281,6 @@ exports.deleteAdmin = catchAsync(async (req, res, next) => {
 
 	res.status(204).json({
 		status: "success",
-		message: "Administrateur supprimé avec succès",
+		message: req.t("admin.deleted"),
 	});
 });

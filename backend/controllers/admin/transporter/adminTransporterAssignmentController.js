@@ -12,7 +12,7 @@ exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
 	const { transporterId } = req.body;
 
 	if (!transporterId) {
-		return next(new AppError("ID du transporteur requis", 400));
+		return next(new AppError("admin.transporter_id_required", 400));
 	}
 
 	// Récupérer la commande
@@ -28,7 +28,7 @@ exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
 		});
 
 	if (!order) {
-		return next(new AppError("Commande non trouvée", 404));
+		return next(new AppError("order.not_found", 404));
 	}
 
 	// Vérifier que la commande n'est pas déjà livrée ou terminée
@@ -42,8 +42,9 @@ exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
 	if (finalStatuses.includes(order.status)) {
 		return next(
 			new AppError(
-				`Impossible d'assigner un transporteur à une commande avec le statut: ${order.status}`,
+				"admin.transporter_status_invalid",
 				400,
+				{ status: order.status },
 			),
 		);
 	}
@@ -69,7 +70,7 @@ exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
 	const transporter = deliverer;
 
 	if (!transporter) {
-		return next(new AppError("Transporteur/Exportateur non trouvé", 404));
+		return next(new AppError("admin.transporter_not_found", 404));
 	}
 
 	const isReassignment =
@@ -83,7 +84,7 @@ exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
 	) {
 		return next(
 			new AppError(
-				"Le transporteur/exportateur sélectionné n'est pas disponible",
+				"admin.transporter_unavailable",
 				400,
 			),
 		);
@@ -104,8 +105,9 @@ exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
 	} catch (error) {
 		return next(
 			new AppError(
-				`Erreur : ${transporterName} a atteint sa limite hebdomadaire de commandes. Veuillez choisir un autre transporteur ou demander au transporteur de mettre à jour son plan.`,
+				"admin.transporter_weekly_limit",
 				400,
+				{ name: transporterName },
 			),
 		);
 	}
@@ -154,7 +156,7 @@ exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
 		if (!hasMatchingArea) {
 			return next(
 				new AppError(
-					"Le transporteur sélectionné ne couvre pas la zone de livraison",
+					"admin.transporter_zone_not_covered",
 					400,
 				),
 			);
@@ -358,7 +360,7 @@ exports.assignTransporterToOrder = catchAsync(async (req, res, next) => {
 
 	res.status(200).json({
 		status: "success",
-		message: "Transporteur assigné avec succès",
+		message: req.t("admin.transporter_assigned"),
 		data: {
 			order: updatedOrder,
 			transporter: {

@@ -64,7 +64,7 @@ exports.updateFaq = catchAsync(async (req, res, next) => {
 	});
 
 	if (!faq) {
-		return next(new AppError("FAQ non trouvée", 404));
+		return next(new AppError("chat.faq_not_found", 404));
 	}
 
 	// Ré-entraîner le bot
@@ -81,7 +81,7 @@ exports.deleteFaq = catchAsync(async (req, res, next) => {
 	const faq = await Faq.findByIdAndDelete(req.params.id);
 
 	if (!faq) {
-		return next(new AppError("FAQ non trouvée", 404));
+		return next(new AppError("chat.faq_not_found", 404));
 	}
 
 	// Ré-entraîner le bot
@@ -134,7 +134,7 @@ exports.answerQuestion = catchAsync(async (req, res, next) => {
 	const { answer, keywords, category } = req.body;
 
 	if (!answer) {
-		return next(new AppError("La réponse est requise", 400));
+		return next(new AppError("chat.answer_required", 400));
 	}
 
 	const question = await UnansweredQuestion.findByIdAndUpdate(
@@ -151,12 +151,12 @@ exports.answerQuestion = catchAsync(async (req, res, next) => {
 	);
 
 	if (!question) {
-		return next(new AppError("Question non trouvée", 404));
+		return next(new AppError("chat.question_not_found", 404));
 	}
 
 	res.status(200).json({
 		status: "success",
-		message: "Réponse enregistrée",
+		message: req.t("chat.answer_saved"),
 		data: { question },
 	});
 });
@@ -170,12 +170,12 @@ exports.ignoreQuestion = catchAsync(async (req, res, next) => {
 	);
 
 	if (!question) {
-		return next(new AppError("Question non trouvée", 404));
+		return next(new AppError("chat.question_not_found", 404));
 	}
 
 	res.status(200).json({
 		status: "success",
-		message: "Question ignorée",
+		message: req.t("chat.question_ignored"),
 	});
 });
 

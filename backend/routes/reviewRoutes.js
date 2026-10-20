@@ -12,6 +12,8 @@ const authMiddleware = require("../controllers/auth/authMiddleware");
 const router = express.Router();
 
 // ROUTES PUBLIQUES
+// Connexion optionnelle : le sandbox des avis dépend du visiteur connecté.
+router.use(authMiddleware.isLoggedIn);
 
 /**
  * @swagger

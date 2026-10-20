@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const chatController = require("../controllers/chatController");
-const { protect } = require("../controllers/auth/authMiddleware");
+const { protect, isLoggedIn } = require("../controllers/auth/authMiddleware");
 const adminAuthController = require("../controllers/adminAuthController");
 
 /**
@@ -79,7 +79,7 @@ const adminAuthController = require("../controllers/adminAuthController");
  *       400:
  *         description: Terme de recherche trop court (minimum 2 caractères)
  */
-router.get("/search-products", chatController.searchProducts);
+router.get("/search-products", isLoggedIn, chatController.searchProducts);
 
 /**
  * @swagger
@@ -104,7 +104,7 @@ router.get("/search-products", chatController.searchProducts);
  *       200:
  *         description: Réponse du chatbot
  */
-router.post("/message", chatController.processMessage);
+router.post("/message", isLoggedIn, chatController.processMessage);
 
 /**
  * @swagger
@@ -181,7 +181,7 @@ router.post("/message", chatController.processMessage);
  *       400:
  *         description: Terme de recherche trop court (minimum 2 caractères)
  */
-router.get("/search-sellers", chatController.searchSellers);
+router.get("/search-sellers", isLoggedIn, chatController.searchSellers);
 
 /**
  * @swagger
@@ -258,7 +258,7 @@ router.get("/search-sellers", chatController.searchSellers);
  *       400:
  *         description: Terme de recherche trop court (minimum 2 caractères)
  */
-router.get("/search-transporters", chatController.searchTransporters);
+router.get("/search-transporters", isLoggedIn, chatController.searchTransporters);
 
 /**
  * @swagger
@@ -270,7 +270,7 @@ router.get("/search-transporters", chatController.searchTransporters);
  *       200:
  *         description: Liste des catégories
  */
-router.get("/categories", chatController.getCategories);
+router.get("/categories", isLoggedIn, chatController.getCategories);
 
 /**
  * @swagger

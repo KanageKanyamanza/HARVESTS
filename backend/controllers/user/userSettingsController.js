@@ -12,7 +12,7 @@ exports.getFinancialInfo = catchAsync(async (req, res, next) => {
       data: financialInfo
     });
   } catch (error) {
-    return next(new AppError(error.message, 500));
+    return next(AppError.from(error, 500));
   }
 });
 
@@ -29,7 +29,7 @@ exports.updateFinancialInfo = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 500));
+    return next(AppError.from(error, 500));
   }
 });
 
@@ -43,7 +43,7 @@ exports.getNotificationSettings = catchAsync(async (req, res, next) => {
       data: notificationSettings
     });
   } catch (error) {
-    return next(new AppError(error.message, 500));
+    return next(AppError.from(error, 500));
   }
 });
 
@@ -60,7 +60,7 @@ exports.updateNotificationSettings = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 500));
+    return next(AppError.from(error, 500));
   }
 });
 
@@ -74,7 +74,7 @@ exports.getVerificationStatus = catchAsync(async (req, res, next) => {
       data: verificationStatus
     });
   } catch (error) {
-    return next(new AppError(error.message, 500));
+    return next(AppError.from(error, 500));
   }
 });
 
@@ -88,7 +88,7 @@ exports.getDeliveryAddresses = catchAsync(async (req, res, next) => {
       data: deliveryAddresses
     });
   } catch (error) {
-    return next(new AppError(error.message, 500));
+    return next(AppError.from(error, 500));
   }
 });
 
@@ -105,7 +105,7 @@ exports.addDeliveryAddress = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 500));
+    return next(AppError.from(error, 500));
   }
 });
 
@@ -123,7 +123,7 @@ exports.updateDeliveryAddress = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('non trouvée') ? 404 : 500));
+    return next(AppError.from(error, error.message.includes('non trouvée') ? 404 : 500));
   }
 });
 
@@ -141,7 +141,7 @@ exports.deleteDeliveryAddress = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('non trouvée') ? 404 : 500));
+    return next(AppError.from(error, error.message.includes('non trouvée') ? 404 : 500));
   }
 });
 

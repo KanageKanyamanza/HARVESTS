@@ -20,7 +20,7 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
       },
     });
   } catch (error) {
-    return next(new AppError(error.message, 500));
+    return next(AppError.from(error, 500));
   }
 });
 
@@ -36,7 +36,7 @@ exports.getUser = catchAsync(async (req, res, next) => {
       },
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -60,7 +60,7 @@ exports.updateUser = catchAsync(async (req, res, next) => {
       },
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('non trouvé') ? 404 : 400));
+    return next(AppError.from(error, error.message.includes('non trouvé') ? 404 : 400));
   }
 });
 
@@ -75,7 +75,7 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
       message: `Utilisateur et ${result.deletedProducts} produit(s) supprimé(s) avec succès`
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -92,7 +92,7 @@ exports.approveUser = catchAsync(async (req, res, next) => {
       },
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -110,7 +110,7 @@ exports.rejectUser = catchAsync(async (req, res, next) => {
       },
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('fournir') ? 400 : 404));
+    return next(AppError.from(error, error.message.includes('fournir') ? 400 : 404));
   }
 });
 
@@ -134,7 +134,7 @@ exports.suspendUser = catchAsync(async (req, res, next) => {
       },
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('fournir') ? 400 : 404));
+    return next(AppError.from(error, error.message.includes('fournir') ? 400 : 404));
   }
 });
 
@@ -151,7 +151,7 @@ exports.reactivateUser = catchAsync(async (req, res, next) => {
       },
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -165,7 +165,7 @@ exports.getCommonStats = catchAsync(async (req, res, next) => {
       data: commonStats
     });
   } catch (error) {
-    return next(new AppError(error.message, 500));
+    return next(AppError.from(error, 500));
   }
 });
 

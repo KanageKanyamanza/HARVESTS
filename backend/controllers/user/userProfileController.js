@@ -36,7 +36,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
       },
     });
   } catch (error) {
-    return next(new AppError(error.message, 500));
+    return next(AppError.from(error, 500));
   }
 });
 
@@ -73,7 +73,7 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
       data: null,
     });
   } catch (error) {
-    return next(new AppError(error.message, 500));
+    return next(AppError.from(error, 500));
   }
 });
 
@@ -88,7 +88,7 @@ exports.exportMyData = catchAsync(async (req, res, next) => {
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.status(200).send(JSON.stringify(data, null, 2));
   } catch (error) {
-    return next(new AppError(error.message, 500));
+    return next(AppError.from(error, 500));
   }
 });
 
@@ -105,7 +105,7 @@ exports.getMyAddresses = catchAsync(async (req, res, next) => {
       },
     });
   } catch (error) {
-    return next(new AppError(error.message, 500));
+    return next(AppError.from(error, 500));
   }
 });
 
@@ -120,7 +120,7 @@ exports.addAddress = catchAsync(async (req, res, next) => {
       },
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('Seuls les consommateurs') ? 403 : 500));
+    return next(AppError.from(error, error.message.includes('Seuls les consommateurs') ? 403 : 500));
   }
 });
 
@@ -135,7 +135,7 @@ exports.updateAddress = catchAsync(async (req, res, next) => {
       },
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('non trouvé') ? 404 : 500));
+    return next(AppError.from(error, error.message.includes('non trouvé') ? 404 : 500));
   }
 });
 
@@ -148,7 +148,7 @@ exports.deleteAddress = catchAsync(async (req, res, next) => {
       data: null,
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('non trouvé') ? 404 : 500));
+    return next(AppError.from(error, error.message.includes('non trouvé') ? 404 : 500));
   }
 });
 

@@ -58,19 +58,19 @@ const conversationSchema = new mongoose.Schema({
   type: {
     type: String,
     enum: ['direct', 'group', 'order', 'support', 'broadcast'],
-    required: [true, 'Type de conversation requis']
+    required: [true, 'validation.conversation_type_required']
   },
   
   // Titre (pour les conversations de groupe)
   title: {
     type: String,
-    maxlength: [100, 'Le titre ne peut pas dépasser 100 caractères']
+    maxlength: [100, 'validation.conversation_title_maxlength']
   },
   
   // Description
   description: {
     type: String,
-    maxlength: [500, 'La description ne peut pas dépasser 500 caractères']
+    maxlength: [500, 'validation.conversation_description_maxlength']
   },
   
   // Avatar de la conversation (pour les groupes)

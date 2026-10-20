@@ -18,7 +18,7 @@ exports.getMyProducts = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -50,7 +50,7 @@ exports.getMyProduct = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -66,7 +66,7 @@ exports.updateMyProduct = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -80,7 +80,7 @@ exports.deleteMyProduct = catchAsync(async (req, res, next) => {
       data: null
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -96,7 +96,7 @@ exports.addVariant = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -111,7 +111,7 @@ exports.updateVariant = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -124,7 +124,7 @@ exports.deleteVariant = catchAsync(async (req, res, next) => {
       data: null
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -140,7 +140,7 @@ exports.updateStock = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -154,7 +154,7 @@ exports.getMyProductStats = catchAsync(async (req, res, next) => {
       data: stats
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

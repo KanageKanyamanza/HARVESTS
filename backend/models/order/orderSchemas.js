@@ -5,7 +5,7 @@ const orderItemSchema = new mongoose.Schema({
 	product: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "Product",
-		required: [true, "Produit requis"],
+		required: [true, "validation.product_required"],
 	},
 	variant: {
 		type: mongoose.Schema.Types.ObjectId,
@@ -35,8 +35,8 @@ const orderItemSchema = new mongoose.Schema({
 	},
 	quantity: {
 		type: Number,
-		required: [true, "Quantité requise"],
-		min: [1, "La quantité doit être au moins 1"],
+		required: [true, "validation.quantity_required"],
+		min: [1, "validation.quantity_min_1"],
 	},
 	unit: {
 		type: String,
@@ -44,13 +44,13 @@ const orderItemSchema = new mongoose.Schema({
 	},
 	unitPrice: {
 		type: Number,
-		required: [true, "Prix unitaire requis"],
-		min: [0, "Le prix ne peut pas être négatif"],
+		required: [true, "validation.unit_price_required"],
+		min: [0, "validation.price_negative"],
 	},
 	totalPrice: {
 		type: Number,
-		required: [true, "Prix total requis"],
-		min: [0, "Le prix total ne peut pas être négatif"],
+		required: [true, "validation.total_price_required"],
+		min: [0, "validation.total_price_negative"],
 	},
 	currency: {
 		type: String,
@@ -168,15 +168,15 @@ const deliveryAddressSchema = new mongoose.Schema({
 	company: String,
 	street: {
 		type: String,
-		required: [true, "Rue requise"],
+		required: [true, "validation.street_required"],
 	},
 	city: {
 		type: String,
-		required: [true, "Ville requise"],
+		required: [true, "validation.city_required"],
 	},
 	region: {
 		type: String,
-		required: [true, "Région requise"],
+		required: [true, "validation.region_required"],
 	},
 	country: {
 		type: String,
@@ -196,7 +196,7 @@ const paymentSchema = new mongoose.Schema({
 	method: {
 		type: String,
 		enum: ["cash", "paypal"],
-		required: [true, "Méthode de paiement requise"],
+		required: [true, "validation.payment_method_required"],
 	},
 	provider: {
 		type: String,
@@ -220,7 +220,7 @@ const paymentSchema = new mongoose.Schema({
 	transactionId: String,
 	amount: {
 		type: Number,
-		required: [true, "Montant requis"],
+		required: [true, "validation.amount_required"],
 	},
 	currency: {
 		type: String,
@@ -252,7 +252,7 @@ const deliverySchema = new mongoose.Schema({
 			"same-day",
 			"scheduled",
 		],
-		required: [true, "Méthode de livraison requise"],
+		required: [true, "validation.delivery_method_required"],
 	},
 	status: {
 		type: String,
@@ -319,7 +319,7 @@ const orderSchema = new mongoose.Schema(
 		buyer: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "User",
-			required: [true, "Acheteur requis"],
+			required: [true, "validation.buyer_required"],
 		},
 
 		seller: {
@@ -336,8 +336,8 @@ const orderSchema = new mongoose.Schema(
 		// Montants
 		subtotal: {
 			type: Number,
-			required: [true, "Sous-total requis"],
-			min: [0, "Le sous-total ne peut pas être négatif"],
+			required: [true, "validation.subtotal_required"],
+			min: [0, "validation.subtotal_negative"],
 		},
 
 
@@ -345,19 +345,19 @@ const orderSchema = new mongoose.Schema(
 		taxes: {
 			type: Number,
 			default: 0,
-			min: [0, "Les taxes ne peuvent pas être négatives"],
+			min: [0, "validation.taxes_negative"],
 		},
 
 		discount: {
 			type: Number,
 			default: 0,
-			min: [0, "La remise ne peut pas être négative"],
+			min: [0, "validation.discount_negative"],
 		},
 
 		total: {
 			type: Number,
-			required: [true, "Total requis"],
-			min: [0, "Le total ne peut pas être négatif"],
+			required: [true, "validation.total_required"],
+			min: [0, "validation.total_negative"],
 		},
 
 		currency: {

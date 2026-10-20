@@ -40,7 +40,7 @@ const router = express.Router();
  *       200:
  *         description: Liste des producteurs
  */
-router.get('/', producerController.getAllProducers);
+router.get('/', authMiddleware.isLoggedIn, producerController.getAllProducers);
 
 /**
  * @swagger
@@ -58,7 +58,7 @@ router.get('/', producerController.getAllProducers);
  *       200:
  *         description: Résultats de recherche
  */
-router.get('/search', producerController.searchProducers);
+router.get('/search', authMiddleware.isLoggedIn, producerController.searchProducers);
 
 /**
  * @swagger
@@ -76,7 +76,7 @@ router.get('/search', producerController.searchProducers);
  *       200:
  *         description: Liste des producteurs de la région
  */
-router.get('/by-region/:region', producerController.getProducersByRegion);
+router.get('/by-region/:region', authMiddleware.isLoggedIn, producerController.getProducersByRegion);
 
 /**
  * @swagger
@@ -94,7 +94,7 @@ router.get('/by-region/:region', producerController.getProducersByRegion);
  *       200:
  *         description: Liste des producteurs pour cette culture
  */
-router.get('/by-crop/:crop', producerController.getProducersByCrop);
+router.get('/by-crop/:crop', authMiddleware.isLoggedIn, producerController.getProducersByCrop);
 
 /**
  * @swagger
@@ -113,7 +113,7 @@ router.get('/by-crop/:crop', producerController.getProducersByCrop);
  *       200:
  *         description: Détails du producteur
  */
-router.get('/:id([0-9a-fA-F]{24})', producerController.getProducer);
+router.get('/:id([0-9a-fA-F]{24})', authMiddleware.isLoggedIn, producerController.getProducer);
 
 /**
  * @swagger
@@ -132,7 +132,7 @@ router.get('/:id([0-9a-fA-F]{24})', producerController.getProducer);
  *       200:
  *         description: Liste des produits
  */
-router.get('/:id([0-9a-fA-F]{24})/products', producerController.getProducerProducts);
+router.get('/:id([0-9a-fA-F]{24})/products', authMiddleware.isLoggedIn, producerController.getProducerProducts);
 
 /**
  * @swagger
@@ -151,7 +151,7 @@ router.get('/:id([0-9a-fA-F]{24})/products', producerController.getProducerProdu
  *       200:
  *         description: Liste des avis
  */
-router.get('/:id([0-9a-fA-F]{24})/reviews', producerController.getProducerReviews);
+router.get('/:id([0-9a-fA-F]{24})/reviews', authMiddleware.isLoggedIn, producerController.getProducerReviews);
 
 // ========================================
 // ROUTES PRIVÉES (avec authentification)

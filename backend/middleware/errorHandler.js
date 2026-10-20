@@ -20,11 +20,14 @@ const handleDuplicateFieldsDB = (err) => {
 };
 
 /**
- * Gère les erreurs de validation Mongoose
- * (le détail par champ reste celui des schémas : voir Jour 62)
+ * Gère les erreurs de validation Mongoose.
+ * Les messages des schémas sont des clés de traduction (Jour 62) : ils sont
+ * traduits dans la langue de la requête avant d'être concaténés.
  */
-const handleValidationErrorDB = (err) => {
-	const errors = Object.values(err.errors).map((el) => el.message);
+const handleValidationErrorDB = (err, req) => {
+	const errors = Object.values(err.errors || {}).map((el) =>
+		localize(el.message, req.language, el.properties || {}),
+	);
 	return new AppError("errors.validation_failed", 400, { details: errors.join(". ") });
 };
 
@@ -43,13 +46,15 @@ const messageFor = (err, req) => localize(err.message, req.language, err.params)
 
 /**
  * Envoie les erreurs en mode développement (avec détails complets)
+ * `normalized` porte le statut et le message traduits ; `err` reste l'erreur
+ * d'origine pour le débogage (pile, détails Mongoose).
  */
-const sendErrorDev = (err, req, res) => {
+const sendErrorDev = (err, req, res, normalized = err) => {
 	if (!req.originalUrl.startsWith("/api")) console.error("ERROR 💥", err);
-	return res.status(err.statusCode).json({
-		status: err.status,
+	return res.status(normalized.statusCode).json({
+		status: normalized.status,
 		error: err,
-		message: messageFor(err, req),
+		message: messageFor(normalized, req),
 		stack: err.stack,
 	});
 };
@@ -72,6 +77,26 @@ const sendErrorProd = (err, req, res) => {
 };
 
 /**
+ * Normalise les erreurs MongoDB/JWT, en développement comme en production,
+ * pour que les statuts et les messages soient identiques dans les deux modes.
+ */
+const normalizeError = (err, req) => {
+	let error = { ...err };
+	error.message = err.message;
+	error.name = err.name; // Assurer que le nom est copié
+	error.code = err.code; // Assurer que le code est copié
+
+	if (error.name === "CastError") error = handleCastErrorDB(error);
+	if (error.code === 11000) error = handleDuplicateFieldsDB(err);
+	if (error.name === "ValidationError") error = handleValidationErrorDB(err, req);
+	if (error.validationError) error = handleValidationErrorDB(error.validationError, req);
+	if (error.name === "JsonWebTokenError") error = handleJWTError();
+	if (error.name === "TokenExpiredError") error = handleJWTExpiredError();
+
+	return error;
+};
+
+/**
  * Middleware global de gestion des erreurs
  * Centralise la gestion de toutes les erreurs de l'application
  */
@@ -82,23 +107,13 @@ module.exports = (err, req, res, next) => {
 	// Réponse déjà partie (flux, redirection…) : laisser Express clore la connexion
 	if (res.headersSent) return next(err);
 
+	const error = normalizeError(err, req);
+
 	if (process.env.NODE_ENV === "development") {
-		return sendErrorDev(err, req, res);
+		return sendErrorDev(err, req, res, error);
 	}
 
 	// Production, mais aussi test / staging / NODE_ENV absent : sans cette
 	// branche par défaut, aucune réponse n'était envoyée et la requête restait pendante.
-	let error = { ...err };
-	error.message = err.message;
-	error.name = err.name; // Assurer que le nom est copié
-	error.code = err.code; // Assurer que le code est copié
-
-	// Traitement des erreurs spécifiques MongoDB et JWT
-	if (error.name === "CastError") error = handleCastErrorDB(error);
-	if (error.code === 11000) error = handleDuplicateFieldsDB(err);
-	if (error.name === "ValidationError") error = handleValidationErrorDB(error);
-	if (error.name === "JsonWebTokenError") error = handleJWTError();
-	if (error.name === "TokenExpiredError") error = handleJWTExpiredError();
-
 	return sendErrorProd(error, req, res);
 };

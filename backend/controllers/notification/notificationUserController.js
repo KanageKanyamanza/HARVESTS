@@ -23,7 +23,7 @@ exports.getMyNotifications = catchAsync(async (req, res, next) => {
 			},
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 400));
+		return next(AppError.from(error, 400));
 	}
 });
 
@@ -38,7 +38,7 @@ exports.getUnreadCount = catchAsync(async (req, res, next) => {
 			data: result,
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 400));
+		return next(AppError.from(error, 400));
 	}
 });
 
@@ -62,7 +62,7 @@ exports.getNotificationsByCategory = catchAsync(async (req, res, next) => {
 			},
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 400));
+		return next(AppError.from(error, 400));
 	}
 });
 
@@ -82,7 +82,7 @@ exports.markAsRead = catchAsync(async (req, res, next) => {
 			},
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 404));
+		return next(AppError.from(error, 404));
 	}
 });
 
@@ -98,13 +98,15 @@ exports.markAllAsRead = catchAsync(async (req, res, next) => {
 
 		res.status(200).json({
 			status: "success",
-			message: `${result.modifiedCount} notification(s) marquée(s) comme lue(s)`,
+			message: req.t("notification.marked_all_read", {
+				count: result.modifiedCount,
+			}),
 			data: {
 				modifiedCount: result.modifiedCount,
 			},
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 400));
+		return next(AppError.from(error, 400));
 	}
 });
 
@@ -125,7 +127,7 @@ exports.markAsClicked = catchAsync(async (req, res, next) => {
 			},
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 404));
+		return next(AppError.from(error, 404));
 	}
 });
 
@@ -139,10 +141,10 @@ exports.dismissNotification = catchAsync(async (req, res, next) => {
 
 		res.status(200).json({
 			status: "success",
-			message: "Notification masquée",
+			message: req.t("notification.hidden"),
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 404));
+		return next(AppError.from(error, 404));
 	}
 });
 
@@ -159,7 +161,7 @@ exports.deleteNotification = catchAsync(async (req, res, next) => {
 			data: null,
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 404));
+		return next(AppError.from(error, 404));
 	}
 });
 
@@ -176,7 +178,7 @@ exports.getNotificationPreferences = catchAsync(async (req, res, next) => {
 			},
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 400));
+		return next(AppError.from(error, 400));
 	}
 });
 
@@ -196,7 +198,7 @@ exports.updateNotificationPreferences = catchAsync(async (req, res, next) => {
 			},
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 400));
+		return next(AppError.from(error, 400));
 	}
 });
 
@@ -205,7 +207,7 @@ exports.subscribeToPush = catchAsync(async (req, res, next) => {
 	try {
 		const { subscription } = req.body;
 		if (!subscription || !subscription.endpoint) {
-			return next(new AppError("Subscription object required", 400));
+			return next(new AppError("notification.subscription_required", 400));
 		}
 		const recipientId = req.admin ? req.admin._id : req.user.id;
 		const recipientModel = req.admin ? "Admin" : "User";
@@ -227,10 +229,10 @@ exports.subscribeToPush = catchAsync(async (req, res, next) => {
 
 		res.status(200).json({
 			status: "success",
-			message: "Subscription confirmed",
+			message: req.t("notification.push_subscribed"),
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 400));
+		return next(AppError.from(error, 400));
 	}
 });
 
@@ -239,7 +241,7 @@ exports.unsubscribeFromPush = catchAsync(async (req, res, next) => {
 	try {
 		const { endpoint } = req.body;
 		if (!endpoint) {
-			return next(new AppError("Endpoint required", 400));
+			return next(new AppError("notification.endpoint_required", 400));
 		}
 		const recipientId = req.admin ? req.admin._id : req.user.id;
 		const recipientModel = req.admin ? "Admin" : "User";
@@ -252,9 +254,9 @@ exports.unsubscribeFromPush = catchAsync(async (req, res, next) => {
 
 		res.status(200).json({
 			status: "success",
-			message: "Unsubscription confirmed",
+			message: req.t("notification.push_unsubscribed"),
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 400));
+		return next(AppError.from(error, 400));
 	}
 });

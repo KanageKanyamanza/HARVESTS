@@ -21,43 +21,43 @@ const translationGlossarySchema = new mongoose.Schema(
 			type: String,
 			enum: {
 				values: DIRECTIONS,
-				message: "Sens de traduction invalide (fr-en ou en-fr)",
+				message: "validation.glossary_direction_invalid",
 			},
 			default: "fr-en",
-			required: [true, "Le sens de traduction est requis"],
+			required: [true, "validation.glossary_direction_required"],
 		},
 		type: {
 			type: String,
 			enum: {
 				values: ["exact", "replacement"],
-				message: "Type d'entrée invalide (exact ou replacement)",
+				message: "validation.glossary_entry_type_invalid",
 			},
-			required: [true, "Le type d'entrée est requis"],
+			required: [true, "validation.glossary_entry_type_required"],
 		},
 		source: {
 			type: String,
-			required: [true, "Le terme source est requis"],
+			required: [true, "validation.glossary_source_required"],
 			trim: true,
-			maxlength: [200, "Le terme source ne peut pas dépasser 200 caractères"],
+			maxlength: [200, "validation.glossary_source_maxlength"],
 		},
 		target: {
 			type: String,
-			required: [true, "La traduction est requise"],
+			required: [true, "validation.glossary_target_required"],
 			trim: true,
-			maxlength: [300, "La traduction ne peut pas dépasser 300 caractères"],
+			maxlength: [300, "validation.glossary_target_maxlength"],
 		},
 		flags: {
 			type: String,
 			default: "gi",
 			validate: {
 				validator: (v) => ALLOWED_FLAGS.test(v || ""),
-				message: "Flags regex invalides (autorisés : g, i, m, s, u, y)",
+				message: "validation.glossary_flags_invalid",
 			},
 		},
 		note: {
 			type: String,
 			trim: true,
-			maxlength: [300, "La note ne peut pas dépasser 300 caractères"],
+			maxlength: [300, "validation.glossary_note_maxlength"],
 		},
 		createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Admin" },
 		updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "Admin" },
@@ -80,7 +80,7 @@ translationGlossarySchema.pre("validate", function (next) {
 		try {
 			new RegExp(this.source, this.flags || "gi");
 		} catch (error) {
-			this.invalidate("source", `Expression régulière invalide : ${error.message}`);
+			this.invalidate("source", "validation.glossary_regex_invalid");
 		}
 	}
 	next();

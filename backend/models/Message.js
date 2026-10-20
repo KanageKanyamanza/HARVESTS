@@ -55,7 +55,7 @@ const messageSchema = new mongoose.Schema({
   conversation: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Conversation',
-    required: [true, 'Conversation requise']
+    required: [true, 'validation.message_conversation_required']
   },
   
   // Expéditeur (absent pour les messages système générés par le serveur)
@@ -66,7 +66,7 @@ const messageSchema = new mongoose.Schema({
       function () {
         return this.type !== 'system';
       },
-      'Expéditeur requis'
+      'validation.message_sender_required'
     ]
   },
   
@@ -92,7 +92,7 @@ const messageSchema = new mongoose.Schema({
   // Contenu du message
   content: {
     type: String,
-    maxlength: [5000, 'Le message ne peut pas dépasser 5000 caractères']
+    maxlength: [5000, 'validation.message_content_maxlength']
   },
   
   // Contenu formaté (pour les messages riches)

@@ -12,7 +12,7 @@ exports.getPaymentMethods = catchAsync(async (req, res, next) => {
       data: { paymentMethods }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -24,7 +24,7 @@ exports.addPaymentMethod = catchAsync(async (req, res, next) => {
       data: { paymentMethod }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -36,7 +36,7 @@ exports.updatePaymentMethod = catchAsync(async (req, res, next) => {
       data: { paymentMethod }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -48,7 +48,7 @@ exports.removePaymentMethod = catchAsync(async (req, res, next) => {
       data: null
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -60,7 +60,7 @@ exports.setDefaultPaymentMethod = catchAsync(async (req, res, next) => {
       data: { paymentMethod }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

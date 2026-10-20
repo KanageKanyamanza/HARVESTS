@@ -4,7 +4,7 @@ const loyaltyTransactionSchema = new mongoose.Schema({
   consumer: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: [true, 'Consumer ID requis']
+    required: [true, 'validation.loyalty_consumer_required']
   },
   
   type: {
@@ -15,7 +15,7 @@ const loyaltyTransactionSchema = new mongoose.Schema({
   
   points: {
     type: Number,
-    required: [true, 'Nombre de points requis']
+    required: [true, 'validation.loyalty_points_required']
   },
   
   description: {

@@ -34,7 +34,7 @@ async function markReviewAsRead(reviewId, transformerId) {
   );
   
   if (!review) {
-    throw new Error('Avis non trouvé');
+    throw new Error('review.not_found');
   }
   
   return review;

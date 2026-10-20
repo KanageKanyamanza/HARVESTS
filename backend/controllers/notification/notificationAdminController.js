@@ -1,5 +1,6 @@
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
+const { isNotFound } = require('../../utils/translate');
 const notificationAdminService = require('../../services/notification/notificationAdminService');
 const notificationSystemService = require('../../services/notification/notificationSystemService');
 
@@ -10,13 +11,13 @@ exports.createSystemNotification = catchAsync(async (req, res, next) => {
 
     res.status(201).json({
       status: 'success',
-      message: `${notifications.length} notification(s) créée(s)`,
+      message: req.t('notification.created_count', { count: notifications.length }),
       data: {
         notifications: notifications.slice(0, 5) // Retourner seulement les 5 premières
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 
@@ -38,7 +39,7 @@ exports.getAllNotifications = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 
@@ -52,7 +53,7 @@ exports.getNotificationStats = catchAsync(async (req, res, next) => {
       data: result
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 
@@ -63,13 +64,13 @@ exports.retryFailedNotification = catchAsync(async (req, res, next) => {
 
     res.status(200).json({
       status: 'success',
-      message: 'Notification renvoyée',
+      message: req.t('notification.retried'),
       data: {
         results: result.results
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('non trouv') ? 404 : 400));
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 400));
   }
 });
 
@@ -80,13 +81,13 @@ exports.cleanupExpiredNotifications = catchAsync(async (req, res, next) => {
 
     res.status(200).json({
       status: 'success',
-      message: `${result.deletedCount} notification(s) expirée(s) supprimée(s)`,
+      message: req.t('notification.expired_cleaned', { count: result.deletedCount }),
       data: {
         deletedCount: result.deletedCount
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 
@@ -97,13 +98,13 @@ exports.processScheduledNotifications = catchAsync(async (req, res, next) => {
 
     res.status(200).json({
       status: 'success',
-      message: `${results.length} notification(s) planifiée(s) traitée(s)`,
+      message: req.t('notification.scheduled_processed', { count: results.length }),
       data: {
         results
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 
@@ -115,7 +116,7 @@ exports.sendTestNotification = catchAsync(async (req, res, next) => {
     const adminId = req.admin ? req.admin.id || req.admin._id : (req.user ? req.user.id : null);
     
     if (!adminId) {
-      return next(new AppError('Non autorisé ou admin non trouvé', 401));
+      return next(new AppError('notification.unauthorized_admin', 401));
     }
 
     const result = await notificationAdminService.sendTestNotification(adminId, {
@@ -131,7 +132,7 @@ exports.sendTestNotification = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 
@@ -145,7 +146,7 @@ exports.getPerformanceStats = catchAsync(async (req, res, next) => {
       data: result
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 
@@ -157,10 +158,10 @@ exports.notifyLowStock = catchAsync(async (req, res, next) => {
 
     res.status(201).json({
       status: 'success',
-      message: 'Notification de stock faible envoyée'
+      message: req.t('notification.low_stock_sent')
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('non trouvé') ? 404 : 400));
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 400));
   }
 });
 
@@ -172,13 +173,13 @@ exports.notifyBackInStock = catchAsync(async (req, res, next) => {
 
     res.status(201).json({
       status: 'success',
-      message: `${notifications.length} notification(s) envoyée(s)`,
+      message: req.t('notification.sent_count', { count: notifications.length }),
       data: {
         notificationsSent: notifications.length
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('non trouvé') ? 404 : 400));
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 400));
   }
 });
 
@@ -189,13 +190,13 @@ exports.notifyPromotion = catchAsync(async (req, res, next) => {
 
     res.status(201).json({
       status: 'success',
-      message: `Promotion envoyée à ${notifications.length} utilisateur(s)`,
+      message: req.t('notification.promotion_sent', { count: notifications.length }),
       data: {
         notificationsSent: notifications.length
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 

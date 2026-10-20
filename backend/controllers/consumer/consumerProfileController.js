@@ -13,7 +13,7 @@ exports.getMyProfile = catchAsync(async (req, res, next) => {
       data: { consumer }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -26,7 +26,7 @@ exports.updateMyProfile = catchAsync(async (req, res, next) => {
       data: { consumer }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -39,7 +39,7 @@ exports.getDietaryPreferences = catchAsync(async (req, res, next) => {
       data: { dietaryPreferences }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -51,7 +51,7 @@ exports.updateDietaryPreferences = catchAsync(async (req, res, next) => {
       data: { dietaryPreferences }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -65,7 +65,7 @@ exports.getAllergies = catchAsync(async (req, res, next) => {
       data: { allergies }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -77,7 +77,7 @@ exports.addAllergy = catchAsync(async (req, res, next) => {
       data: { allergy }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -89,7 +89,7 @@ exports.updateAllergy = catchAsync(async (req, res, next) => {
       data: { allergy }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -101,7 +101,7 @@ exports.removeAllergy = catchAsync(async (req, res, next) => {
       data: null
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

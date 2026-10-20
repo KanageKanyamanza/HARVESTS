@@ -10,7 +10,7 @@ const transformerSchema = new mongoose.Schema({
 		trim: true,
 		maxlength: [
 			100,
-			"Le nom de l'entreprise ne peut pas dépasser 100 caractères",
+			"validation.company_name_maxlength_100",
 		],
 		default: "À compléter",
 	},

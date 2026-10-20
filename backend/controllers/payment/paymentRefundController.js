@@ -12,7 +12,7 @@ exports.requestRefund = catchAsync(async (req, res, next) => {
       message: 'Demande de remboursement créée avec succès'
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('non trouvé') ? 404 : 400));
+    return next(AppError.from(error, error.message.includes('non trouvé') ? 404 : 400));
   }
 });
 
@@ -30,6 +30,6 @@ exports.processRefund = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('non trouv') ? 404 : 400));
+    return next(AppError.from(error, error.message.includes('non trouv') ? 404 : 400));
   }
 });

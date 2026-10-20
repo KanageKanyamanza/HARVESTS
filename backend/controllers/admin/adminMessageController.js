@@ -65,7 +65,7 @@ exports.getMessageById = catchAsync(async (req, res, next) => {
     .populate('attachments.product', 'name images');
 
   if (!message) {
-    return next(new AppError('Message non trouvé', 404));
+    return next(new AppError('admin.message_not_found', 404));
   }
 
   res.status(200).json({
@@ -82,7 +82,7 @@ exports.replyToMessage = catchAsync(async (req, res, next) => {
   const originalMessage = await Message.findById(req.params.id);
   
   if (!originalMessage) {
-    return next(new AppError('Message original non trouvé', 404));
+    return next(new AppError('admin.original_message_not_found', 404));
   }
 
   // Créer la réponse
@@ -105,7 +105,7 @@ exports.replyToMessage = catchAsync(async (req, res, next) => {
 
   res.status(201).json({
     status: 'success',
-    message: 'Réponse envoyée avec succès',
+    message: req.t('admin.reply_sent'),
     data: { message: populatedReply }
   });
 });
@@ -121,12 +121,12 @@ exports.markAsRead = catchAsync(async (req, res, next) => {
   ).populate('sender', 'firstName lastName email');
 
   if (!message) {
-    return next(new AppError('Message non trouvé', 404));
+    return next(new AppError('admin.message_not_found', 404));
   }
 
   res.status(200).json({
     status: 'success',
-    message: 'Message marqué comme lu',
+    message: req.t('admin.message_marked_read'),
     data: { message }
   });
 });
@@ -138,12 +138,12 @@ exports.deleteMessage = catchAsync(async (req, res, next) => {
   const message = await Message.findByIdAndDelete(req.params.id);
   
   if (!message) {
-    return next(new AppError('Message non trouvé', 404));
+    return next(new AppError('admin.message_not_found', 404));
   }
 
   res.status(200).json({
     status: 'success',
-    message: 'Message supprimé avec succès'
+    message: req.t('admin.message_deleted')
   });
 });
 

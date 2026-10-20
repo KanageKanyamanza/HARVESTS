@@ -56,7 +56,7 @@ exports.initiatePayment = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('non trouv') ? 404 : 400));
+    return next(AppError.from(error, error.message.includes('non trouv') ? 404 : 400));
   }
 });
 
@@ -222,7 +222,7 @@ exports.confirmPayment = catchAsync(async (req, res, next) => {
     });
   } catch (error) {
     if (error.message.includes('non trouvé')) {
-      return next(new AppError(error.message, 404));
+      return next(AppError.from(error, 404));
     }
     return next(new AppError(`Erreur lors de la confirmation: ${error.message}`, 400));
   }
@@ -245,7 +245,7 @@ exports.getMyPayments = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 
@@ -261,7 +261,7 @@ exports.getPayment = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -275,6 +275,6 @@ exports.getMyRevenue = catchAsync(async (req, res, next) => {
       data: result
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });

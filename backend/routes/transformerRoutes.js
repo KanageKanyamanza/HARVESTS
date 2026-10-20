@@ -31,7 +31,7 @@ const router = express.Router();
  *       200:
  *         description: Liste des transformateurs
  */
-router.get('/', transformerController.getAllTransformers);
+router.get('/', authMiddleware.isLoggedIn, transformerController.getAllTransformers);
 
 /**
  * @swagger
@@ -49,7 +49,7 @@ router.get('/', transformerController.getAllTransformers);
  *       200:
  *         description: Résultats de recherche
  */
-router.get('/search', transformerController.searchTransformers);
+router.get('/search', authMiddleware.isLoggedIn, transformerController.searchTransformers);
 
 /**
  * @swagger
@@ -67,7 +67,7 @@ router.get('/search', transformerController.searchTransformers);
  *       200:
  *         description: Liste des transformateurs de la région
  */
-router.get('/by-region/:region', transformerController.getTransformersByRegion);
+router.get('/by-region/:region', authMiddleware.isLoggedIn, transformerController.getTransformersByRegion);
 
 /**
  * @swagger
@@ -85,11 +85,11 @@ router.get('/by-region/:region', transformerController.getTransformersByRegion);
  *       200:
  *         description: Liste des transformateurs du type
  */
-router.get('/by-type/:type', transformerController.getTransformersByType);
-router.get('/:id/public', transformerController.getPublicTransformer);
-router.get('/:id/services', transformerController.getTransformerServices);
+router.get('/by-type/:type', authMiddleware.isLoggedIn, transformerController.getTransformersByType);
+router.get('/:id/public', authMiddleware.isLoggedIn, transformerController.getPublicTransformer);
+router.get('/:id/services', authMiddleware.isLoggedIn, transformerController.getTransformerServices);
 // Route pour les avis d'un transformateur spécifique (avec gestion spéciale pour "me")
-router.get('/:id/reviews', (req, res, next) => {
+router.get('/:id/reviews', authMiddleware.isLoggedIn, (req, res, next) => {
   if (req.params.id === 'me') {
     // Appliquer l'authentification pour la route /me/reviews
     return authMiddleware.protect(req, res, () => {
@@ -105,7 +105,7 @@ router.get('/:id/reviews', (req, res, next) => {
 });
 // Route publique pour les produits d'un transformateur spécifique (sans authentification)
 // Vérifier si l'ID est "me" et appliquer l'authentification
-router.get('/:id/products', (req, res, next) => {
+router.get('/:id/products', authMiddleware.isLoggedIn, (req, res, next) => {
   if (req.params.id === 'me') {
     // Appliquer l'authentification pour la route /me/products
     return authMiddleware.protect(req, res, () => {
@@ -120,7 +120,7 @@ router.get('/:id/products', (req, res, next) => {
   transformerController.getPublicProducts(req, res, next);
 });
 // Route générique /:id doit être en dernier pour éviter de capturer les routes spécifiques
-router.get('/:id', transformerController.getTransformer);
+router.get('/:id', authMiddleware.isLoggedIn, transformerController.getTransformer);
 
 // Toutes les routes suivantes nécessitent une authentification
 router.use(authMiddleware.protect);

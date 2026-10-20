@@ -12,7 +12,7 @@ async function createSystemNotification(
 	{ recipients, type, title, message, channels, scheduledFor, expiresAt }
 ) {
 	if (!recipients || recipients.length === 0) {
-		throw new Error("Au moins un destinataire requis");
+		throw new Error("notification.recipients_required");
 	}
 
 	const notifications = [];
@@ -168,11 +168,11 @@ async function retryFailedNotification(notificationId) {
 	const notification = await Notification.findById(notificationId);
 
 	if (!notification) {
-		throw new Error("Notification non trouvée");
+		throw new Error("notification.not_found");
 	}
 
 	if (notification.status !== "failed") {
-		throw new Error("Seules les notifications échouées peuvent être renvoyées");
+		throw new Error("notification.failed_only_retry");
 	}
 
 	// Réinitialiser les statuts d'envoi

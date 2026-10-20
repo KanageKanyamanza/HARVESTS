@@ -11,7 +11,7 @@ exports.getNotifications = catchAsync(async (req, res, next) => {
       data: { notifications }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -23,7 +23,7 @@ exports.markNotificationsAsRead = catchAsync(async (req, res, next) => {
       message: 'Notifications marquées comme lues'
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -35,7 +35,7 @@ exports.markNotificationAsRead = catchAsync(async (req, res, next) => {
       data: { notification }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -47,7 +47,7 @@ exports.deleteNotification = catchAsync(async (req, res, next) => {
       data: null
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

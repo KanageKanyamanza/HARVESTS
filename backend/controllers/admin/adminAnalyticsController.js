@@ -235,7 +235,7 @@ exports.getAnalytics = catchAsync(async (req, res, next) => {
 exports.getReports = catchAsync(async (req, res, next) => {
 	res.status(200).json({
 		status: "success",
-		message: "Fonctionnalité en cours de développement",
+		message: req.t("admin.feature_in_development"),
 		data: { reports: [] },
 	});
 });
@@ -246,6 +246,6 @@ exports.getReports = catchAsync(async (req, res, next) => {
 exports.exportData = catchAsync(async (req, res, next) => {
 	res.status(200).json({
 		status: "success",
-		message: "Fonctionnalité en cours de développement",
+		message: req.t("admin.feature_in_development"),
 	});
 });

@@ -3,13 +3,18 @@ const Product = require('../../models/Product');
 const User = require('../../models/User');
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
+const {
+  isTestViewer,
+  testAccountScope,
+  testProductsViewerFilter,
+} = require('../../utils/testAccounts');
 
 // Rechercher des produits pour le chatbot
 exports.searchProducts = catchAsync(async (req, res, next) => {
   const { query, limit = 5 } = req.query;
 
   if (!query || query.length < 2) {
-    return next(new AppError('Le terme de recherche doit contenir au moins 2 caractères', 400));
+    return next(new AppError('chat.search_term_too_short', 400));
   }
 
   // Utiliser la recherche améliorée avec détection de localisation
@@ -28,6 +33,11 @@ exports.searchProducts = catchAsync(async (req, res, next) => {
     status: 'approved',
     isActive: true
   };
+  const productTestFilter = await testProductsViewerFilter(isTestViewer(req));
+  if (productTestFilter) {
+    mongoQuery.$and = mongoQuery.$and || [];
+    mongoQuery.$and.push(productTestFilter);
+  }
   
   // Ajouter la recherche textuelle
   if (searchQuery.$or && searchQuery.$or.length > 0) {
@@ -102,12 +112,12 @@ exports.trackOrder = catchAsync(async (req, res, next) => {
     .lean();
 
   if (!order) {
-    return next(new AppError('Commande non trouvée', 404));
+    return next(new AppError('order.not_found', 404));
   }
 
   // Vérifier que l'utilisateur est propriétaire de la commande ou admin
   if (req.user && order.buyer && order.buyer.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-    return next(new AppError('Vous n\'êtes pas autorisé à voir cette commande', 403));
+    return next(new AppError('order.access_denied', 403));
   }
 
   res.status(200).json({
@@ -136,7 +146,7 @@ exports.searchSellers = catchAsync(async (req, res, next) => {
   const { query, limit = 5 } = req.query;
 
   if (!query || query.length < 2) {
-    return next(new AppError('Le terme de recherche doit contenir au moins 2 caractères', 400));
+    return next(new AppError('chat.search_term_too_short', 400));
   }
 
   // Utiliser la recherche améliorée avec détection de localisation
@@ -153,7 +163,8 @@ exports.searchSellers = catchAsync(async (req, res, next) => {
   const mongoQuery = {
     userType: { $in: ['producer', 'transformer', 'restaurateur'] },
     isActive: true,
-    isVerified: true
+    isVerified: true,
+    ...testAccountScope(isTestViewer(req))
   };
   
   // Ajouter la recherche textuelle
@@ -188,7 +199,7 @@ exports.searchTransporters = catchAsync(async (req, res, next) => {
   const { query, limit = 5 } = req.query;
 
   if (!query || query.length < 2) {
-    return next(new AppError('Le terme de recherche doit contenir au moins 2 caractères', 400));
+    return next(new AppError('chat.search_term_too_short', 400));
   }
 
   // Utiliser la recherche améliorée avec détection de localisation
@@ -205,7 +216,8 @@ exports.searchTransporters = catchAsync(async (req, res, next) => {
   const mongoQuery = {
     userType: { $in: ['transporter', 'exporter'] },
     isActive: true,
-    isVerified: true
+    isVerified: true,
+    ...testAccountScope(isTestViewer(req))
   };
   
   // Ajouter la recherche textuelle
@@ -257,9 +269,11 @@ exports.searchTransporters = catchAsync(async (req, res, next) => {
 
 // Obtenir les catégories disponibles
 exports.getCategories = catchAsync(async (req, res, next) => {
+  const productTestFilter = await testProductsViewerFilter(isTestViewer(req));
   const categories = await Product.distinct('category', {
     status: 'approved',
-    isActive: true
+    isActive: true,
+    ...(productTestFilter ? { $and: [productTestFilter] } : {}),
   });
 
   res.status(200).json({

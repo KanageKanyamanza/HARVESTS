@@ -11,7 +11,7 @@ exports.getMyReviews = catchAsync(async (req, res, next) => {
       data: { reviews }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -23,7 +23,7 @@ exports.createReview = catchAsync(async (req, res, next) => {
       data: { review }
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 
@@ -35,7 +35,7 @@ exports.getMyReview = catchAsync(async (req, res, next) => {
       data: { review }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -47,7 +47,7 @@ exports.updateMyReview = catchAsync(async (req, res, next) => {
       data: { review }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -59,7 +59,7 @@ exports.deleteMyReview = catchAsync(async (req, res, next) => {
       data: null
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

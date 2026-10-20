@@ -83,7 +83,7 @@ exports.logFeedback = catchAsync(async (req, res, next) => {
 	const { interactionId, feedback } = req.body;
 
 	if (!mongoose.Types.ObjectId.isValid(interactionId)) {
-		return next(new AppError("ID d'interaction invalide", 400));
+		return next(new AppError("chat.interaction_id_invalid", 400));
 	}
 
 	// Accepter boolean ou string
@@ -93,7 +93,7 @@ exports.logFeedback = catchAsync(async (req, res, next) => {
 	} else if (typeof feedback === "boolean") {
 		feedbackValue = feedback;
 	} else {
-		return next(new AppError("Feedback invalide", 400));
+		return next(new AppError("chat.feedback_invalid", 400));
 	}
 
 	await ChatInteraction.findByIdAndUpdate(interactionId, {
@@ -102,7 +102,7 @@ exports.logFeedback = catchAsync(async (req, res, next) => {
 
 	res.status(200).json({
 		status: "success",
-		message: "Feedback enregistré",
+		message: req.t("chat.feedback_saved"),
 	});
 });
 

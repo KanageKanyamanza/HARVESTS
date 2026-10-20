@@ -3,12 +3,12 @@ const mongoose = require("mongoose");
 const newsletterSchema = new mongoose.Schema({
 	subject: {
 		type: String,
-		required: [true, "Une newsletter doit avoir un sujet"],
+		required: [true, "validation.newsletter_subject_required"],
 		trim: true,
 	},
 	content: {
 		type: String,
-		required: [true, "Une newsletter doit avoir un contenu"],
+		required: [true, "validation.newsletter_content_required"],
 	},
 	originalContent: {
 		type: String, // Stores the Markdown version

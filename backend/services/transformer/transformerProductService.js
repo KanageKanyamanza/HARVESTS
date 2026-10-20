@@ -1,5 +1,7 @@
 const Product = require("../../models/Product");
+const Transformer = require("../../models/Transformer");
 const { toPlainText } = require("../../utils/localization");
+const { testAccountScope } = require("../../utils/testAccounts");
 const { assertProductLimit } = require("../../utils/subscriptionLimits");
 const {
 	resolveCreateStatus,
@@ -168,7 +170,16 @@ async function submitProductForReview(productId, transformerId) {
 	return product;
 }
 
-async function getPublicProducts(transformerId) {
+async function getPublicProducts(transformerId, isTestView = false) {
+	// Vérifier que la boutique appartient au même périmètre que le visiteur
+	const transformerExists = await Transformer.exists({
+		_id: transformerId,
+		...testAccountScope(isTestView),
+	});
+	if (!transformerExists) {
+		throw new Error("Transformateur non trouvé");
+	}
+
 	const products = await Product.find({
 		transformer: transformerId,
 		userType: "transformer",

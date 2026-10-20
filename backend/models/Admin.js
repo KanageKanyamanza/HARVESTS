@@ -5,35 +5,35 @@ const adminSchema = new mongoose.Schema(
 	{
 		firstName: {
 			type: String,
-			required: [true, "Prénom requis"],
+			required: [true, "validation.first_name_required"],
 			trim: true,
-			maxlength: [50, "Le prénom ne peut pas dépasser 50 caractères"],
+			maxlength: [50, "validation.first_name_maxlength"],
 		},
 
 		lastName: {
 			type: String,
-			required: [true, "Nom requis"],
+			required: [true, "validation.last_name_required"],
 			trim: true,
-			maxlength: [50, "Le nom ne peut pas dépasser 50 caractères"],
+			maxlength: [50, "validation.last_name_maxlength"],
 		},
 
 		email: {
 			type: String,
-			required: [true, "Email requis"],
+			required: [true, "validation.email_required"],
 			unique: true,
 			lowercase: true,
 			validate: {
 				validator: function (email) {
 					return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 				},
-				message: "Format d'email invalide",
+				message: "validation.email_invalid",
 			},
 		},
 
 		password: {
 			type: String,
-			required: [true, "Mot de passe requis"],
-			minlength: [8, "Le mot de passe doit contenir au moins 8 caractères"],
+			required: [true, "validation.password_required"],
+			minlength: [8, "validation.password_min"],
 			select: false,
 			validate: {
 				validator: function (password) {
@@ -41,7 +41,7 @@ const adminSchema = new mongoose.Schema(
 					return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password);
 				},
 				message:
-					"Le mot de passe doit contenir au moins 8 caractères, 1 majuscule, 1 minuscule et 1 chiffre",
+					"validation.admin_password_complexity",
 			},
 		},
 
@@ -142,7 +142,7 @@ const adminSchema = new mongoose.Schema(
 				validator: function (phone) {
 					return !phone || /^[\+]?[0-9\s\-\(\)]{8,}$/.test(phone);
 				},
-				message: "Format de téléphone invalide",
+				message: "validation.phone_invalid",
 			},
 		},
 
@@ -154,7 +154,7 @@ const adminSchema = new mongoose.Schema(
 				validator: function (email) {
 					return !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 				},
-				message: "Format d'email de notification invalide",
+				message: "validation.notification_email_invalid",
 			},
 		},
 

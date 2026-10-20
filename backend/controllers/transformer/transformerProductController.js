@@ -2,6 +2,7 @@ const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
 const { isNotFound } = require('../../utils/translate');
 const transformerProductService = require('../../services/transformer/transformerProductService');
+const { isTestViewer } = require('../../utils/testAccounts');
 
 // Produits de la boutique
 exports.getMyProducts = catchAsync(async (req, res, next) => {
@@ -12,7 +13,7 @@ exports.getMyProducts = catchAsync(async (req, res, next) => {
       data: { products }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -24,7 +25,7 @@ exports.getProduct = catchAsync(async (req, res, next) => {
       data: { product }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -52,7 +53,7 @@ exports.updateProduct = catchAsync(async (req, res, next) => {
       data: { product }
     });
   } catch (error) {
-    return next(new AppError(error.message, isNotFound(error.message) ? 404 : 400));
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 400));
   }
 });
 
@@ -64,7 +65,7 @@ exports.deleteProduct = catchAsync(async (req, res, next) => {
       data: null
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -78,7 +79,7 @@ exports.submitProductForReview = catchAsync(async (req, res, next) => {
       data: { product }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -95,14 +96,14 @@ exports.getPublicProducts = catchAsync(async (req, res, next) => {
   }
   
   try {
-    const products = await transformerProductService.getPublicProducts(id);
+    const products = await transformerProductService.getPublicProducts(id, isTestViewer(req));
     res.status(200).json({
       status: 'success',
       results: products.length,
       data: { products }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

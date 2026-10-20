@@ -8,7 +8,7 @@ const transporterSchema = new mongoose.Schema({
     type: String,
     required: false, // Optionnel lors de l'inscription
     trim: true,
-    maxlength: [100, 'Le nom de l\'entreprise ne peut pas dépasser 100 caractères'],
+    maxlength: [100, 'validation.company_name_maxlength_100'],
     default: 'À compléter'
   },
   

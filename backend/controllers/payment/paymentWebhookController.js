@@ -12,6 +12,6 @@ exports.handlePaymentWebhook = catchAsync(async (req, res, next) => {
       message: 'Webhook PayPal traité'
     });
   } catch (error) {
-    return next(new AppError(error.message, 401));
+    return next(AppError.from(error, 401));
   }
 });

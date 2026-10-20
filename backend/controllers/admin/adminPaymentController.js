@@ -6,7 +6,7 @@ const catchAsync = require('../../utils/catchAsync');
 exports.getAllPayments = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement',
+    message: req.t('admin.feature_in_development'),
     data: { payments: [] }
   });
 });
@@ -17,7 +17,7 @@ exports.getAllPayments = catchAsync(async (req, res, next) => {
 exports.getPaymentById = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement',
+    message: req.t('admin.feature_in_development'),
     data: { payment: null }
   });
 });
@@ -28,7 +28,7 @@ exports.getPaymentById = catchAsync(async (req, res, next) => {
 exports.updatePaymentStatus = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement'
+    message: req.t('admin.feature_in_development')
   });
 });
 
@@ -38,7 +38,7 @@ exports.updatePaymentStatus = catchAsync(async (req, res, next) => {
 exports.refundPayment = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement'
+    message: req.t('admin.feature_in_development')
   });
 });
 

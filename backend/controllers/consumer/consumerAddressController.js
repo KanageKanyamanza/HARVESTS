@@ -12,7 +12,7 @@ exports.getDeliveryAddresses = catchAsync(async (req, res, next) => {
       data: { addresses }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -24,7 +24,7 @@ exports.addDeliveryAddress = catchAsync(async (req, res, next) => {
       data: { address }
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 
@@ -36,7 +36,7 @@ exports.updateDeliveryAddress = catchAsync(async (req, res, next) => {
       data: { address }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -48,7 +48,7 @@ exports.removeDeliveryAddress = catchAsync(async (req, res, next) => {
       data: null
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('au moins') ? 400 : 404));
+    return next(AppError.from(error, error.message.includes('au moins') ? 400 : 404));
   }
 });
 
@@ -60,7 +60,7 @@ exports.setDefaultAddress = catchAsync(async (req, res, next) => {
       data: { address }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

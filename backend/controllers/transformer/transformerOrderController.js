@@ -16,7 +16,7 @@ exports.acceptOrder = catchAsync(async (req, res, next) => {
       data: { order }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -43,7 +43,7 @@ exports.cancelOrder = catchAsync(async (req, res, next) => {
       data: { order }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -93,7 +93,7 @@ exports.updateOrderProgress = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

@@ -1,6 +1,10 @@
 const Producer = require("../../models/Producer");
 const Product = require("../../models/Product");
 const Review = require("../../models/Review");
+const {
+	testAccountScope,
+	testReviewViewerFilter,
+} = require("../../utils/testAccounts");
 
 /**
  * Service pour la recherche et l'affichage public des producteurs
@@ -18,7 +22,7 @@ async function getProducerIdsWithProducts() {
 	});
 }
 
-function buildAllProducersQuery(queryParams) {
+function buildAllProducersQuery(queryParams, isTestView = false) {
 	const baseQueryObj = { ...queryParams };
 	const excludedFields = [
 		"page",
@@ -64,20 +68,23 @@ function buildAllProducersQuery(queryParams) {
 	baseQueryObj.isActive = true;
 	baseQueryObj.isApproved = true;
 	baseQueryObj.isEmailVerified = true;
-	baseQueryObj.isShopVisible = { $ne: false };
-	// Les producteurs doivent avoir une bannière (shopBanner) pour être visibles sur la
-	// marketplace (cartes complètes) — sauf pour un simple listing de noms (ex: bandeau
-	// défilant), où exiger une bannière exclurait à tort la plupart des producteurs.
-	if (queryParams.namesOnly !== "true") {
-		baseQueryObj.shopBanner = { $exists: true, $ne: null };
+	baseQueryObj.isTestAccount = isTestView ? true : { $ne: true };
+	if (!isTestView) {
+		baseQueryObj.isShopVisible = { $ne: false };
+		// Les producteurs doivent avoir une bannière (shopBanner) pour être visibles sur la
+		// marketplace (cartes complètes) — sauf pour un simple listing de noms (ex: bandeau
+		// défilant), où exiger une bannière exclurait à tort la plupart des producteurs.
+		if (queryParams.namesOnly !== "true") {
+			baseQueryObj.shopBanner = { $exists: true, $ne: null };
+		}
 	}
 
 	return baseQueryObj;
 }
 
-async function getAllProducers(queryParams, userLocation = null) {
+async function getAllProducers(queryParams, userLocation = null, isTestView = false) {
 	const Producer = require("../../models/Producer");
-	let queryObj = buildAllProducersQuery(queryParams);
+	let queryObj = buildAllProducersQuery(queryParams, isTestView);
 	queryObj._id = { $in: await getProducerIdsWithProducts() };
 
 	if (userLocation && queryParams.locationQuery) {
@@ -114,15 +121,18 @@ async function getAllProducers(queryParams, userLocation = null) {
 	};
 }
 
-function buildSearchQuery(queryParams) {
+function buildSearchQuery(queryParams, isTestView = false) {
 	const { q, region, crop, farmingType, minRating } = queryParams;
 	let searchQuery = {
 		isActive: true,
 		isApproved: true,
 		isEmailVerified: true,
-		// Les producteurs doivent avoir une bannière (shopBanner) pour être visibles en public
-		shopBanner: { $exists: true, $ne: null },
+		isTestAccount: isTestView ? true : { $ne: true },
 	};
+	if (!isTestView) {
+		// Les producteurs doivent avoir une bannière (shopBanner) pour être visibles en public
+		searchQuery.shopBanner = { $exists: true, $ne: null };
+	}
 
 	if (q) {
 		searchQuery.$or = [
@@ -142,8 +152,8 @@ function buildSearchQuery(queryParams) {
 	return searchQuery;
 }
 
-async function searchProducers(queryParams) {
-	const searchQuery = buildSearchQuery(queryParams);
+async function searchProducers(queryParams, isTestView = false) {
+	const searchQuery = buildSearchQuery(queryParams, isTestView);
 	searchQuery._id = { $in: await getProducerIdsWithProducts() };
 	const producers = await Producer.find(searchQuery)
 		.sort("-salesStats.averageRating -salesStats.totalOrders")
@@ -151,37 +161,40 @@ async function searchProducers(queryParams) {
 	return producers;
 }
 
-async function getProducersByRegion(region) {
+async function getProducersByRegion(region, isTestView = false) {
 	const producers = await Producer.find({
 		"address.region": region,
 		isActive: true,
 		isApproved: true,
 		isEmailVerified: true,
+		isTestAccount: isTestView ? true : { $ne: true },
 		// Les producteurs doivent avoir une bannière (shopBanner) pour être visibles en public
-		shopBanner: { $exists: true, $ne: null },
+		...(isTestView ? {} : { shopBanner: { $exists: true, $ne: null } }),
 		_id: { $in: await getProducerIdsWithProducts() },
 	}).sort("-salesStats.averageRating");
 	return producers;
 }
 
-async function getProducersByCrop(crop) {
+async function getProducersByCrop(crop, isTestView = false) {
 	const producers = await Producer.find({
 		"crops.name": { $regex: crop, $options: "i" },
 		isActive: true,
 		isApproved: true,
 		isEmailVerified: true,
+		isTestAccount: isTestView ? true : { $ne: true },
 		// Les producteurs doivent avoir une bannière (shopBanner) pour être visibles en public
-		shopBanner: { $exists: true, $ne: null },
+		...(isTestView ? {} : { shopBanner: { $exists: true, $ne: null } }),
 		_id: { $in: await getProducerIdsWithProducts() },
 	}).sort("-salesStats.averageRating");
 	return producers;
 }
 
-async function getProducer(id) {
+async function getProducer(id, isTestView = false) {
 	const producer = await Producer.findOne({
 		_id: id,
 		isActive: true,
 		isEmailVerified: true,
+		...testAccountScope(isTestView),
 	});
 	if (!producer) {
 		throw new Error("producer.not_found");
@@ -189,7 +202,16 @@ async function getProducer(id) {
 	return producer;
 }
 
-async function getProducerProducts(producerId) {
+async function getProducerProducts(producerId, isTestView = false) {
+	// Vérifier que le vendeur appartient au même périmètre que le visiteur
+	// (un visiteur réel ne doit pas atteindre la boutique d'un compte test).
+	const producerExists = await Producer.exists({
+		_id: producerId,
+		...testAccountScope(isTestView),
+	});
+	if (!producerExists) {
+		throw new Error("producer.not_found");
+	}
 	const products = await Product.find({
 		producer: producerId,
 		status: "approved",
@@ -198,8 +220,11 @@ async function getProducerProducts(producerId) {
 	return products;
 }
 
-async function getProducerReviews(producerId) {
-	const producer = await Producer.findById(producerId);
+async function getProducerReviews(producerId, isTestView = false) {
+	const producer = await Producer.findOne({
+		_id: producerId,
+		...testAccountScope(isTestView),
+	});
 	if (!producer) {
 		throw new Error("producer.not_found");
 	}
@@ -211,10 +236,12 @@ async function getProducerReviews(producerId) {
 	}).select("_id");
 
 	const productIds = products.map((p) => p._id);
+	const reviewFilter = await testReviewViewerFilter(isTestView);
 
 	const reviews = await Review.find({
 		product: { $in: productIds },
-		isActive: true,
+		status: "approved",
+		...reviewFilter,
 	})
 		.populate("reviewer", "firstName lastName avatar")
 		.populate("product", "name images")
@@ -222,7 +249,13 @@ async function getProducerReviews(producerId) {
 		.limit(20);
 
 	const stats = await Review.aggregate([
-		{ $match: { product: { $in: productIds }, isActive: true } },
+		{
+			$match: {
+				product: { $in: productIds },
+				status: "approved",
+				...reviewFilter,
+			},
+		},
 		{
 			$group: {
 				_id: null,

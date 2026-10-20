@@ -24,7 +24,7 @@ function escapeRegex(text) {
 // Doublon sur l'index unique {type, source} -> message lisible plutôt qu'un 500
 function duplicateError(error) {
 	if (error?.code === 11000) {
-		return new AppError("Cette entrée existe déjà dans le glossaire", 409);
+		return new AppError("admin.glossary_exists", 409);
 	}
 	return error;
 }
@@ -96,7 +96,7 @@ exports.createGlossaryEntry = catchAsync(async (req, res, next) => {
 exports.updateGlossaryEntry = catchAsync(async (req, res, next) => {
 	const entry = await TranslationGlossary.findById(req.params.id);
 	if (!entry) {
-		return next(new AppError("Entrée du glossaire non trouvée", 404));
+		return next(new AppError("admin.glossary_not_found", 404));
 	}
 
 	const before = { direction: entry.direction, type: entry.type, source: entry.source, target: entry.target };
@@ -133,7 +133,7 @@ exports.updateGlossaryEntry = catchAsync(async (req, res, next) => {
 exports.deleteGlossaryEntry = catchAsync(async (req, res, next) => {
 	const entry = await TranslationGlossary.findByIdAndDelete(req.params.id);
 	if (!entry) {
-		return next(new AppError("Entrée du glossaire non trouvée", 404));
+		return next(new AppError("admin.glossary_not_found", 404));
 	}
 
 	invalidateGlossaryCache();

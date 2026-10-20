@@ -15,7 +15,7 @@ exports.getPaypalClientToken = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 502));
+    return next(AppError.from(error, 502));
   }
 });
 
@@ -59,6 +59,6 @@ exports.createOrderForHostedFields = catchAsync(async (req, res, next) => {
       data: result
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('non trouv') ? 404 : 500));
+    return next(AppError.from(error, error.message.includes('non trouv') ? 404 : 500));
   }
 });

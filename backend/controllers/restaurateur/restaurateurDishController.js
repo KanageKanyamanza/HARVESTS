@@ -12,7 +12,7 @@ exports.getMyDishes = catchAsync(async (req, res, next) => {
       data: { dishes }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -47,7 +47,7 @@ exports.addDish = catchAsync(async (req, res, next) => {
       data: { dish: product }
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 
@@ -61,7 +61,7 @@ exports.updateDish = catchAsync(async (req, res, next) => {
       data: { dish: product }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -74,7 +74,7 @@ exports.deleteDish = catchAsync(async (req, res, next) => {
       message: 'Plat supprimé avec succès'
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

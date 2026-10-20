@@ -49,12 +49,12 @@ exports.moderateReview = catchAsync(async (req, res, next) => {
   const { action, reason } = req.body; // action: 'approve', 'reject', 'delete'
 
   if (!['approve', 'reject', 'delete'].includes(action)) {
-    return next(new AppError('Action de modération invalide', 400));
+    return next(new AppError('review.moderation_action_invalid', 400));
   }
 
   const review = await Review.findById(req.params.id);
   if (!review) {
-    return next(new AppError('Avis non trouvé', 404));
+    return next(new AppError('review.not_found', 404));
   }
 
   switch (action) {
@@ -65,7 +65,7 @@ exports.moderateReview = catchAsync(async (req, res, next) => {
       break;
     case 'reject':
       if (!reason) {
-        return next(new AppError('Raison du rejet requise', 400));
+        return next(new AppError('review.rejection_reason_required', 400));
       }
       review.status = 'rejected';
       review.rejectionReason = reason;
@@ -81,9 +81,12 @@ exports.moderateReview = catchAsync(async (req, res, next) => {
 
   await review.save();
 
+  const moderationKey =
+    action === 'approve' ? 'review.approved' : action === 'reject' ? 'review.rejected' : 'review.deleted';
+
   res.status(200).json({
     status: 'success',
-    message: `Avis ${action === 'approve' ? 'approuvé' : action === 'reject' ? 'rejeté' : 'supprimé'} avec succès`,
+    message: req.t(moderationKey),
     data: {
       review
     }

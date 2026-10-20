@@ -18,7 +18,7 @@ exports.getAllPayments = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 
@@ -32,7 +32,7 @@ exports.getPaymentStats = catchAsync(async (req, res, next) => {
       data: result
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 
@@ -50,7 +50,7 @@ exports.getUnreconciledPayments = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 
@@ -63,6 +63,6 @@ exports.reconcilePayment = catchAsync(async (req, res, next) => {
       message: 'Paiement réconcilié avec succès'
     });
   } catch (error) {
-    return next(new AppError(error.message, error.message.includes('non trouvé') ? 404 : 400));
+    return next(AppError.from(error, error.message.includes('non trouvé') ? 404 : 400));
   }
 });

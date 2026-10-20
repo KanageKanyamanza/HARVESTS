@@ -57,16 +57,22 @@ api.interceptors.request.use(
 			cacheableRoutes.some((route) => config.url?.includes(route)) &&
 			config.method === "get";
 
-		// Ajouter les headers de cache pour les routes cacheables
+		const token = localStorage.getItem("harvests_token");
+		const hasValidToken = isValidToken(token);
+
+		// Ajouter les headers de cache pour les routes cacheables.
+		// Un visiteur connecté (notamment un compte de test en démo) ne doit
+		// jamais recevoir une réponse mise en cache pour un autre profil :
+		// le catalogue est filtré côté serveur selon le compte (sandbox).
 		if (isCacheableRoute && !config.headers["Cache-Control"]) {
-			// Utiliser le cache du navigateur pour les requêtes GET publiques
-			config.headers["Cache-Control"] = "public, max-age=300"; // 5 minutes
+			config.headers["Cache-Control"] = hasValidToken
+				? "no-store"
+				: "public, max-age=300"; // 5 minutes
 		}
 
 		// Ajouter le token d'authentification seulement pour les routes protégées
 		if (!isPublicRoute) {
-			const token = localStorage.getItem("harvests_token");
-			if (isValidToken(token)) {
+			if (hasValidToken) {
 				config.headers.Authorization = `Bearer ${token}`;
 			} else if (token) {
 				// Token invalide trouvé, le nettoyer

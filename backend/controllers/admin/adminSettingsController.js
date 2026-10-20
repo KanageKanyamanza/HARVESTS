@@ -6,7 +6,7 @@ const catchAsync = require('../../utils/catchAsync');
 exports.getSystemSettings = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement',
+    message: req.t('admin.feature_in_development'),
     data: { settings: {} }
   });
 });
@@ -17,7 +17,7 @@ exports.getSystemSettings = catchAsync(async (req, res, next) => {
 exports.updateSystemSettings = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement'
+    message: req.t('admin.feature_in_development')
   });
 });
 

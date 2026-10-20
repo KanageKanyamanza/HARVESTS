@@ -8,32 +8,32 @@ const baseUserSchema = new mongoose.Schema(
 		// Informations de base
 		email: {
 			type: String,
-			required: [true, "Email requis"],
+			required: [true, "validation.email_required"],
 			unique: true,
 			lowercase: true,
 			trim: true,
 			match: [
 				/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-				"Format email invalide",
+				"validation.email_invalid",
 			],
 		},
 		password: {
 			type: String,
-			required: [true, "Mot de passe requis"],
-			minlength: [8, "Le mot de passe doit contenir au moins 8 caractères"],
+			required: [true, "validation.password_required"],
+			minlength: [8, "validation.password_min"],
 			validate: {
 				validator: function (v) {
 					// Au moins une majuscule, une minuscule et un chiffre
 					return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(v);
 				},
 				message:
-					"Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre",
+					"validation.password_complexity",
 			},
 			select: false,
 		},
 		userType: {
 			type: String,
-			required: [true, "Type d'utilisateur requis"],
+			required: [true, "validation.user_type_required"],
 			enum: {
 				values: [
 					"producer",
@@ -44,20 +44,20 @@ const baseUserSchema = new mongoose.Schema(
 					"transporter",
 					"admin",
 				],
-				message: "Type d'utilisateur invalide",
+				message: "validation.user_type_invalid",
 			},
 		},
 		firstName: {
 			type: String,
-			required: [true, "Prénom requis"],
+			required: [true, "validation.first_name_required"],
 			trim: true,
-			maxlength: [50, "Le prénom ne peut pas dépasser 50 caractères"],
+			maxlength: [50, "validation.first_name_maxlength"],
 		},
 		lastName: {
 			type: String,
-			required: [true, "Nom requis"],
+			required: [true, "validation.last_name_required"],
 			trim: true,
-			maxlength: [50, "Le nom ne peut pas dépasser 50 caractères"],
+			maxlength: [50, "validation.last_name_maxlength"],
 		},
 		// Noms d'entreprise spécifiques par type d'utilisateur
 		companyName: {
@@ -65,7 +65,7 @@ const baseUserSchema = new mongoose.Schema(
 			trim: true,
 			maxlength: [
 				100,
-				"Le nom de l'entreprise ne peut pas dépasser 100 caractères",
+				"validation.company_name_maxlength_100",
 			],
 		},
 		farmName: {
@@ -73,7 +73,7 @@ const baseUserSchema = new mongoose.Schema(
 			trim: true,
 			maxlength: [
 				100,
-				"Le nom de la ferme ne peut pas dépasser 100 caractères",
+				"validation.farm_name_maxlength",
 			],
 		},
 		restaurantName: {
@@ -81,7 +81,7 @@ const baseUserSchema = new mongoose.Schema(
 			trim: true,
 			maxlength: [
 				100,
-				"Le nom du restaurant ne peut pas dépasser 100 caractères",
+				"validation.restaurant_name_maxlength",
 			],
 		},
 		phone: {
@@ -92,27 +92,27 @@ const baseUserSchema = new mongoose.Schema(
 					if (!v) return true;
 					return /^[\+]?[0-9\s\-\(\)]{8,20}$/.test(v);
 				},
-				message: "Format de téléphone invalide",
+				message: "validation.phone_invalid",
 			},
 		},
 		country: {
 			type: String,
-			required: [true, "Pays requis"],
+			required: [true, "validation.country_required"],
 			trim: true,
-			maxlength: [100, "Le nom du pays ne peut pas dépasser 100 caractères"],
+			maxlength: [100, "validation.country_maxlength"],
 			default: "Sénégal",
 		},
 		address: {
 			type: String,
 			trim: true,
-			maxlength: [200, "L'adresse ne peut pas dépasser 200 caractères"],
+			maxlength: [200, "validation.address_maxlength"],
 		},
 		city: {
 			type: String,
 			trim: true,
 			maxlength: [
 				100,
-				"Le nom de la ville ne peut pas dépasser 100 caractères",
+				"validation.city_maxlength",
 			],
 		},
 		region: {
@@ -120,18 +120,18 @@ const baseUserSchema = new mongoose.Schema(
 			trim: true,
 			maxlength: [
 				100,
-				"Le nom de la région ne peut pas dépasser 100 caractères",
+				"validation.region_maxlength",
 			],
 		},
 		bio: {
 			type: String,
 			trim: true,
-			maxlength: [500, "La biographie ne peut pas dépasser 500 caractères"],
+			maxlength: [500, "validation.bio_maxlength"],
 		},
 		postalCode: {
 			type: String,
 			trim: true,
-			maxlength: [20, "Le code postal ne peut pas dépasser 20 caractères"],
+			maxlength: [20, "validation.postal_code_maxlength"],
 		},
 		coordinates: {
 			latitude: {

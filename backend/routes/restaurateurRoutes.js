@@ -31,7 +31,7 @@ const router = express.Router();
  *       200:
  *         description: Liste des restaurateurs
  */
-router.get('/', restaurateurController.getAllRestaurateurs);
+router.get('/', authMiddleware.isLoggedIn, restaurateurController.getAllRestaurateurs);
 
 /**
  * @swagger
@@ -49,7 +49,7 @@ router.get('/', restaurateurController.getAllRestaurateurs);
  *       200:
  *         description: Résultats de recherche
  */
-router.get('/search', restaurateurController.searchRestaurateurs);
+router.get('/search', authMiddleware.isLoggedIn, restaurateurController.searchRestaurateurs);
 
 /**
  * @swagger
@@ -67,7 +67,7 @@ router.get('/search', restaurateurController.searchRestaurateurs);
  *       200:
  *         description: Liste des restaurateurs de la région
  */
-router.get('/by-region/:region', restaurateurController.getRestaurateursByRegion);
+router.get('/by-region/:region', authMiddleware.isLoggedIn, restaurateurController.getRestaurateursByRegion);
 
 /**
  * @swagger
@@ -85,7 +85,7 @@ router.get('/by-region/:region', restaurateurController.getRestaurateursByRegion
  *       200:
  *         description: Liste des restaurateurs pour ce type de cuisine
  */
-router.get('/by-cuisine/:cuisine', restaurateurController.getRestaurateursByCuisine);
+router.get('/by-cuisine/:cuisine', authMiddleware.isLoggedIn, restaurateurController.getRestaurateursByCuisine);
 
 // Toutes les routes 
 // Protégées uniquement pour le préfixe /me afin de ne pas bloquer les routes publiques /:id*
@@ -165,6 +165,8 @@ router.get('/me/notifications', restaurateurController.getNotifications);
 router.get('/me/stock-alerts', restaurateurController.getStockAlerts);
 
 // Routes pour découvrir les fournisseurs (producteurs et transformateurs)
+// Connexion optionnelle : le sandbox dépend du visiteur connecté.
+router.use('/suppliers', authMiddleware.isLoggedIn);
 router.get('/suppliers/discover', restaurateurController.discoverSuppliers);
 router.get('/suppliers/search', restaurateurController.searchSuppliers);
 router.get('/suppliers/:supplierId', restaurateurController.getSupplierDetails);
@@ -300,10 +302,10 @@ router.route('/me/stock-alerts/:alertId')
   .delete(restaurateurController.deleteStockAlert);
 
 // Routes publiques pour profils individuels (MUST be after /me/*)
-router.get('/dishes/:dishId', restaurateurController.getDishDetail);
-router.get('/:id', restaurateurController.getRestaurateur);
-router.get('/:id/dishes', restaurateurController.getRestaurateurDishes);
-router.get('/:id/products', restaurateurController.getRestaurateurProducts);
-router.get('/:id/reviews', restaurateurController.getRestaurateurReviews);
+router.get('/dishes/:dishId', authMiddleware.isLoggedIn, restaurateurController.getDishDetail);
+router.get('/:id', authMiddleware.isLoggedIn, restaurateurController.getRestaurateur);
+router.get('/:id/dishes', authMiddleware.isLoggedIn, restaurateurController.getRestaurateurDishes);
+router.get('/:id/products', authMiddleware.isLoggedIn, restaurateurController.getRestaurateurProducts);
+router.get('/:id/reviews', authMiddleware.isLoggedIn, restaurateurController.getRestaurateurReviews);
 
 module.exports = router;

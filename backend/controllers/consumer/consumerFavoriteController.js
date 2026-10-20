@@ -55,7 +55,7 @@ exports.addFavorite = catchAsync(async (req, res, next) => {
 			message: "Ajouté aux favoris",
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 400));
+		return next(AppError.from(error, 400));
 	}
 });
 
@@ -71,7 +71,7 @@ exports.removeFavorite = catchAsync(async (req, res, next) => {
 			message: "Retiré des favoris",
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 404));
+		return next(AppError.from(error, 404));
 	}
 });
 
@@ -85,6 +85,6 @@ exports.getFavoriteProducers = catchAsync(async (req, res, next) => {
 			data: { favoriteProducers: favorites },
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 404));
+		return next(AppError.from(error, 404));
 	}
 });

@@ -27,6 +27,15 @@ exports.protect = catchAsync(async (req, res, next) => {
 	// Vérifier et décoder le token JWT
 	const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
 
+	// Jour 60 (sécurité) : un refresh token (7 j) ne doit jamais tenir lieu de
+	// jeton d'accès — JWT_REFRESH_SECRET retombe sur JWT_SECRET s'il n'est pas
+	// défini, ce qui rendait un refresh token valide sur les routes protégées.
+	if (decoded.type === 'refresh') {
+		return next(
+			new AppError("auth.invalid_token_relogin", 401)
+		);
+	}
+
 	// Vérifier si l'utilisateur existe toujours
 	const currentUser = await User.findById(decoded.id);
 	if (!currentUser) {
@@ -86,6 +95,13 @@ exports.isLoggedIn = async (req, res, next) => {
 				process.env.JWT_SECRET,
 				{ algorithms: ['HS256'] }
 			);
+
+			// Un refresh token ne doit jamais être accepté comme jeton d'accès,
+			// même en mode « connexion optionnelle » (JWT_REFRESH_SECRET peut
+			// retomber sur JWT_SECRET).
+			if (decoded.type === "refresh") {
+				return next();
+			}
 
 			// 3) Vérifier si l'utilisateur existe
 			const currentUser = await User.findById(decoded.id);
