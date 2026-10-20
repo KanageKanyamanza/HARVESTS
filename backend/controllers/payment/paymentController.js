@@ -224,7 +224,7 @@ exports.confirmPayment = catchAsync(async (req, res, next) => {
     if (error.message.includes('non trouvé')) {
       return next(AppError.from(error, 404));
     }
-    return next(new AppError(`Erreur lors de la confirmation: ${error.message}`, 400));
+    return next(AppError.from(error, 400));
   }
 });
 

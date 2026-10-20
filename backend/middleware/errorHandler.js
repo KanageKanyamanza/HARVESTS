@@ -23,11 +23,18 @@ const handleDuplicateFieldsDB = (err) => {
  * Gère les erreurs de validation Mongoose.
  * Les messages des schémas sont des clés de traduction (Jour 62) : ils sont
  * traduits dans la langue de la requête avant d'être concaténés.
+ * Les champs encore déclarés `required: true` sans message personnalisé
+ * produisent « Path `x` is required. » : on les traduit avec la clé générique.
  */
+const DEFAULT_REQUIRED_RE = /^Path `[^`]+` is required\.$/;
+
 const handleValidationErrorDB = (err, req) => {
-	const errors = Object.values(err.errors || {}).map((el) =>
-		localize(el.message, req.language, el.properties || {}),
-	);
+	const errors = Object.values(err.errors || {}).map((el) => {
+		if (el.kind === "required" && DEFAULT_REQUIRED_RE.test(el.message || "")) {
+			return localize("validation.required", req.language);
+		}
+		return localize(el.message, req.language, el.properties || {});
+	});
 	return new AppError("errors.validation_failed", 400, { details: errors.join(". ") });
 };
 
