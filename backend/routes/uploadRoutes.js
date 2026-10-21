@@ -44,6 +44,12 @@ const protectUserOrAdmin = catchAsync(async (req, res, next) => {
 	// 2) Vérifier le token
 	const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+	// Un refresh token (7 j) ne doit pas tenir lieu de jeton d'accès : le secret
+	// de rafraîchissement retombe sur JWT_SECRET s'il n'est pas défini (Jour 60).
+	if (decoded.type === "refresh") {
+		return next(new AppError("auth.invalid_token_relogin", 401));
+	}
+
 	// 3) Essayer d'abord de trouver un admin avec cet ID
 	const admin = await Admin.findById(decoded.id);
 	if (admin && admin.isActive) {

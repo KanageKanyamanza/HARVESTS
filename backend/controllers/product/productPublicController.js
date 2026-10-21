@@ -2,6 +2,7 @@ const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
 const productPublicService = require('../../services/product/productPublicService');
 const { getUserLocation } = require('../../utils/locationService');
+const { isTestViewer } = require('../../utils/testAccounts');
 
 /**
  * Récupère tous les produits avec filtres et recherche
@@ -18,7 +19,7 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
       }
     }
 
-    const result = await productPublicService.getAllProducts(req.query, userLocation);
+    const result = await productPublicService.getAllProducts(req.query, userLocation, isTestViewer(req));
 
     res.status(200).json({
       status: 'success',
@@ -44,7 +45,7 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -53,7 +54,7 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
  */
 exports.getProductsByLocation = catchAsync(async (req, res, next) => {
   try {
-    const result = await productPublicService.getProductsByLocation(req.query);
+    const result = await productPublicService.getProductsByLocation(req.query, isTestViewer(req));
 
     res.status(200).json({
       status: 'success',
@@ -67,7 +68,7 @@ exports.getProductsByLocation = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -77,7 +78,7 @@ exports.getProductsByLocation = catchAsync(async (req, res, next) => {
 exports.searchProducts = catchAsync(async (req, res, next) => {
   try {
     const { q, filters = {} } = req.query;
-    const searchResults = await productPublicService.searchProducts(q, filters);
+    const searchResults = await productPublicService.searchProducts(q, filters, isTestViewer(req));
 
     res.status(200).json({
       status: 'success',
@@ -87,14 +88,14 @@ exports.searchProducts = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
 // Obtenir un produit par ID ou slug
 exports.getProduct = catchAsync(async (req, res, next) => {
   try {
-    const result = await productPublicService.getProductById(req.params.id);
+    const result = await productPublicService.getProductById(req.params.id, isTestViewer(req));
 
     res.status(200).json({
       status: 'success',
@@ -105,7 +106,7 @@ exports.getProduct = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -118,7 +119,7 @@ exports.getFeaturedProducts = catchAsync(async (req, res, next) => {
     } catch (e) {
       // ignore
     }
-    const products = await productPublicService.getFeaturedProducts(req.query, userLocation);
+    const products = await productPublicService.getFeaturedProducts(req.query, userLocation, isTestViewer(req));
 
     res.status(200).json({
       status: 'success',
@@ -128,14 +129,14 @@ exports.getFeaturedProducts = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
 // Obtenir les nouveaux produits
 exports.getNewProducts = catchAsync(async (req, res, next) => {
   try {
-    const products = await productPublicService.getNewProducts();
+    const products = await productPublicService.getNewProducts(isTestViewer(req));
 
     res.status(200).json({
       status: 'success',
@@ -145,7 +146,7 @@ exports.getNewProducts = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -158,7 +159,7 @@ exports.getFlashSales = catchAsync(async (req, res, next) => {
     } catch (e) {
       // ignore
     }
-    const products = await productPublicService.getFlashSales(req.query, userLocation);
+    const products = await productPublicService.getFlashSales(req.query, userLocation, isTestViewer(req));
 
     res.status(200).json({
       status: 'success',
@@ -168,14 +169,14 @@ exports.getFlashSales = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
 // Obtenir les catégories de produits
 exports.getCategories = catchAsync(async (req, res, next) => {
   try {
-    const categories = await productPublicService.getCategories();
+    const categories = await productPublicService.getCategories(isTestViewer(req));
 
     res.status(200).json({
       status: 'success',
@@ -183,7 +184,7 @@ exports.getCategories = catchAsync(async (req, res, next) => {
       data: categories
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -191,7 +192,7 @@ exports.getCategories = catchAsync(async (req, res, next) => {
 exports.getProductsByCategory = catchAsync(async (req, res, next) => {
   try {
     const { category } = req.params;
-    const result = await productPublicService.getProductsByCategory(category, req.query);
+    const result = await productPublicService.getProductsByCategory(category, req.query, isTestViewer(req));
 
     res.status(200).json({
       status: 'success',
@@ -204,7 +205,7 @@ exports.getProductsByCategory = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

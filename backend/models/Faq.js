@@ -3,12 +3,12 @@ const mongoose = require("mongoose");
 const faqSchema = new mongoose.Schema({
 	question: {
 		type: String,
-		required: [true, "Une question est requise"],
+		required: [true, "validation.faq_question_required"],
 		trim: true,
 	},
 	answer: {
 		type: String,
-		required: [true, "Une réponse est requise"],
+		required: [true, "validation.faq_answer_required"],
 	},
 	category: {
 		type: String,

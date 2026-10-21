@@ -11,7 +11,7 @@ exports.getLoyaltyStatus = catchAsync(async (req, res, next) => {
       data: { loyalty }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -23,7 +23,7 @@ exports.redeemLoyaltyPoints = catchAsync(async (req, res, next) => {
       data: result
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 
@@ -36,7 +36,7 @@ exports.getLoyaltyHistory = catchAsync(async (req, res, next) => {
       data: { history }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

@@ -3,6 +3,10 @@ const AppError = require("../../utils/appError");
 const producerSearchService = require("../../services/producer/producerSearchService");
 const Producer = require("../../models/Producer");
 const Review = require("../../models/Review");
+const {
+	isTestViewer,
+	testReviewViewerFilter,
+} = require("../../utils/testAccounts");
 
 // Obtenir tous les producteurs
 exports.getAllProducers = catchAsync(async (req, res, next) => {
@@ -29,6 +33,7 @@ exports.getAllProducers = catchAsync(async (req, res, next) => {
 					);
 					const baseQueryObj = producerSearchService.buildAllProducersQuery(
 						req.query,
+						isTestViewer(req),
 					);
 					const locationQueryObj = { ...baseQueryObj };
 					if (locationQuery.$or && locationQuery.$or.length > 0) {
@@ -51,6 +56,7 @@ exports.getAllProducers = catchAsync(async (req, res, next) => {
 		const result = await producerSearchService.getAllProducers(
 			req.query,
 			userLocation,
+			isTestViewer(req),
 		);
 		res.status(200).json({
 			status: "success",
@@ -74,21 +80,21 @@ exports.getAllProducers = catchAsync(async (req, res, next) => {
 			},
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 404));
+		return next(AppError.from(error, 404));
 	}
 });
 
 // Recherche de producteurs
 exports.searchProducers = catchAsync(async (req, res, next) => {
 	try {
-		const producers = await producerSearchService.searchProducers(req.query);
+		const producers = await producerSearchService.searchProducers(req.query, isTestViewer(req));
 		res.status(200).json({
 			status: "success",
 			results: producers.length,
 			data: { producers },
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 404));
+		return next(AppError.from(error, 404));
 	}
 });
 
@@ -97,6 +103,7 @@ exports.getProducersByRegion = catchAsync(async (req, res, next) => {
 	try {
 		const producers = await producerSearchService.getProducersByRegion(
 			req.params.region,
+			isTestViewer(req),
 		);
 		res.status(200).json({
 			status: "success",
@@ -104,7 +111,7 @@ exports.getProducersByRegion = catchAsync(async (req, res, next) => {
 			data: { producers },
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 404));
+		return next(AppError.from(error, 404));
 	}
 });
 
@@ -113,6 +120,7 @@ exports.getProducersByCrop = catchAsync(async (req, res, next) => {
 	try {
 		const producers = await producerSearchService.getProducersByCrop(
 			req.params.crop,
+			isTestViewer(req),
 		);
 		res.status(200).json({
 			status: "success",
@@ -120,17 +128,18 @@ exports.getProducersByCrop = catchAsync(async (req, res, next) => {
 			data: { producers },
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 404));
+		return next(AppError.from(error, 404));
 	}
 });
 
 // Obtenir un producteur par ID
 exports.getProducer = catchAsync(async (req, res, next) => {
 	try {
-		const producer = await producerSearchService.getProducer(req.params.id);
+		const producer = await producerSearchService.getProducer(req.params.id, isTestViewer(req));
 		const reviews = await Review.find({
 			producer: req.params.id,
 			status: "approved",
+			...(await testReviewViewerFilter(isTestViewer(req))),
 		});
 		const totalReviews = reviews.length;
 		const averageRating =
@@ -147,7 +156,7 @@ exports.getProducer = catchAsync(async (req, res, next) => {
 			data: { producer: producerWithStats },
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 404));
+		return next(AppError.from(error, 404));
 	}
 });
 
@@ -156,6 +165,7 @@ exports.getProducerProducts = catchAsync(async (req, res, next) => {
 	try {
 		const products = await producerSearchService.getProducerProducts(
 			req.params.id,
+			isTestViewer(req),
 		);
 		res.status(200).json({
 			status: "success",
@@ -163,7 +173,7 @@ exports.getProducerProducts = catchAsync(async (req, res, next) => {
 			data: { products },
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 404));
+		return next(AppError.from(error, 404));
 	}
 });
 
@@ -172,12 +182,13 @@ exports.getProducerReviews = catchAsync(async (req, res, next) => {
 	try {
 		const result = await producerSearchService.getProducerReviews(
 			req.params.id,
+			isTestViewer(req),
 		);
 		res.status(200).json({
 			status: "success",
 			data: result,
 		});
 	} catch (error) {
-		return next(new AppError(error.message, 404));
+		return next(AppError.from(error, 404));
 	}
 });

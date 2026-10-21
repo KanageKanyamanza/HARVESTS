@@ -1,19 +1,26 @@
 const Transformer = require('../../models/Transformer');
 const Product = require('../../models/Product');
 const Review = require('../../models/Review');
+const {
+  testAccountScope,
+  testReviewViewerFilter,
+} = require('../../utils/testAccounts');
 
 /**
  * Service pour la recherche et l'affichage public des transformateurs
  */
 
-function buildSearchQuery(queryParams) {
+function buildSearchQuery(queryParams, isTestView = false) {
   const { q, region, type, minRating } = queryParams;
   let searchQuery = {
     isActive: true,
     isApproved: true,
     isEmailVerified: true,
-    isShopVisible: { $ne: false },
+    isTestAccount: isTestView ? true : { $ne: true },
   };
+  if (!isTestView) {
+    searchQuery.isShopVisible = { $ne: false };
+  }
 
   if (q) {
     searchQuery.$or = [
@@ -30,7 +37,7 @@ function buildSearchQuery(queryParams) {
   return searchQuery;
 }
 
-function buildAllTransformersQuery(queryParams) {
+function buildAllTransformersQuery(queryParams, isTestView = false) {
   const baseQueryObj = { ...queryParams };
   const excludedFields = ['page', 'sort', 'limit', 'fields', 'useLocation', 'locationQuery', 'lang'];
   excludedFields.forEach((el) => delete baseQueryObj[el]);
@@ -67,13 +74,16 @@ function buildAllTransformersQuery(queryParams) {
   baseQueryObj.isActive = true;
   baseQueryObj.isApproved = true;
   baseQueryObj.isEmailVerified = true;
-  baseQueryObj.isShopVisible = { $ne: false };
+  baseQueryObj.isTestAccount = isTestView ? true : { $ne: true };
+  if (!isTestView) {
+    baseQueryObj.isShopVisible = { $ne: false };
+  }
 
   return baseQueryObj;
 }
 
-async function getAllTransformers(queryParams) {
-  const queryObj = buildAllTransformersQuery(queryParams);
+async function getAllTransformers(queryParams, isTestView = false) {
+  const queryObj = buildAllTransformersQuery(queryParams, isTestView);
   const page = queryParams.page * 1 || 1;
   const limit = queryParams.limit * 1 || 20;
   const skip = (page - 1) * limit;
@@ -92,41 +102,44 @@ async function getAllTransformers(queryParams) {
   return { transformers, total, page, totalPages: Math.ceil(total / limit) };
 }
 
-async function searchTransformers(queryParams) {
-  const searchQuery = buildSearchQuery(queryParams);
+async function searchTransformers(queryParams, isTestView = false) {
+  const searchQuery = buildSearchQuery(queryParams, isTestView);
   const transformers = await Transformer.find(searchQuery)
     .sort('-businessStats.supplierRating -createdAt')
     .limit(50);
   return transformers;
 }
 
-async function getTransformersByRegion(region) {
+async function getTransformersByRegion(region, isTestView = false) {
   const transformers = await Transformer.find({
     'address.region': region,
     isActive: true,
     isApproved: true,
     isEmailVerified: true,
-    isShopVisible: { $ne: false },
+    isTestAccount: isTestView ? true : { $ne: true },
+    ...(isTestView ? {} : { isShopVisible: { $ne: false } }),
   }).sort('-businessStats.supplierRating');
   return transformers;
 }
 
-async function getTransformersByType(type) {
+async function getTransformersByType(type, isTestView = false) {
   const transformers = await Transformer.find({
     transformationType: type,
     isActive: true,
     isApproved: true,
     isEmailVerified: true,
-    isShopVisible: { $ne: false },
+    isTestAccount: isTestView ? true : { $ne: true },
+    ...(isTestView ? {} : { isShopVisible: { $ne: false } }),
   }).sort('-businessStats.supplierRating');
   return transformers;
 }
 
-async function getTransformer(id) {
+async function getTransformer(id, isTestView = false) {
   const transformer = await Transformer.findOne({
     _id: id,
     isActive: true,
     isEmailVerified: true,
+    ...testAccountScope(isTestView),
   });
   if (!transformer) {
     throw new Error('Transformateur non trouvé');
@@ -134,12 +147,13 @@ async function getTransformer(id) {
   return transformer;
 }
 
-async function getPublicTransformer(id) {
+async function getPublicTransformer(id, isTestView = false) {
   const transformer = await Transformer.findOne({
     _id: id,
     isActive: true,
     isApproved: true,
     isEmailVerified: true,
+    ...testAccountScope(isTestView),
   });
   if (!transformer) {
     throw new Error('Transformateur non trouvé');
@@ -147,20 +161,33 @@ async function getPublicTransformer(id) {
   return transformer;
 }
 
-async function getTransformerServices(transformerId) {
-  const transformer = await Transformer.findById(transformerId).select('services');
+async function getTransformerServices(transformerId, isTestView = false) {
+  const transformer = await Transformer.findOne({
+    _id: transformerId,
+    ...testAccountScope(isTestView),
+  }).select('services');
   if (!transformer) {
     throw new Error('Transformateur non trouvé');
   }
   return transformer.services || {};
 }
 
-async function getTransformerReviews(transformerId) {
+async function getTransformerReviews(transformerId, isTestView = false) {
+  const transformerExists = await Transformer.exists({
+    _id: transformerId,
+    ...testAccountScope(isTestView),
+  });
+  if (!transformerExists) {
+    throw new Error('Transformateur non trouvé');
+  }
+  // Dans le modèle Review, `producer` désigne le vendeur (producteur,
+  // transformateur ou restaurateur).
   const reviews = await Review.find({
-    transformer: transformerId,
-    status: 'approved'
+    producer: transformerId,
+    status: 'approved',
+    ...(await testReviewViewerFilter(isTestView)),
   })
-    .populate('consumer', 'firstName lastName')
+    .populate('reviewer', 'firstName lastName avatar')
     .sort('-createdAt')
     .limit(20);
   return reviews;

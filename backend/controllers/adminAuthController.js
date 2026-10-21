@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const { apiCookieOptions } = require('../config/cookies');
 
 const signToken = (id) => {
   return jwt.sign({ id, type: 'access' }, process.env.JWT_SECRET, {
@@ -18,16 +19,18 @@ const signRefreshToken = (id) => {
 };
 
 const setRefreshCookie = (res, req, refreshToken) => {
-  const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
-  res.cookie('adminRefreshToken', refreshToken, {
-    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    httpOnly: true,
-    secure: isSecure,
-    // Frontend et backend sur des domaines différents en prod : 'strict'/'lax'
-    // bloquent l'envoi du cookie cross-site, cassant le refresh silencieux.
-    sameSite: isSecure ? 'none' : 'lax',
-    path: '/api/v1/admin/auth/refresh',
-  });
+  // Frontend et backend sur des domaines différents en prod : 'strict'/'lax'
+  // bloquent l'envoi du cookie cross-site, cassant le refresh silencieux.
+  // Politique commune des cookies de l'API : config/cookies.js.
+  res.cookie(
+    'adminRefreshToken',
+    refreshToken,
+    apiCookieOptions(req, {
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      httpOnly: true,
+      path: '/api/v1/admin/auth/refresh',
+    }),
+  );
 };
 
 const createSendToken = (admin, statusCode, req, res) => {
@@ -62,7 +65,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // 1) Vérifier si email et mot de passe sont fournis
   if (!email || !password) {
-    return next(new AppError('Veuillez fournir un email et un mot de passe', 400));
+    return next(new AppError('auth.credentials_required', 400));
   }
 
   // 2) Vérifier si l'admin existe et le mot de passe est correct
@@ -70,7 +73,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // Vérifier si le compte est verrouillé
   if (admin && admin.isLocked()) {
-    return next(new AppError('Compte temporairement verrouillé en raison de tentatives de connexion répétées', 423));
+    return next(new AppError('auth.account_locked', 423));
   }
 
   if (!admin || !(await admin.comparePassword(password))) {
@@ -78,17 +81,17 @@ exports.login = catchAsync(async (req, res, next) => {
     if (admin) {
       await admin.incLoginAttempts();
     }
-    return next(new AppError('Email ou mot de passe incorrect', 401));
+    return next(new AppError('auth.wrong_credentials', 401));
   }
 
   // 3) Vérifier si le compte est actif
   if (!admin.isActive) {
-    return next(new AppError('Votre compte administrateur a été désactivé', 401));
+    return next(new AppError('admin.auth.account_disabled', 401));
   }
 
   // 4) Vérifier si l'email est vérifié
   if (!admin.isEmailVerified) {
-    return next(new AppError('Veuillez vérifier votre email avant de vous connecter', 401));
+    return next(new AppError('auth.email_not_verified', 401));
   }
 
   // 5) Réinitialiser les tentatives de connexion et mettre à jour lastLogin
@@ -106,30 +109,30 @@ exports.login = catchAsync(async (req, res, next) => {
 exports.logout = catchAsync(async (req, res, next) => {
   res.clearCookie('adminRefreshToken', { path: '/api/v1/admin/auth/refresh' });
   res.clearCookie('jwt');
-  res.status(200).json({ status: 'success', message: 'Déconnexion réussie' });
+  res.status(200).json({ status: 'success', message: req.t('auth.logout_success') });
 });
 
 // Renouvellement du token admin via refresh token
 exports.refreshToken = catchAsync(async (req, res, next) => {
   const token = req.cookies.adminRefreshToken;
   if (!token) {
-    return next(new AppError('Session expirée. Veuillez vous reconnecter.', 401));
+    return next(new AppError('auth.session_expired', 401));
   }
 
   let decoded;
   try {
     decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, { algorithms: ['HS256'] });
   } catch {
-    return next(new AppError('Session expirée. Veuillez vous reconnecter.', 401));
+    return next(new AppError('auth.session_expired', 401));
   }
 
   if (decoded.type !== 'refresh') {
-    return next(new AppError('Token invalide.', 401));
+    return next(new AppError('auth.invalid_token', 401));
   }
 
   const admin = await Admin.findById(decoded.id);
   if (!admin || !admin.isActive) {
-    return next(new AppError('Administrateur introuvable ou inactif.', 401));
+    return next(new AppError('admin.auth.not_found_or_inactive', 401));
   }
 
   const newAccessToken = signToken(admin._id);
@@ -152,26 +155,32 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   if (!token) {
-    return next(new AppError('Vous n\'êtes pas connecté. Veuillez vous connecter pour accéder à cette page.', 401));
+    return next(new AppError('admin.auth.not_logged_in', 401));
   }
 
   // 2) Vérifier le token
   const decoded = await jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
 
+  // Un refresh token (7 j) ne doit pas tenir lieu de jeton d'accès : le secret
+  // de rafraîchissement retombe sur JWT_SECRET s'il n'est pas défini (Jour 61).
+  if (decoded.type === 'refresh') {
+    return next(new AppError('auth.invalid_token_relogin', 401));
+  }
+
   // 3) Vérifier si l'admin existe toujours
   const currentAdmin = await Admin.findById(decoded.id);
   if (!currentAdmin) {
-    return next(new AppError('L\'utilisateur associé à ce token n\'existe plus.', 401));
+    return next(new AppError('auth.user_no_longer_exists', 401));
   }
 
   // 4) Vérifier si le compte est toujours actif
   if (!currentAdmin.isActive) {
-    return next(new AppError('Votre compte administrateur a été désactivé.', 401));
+    return next(new AppError('admin.auth.account_disabled', 401));
   }
 
   // 5) Vérifier si le mot de passe a changé après l'émission du token
   if (currentAdmin.changedPasswordAfter(decoded.iat)) {
-    return next(new AppError('Mot de passe modifié récemment. Veuillez vous reconnecter.', 401));
+    return next(new AppError('auth.password_changed_relogin', 401));
   }
 
   // 6) Donner accès à la route protégée
@@ -183,7 +192,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.admin.role)) {
-      return next(new AppError('Vous n\'avez pas la permission d\'effectuer cette action.', 403));
+      return next(new AppError('auth.forbidden_action', 403));
     }
     next();
   };

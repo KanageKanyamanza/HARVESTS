@@ -31,11 +31,11 @@ const blogSchema = new mongoose.Schema(
 		excerpt: {
 			fr: {
 				type: String,
-				maxlength: [500, "L'extrait ne peut pas dépasser 500 caractères"],
+				maxlength: [500, "validation.blog_excerpt_maxlength"],
 			},
 			en: {
 				type: String,
-				maxlength: [500, "L'extrait ne peut pas dépasser 500 caractères"],
+				maxlength: [500, "validation.blog_excerpt_maxlength"],
 			},
 		},
 		content: {
@@ -126,11 +126,11 @@ const blogSchema = new mongoose.Schema(
 		metaTitle: {
 			fr: {
 				type: String,
-				maxlength: [60, "Le titre SEO ne peut pas dépasser 60 caractères"],
+				maxlength: [60, "validation.blog_meta_title_maxlength"],
 			},
 			en: {
 				type: String,
-				maxlength: [60, "Le titre SEO ne peut pas dépasser 60 caractères"],
+				maxlength: [60, "validation.blog_meta_title_maxlength"],
 			},
 		},
 		metaDescription: {
@@ -138,14 +138,14 @@ const blogSchema = new mongoose.Schema(
 				type: String,
 				maxlength: [
 					160,
-					"La description SEO ne peut pas dépasser 160 caractères",
+					"validation.blog_meta_description_maxlength",
 				],
 			},
 			en: {
 				type: String,
 				maxlength: [
 					160,
-					"La description SEO ne peut pas dépasser 160 caractères",
+					"validation.blog_meta_description_maxlength",
 				],
 			},
 		},
@@ -255,10 +255,9 @@ blogSchema.pre("save", function (next) {
 // Validation : au moins une langue doit être remplie
 blogSchema.pre("validate", function (next) {
 	if (!this.title?.fr && !this.title?.en) {
-		next(new Error("Au moins un titre (FR ou EN) est requis"));
-	} else {
-		next();
+		this.invalidate("title", "validation.blog_title_required");
 	}
+	next();
 });
 
 // Méthodes d'instance

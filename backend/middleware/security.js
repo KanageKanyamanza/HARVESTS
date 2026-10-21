@@ -7,6 +7,8 @@ const cors = require("cors");
 const compression = require("compression");
 const crypto = require("crypto");
 
+const { apiCookieOptions } = require("../config/cookies");
+
 /**
  * Configuration CORS pour autoriser les requêtes depuis les domaines spécifiés
  */
@@ -42,13 +44,16 @@ const corsOptions = {
 		"X-Requested-With",
 		"Content-Type",
 		"Accept",
+		"Accept-Language",
 		"Authorization",
 		"Pragma",
 		"Cache-Control",
 		"x-csrf-token",
 		"x-xsrf-token",
+		// Jour 63 : langue demandée explicitement par le client sur la requête
+		"X-Language",
 	],
-	exposedHeaders: ["X-Total-Count"],
+	exposedHeaders: ["X-Total-Count", "X-CSRF-Token"],
 };
 
 /**
@@ -402,6 +407,7 @@ const xssMiddleware = (req, res, next) => {
 };
 
 const CSRF_COOKIE_NAME = "harvests_csrf_token";
+const CSRF_HEADER_NAME = "X-CSRF-Token";
 const stateChangingMethods = ["POST", "PUT", "PATCH", "DELETE"];
 const csrfProtection = (req, res, next) => {
 	if (!req.path.startsWith("/api/")) {
@@ -448,17 +454,29 @@ const csrfProtection = (req, res, next) => {
 };
 
 const ensureCsrfCookie = (req, res, next) => {
-	const token = req.cookies?.[CSRF_COOKIE_NAME];
+	let token = req.cookies?.[CSRF_COOKIE_NAME];
 	if (!token) {
-		const newToken = crypto.randomBytes(24).toString("hex");
-		const isProduction = process.env.NODE_ENV === "production";
-		res.cookie(CSRF_COOKIE_NAME, newToken, {
-			httpOnly: false,
-			secure: isProduction,
-			sameSite: isProduction ? "strict" : "lax",
-			maxAge: 24 * 60 * 60 * 1000,
-		});
+		token = crypto.randomBytes(24).toString("hex");
+		// SameSite=None en production : le front est sur un autre site que
+		// l'API, un cookie Strict/Lax n'y serait jamais renvoyé et toute
+		// écriture serait rejetée (cf. config/cookies.js).
+		res.cookie(
+			CSRF_COOKIE_NAME,
+			token,
+			apiCookieOptions(req, {
+				httpOnly: false,
+				path: "/",
+				maxAge: 24 * 60 * 60 * 1000,
+			}),
+		);
 	}
+
+	// Le jeton est aussi renvoyé dans un en-tête : le cookie appartient au
+	// domaine de l'API, il n'est donc pas lisible en JavaScript depuis la page
+	// du front (domaine différent) et le client ne peut pas le recopier dans
+	// l'en-tête x-csrf-token. L'en-tête est exposé au navigateur par la
+	// configuration CORS (exposedHeaders).
+	res.setHeader(CSRF_HEADER_NAME, token);
 
 	next();
 };
@@ -518,6 +536,8 @@ module.exports = {
 	// Middleware CSRF
 	csrfProtection,
 	ensureCsrfCookie,
+	CSRF_COOKIE_NAME,
+	CSRF_HEADER_NAME,
 
 	// Tailles de fichiers
 	fileSizes: {

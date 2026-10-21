@@ -12,7 +12,7 @@ exports.getWishlist = catchAsync(async (req, res, next) => {
       data: { wishlist }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -24,7 +24,7 @@ exports.addToWishlist = catchAsync(async (req, res, next) => {
       message: 'Produit ajouté à la liste de souhaits'
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 
@@ -36,7 +36,7 @@ exports.removeFromWishlist = catchAsync(async (req, res, next) => {
       data: null
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -48,7 +48,7 @@ exports.toggleWishlistNotifications = catchAsync(async (req, res, next) => {
       data: { preferences }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

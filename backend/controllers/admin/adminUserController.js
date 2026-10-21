@@ -112,16 +112,16 @@ exports.createUser = catchAsync(async (req, res, next) => {
 	const { userType, email, firstName } = req.body;
 
 	if (!validUserTypes.includes(userType)) {
-		return next(new AppError("Type d'utilisateur invalide", 400));
+		return next(new AppError("auth.invalid_user_type", 400));
 	}
 	if (!email || !firstName) {
-		return next(new AppError("Prénom et email requis", 400));
+		return next(new AppError("admin.firstname_email_required", 400));
 	}
 
 	const existingUser = await User.findOne({ email });
 	if (existingUser) {
 		return next(
-			new AppError("Un utilisateur avec cet email existe déjà", 400),
+			new AppError("auth.email_exists", 400),
 		);
 	}
 
@@ -149,7 +149,7 @@ exports.createUser = catchAsync(async (req, res, next) => {
 	};
 
 	if (userType === "consumer" && !userData.lastName) {
-		return next(new AppError("Le nom est requis pour les consommateurs", 400));
+		return next(new AppError("auth.last_name_required", 400));
 	}
 	if (req.body.farmName) userData.farmName = req.body.farmName;
 	if (req.body.companyName) userData.companyName = req.body.companyName;
@@ -172,7 +172,7 @@ exports.createUser = catchAsync(async (req, res, next) => {
 
 	res.status(201).json({
 		status: "success",
-		message: "Utilisateur créé avec succès",
+		message: req.t("admin.user_created"),
 		data: { user: userObj, generatedPassword },
 	});
 });
@@ -184,7 +184,7 @@ exports.getUserById = catchAsync(async (req, res, next) => {
 	);
 
 	if (!user) {
-		return next(new AppError("Utilisateur non trouvé", 404));
+		return next(new AppError("user.user_not_found", 404));
 	}
 
 	const userObj = user.toObject();
@@ -231,14 +231,14 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 		updateData.isEmailVerified = isEmailVerified;
 
 	const previousUser = await User.findById(req.params.id).select("email");
-	if (!previousUser) return next(new AppError("Utilisateur non trouvé", 404));
+	if (!previousUser) return next(new AppError("user.user_not_found", 404));
 
 	const user = await User.findByIdAndUpdate(req.params.id, updateData, {
 		new: true,
 		runValidators: true,
 	}).select("-password -passwordResetToken -passwordResetExpires");
 
-	if (!user) return next(new AppError("Utilisateur non trouvé", 404));
+	if (!user) return next(new AppError("user.user_not_found", 404));
 
 	const touchesSheetSync = ["firstName", "lastName", "email", "phone"].some(
 		(field) => req.body[field] !== undefined,
@@ -251,7 +251,7 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 
 	res.status(200).json({
 		status: "success",
-		message: "Utilisateur mis à jour avec succès",
+		message: req.t("admin.user_updated"),
 		data: { user },
 	});
 });
@@ -259,7 +259,7 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 // @desc    Supprimer un utilisateur
 exports.deleteUser = catchAsync(async (req, res, next) => {
 	const user = await User.findById(req.params.id);
-	if (!user) return next(new AppError("Utilisateur non trouvé", 404));
+	if (!user) return next(new AppError("user.user_not_found", 404));
 
 	const deletedUserEmail = user.email;
 	const deletedProducts = await Product.deleteMany({
@@ -295,7 +295,7 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
 		},
 	});
 
-	res.status(200).json({ status: "success", message: `Utilisateur supprimé` });
+	res.status(200).json({ status: "success", message: req.t("admin.user_deleted") });
 });
 
 // @desc    Bannir un utilisateur
@@ -306,7 +306,7 @@ exports.banUser = catchAsync(async (req, res, next) => {
 		{ new: true },
 	).select("-password");
 
-	if (!user) return next(new AppError("Utilisateur non trouvé", 404));
+	if (!user) return next(new AppError("user.user_not_found", 404));
 
 	adminNotifications
 		.notifyUserBanned(user, req.admin, req.body.reason)
@@ -330,7 +330,7 @@ exports.unbanUser = catchAsync(async (req, res, next) => {
 		{ isActive: true, $unset: { bannedAt: 1 } },
 		{ new: true },
 	).select("-password");
-	if (!user) return next(new AppError("Utilisateur non trouvé", 404));
+	if (!user) return next(new AppError("user.user_not_found", 404));
 	res.status(200).json({ status: "success", data: { user } });
 });
 
@@ -342,7 +342,7 @@ exports.hideShop = catchAsync(async (req, res, next) => {
 		{ new: true },
 	).select("-password");
 
-	if (!user) return next(new AppError("Utilisateur non trouvé", 404));
+	if (!user) return next(new AppError("user.user_not_found", 404));
 
 	await logAudit({
 		adminId: req.admin._id,
@@ -363,7 +363,7 @@ exports.showShop = catchAsync(async (req, res, next) => {
 		{ new: true },
 	).select("-password");
 
-	if (!user) return next(new AppError("Utilisateur non trouvé", 404));
+	if (!user) return next(new AppError("user.user_not_found", 404));
 
 	await logAudit({
 		adminId: req.admin._id,
@@ -383,7 +383,7 @@ exports.verifyUser = catchAsync(async (req, res, next) => {
 		{ isEmailVerified: true, emailVerified: true, isApproved: true },
 		{ new: true },
 	).select("-password");
-	if (!user) return next(new AppError("Utilisateur non trouvé", 404));
+	if (!user) return next(new AppError("user.user_not_found", 404));
 	res.status(200).json({ status: "success", data: { user } });
 });
 
@@ -393,7 +393,7 @@ exports.verifyUserDocument = catchAsync(async (req, res, next) => {
 	const { docType, status, docId } = req.body; // docType: 'businessLicense', status: 'approved'/'rejected', docId: (optionnel pour les tableaux)
 
 	let user = await User.findById(id);
-	if (!user) return next(new AppError("Utilisateur non trouvé", 404));
+	if (!user) return next(new AppError("user.user_not_found", 404));
 
 	// 1. Gérer le format objet (Restaurateur, Transformer, etc.)
 	if (user.documents && user.documents[docType] !== undefined) {
@@ -451,7 +451,7 @@ exports.verifyUserDocument = catchAsync(async (req, res, next) => {
 
 	res.status(200).json({
 		status: "success",
-		message: "Statut du document mis à jour",
+		message: req.t("admin.document_status_updated"),
 		data: { user },
 	});
 });
@@ -459,9 +459,9 @@ exports.verifyUserDocument = catchAsync(async (req, res, next) => {
 // @desc    Proxy Cloudinary pour les téléchargements sécurisés (Méthode Simplifiée)
 exports.proxyDownloadDocument = catchAsync(async (req, res, next) => {
 	const { url, filename } = req.query;
-	if (!url) return next(new AppError("URL requise", 400));
+	if (!url) return next(new AppError("admin.url_required", 400));
 	if (!url.includes("cloudinary.com"))
-		return next(new AppError("URL non autorisée", 400));
+		return next(new AppError("admin.url_forbidden", 400));
 
 	try {
 		// Nettoyage rigoureux des clés (pour éviter les espaces/retours à la ligne invisibles)
@@ -504,7 +504,7 @@ exports.proxyDownloadDocument = catchAsync(async (req, res, next) => {
 		if (error.response?.status === 401) {
 			console.error("Signature rejetée. Essayez sans extension.");
 		}
-		return next(new AppError("Erreur de téléchargement sécurisé.", 500));
+		return next(new AppError("admin.secure_download_error", 500));
 	}
 });
 
@@ -579,7 +579,7 @@ exports.remindIncompleteProfiles = catchAsync(async (req, res, next) => {
 
 	res.status(200).json({
 		status: "success",
-		message: `${count} rappels de profil envoyés avec succès`,
+		message: req.t("admin.profile_reminders_sent", { count }),
 		data: { count },
 	});
 });

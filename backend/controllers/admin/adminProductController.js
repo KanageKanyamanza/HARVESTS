@@ -84,7 +84,7 @@ exports.getProductById = catchAsync(async (req, res, next) => {
     .populate('producer', 'firstName lastName email phone address');
 
   if (!product) {
-    return next(new AppError('Produit non trouvé', 404));
+    return next(new AppError('product.not_found', 404));
   }
 
   res.status(200).json({
@@ -106,12 +106,12 @@ exports.updateProduct = catchAsync(async (req, res, next) => {
   ).populate('producer', 'firstName lastName email');
 
   if (!product) {
-    return next(new AppError('Produit non trouvé', 404));
+    return next(new AppError('product.not_found', 404));
   }
 
   res.status(200).json({
     status: 'success',
-    message: 'Produit mis à jour avec succès',
+    message: req.t('product.updated'),
     data: { product }
   });
 });
@@ -123,12 +123,12 @@ exports.deleteProduct = catchAsync(async (req, res, next) => {
   const product = await Product.findByIdAndDelete(req.params.id);
   
   if (!product) {
-    return next(new AppError('Produit non trouvé', 404));
+    return next(new AppError('product.not_found', 404));
   }
 
   res.status(200).json({
     status: 'success',
-    message: 'Produit supprimé avec succès'
+    message: req.t('product.deleted')
   });
 });
 
@@ -143,7 +143,7 @@ exports.approveProduct = catchAsync(async (req, res, next) => {
   ).populate('producer', 'firstName lastName email');
 
   if (!product) {
-    return next(new AppError('Produit non trouvé', 404));
+    return next(new AppError('product.not_found', 404));
   }
 
   // Créer une notification pour le producteur
@@ -179,7 +179,7 @@ exports.approveProduct = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    message: 'Produit approuvé avec succès',
+    message: req.t('admin.product_approved'),
     data: { product }
   });
 });
@@ -201,7 +201,7 @@ exports.rejectProduct = catchAsync(async (req, res, next) => {
   ).populate('producer', 'firstName lastName email');
 
   if (!product) {
-    return next(new AppError('Produit non trouvé', 404));
+    return next(new AppError('product.not_found', 404));
   }
 
   // Créer une notification pour le producteur
@@ -238,7 +238,7 @@ exports.rejectProduct = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    message: 'Produit rejeté avec succès',
+    message: req.t('admin.product_rejected'),
     data: { product }
   });
 });
@@ -254,12 +254,12 @@ exports.featureProduct = catchAsync(async (req, res, next) => {
   ).populate('producer', 'firstName lastName email');
 
   if (!product) {
-    return next(new AppError('Produit non trouvé', 404));
+    return next(new AppError('product.not_found', 404));
   }
 
   res.status(200).json({
     status: 'success',
-    message: 'Produit mis en vedette avec succès',
+    message: req.t('admin.product_featured'),
     data: { product }
   });
 });
@@ -275,12 +275,12 @@ exports.unfeatureProduct = catchAsync(async (req, res, next) => {
   ).populate('producer', 'firstName lastName email');
 
   if (!product) {
-    return next(new AppError('Produit non trouvé', 404));
+    return next(new AppError('product.not_found', 404));
   }
 
   res.status(200).json({
     status: 'success',
-    message: 'Produit retiré de la vedette avec succès',
+    message: req.t('admin.product_unfeatured'),
     data: { product }
   });
 });

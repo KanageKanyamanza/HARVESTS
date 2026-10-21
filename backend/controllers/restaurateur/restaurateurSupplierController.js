@@ -3,6 +3,7 @@ const AppError = require('../../utils/appError');
 const Producer = require('../../models/Producer');
 const Transformer = require('../../models/Transformer');
 const restaurateurSupplierService = require('../../services/restaurateur/restaurateurSupplierService');
+const { isTestViewer, testAccountScope } = require('../../utils/testAccounts');
 
 // Fonction temporaire pour les fonctionnalités en cours de développement
 const temporaryResponse = (message) => catchAsync(async (req, res, next) => {
@@ -16,7 +17,7 @@ const temporaryResponse = (message) => catchAsync(async (req, res, next) => {
 // Découvrir des fournisseurs
 exports.discoverSuppliers = catchAsync(async (req, res, next) => {
   try {
-    const result = await restaurateurSupplierService.discoverSuppliers(req.query);
+    const result = await restaurateurSupplierService.discoverSuppliers(req.query, isTestViewer(req));
     res.status(200).json({
       status: 'success',
       results: result.suppliers.length,
@@ -24,7 +25,7 @@ exports.discoverSuppliers = catchAsync(async (req, res, next) => {
       data: { suppliers: result.suppliers }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -37,54 +38,43 @@ exports.searchSuppliers = catchAsync(async (req, res, next) => {
 // Obtenir les détails d'un fournisseur
 exports.getSupplierDetails = catchAsync(async (req, res, next) => {
   const { supplierId } = req.params;
-  
-  try {
-    // Essayer de trouver dans les producteurs
-    let supplier = await Producer.findById(supplierId)
-      .select('-password -__v');
-    
-    if (supplier) {
-      return res.status(200).json({
-        status: 'success',
-        data: {
-          supplier: {
-            ...supplier.toObject(),
-            userType: 'producer',
-            supplierType: 'Producteur'
-          }
+  const scope = testAccountScope(isTestViewer(req));
+
+  // Le détail doit appliquer le même périmètre sandbox que la liste : un
+  // visiteur réel ne doit pas ouvrir la fiche d'un fournisseur de test.
+  let supplier = await Producer.findOne({ _id: supplierId, ...scope })
+    .select('-password -__v');
+
+  if (supplier) {
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        supplier: {
+          ...supplier.toObject(),
+          userType: 'producer',
+          supplierType: 'Producteur'
         }
-      });
-    }
-    
-    // Essayer de trouver dans les transformateurs
-    supplier = await Transformer.findById(supplierId)
-      .select('-password -__v');
-    
-    if (supplier) {
-      return res.status(200).json({
-        status: 'success',
-        data: {
-          supplier: {
-            ...supplier.toObject(),
-            userType: 'transformer',
-            supplierType: 'Transformateur'
-          }
-        }
-      });
-    }
-    
-    res.status(404).json({
-      status: 'fail',
-      message: 'Fournisseur non trouvé'
-    });
-    
-  } catch (error) {
-    console.error('Erreur lors de la récupération du fournisseur:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Erreur lors de la récupération du fournisseur'
+      }
     });
   }
+
+  supplier = await Transformer.findOne({ _id: supplierId, ...scope })
+    .select('-password -__v');
+
+  if (supplier) {
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        supplier: {
+          ...supplier.toObject(),
+          userType: 'transformer',
+          supplierType: 'Transformateur'
+        }
+      }
+    });
+  }
+
+  return next(new AppError('restaurateur.supplier_not_found', 404));
 });
 
 // Fonctions temporaires

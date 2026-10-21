@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const variantSchema = new mongoose.Schema({
 	name: {
 		type: String,
-		required: [true, "Nom de la variante requis"],
+		required: [true, "validation.variant_name_required"],
 	},
 	sku: {
 		type: String,
@@ -13,18 +13,18 @@ const variantSchema = new mongoose.Schema({
 	},
 	price: {
 		type: Number,
-		required: [true, "Prix requis"],
-		min: [0, "Le prix ne peut pas être négatif"],
+		required: [true, "validation.price_required"],
+		min: [0, "validation.price_negative"],
 	},
 	compareAtPrice: {
 		type: Number,
-		min: [0, "Le prix de comparaison ne peut pas être négatif"],
+		min: [0, "validation.compare_price_negative"],
 	},
 	weight: {
 		value: {
 			type: Number,
-			required: [true, "Poids requis"],
-			min: [0, "Le poids ne peut pas être négatif"],
+			required: [true, "validation.weight_required"],
+			min: [0, "validation.weight_negative"],
 		},
 		unit: {
 			type: String,
@@ -46,7 +46,7 @@ const variantSchema = new mongoose.Schema({
 		quantity: {
 			type: Number,
 			default: 0,
-			min: [0, "La quantité ne peut pas être négative"],
+			min: [0, "validation.quantity_negative"],
 		},
 		lowStockThreshold: {
 			type: Number,
@@ -95,13 +95,13 @@ const productSchema = new mongoose.Schema(
 		// lecture avec les documents existants sans migration préalable.
 		name: {
 			type: mongoose.Schema.Types.Mixed,
-			required: [true, "Nom du produit requis"],
+			required: [true, "validation.product_name_required"],
 			validate: {
 				validator: function (value) {
 					const text = typeof value === "string" ? value : value?.fr;
 					return typeof text === "string" && text.trim().length > 0 && text.length <= 200;
 				},
-				message: "Le nom (fr) est requis et ne peut pas dépasser 200 caractères",
+				message: "validation.product_name_invalid",
 			},
 		},
 
@@ -113,13 +113,13 @@ const productSchema = new mongoose.Schema(
 
 		description: {
 			type: mongoose.Schema.Types.Mixed,
-			required: [true, "Description requise"],
+			required: [true, "validation.product_description_required"],
 			validate: {
 				validator: function (value) {
 					const text = typeof value === "string" ? value : value?.fr;
 					return typeof text === "string" && text.trim().length > 0 && text.length <= 2000;
 				},
-				message: "La description (fr) est requise et ne peut pas dépasser 2000 caractères",
+				message: "validation.product_description_invalid",
 			},
 		},
 
@@ -131,7 +131,7 @@ const productSchema = new mongoose.Schema(
 					const text = typeof value === "string" ? value : value?.fr;
 					return typeof text === "string" && text.length <= 300;
 				},
-				message: "La description courte (fr) ne peut pas dépasser 300 caractères",
+				message: "validation.product_short_description_maxlength",
 			},
 		},
 
@@ -192,7 +192,7 @@ const productSchema = new mongoose.Schema(
 		// Catégorisation
 		category: {
 			type: String,
-			required: [true, "Catégorie requise"],
+			required: [true, "validation.product_category_required"],
 			enum: [
 				"cereals",
 				"vegetables",
@@ -240,12 +240,12 @@ const productSchema = new mongoose.Schema(
 		// Si pas de variantes, prix unique
 		price: {
 			type: Number,
-			min: [0, "Le prix ne peut pas être négatif"],
+			min: [0, "validation.price_negative"],
 		},
 
 		compareAtPrice: {
 			type: Number,
-			min: [0, "Le prix de comparaison ne peut pas être négatif"],
+			min: [0, "validation.compare_price_negative"],
 		},
 
 		currency: {
@@ -300,7 +300,7 @@ const productSchema = new mongoose.Schema(
 			quantity: {
 				type: Number,
 				default: 0,
-				min: [0, "La quantité ne peut pas être négative"],
+				min: [0, "validation.quantity_negative"],
 			},
 			lowStockThreshold: {
 				type: Number,
@@ -328,7 +328,7 @@ const productSchema = new mongoose.Schema(
 
 		maximumOrderQuantity: {
 			type: Number,
-			min: [1, "La quantité maximum doit être au moins 1"],
+			min: [1, "validation.max_quantity_min_1"],
 		},
 
 		// Statut et modération

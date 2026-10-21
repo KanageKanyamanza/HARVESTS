@@ -4,32 +4,32 @@ const blogVisitorSchema = new mongoose.Schema({
   // Informations personnelles
   firstName: {
     type: String,
-    required: [true, 'Le prénom est requis'],
+    required: [true, 'validation.blog_visitor_first_name_required'],
     trim: true,
-    maxlength: [50, 'Le prénom ne peut pas dépasser 50 caractères']
+    maxlength: [50, 'validation.first_name_maxlength']
   },
   lastName: {
     type: String,
-    required: [true, 'Le nom est requis'],
+    required: [true, 'validation.blog_visitor_last_name_required'],
     trim: true,
-    maxlength: [50, 'Le nom ne peut pas dépasser 50 caractères']
+    maxlength: [50, 'validation.last_name_maxlength']
   },
   email: {
     type: String,
-    required: [true, 'L\'email est requis'],
+    required: [true, 'validation.blog_visitor_email_required'],
     unique: true,
     lowercase: true,
     validate: {
       validator: function(email) {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
       },
-      message: 'Format d\'email invalide'
+      message: 'validation.email_invalid'
     }
   },
   country: {
     type: String,
-    required: [true, 'Le pays est requis'],
-    maxlength: [100, 'Le pays ne peut pas dépasser 100 caractères']
+    required: [true, 'validation.blog_visitor_country_required'],
+    maxlength: [100, 'validation.blog_visitor_country_maxlength']
   },
   
   // Localisation

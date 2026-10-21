@@ -22,7 +22,7 @@ const fileFilter = (req, file, cb) => {
 	if (file.mimetype.startsWith("image/")) {
 		cb(null, true);
 	} else {
-		cb(new AppError("Seules les images sont autorisées!", 400), false);
+		cb(new AppError("upload.images_only", 400), false);
 	}
 };
 
@@ -46,7 +46,7 @@ const documentFilter = (req, file, cb) => {
 	} else {
 		cb(
 			new AppError(
-				"Format de fichier non supporté. Utilisez PDF, JPEG ou PNG.",
+				"upload.invalid_file_format",
 				400
 			),
 			false
@@ -76,7 +76,7 @@ exports.uploadDocumentMiddleware = uploadDocument.single("file");
 // Upload d'images de produits vers Cloudinary
 exports.uploadProductImagesToCloudinary = catchAsync(async (req, res, next) => {
 	if (!req.files || req.files.length === 0) {
-		return next(new AppError("Aucune image fournie", 400));
+		return next(new AppError("upload.no_image", 400));
 	}
 
 	try {
@@ -86,6 +86,8 @@ exports.uploadProductImagesToCloudinary = catchAsync(async (req, res, next) => {
 					{
 						folder: "harvests/products",
 						resource_type: "image",
+						// Auteur de l'envoi, utilisé pour autoriser la suppression.
+						context: { uploader: String(req.user?._id || req.admin?._id || "") },
 						transformation: [
 							{ width: 800, height: 600, crop: "fit", quality: "auto" },
 							{ format: "auto" },
@@ -116,7 +118,7 @@ exports.uploadProductImagesToCloudinary = catchAsync(async (req, res, next) => {
 
 		res.status(200).json({
 			status: "success",
-			message: "Images uploadées avec succès",
+			message: req.t("upload.images_uploaded"),
 			data: {
 				images: uploadResults,
 				count: uploadResults.length,
@@ -124,7 +126,7 @@ exports.uploadProductImagesToCloudinary = catchAsync(async (req, res, next) => {
 		});
 	} catch (error) {
 		console.error("Erreur lors de l'upload Cloudinary:", error);
-		return next(new AppError("Erreur lors de l'upload des images", 500));
+		return next(new AppError("upload.images_upload_error", 500));
 	}
 });
 
@@ -133,33 +135,61 @@ exports.deleteImage = catchAsync(async (req, res, next) => {
 	const { publicId } = req.params;
 
 	if (!publicId) {
-		return next(new AppError("Public ID requis", 400));
+		return next(new AppError("upload.public_id_required", 400));
 	}
 
 	try {
+		// L'auteur de l'envoi est la seule source de vérité pour la suppression :
+		// un utilisateur ne peut pas détruire une image dont il n'est pas l'auteur.
+		if (!req.admin) {
+			const owns = await cloudinaryUploaderIs(
+				{ publicId, type: "upload", resourceType: "image" },
+				req.user._id,
+			);
+			if (!owns) {
+				return next(new AppError("upload.asset_forbidden", 403));
+			}
+		}
+
 		const result = await cloudinary.uploader.destroy(publicId);
 
 		if (result.result === "not found") {
-			return next(new AppError("Image non trouvée", 404));
+			return next(new AppError("upload.image_not_found", 404));
 		}
 
 		res.status(200).json({
 			status: "success",
-			message: "Image supprimée avec succès",
+			message: req.t("upload.image_deleted"),
 			data: { result },
 		});
 	} catch (error) {
 		console.error("Erreur lors de la suppression:", error);
-		return next(new AppError("Erreur lors de la suppression de l'image", 500));
+		return next(new AppError("upload.image_delete_error", 500));
 	}
 });
+
+// Jour 60 (sécurité) — auteur de l'envoi, noté sur Cloudinary à l'upload.
+// C'est la seule preuve de propriété fiable : les URL enregistrées dans le
+// profil, la bio ou les images produits sont modifiables par l'utilisateur.
+const cloudinaryUploaderIs = async (parsed, userId) => {
+	try {
+		const resource = await cloudinary.api.resource(parsed.publicId, {
+			type: parsed.type,
+			resource_type: parsed.resourceType,
+			context: true,
+		});
+		return resource?.context?.custom?.uploader === String(userId);
+	} catch {
+		return false;
+	}
+};
 
 // Supprimer une image par URL
 exports.deleteImageByUrl = catchAsync(async (req, res, next) => {
 	const { imageUrl } = req.body;
 
 	if (!imageUrl) {
-		return next(new AppError("URL de l'image requise", 400));
+		return next(new AppError("upload.image_url_required", 400));
 	}
 
 	try {
@@ -170,7 +200,18 @@ exports.deleteImageByUrl = catchAsync(async (req, res, next) => {
 		const publicId = parsed?.publicId || extractPublicIdFromUrl(imageUrl);
 
 		if (!publicId) {
-			return next(new AppError("URL d'image invalide", 400));
+			return next(new AppError("upload.invalid_image_url", 400));
+		}
+
+		// Jour 60 (sécurité) : un utilisateur ne peut supprimer qu'un fichier dont
+		// il est l'auteur ; un admin peut tout supprimer. Les URL du profil et des
+		// produits ne sont pas une preuve de propriété : elles sont modifiables.
+		if (!req.admin) {
+			const asset = parsed || { publicId, type: "upload", resourceType: "image" };
+			const owns = await cloudinaryUploaderIs(asset, req.user._id);
+			if (!owns) {
+				return next(new AppError("upload.asset_forbidden", 403));
+			}
 		}
 
 		const result = await cloudinary.uploader.destroy(
@@ -179,24 +220,24 @@ exports.deleteImageByUrl = catchAsync(async (req, res, next) => {
 		);
 
 		if (result.result === "not found") {
-			return next(new AppError("Image non trouvée", 404));
+			return next(new AppError("upload.image_not_found", 404));
 		}
 
 		res.status(200).json({
 			status: "success",
-			message: "Image supprimée avec succès",
+			message: req.t("upload.image_deleted"),
 			data: { result },
 		});
 	} catch (error) {
 		console.error("Erreur lors de la suppression:", error);
-		return next(new AppError("Erreur lors de la suppression de l'image", 500));
+		return next(new AppError("upload.image_delete_error", 500));
 	}
 });
 
 // Upload direct vers Cloudinary (pour les blogs, etc.)
 exports.uploadToCloudinary = catchAsync(async (req, res, next) => {
 	if (!req.file) {
-		return next(new AppError("Aucun fichier fourni", 400));
+		return next(new AppError("upload.no_file", 400));
 	}
 
 	try {
@@ -205,6 +246,8 @@ exports.uploadToCloudinary = catchAsync(async (req, res, next) => {
 				{
 					folder: req.body.folder || "harvests/general",
 					resource_type: "image",
+					// Auteur de l'envoi, utilisé pour autoriser la suppression.
+					context: { uploader: String(req.user?._id || req.admin?._id || "") },
 					transformation: req.body.transformations
 						? JSON.parse(req.body.transformations)
 						: [
@@ -226,7 +269,7 @@ exports.uploadToCloudinary = catchAsync(async (req, res, next) => {
 
 		res.status(200).json({
 			status: "success",
-			message: "Image uploadée avec succès",
+			message: req.t("upload.image_uploaded"),
 			data: {
 				public_id: uploadResult.public_id,
 				secure_url: uploadResult.secure_url,
@@ -241,7 +284,7 @@ exports.uploadToCloudinary = catchAsync(async (req, res, next) => {
 		});
 	} catch (error) {
 		console.error("Erreur lors de l'upload Cloudinary:", error);
-		return next(new AppError("Erreur lors de l'upload de l'image", 500));
+		return next(new AppError("upload.image_upload_error", 500));
 	}
 });
 
@@ -398,7 +441,7 @@ exports.getOptimizedImageUrl = catchAsync(async (req, res, next) => {
 	} = req.query;
 
 	if (!publicId) {
-		return next(new AppError("Public ID requis", 400));
+		return next(new AppError("upload.public_id_required", 400));
 	}
 
 	try {
@@ -429,7 +472,7 @@ exports.getOptimizedImageUrl = catchAsync(async (req, res, next) => {
 		});
 	} catch (error) {
 		console.error("Erreur lors de la génération de l'URL:", error);
-		return next(new AppError("Erreur lors de la génération de l'URL", 500));
+		return next(new AppError("upload.url_generation_error", 500));
 	}
 });
 

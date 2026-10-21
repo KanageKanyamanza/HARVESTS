@@ -3,6 +3,10 @@ const Faq = require("../../models/Faq");
 const chatSearchController = require("./chatSearchController");
 const consumersController = require("../consumerController");
 const Product = require("../../models/Product");
+const {
+	isTestViewer,
+	testProductsViewerFilter,
+} = require("../../utils/testAccounts");
 
 let manager = null;
 let isTraining = false;
@@ -222,6 +226,14 @@ const processMessage = async (req, res) => {
 				mongoQuery.isActive = true;
 				mongoQuery.status = "approved";
 
+				// Périmètre sandbox : les comptes de test ne voient que leurs
+				// produits, les autres visiteurs ne voient jamais les produits test
+				const productTestFilter = await testProductsViewerFilter(isTestViewer(req));
+				if (productTestFilter) {
+					mongoQuery.$and = mongoQuery.$and || [];
+					mongoQuery.$and.push(productTestFilter);
+				}
+
 				const productResults = await Product.find(mongoQuery).limit(3);
 
 				console.log(
@@ -229,7 +241,7 @@ const processMessage = async (req, res) => {
 				);
 
 				if (productResults.length > 0) {
-					reply.text = `Voici ce que j'ai trouvé pour "${query}" :`;
+					reply.text = req.t("chat.product_results", { query });
 					reply.data.products = productResults;
 					reply.responseType = "product_search";
 					return res.status(200).json({
@@ -262,11 +274,11 @@ const processMessage = async (req, res) => {
 						console.error("Error logging missed search:", err);
 					}
 
-					reply.text = `Désolé, nous n'avons pas de "${query}" pour le moment. 😕\n\nCependant, vous pouvez consulter notre catalogue complet pour voir ce qui est disponible, ou découvrir nos produits similaires !`;
+					reply.text = req.t("chat.no_results", { query });
 					reply.actions = [
 						{
 							type: "link",
-							label: "Voir tout le catalogue",
+							label: req.t("chat.catalog_link"),
 							to: "/products",
 						},
 					];
@@ -283,8 +295,7 @@ const processMessage = async (req, res) => {
 			reply.text = response.answer;
 		} else {
 			// Vrai fallback si rien trouvé
-			reply.text =
-				"Je n'ai pas bien compris votre demande. 😕\n\nVous pouvez me poser des questions sur la livraison, les paiements, ou chercher des produits (ex: 'tomates', 'mangues').";
+			reply.text = req.t("chat.fallback");
 			reply.intent = "None";
 		}
 
@@ -302,7 +313,7 @@ const processMessage = async (req, res) => {
 		console.error("Chat processing error:", error);
 		res.status(500).json({
 			status: "error",
-			message: "Erreur lors du traitement du message",
+			message: req.t("chat.processing_error"),
 		});
 	}
 };

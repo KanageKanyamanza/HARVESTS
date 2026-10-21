@@ -32,7 +32,7 @@ exports.createReview = catchAsync(async (req, res, next) => {
 		}).populate("seller");
 
 		if (!order) {
-			return next(new AppError("Commande non trouvée ou non valide", 404));
+			return next(new AppError("review.order_not_valid", 404));
 		}
 
 		producerId = order.seller._id;
@@ -40,9 +40,7 @@ exports.createReview = catchAsync(async (req, res, next) => {
 		// Vérifier qu'un avis n'existe pas déjà pour cette commande
 		const existingReview = await Review.findOne({ order: orderId });
 		if (existingReview) {
-			return next(
-				new AppError("Vous avez déjà laissé un avis pour cette commande", 400)
-			);
+			return next(new AppError("review.already_reviewed_order", 400));
 		}
 	} else {
 		// Si pas d'orderId, vérifier que l'utilisateur a acheté ce produit dans une commande complétée ou livrée
@@ -62,10 +60,9 @@ exports.createReview = catchAsync(async (req, res, next) => {
 
 			if (pendingOrder) {
 				return next(
-					new AppError(
-						`Commande trouvée mais pas encore complétée (statut: ${pendingOrder.status})`,
-						403
-					)
+					new AppError("review.order_not_completed", 403, {
+						status: pendingOrder.status,
+					})
 				);
 			}
 
@@ -74,22 +71,17 @@ exports.createReview = catchAsync(async (req, res, next) => {
 				process.env.ALLOW_REVIEWS_WITHOUT_ORDER === "true";
 
 			if (!allowReviewsWithoutOrder) {
-				return next(
-					new AppError(
-						"Vous devez avoir acheté ce produit pour laisser un avis",
-						403
-					)
-				);
+				return next(new AppError("review.purchase_required", 403));
 			}
 
 			// Récupérer le producteur depuis le produit
 			const product = await Product.findById(productId).populate("producer");
 			if (!product) {
-				return next(new AppError("Produit non trouvé", 404));
+				return next(new AppError("product.not_found", 404));
 			}
 
 			if (!product.producer) {
-				return next(new AppError("Producteur non trouvé pour ce produit", 404));
+				return next(new AppError("review.producer_not_found", 404));
 			}
 
 			producerId = product.producer._id;
@@ -210,7 +202,7 @@ exports.updateMyReview = catchAsync(async (req, res, next) => {
 	);
 
 	if (!review) {
-		return next(new AppError("Avis non trouvé", 404));
+		return next(new AppError("review.not_found", 404));
 	}
 
 	res.status(200).json({
@@ -229,7 +221,7 @@ exports.deleteMyReview = catchAsync(async (req, res, next) => {
 	});
 
 	if (!review) {
-		return next(new AppError("Avis non trouvé", 404));
+		return next(new AppError("review.not_found", 404));
 	}
 
 	// Marquer la commande comme non évaluée
@@ -249,18 +241,18 @@ exports.voteReview = catchAsync(async (req, res, next) => {
 	const { voteType } = req.body; // 'helpful' ou 'unhelpful'
 
 	if (!["helpful", "unhelpful"].includes(voteType)) {
-		return next(new AppError("Type de vote invalide", 400));
+		return next(new AppError("review.vote_type_invalid", 400));
 	}
 
 	const review = await Review.findById(req.params.id);
 	if (!review) {
-		return next(new AppError("Avis non trouvé", 404));
+		return next(new AppError("review.not_found", 404));
 	}
 
 	// Ne pas permettre de voter pour son propre avis
 	if (review.reviewer.toString() === req.user.id) {
 		return next(
-			new AppError("Vous ne pouvez pas voter pour votre propre avis", 400)
+			new AppError("review.vote_own", 400)
 		);
 	}
 
@@ -279,7 +271,7 @@ exports.voteReview = catchAsync(async (req, res, next) => {
 exports.removeVote = catchAsync(async (req, res, next) => {
 	const review = await Review.findById(req.params.id);
 	if (!review) {
-		return next(new AppError("Avis non trouvé", 404));
+		return next(new AppError("review.not_found", 404));
 	}
 
 	await review.removeVote(req.user.id);
@@ -298,12 +290,12 @@ exports.reportReview = catchAsync(async (req, res, next) => {
 	const { reason, description } = req.body;
 
 	if (!reason) {
-		return next(new AppError("Raison du signalement requise", 400));
+		return next(new AppError("review.report_reason_required", 400));
 	}
 
 	const review = await Review.findById(req.params.id);
 	if (!review) {
-		return next(new AppError("Avis non trouvé", 404));
+		return next(new AppError("review.not_found", 404));
 	}
 
 	await review.report(req.user.id, reason, description);
@@ -320,7 +312,7 @@ exports.reportReview = catchAsync(async (req, res, next) => {
 
 	res.status(200).json({
 		status: "success",
-		message: "Avis signalé avec succès",
+		message: req.t("review.reported_success"),
 	});
 });
 
@@ -328,7 +320,7 @@ exports.reportReview = catchAsync(async (req, res, next) => {
 exports.likeReview = catchAsync(async (req, res, next) => {
 	const review = await Review.findById(req.params.id);
 	if (!review) {
-		return next(new AppError("Avis non trouvé", 404));
+		return next(new AppError("review.not_found", 404));
 	}
 
 	await review.toggleLike(req.user.id);
@@ -346,12 +338,12 @@ exports.likeReview = catchAsync(async (req, res, next) => {
 exports.addReply = catchAsync(async (req, res, next) => {
 	const { content } = req.body;
 	if (!content) {
-		return next(new AppError("Le contenu du commentaire est requis", 400));
+		return next(new AppError("review.reply_content_required", 400));
 	}
 
 	const review = await Review.findById(req.params.id);
 	if (!review) {
-		return next(new AppError("Avis non trouvé", 404));
+		return next(new AppError("review.not_found", 404));
 	}
 
 	await review.addReply(req.user.id, content);
@@ -390,7 +382,7 @@ exports.addReply = catchAsync(async (req, res, next) => {
 exports.likeReply = catchAsync(async (req, res, next) => {
 	const review = await Review.findById(req.params.id);
 	if (!review) {
-		return next(new AppError("Avis non trouvé", 404));
+		return next(new AppError("review.not_found", 404));
 	}
 
 	const updatedReview = await review.toggleReplyLike(
@@ -398,7 +390,7 @@ exports.likeReply = catchAsync(async (req, res, next) => {
 		req.user.id
 	);
 	if (!updatedReview) {
-		return next(new AppError("Commentaire non trouvé", 404));
+		return next(new AppError("review.reply_not_found", 404));
 	}
 
 	const reply = updatedReview.replies.id(req.params.replyId);

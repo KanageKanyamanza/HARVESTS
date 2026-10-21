@@ -55,6 +55,8 @@ exports.processAttachments = catchAsync(async (req, res, next) => {
 				{
 					folder: "harvests/messages",
 					resource_type: "auto", // auto detect image/video/raw
+					// Auteur de l'envoi, utilisé pour autoriser la suppression.
+					context: { uploader: String(req.user?._id || req.admin?._id || "") },
 				},
 				(error, result) => {
 					if (error) return reject(error);

@@ -9,13 +9,13 @@ const { logAudit, AUDIT_ACTIONS } = require("../../../utils/auditLogger");
 exports.toggleAdminStatus = catchAsync(async (req, res, next) => {
 	const admin = await Admin.findById(req.params.id);
 	if (!admin) {
-		return next(new AppError("Administrateur non trouvé", 404));
+		return next(new AppError("admin.not_found", 404));
 	}
 
 	// Empêcher la désactivation de son propre compte
 	if (req.admin._id.toString() === req.params.id) {
 		return next(
-			new AppError("Vous ne pouvez pas désactiver votre propre compte", 400)
+			new AppError("admin.cannot_disable_self", 400)
 		);
 	}
 
@@ -39,9 +39,9 @@ exports.toggleAdminStatus = catchAsync(async (req, res, next) => {
 
 	res.status(200).json({
 		status: "success",
-		message: `Administrateur ${
-			admin.isActive ? "activé" : "désactivé"
-		} avec succès`,
+		message: req.t(
+			admin.isActive ? "admin.status_activated" : "admin.status_deactivated"
+		),
 		data: {
 			admin: {
 				id: admin._id,

@@ -11,7 +11,7 @@ exports.getMyStats = catchAsync(async (req, res, next) => {
       data: { stats }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -23,7 +23,7 @@ exports.getStats = catchAsync(async (req, res, next) => {
       data: { stats }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -35,7 +35,7 @@ exports.getSalesAnalytics = catchAsync(async (req, res, next) => {
       data: { analytics }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -47,7 +47,7 @@ exports.getRevenueAnalytics = catchAsync(async (req, res, next) => {
       data: { analytics }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

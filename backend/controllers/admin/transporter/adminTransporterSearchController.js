@@ -18,7 +18,7 @@ exports.getAvailableTransporters = catchAsync(async (req, res, next) => {
       .populate('seller', 'country');
     
     if (!order) {
-      return next(new AppError('Commande non trouvée', 404));
+      return next(new AppError('order.not_found', 404));
     }
   }
 
@@ -77,13 +77,13 @@ exports.getAvailableTransporters = catchAsync(async (req, res, next) => {
     return res.status(200).json({
       status: 'success',
       results: formattedTransporters.length,
-      message: 'Aucune région de livraison trouvée dans la commande. Tous les transporteurs actifs sont retournés.',
+      message: req.t('admin.delivery_region_missing'),
       data: {
         transporters: formattedTransporters,
         deliveryZone: {
           region: null,
           city: null,
-          warning: 'Région de livraison non spécifiée dans la commande'
+          warning: req.t('admin.delivery_region_unspecified')
         }
       }
     });
@@ -212,8 +212,8 @@ exports.getAvailableTransporters = catchAsync(async (req, res, next) => {
       },
       orderType: isInternationalOrder ? 'international' : 'local',
       message: isInternationalOrder 
-        ? 'Exportateurs disponibles pour commande internationale'
-        : 'Transporteurs disponibles pour commande locale'
+        ? req.t('admin.exporters_available')
+        : req.t('admin.transporters_available')
     }
   });
 });

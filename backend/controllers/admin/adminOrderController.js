@@ -139,7 +139,7 @@ exports.getOrderById = catchAsync(async (req, res, next) => {
     .populate('delivery.transporter', 'firstName lastName email phone companyName');
 
   if (!order) {
-    return next(new AppError('Commande non trouvée', 404));
+    return next(new AppError('order.not_found', 404));
   }
 
   // Fonction pour transformer un item
@@ -250,7 +250,7 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
   
   if (!order) {
-    return next(new AppError('Commande non trouvée', 404));
+    return next(new AppError('order.not_found', 404));
   }
 
   // Utiliser la méthode du modèle pour mettre à jour le statut
@@ -293,7 +293,7 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    message: 'Statut de la commande mis à jour avec succès',
+    message: req.t('admin.order_status_updated'),
     data: { order: transformedOrder }
   });
 });
@@ -307,7 +307,7 @@ exports.updateOrderPaymentStatus = catchAsync(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
   
   if (!order) {
-    return next(new AppError('Commande non trouvée', 404));
+    return next(new AppError('order.not_found', 404));
   }
 
   // Vérifier l'état avant de mettre à jour
@@ -328,7 +328,7 @@ exports.updateOrderPaymentStatus = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    message: 'Statut de paiement mis à jour avec succès',
+    message: req.t('admin.payment_status_updated'),
     data: { 
       orderId: order._id,
       paymentStatus: order.payment.status,
@@ -346,7 +346,7 @@ exports.cancelOrder = catchAsync(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
   
   if (!order) {
-    return next(new AppError('Commande non trouvée', 404));
+    return next(new AppError('order.not_found', 404));
   }
 
   // Utiliser la méthode du modèle pour annuler la commande
@@ -389,7 +389,7 @@ exports.cancelOrder = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    message: 'Commande annulée avec succès',
+    message: req.t('order.cancelled_success'),
     data: { order: transformedOrder }
   });
 });

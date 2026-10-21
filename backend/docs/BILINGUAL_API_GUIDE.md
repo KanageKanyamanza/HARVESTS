@@ -8,12 +8,21 @@ Harvests supporte maintenant **2 langues** : **Français (FR)** et **Anglais (EN
 
 ### 1. Détection automatique de la langue
 
-L'API détecte automatiquement la langue préférée via :
+L'API détermine la langue de la requête dans cet ordre (Jour 63) :
 
-1. **Paramètre URL** : `?lang=en` ou `?lang=fr`
-2. **Cookie** : `harvests_lang=en`
-3. **Header Accept-Language** : `Accept-Language: en-US,en;q=0.9`
-4. **Par défaut** : Français (FR)
+1. **Paramètre URL** : `?lang=en` ou `?lang=fr` (choix explicite, mémorisé dans le cookie)
+2. **Header X-Language** : `X-Language: en` (choix explicite envoyé par le client)
+3. **Cookie** : `harvests_lang=en` (choix mémorisé de l'utilisateur)
+4. **Header Accept-Language** : `Accept-Language: en-US,en;q=0.9` (langue du navigateur, dernier recours)
+5. **Par défaut** : Français (FR)
+
+Le cookie `harvests_lang` est `HttpOnly` (inaccessible en JavaScript) et duré 30 jours.
+Il est posé en `SameSite=None; Secure` en production : le front (Vercel) et l'API (Render)
+étant sur des sites différents, un cookie `Strict` ne serait jamais renvoyé par le
+navigateur et l'API retomberait sur la langue du navigateur.
+
+La langue déduite du navigateur (Accept-Language) n'est jamais mémorisée dans le
+cookie : seule une langue demandée explicitement l'est (bascule explicite, Jour 33).
 
 ### 2. Exemples de requêtes
 
@@ -215,12 +224,26 @@ AUTO_DETECT_LANGUAGE=true
 
 ### Headers recommandés
 ```bash
-# Pour forcer une langue
-Accept-Language: en-US,en;q=0.9,fr;q=0.8
+# Pour forcer une langue sur une requête
+X-Language: en
 
-# Cookie de langue (défini automatiquement)
+# Cookie de langue (défini automatiquement par ?lang= ou X-Language)
 Cookie: harvests_lang=en
 ```
+
+### Protection CSRF (cross-site)
+
+Le front (Vercel) et l'API (Render) sont sur des sites différents : le cookie
+`harvests_csrf_token` est donc posé en `SameSite=None; Secure` (politique
+commune : `backend/config/cookies.js`), sans quoi le navigateur ne le
+renverrait jamais et toute écriture serait rejetée en 403.
+
+Le cookie appartenant au domaine de l'API, il n'est pas lisible en JavaScript
+depuis la page du front. L'API renvoie donc le même jeton dans l'en-tête
+`X-CSRF-Token` (exposé via CORS) : le client le renvoie ensuite dans
+l'en-tête `x-csrf-token`. La protection reste une double soumission — le
+cookie prouve que le client a reçu le jeton, l'en-tête prouve qu'il le
+connaît.
 
 ## 🚀 Avantages
 

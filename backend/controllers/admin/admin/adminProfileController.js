@@ -42,7 +42,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    message: 'Profil mis à jour avec succès',
+    message: req.t('admin.profile_updated'),
     data: {
       admin
     }
@@ -54,7 +54,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 // @access  Admin
 exports.uploadAvatar = catchAsync(async (req, res, next) => {
   if (!req.file) {
-    return next(new AppError('Aucun fichier fourni', 400));
+    return next(new AppError('admin.no_file', 400));
   }
 
   // Mettre à jour l'avatar de l'admin
@@ -65,12 +65,12 @@ exports.uploadAvatar = catchAsync(async (req, res, next) => {
   ).select('-password -emailVerificationToken -passwordResetToken -passwordResetExpires -twoFactorSecret');
 
   if (!admin) {
-    return next(new AppError('Admin non trouvé', 404));
+    return next(new AppError('admin.not_found', 404));
   }
 
   res.status(200).json({
     status: 'success',
-    message: 'Avatar mis à jour avec succès',
+    message: req.t('admin.avatar_updated'),
     data: {
       admin
     }
@@ -87,7 +87,7 @@ exports.uploadAdminPhoto = (req, res, next) => {
       if (file.mimetype.startsWith('image')) {
         cb(null, true);
       } else {
-        cb(new AppError('Veuillez télécharger uniquement des images!', 400), false);
+        cb(new AppError('admin.images_only', 400), false);
       }
     }
   });

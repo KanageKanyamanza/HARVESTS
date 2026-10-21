@@ -4,7 +4,7 @@ const mailingContactSchema = new mongoose.Schema(
 	{
 		email: {
 			type: String,
-			required: [true, "L'adresse email est obligatoire"],
+			required: [true, "validation.mailing_contact_email_required"],
 			unique: true,
 			trim: true,
 			lowercase: true,

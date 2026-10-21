@@ -8,7 +8,7 @@ exports.respondToReview = catchAsync(async (req, res, next) => {
   const { comment } = req.body;
 
   if (!comment || comment.trim().length === 0) {
-    return next(new AppError('Commentaire de réponse requis', 400));
+    return next(new AppError('review.response_required', 400));
   }
 
   const review = await Review.findOne({
@@ -17,11 +17,11 @@ exports.respondToReview = catchAsync(async (req, res, next) => {
   }).populate('reviewer', 'firstName lastName email');
 
   if (!review) {
-    return next(new AppError('Avis non trouvé', 404));
+    return next(new AppError('review.not_found', 404));
   }
 
   if (review.producerResponse && review.producerResponse.comment) {
-    return next(new AppError('Vous avez déjà répondu à cet avis', 400));
+    return next(new AppError('review.already_responded', 400));
   }
 
   await review.addProducerResponse(comment, req.user.id);

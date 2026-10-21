@@ -124,6 +124,34 @@ i18n.use(initReactI18next).init({
 	},
 });
 
+// Jour 35 : poser le cookie harvests_lang côté backend (httpOnly, donc pas
+// modifiable en JS) en appelant un endpoint public avec ?lang= — le
+// middleware detectLanguage (backend/config/i18n.js) le pose sur n'importe
+// quelle route dès qu'il voit ce paramètre. /health est utilisé comme porteur
+// neutre, sans effet de bord, déjà public et sans authentification.
+//
+// Jour 63 : ce cookie est la mémoire de la langue choisie côté serveur ; le
+// middleware le relit avant l'en-tête Accept-Language. Le front le rafraîchit
+// donc à chaque changement de langue, et aussi au démarrage pour que le
+// cookie reste le miroir exact de la langue affichée (sans cela l'API
+// répondrait dans la langue du navigateur alors que l'interface est en
+// français).
+const syncLanguageWithBackend = (language) => {
+	try {
+		const { API_BASE_URL } = getConfig();
+		return fetch(
+			`${API_BASE_URL}/health?lang=${encodeURIComponent(language)}`,
+			{ credentials: "include" },
+		).catch(() => {});
+	} catch (error) {
+		console.warn("Could not save language preference to backend:", error);
+	}
+};
+
+// Aligner le cookie serveur sur la langue réellement affichée (une seule
+// requête au chargement, le cookie n'est réécrit que s'il diffère).
+syncLanguageWithBackend(detectLanguage());
+
 // Fonction utilitaire pour changer la langue
 export const changeLanguage = (language) => {
 	if (["fr", "en"].includes(language)) {
@@ -133,19 +161,7 @@ export const changeLanguage = (language) => {
 		// Mettre à jour l'attribut lang du document
 		document.documentElement.lang = language;
 
-		// Jour 35 : poser le cookie harvests_lang côté backend (httpOnly, donc pas
-		// modifiable en JS) en appelant un endpoint public avec ?lang= — le
-		// middleware detectLanguage (backend/app.js) le pose sur n'importe quelle
-		// route dès qu'il voit ce paramètre. /health est utilisé comme porteur
-		// neutre, sans effet de bord, déjà public et sans authentification.
-		try {
-			const { API_BASE_URL } = getConfig();
-			fetch(`${API_BASE_URL}/health?lang=${language}`, {
-				credentials: "include",
-			}).catch(() => {});
-		} catch (error) {
-			console.warn("Could not save language preference to backend:", error);
-		}
+		syncLanguageWithBackend(language);
 	}
 };
 

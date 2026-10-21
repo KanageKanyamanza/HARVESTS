@@ -1,11 +1,12 @@
 const Restaurateur = require('../../models/Restaurateur');
+const { testAccountScope } = require('../../utils/testAccounts');
 
 /**
  * Service pour la recherche de restaurateurs (routes publiques)
  */
 
 // Construire une requête pour getAllRestaurateurs
-function buildAllRestaurateursQuery(queryParams) {
+function buildAllRestaurateursQuery(queryParams, isTestView = false) {
   const queryObj = { ...queryParams };
   const excludedFields = ['page', 'sort', 'limit', 'fields', 'useLocation', 'locationQuery', 'lang'];
   excludedFields.forEach((el) => delete queryObj[el]);
@@ -42,23 +43,29 @@ function buildAllRestaurateursQuery(queryParams) {
   queryObj.isActive = true;
   queryObj.isApproved = true;
   queryObj.isEmailVerified = true;
-  queryObj.isShopVisible = { $ne: false };
-  // Les restaurateurs doivent avoir une bannière pour être visibles en public
-  queryObj.restaurantBanner = { $exists: true, $ne: null };
+  queryObj.isTestAccount = isTestView ? true : { $ne: true };
+  if (!isTestView) {
+    queryObj.isShopVisible = { $ne: false };
+    // Les restaurateurs doivent avoir une bannière pour être visibles en public
+    queryObj.restaurantBanner = { $exists: true, $ne: null };
+  }
 
   return queryObj;
 }
 
-function buildSearchQuery(queryParams) {
+function buildSearchQuery(queryParams, isTestView = false) {
   const { q, region, restaurantType, cuisineType } = queryParams;
   let searchQuery = {
     isActive: true,
     isApproved: true,
     isEmailVerified: true,
-    isShopVisible: { $ne: false },
-    // Les restaurateurs doivent avoir une bannière pour être visibles en public
-    restaurantBanner: { $exists: true, $ne: null },
+    isTestAccount: isTestView ? true : { $ne: true },
   };
+  if (!isTestView) {
+    searchQuery.isShopVisible = { $ne: false };
+    // Les restaurateurs doivent avoir une bannière pour être visibles en public
+    searchQuery.restaurantBanner = { $exists: true, $ne: null };
+  }
 
   if (q) {
     searchQuery.$or = [
@@ -75,8 +82,8 @@ function buildSearchQuery(queryParams) {
   return searchQuery;
 }
 
-async function getAllRestaurateurs(queryParams) {
-  const queryObj = buildAllRestaurateursQuery(queryParams);
+async function getAllRestaurateurs(queryParams, isTestView = false) {
+  const queryObj = buildAllRestaurateursQuery(queryParams, isTestView);
   const page = queryParams.page * 1 || 1;
   const limit = queryParams.limit * 1 || 20;
   const skip = (page - 1) * limit;
@@ -95,30 +102,34 @@ async function getAllRestaurateurs(queryParams) {
   return { restaurateurs, total, page, totalPages: Math.ceil(total / limit) };
 }
 
-async function searchRestaurateurs(queryParams) {
-  const searchQuery = buildSearchQuery(queryParams);
+async function searchRestaurateurs(queryParams, isTestView = false) {
+  const searchQuery = buildSearchQuery(queryParams, isTestView);
   const restaurateurs = await Restaurateur.find(searchQuery)
     .sort('-businessStats.supplierRating')
     .limit(50);
   return restaurateurs;
 }
 
-async function getRestaurateursByRegion(region) {
+async function getRestaurateursByRegion(region, isTestView = false) {
   const restaurateurs = await Restaurateur.find({
     'address.region': region,
     isActive: true,
     isApproved: true,
     isEmailVerified: true,
-    isShopVisible: { $ne: false },
-    restaurantBanner: { $exists: true, $ne: null },
+    isTestAccount: isTestView ? true : { $ne: true },
+    ...(isTestView ? {} : {
+      isShopVisible: { $ne: false },
+      restaurantBanner: { $exists: true, $ne: null },
+    }),
   }).sort('-businessStats.supplierRating');
   return restaurateurs;
 }
 
-async function getRestaurateur(id) {
+async function getRestaurateur(id, isTestView = false) {
   const restaurateur = await Restaurateur.findOne({
     _id: id,
     isActive: true, isEmailVerified: true,
+    ...testAccountScope(isTestView),
   });
   if (!restaurateur) {
     throw new Error('Restaurateur non trouvé');

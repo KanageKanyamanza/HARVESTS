@@ -5,12 +5,12 @@ const subscriptionSchema = new mongoose.Schema(
 		user: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "User",
-			required: [true, "Utilisateur requis"],
+			required: [true, "validation.user_required"],
 			index: true,
 		},
 		planId: {
 			type: String,
-			required: [true, "Plan requis"],
+			required: [true, "validation.plan_required"],
 			enum: ["gratuit", "standard", "premium"],
 			index: true,
 		},

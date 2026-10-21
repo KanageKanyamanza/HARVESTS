@@ -39,7 +39,7 @@ const paymentSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: [true, 'Utilisateur requis']
+    required: [true, 'validation.user_required']
   },
   
   // Identifiants de paiement
@@ -61,7 +61,7 @@ const paymentSchema = new mongoose.Schema({
   method: {
     type: String,
     enum: ['cash', 'paypal'],
-    required: [true, 'Méthode de paiement requise']
+    required: [true, 'validation.payment_method_required']
   },
   
   provider: {
@@ -75,13 +75,13 @@ const paymentSchema = new mongoose.Schema({
   // Montants
   amount: {
     type: Number,
-    required: [true, 'Montant requis'],
-    min: [0, 'Le montant ne peut pas être négatif']
+    required: [true, 'validation.amount_required'],
+    min: [0, 'validation.amount_negative']
   },
   
   currency: {
     type: String,
-    required: [true, 'Devise requise'],
+    required: [true, 'validation.currency_required'],
     enum: ['XAF', 'EUR', 'USD', 'XOF', 'GHS', 'NGN', 'KES'],
     default: 'XAF'
   },

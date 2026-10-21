@@ -16,7 +16,7 @@ exports.updateMyProfile = catchAsync(async (req, res, next) => {
     const restaurateur = await restaurateurProfileService.updateMyProfile(req.user.id, req.body);
     res.status(200).json({ status: 'success', data: { restaurateur } });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -41,7 +41,7 @@ exports.addCertification = catchAsync(async (req, res, next) => {
       data: { certification }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -51,7 +51,7 @@ exports.updateCertification = catchAsync(async (req, res, next) => {
     const certification = await restaurateurCertificationService.updateCertification(req.user.id, req.params.certId, req.body);
     res.status(200).json({ status: 'success', data: { certification } });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -61,7 +61,7 @@ exports.removeCertification = catchAsync(async (req, res, next) => {
     await restaurateurCertificationService.removeCertification(req.user.id, req.params.certId);
     res.status(204).json({ status: 'success', data: null });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

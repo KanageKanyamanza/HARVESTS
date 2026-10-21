@@ -15,7 +15,7 @@ exports.approveProduct = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, isNotFound(error.message) ? 404 : 400));
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 400));
   }
 });
 
@@ -32,7 +32,7 @@ exports.rejectProduct = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, isNotFound(error.message) ? 404 : 400));
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 400));
   }
 });
 
@@ -48,7 +48,7 @@ exports.featureProduct = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -64,7 +64,7 @@ exports.unfeatureProduct = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -84,7 +84,7 @@ exports.getPendingProducts = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

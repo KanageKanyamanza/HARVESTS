@@ -12,7 +12,7 @@ exports.getMyProducts = catchAsync(async (req, res, next) => {
       data: { products }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -36,7 +36,7 @@ exports.getMyProduct = catchAsync(async (req, res, next) => {
       data: { product }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -48,7 +48,7 @@ exports.updateMyProduct = catchAsync(async (req, res, next) => {
       data: { product }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -60,7 +60,7 @@ exports.deleteMyProduct = catchAsync(async (req, res, next) => {
       data: null
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

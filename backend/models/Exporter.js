@@ -8,7 +8,7 @@ const exporterSchema = new mongoose.Schema({
     type: String,
     required: false, // Optionnel lors de l'inscription
     trim: true,
-    maxlength: [150, 'Le nom de l\'entreprise ne peut pas dépasser 150 caractères'],
+    maxlength: [150, 'validation.company_name_maxlength_150'],
     default: 'À compléter'
   },
   

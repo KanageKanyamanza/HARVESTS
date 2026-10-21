@@ -7,7 +7,7 @@ const adminTransporterController = require('./adminTransporterController');
 exports.getAllDeliveries = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement',
+    message: req.t('admin.feature_in_development'),
     data: { deliveries: [] }
   });
 });
@@ -18,7 +18,7 @@ exports.getAllDeliveries = catchAsync(async (req, res, next) => {
 exports.getDeliveryById = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement',
+    message: req.t('admin.feature_in_development'),
     data: { delivery: null }
   });
 });
@@ -29,7 +29,7 @@ exports.getDeliveryById = catchAsync(async (req, res, next) => {
 exports.updateDeliveryStatus = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
-    message: 'Fonctionnalité en cours de développement'
+    message: req.t('admin.feature_in_development')
   });
 });
 

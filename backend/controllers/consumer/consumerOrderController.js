@@ -29,7 +29,7 @@ exports.getMyOrders = catchAsync(async (req, res, next) => {
       data: { orders }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -43,7 +43,7 @@ exports.getMyOrder = catchAsync(async (req, res, next) => {
       data: { order }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -76,7 +76,7 @@ exports.trackOrder = catchAsync(async (req, res, next) => {
       data: result
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

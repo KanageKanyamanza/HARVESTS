@@ -34,7 +34,7 @@ async function createReview(consumerId, reviewData) {
   // Vérifier que le produit existe
   const product = await Product.findById(reviewData.product);
   if (!product) {
-    throw new Error('Produit non trouvé');
+    throw new Error('product.not_found');
   }
   
   // Vérifier que le consommateur a acheté ce produit
@@ -46,7 +46,7 @@ async function createReview(consumerId, reviewData) {
   });
   
   if (!hasPurchased) {
-    throw new Error('Vous devez avoir acheté ce produit pour laisser un avis');
+    throw new Error('review.purchase_required');
   }
   
   // Vérifier qu'il n'y a pas déjà un avis pour ce produit
@@ -56,7 +56,7 @@ async function createReview(consumerId, reviewData) {
   });
   
   if (existingReview) {
-    throw new Error('Vous avez déjà laissé un avis pour ce produit');
+    throw new Error('review.already_reviewed');
   }
   
   const review = await Review.create({
@@ -80,7 +80,7 @@ async function getConsumerReviewById(consumerId, reviewId) {
     .populate('transformer', 'companyName');
   
   if (!review) {
-    throw new Error('Avis non trouvé');
+    throw new Error('review.not_found');
   }
   
   return review;
@@ -94,7 +94,7 @@ async function updateConsumerReview(consumerId, reviewId, updateData) {
   );
   
   if (!review) {
-    throw new Error('Avis non trouvé');
+    throw new Error('review.not_found');
   }
   
   return review;
@@ -107,7 +107,7 @@ async function deleteConsumerReview(consumerId, reviewId) {
   });
   
   if (!review) {
-    throw new Error('Avis non trouvé');
+    throw new Error('review.not_found');
   }
   
   return review;

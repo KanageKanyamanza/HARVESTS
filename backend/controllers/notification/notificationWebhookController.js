@@ -10,10 +10,10 @@ exports.handleNotificationWebhook = catchAsync(async (req, res, next) => {
 
     res.status(200).json({
       status: 'success',
-      message: 'Webhook traité avec succès'
+      message: req.t('notification.webhook_processed')
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 

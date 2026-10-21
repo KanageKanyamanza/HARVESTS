@@ -117,7 +117,7 @@ exports.getDishById = catchAsync(async (req, res, next) => {
   }).populate('restaurateur', 'restaurantName firstName lastName email');
   
   if (!product) {
-    return next(new AppError('Plat non trouvé', 404));
+    return next(new AppError('admin.dish_not_found', 404));
   }
   
   const dish = {
@@ -161,7 +161,7 @@ exports.updateDish = catchAsync(async (req, res, next) => {
   });
   
   if (!product) {
-    return next(new AppError('Plat non trouvé', 404));
+    return next(new AppError('admin.dish_not_found', 404));
   }
   
   // Jour 45 (bascule bilingue) : name/description/shortDescription passent
@@ -178,7 +178,7 @@ exports.updateDish = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    message: 'Plat mis à jour avec succès',
+    message: req.t('admin.dish_updated'),
     data: {
       dish: {
         ...product.toObject(),
@@ -202,12 +202,12 @@ exports.deleteDish = catchAsync(async (req, res, next) => {
   });
   
   if (!product) {
-    return next(new AppError('Plat non trouvé', 404));
+    return next(new AppError('admin.dish_not_found', 404));
   }
   
   res.status(200).json({
     status: 'success',
-    message: 'Plat supprimé avec succès'
+    message: req.t('admin.dish_deleted')
   });
 });
 
@@ -233,12 +233,12 @@ exports.approveDish = catchAsync(async (req, res, next) => {
   ).populate('restaurateur', 'restaurantName firstName lastName email');
   
   if (!product) {
-    return next(new AppError('Plat non trouvé', 404));
+    return next(new AppError('admin.dish_not_found', 404));
   }
   
   res.status(200).json({
     status: 'success',
-    message: 'Plat approuvé avec succès',
+    message: req.t('admin.dish_approved'),
     data: { dish: product }
   });
 });
@@ -250,7 +250,7 @@ exports.rejectDish = catchAsync(async (req, res, next) => {
   const { reason } = req.body;
   
   if (!reason) {
-    return next(new AppError('Raison du rejet requise', 400));
+    return next(new AppError('admin.rejection_reason_required', 400));
   }
   
   const product = await Product.findOneAndUpdate(
@@ -269,12 +269,12 @@ exports.rejectDish = catchAsync(async (req, res, next) => {
   ).populate('restaurateur', 'restaurantName firstName lastName email');
   
   if (!product) {
-    return next(new AppError('Plat non trouvé', 404));
+    return next(new AppError('admin.dish_not_found', 404));
   }
   
   res.status(200).json({
     status: 'success',
-    message: 'Plat rejeté avec succès',
+    message: req.t('admin.dish_rejected'),
     data: { dish: product }
   });
 });

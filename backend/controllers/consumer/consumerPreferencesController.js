@@ -11,7 +11,7 @@ exports.getCommunicationPreferences = catchAsync(async (req, res, next) => {
       data: { preferences }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -23,7 +23,7 @@ exports.updateCommunicationPreferences = catchAsync(async (req, res, next) => {
       data: { preferences }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -36,7 +36,7 @@ exports.getShoppingPreferences = catchAsync(async (req, res, next) => {
       data: { shoppingPreferences }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -49,7 +49,7 @@ exports.updateShoppingPreferences = catchAsync(async (req, res, next) => {
       data: { shoppingPreferences }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -62,7 +62,7 @@ exports.getNotificationPreferences = catchAsync(async (req, res, next) => {
       data: { notificationPreferences }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -75,7 +75,7 @@ exports.updateNotificationPreferences = catchAsync(async (req, res, next) => {
       data: { notificationPreferences }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

@@ -19,7 +19,7 @@ async function handleNotificationWebhook(provider, event, data) {
       await handleFirebaseWebhook(event, data);
       break;
     default:
-      throw new Error('Fournisseur de webhook non supporté');
+      throw new Error('notification.webhook_provider_unsupported');
   }
 
   return { provider, event, processed: true };

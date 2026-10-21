@@ -2,6 +2,7 @@ const Product = require("../../models/Product");
 const Restaurateur = require("../../models/Restaurateur");
 const { toPlainText } = require("../../utils/localization");
 const { stripProtectedFields } = require("../../utils/vendorProductGuard");
+const { testAccountScope, testProductsViewerFilter } = require("../../utils/testAccounts");
 
 /**
  * Service pour la gestion des plats du restaurateur
@@ -297,14 +298,16 @@ async function getMyDishes(restaurateurId) {
 	return dishes;
 }
 
-async function getDishDetail(dishId, currentUserId = null, jwtToken = null) {
+async function getDishDetail(dishId, currentUserId = null, jwtToken = null, isTestView = false) {
 	const jwt = require("jsonwebtoken");
 	const { promisify } = require("util");
 	const User = require("../../models/User");
 
+	const dishTestFilter = await testProductsViewerFilter(isTestView);
 	const product = await Product.findOne({
 		originType: "dish",
 		_id: dishId,
+		...(dishTestFilter ? { $and: [dishTestFilter] } : {}),
 	})
 		.select(
 			"name description shortDescription price currency unit images primaryImage image dishInfo status isActive createdAt updatedAt slug restaurateur inventory",
@@ -411,9 +414,11 @@ async function getDishDetail(dishId, currentUserId = null, jwtToken = null) {
 	};
 }
 
-async function getRestaurateurDishes(restaurateurId) {
-	const restaurateur =
-		await Restaurateur.findById(restaurateurId).select("restaurantName");
+async function getRestaurateurDishes(restaurateurId, isTestView = false) {
+	const restaurateur = await Restaurateur.findOne({
+		_id: restaurateurId,
+		...testAccountScope(isTestView),
+	}).select("restaurantName");
 	if (!restaurateur) {
 		throw new Error("Restaurateur non trouvé");
 	}

@@ -10,7 +10,7 @@ const restaurateurSchema = new mongoose.Schema({
 		trim: true,
 		maxlength: [
 			100,
-			"Le nom du restaurant ne peut pas dépasser 100 caractères",
+			"validation.restaurant_name_maxlength",
 		],
 		default: "À compléter",
 	},
@@ -53,7 +53,7 @@ const restaurateurSchema = new mongoose.Schema({
 	seatingCapacity: {
 		type: Number,
 		required: false, // Optionnel lors de l'inscription
-		min: [1, "Capacité minimum de 1 personne"],
+		min: [1, "validation.seating_capacity_min_1"],
 		default: 20,
 	},
 
@@ -294,7 +294,7 @@ const restaurateurSchema = new mongoose.Schema({
 						const text = typeof value === "string" ? value : value?.fr;
 						return typeof text === "string" && text.trim().length > 0 && text.length <= 100;
 					},
-					message: "Le nom du plat (fr) est requis et ne peut pas dépasser 100 caractères",
+					message: "validation.dish_name_invalid",
 				},
 			},
 			description: {
@@ -306,13 +306,13 @@ const restaurateurSchema = new mongoose.Schema({
 						const text = typeof value === "string" ? value : value?.fr;
 						return typeof text === "string" && text.length <= 500;
 					},
-					message: "La description (fr) ne peut pas dépasser 500 caractères",
+					message: "validation.dish_description_maxlength",
 				},
 			},
 			price: {
 				type: Number,
 				required: true,
-				min: [0, "Le prix ne peut pas être négatif"],
+				min: [0, "validation.price_negative"],
 			},
 			unit: {
 				type: String,
@@ -340,7 +340,7 @@ const restaurateurSchema = new mongoose.Schema({
 			preparationTime: {
 				type: Number,
 				required: false,
-				min: [0, "Le temps de préparation ne peut pas être négatif"],
+				min: [0, "validation.preparation_time_negative"],
 				default: 30, // en minutes
 			},
 			allergens: [

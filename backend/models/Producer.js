@@ -8,7 +8,7 @@ const producerSchema = new mongoose.Schema({
 		type: String,
 		required: false, // Optionnel lors de l'inscription
 		trim: true,
-		maxlength: [100, "Le nom de la ferme ne peut pas dépasser 100 caractères"],
+		maxlength: [100, "validation.farm_name_maxlength"],
 		default: "À compléter",
 	},
 
@@ -16,7 +16,7 @@ const producerSchema = new mongoose.Schema({
 		value: {
 			type: Number,
 			required: false, // Optionnel lors de l'inscription
-			min: [0, "La taille ne peut pas être négative"],
+			min: [0, "validation.farm_size_negative"],
 			default: 0,
 		},
 		unit: {
@@ -186,14 +186,14 @@ const producerSchema = new mongoose.Schema({
 			trim: true,
 			maxlength: [
 				100,
-				"Le nom de la boutique ne peut pas dépasser 100 caractères",
+				"validation.shop_name_maxlength",
 			],
 		},
 		shopDescription: {
 			type: String,
 			maxlength: [
 				500,
-				"La description de la boutique ne peut pas dépasser 500 caractères",
+				"validation.shop_description_maxlength",
 			],
 		},
 		openingHours: {

@@ -105,7 +105,7 @@ async function markAsRead(notificationId, recipientId) {
 	});
 
 	if (!notification) {
-		throw new Error("Notification non trouvée");
+		throw new Error("notification.not_found");
 	}
 
 	await notification.markAsRead();
@@ -130,7 +130,7 @@ async function markAsClicked(notificationId, userId, actionType) {
 	});
 
 	if (!notification) {
-		throw new Error("Notification non trouvée");
+		throw new Error("notification.not_found");
 	}
 
 	await notification.markAsClicked(actionType);
@@ -147,7 +147,7 @@ async function dismissNotification(notificationId, userId) {
 	});
 
 	if (!notification) {
-		throw new Error("Notification non trouvée");
+		throw new Error("notification.not_found");
 	}
 
 	await notification.dismiss();
@@ -164,7 +164,7 @@ async function deleteNotification(notificationId, userId) {
 	});
 
 	if (!notification) {
-		throw new Error("Notification non trouvée");
+		throw new Error("notification.not_found");
 	}
 
 	return notification;
@@ -177,7 +177,7 @@ async function deleteNotification(notificationId, userId) {
 // et non dans User : passer par le modèle de base le retire silencieusement des requêtes.
 async function getRoleModel(userId) {
 	const base = await User.findById(userId).select("userType").lean();
-	if (!base) throw new Error("Utilisateur non trouvé");
+	if (!base) throw new Error("user.user_not_found");
 	return User.discriminators?.[base.userType] || User;
 }
 
@@ -220,7 +220,7 @@ async function subscribeToPush(userId, subscription, recipientModel = "User") {
 	const recipient = await Model.findById(userId);
 
 	if (!recipient) {
-		throw new Error(`${recipientModel} non trouvé`);
+		throw new Error("notification.recipient_not_found");
 	}
 
 	// Vérifier si l'abonnement existe déjà
@@ -245,7 +245,7 @@ async function unsubscribeFromPush(userId, endpoint, recipientModel = "User") {
 	const recipient = await Model.findById(userId);
 
 	if (!recipient) {
-		throw new Error(`${recipientModel} non trouvé`);
+		throw new Error("notification.recipient_not_found");
 	}
 
 	if (recipient.webPushSubscriptions) {

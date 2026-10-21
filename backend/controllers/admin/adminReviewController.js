@@ -64,7 +64,7 @@ exports.getReviewById = catchAsync(async (req, res, next) => {
     .populate('producer', 'firstName lastName email phone');
 
   if (!review) {
-    return next(new AppError('Avis non trouvé', 404));
+    return next(new AppError('review.not_found', 404));
   }
 
   res.status(200).json({
@@ -87,12 +87,12 @@ exports.updateReview = catchAsync(async (req, res, next) => {
    .populate('product', 'name images');
 
   if (!review) {
-    return next(new AppError('Avis non trouvé', 404));
+    return next(new AppError('review.not_found', 404));
   }
 
   res.status(200).json({
     status: 'success',
-    message: 'Avis mis à jour avec succès',
+    message: req.t('review.updated'),
     data: { review }
   });
 });
@@ -104,12 +104,12 @@ exports.deleteReview = catchAsync(async (req, res, next) => {
   const review = await Review.findByIdAndDelete(req.params.id);
   
   if (!review) {
-    return next(new AppError('Avis non trouvé', 404));
+    return next(new AppError('review.not_found', 404));
   }
 
   res.status(200).json({
     status: 'success',
-    message: 'Avis supprimé avec succès'
+    message: req.t('review.deleted')
   });
 });
 
@@ -125,12 +125,12 @@ exports.approveReview = catchAsync(async (req, res, next) => {
    .populate('product', 'name images');
 
   if (!review) {
-    return next(new AppError('Avis non trouvé', 404));
+    return next(new AppError('review.not_found', 404));
   }
 
   res.status(200).json({
     status: 'success',
-    message: 'Avis approuvé avec succès',
+    message: req.t('review.approved'),
     data: { review }
   });
 });
@@ -153,12 +153,12 @@ exports.rejectReview = catchAsync(async (req, res, next) => {
    .populate('product', 'name images');
 
   if (!review) {
-    return next(new AppError('Avis non trouvé', 404));
+    return next(new AppError('review.not_found', 404));
   }
 
   res.status(200).json({
     status: 'success',
-    message: 'Avis rejeté avec succès',
+    message: req.t('review.rejected'),
     data: { review }
   });
 });

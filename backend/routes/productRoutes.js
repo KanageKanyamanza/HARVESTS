@@ -94,13 +94,13 @@ const router = express.Router();
  *                       type: number
  *                       example: 3
  */
-router.get('/', productController.getAllProducts);
+router.get('/', authMiddleware.isLoggedIn, productController.getAllProducts);
 
 // Obtenir les produits basés sur la localisation de l'utilisateur
-router.get('/location-based', productController.getProductsByLocation);
+router.get('/location-based', authMiddleware.isLoggedIn, productController.getProductsByLocation);
 
 // Obtenir les ventes flash
-router.get('/flash-sales', productController.getFlashSales);
+router.get('/flash-sales', authMiddleware.isLoggedIn, productController.getFlashSales);
 
 /**
  * @swagger
@@ -168,22 +168,22 @@ router.get('/flash-sales', productController.getFlashSales);
  *       404:
  *         description: Aucun produit trouvé
  */
-router.get('/search', productController.searchProducts);
+router.get('/search', authMiddleware.isLoggedIn, productController.searchProducts);
 
 // Produits en vedette
-router.get('/featured', productController.getFeaturedProducts);
+router.get('/featured', authMiddleware.isLoggedIn, productController.getFeaturedProducts);
 
 // Nouveaux produits
-router.get('/new', productController.getNewProducts);
+router.get('/new', authMiddleware.isLoggedIn, productController.getNewProducts);
 
 // Catégories de produits
-router.get('/categories', productController.getCategories);
+router.get('/categories', authMiddleware.isLoggedIn, productController.getCategories);
 
 // Produits par catégorie
-router.get('/category/:category', productController.getProductsByCategory);
+router.get('/category/:category', authMiddleware.isLoggedIn, productController.getProductsByCategory);
 
 // Produit par ID ou slug
-router.get('/:id', productController.getProduct);
+router.get('/:id', authMiddleware.isLoggedIn, productController.getProduct);
 
 // ============================================
 // ROUTES PROTÉGÉES - PRODUCTEUR

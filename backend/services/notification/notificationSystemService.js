@@ -271,7 +271,7 @@ async function notifyLowStock(productId, currentStock, threshold) {
   const product = await Product.findById(productId).populate('producer');
 
   if (!product) {
-    throw new Error('Produit non trouvé');
+    throw new Error('product.not_found');
   }
 
   const notification = await Notification.createNotification({
@@ -308,7 +308,7 @@ async function notifyLowStock(productId, currentStock, threshold) {
 async function notifyBackInStock(productId) {
   const product = await Product.findById(productId);
   if (!product) {
-    throw new Error('Produit non trouvé');
+    throw new Error('product.not_found');
   }
 
   // Trouver tous les consommateurs qui ont ce produit dans leur wishlist

@@ -6,6 +6,7 @@ const Restaurateur = require('../models/Restaurateur');
 const Transporter = require('../models/Transporter');
 const Exporter = require('../models/Exporter');
 const Blog = require('../models/Blog');
+const { testProductFilter } = require('../utils/testAccounts');
 
 /**
  * Générer un sitemap XML dynamique
@@ -14,9 +15,12 @@ exports.generateSitemap = catchAsync(async (req, res) => {
   const baseUrl = process.env.FRONTEND_URL || 'https://www.harvests.site';
   const currentDate = new Date().toISOString().split('T')[0];
 
+  // Les produits des comptes de test ne doivent jamais être indexés
+  const productFilter = await testProductFilter();
+
   // Récupérer les données dynamiques
   const [products, producers, transformers, restaurateurs, transporters, exporters, blogs] = await Promise.all([
-    Product.find({ isActive: true, status: 'approved' }).select('_id updatedAt').limit(1000),
+    Product.find({ isActive: true, status: 'approved', ...productFilter }).select('_id updatedAt').limit(1000),
     Producer.find({ isActive: true }).select('_id updatedAt').limit(500),
     Transformer.find({ isActive: true }).select('_id updatedAt').limit(500),
     Restaurateur.find({ isActive: true }).select('_id updatedAt').limit(500),

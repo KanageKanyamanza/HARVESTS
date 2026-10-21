@@ -9,26 +9,26 @@ exports.changeMyPassword = catchAsync(async (req, res, next) => {
   const { currentPassword, newPassword } = req.body;
 
   if (!currentPassword) {
-    return next(new AppError('Veuillez fournir votre mot de passe actuel', 400));
+    return next(new AppError('admin.current_password_required', 400));
   }
 
   if (!newPassword) {
-    return next(new AppError('Veuillez fournir un nouveau mot de passe', 400));
+    return next(new AppError('admin.new_password_required', 400));
   }
 
   if (newPassword.length < 6) {
-    return next(new AppError('Le mot de passe doit contenir au moins 6 caractères', 400));
+    return next(new AppError('admin.password_too_short', 400));
   }
 
   // Récupérer l'admin avec le mot de passe
   const admin = await Admin.findById(req.admin._id).select('+password');
   if (!admin) {
-    return next(new AppError('Administrateur non trouvé', 404));
+    return next(new AppError('admin.not_found', 404));
   }
 
   // Vérifier le mot de passe actuel
   if (!(await admin.comparePassword(currentPassword))) {
-    return next(new AppError('Mot de passe actuel incorrect', 400));
+    return next(new AppError('admin.current_password_incorrect', 400));
   }
 
   // Mettre à jour le mot de passe
@@ -38,7 +38,7 @@ exports.changeMyPassword = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    message: 'Mot de passe modifié avec succès'
+    message: req.t('admin.password_updated')
   });
 });
 
@@ -50,22 +50,22 @@ exports.changePassword = catchAsync(async (req, res, next) => {
 
   const admin = await Admin.findById(req.params.id).select('+password');
   if (!admin) {
-    return next(new AppError('Administrateur non trouvé', 404));
+    return next(new AppError('admin.not_found', 404));
   }
 
   // Vérifier les permissions
   if (req.admin.role !== 'super-admin' && req.admin._id.toString() !== req.params.id) {
-    return next(new AppError('Vous ne pouvez modifier que votre propre mot de passe', 403));
+    return next(new AppError('admin.own_password_only', 403));
   }
 
   // Vérifier le mot de passe actuel (sauf pour les super-admin)
   if (req.admin.role !== 'super-admin') {
     if (!currentPassword) {
-      return next(new AppError('Veuillez fournir votre mot de passe actuel', 400));
+      return next(new AppError('admin.current_password_required', 400));
     }
 
     if (!(await admin.comparePassword(currentPassword))) {
-      return next(new AppError('Mot de passe actuel incorrect', 400));
+      return next(new AppError('admin.current_password_incorrect', 400));
     }
   }
 
@@ -76,7 +76,7 @@ exports.changePassword = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    message: 'Mot de passe modifié avec succès'
+    message: req.t('admin.password_updated')
   });
 });
 

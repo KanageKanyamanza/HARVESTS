@@ -76,7 +76,7 @@ const notificationSchema = new mongoose.Schema({
   recipient: {
     type: mongoose.Schema.Types.ObjectId,
     refPath: 'recipientModel',
-    required: [true, 'Destinataire requis']
+    required: [true, 'validation.notification_recipient_required']
   },
   // Modèle du destinataire (User ou Admin)
   recipientModel: {
@@ -94,7 +94,7 @@ const notificationSchema = new mongoose.Schema({
   // Type de notification
   type: {
     type: String,
-    required: [true, 'Type de notification requis'],
+    required: [true, 'validation.notification_type_required'],
     enum: [
       // Commandes
       'order_created',
@@ -220,14 +220,14 @@ const notificationSchema = new mongoose.Schema({
   // Contenu de la notification
   title: {
     type: String,
-    required: [true, 'Titre requis'],
-    maxlength: [200, 'Le titre ne peut pas dépasser 200 caractères']
+    required: [true, 'validation.notification_title_required'],
+    maxlength: [200, 'validation.title_maxlength_200']
   },
   
   message: {
     type: String,
-    required: [true, 'Message requis'],
-    maxlength: [1000, 'Le message ne peut pas dépasser 1000 caractères']
+    required: [true, 'validation.notification_message_required'],
+    maxlength: [1000, 'validation.message_maxlength_1000']
   },
   
   // Contenu riche (HTML)

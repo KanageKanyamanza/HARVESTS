@@ -2,35 +2,59 @@ const Product = require('../../models/Product');
 const Review = require('../../models/Review');
 const { buildSearchWithLocation } = require('../../utils/searchUtils');
 const { getUserLocation, buildLocationQuery } = require('../../utils/locationService');
+const {
+  testProductsViewerFilter,
+  testReviewViewerFilter,
+  testAccountScope,
+  applyTestAccountScope,
+} = require('../../utils/testAccounts');
 
-// Exclut les produits dont le vendeur est invisible publiquement :
-// - isShopVisible: false (masqué manuellement par l'admin)
-// - producteur sans shopBanner
-// - restaurateur sans restaurantBanner
+// Applique le périmètre de visibilité des vendeurs à une requête produits.
+// - visiteur test (démo) : uniquement les produits des comptes de test,
+//   sans les critères de vitrine (isShopVisible est forcé à false sur ces comptes) ;
+// - visiteur réel/anonyme : critères de vitrine habituels + exclusion des
+//   produits des comptes de test.
 // (miroir exact des critères des searchServices)
-async function applyVendorVisibility(queryObj) {
+async function applyVendorVisibility(queryObj, isTestView = false) {
   const User = require('../../models/User');
-  // includeTestAccounts : cette requête sert justement à masquer les comptes
-  // de test (sinon exclus d'office par le modèle User, voir utils/testAccounts.js)
-  const hiddenVendors = await User.find({
-    $or: [
-      { isShopVisible: false },
-      { isTestAccount: true },
-      { userType: 'producer', shopBanner: null },
-      { userType: 'restaurateur', restaurantBanner: null },
-    ]
-  }).setOptions({ includeTestAccounts: true }).select('_id').lean();
-  if (hiddenVendors.length === 0) return queryObj;
-  const hiddenIds = hiddenVendors.map(v => v._id);
-  queryObj.$and = queryObj.$and || [];
-  queryObj.$and.push({
-    $nor: [
-      { producer: { $in: hiddenIds } },
-      { transformer: { $in: hiddenIds } },
-      { restaurateur: { $in: hiddenIds } },
-    ]
-  });
+
+  if (!isTestView) {
+    // Exclut les produits dont le vendeur est invisible publiquement :
+    // - isShopVisible: false (masqué manuellement par l'admin)
+    // - producteur sans shopBanner
+    // - restaurateur sans restaurantBanner
+    const hiddenVendors = await User.find({
+      $or: [
+        { isShopVisible: false },
+        { userType: 'producer', shopBanner: null },
+        { userType: 'restaurateur', restaurantBanner: null },
+      ]
+    }).where(testAccountScope(false)).select('_id').lean();
+    if (hiddenVendors.length > 0) {
+      const hiddenIds = hiddenVendors.map(v => v._id);
+      queryObj.$and = queryObj.$and || [];
+      queryObj.$and.push({
+        $nor: [
+          { producer: { $in: hiddenIds } },
+          { transformer: { $in: hiddenIds } },
+          { restaurateur: { $in: hiddenIds } },
+        ]
+      });
+    }
+  }
+
+  const testFilter = await testProductsViewerFilter(isTestView);
+  if (testFilter) {
+    queryObj.$and = queryObj.$and || [];
+    queryObj.$and.push(testFilter);
+  }
   return queryObj;
+}
+
+// Restreint une requête User (recherche de vendeurs pour un filtre pays,
+// région, bio, localisation…) au même périmètre sandbox que le catalogue.
+function scopeVendors(query, isTestView) {
+  return applyTestAccountScope(query, isTestView);
 }
 
 const { getCountryFilterList } = require('../../utils/countryMapper');
@@ -43,13 +67,13 @@ const { getCountryFilterList } = require('../../utils/countryMapper');
 /**
  * Recherche de produits (améliorée avec gestion pluriel/singulier et localisation)
  */
-async function searchProducts(searchTerm, filters = {}) {
+async function searchProducts(searchTerm, filters = {}, isTestView = false) {
   const queryObj = await applyVendorVisibility({
     status: 'approved',
     isActive: true,
     isPublic: { $ne: false },
     ...filters
-  });
+  }, isTestView);
   
   // Utiliser la recherche flexible avec détection de localisation si un terme de recherche est fourni
   if (searchTerm && searchTerm.trim()) {
@@ -87,7 +111,7 @@ async function searchProducts(searchTerm, filters = {}) {
     // Ajouter le filtre de localisation (chercher dans l'adresse du producteur/transformateur)
     if (locationQuery.$or && locationQuery.$or.length > 0) {
       const User = require('../../models/User');
-      const vendors = await User.find({ $or: locationQuery.$or }).select('_id');
+      const vendors = await scopeVendors(User.find({ $or: locationQuery.$or }), isTestView).select('_id');
       const vendorIds = vendors.map(v => v._id);
       
       queryObj.$and = queryObj.$and || [];
@@ -113,12 +137,12 @@ async function searchProducts(searchTerm, filters = {}) {
 /**
  * Obtenir tous les produits avec filtres (incluant recherche)
  */
-async function getAllProducts(queryParams = {}, userLocation = null) {
+async function getAllProducts(queryParams = {}, userLocation = null, isTestView = false) {
   const queryObj = await applyVendorVisibility({
     status: 'approved',
     isActive: true,
     isPublic: { $ne: false }
-  });
+  }, isTestView);
 
   // Filtres explicites
   if (queryParams.category) queryObj.category = queryParams.category;
@@ -148,7 +172,7 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
       ]
     };
     
-    const vendors = await User.find(countryQuery).select('_id');
+    const vendors = await scopeVendors(User.find(countryQuery), isTestView).select('_id');
     const vendorIds = vendors.map(v => v._id);
     
     queryObj.$and = queryObj.$and || [];
@@ -163,9 +187,9 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
 
   if (queryParams.region) {
     const User = require('../../models/User');
-    const vendors = await User.find({ 
+    const vendors = await scopeVendors(User.find({
       'address.region': { $regex: new RegExp(queryParams.region, 'i') } 
-    }).select('_id');
+    }), isTestView).select('_id');
     const vendorIds = vendors.map(v => v._id);
     
     queryObj.$and = queryObj.$and || [];
@@ -182,7 +206,7 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
   if (queryParams.certified) queryObj['certifications.0'] = { $exists: true };
   if (queryParams.isBio === 'true') {
     const User = require('../../models/User');
-    const bioVendors = await User.find({ isBio: true }).select('_id');
+    const bioVendors = await scopeVendors(User.find({ isBio: true }), isTestView).select('_id');
     const bioVendorIds = bioVendors.map(v => v._id);
     
     queryObj.$and = queryObj.$and || [];
@@ -269,7 +293,7 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
 
     if (locationQuery.$or && locationQuery.$or.length > 0) {
       const User = require('../../models/User');
-      const vendors = await User.find({ $or: locationQuery.$or }).select('_id');
+      const vendors = await scopeVendors(User.find({ $or: locationQuery.$or }), isTestView).select('_id');
       localVendorIds = vendors.map(v => v._id);
     }
   }
@@ -390,8 +414,13 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
   }
 
   // Statistiques pour les filtres
+  const categoryMatch = await applyVendorVisibility({
+    status: 'approved',
+    isActive: true,
+    isPublic: { $ne: false }
+  }, isTestView);
   const categoryStats = await Product.aggregate([
-    { $match: { status: 'approved', isActive: true, isPublic: { $ne: false } } },
+    { $match: categoryMatch },
     { $group: { _id: '$category', count: { $sum: 1 } } },
     { $sort: { count: -1 } }
   ]);
@@ -410,14 +439,14 @@ async function getAllProducts(queryParams = {}, userLocation = null) {
 /**
  * Obtenir les produits par localisation
  */
-async function getProductsByLocation(queryParams = {}) {
+async function getProductsByLocation(queryParams = {}, isTestView = false) {
   const userLocation = await getUserLocation({ query: queryParams });
   
   const baseQueryObj = await applyVendorVisibility({
     status: 'approved',
     isActive: true,
     isPublic: { $ne: false }
-  });
+  }, isTestView);
 
   if (queryParams.category) baseQueryObj.category = queryParams.category;
   if (queryParams.subcategory) baseQueryObj.subcategory = queryParams.subcategory;
@@ -458,7 +487,7 @@ async function getProductsByLocation(queryParams = {}) {
 
   if (locationQuery.$or && locationQuery.$or.length > 0) {
     const User = require('../../models/User');
-    const vendors = await User.find({ $or: locationQuery.$or }).select('_id');
+    const vendors = await scopeVendors(User.find({ $or: locationQuery.$or }), isTestView).select('_id');
     const vendorIds = vendors.map(v => v._id);
     
     locationQueryObj.$and = locationQueryObj.$and || [];
@@ -533,11 +562,11 @@ async function getProductsByLocation(queryParams = {}) {
 /**
  * Obtenir les catégories
  */
-async function getCategories() {
-  const categories = await Product.distinct('category', {
+async function getCategories(isTestView = false) {
+  const categories = await Product.distinct('category', await applyVendorVisibility({
     status: 'approved',
     isActive: true
-  });
+  }, isTestView));
 
   const filtered = categories.filter(c => c !== 'other' && c !== 'Other');
   if (categories.includes('other') || categories.includes('Other')) {
@@ -550,19 +579,19 @@ async function getCategories() {
 /**
  * Obtenir les produits par catégorie
  */
-async function getProductsByCategory(category, queryParams = {}) {
+async function getProductsByCategory(category, queryParams = {}, isTestView = false) {
   const queryObj = await applyVendorVisibility({
     category,
     status: 'approved',
     isActive: true
-  });
+  }, isTestView);
 
   if (queryParams.subcategory) queryObj.subcategory = queryParams.subcategory;
   if (queryParams.region) {
     const User = require('../../models/User');
-    const vendors = await User.find({ 
+    const vendors = await scopeVendors(User.find({
       'address.region': { $regex: new RegExp(queryParams.region, 'i') } 
-    }).select('_id');
+    }), isTestView).select('_id');
     const vendorIds = vendors.map(v => v._id);
     
     queryObj.$and = queryObj.$and || [];
@@ -664,7 +693,7 @@ async function getProductsByCategory(category, queryParams = {}) {
  * Obtenir un produit par ID ou slug
  * Supporte à la fois les ObjectId MongoDB et les slugs textuels
  */
-async function getProductById(productId) {
+async function getProductById(productId, isTestView = false) {
   // Détecter si c'est un ObjectId valide (24 caractères hexadécimaux)
   const isObjectId = /^[a-f\d]{24}$/i.test(productId);
 
@@ -672,7 +701,7 @@ async function getProductById(productId) {
     status: 'approved',
     isActive: true,
     isPublic: { $ne: false }
-  });
+  }, isTestView);
 
   // Si c'est un ObjectId valide, chercher par _id OU slug
   // Sinon, chercher uniquement par slug pour éviter une CastError Mongoose
@@ -697,8 +726,11 @@ async function getProductById(productId) {
   // Incrémenter les vues
   await product.incrementViews();
 
-  // Obtenir les statistiques des avis
-  const reviewStats = await Review.getProductRatingStats(product._id);
+  // Obtenir les statistiques des avis (même périmètre sandbox que le produit)
+  const reviewStats = await Review.getProductRatingStats(
+    product._id,
+    await testReviewViewerFilter(isTestView),
+  );
 
   // Produits similaires
   const similarQuery = await applyVendorVisibility({
@@ -707,7 +739,7 @@ async function getProductById(productId) {
     status: 'approved',
     isActive: true,
     isPublic: { $ne: false }
-  });
+  }, isTestView);
   const similarProducts = await Product.find(similarQuery)
   .populate('producer', 'farmName firstName lastName createdAt country isBio')
   .populate('transformer', 'companyName firstName lastName createdAt country isBio')
@@ -725,14 +757,14 @@ async function getProductById(productId) {
  * Obtenir les produits en vedette
  * Filtre par pays du vendeur si une localisation est détectée
  */
-async function getFeaturedProducts(queryParams = {}, userLocation = null) {
+async function getFeaturedProducts(queryParams = {}, userLocation = null, isTestView = false) {
   const User = require('../../models/User');
 
   const baseQuery = await applyVendorVisibility({
     isFeatured: true,
     status: 'approved',
     isActive: true
-  });
+  }, isTestView);
 
   // Filtre par pays explicite (depuis le frontend)
   let countryFilter = queryParams.country || (userLocation && userLocation.country);
@@ -741,12 +773,12 @@ async function getFeaturedProducts(queryParams = {}, userLocation = null) {
     const countriesToFilter = getCountryFilterList(countryFilter);
     const countryRegexes = countriesToFilter.map(c => new RegExp(`^${c}$`, 'i'));
 
-    const vendors = await User.find({
+    const vendors = await scopeVendors(User.find({
       $or: [
         { country: { $in: countryRegexes } },
         { 'address.country': { $in: countryRegexes } }
       ]
-    }).select('_id');
+    }), isTestView).select('_id');
     const vendorIds = vendors.map(v => v._id);
 
     const localQuery = {
@@ -785,7 +817,7 @@ async function getFeaturedProducts(queryParams = {}, userLocation = null) {
 /**
  * Obtenir les nouveaux produits
  */
-async function getNewProducts() {
+async function getNewProducts(isTestView = false) {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
@@ -793,7 +825,7 @@ async function getNewProducts() {
     createdAt: { $gte: sevenDaysAgo },
     status: 'approved',
     isActive: true
-  });
+  }, isTestView);
   const products = await Product.find(newProductsQuery)
   .populate('producer', 'farmName firstName lastName createdAt country isBio')
   .populate('transformer', 'companyName firstName lastName createdAt country isBio')
@@ -808,7 +840,7 @@ async function getNewProducts() {
  * Obtenir les produits en vente flash
  * Filtre par pays du vendeur si une localisation est détectée
  */
-async function getFlashSales(queryParams = {}, userLocation = null) {
+async function getFlashSales(queryParams = {}, userLocation = null, isTestView = false) {
   const User = require('../../models/User');
   const now = new Date();
 
@@ -817,7 +849,7 @@ async function getFlashSales(queryParams = {}, userLocation = null) {
     isActive: true,
     'flashSale.isActive': true,
     'flashSale.endDate': { $gt: now }
-  });
+  }, isTestView);
 
   // Filtre par pays explicite (depuis le frontend) ou localisation IP
   let countryFilter = queryParams.country || (userLocation && userLocation.country);
@@ -826,12 +858,12 @@ async function getFlashSales(queryParams = {}, userLocation = null) {
     const countriesToFilter = getCountryFilterList(countryFilter);
     const countryRegexes = countriesToFilter.map(c => new RegExp(`^${c}$`, 'i'));
 
-    const vendors = await User.find({
+    const vendors = await scopeVendors(User.find({
       $or: [
         { country: { $in: countryRegexes } },
         { 'address.country': { $in: countryRegexes } }
       ]
-    }).select('_id');
+    }), isTestView).select('_id');
     const vendorIds = vendors.map(v => v._id);
 
     const localQuery = {

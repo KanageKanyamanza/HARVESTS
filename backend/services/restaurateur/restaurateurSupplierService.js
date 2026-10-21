@@ -1,18 +1,20 @@
 const Producer = require('../../models/Producer');
 const Transformer = require('../../models/Transformer');
+const { testAccountScope } = require('../../utils/testAccounts');
 
 /**
  * Service pour la découverte de fournisseurs pour les restaurateurs
  */
 
-async function discoverSuppliers(queryParams) {
+async function discoverSuppliers(queryParams, isTestView = false) {
   const { limit = 20, page = 1, type, region, search } = queryParams;
   const skip = (page - 1) * limit;
   
   const baseFilters = {
     isActive: true,
     isApproved: true,
-    isEmailVerified: true
+    isEmailVerified: true,
+    ...testAccountScope(isTestView)
   };
   
   const filters = { ...baseFilters };

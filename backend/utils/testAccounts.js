@@ -13,6 +13,11 @@ const mongoose = require("mongoose");
  * - ne laisse aucune entrée dans le journal d'audit ;
  * - ne reçoit ni ne déclenche aucun e-mail ni notification.
  *
+ * Sandbox des démos : le catalogue et les boutiques publiques sont filtrés
+ * selon le visiteur (isTestViewer) — un compte de test ne voit que les
+ * produits/boutiques des comptes de test, et les visiteurs réels ne voient
+ * jamais les produits/boutiques des comptes de test.
+ *
  * Pour inclure malgré tout les comptes de test dans une requête :
  * `.setOptions({ includeTestAccounts: true })`.
  */
@@ -69,6 +74,65 @@ async function loadTestAccounts() {
 function invalidateTestAccounts() {
 	cache = null;
 	cacheLoadedAt = 0;
+}
+
+/** Vrai si la requête vient d'un compte de test connecté (démo). */
+function isTestViewer(req) {
+	return req?.user?.isTestAccount === true;
+}
+
+/**
+ * Périmètre « sandbox » des comptes vendeurs pour une requête User
+ * (Producer, Transformer, Restaurateur, …) :
+ * - visiteur test : uniquement les comptes de test ;
+ * - visiteur réel : uniquement les comptes réels.
+ * Le filtre est explicite : il fonctionne aussi pour les requêtes visant un
+ * identifiant précis, que le hook du modèle User ne filtre jamais.
+ */
+function testAccountScope(isTestView) {
+	return { isTestAccount: isTestView ? true : { $ne: true } };
+}
+
+/**
+ * Applique le périmètre sandbox à une requête User.
+ * Le filtre `isTestAccount` court-circuite le hook d'exclusion du modèle, et
+ * `includeTestAccounts` couvre les agrégations / options équivalentes.
+ */
+function applyTestAccountScope(query, isTestView) {
+	if (isTestView) {
+		query.setOptions({ ...query.getOptions(), includeTestAccounts: true });
+	}
+	return query.where(testAccountScope(isTestView));
+}
+
+/**
+ * Filtre « sandbox » des produits, à pousser dans `$and` (pour ne pas écraser
+ * un `$or` existant) :
+ * - visiteur test : uniquement les produits de vendeurs test ;
+ * - visiteur réel/anonyme : uniquement les produits de vendeurs réels.
+ * Renvoie null quand aucun filtre n'est nécessaire.
+ */
+async function testProductsViewerFilter(isTestView) {
+	const ids = await getTestAccountIds();
+	if (ids.length === 0) return isTestView ? { _id: null } : null;
+	const vendorClause = [
+		{ producer: { $in: ids } },
+		{ transformer: { $in: ids } },
+		{ restaurateur: { $in: ids } },
+	];
+	return isTestView ? { $or: vendorClause } : { $nor: vendorClause };
+}
+
+/**
+ * Filtre « sandbox » des avis, à combiner avec le filtre produit/vendeur :
+ * - visiteur test : uniquement les avis écrits par un compte de test ;
+ * - visiteur réel/anonyme : uniquement les avis écrits par un compte réel.
+ * Le parent (produit/vendeur) doit être vérifié séparément par l'appelant.
+ */
+async function testReviewViewerFilter(isTestView) {
+	const ids = await getTestAccountIds();
+	if (ids.length === 0) return isTestView ? { _id: null } : {};
+	return { reviewer: isTestView ? { $in: ids } : { $nin: ids } };
 }
 
 /** Vrai si l'identifiant ou l'e-mail donné appartient à un compte de test. */
@@ -182,6 +246,11 @@ function addTestDataExclusion(schema, buildFilter) {
 module.exports = {
 	excludeTestDataMiddleware,
 	addTestDataExclusion,
+	isTestViewer,
+	testAccountScope,
+	applyTestAccountScope,
+	testProductsViewerFilter,
+	testReviewViewerFilter,
 	testProductFilter,
 	testOrderFilter,
 	isSpecificUserFilter,

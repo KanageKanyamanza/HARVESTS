@@ -161,7 +161,7 @@ exports.editMessage = catchAsync(async (req, res, next) => {
 	try {
 		await message.editContent(content, req.user.id);
 	} catch (error) {
-		return next(new AppError(error.message, 400));
+		return next(AppError.from(error, 400));
 	}
 
 	res.status(200).json({
@@ -185,7 +185,7 @@ exports.deleteMessage = catchAsync(async (req, res, next) => {
 	try {
 		await message.delete(req.user.id, isAdmin);
 	} catch (error) {
-		return next(new AppError(error.message, 400));
+		return next(AppError.from(error, 400));
 	}
 
 	res.status(204).json({

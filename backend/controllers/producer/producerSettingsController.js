@@ -14,7 +14,7 @@ exports.getPreferredTransporters = catchAsync(async (req, res, next) => {
       data: { transporters }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -26,7 +26,7 @@ exports.addPreferredTransporter = catchAsync(async (req, res, next) => {
       message: req.t('producer.transporter_added_favorite')
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 
@@ -38,7 +38,7 @@ exports.removePreferredTransporter = catchAsync(async (req, res, next) => {
       data: null
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -51,7 +51,7 @@ exports.getMyDocuments = catchAsync(async (req, res, next) => {
       data: { documents }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -70,7 +70,7 @@ exports.addDocument = catchAsync(async (req, res, next) => {
       data: { document }
     });
   } catch (error) {
-    return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });
 
@@ -83,7 +83,7 @@ exports.getDeliverySettings = catchAsync(async (req, res, next) => {
       data: { deliverySettings }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -95,7 +95,7 @@ exports.updateDeliverySettings = catchAsync(async (req, res, next) => {
       data: { deliverySettings }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 

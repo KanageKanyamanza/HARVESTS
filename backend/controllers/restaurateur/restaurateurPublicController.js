@@ -3,11 +3,16 @@ const AppError = require('../../utils/appError');
 const Restaurateur = require('../../models/Restaurateur');
 const restaurateurSearchService = require('../../services/restaurateur/restaurateurSearchService');
 const restaurateurDishService = require('../../services/restaurateur/restaurateurDishService');
+const {
+  isTestViewer,
+  testAccountScope,
+  testReviewViewerFilter,
+} = require('../../utils/testAccounts');
 
 // Obtenir tous les restaurateurs
 exports.getAllRestaurateurs = catchAsync(async (req, res, next) => {
   try {
-    const result = await restaurateurSearchService.getAllRestaurateurs(req.query);
+    const result = await restaurateurSearchService.getAllRestaurateurs(req.query, isTestViewer(req));
     res.status(200).json({
       status: 'success',
       results: result.restaurateurs.length,
@@ -17,35 +22,35 @@ exports.getAllRestaurateurs = catchAsync(async (req, res, next) => {
       data: { restaurateurs: result.restaurateurs },
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
 // Rechercher des restaurateurs
 exports.searchRestaurateurs = catchAsync(async (req, res, next) => {
   try {
-    const restaurateurs = await restaurateurSearchService.searchRestaurateurs(req.query);
+    const restaurateurs = await restaurateurSearchService.searchRestaurateurs(req.query, isTestViewer(req));
     res.status(200).json({
       status: 'success',
       results: restaurateurs.length,
       data: { restaurateurs },
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
 // Obtenir les restaurateurs par région
 exports.getRestaurateursByRegion = catchAsync(async (req, res, next) => {
   try {
-    const restaurateurs = await restaurateurSearchService.getRestaurateursByRegion(req.params.region);
+    const restaurateurs = await restaurateurSearchService.getRestaurateursByRegion(req.params.region, isTestViewer(req));
     res.status(200).json({
       status: 'success',
       results: restaurateurs.length,
       data: { restaurateurs },
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -56,8 +61,9 @@ exports.getRestaurateursByCuisine = catchAsync(async (req, res, next) => {
     isActive: true, 
     isApproved: true, 
     isEmailVerified: true,
+    ...testAccountScope(isTestViewer(req)),
     // Les restaurateurs doivent avoir une bannière pour être visibles en public
-    restaurantBanner: { $exists: true, $ne: null },
+    ...(isTestViewer(req) ? {} : { restaurantBanner: { $exists: true, $ne: null } }),
   }).sort('-businessStats.supplierRating');
 
   res.status(200).json({
@@ -70,26 +76,26 @@ exports.getRestaurateursByCuisine = catchAsync(async (req, res, next) => {
 // Obtenir un restaurateur par ID
 exports.getRestaurateur = catchAsync(async (req, res, next) => {
   try {
-    const restaurateur = await restaurateurSearchService.getRestaurateur(req.params.id);
+    const restaurateur = await restaurateurSearchService.getRestaurateur(req.params.id, isTestViewer(req));
     res.status(200).json({
       status: 'success',
       data: { restaurateur },
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
 // Récupérer les plats d'un restaurateur (public)
 exports.getRestaurateurDishes = catchAsync(async (req, res, next) => {
   try {
-    const result = await restaurateurDishService.getRestaurateurDishes(req.params.id);
+    const result = await restaurateurDishService.getRestaurateurDishes(req.params.id, isTestViewer(req));
     res.status(200).json({
       status: 'success',
       data: result
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -102,7 +108,7 @@ exports.getDishDetail = catchAsync(async (req, res, next) => {
     } else if (req.cookies && req.cookies.jwt) {
       token = req.cookies.jwt;
     }
-    const dish = await restaurateurDishService.getDishDetail(req.params.dishId, req.user?.id || null, token);
+    const dish = await restaurateurDishService.getDishDetail(req.params.dishId, req.user?.id || null, token, isTestViewer(req));
     res.status(200).json({
       status: 'success',
       data: {
@@ -111,7 +117,7 @@ exports.getDishDetail = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.message, 404));
+    return next(AppError.from(error, 404));
   }
 });
 
@@ -119,7 +125,10 @@ exports.getDishDetail = catchAsync(async (req, res, next) => {
 exports.getRestaurateurProducts = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   
-  const restaurateur = await Restaurateur.findById(id).select('products restaurantName');
+  const restaurateur = await Restaurateur.findOne({
+    _id: id,
+    ...testAccountScope(isTestViewer(req)),
+  }).select('products restaurantName');
   if (!restaurateur) {
     return res.status(404).json({
       status: 'error',
@@ -142,14 +151,25 @@ exports.getRestaurateurProducts = catchAsync(async (req, res, next) => {
 // Récupérer les avis d'un restaurateur (public)
 exports.getRestaurateurReviews = catchAsync(async (req, res, next) => {
   const Review = require('../../models/Review');
+
+  const vendorExists = await Restaurateur.exists({
+    _id: req.params.id,
+    ...testAccountScope(isTestViewer(req)),
+  });
+  if (!vendorExists) {
+    return next(new AppError('restaurateur.not_found', 404));
+  }
   
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 10;
   const skip = (page - 1) * limit;
 
+  const reviewFilter = await testReviewViewerFilter(isTestViewer(req));
+
   const reviews = await Review.find({
     producer: req.params.id, // Dans le modèle Review, 'producer' est utilisé pour tous les vendeurs
     status: 'approved',
+    ...reviewFilter,
   })
     .populate('reviewer', 'firstName lastName avatar')
     .sort('-createdAt')
@@ -159,6 +179,7 @@ exports.getRestaurateurReviews = catchAsync(async (req, res, next) => {
   const total = await Review.countDocuments({
     producer: req.params.id,
     status: 'approved',
+    ...reviewFilter,
   });
 
   res.status(200).json({

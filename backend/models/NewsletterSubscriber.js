@@ -4,10 +4,10 @@ const validator = require("validator");
 const newsletterSubscriberSchema = new mongoose.Schema({
 	email: {
 		type: String,
-		required: [true, "Veuillez fournir une adresse email"],
+		required: [true, "validation.newsletter_subscriber_email_required"],
 		unique: true,
 		lowercase: true,
-		validate: [validator.isEmail, "Veuillez fournir une adresse email valide"],
+		validate: [validator.isEmail, "validation.newsletter_subscriber_email_invalid"],
 		trim: true,
 	},
 	isActive: {
