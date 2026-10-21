@@ -7,6 +7,20 @@ import { getConfig } from "../config/production";
 const appConfig = getConfig();
 export const API_BASE_URL = appConfig.API_BASE_URL;
 
+// Jour 63 : le cookie CSRF appartient au domaine de l'API, il n'est donc pas
+// lisible en JavaScript depuis la page du front (domaine différent en prod).
+// L'API renvoie le même jeton dans l'en-tête X-CSRF-Token (exposé par la
+// configuration CORS) : on le mémorise ici pour le renvoyer dans l'en-tête
+// x-csrf-token. La protection reste une double soumission — le cookie prouve
+// que le client a reçu le jeton, l'en-tête prouve qu'il le connaît.
+let csrfToken = null;
+
+const rememberCsrfToken = (token) => {
+	if (token) {
+		csrfToken = token;
+	}
+};
+
 // Créer une instance Axios
 const api = axios.create({
 	baseURL: API_BASE_URL,
@@ -95,6 +109,13 @@ api.interceptors.request.use(
 		config.headers["Accept-Language"] =
 			language === "fr" ? "fr-FR,fr;q=0.9" : "en-US,en;q=0.9";
 
+		// Reprendre le jeton CSRF renvoyé par l'API (le cookie n'est pas
+		// lisible depuis la page quand le front et l'API sont sur des
+		// domaines différents).
+		if (csrfToken) {
+			config.headers["x-csrf-token"] = csrfToken;
+		}
+
 		return config;
 	},
 	(error) => {
@@ -124,8 +145,34 @@ const clearAuthAndRedirect = (redirectPath = "/login") => {
 
 // Intercepteur de réponse
 api.interceptors.response.use(
-	(response) => response,
+	(response) => {
+		// Mémoriser le jeton CSRF renvoyé par l'API pour les requêtes suivantes
+		rememberCsrfToken(response.headers?.["x-csrf-token"]);
+		return response;
+	},
 	async (error) => {
+		// Mémoriser le jeton même sur une réponse en erreur (l'en-tête est
+		// présent sur toutes les réponses de l'API)
+		rememberCsrfToken(error.response?.headers?.["x-csrf-token"]);
+
+		// 403 CSRF : la requête d'écriture a pu être la toute première de la
+		// session, avant la réception du jeton. On en récupère un neuf et on
+		// rejoue une seule fois.
+		if (
+			error.response?.status === 403 &&
+			error.config &&
+			!error.config._csrfRetried &&
+			/csrf/i.test(error.response?.data?.message || "")
+		) {
+			error.config._csrfRetried = true;
+			try {
+				await api.get("/health");
+				return api(error.config);
+			} catch {
+				// La reprise a échoué : on laisse l'erreur d'origine remonter
+			}
+		}
+
 		// Gérer les erreurs de rate limiting en silence
 		if (error.response?.status === 429) {
 			console.warn("Trop de requêtes - Rate limiting activé");

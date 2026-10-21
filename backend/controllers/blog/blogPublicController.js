@@ -13,6 +13,7 @@ const {
 	getDeviceInfo,
 	getLocationInfo,
 } = require("../../utils/visitorUtils");
+const { apiCookieOptions } = require("../../config/cookies");
 
 // Liste des blogs publiés
 exports.getBlogs = catchAsync(async (req, res, next) => {
@@ -128,12 +129,18 @@ exports.getBlogBySlug = catchAsync(async (req, res, next) => {
 	let sessionId = req.cookies.sessionId || req.headers["x-session-id"];
 	if (!sessionId) {
 		sessionId = generateSessionId();
-		res.cookie("sessionId", sessionId, {
-			maxAge: 24 * 60 * 60 * 1000,
-			httpOnly: true,
-			secure: process.env.NODE_ENV === "production",
-			sameSite: "strict",
-		});
+		// SameSite=None en production : le front est sur un autre site que
+		// l'API, le cookie ne serait jamais renvoyé et chaque consultation
+		// compterait comme une nouvelle visite (cf. config/cookies.js).
+		res.cookie(
+			"sessionId",
+			sessionId,
+			apiCookieOptions(req, {
+				maxAge: 24 * 60 * 60 * 1000,
+				httpOnly: true,
+				path: "/",
+			}),
+		);
 	}
 
 	// Vérifier si une visite existe déjà pour cette session et ce blog

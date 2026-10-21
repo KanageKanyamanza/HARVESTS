@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const { apiCookieOptions } = require('../config/cookies');
 
 const signToken = (id) => {
   return jwt.sign({ id, type: 'access' }, process.env.JWT_SECRET, {
@@ -18,16 +19,18 @@ const signRefreshToken = (id) => {
 };
 
 const setRefreshCookie = (res, req, refreshToken) => {
-  const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
-  res.cookie('adminRefreshToken', refreshToken, {
-    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    httpOnly: true,
-    secure: isSecure,
-    // Frontend et backend sur des domaines différents en prod : 'strict'/'lax'
-    // bloquent l'envoi du cookie cross-site, cassant le refresh silencieux.
-    sameSite: isSecure ? 'none' : 'lax',
-    path: '/api/v1/admin/auth/refresh',
-  });
+  // Frontend et backend sur des domaines différents en prod : 'strict'/'lax'
+  // bloquent l'envoi du cookie cross-site, cassant le refresh silencieux.
+  // Politique commune des cookies de l'API : config/cookies.js.
+  res.cookie(
+    'adminRefreshToken',
+    refreshToken,
+    apiCookieOptions(req, {
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      httpOnly: true,
+      path: '/api/v1/admin/auth/refresh',
+    }),
+  );
 };
 
 const createSendToken = (admin, statusCode, req, res) => {
