@@ -80,7 +80,13 @@ translationGlossarySchema.pre("validate", function (next) {
 		try {
 			new RegExp(this.source, this.flags || "gi");
 		} catch (error) {
-			this.invalidate("source", "validation.glossary_regex_invalid");
+			// Conserver le détail du parseur (position / classe non terminée…)
+			// tout en gardant un message traduit.
+			this.invalidate(
+				"source",
+				"validation.glossary_regex_invalid",
+				error.message,
+			);
 		}
 	}
 	next();

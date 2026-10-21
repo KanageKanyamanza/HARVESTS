@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const AuditLog = require("../models/AuditLog");
+const TranslationGlossary = require("../models/TranslationGlossary");
 const AppError = require("../utils/appError");
 const errorHandler = require("../middleware/errorHandler");
 const fr = require("../locales/fr.json");
@@ -75,6 +76,25 @@ describe("validation i18n (Jour 62)", () => {
 		const enResponse = handle(error, "en");
 		expect(enResponse.body.message).toContain("This field is required");
 		expect(enResponse.body.message).not.toContain("Path `");
+	});
+
+	test("conserve le détail d'un motif regex invalide", async () => {
+		const entry = new TranslationGlossary({
+			type: "replacement",
+			source: "[",
+			target: "x",
+			flags: "gi",
+		});
+		let error;
+		try {
+			await entry.validate();
+		} catch (validationError) {
+			error = validationError;
+		}
+		expect(error).toBeDefined();
+
+		const response = handle(error, "fr");
+		expect(response.body.message).toContain("Expression régulière invalide : ");
 	});
 
 	test("conserve les détails de validation après relais par AppError.from", async () => {

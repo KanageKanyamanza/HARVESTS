@@ -411,7 +411,7 @@
     "glossary_target_maxlength": "La traduction ne peut pas dépasser 300 caractères",
     "glossary_flags_invalid": "Flags regex invalides (autorisés : g, i, m, s, u, y)",
     "glossary_note_maxlength": "La note ne peut pas dépasser 300 caractères",
-    "glossary_regex_invalid": "Expression régulière invalide"
+    "glossary_regex_invalid": "Expression régulière invalide : {{value}}"
   },
   "errors": {
     "server_error": "Erreur serveur interne",
