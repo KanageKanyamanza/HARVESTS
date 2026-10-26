@@ -7,6 +7,14 @@ const {
 	isTestViewer,
 	testProductsViewerFilter,
 } = require("../../utils/testAccounts");
+const {
+	SUPPORTED_LANGUAGES,
+	SEARCH_STOP_WORDS,
+	addFaqToManager,
+	addSystemIntents,
+	addSearchIntents,
+	resolveChatLanguage,
+} = require("../../utils/chatbotTraining");
 
 let manager = null;
 let isTraining = false;
@@ -19,7 +27,12 @@ const trainBot = async () => {
 	try {
 		console.log("🤖 Starting chatbot training...");
 		manager = new NlpManager({
-			languages: ["fr"],
+			// Jour 66 (bascule bilingue) : le modèle est entraîné dans les deux
+			// langues. Le français reste alimenté par les FAQs du back-office,
+			// l'anglais par leurs champs traduits (questionEn/answerEn).
+			// manager.process() est routé sur la langue de la conversation
+			// (Jour 67).
+			languages: SUPPORTED_LANGUAGES,
 			forceNER: true,
 			nlu: { useNoneFeature: true },
 		});
@@ -27,77 +40,26 @@ const trainBot = async () => {
 		// 1. Charger les FAQs depuis la base de données
 		const faqs = await Faq.find({ isActive: true });
 
+		let englishFaqCount = 0;
 		faqs.forEach((faq) => {
-			const intent = faq.intent || `faq.${faq.category}.${faq._id}`;
-
-			// Ajouter les phrases d'entraînement
-			// Utiliser la question elle-même
-			manager.addDocument("fr", faq.question, intent);
-
-			// Utiliser les mots-clés pour construire des variations simples
-			if (faq.keywords && faq.keywords.length > 0) {
-				faq.keywords.forEach((kw) => {
-					manager.addDocument("fr", kw, intent);
-					manager.addDocument("fr", `Je veux savoir ${kw}`, intent);
-					manager.addDocument("fr", `Parle moi de ${kw}`, intent);
-				});
-			}
-
-			// Ajouter la réponse associée
-			manager.addAnswer("fr", intent, faq.answer);
+			if (addFaqToManager(manager, faq)) englishFaqCount += 1;
 		});
 
+		console.log(
+			`🤖 FAQs : ${faqs.length} française(s), ${englishFaqCount} avec version anglaise`,
+		);
+		if (englishFaqCount < faqs.length) {
+			console.warn(
+				`🤖 ${faqs.length - englishFaqCount} FAQ(s) sans version anglaise — lancer scripts/migrateFaqTranslations.js (dry-run puis --execute) pour les traduire.`,
+			);
+		}
+
 		// 2. Ajouter les intentions système (Salutations, etc.)
-		manager.addDocument("fr", "bonjour", "greeting");
-		manager.addDocument("fr", "salut", "greeting");
-		manager.addDocument("fr", "hello", "greeting");
-		manager.addDocument("fr", "bonsoir", "greeting");
-		manager.addAnswer(
-			"fr",
-			"greeting",
-			"Bonjour ! 👋 Comment puis-je vous aider aujourd'hui ?",
-		);
-
-		manager.addDocument("fr", "merci", "thanks");
-		manager.addDocument("fr", "merci beaucoup", "thanks");
-		manager.addDocument("fr", "thanks", "thanks");
-		manager.addDocument("fr", "c'est gentil", "thanks");
-		manager.addDocument("fr", "ok merci", "thanks");
-		manager.addAnswer(
-			"fr",
-			"thanks",
-			"Je vous en prie ! 😊 N'hésitez pas si vous avez d'autres questions.",
-		);
-		manager.addAnswer("fr", "thanks", "Avec plaisir ! Je suis là pour ça. 👋");
-
-		manager.addDocument("fr", "au revoir", "goodbye");
-		manager.addDocument("fr", "bye", "goodbye");
-		manager.addDocument("fr", "a bientot", "goodbye");
-		manager.addAnswer(
-			"fr",
-			"goodbye",
-			"Au revoir ! À bientôt sur Harvests ! 👋",
-		);
+		addSystemIntents(manager);
 
 		// 3. Intentions de recherche de produits
 		// On entraîne le modèle à reconnaître les demandes de produits
-		const searchPhrases = [
-			"je veux",
-			"je cherche",
-			"avez-vous",
-			"trouver",
-			"acheter",
-			"prix de",
-			"combien coute",
-			"vendez-vous",
-			"je voudrais",
-		];
-
-		searchPhrases.forEach((phrase) => {
-			manager.addDocument("fr", `${phrase} %product%`, "search.product");
-			manager.addDocument("fr", `${phrase} des %product%`, "search.product");
-			manager.addDocument("fr", `${phrase} du %product%`, "search.product");
-		});
+		addSearchIntents(manager);
 
 		// Entraînement
 		await manager.train();
@@ -120,7 +82,8 @@ const processMessage = async (req, res) => {
 		}
 
 		// 1. Analyser le message avec NLP
-		const response = await manager.process("fr", message);
+		const language = resolveChatLanguage(req.language);
+		const response = await manager.process(language, message);
 
 		let reply = {
 			text: "",
@@ -151,56 +114,7 @@ const processMessage = async (req, res) => {
 				query = productEntity.option;
 			} else {
 				// Nettoyage basique si pas d'entité : retirer les stop words
-				const stopWords = [
-					"je",
-					"tu",
-					"il",
-					"elle",
-					"nous",
-					"vous",
-					"ils",
-					"elles",
-					"veux",
-					"voudrais",
-					"aimerais",
-					"cherche",
-					"besoin",
-					"de",
-					"des",
-					"le",
-					"la",
-					"les",
-					"un",
-					"une",
-					"du",
-					"de la",
-					"sur",
-					"dans",
-					"trouver",
-					"acheter",
-					"avez",
-					"avoir",
-					"est-ce",
-					"que",
-					"avez-vous",
-					"disponible",
-					"disponibles",
-					"prix",
-					"questions",
-					"frequentes",
-					"fréquentes",
-					"info",
-					"infos",
-					"information",
-					"informations",
-					"aide",
-					"aider",
-					"comment",
-					"pourquoi",
-					"quand",
-					"ou",
-					"où",
-				];
+				const stopWords = SEARCH_STOP_WORDS[language];
 				// Enlever la ponctuation et découper
 				const words = message
 					.toLowerCase()

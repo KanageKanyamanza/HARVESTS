@@ -1,9 +1,9 @@
 doctype html
-html(lang='fr')
+html(lang=lang)
   head
     meta(charset='UTF-8')
     meta(name='viewport', content='width=device-width, initial-scale=1.0')
-    title Confiramtion de commande
+    title= t('email.order_confirmation.page_title')
     style.
       * {
         margin: 0;
@@ -108,6 +108,11 @@ html(lang='fr')
         border-bottom: 2px solid #e2e8f0;
         padding-bottom: 8px;
       }
+      .order-number {
+        color: #64748b;
+        font-size: 14px;
+        margin-bottom: 12px;
+      }
       .order-details {
         width: 100%;
         border-collapse: collapse;
@@ -171,52 +176,60 @@ html(lang='fr')
         }
       }
   body
+    - const items = (order && order.items && order.items.length ? order.items : (order && order.products)) || []
+    - const currency = (order && order.currency) || 'FCFA'
     .email-container
       .header
         .logo
-          img(src=logoUrl, alt='Harvests Logo')
-        .title Commande Confirmée !
-        .subtitle Merci pour votre achat sur Harvests
+          img(src=logoUrl, alt=t('email.common.logo_alt'))
+        .title= t('email.order_confirmation.title')
+        .subtitle= t('email.order_confirmation.subtitle')
       
       .content
-        .greeting Bonjour #{firstName},
+        .greeting= t('email.order_confirmation.greeting', { firstName })
         
         .message
-          p Nous avons bien reçu votre commande et nous vous en remercions. Voici un récapitulatif de vos achats.
+          p= t('email.order_confirmation.intro')
         
         .order-summary
-          .order-title Détails de la commande
+          .order-title= t('email.order_confirmation.order_title')
+          if order && order.orderNumber
+            .order-number= order.orderNumber
           table.order-details
-            if order && order.products
-                each product in order.products
-                    tr
-                        td #{product.name || 'Produit'} x #{product.quantity}
-                        td(style="text-align: right;") #{product.price} FCFA
+            if items.length
+              each item in items
+                - const snapshot = item.productSnapshot || item.product || {}
+                - const rawName = item.name || snapshot.name
+                - const name = typeof rawName === 'string' ? rawName : (rawName && (rawName[lang] || rawName.fr)) || t('email.order_confirmation.product_fallback')
+                - const lineTotal = item.totalPrice !== undefined ? item.totalPrice : (item.price !== undefined ? item.price : (item.unitPrice || 0))
+                tr
+                  td #{name} x #{item.quantity || 1}
+                  td(style="text-align: right;") #{lineTotal} #{item.currency || currency}
             else
-                tr 
-                    td Détails non disponibles
+              tr
+                td(colspan="2")= t('email.order_confirmation.details_unavailable')
             
             tr.total-row
-              td Total
-              td(style="text-align: right;") #{order ? order.totalAmount : 0} FCFA
+              td= t('email.order_confirmation.total')
+              td(style="text-align: right;") #{order && order.total !== undefined ? order.total : (order && order.totalAmount) || 0} #{currency}
         
         .cta-container
-          a.cta-button(href=url + '/dashboard/orders') Suivre ma commande
+          a.cta-button(href=url + '/dashboard/orders')= t('email.order_confirmation.cta')
         
         .message
-          p Vous recevrez un nouvel email dès que votre commande sera expédiée.
+          p= t('email.order_confirmation.closing')
       
       .footer
         .footer-brand 🌱 Harvests
         .footer-contact
-          | Plateforme agricole africaine - Connectons l'Afrique à travers l'agriculture
+          | #{t('email.common.footer_tagline')}
         .footer-contact
-          | Questions ? Contactez-nous :
+          | #{t('email.common.footer_questions')}
         .footer-contact
-          | 📞 Sénégal :
+          | #{t('email.common.footer_phone')} 
           a(href='tel:+221788346969') +221 78 834 69 69
         .footer-contact
-          | 📧 Email : 
+          | #{t('email.common.footer_email')} 
           a(href='mailto:contact@harvests.site') contact@harvests.site
         .footer-contact
-          | © 2025 Harvests. Tous droits réservés. | Dakar, Sénégal
+          | #{t('email.common.footer_rights', { year })}

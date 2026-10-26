@@ -1,0 +1,181 @@
+doctype html
+html(lang=lang)
+  head
+    meta(charset='UTF-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title= t('email.account_rejection.page_title')
+    style.
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        line-height: 1.6;
+        color: #2d3748;
+        background-color: #f7fafc;
+        margin: 0;
+        padding: 20px;
+      }
+      .email-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+      }
+      .header {
+        background: linear-gradient(135deg, #4b5563 0%, #1f2937 100%);
+        padding: 40px 30px;
+        text-align: center;
+        color: white;
+        border-radius: 12px 12px 0 0;
+      }
+      .logo {
+        width: 120px;
+        height: 120px;
+        background-color: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        padding: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      .title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        letter-spacing: -0.025em;
+      }
+      .subtitle {
+        font-size: 16px;
+        opacity: 0.9;
+        font-weight: 400;
+      }
+      .content {
+        padding: 40px 30px;
+      }
+      .greeting {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 20px;
+      }
+      .message {
+        font-size: 16px;
+        color: #4a5568;
+        margin-bottom: 24px;
+        line-height: 1.7;
+      }
+      .reason-box {
+        background-color: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-left: 4px solid #4b5563;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 24px 0;
+      }
+      .reason-label {
+        color: #374151;
+        font-weight: 600;
+        font-size: 15px;
+        margin-bottom: 8px;
+      }
+      .reason-text {
+        color: #4b5563;
+        font-size: 15px;
+        white-space: pre-wrap;
+      }
+      .cta-container {
+        text-align: center;
+        margin: 32px 0;
+      }
+      .cta-button {
+        display: inline-block;
+        background-color: #16a34a;
+        color: white;
+        padding: 16px 32px;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.3);
+      }
+      .footer {
+        background-color: #1f2937;
+        color: #ffffff;
+        padding: 30px;
+        text-align: center;
+        font-size: 14px;
+        line-height: 1.6;
+        border-radius: 0 0 12px 12px;
+      }
+      .footer-brand {
+        color: #ffffff;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .footer-contact {
+        margin: 12px 0;
+      }
+      .footer-contact a {
+        color: #16a34a;
+        text-decoration: none;
+      }
+      @media (max-width: 600px) {
+        .email-container { margin: 0; border-radius: 0; }
+        .header, .footer { border-radius: 0; }
+        .header, .content, .footer { padding: 20px; }
+        .title { font-size: 24px; }
+        .logo { width: 100px; height: 100px; }
+      }
+  body
+    .email-container
+      .header
+        .logo
+          img(src=logoUrl, alt=t('email.common.logo_alt'))
+        .title= t('email.account_rejection.title')
+        .subtitle= t('email.account_rejection.subtitle')
+
+      .content
+        .greeting= t('email.account_rejection.greeting', { firstName })
+
+        .message
+          p= t('email.account_rejection.intro')
+
+        .reason-box
+          .reason-label= t('email.account_rejection.reason_label')
+          .reason-text= reason || t('email.account_rejection.reason_fallback')
+
+        .message
+          p= t('email.account_rejection.next_steps')
+
+        .cta-container
+          a.cta-button(href=url + '/contact')= t('email.account_rejection.cta')
+
+        .message
+          p= t('email.account_rejection.closing')
+
+      .footer
+        .footer-brand 🌱 Harvests
+        .footer-contact
+          | #{t('email.common.footer_tagline')}
+        .footer-contact
+          | #{t('email.common.footer_questions')}
+        .footer-contact
+          | #{t('email.common.footer_phone')} 
+          a(href='tel:+221788346969') +221 78 834 69 69
+        .footer-contact
+          | #{t('email.common.footer_email')} 
+          a(href='mailto:contact@harvests.site') contact@harvests.site
+        .footer-contact
+          | #{t('email.common.footer_rights', { year })}

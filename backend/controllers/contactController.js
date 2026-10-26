@@ -53,19 +53,19 @@ exports.sendContactMessage = catchAsync(async (req, res, next) => {
 
   // Validation
   if (!name || !email || !subject || !message) {
-    return next(new AppError('Tous les champs sont requis', 400));
+    return next(new AppError('contact.fields_required', 400));
   }
 
   // Validation email
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    return next(new AppError('Adresse email invalide', 400));
+    return next(new AppError('contact.invalid_email', 400));
   }
 
   const transport = getEmailTransport();
   
   if (!transport) {
-    return next(new AppError('Configuration email non disponible', 500));
+    return next(new AppError('contact.email_unavailable', 500));
   }
 
   // Récupérer tous les emails des admins actifs qui ont configuré leur email de notification
@@ -224,13 +224,10 @@ Vous pouvez répondre directement à cet email pour contacter ${name}
       await Promise.all(emailPromises);
     }
 
-    res.status(200).json({
-      status: 'success',
-      message: 'Votre message a été envoyé avec succès. Nous vous répondrons dans les plus brefs délais.',
-    });
+    return res.success('contact.sent');
   } catch (error) {
     console.error('Erreur envoi email contact:', error);
-    return next(new AppError('Erreur lors de l\'envoi du message. Veuillez réessayer plus tard.', 500));
+    return next(new AppError('contact.send_failed', 500));
   }
 });
 

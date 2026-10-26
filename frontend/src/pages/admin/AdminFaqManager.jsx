@@ -29,8 +29,11 @@ const AdminFaqManager = () => {
 	const [formData, setFormData] = useState({
 		question: "",
 		answer: "",
+		questionEn: "",
+		answerEn: "",
 		category: "general",
 		keywords: "",
+		keywordsEn: "",
 	});
 	const [actionLoading, setActionLoading] = useState(false);
 
@@ -65,16 +68,22 @@ const AdminFaqManager = () => {
 			setFormData({
 				question: faq.question,
 				answer: faq.answer,
+				questionEn: faq.questionEn || "",
+				answerEn: faq.answerEn || "",
 				category: faq.category,
-				keywords: faq.keywords.join(", "),
+				keywords: (faq.keywords || []).join(", "),
+				keywordsEn: (faq.keywordsEn || []).join(", "),
 			});
 		} else {
 			setEditingFaq(null);
 			setFormData({
 				question: "",
 				answer: "",
+				questionEn: "",
+				answerEn: "",
 				category: "general",
 				keywords: "",
+				keywordsEn: "",
 			});
 		}
 		setIsModalOpen(true);
@@ -87,6 +96,10 @@ const AdminFaqManager = () => {
 			const data = {
 				...formData,
 				keywords: formData.keywords
+					.split(",")
+					.map((k) => k.trim())
+					.filter((k) => k),
+				keywordsEn: formData.keywordsEn
 					.split(",")
 					.map((k) => k.trim())
 					.filter((k) => k),
@@ -208,9 +221,19 @@ const AdminFaqManager = () => {
 											<td className="px-4 py-3">
 												<p className="text-xs font-bold text-gray-900 line-clamp-2">
 													{faq.question}
+													{faq.questionEn && (
+														<span className="ml-1.5 px-1 py-0.5 rounded bg-purple-50 text-purple-600 text-[8px] font-black align-middle">
+															EN
+														</span>
+													)}
 												</p>
+												{faq.questionEn && (
+													<p className="text-[10px] text-gray-500 italic line-clamp-1 mt-0.5">
+														{faq.questionEn}
+													</p>
+												)}
 												<p className="text-[10px] text-gray-400 mt-0.5">
-													{faq.keywords.join(", ")}
+													{(faq.keywords || []).join(", ")}
 												</p>
 											</td>
 											<td className="px-4 py-3">
@@ -250,7 +273,7 @@ const AdminFaqManager = () => {
 				{/* Modal */}
 				{isModalOpen && (
 					<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-sm">
-						<div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl p-6 relative animate-scale-in">
+						<div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl p-6 relative animate-scale-in max-h-[90vh] overflow-y-auto">
 							<button
 								onClick={() => setIsModalOpen(false)}
 								className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-900 rounded-lg"
@@ -324,6 +347,71 @@ const AdminFaqManager = () => {
 											className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
 											placeholder="délai, temps, livraison"
 										/>
+									</div>
+								</div>
+								{/* Jour 66 : version anglaise, utilisée par le chatbot en anglais.
+								    Laissée vide, elle est remplie automatiquement côté serveur. */}
+								<div className="pt-4 border-t border-gray-100">
+									<div className="flex items-center justify-between mb-3">
+										<p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+											Version anglaise
+										</p>
+										<span className="text-[9px] text-gray-400">
+											Traduction automatique si vide
+										</span>
+									</div>
+									<div className="space-y-4">
+										<div>
+											<label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5">
+												Question (anglais)
+											</label>
+											<input
+												type="text"
+												value={formData.questionEn}
+												onChange={(e) =>
+													setFormData({
+														...formData,
+														questionEn: e.target.value,
+													})
+												}
+												className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
+												placeholder="Ex: What are the delivery times?"
+											/>
+										</div>
+										<div>
+											<label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5">
+												Réponse (anglais)
+											</label>
+											<textarea
+												rows="3"
+												value={formData.answerEn}
+												onChange={(e) =>
+													setFormData({
+														...formData,
+														answerEn: e.target.value,
+													})
+												}
+												className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all resize-none"
+												placeholder="The chatbot answer in English..."
+											/>
+										</div>
+										<div>
+											<label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1.5">
+												Mots-clés (anglais, séparés par virgule)
+											</label>
+											<input
+												type="text"
+												value={formData.keywordsEn}
+												onChange={(e) =>
+													setFormData({
+														...formData,
+														keywordsEn: e.target.value,
+													})
+												}
+												className="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none transition-all"
+												placeholder="delivery time, delay, how long"
+											/>
+										</div>
 									</div>
 								</div>
 								<div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">

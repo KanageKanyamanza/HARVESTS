@@ -5,6 +5,28 @@ const { trainBot } = require("./chatBotController");
 const catchAsync = require("../../utils/catchAsync");
 const AppError = require("../../utils/appError");
 
+// Jour 66 : seuls ces champs sont acceptés depuis le back-office (évite
+// l'assignation en masse de propriétés arbitraires sur le document).
+const FAQ_FIELDS = [
+	"question",
+	"answer",
+	"questionEn",
+	"answerEn",
+	"category",
+	"keywords",
+	"keywordsEn",
+	"intent",
+	"isActive",
+];
+
+const pickFaqFields = (body = {}) =>
+	FAQ_FIELDS.reduce((fields, field) => {
+		if (Object.prototype.hasOwnProperty.call(body, field)) {
+			fields[field] = body[field];
+		}
+		return fields;
+	}, {});
+
 // --- Gestion des FAQs ---
 
 // Obtenir toutes les FAQs (admin)
@@ -14,10 +36,16 @@ exports.getFaqs = catchAsync(async (req, res, next) => {
 
 	const filter = {};
 	if (search) {
+		// Échappe les caractères de regex : une recherche « ? » ou « ( » ne doit
+		// pas faire échouer la requête Mongo (ni ouvrir la porte à un ReDoS).
+		const pattern = String(search).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 		filter.$or = [
-			{ question: { $regex: search, $options: "i" } },
-			{ answer: { $regex: search, $options: "i" } },
-			{ keywords: { $in: [new RegExp(search, "i")] } },
+			{ question: { $regex: pattern, $options: "i" } },
+			{ answer: { $regex: pattern, $options: "i" } },
+			{ questionEn: { $regex: pattern, $options: "i" } },
+			{ answerEn: { $regex: pattern, $options: "i" } },
+			{ keywords: { $in: [new RegExp(pattern, "i")] } },
+			{ keywordsEn: { $in: [new RegExp(pattern, "i")] } },
 		];
 	}
 	if (category && category !== "all") {
@@ -45,7 +73,9 @@ exports.getFaqs = catchAsync(async (req, res, next) => {
 
 // Créer une FAQ
 exports.createFaq = catchAsync(async (req, res, next) => {
-	const newFaq = await Faq.create(req.body);
+	// save() (via Faq.create) déclenche le hook pre-validate qui complète les
+	// champs anglais manquants (Jour 66).
+	const newFaq = await Faq.create(pickFaqFields(req.body));
 
 	// Ré-entraîner le bot en arrière-plan
 	trainBot().catch((err) => console.error("Auto-training failed:", err));
@@ -58,14 +88,16 @@ exports.createFaq = catchAsync(async (req, res, next) => {
 
 // Modifier une FAQ
 exports.updateFaq = catchAsync(async (req, res, next) => {
-	const faq = await Faq.findByIdAndUpdate(req.params.id, req.body, {
-		new: true,
-		runValidators: true,
-	});
+	const faq = await Faq.findById(req.params.id);
 
 	if (!faq) {
 		return next(new AppError("chat.faq_not_found", 404));
 	}
+
+	Object.assign(faq, pickFaqFields(req.body));
+	// save() plutôt que findByIdAndUpdate : seul save() déclenche le hook
+	// pre-validate de traduction anglaise (Jour 66).
+	await faq.save();
 
 	// Ré-entraîner le bot
 	trainBot().catch((err) => console.error("Auto-training failed:", err));
