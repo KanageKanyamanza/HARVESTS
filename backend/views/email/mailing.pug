@@ -1,5 +1,5 @@
 doctype html
-html(lang='fr')
+html(lang=lang)
   head
     meta(charset='UTF-8')
     meta(name='viewport', content='width=device-width, initial-scale=1.0')
@@ -122,11 +122,11 @@ html(lang='fr')
     .email-container
       .header
         .logo
-          img(src=logoUrl, alt='Harvests Logo')
+          img(src=logoUrl, alt=t('email.common.logo_alt'))
         .brand-name HARVESTS
       
       .content
-        .greeting Bonjour #{firstName},
+        .greeting= t('email.mailing.greeting', { firstName })
         
         .message
           //- Here we render the HTML content passed from the composer
@@ -134,22 +134,19 @@ html(lang='fr')
           div !{content}
         
         .signature
-          p Cordialement,
-          p.signature-name L'équipe HARVESTS
+          p= t('email.mailing.signature')
+          p.signature-name= t('email.mailing.signature_name')
       
       .footer
         .footer-links
-          a(href=`${url}/about`) À PROPOS
+          a(href=`${url}/about`)= t('email.mailing.footer_about')
           span |
-          a(href=`${url}/contact`) CONTACT
+          a(href=`${url}/contact`)= t('email.mailing.footer_contact')
           span |
-          a(href=`${url}/privacy`) CONFIDENTIALITÉ
+          a(href=`${url}/privacy`)= t('email.mailing.footer_privacy')
         
-        .footer-contact
-          | HARVESTS Sénégal - Connectons l'Afrique à travers l'agriculture
+        .footer-contact= t('email.mailing.footer_tagline')
         
-        .footer-contact
-          | Questions ? 📞 +221 78 834 69 69 | 📧 contact@harvests.site
+        .footer-contact= t('email.mailing.footer_help')
         
-        div
-          | &copy; #{new Date().getFullYear()} Harvests. Tous droits réservés.
+        div= t('email.mailing.footer_rights', { year })

@@ -211,6 +211,45 @@
     "refunded": "Payment refunded",
     "cancelled": "Payment cancelled"
   },
+  "newsletter": {
+    "email_required": "Please provide an email address.",
+    "already_subscribed": "You are already subscribed to our newsletter.",
+    "subscribed": "Thank you for subscribing to our newsletter!",
+    "email_required_unsubscribe": "Email missing for unsubscription.",
+    "unsubscribed": "You have been unsubscribed successfully.",
+    "not_found": "Newsletter not found",
+    "already_sent": "This newsletter has already been sent.",
+    "no_active_subscribers": "No active subscriber found for the selected send.",
+    "queued": "{{count}} emails added to the sending queue."
+  },
+  "subscription": {
+    "not_found": "Subscription not found",
+    "access_denied": "You do not have access to this subscription",
+    "plan_required": "Plan and billing period required",
+    "invalid_plan": "Invalid plan",
+    "already_active": "You already have an active subscription",
+    "amount_mismatch": "Incorrect amount",
+    "free_plan_only": "Only the free plan can be activated without payment",
+    "free_plan_activated": "Free plan activated successfully",
+    "cancelled": "Subscription cancelled successfully",
+    "not_active": "Only active subscriptions can be renewed",
+    "renewed": "Subscription renewed successfully"
+  },
+  "contact": {
+    "fields_required": "All fields are required",
+    "invalid_email": "Invalid email address",
+    "email_unavailable": "Email configuration unavailable",
+    "sent": "Your message was sent successfully. We will reply as soon as possible.",
+    "send_failed": "An error occurred while sending the message. Please try again later."
+  },
+  "mailing_contact": {
+    "invalid_import": "Invalid import data",
+    "imported": "{{imported}} contacts imported, {{updated}} updated.",
+    "not_found": "Contact not found",
+    "no_recipients": "No recipient selected",
+    "subject_message_required": "Subject and message are required",
+    "queued": "{{count}} emails added to the queue."
+  },
   "notification": {
     "sent": "Notification sent",
     "marked_read": "Notification marked as read",
@@ -430,7 +469,13 @@
       "verify_email": "Verify your email address",
       "password_reset": "Reset your password",
       "order_confirmation": "Order confirmation",
-      "order_status_update": "Order status update"
+      "order_status_update": "Order status update",
+      "account_approval": "Your Harvests account has been approved!",
+      "account_rejection": "Update on your Harvests account application",
+      "delivery_notification": "Your order is on its way!",
+      "incomplete_profile": "Action required: complete your Harvests profile",
+      "subscription_expired": "Your Harvests subscription has expired",
+      "subscription_expiring": "Your Harvests subscription is expiring soon"
     },
     "greetings": {
       "dear": "Dear",
@@ -439,6 +484,207 @@
     "closings": {
       "best_regards": "Best regards",
       "team": "The Harvests Team"
+    },
+    "common": {
+      "logo_alt": "Harvests logo",
+      "footer_tagline": "African agricultural platform - Connecting Africa through agriculture",
+      "footer_tagline_security": "African agricultural platform - Your security is our priority",
+      "footer_questions": "Questions? Contact us:",
+      "footer_urgent_support": "Urgent support:",
+      "footer_phone": "📞 Senegal:",
+      "footer_email": "📧 Email:",
+      "footer_rights": "© {{year}} Harvests. All rights reserved. | Dakar, Senegal",
+      "link_fallback": "If the button doesn't work, copy and paste this link into your browser:"
+    },
+    "welcome": {
+      "title": "Welcome to Harvests!",
+      "subtitle": "The leading African agricultural platform",
+      "greeting": "Hello {{firstName}},",
+      "intro": "Congratulations! Your Harvests account has been created successfully. You are joining a dynamic community of producers, processors and consumers who are transforming African agriculture.",
+      "verify_prompt": "To activate your account and start exploring everything Harvests has to offer, please verify your email address by clicking the button below:",
+      "cta": "Verify my email",
+      "warning_title": "Important",
+      "warning_text": "This verification link expires in 24 hours. If you don't use it in time, you will need to request a new verification link from the login page.",
+      "profile_title": "Complete your profile",
+      "profile_intro": "To keep sign-up simple, we only asked for the bare minimum. To place orders or sell on Harvests, please complete the following details in your profile the first time you sign in:",
+      "profile_items": [
+        "Your phone number (required for delivery tracking)",
+        "Your country and city",
+        "Your business details (farm, company or restaurant)"
+      ],
+      "features_title": "Once your account is activated, you will be able to:",
+      "features": [
+        "Access your personalized dashboard",
+        "Publish and manage your agricultural products",
+        "Connect with other players in the sector",
+        "Use our advanced management tools",
+        "Receive personalized notifications",
+        "Access our premium marketplace"
+      ],
+      "ignore": "If you didn't create a Harvests account, you can safely ignore this email. No action is required on your part."
+    },
+    "password_reset": {
+      "title": "Password reset",
+      "subtitle": "Harvests - Your account security",
+      "greeting": "Hello {{firstName}},",
+      "intro": "We received a request to reset the password of your Harvests account. This request was made from our platform.",
+      "prompt": "If you made this request, click the button below to create a new, secure password:",
+      "cta": "Reset my password",
+      "warning_title": "Security notice",
+      "warning_text": "This reset link expires in 1 hour to keep your account safe. Please act quickly!",
+      "security_title": "Protecting your account",
+      "security_text": "If you didn't request this reset, please ignore this email right away. Your current password remains unchanged and your account is secure.",
+      "tips_title": "Important security tips:",
+      "tips": [
+        "Never share this link with anyone",
+        "Use a strong, unique password (at least 8 characters)",
+        "Mix letters, numbers and special symbols",
+        "Enable two-factor authentication if available",
+        "Change your passwords regularly",
+        "Sign out of any devices you don't recognize"
+      ],
+      "support": "If you keep having trouble signing in, or you think your account has been compromised, contact our support team immediately."
+    },
+    "account_approval": {
+      "page_title": "Harvests account approved!",
+      "title": "Congratulations!",
+      "subtitle": "Your Harvests account is approved",
+      "greeting": "Hello {{firstName}},",
+      "box_title": "Account approved",
+      "box_text": "Your application to join Harvests as a partner has been reviewed and approved.",
+      "access": "You now have access to all the features reserved for professionals. You can start managing your business, publishing your products and connecting with other members of the community.",
+      "cta": "Go to my dashboard",
+      "closing": "We are delighted to have you with us and look forward to seeing your business grow on our platform."
+    },
+    "order_confirmation": {
+      "page_title": "Order confirmation",
+      "title": "Order confirmed!",
+      "subtitle": "Thank you for your purchase on Harvests",
+      "greeting": "Hello {{firstName}},",
+      "intro": "We have received your order and thank you for it. Here is a summary of your purchases.",
+      "order_title": "Order details",
+      "product_fallback": "Product",
+      "details_unavailable": "Details unavailable",
+      "total": "Total",
+      "cta": "Track my order",
+      "closing": "You will receive another email as soon as your order ships."
+    },
+    "incomplete_profile": {
+      "page_title": "Complete your profile",
+      "title": "Complete your profile",
+      "subtitle": "Improve your visibility on Harvests",
+      "greeting": "Hello {{firstName}},",
+      "intro": "We noticed that your Harvests profile is incomplete. To get the most out of our platform and inspire trust in your future partners, we recommend completing the missing information.",
+      "benefits_title": "Why have a complete profile?",
+      "benefits": [
+        "📈 Better visibility in search results",
+        "🛡️ Greater trust from other users",
+        "✨ Access to exclusive features",
+        "🚀 More business opportunities"
+      ],
+      "missing_title": "What is missing from your profile:",
+      "closing": "It only takes a few minutes and can make all the difference for your business.",
+      "cta": "Complete my profile now",
+      "help": "If you need help, feel free to contact us.",
+      "fields": {
+        "address": "Full address",
+        "farmInfo": "Farm information",
+        "certifications": "Certifications",
+        "businessInfo": "Business information",
+        "equipment": "Equipment",
+        "restaurantInfo": "Restaurant information",
+        "menuCategories": "Menu categories",
+        "exportCertifications": "Export licences",
+        "fleet": "Vehicle fleet",
+        "bio": "Biography",
+        "city": "City",
+        "avatar": "Profile picture"
+      }
+    },
+    "subscription_expired": {
+      "page_title": "Subscription expired",
+      "title": "Your subscription has expired",
+      "subtitle": "Reactivate your benefits",
+      "greeting": "Hello {{firstName}},",
+      "expired_text": "Your subscription to the {{planName}} plan expired on {{endDate}}.",
+      "restricted": "Your account has been temporarily restricted to free features. The following benefits are now disabled:",
+      "benefits": [
+        "Increased visibility on the platform",
+        "Access to advanced statistics",
+        "Priority support"
+      ],
+      "renew_prompt": "Don't lose your history and your positioning! Renew your subscription to reactivate all your services immediately.",
+      "cta": "Reactivate my subscription",
+      "help": "If you believe this is a mistake, please contact support."
+    },
+    "subscription_expiring": {
+      "page_title": "Subscription expiring soon",
+      "title": "Your subscription is expiring soon",
+      "subtitle": "Renew to keep your benefits",
+      "greeting": "Hello {{firstName}},",
+      "expiring_text": "Your subscription to the {{planName}} plan is about to expire.",
+      "days_left": "You have less than {{daysLeft}} days left to enjoy your exclusive benefits on Harvests.",
+      "days_left_one": "You have less than a day left to enjoy your exclusive benefits on Harvests.",
+      "expiry_label": "Expiry date",
+      "status_label": "Current status",
+      "status_active": "Active",
+      "renew_prompt": "To avoid any interruption of service, we invite you to renew your subscription now.",
+      "cta": "Renew my subscription",
+      "auto_renew_note": "If you have enabled automatic renewal, you do not need to do anything."
+    },
+    "mailing": {
+      "page_title": "Harvests message",
+      "greeting": "Hello {{firstName}},",
+      "signature": "Best regards,",
+      "signature_name": "The Harvests Team",
+      "footer_about": "ABOUT",
+      "footer_contact": "CONTACT",
+      "footer_privacy": "PRIVACY",
+      "footer_tagline": "HARVESTS Senegal - Connecting Africa through agriculture",
+      "footer_help": "Questions? 📞 +221 78 834 69 69 | 📧 contact@harvests.site",
+      "footer_rights": "© {{year}} Harvests. All rights reserved."
+    },
+    "account_rejection": {
+      "page_title": "Your Harvests account application",
+      "title": "Account application not approved",
+      "subtitle": "A note about your application",
+      "greeting": "Hello {{firstName}},",
+      "intro": "We have reviewed your Harvests account application and are unable to approve it at this time.",
+      "reason_label": "Reason given:",
+      "reason_fallback": "No reason was provided.",
+      "next_steps": "You can contact us if you would like more details, or apply again once the information has been completed.",
+      "cta": "Contact the Harvests team",
+      "closing": "Thank you for your interest in Harvests."
+    },
+    "delivery_notification": {
+      "page_title": "Your order is on its way",
+      "title": "Your order is on its way!",
+      "subtitle": "Track your delivery",
+      "greeting": "Hello {{firstName}},",
+      "intro": "Good news: your order has been handed over to our delivery team.",
+      "order_label": "Order",
+      "status_label": "Status",
+      "tracking_label": "Tracking number",
+      "estimated_label": "Estimated delivery",
+      "address_label": "Delivery address",
+      "cta": "Track my order",
+      "closing": "Thank you for your trust.",
+      "statuses": {
+        "pending": "Pending",
+        "confirmed": "Confirmed",
+        "picked_up": "Picked up",
+        "in_transit": "In transit",
+        "out_for_delivery": "Out for delivery",
+        "delivered": "Delivered",
+        "failed": "Delivery failed",
+        "returned": "Returned"
+      }
+    },
+    "notification": {
+      "page_title": "Harvests notification",
+      "greeting": "Hello {{firstName}},",
+      "cta": "View details",
+      "closing": "You are receiving this email because email notifications are enabled on your Harvests account."
     }
   },
   "countries": {

@@ -1,5 +1,5 @@
 doctype html
-html(lang='fr')
+html(lang=lang)
   head
     meta(charset='UTF-8')
     meta(name='viewport', content='width=device-width, initial-scale=1.0')
@@ -243,64 +243,59 @@ html(lang='fr')
     .email-container
       .header
         .logo
-          img(src=logoUrl, alt='Harvests Logo', style='width: 100%; height: 100%; object-fit: contain;')
-        .title Bienvenue sur Harvests !
-        .subtitle La plateforme agricole africaine de référence
-      
+          img(src=logoUrl, alt=t('email.common.logo_alt'), style='width: 100%; height: 100%; object-fit: contain;')
+        .title= t('email.welcome.title')
+        .subtitle= t('email.welcome.subtitle')
+
       .content
-        .greeting Bonjour #{firstName},
-        
+        .greeting= t('email.welcome.greeting', { firstName })
+
         .message
-          p Félicitations ! Votre compte Harvests a été créé avec succès. Vous rejoignez une communauté dynamique de producteurs, transformateurs et consommateurs qui transforment l'agriculture africaine.
-        
+          p= t('email.welcome.intro')
+
         .message
-          p Pour activer votre compte et commencer à explorer toutes les fonctionnalités de Harvests, veuillez vérifier votre adresse email en cliquant sur le bouton ci-dessous :
-        
+          p= t('email.welcome.verify_prompt')
+
         .cta-container
-          a.cta-button(href=url) Vérifier mon email
-        
+          a.cta-button(href=url)= t('email.welcome.cta')
+
         .warning
-          .warning-title Important
-          .warning-text Ce lien de vérification expire dans 24 heures. Si vous ne l'utilisez pas à temps, vous devrez demander un nouveau lien de vérification depuis la page de connexion.
-        
+          .warning-title= t('email.welcome.warning_title')
+          .warning-text= t('email.welcome.warning_text')
+
         .profile-notice
-          .profile-notice-title Complétez votre profil
+          .profile-notice-title= t('email.welcome.profile_title')
           .profile-notice-text
-            | Afin de simplifier votre inscription, nous n'avons demandé que le strict minimum. Pour pouvoir passer des commandes ou vendre sur Harvests, veuillez compléter les informations suivantes dans votre profil dès votre première connexion :
+            = t('email.welcome.profile_intro')
             ul
-              li Votre numéro de téléphone (requis pour le suivi de livraison)
-              li Votre pays et ville de localisation
-              li Vos informations métier spécifiques (ferme, entreprise ou restaurant)
-        
+              each item in t('email.welcome.profile_items')
+                li= item
+
         .link-fallback
-          | Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :
+          = t('email.common.link_fallback')
           br
           | #{url}
-        
+
         .features
-          h3 Une fois votre compte activé, vous pourrez :
+          h3= t('email.welcome.features_title')
           ul
-            li Accéder à votre tableau de bord personnalisé
-            li Publier et gérer vos produits agricoles
-            li Connecter avec d'autres acteurs du secteur
-            li Bénéficier de nos outils de gestion avancés
-            li Recevoir des notifications personnalisées
-            li Accéder à notre marketplace premium
-        
+            each item in t('email.welcome.features')
+              li= item
+
         .message
-          p Si vous n'avez pas créé de compte sur Harvests, vous pouvez ignorer cet email en toute sécurité. Aucune action n'est requise de votre part.
-      
+          p= t('email.welcome.ignore')
+
       .footer
         .footer-brand 🌱 Harvests
         .footer-contact
-          | Plateforme agricole africaine - Connectons l'Afrique à travers l'agriculture
+          | #{t('email.common.footer_tagline')}
         .footer-contact
-          | Questions ? Contactez-nous :
+          | #{t('email.common.footer_questions')}
         .footer-contact
-          | 📞 Sénégal :
+          | #{t('email.common.footer_phone')} 
           a(href='tel:+221788346969') +221 78 834 69 69
         .footer-contact
-          | 📧 Email : 
+          | #{t('email.common.footer_email')} 
           a(href='mailto:contact@harvests.site') contact@harvests.site
         .footer-contact
-          | © 2025 Harvests. Tous droits réservés. | Dakar, Sénégal
+          | #{t('email.common.footer_rights', { year })}

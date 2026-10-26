@@ -40,7 +40,7 @@ exports.getSubscription = catchAsync(async (req, res, next) => {
 		.populate("payment", "paymentId status amount currency method");
 
 	if (!subscription) {
-		return next(new AppError("Souscription non trouvée", 404));
+		return next(new AppError("subscription.not_found", 404));
 	}
 
 	// Vérifier que l'utilisateur peut accéder à cette souscription
@@ -49,7 +49,7 @@ exports.getSubscription = catchAsync(async (req, res, next) => {
 		req.user.role !== "admin"
 	) {
 		return next(
-			new AppError("Vous n'avez pas accès à cette souscription", 403)
+			new AppError("subscription.access_denied", 403)
 		);
 	}
 
@@ -66,14 +66,14 @@ exports.createSubscription = catchAsync(async (req, res, next) => {
 	const { planId, billingPeriod, paymentMethod, amount, currency } = req.body;
 
 	if (!planId || !billingPeriod) {
-		return next(new AppError("Plan et période de facturation requis", 400));
+		return next(new AppError("subscription.plan_required", 400));
 	}
 
 	const plans = Subscription.getAvailablePlans();
 	const plan = plans[planId];
 
 	if (!plan) {
-		return next(new AppError("Plan invalide", 400));
+		return next(new AppError("subscription.invalid_plan", 400));
 	}
 
 	// Vérifier si l'utilisateur a déjà une souscription active
@@ -83,14 +83,14 @@ exports.createSubscription = catchAsync(async (req, res, next) => {
 	});
 
 	if (existingActive) {
-		return next(new AppError("Vous avez déjà une souscription active", 400));
+		return next(new AppError("subscription.already_active", 400));
 	}
 
 	const expectedAmount =
 		billingPeriod === "monthly" ? plan.monthlyPrice : plan.annualPrice;
 
 	if (amount !== expectedAmount) {
-		return next(new AppError("Montant incorrect", 400));
+		return next(new AppError("subscription.amount_mismatch", 400));
 	}
 
 	// Créer la souscription
@@ -122,9 +122,7 @@ exports.activateFreePlan = catchAsync(async (req, res, next) => {
 	const { planId } = req.body;
 
 	if (planId !== "gratuit") {
-		return next(
-			new AppError("Seul le plan gratuit peut être activé sans paiement", 400)
-		);
+		return next(new AppError("subscription.free_plan_only", 400));
 	}
 
 	// Vérifier si l'utilisateur a déjà une souscription active
@@ -134,7 +132,7 @@ exports.activateFreePlan = catchAsync(async (req, res, next) => {
 	});
 
 	if (existingActive) {
-		return next(new AppError("Vous avez déjà une souscription active", 400));
+		return next(new AppError("subscription.already_active", 400));
 	}
 
 	const plans = Subscription.getAvailablePlans();
@@ -153,13 +151,7 @@ exports.activateFreePlan = catchAsync(async (req, res, next) => {
 		autoRenew: false,
 	});
 
-	res.status(201).json({
-		status: "success",
-		message: "Plan gratuit activé avec succès",
-		data: {
-			subscription,
-		},
-	});
+	return res.success("subscription.free_plan_activated", { subscription }, 201);
 });
 
 // Mettre à jour une souscription
@@ -167,7 +159,7 @@ exports.updateSubscription = catchAsync(async (req, res, next) => {
 	const subscription = await Subscription.findById(req.params.id);
 
 	if (!subscription) {
-		return next(new AppError("Souscription non trouvée", 404));
+		return next(new AppError("subscription.not_found", 404));
 	}
 
 	// Vérifier les permissions
@@ -176,7 +168,7 @@ exports.updateSubscription = catchAsync(async (req, res, next) => {
 		req.user.role !== "admin"
 	) {
 		return next(
-			new AppError("Vous n'avez pas accès à cette souscription", 403)
+			new AppError("subscription.access_denied", 403)
 		);
 	}
 
@@ -203,7 +195,7 @@ exports.cancelSubscription = catchAsync(async (req, res, next) => {
 	const subscription = await Subscription.findById(req.params.id);
 
 	if (!subscription) {
-		return next(new AppError("Souscription non trouvée", 404));
+		return next(new AppError("subscription.not_found", 404));
 	}
 
 	// Vérifier les permissions
@@ -212,7 +204,7 @@ exports.cancelSubscription = catchAsync(async (req, res, next) => {
 		req.user.role !== "admin"
 	) {
 		return next(
-			new AppError("Vous n'avez pas accès à cette souscription", 403)
+			new AppError("subscription.access_denied", 403)
 		);
 	}
 
@@ -224,13 +216,7 @@ exports.cancelSubscription = catchAsync(async (req, res, next) => {
 
 	await subscription.save();
 
-	res.status(200).json({
-		status: "success",
-		message: "Souscription annulée avec succès",
-		data: {
-			subscription,
-		},
-	});
+	return res.success("subscription.cancelled", { subscription });
 });
 
 // Renouveler une souscription
@@ -238,16 +224,11 @@ exports.renewSubscription = catchAsync(async (req, res, next) => {
 	const subscription = await Subscription.findById(req.params.id);
 
 	if (!subscription) {
-		return next(new AppError("Souscription non trouvée", 404));
+		return next(new AppError("subscription.not_found", 404));
 	}
 
 	if (subscription.status !== "active") {
-		return next(
-			new AppError(
-				"Seules les souscriptions actives peuvent être renouvelées",
-				400
-			)
-		);
+		return next(new AppError("subscription.not_active", 400));
 	}
 
 	// Calculer la nouvelle date de fin
@@ -256,13 +237,7 @@ exports.renewSubscription = catchAsync(async (req, res, next) => {
 
 	await subscription.save();
 
-	res.status(200).json({
-		status: "success",
-		message: "Souscription renouvelée avec succès",
-		data: {
-			subscription,
-		},
-	});
+	return res.success("subscription.renewed", { subscription });
 });
 
 // Obtenir l'historique des paiements d'une souscription
@@ -270,7 +245,7 @@ exports.getSubscriptionPayments = catchAsync(async (req, res, next) => {
 	const subscription = await Subscription.findById(req.params.id);
 
 	if (!subscription) {
-		return next(new AppError("Souscription non trouvée", 404));
+		return next(new AppError("subscription.not_found", 404));
 	}
 
 	// Vérifier les permissions
@@ -279,7 +254,7 @@ exports.getSubscriptionPayments = catchAsync(async (req, res, next) => {
 		req.user.role !== "admin"
 	) {
 		return next(
-			new AppError("Vous n'avez pas accès à cette souscription", 403)
+			new AppError("subscription.access_denied", 403)
 		);
 	}
 
@@ -455,7 +430,7 @@ exports.updateSubscriptionStatus = catchAsync(async (req, res, next) => {
 	const subscription = await Subscription.findById(req.params.id);
 
 	if (!subscription) {
-		return next(new AppError("Souscription non trouvée", 404));
+		return next(new AppError("subscription.not_found", 404));
 	}
 
 	if (status) {

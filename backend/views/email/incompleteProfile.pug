@@ -1,9 +1,9 @@
 doctype html
-html(lang='fr')
+html(lang=lang)
   head
     meta(charset='UTF-8')
     meta(name='viewport', content='width=device-width, initial-scale=1.0')
-    title= subject
+    title= t('email.incomplete_profile.page_title')
     style.
       * {
         margin: 0;
@@ -179,51 +179,49 @@ html(lang='fr')
     .email-container
       .header
         .logo
-          img(src=logoUrl, alt='Harvests Logo', style='width: 100%; height: 100%; object-fit: contain;')
-        .title Complétez votre profil
-        .subtitle Optimisez votre visibilité sur Harvests
+          img(src=logoUrl, alt=t('email.common.logo_alt'), style='width: 100%; height: 100%; object-fit: contain;')
+        .title= t('email.incomplete_profile.title')
+        .subtitle= t('email.incomplete_profile.subtitle')
       
       .content
-        .greeting Bonjour #{firstName},
+        .greeting= t('email.incomplete_profile.greeting', { firstName })
         
         .message
-          p Nous avons remarqué que votre profil sur Harvests est incomplet. Pour tirer le meilleur parti de notre plateforme et inspirer confiance à vos futurs partenaires, nous vous recommandons de compléter les informations manquantes.
+          p= t('email.incomplete_profile.intro')
         
         .features
-          h3 Pourquoi avoir un profil complet ?
+          h3= t('email.incomplete_profile.benefits_title')
           ul
-            li 📈 Meilleure visibilité dans les résultats de recherche
-            li 🛡️ Confiance accrue auprès des autres utilisateurs
-            li ✨ Accès à des fonctionnalités exclusives
-            li 🚀 Plus d'opportunités d'affaires
+            each item in t('email.incomplete_profile.benefits')
+              li= item
         
         if missingFields && missingFields.length > 0
           .features
-            h3(style="color: #c2410c; margin-bottom: 12px;") Ce qu'il manque à votre profil :
+            h3(style="color: #c2410c; margin-bottom: 12px;")= t('email.incomplete_profile.missing_title')
             ul
               each field in missingFields
                 li(style="color: #9a3412;")= field
 
         .message
-          p Cela ne prend que quelques minutes et peut faire toute la différence pour votre activité.
+          p= t('email.incomplete_profile.closing')
         
         .cta-container
-          a.cta-button(href=url) Compléter mon profil maintenant
+          a.cta-button(href=url)= t('email.incomplete_profile.cta')
         
         .message
-          p Si vous avez besoin d'aide, n'hésitez pas à nous contacter.
+          p= t('email.incomplete_profile.help')
       
       .footer
         .footer-brand 🌱 Harvests
         .footer-contact
-          | Plateforme agricole africaine - Connectons l'Afrique à travers l'agriculture
+          | #{t('email.common.footer_tagline')}
         .footer-contact
-          | Questions ? Contactez-nous :
+          | #{t('email.common.footer_questions')}
         .footer-contact
-          | 📞 Sénégal :
+          | #{t('email.common.footer_phone')} 
           a(href='tel:+221788346969') +221 78 834 69 69
         .footer-contact
-          | 📧 Email : 
+          | #{t('email.common.footer_email')} 
           a(href='mailto:contact@harvests.site') contact@harvests.site
         .footer-contact
-          | © #{new Date().getFullYear()} Harvests. Tous droits réservés. | Dakar, Sénégal
+          | #{t('email.common.footer_rights', { year })}

@@ -9,7 +9,7 @@ exports.subscribe = catchAsync(async (req, res, next) => {
 	const { email } = req.body;
 
 	if (!email) {
-		return next(new AppError("Veuillez fournir une adresse email.", 400));
+		return next(new AppError("newsletter.email_required", 400));
 	}
 
 	let subscriber = await NewsletterSubscriber.findOne({ email });
@@ -22,10 +22,7 @@ exports.subscribe = catchAsync(async (req, res, next) => {
 			await subscriber.save();
 			isNewSubscription = true; // Treated as new sub for welcome email
 		} else {
-			return res.status(200).json({
-				status: "success",
-				message: "Vous êtes déjà abonné à notre newsletter.",
-			});
+			return res.success("newsletter.already_subscribed");
 		}
 	} else {
 		subscriber = await NewsletterSubscriber.create({ email });
@@ -65,10 +62,7 @@ exports.subscribe = catchAsync(async (req, res, next) => {
 		}
 	}
 
-	res.status(200).json({
-		status: "success",
-		message: "Merci de vous être abonné à notre newsletter !",
-	});
+	return res.success("newsletter.subscribed");
 });
 
 // Public: Unsubscribe
@@ -76,7 +70,7 @@ exports.unsubscribe = catchAsync(async (req, res, next) => {
 	const { email } = req.query; // Or req.body, but links usually use query
 
 	if (!email) {
-		return next(new AppError("Email manquant pour la désinscription.", 400));
+		return next(new AppError("newsletter.email_required_unsubscribe", 400));
 	}
 
 	const subscriber = await NewsletterSubscriber.findOne({ email });
@@ -87,10 +81,7 @@ exports.unsubscribe = catchAsync(async (req, res, next) => {
 		await subscriber.save();
 	}
 
-	res.status(200).json({
-		status: "success",
-		message: "Vous avez été désabonné avec succès.",
-	});
+	return res.success("newsletter.unsubscribed");
 });
 
 // Admin: Get all subscribers
@@ -149,7 +140,7 @@ exports.updateNewsletter = catchAsync(async (req, res, next) => {
 	);
 
 	if (!newsletter) {
-		return next(new AppError("Newsletter non trouvée", 404));
+		return next(new AppError("newsletter.not_found", 404));
 	}
 
 	res.status(200).json({
@@ -217,13 +208,13 @@ exports.sendNewsletter = catchAsync(async (req, res, next) => {
 
 	const newsletter = await Newsletter.findById(id);
 	if (!newsletter) {
-		return next(new AppError("Newsletter non trouvée", 404));
+		return next(new AppError("newsletter.not_found", 404));
 	}
 
 	// If no specific recipients are selected, enforce status check
 	if (!recipients || recipients.length === 0) {
 		if (newsletter.status === "sent") {
-			return next(new AppError("Cette newsletter a déjà été envoyée.", 400));
+			return next(new AppError("newsletter.already_sent", 400));
 		}
 	}
 
@@ -241,9 +232,7 @@ exports.sendNewsletter = catchAsync(async (req, res, next) => {
 	}
 
 	if (subscribers.length === 0) {
-		return next(
-			new AppError("Aucun abonné actif trouvé pour l'envoi sélectionné.", 400)
-		);
+		return next(new AppError("newsletter.no_active_subscribers", 400));
 	}
 
 	// Get frontend URL for links
@@ -290,9 +279,5 @@ exports.sendNewsletter = catchAsync(async (req, res, next) => {
 
 	await newsletter.save();
 
-	res.status(200).json({
-		status: "success",
-		message: `${count} emails ajoutés à la file d'attente d'envoi.`,
-		data: { newsletter },
-	});
+	return res.success("newsletter.queued", { newsletter }, 200, { count });
 });

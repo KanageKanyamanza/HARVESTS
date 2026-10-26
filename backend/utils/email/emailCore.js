@@ -4,6 +4,25 @@ const addEmailTransportMethods = require("./emailTransport");
 
 // Méthode principale d'envoi d'email
 function addEmailCoreMethods(EmailClass) {
+	// Rend un gabarit pug dans la langue de l'e-mail (clés fr/en de locales/*.json)
+	EmailClass.prototype.renderTemplate = function (template, subject, data = {}) {
+		const frontendUrl = process.env.FRONTEND_URL || "https://www.harvests.site";
+		const logoUrl = `${frontendUrl}/logo.png`;
+		return pug.renderFile(
+			`${__dirname}/../../views/email/${template}.pug`,
+			{
+				firstName: this.firstName,
+				url: this.url,
+				subject,
+				logoUrl,
+				t: this.t,
+				lang: this.language,
+				year: new Date().getFullYear(),
+				...data,
+			},
+		);
+	};
+
 	// Envoyer l'email avec fallback EmailJS (si configuré)
 	EmailClass.prototype.send = async function (template, subject, data = {}) {
 		const isProduction = process.env.NODE_ENV === "production";
@@ -20,18 +39,7 @@ function addEmailCoreMethods(EmailClass) {
 		}
 
 		// 1) Générer le HTML basé sur un template pug
-		const frontendUrl = process.env.FRONTEND_URL || "https://www.harvests.site";
-		const logoUrl = `${frontendUrl}/logo.png`;
-		const html = pug.renderFile(
-			`${__dirname}/../../views/email/${template}.pug`,
-			{
-				firstName: this.firstName,
-				url: this.url,
-				subject,
-				logoUrl,
-				...data,
-			},
-		);
+		const html = this.renderTemplate(template, subject, data);
 
 		const text = htmlToText.convert(html);
 

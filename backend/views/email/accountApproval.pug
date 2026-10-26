@@ -1,9 +1,9 @@
 doctype html
-html(lang='fr')
+html(lang=lang)
   head
     meta(charset='UTF-8')
     meta(name='viewport', content='width=device-width, initial-scale=1.0')
-    title Compte Harvests Approuvé !
+    title= t('email.account_approval.page_title')
     style.
       * {
         margin: 0;
@@ -166,38 +166,37 @@ html(lang='fr')
     .email-container
       .header
         .logo
-          img(src=logoUrl, alt='Harvests Logo')
-        .title Félicitations !
-        .subtitle Votre compte Harvests est approuvé
-      
+          img(src=logoUrl, alt=t('email.common.logo_alt'))
+        .title= t('email.account_approval.title')
+        .subtitle= t('email.account_approval.subtitle')
+
       .content
-        .greeting Bonjour #{firstName},
-        
+        .greeting= t('email.account_approval.greeting', { firstName })
+
         .success-box
-          .success-title Compte Validé
-          .message(style="margin-bottom: 0; color: #166534;")
-             | Votre demande d'adhésion en tant que partenaire sur Harvests a été examinée et approuvée avec succès.
-        
+          .success-title= t('email.account_approval.box_title')
+          .message(style="margin-bottom: 0; color: #166534;")= t('email.account_approval.box_text')
+
         .message
-          p Vous avez désormais accès à l'ensemble des fonctionnalités réservées aux professionnels. Vous pouvez commencer à gérer votre activité, publier vos produits et échanger avec les autres membres de la communauté.
-        
+          p= t('email.account_approval.access')
+
         .cta-container
-          a.cta-button(href=url + '/login') Accéder à mon tableau de bord
-        
+          a.cta-button(href=url + '/login')= t('email.account_approval.cta')
+
         .message
-          p Nous sommes ravis de vous compter parmi nous et nous nous réjouissons de voir votre activité grandir sur notre plateforme.
-      
+          p= t('email.account_approval.closing')
+
       .footer
         .footer-brand 🌱 Harvests
         .footer-contact
-          | Plateforme agricole africaine - Connectons l'Afrique à travers l'agriculture
+          | #{t('email.common.footer_tagline')}
         .footer-contact
-          | Questions ? Contactez-nous :
+          | #{t('email.common.footer_questions')}
         .footer-contact
-          | 📞 Sénégal :
+          | #{t('email.common.footer_phone')} 
           a(href='tel:+221788346969') +221 78 834 69 69
         .footer-contact
-          | 📧 Email : 
+          | #{t('email.common.footer_email')} 
           a(href='mailto:contact@harvests.site') contact@harvests.site
         .footer-contact
-          | © 2025 Harvests. Tous droits réservés. | Dakar, Sénégal
+          | #{t('email.common.footer_rights', { year })}

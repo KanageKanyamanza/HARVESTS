@@ -18,7 +18,7 @@ try {
 const webpush = require("web-push");
 const cron = require("node-cron");
 const { info, error } = require("../config/logger");
-const emailService = require("../utils/email");
+const Email = require("../utils/email");
 
 // Configuration Firebase Admin SDK
 if (process.env.FIREBASE_PROJECT_ID && admin) {
@@ -227,21 +227,23 @@ class NotificationService {
 	// 📧 Envoyer notification par email
 	static async sendEmailNotification(user, notification, data = {}) {
 		try {
-			const emailData = {
-				to: user.email,
-				subject: notification.title,
-				template: notification.emailTemplate || "notification",
-				context: {
-					firstName: user.firstName,
-					title: notification.title,
-					body: notification.body,
-					actionUrl: notification.clickAction,
-					actionText: notification.actionText || "Voir détails",
-					...data,
-				},
-			};
+			const baseUrl =
+				process.env.FRONTEND_URL || "https://www.harvests.site";
+			const email = new Email(user, baseUrl);
 
-			await emailService.sendEmail(emailData);
+			// Certains types de notification ont un gabarit dédié ; les autres
+			// utilisent le gabarit générique (titre + message + bouton d'action).
+			switch (notification.emailTemplate) {
+				case "subscriptionExpired":
+					await email.sendSubscriptionExpired(data);
+					break;
+				case "subscriptionExpiring":
+					await email.sendSubscriptionExpiring(data);
+					break;
+				default:
+					await email.sendGenericNotification(notification);
+			}
+
 			info(`Email de notification envoyé à ${user.email}`);
 		} catch (err) {
 			error("Erreur envoi email notification:", err);
@@ -690,7 +692,9 @@ class NotificationService {
 						{
 							subscriptionId: sub._id.toString(),
 							planName: sub.planName,
-							endDate: sub.endDate.toLocaleDateString("fr-FR"),
+							endDate: sub.endDate.toLocaleDateString(
+								sub.user.preferredLanguage === "en" ? "en-GB" : "fr-FR",
+							),
 						},
 					);
 
@@ -760,7 +764,9 @@ class NotificationService {
 						{
 							daysLeft: days,
 							planName: sub.planName,
-							endDate: sub.endDate.toLocaleDateString("fr-FR"),
+							endDate: sub.endDate.toLocaleDateString(
+								sub.user.preferredLanguage === "en" ? "en-GB" : "fr-FR",
+							),
 						},
 					);
 				}

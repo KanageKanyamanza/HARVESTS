@@ -54,7 +54,7 @@ exports.getAllContacts = catchAsync(async (req, res, next) => {
 exports.bulkImport = catchAsync(async (req, res, next) => {
 	const { contacts } = req.body;
 	if (!contacts || !Array.isArray(contacts)) {
-		return next(new AppError("Données d'importation invalides", 400));
+		return next(new AppError("mailing_contact.invalid_import", 400));
 	}
 
 	let imported = 0;
@@ -98,7 +98,7 @@ exports.bulkImport = catchAsync(async (req, res, next) => {
 
 	res.status(200).json({
 		status: "success",
-		message: `${imported} contacts importés, ${updated} mis à jour.`,
+		message: req.t("mailing_contact.imported", { imported, updated }),
 		stats: { imported, updated, failed },
 	});
 });
@@ -108,7 +108,7 @@ exports.deleteContact = catchAsync(async (req, res, next) => {
 	const contact = await MailingContact.findByIdAndDelete(req.params.id);
 
 	if (!contact) {
-		return next(new AppError("Contact non trouvé", 404));
+		return next(new AppError("mailing_contact.not_found", 404));
 	}
 
 	res.status(204).json({
@@ -122,11 +122,11 @@ exports.sendBulkEmails = catchAsync(async (req, res, next) => {
 	const { emails, subject, message, userIds } = req.body;
 
 	if ((!emails || emails.length === 0) && (!userIds || userIds.length === 0)) {
-		return next(new AppError("Aucun destinataire sélectionné", 400));
+		return next(new AppError("mailing_contact.no_recipients", 400));
 	}
 
 	if (!subject || !message) {
-		return next(new AppError("Sujet et message obligatoires", 400));
+		return next(new AppError("mailing_contact.subject_message_required", 400));
 	}
 
 	const frontendUrl =
@@ -173,8 +173,5 @@ exports.sendBulkEmails = catchAsync(async (req, res, next) => {
         }
     }
 
-	res.status(200).json({
-		status: "success",
-		message: `${count} emails ajoutés à la file d'attente.`,
-	});
+	return res.success("mailing_contact.queued", {}, 200, { count });
 });
