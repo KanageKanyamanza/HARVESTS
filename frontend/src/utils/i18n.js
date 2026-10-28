@@ -98,6 +98,33 @@ const detectLanguage = () => {
 	return "fr";
 };
 
+// Jour 69 (PWA) : le manifeste est un fichier statique par langue
+// (public/manifest.json en français, public/manifest.en.json en anglais) — un
+// manifeste ne sait pas décrire plusieurs langues à la fois. On échange le
+// <link rel="manifest"> quand la langue change : le navigateur relit le
+// manifeste dès que son href change, et une PWA déjà installée rafraîchit son
+// nom/description au lancement suivant. index.html déclare le français par
+// défaut (langue de repli, Jour 33) en attendant que le JS prenne le relais.
+export const MANIFESTS_BY_LANGUAGE = {
+	fr: "/manifest.json",
+	en: "/manifest.en.json",
+};
+
+export const getManifestUrl = (language = "fr") =>
+	MANIFESTS_BY_LANGUAGE[language] || MANIFESTS_BY_LANGUAGE.fr;
+
+export const applyManifestLanguage = (language = "fr") => {
+	if (typeof document === "undefined") return;
+	const link = document.querySelector('link[rel="manifest"]');
+	if (!link) return;
+	const href = getManifestUrl(language);
+	// Comparaison sur le chemin : on ne réécrit pas l'attribut (et ne relance
+	// pas un téléchargement) quand la bonne langue est déjà en place.
+	if (new URL(link.href, window.location.href).pathname !== href) {
+		link.setAttribute("href", href);
+	}
+};
+
 // Configuration i18next
 i18n.use(initReactI18next).init({
 	resources,
@@ -152,6 +179,10 @@ const syncLanguageWithBackend = (language) => {
 // requête au chargement, le cookie n'est réécrit que s'il diffère).
 syncLanguageWithBackend(detectLanguage());
 
+// Jour 69 : même logique pour le manifeste PWA (français au chargement de
+// index.html, anglais si l'utilisateur a choisi l'anglais).
+applyManifestLanguage(detectLanguage());
+
 // Fonction utilitaire pour changer la langue
 export const changeLanguage = (language) => {
 	if (["fr", "en"].includes(language)) {
@@ -160,6 +191,10 @@ export const changeLanguage = (language) => {
 
 		// Mettre à jour l'attribut lang du document
 		document.documentElement.lang = language;
+
+		// Jour 69 : suit la langue pour le manifeste PWA (nom, description,
+		// raccourcis de l'application installée).
+		applyManifestLanguage(language);
 
 		syncLanguageWithBackend(language);
 	}

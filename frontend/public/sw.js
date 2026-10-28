@@ -3,6 +3,7 @@
 const CACHE_NAME = "harvests-mub2xfa5";
 const urlsToCache = [
 	"/manifest.json",
+	"/manifest.en.json",
 	"/logo.png",
 	"/favicon.ico",
 ];
