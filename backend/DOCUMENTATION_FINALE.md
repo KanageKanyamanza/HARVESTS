@@ -54,7 +54,6 @@
 ### **🇸🇳 Adaptation Sénégal (NOUVEAU)**
 
 - **`ADAPTATION_SENEGAL.md`** → Spécificités pays
-- **`config/senegal.js`** → Configuration locale
 - **`SENEGAL_WAVE_FINAL.md`** → Wave integration
 
 ### **📊 Services Enterprise (NOUVEAU)**

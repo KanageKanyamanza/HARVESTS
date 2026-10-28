@@ -228,17 +228,6 @@ export const getLanguageInfo = (lang = getCurrentLanguage()) => {
 	return languages[lang] || languages.fr;
 };
 
-// Hook personnalisé pour la traduction (alternative à useTranslation)
-export const useHarvestsTranslation = () => {
-	return {
-		t: i18n.t.bind(i18n),
-		i18n,
-		language: getCurrentLanguage(),
-		changeLanguage,
-		getLanguageInfo: () => getLanguageInfo(getCurrentLanguage()),
-	};
-};
-
 // Configuration des formats selon la langue/région
 export const getLocaleConfig = (language = getCurrentLanguage()) => {
 	const configs = {

@@ -8,7 +8,6 @@ import {
 	DollarSign,
 	Shield,
 	Star,
-	MessageSquare,
 	Activity,
 	Globe,
 	Truck,
@@ -120,37 +119,3 @@ export const createMarketplaceStats = (stats) => [
 	},
 ];
 
-export const createQuickActions = (stats) => [
-	{
-		title: "Produits en attente",
-		value: stats.pendingProducts,
-		icon: Package,
-		color: "text-orange-500",
-		action: "Examiner",
-		link: "/admin/products",
-	},
-	{
-		title: "Avis à modérer",
-		value: stats.pendingReviews,
-		icon: Star,
-		color: "text-yellow-500",
-		action: "Modérer",
-		link: "/admin/reviews",
-	},
-	{
-		title: "Messages non lus",
-		value: stats.unreadMessages,
-		icon: MessageSquare,
-		color: "text-blue-500",
-		action: "Répondre",
-		link: "/admin/messages",
-	},
-	{
-		title: "Commandes récentes",
-		value: stats.recentOrders,
-		icon: ShoppingCart,
-		color: "text-purple-500",
-		action: "Voir",
-		link: "/admin/orders",
-	},
-];

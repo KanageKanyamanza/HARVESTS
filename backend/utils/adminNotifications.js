@@ -491,53 +491,6 @@ exports.notifyUserDeleted = async (userData, deletedBy) => {
 };
 
 /**
- * Notifie les admins d'un paiement échoué
- */
-exports.notifyPaymentFailed = async (order, paymentData, errorMessage) => {
-	try {
-		const buyerName =
-			order.buyer?.firstName && order.buyer?.lastName
-				? `${order.buyer.firstName} ${order.buyer.lastName}`
-				: "Client";
-
-		const notificationData = {
-			title: "Paiement échoué",
-			message: `Le paiement pour la commande ${
-				order.orderNumber || order._id
-			} a échoué.`,
-			data: {
-				"Numéro de commande": order.orderNumber || order._id,
-				Client: buyerName,
-				"Email client": order.buyer?.email || "N/A",
-				Montant: `${order.total?.toLocaleString("fr-FR") || "0"} FCFA`,
-				"Méthode de paiement": paymentData?.method || "N/A",
-				Erreur: errorMessage || "Non spécifiée",
-				Date: new Date().toLocaleString("fr-FR"),
-				orderId: order._id?.toString(),
-			},
-			actions: [
-				{
-					label: "Voir la commande",
-					url: `/admin/orders/${order._id}`,
-				},
-			],
-		};
-
-		// In-app & Push
-		await createNotificationsForAdmins({
-			...notificationData,
-			type: "announcement",
-			category: "payment",
-		});
-
-		// Email
-		await sendNotificationToAdmins(notificationData);
-	} catch (error) {
-		console.error("Erreur notification paiement échoué:", error);
-	}
-};
-
-/**
  * Notifie les admins d'une commande de forte valeur
  */
 exports.notifyHighValueOrder = async (order, buyer) => {

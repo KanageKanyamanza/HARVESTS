@@ -515,34 +515,9 @@ module.exports = {
 	// Logging
 	suspiciousActivityLogger,
 
-	// Types de fichiers autorisés par catégorie
-	fileTypes: {
-		images: ["image/jpeg", "image/png", "image/webp", "image/gif"],
-		documents: [
-			"application/pdf",
-			"application/msword",
-			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-		],
-		all: [
-			"image/jpeg",
-			"image/png",
-			"image/webp",
-			"image/gif",
-			"application/pdf",
-			"application/msword",
-			"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-		],
-	},
 	// Middleware CSRF
 	csrfProtection,
 	ensureCsrfCookie,
 	CSRF_COOKIE_NAME,
 	CSRF_HEADER_NAME,
-
-	// Tailles de fichiers
-	fileSizes: {
-		avatar: 5 * 1024 * 1024, // 5MB
-		document: 10 * 1024 * 1024, // 10MB
-		productImage: 5 * 1024 * 1024, // 5MB
-	},
 };

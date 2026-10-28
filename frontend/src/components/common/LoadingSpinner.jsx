@@ -40,31 +40,4 @@ const LoadingSpinner = ({ size = 'md', text = null, className = '' }) => {
   );
 };
 
-// Composant pour page de chargement pleine
-export const FullPageLoader = ({ text }) => {
-  return (
-    <div className="fixed inset-0 bg-white bg-opacity-90 backdrop-blur-sm z-50 flex items-center justify-center">
-      <div className="bg-white rounded-xl shadow-card p-8">
-        <LoadingSpinner size="xl" text={text} />
-      </div>
-    </div>
-  );
-};
-
-// Composant pour overlay de chargement
-export const LoadingOverlay = ({ isLoading, children, text }) => {
-  if (!isLoading) {
-    return children;
-  }
-
-  return (
-    <div className="relative">
-      {children}
-      <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center rounded-lg">
-        <LoadingSpinner size="lg" text={text} />
-      </div>
-    </div>
-  );
-};
-
 export default LoadingSpinner;

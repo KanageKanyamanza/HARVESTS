@@ -157,21 +157,4 @@ const SocialLinks = ({
 	);
 };
 
-// Variantes prédéfinies pour usage rapide
-export const SocialLinksColored = (props) => (
-	<SocialLinks variant="colored" {...props} />
-);
-
-export const SocialLinksOutline = (props) => (
-	<SocialLinks variant="outline" {...props} />
-);
-
-export const SocialLinksMinimal = (props) => (
-	<SocialLinks variant="minimal" {...props} />
-);
-
-export const SocialLinksGlass = (props) => (
-	<SocialLinks variant="glass" {...props} />
-);
-
 export default SocialLinks;

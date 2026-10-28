@@ -171,25 +171,25 @@ authController.requireApproval      // Compte approuvé requis
 - verifyEmail (token sécurisé)
 ```
 
-### Niveau 3: Sécurité Avancée (advancedSecurity.js)
+### Niveau 3: Sécurité Avancée
 ```javascript
-// Fonctionnalités de sécurité avancées implémentées
-- Détection tentatives de brute force
-- Logging des activités suspectes  
-- Blacklist d'IPs automatique
-- Monitoring des patterns d'attaque
-- Rate limiting adaptatif par utilisateur
+// Middlewares de sécurité implémentés (middleware/security.js)
+- Helmet, CORS, sanitisation MongoDB/XSS, protection HPP
+- Limiteurs de débit : global, auth, inscription, email, upload
+- Journalisation des événements sensibles (utils/auditLogger.js)
 ```
 
 ## 📊 Services & Fonctionnalités Implémentés
 
-### 🔧 Services Backend (4 services)
+### 🔧 Services Backend
 ```
 services/
-├── emailService.js         # Emails avec templates Pug
-├── notificationService.js  # Notifications multi-canaux
-├── stripeService.js        # Paiements Stripe
-└── mobileMoneyService.js   # Wave Money (Sénégal)
+├── orderService.js          # Cycle de vie des commandes
+├── deliveryService.js       # Livraisons et frais de port
+├── emailQueueService.js     # File d'envoi des e-mails
+├── payment/                 # PayPal, remboursements, webhooks
+├── notification/            # Notifications multi-canaux (email, push, in-app)
+└── producer/ transformer/ restaurateur/ consumer/   # Services métier
 ```
 
 ### 📧 Système Email Automatisé
@@ -302,7 +302,7 @@ error, warn, info, http, verbose, debug, silly
 
 ### Métriques Trackées
 ```javascript
-// Sécurité (advancedSecurity.js)
+// Sécurité (middleware/security.js, utils/auditLogger.js)
 - Tentatives de connexion échouées
 - IPs suspectes et blacklistées  
 - Patterns d'attaques détectés
@@ -355,8 +355,7 @@ Vérifie:
 ```
 docs/
 ├── API_DOCUMENTATION.md     # Guide complet API
-├── ARCHITECTURE.md          # Ce fichier (architecture)
-└── swagger-examples.js      # Exemples Swagger
+└── ARCHITECTURE.md          # Ce fichier (architecture)
 ```
 
 ---
