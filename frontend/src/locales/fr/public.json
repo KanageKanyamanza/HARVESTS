@@ -1196,7 +1196,6 @@
         "benefits": [
           "1 point pour chaque 100 XAF dépensé",
           "Tous les avantages Bronze",
-          "Livraison gratuite sur commandes > 10,000 XAF",
           "Accès prioritaire aux nouveaux produits",
           "Cadeau d'anniversaire"
         ]
@@ -1205,9 +1204,7 @@
         "benefits": [
           "1.5 points pour chaque 100 XAF dépensé",
           "Tous les avantages Silver",
-          "Livraison gratuite illimitée",
           "Cadeaux exclusifs trimestriels",
-          "Retours gratuits",
           "Service client prioritaire"
         ]
       },
@@ -1250,7 +1247,7 @@
     "exampleSavings1": "500 points = 500 XAF de réduction",
     "exampleSavings2": "1,000 points = 1,000 XAF de réduction",
     "exampleBonus": "Bonus membre Platinum",
-    "exampleBonus1": "Livraison gratuite illimitée",
+    "exampleBonus1": "Support VIP 24/7",
     "exampleBonus2": "Cadeaux mensuels premium",
     "faqTitle": "Questions Fréquentes",
     "faq": [

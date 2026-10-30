@@ -57,28 +57,6 @@ const COUNTRY_CODE_TO_NAME = {
   'benin': 'Bénin'
 };
 
-const COUNTRY_NAME_TO_CODE = {
-  'Sénégal': 'SN',
-  'Senegal': 'SN',
-  "Côte d'Ivoire": 'CI',
-  "Cote d'Ivoire": 'CI',
-  'Ivory Coast': 'CI',
-  'Cameroun': 'CM',
-  'Cameroon': 'CM',
-  'Burkina Faso': 'BF',
-  'Burkina': 'BF',
-  'Mali': 'ML',
-  'Ghana': 'GH',
-  'Nigeria': 'NG',
-  'Bénin': 'BJ',
-  'Benin': 'BJ',
-  'Togo': 'TG',
-  'Gabon': 'GA',
-  'Congo': 'CG',
-  'République démocratique du Congo': 'CD',
-  'RDC': 'CD'
-};
-
 /**
  * Normalise et convertit tout identifiant pays (Code ISO ou Nom) vers le nom officiel en français
  */
@@ -90,28 +68,3 @@ export function getCountryName(input) {
   return trimmed;
 }
 
-/**
- * Normalise et convertit tout nom ou code vers le code ISO à 2 lettres
- */
-export function getCountryCode(input) {
-  if (!input) return 'SN';
-  const trimmed = input.trim();
-  if (trimmed.length === 2 && /^[A-Z]{2}$/i.test(trimmed)) {
-    return trimmed.toUpperCase();
-  }
-  return COUNTRY_NAME_TO_CODE[trimmed] || 'SN';
-}
-
-/**
- * Normalisation globale
- */
-export function normalizeCountry(input) {
-  return getCountryName(input);
-}
-
-/**
- * Liste de tous les noms officiels des pays supportés
- */
-export function getAllCountryNames() {
-  return SUPPORTED_COUNTRIES.map(c => c.name);
-}

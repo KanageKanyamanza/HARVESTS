@@ -58,17 +58,17 @@
     "signature_rejected": "Signature rejected. Try without the extension.",
     "secure_download_error": "Secure download error.",
     "profile_reminders_sent": "{{count}} profile reminders sent successfully",
-    "transporter_id_required": "Transporter ID is required",
-    "transporter_not_found": "Transporter/Exporter not found",
-    "transporter_unavailable": "The selected transporter/exporter is not available",
-    "transporter_status_invalid": "Cannot assign a transporter to an order with status: {{status}}",
-    "transporter_weekly_limit": "{{name}} has reached their weekly order limit. Please choose another transporter or ask the transporter to upgrade their plan.",
-    "transporter_zone_not_covered": "The selected transporter does not cover the delivery area",
-    "transporter_assigned": "Transporter assigned successfully",
-    "delivery_region_missing": "No delivery region found in the order. All active transporters have been returned.",
+    "transporter_id_required": "Carrier ID is required",
+    "transporter_not_found": "Carrier/Exporter not found",
+    "transporter_unavailable": "The selected carrier/exporter is not available",
+    "transporter_status_invalid": "Cannot assign a carrier to an order with status: {{status}}",
+    "transporter_weekly_limit": "{{name}} has reached their weekly order limit. Please choose another carrier or ask the carrier to upgrade their plan.",
+    "transporter_zone_not_covered": "The selected carrier does not cover the delivery area",
+    "transporter_assigned": "Carrier assigned successfully",
+    "delivery_region_missing": "No delivery region found in the order. All active carriers have been returned.",
     "delivery_region_unspecified": "Delivery region not specified in the order",
     "exporters_available": "Exporters available for international orders",
-    "transporters_available": "Transporters available for local orders"
+    "transporters_available": "Carriers available for local orders"
   },
   "common": {
     "loading": "Loading...",
@@ -695,9 +695,9 @@
     "producer": "Producer",
     "transformer": "Processor",
     "consumer": "Consumer",
-    "restaurateur": "Restaurant Owner",
+    "restaurateur": "Restaurateur",
     "exporter": "Exporter",
-    "transporter": "Transporter"
+    "transporter": "Carrier"
   },
   "product_categories": {
     "cereals": "Cereals",
@@ -722,8 +722,8 @@
     "equipment_not_found": "Equipment not found",
     "crop_not_found": "Crop not found",
     "certification_not_found": "Certification not found",
-    "transporter_already_favorite": "This transporter is already in your favourites",
-    "transporter_added_favorite": "Transporter added to favourites",
+    "transporter_already_favorite": "This carrier is already in your favourites",
+    "transporter_added_favorite": "Carrier added to favourites",
     "document_required": "Please upload a document",
     "images_or_pdf_only": "Please upload images or PDF files only."
   },

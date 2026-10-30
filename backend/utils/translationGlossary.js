@@ -40,15 +40,19 @@ function buildGlossary(exactEntries, replacementRules) {
 }
 
 // Jour 48 : un glossaire par sens de traduction ({ "fr-en": ..., "en-fr": ... }).
-// Le fichier JSON de repli ne contient que le sens fr -> en.
+// Jour 70 : le fichier de repli porte désormais les deux sens (le sens en -> fr
+// était vide). Une direction absente du fichier donne un glossaire vide.
 function buildFromJson() {
-	return {
-		"fr-en": buildGlossary(
-			Object.entries(fallbackGlossary.exactTerms || {}).map(([source, target]) => ({ source, target })),
-			fallbackGlossary.wordReplacements || [],
-		),
-		"en-fr": buildGlossary([], []),
-	};
+	const directions = {};
+	for (const direction of TranslationGlossary.DIRECTIONS) {
+		directions[direction] = buildGlossary(
+			Object.entries(fallbackGlossary.exactTerms?.[direction] || {}).map(
+				([source, target]) => ({ source, target }),
+			),
+			fallbackGlossary.wordReplacements?.[direction] || [],
+		);
+	}
+	return directions;
 }
 
 async function buildFromDatabase() {

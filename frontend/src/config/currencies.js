@@ -33,8 +33,3 @@ export const CURRENCIES = [
 ];
 
 export const DEFAULT_CURRENCY = "XOF";
-
-export const getCurrencySymbol = (code) => {
-	const currency = CURRENCIES.find((c) => c.code === code);
-	return currency ? currency.symbol : code;
-};

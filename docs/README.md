@@ -35,6 +35,11 @@ L'Amazon des produits agricoles africains.
 - [Authentification](./API_DOCUMENTATION.md#authentication) - Système JWT
 - [Rate Limiting](./SECURITY.md#rate-limiting) - Protection DDoS
 
+### 🌐 Internationalisation
+
+- [Décisions de périmètre bilingue](./I18N_DECISIONS.md) - Manifeste PWA par
+  langue, back-office volontairement français
+
 ### 🔄 Migration & Guides
 
 - [Guide de Migration des Profils](./PROFILE_MIGRATION_GUIDE.md) - Migration

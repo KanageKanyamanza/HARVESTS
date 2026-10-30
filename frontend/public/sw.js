@@ -1,8 +1,9 @@
 // Service Worker pour HARVESTS PWA
 // __BUILD_ID__ est remplacé automatiquement à chaque build (voir scripts/set-sw-version.js)
-const CACHE_NAME = "harvests-mub2xfa5";
+const CACHE_NAME = "harvests-mvuv29sf";
 const urlsToCache = [
 	"/manifest.json",
+	"/manifest.en.json",
 	"/logo.png",
 	"/favicon.ico",
 ];

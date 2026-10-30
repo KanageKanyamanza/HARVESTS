@@ -20,9 +20,3 @@ export const UNITS = [
 ];
 
 export const DEFAULT_UNIT = "unité";
-
-export const getUnitLabel = (unitValue) => {
-	const normalized = unitValue === "unit" ? "unité" : unitValue;
-	const unit = UNITS.find((u) => u.value === normalized);
-	return unit ? unit.label : normalized;
-};

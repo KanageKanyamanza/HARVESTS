@@ -137,38 +137,3 @@ export const getDocumentsRoute = (user) => {
 	if (user?.userType === "exporter") return "/exporter/documents";
 	return "/consumer/documents";
 };
-
-/**
- * Génère la navigation utilisateur complète selon le type d'utilisateur
- * @param {Object} user - L'objet utilisateur
- * @param {Array} icons - Les icônes à utiliser
- * @returns {Array} - La navigation utilisateur
- */
-export const getUserNavigation = (user, icons = {}) => {
-	const {
-		Package = "Package",
-		MessageCircle = "MessageCircle",
-		User = "User",
-		Settings = "Settings",
-		Shield = "Shield",
-	} = icons;
-
-	const baseNavigation = [
-		{ name: "Tableau de bord", href: getDashboardRoute(user), icon: Package },
-		{ name: "Commandes", href: getOrdersRoute(user), icon: Package },
-		{ name: "Messages", href: getMessagesRoute(user), icon: MessageCircle },
-		{ name: "Profil", href: getProfileRoute(user), icon: User },
-		{ name: "Paramètres", href: getSettingsRoute(user), icon: Settings },
-	];
-
-	// Ajouter le lien admin si l'utilisateur est admin
-	if (user?.role === "admin") {
-		baseNavigation.unshift({
-			name: "Administration",
-			href: "/admin",
-			icon: Shield,
-		});
-	}
-
-	return baseNavigation;
-};

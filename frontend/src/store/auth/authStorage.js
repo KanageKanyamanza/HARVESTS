@@ -28,33 +28,3 @@ export const clearAuthData = () => {
   localStorage.removeItem('harvests_token');
   localStorage.removeItem('harvests_auth_data');
 };
-
-export const getAuthData = () => {
-  try {
-    const token = localStorage.getItem('harvests_token');
-    const userStr = localStorage.getItem('harvests_user');
-    const authDataStr = localStorage.getItem('harvests_auth_data');
-    
-    if (!token || !userStr) return null;
-    
-    const user = JSON.parse(userStr);
-    let authData = null;
-    
-    try {
-      authData = authDataStr ? JSON.parse(authDataStr) : null;
-    } catch (parseError) {
-      console.warn('Erreur parsing auth data:', parseError);
-    }
-    
-    return {
-      user,
-      token,
-      lastActivity: authData?.lastActivity,
-      tokenExpiry: authData?.tokenExpiry
-    };
-  } catch (error) {
-    console.error('Erreur lors de la récupération des données:', error);
-    return null;
-  }
-};
-

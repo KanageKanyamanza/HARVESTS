@@ -162,36 +162,6 @@ exports.requireVerification = (req, res, next) => {
 	next();
 };
 
-// Middleware flexible pour les actions qui nécessitent une vérification d'email
-exports.requireVerificationFlexible = (options = {}) => {
-	const {
-		allowReadOnly = true,
-		allowedMethods = ["GET", "HEAD", "OPTIONS"],
-		customMessage = "auth.verification_required_action",
-	} = options;
-
-	return (req, res, next) => {
-		if (!req.user.isEmailVerified) {
-			// Si on permet la lecture seule et que c'est une méthode de lecture
-			if (allowReadOnly && allowedMethods.includes(req.method)) {
-				return next();
-			}
-
-			return res.status(403).json({
-				status: "error",
-				message: req.t(customMessage),
-				code: "EMAIL_VERIFICATION_REQUIRED",
-				data: {
-					emailVerified: false,
-					requiresEmailVerification: true,
-					suggestion: req.t("auth.verification_suggestion"),
-				},
-			});
-		}
-		next();
-	};
-};
-
 // Middleware pour vérifier si l'utilisateur est approuvé (pour les opérations sensibles)
 exports.requireApproval = (req, res, next) => {
 	if (

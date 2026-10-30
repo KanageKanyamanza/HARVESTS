@@ -58,26 +58,3 @@ export const getCategoryLabel = (category, lang = "fr") => {
   const categories = CATEGORY_LABELS[lang] || CATEGORY_LABELS.fr;
   return categories[category] || category;
 };
-
-export const getSortOptions = (lang = "fr") => {
-  const options = {
-    fr: [
-      { value: "newest", label: "Plus récents" },
-      { value: "createdAt", label: "Plus anciens" },
-      { value: "price", label: "Prix croissant" },
-      { value: "-price", label: "Prix décroissant" },
-      { value: "name", label: "Nom A-Z" },
-      { value: "-name", label: "Nom Z-A" },
-    ],
-    en: [
-      { value: "newest", label: "Newest" },
-      { value: "createdAt", label: "Oldest" },
-      { value: "price", label: "Price: Low to High" },
-      { value: "-price", label: "Price: High to Low" },
-      { value: "name", label: "Name A-Z" },
-      { value: "-name", label: "Name Z-A" },
-    ],
-  };
-  return options[lang] || options.fr;
-};
-

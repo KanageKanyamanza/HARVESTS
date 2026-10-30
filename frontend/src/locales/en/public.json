@@ -509,7 +509,7 @@
           },
           {
             "q": "What account types are available?",
-            "a": "We offer several account types: Consumer (to buy), Producer (to sell agricultural products), Processor (to sell processed products), Restaurateur (to sell dishes), and Transporter (to deliver)."
+            "a": "We offer several account types: Consumer (to buy), Producer (to sell agricultural products), Processor (to sell processed products), Restaurateur (to sell dishes), and Carrier (to deliver)."
           },
           {
             "q": "I forgot my password, what should I do?",
@@ -591,7 +591,7 @@
           "Processors and their processed products",
           "Restaurateurs and their dishes",
           "Consumers looking for fresh, local products",
-          "Transporters for order delivery"
+          "Carriers for order delivery"
         ]
       },
       {
@@ -639,7 +639,7 @@
       },
       {
         "title": "9. Limitation of liability",
-        "text": "Harvests acts as an intermediary between partners and buyers. We are not responsible for the quality of the products sold, for delivery delays attributable to partners or transporters, or for disputes between users."
+        "text": "Harvests acts as an intermediary between partners and buyers. We are not responsible for the quality of the products sold, for delivery delays attributable to partners or carriers, or for disputes between users."
       },
       {
         "title": "10. Changes to the terms",
@@ -713,7 +713,7 @@
             "text": ": to process your orders"
           },
           {
-            "lead": "Transporters",
+            "lead": "Carriers",
             "text": ": to deliver your products"
           },
           {
@@ -867,7 +867,7 @@
     "corporateTitle": "Corporate Information",
     "trademark": "Harvests is a registered trademark of Ubuntu Business Builders SARL.",
     "ctaTitle": "Join the Agricultural Revolution",
-    "ctaDescription": "Whether you are a producer, processor, restaurateur, transporter or consumer, Harvests is your trusted partner.",
+    "ctaDescription": "Whether you are a producer, processor, restaurateur, carrier or consumer, Harvests is your trusted partner.",
     "ctaRegister": "Create an account",
     "ctaContact": "Contact us"
   },
@@ -1123,7 +1123,7 @@
       },
       {
         "title": "Multi-stakeholder ecosystem",
-        "description": "Producers, processors, restaurateurs, transporters and exporters brought together on a single platform."
+        "description": "Producers, processors, restaurateurs, carriers and exporters brought together on a single platform."
       },
       {
         "title": "Local roots, continental ambition",
@@ -1196,7 +1196,6 @@
         "benefits": [
           "1 point for every 100 XAF spent",
           "All Bronze benefits",
-          "Free delivery on orders > 10,000 XAF",
           "Priority access to new products",
           "Birthday gift"
         ]
@@ -1205,9 +1204,7 @@
         "benefits": [
           "1.5 points for every 100 XAF spent",
           "All Silver benefits",
-          "Unlimited free delivery",
           "Exclusive quarterly gifts",
-          "Free returns",
           "Priority customer service"
         ]
       },
@@ -1250,7 +1247,7 @@
     "exampleSavings1": "500 points = 500 XAF discount",
     "exampleSavings2": "1,000 points = 1,000 XAF discount",
     "exampleBonus": "Platinum member bonus",
-    "exampleBonus1": "Unlimited free delivery",
+    "exampleBonus1": "VIP support 24/7",
     "exampleBonus2": "Premium monthly gifts",
     "faqTitle": "Frequently Asked Questions",
     "faq": [
@@ -1318,14 +1315,14 @@
     "clearSearchAction": "Clear search"
   },
   "transformers": {
-    "loadingText": "Loading transformers...",
+    "loadingText": "Loading processors...",
     "heroBadge": "Processing & Agribusiness",
-    "heroTitle": "Transformers & Agribusiness",
+    "heroTitle": "Processors & Agribusiness",
     "heroDescription": "Discover the processing companies that turn fresh harvests into processed products, spices and artisanal preserves.",
-    "searchPlaceholder": "Search a transformer (name, city, country)...",
+    "searchPlaceholder": "Search a processor (name, city, country)...",
     "clearSearch": "Clear",
-    "resultCount_one": "{{count}} Transformer",
-    "resultCount_other": "{{count}} Transformers",
+    "resultCount_one": "{{count}} Processor",
+    "resultCount_other": "{{count}} Processors",
     "gridViewTitle": "Grid view",
     "grid": "Grid",
     "listViewTitle": "List view",
@@ -1340,15 +1337,15 @@
     },
     "services": "Services",
     "viewProfile": "View profile",
-    "noResultsFound": "No transformer found",
-    "noSearchResults": "No transformer matches \"{{query}}\".",
-    "noResultsDefault": "Check back later to discover our transformers.",
+    "noResultsFound": "No processor found",
+    "noSearchResults": "No processor matches \"{{query}}\".",
+    "noResultsDefault": "Check back later to discover our processors.",
     "clearSearchAction": "Clear search"
   },
   "logistics": {
-    "loadingText": "Loading transporters and exporters...",
+    "loadingText": "Loading carriers and exporters...",
     "heroBadge": "Transport & Cold Chain",
-    "heroTitle": "Transporters & Exporters",
+    "heroTitle": "Carriers & Exporters",
     "heroDescription": "Discover our logistics partners for local transport and international export, from the field to the table.",
     "searchPlaceholder": "Search a logistics partner (name, city, country)...",
     "clearSearch": "Clear",
@@ -1360,9 +1357,9 @@
     "list": "List",
     "filterAll": "All",
     "filterExporters": "Exporters",
-    "filterTransporters": "Transporters",
+    "filterTransporters": "Carriers",
     "exporter": "Exporter",
-    "transporter": "Transporter",
+    "transporter": "Carrier",
     "verified": "Verified",
     "internationalExport": "International Export",
     "localDelivery": "Local Delivery",
@@ -1378,7 +1375,7 @@
     "loadingText": "Loading partners...",
     "heroTitlePrefix": "Discover our",
     "heroTitleHighlight": "Local Partners",
-    "heroDescription": "Explore producers, transformers and restaurateurs near you offering fresh, top-quality products.",
+    "heroDescription": "Explore producers, processors and restaurateurs near you offering fresh, top-quality products.",
     "searchPlaceholder": "Search by name, city, region...",
     "myZone": "My area",
     "allCountriesZones": "All countries / zones",
@@ -1389,10 +1386,10 @@
     "clearFilter": "Clear filter",
     "tabAll": "All",
     "tabProducers": "Producers",
-    "tabTransformers": "Transformers",
+    "tabTransformers": "Processors",
     "tabRestaurateurs": "Restaurateurs",
     "typeProducer": "Producer",
-    "typeTransformer": "Transformer",
+    "typeTransformer": "Processor",
     "typeRestaurateur": "Restaurateur",
     "visitShop": "Visit shop",
     "noResultsFound": "No partner found",
@@ -1468,7 +1465,7 @@
     "back": "Back",
     "roleLabels": {
       "producer": "Producer",
-      "transformer": "Transformer",
+      "transformer": "Processor",
       "partner": "Partner"
     },
     "verifiedPartner": "Verified Partner",
@@ -1564,7 +1561,7 @@
     "transformer": {
       "genericLabel": "Standard",
       "emptyProductsTitle": "No products available",
-      "emptyProductsDescription": "This transformer doesn't have any products for sale yet.",
+      "emptyProductsDescription": "This processor doesn't have any products for sale yet.",
       "productsLabel": "Products",
       "typeLabel": "Type",
       "transformationTypeLabel": "Transformation type",
@@ -1605,12 +1602,12 @@
       "punctualityLabel": "Punctuality",
       "deliveriesLabel": "Deliveries",
       "coverageZonesLabel": "Coverage areas",
-      "genericLabel": "Transporter",
+      "genericLabel": "Carrier",
       "itemButton": "Book",
       "capacityLabel": "Capacity: {{capacity}}",
       "genericVehicleDescription": "Transport vehicle",
       "emptyFleetTitle": "No vehicle available",
-      "emptyFleetDescription": "This transporter doesn't have any registered vehicles yet.",
+      "emptyFleetDescription": "This carrier doesn't have any registered vehicles yet.",
       "servicesTitle": "Special capabilities",
       "citiesLabel": "Cities: {{cities}}",
       "radiusLabel": "Radius: {{radius}} km",
