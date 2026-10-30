@@ -17,6 +17,7 @@ import {
 } from "react-icons/fi";
 import { restaurateurService } from "../services";
 import { getDishImageUrl, normalizeDishImage } from "../utils/dishImageUtils";
+import { formatPrice as formatLocalizedPrice } from "../utils/currencyUtils";
 
 const DishDetail = () => {
 	const { t } = useTranslation("public");
@@ -59,13 +60,8 @@ const DishDetail = () => {
 		}
 	}, [id]);
 
-	const formatPrice = (price) => {
-		return new Intl.NumberFormat("fr-FR", {
-			style: "currency",
-			currency: dish?.currency || "XOF",
-			minimumFractionDigits: 0,
-		}).format(price);
-	};
+	const formatPrice = (price) =>
+		formatLocalizedPrice(price, dish?.currency || "XOF");
 
 	const getCategoryText = (category) => t(`dishDetail.categories.${category}`, category);
 

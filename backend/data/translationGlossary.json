@@ -1,19 +1,45 @@
 {
-  "_comment": "Jour 46 : ce fichier ne sert plus que de semence (scripts/seedTranslationGlossary.js) et de repli si la base est injoignable ; le glossaire actif vit dans la collection TranslationGlossary, éditable dans le back-office (/admin/glossary). Historique Jour 45 (bascule bilingue) - glossaire fr->en consulté par utils/translateText.js avant/après l'appel aux services de traduction automatique (MyMemory/LibreTranslate), pour corriger le vocabulaire agricole/culinaire local qu'ils traduisent mal ou pas du tout. A enrichir au fil des cas repérés (cf. échange du 24/09 : 'Corète Potagère' -> 'Corchorus olitorius'/'corte', 'tô' -> 'toe').",
+  "_comment": "Jour 46 : ce fichier ne sert plus que de semence (scripts/seedTranslationGlossary.js) et de repli si la base est injoignable ; le glossaire actif vit dans la collection TranslationGlossary, éditable dans le back-office (/admin/glossary). Historique Jour 45 (bascule bilingue) - glossaire consulté par utils/translateText.js avant/après l'appel aux services de traduction automatique (MyMemory/LibreTranslate), pour corriger le vocabulaire agricole/culinaire local qu'ils traduisent mal ou pas du tout. Jour 70 : les deux sens sont désormais semés (fr -> en et en -> fr, ce dernier était vide), avec les équivalents des produits locaux dans les deux sens et la règle « Gumbo » -> « okra ». Le lexique métier de référence (rôles, filière, fiches de culture) est figé dans docs/GLOSSAIRE_REFERENCE.md.",
 
   "exactTerms": {
-    "corète potagère": "Jute Mallow",
-    "corète": "Jute Mallow",
-    "tô": "Tô (corn or millet porridge)"
+    "fr-en": {
+      "corète potagère": "Jute Mallow",
+      "corète": "Jute Mallow",
+      "gombo": "Okra",
+      "niébé": "Cowpea",
+      "bissap": "Bissap (hibiscus)",
+      "soumbala": "Soumbala (fermented locust bean)",
+      "tô": "Tô (corn or millet porridge)"
+    },
+    "en-fr": {
+      "jute mallow": "Corète potagère",
+      "okra": "Gombo",
+      "cowpea": "Niébé",
+      "bissap (hibiscus)": "Bissap",
+      "soumbala (fermented locust bean)": "Soumbala",
+      "tô (corn or millet porridge)": "Tô",
+      "tô (corn porridge)": "Tô"
+    }
   },
 
-  "wordReplacements": [
-    { "match": "\\bcorte\\b", "replace": "jute mallow", "flags": "gi" },
-    { "match": "\\bcorète\\b", "replace": "jute mallow", "flags": "gi" },
-    { "match": "\\btoe\\b", "replace": "tô (corn porridge)", "flags": "gi" },
-    { "match": "\\bgombo\\b", "replace": "okra", "flags": "gi" },
-    { "match": "\\bni[ée]b[ée]\\b", "replace": "cowpea", "flags": "gi" },
-    { "match": "\\bbissap\\b", "replace": "bissap (hibiscus)", "flags": "gi" },
-    { "match": "\\bsoumbala\\b", "replace": "soumbala (fermented locust bean)", "flags": "gi" }
-  ]
+  "wordReplacements": {
+    "fr-en": [
+      { "match": "\\bcorte\\b", "replace": "jute mallow", "flags": "gi" },
+      { "match": "\\bcorète\\b", "replace": "jute mallow", "flags": "gi" },
+      { "match": "\\btoe\\b", "replace": "tô (corn porridge)", "flags": "gi" },
+      { "match": "\\bgombo\\b", "replace": "okra", "flags": "gi" },
+      { "match": "\\bgumbo\\b", "replace": "okra", "flags": "gi" },
+      { "match": "\\bni[ée]b[ée]\\b", "replace": "cowpea", "flags": "gi" },
+      { "match": "\\bbissap\\b", "replace": "bissap (hibiscus)", "flags": "gi" },
+      { "match": "\\bsoumbala\\b", "replace": "soumbala (fermented locust bean)", "flags": "gi" }
+    ],
+    "en-fr": [
+      { "match": "\\bcorte\\b", "replace": "corète", "flags": "gi" },
+      { "match": "\\bjute mallow\\b", "replace": "corète potagère", "flags": "gi" },
+      { "match": "\\bokra\\b", "replace": "gombo", "flags": "gi" },
+      { "match": "\\bcowpeas?\\b", "replace": "niébé", "flags": "gi" },
+      { "match": "\\bbissap(?: \\(hibiscus\\))?\\b", "replace": "bissap", "flags": "gi" },
+      { "match": "\\bsoumbala(?: \\(fermented locust bean\\))?\\b", "replace": "soumbala", "flags": "gi" }
+    ]
+  }
 }

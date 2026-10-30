@@ -6,6 +6,7 @@ import CloudinaryImage from '../components/common/CloudinaryImage';
 import CardGridSkeleton from '../components/common/CardGridSkeleton';
 import SEOHead from '../components/seo/SEOHead';
 import { toPlainText } from '../utils/textHelpers';
+import { formatPrice } from '../utils/currencyUtils';
 import { 
   Wheat, Carrot, Apple, Bean, Flame, Leaf, Sprout, Milk, 
   Beef, Drumstick, Fish, Archive, CupSoda, Package as PackageLucide, 
@@ -101,9 +102,6 @@ const Categories = () => {
     const Icon = ICONS[category] || PackageLucide;
     return <Icon className="w-5 h-5 text-[#1A5514]" />;
   };
-
-  const formatPrice = (price) =>
-    new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', minimumFractionDigits: 0 }).format(price).replace('XOF', 'FCFA');
 
   const filteredCategories = visibleCategories.filter((cat) => {
     if (!searchQuery) return true;

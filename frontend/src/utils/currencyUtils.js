@@ -1,4 +1,5 @@
 import { DEFAULT_CURRENCY, CURRENCIES } from "../config/currencies";
+import { formatPriceForLanguage } from "./priceFormat";
 
 // Convertir le prix
 export const convertPrice = (price, fromCurrency, toCurrency) => {
@@ -39,30 +40,7 @@ export const convertPrice = (price, fromCurrency, toCurrency) => {
 	return price;
 };
 
-// Formater le prix
-export const formatPrice = (price, currency = DEFAULT_CURRENCY) => {
-	try {
-		// Formattage spécial pour le FCFA (pas de décimales)
-		const isFCFA = currency === "FCFA" || currency === "XOF";
-
-		return new Intl.NumberFormat("fr-FR", {
-			style: "currency",
-			currency: currency === "FCFA" ? "XOF" : currency, // Intl ne connait pas FCFA
-			minimumFractionDigits: isFCFA ? 0 : 2,
-			maximumFractionDigits: isFCFA ? 0 : 2,
-		})
-			.format(price)
-			.replace("XOF", "FCFA");
-	} catch {
-		console.warn(
-			`Invalid currency code: ${currency}, falling back to ${DEFAULT_CURRENCY}`
-		);
-		return new Intl.NumberFormat("fr-FR", {
-			style: "currency",
-			currency: "XOF",
-			minimumFractionDigits: 0,
-		})
-			.format(price)
-			.replace("XOF", "FCFA");
-	}
-};
+// Formater le prix selon la langue affichée (Jour 70) :
+// fr « 3 000 F CFA », en « FCFA 3,000 ». Voir utils/priceFormat.js.
+export const formatPrice = (price, currency = DEFAULT_CURRENCY, language) =>
+	formatPriceForLanguage(price, currency, language);

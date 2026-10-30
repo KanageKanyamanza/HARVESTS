@@ -407,8 +407,8 @@
 		"producer": "Producer",
 		"transformer": "Processor",
 		"consumer": "Consumer",
-		"restaurateur": "Restaurant owner",
-		"transporter": "Transporter",
+		"restaurateur": "Restaurateur",
+		"transporter": "Carrier",
 		"exporter": "Exporter",
 		"explorer": "Explorer",
 		"admin": "Administrator"

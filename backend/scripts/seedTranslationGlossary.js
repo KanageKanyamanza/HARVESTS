@@ -3,8 +3,12 @@
  * TranslationGlossary à partir de backend/data/translationGlossary.json
  * (glossaire statique posé au Jour 45, désormais éditable dans le back-office).
  *
- * Idempotent : une entrée déjà présente (même type + même terme source) est
- * ignorée, jamais écrasée — les modifications faites par l'admin priment.
+ * Jour 70 : le fichier porte désormais les deux sens (fr -> en et en -> fr) ;
+ * le script sème les deux, en ignorant toujours les entrées déjà présentes.
+ *
+ * Idempotent : une entrée déjà présente (même sens + même type + même terme
+ * source) est ignorée, jamais écrasée — les modifications faites par l'admin
+ * priment.
  *
  * SÉCURITÉ : ce script se connecte à la base pointée par DATABASE_URL /
  * DATABASE_PROD (Atlas Prod dans cet environnement). Il tourne en mode
@@ -27,20 +31,28 @@ const glossary = require("../data/translationGlossary.json");
 const EXECUTE = process.argv.slice(2).includes("--execute");
 
 function entriesFromJson() {
-	const exact = Object.entries(glossary.exactTerms || {}).map(([source, target]) => ({
-		direction: "fr-en",
-		type: "exact",
-		source: source.trim().toLowerCase(),
-		target,
-	}));
-	const replacements = (glossary.wordReplacements || []).map((rule) => ({
-		direction: "fr-en",
-		type: "replacement",
-		source: rule.match,
-		target: rule.replace,
-		flags: rule.flags || "gi",
-	}));
-	return [...exact, ...replacements];
+	const entries = [];
+	for (const direction of TranslationGlossary.DIRECTIONS) {
+		const exact = Object.entries(glossary.exactTerms?.[direction] || {}).map(
+			([source, target]) => ({
+				direction,
+				type: "exact",
+				source: source.trim().toLowerCase(),
+				target,
+			}),
+		);
+		const replacements = (glossary.wordReplacements?.[direction] || []).map(
+			(rule) => ({
+				direction,
+				type: "replacement",
+				source: rule.match,
+				target: rule.replace,
+				flags: rule.flags || "gi",
+			}),
+		);
+		entries.push(...exact, ...replacements);
+	}
+	return entries;
 }
 
 async function run() {
@@ -59,30 +71,41 @@ async function run() {
 
 	for (const entry of entriesFromJson()) {
 		// Entrées antérieures au champ `direction` (Jour 46) : fr -> en
+		const directionFilter =
+			entry.direction === "fr-en" ? { $in: ["fr-en", null] } : "en-fr";
 		const exists = await TranslationGlossary.exists({
-			direction: { $in: ["fr-en", null] },
+			direction: directionFilter,
 			type: entry.type,
 			source: entry.source,
 		});
 		if (exists) {
 			stats.skipped += 1;
-			console.log(`  = déjà présent  [${entry.type}] ${entry.source}`);
+			console.log(`  = déjà présent  [${entry.direction}/${entry.type}] ${entry.source}`);
 			continue;
 		}
 
 		if (!EXECUTE) {
 			stats.inserted += 1;
-			console.log(`  + à insérer     [${entry.type}] ${entry.source} -> ${entry.target}`);
+			console.log(
+				`  + à insérer     [${entry.direction}/${entry.type}] ${entry.source} -> ${entry.target}`,
+			);
 			continue;
 		}
 
 		try {
-			await TranslationGlossary.create({ ...entry, note: "Semé depuis translationGlossary.json (Jour 46)" });
+			await TranslationGlossary.create({
+				...entry,
+				note: "Semé depuis translationGlossary.json (Jours 46 et 70)",
+			});
 			stats.inserted += 1;
-			console.log(`  + inséré        [${entry.type}] ${entry.source} -> ${entry.target}`);
+			console.log(
+				`  + inséré        [${entry.direction}/${entry.type}] ${entry.source} -> ${entry.target}`,
+			);
 		} catch (error) {
 			stats.failed += 1;
-			console.warn(`  ! échec         [${entry.type}] ${entry.source} : ${error.message}`);
+			console.warn(
+				`  ! échec         [${entry.direction}/${entry.type}] ${entry.source} : ${error.message}`,
+			);
 		}
 	}
 

@@ -25,7 +25,7 @@
 	"invest": "Invest",
 	"ourProducers": "Our Producers",
 	"restaurateurs": "Restaurateurs",
-	"transformers": "Transformers",
+	"transformers": "Processors",
 	"sidebar": {
 		"myOrders": "My orders",
 		"myFavorites": "My favorites",
@@ -96,7 +96,7 @@
 		"companyAddress": "Dakar, Senegal",
 		"earnWithUs": "Earn money with us",
 		"becomeProducer": "Become a Producer",
-		"becomeTransporter": "Become a Transporter",
+		"becomeTransporter": "Become a Carrier",
 		"ourPartners": "Our partners",
 		"pricingCommissions": "Pricing & commissions",
 		"categoriesDiscovery": "Categories & Discovery",

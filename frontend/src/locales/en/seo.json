@@ -34,7 +34,7 @@
 	"contact": {
 		"title": "Contact the Harvests Team | Support & Assistance",
 		"description": "Need help with your orders or want to join the platform? Contact Harvests support, available 7 days a week.",
-		"keywords": "contact Harvests, agriculture customer support, transporter assistance, join Harvests, Senegal customer service"
+		"keywords": "contact Harvests, agriculture customer support, carrier assistance, join Harvests, Senegal customer service"
 	},
 	"faq": {
 		"title": "FAQ | Harvests",
@@ -54,7 +54,7 @@
 	"pricing": {
 		"title": "Pricing & Subscription Plans | Grow Your Business | Harvests",
 		"description": "Choose the plan that fits your needs: Free, Standard or Premium. Boost your sales and streamline your logistics today.",
-		"keywords": "agriculture subscription pricing, marketplace pricing, producer plan, transporter plan, Harvests premium services"
+		"keywords": "agriculture subscription pricing, marketplace pricing, producer plan, carrier plan, Harvests premium services"
 	},
 	"loyalty": {
 		"title": "Harvests Loyalty Program | Earn Rewards",
@@ -73,8 +73,8 @@
 	},
 	"logistics": {
 		"title": "Logistics & Transport Solutions | Fast Deliveries",
-		"description": "Find certified transporters for your perishable goods. Secure cold-chain logistics to guarantee freshness.",
-		"keywords": "cold-chain transport Senegal, fresh produce logistics, express agrifood delivery, transporter network"
+		"description": "Find certified carriers for your perishable goods. Secure cold-chain logistics to guarantee freshness.",
+		"keywords": "cold-chain transport Senegal, fresh produce logistics, express agrifood delivery, carrier network"
 	},
 	"categories": {
 		"title": "All Categories | From Staples to Specialties | Harvests",
@@ -83,7 +83,7 @@
 	},
 	"vendeurs": {
 		"title": "Our Sellers | Producers & Artisans | Harvests",
-		"description": "Discover all partner sellers on Harvests: local producers, transformers and agrifood artisans.",
+		"description": "Discover all partner sellers on Harvests: local producers, processors and agrifood artisans.",
 		"keywords": "sellers, Harvests, producer shops, agrifood artisans"
 	},
 	"restaurateurs": {
@@ -107,9 +107,9 @@
 		"keywords": "producer, profile, local products, Harvests"
 	},
 	"transformerProfile": {
-		"title": "Transformer Profile | Harvests",
-		"description": "Discover this transformer, their products and specialties on Harvests.",
-		"keywords": "transformer, profile, processed products, Harvests"
+		"title": "Processor Profile | Harvests",
+		"description": "Discover this processor, their products and specialties on Harvests.",
+		"keywords": "processor, profile, processed products, Harvests"
 	},
 	"restaurateurProfile": {
 		"title": "Restaurateur Profile | Harvests",

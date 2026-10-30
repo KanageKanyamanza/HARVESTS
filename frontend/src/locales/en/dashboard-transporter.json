@@ -1,6 +1,6 @@
 {
 	"dashboard": {
-		"eyebrow": "Transporter space",
+		"eyebrow": "Carrier space",
 		"titleStart": "Your",
 		"titleHighlight": "Dashboard.",
 		"subtitle": "Manage your local deliveries and optimise your fleet with <brand>Harvests</brand>. Track your performance in real time.",
@@ -170,7 +170,7 @@
 		"emptyFiltered": "Adjust your filters to see other results.",
 		"emptyText": "Your delivery jobs will appear here as soon as they are assigned to you.",
 		"statusNote": "Status updated by {{name}}",
-		"defaultName": "the transporter",
+		"defaultName": "the carrier",
 		"updateError": "Error while updating the status"
 	},
 	"stats": {

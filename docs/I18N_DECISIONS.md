@@ -9,6 +9,10 @@ Sommaire :
 
 - [J69-1 — Manifeste PWA par langue](#j69-1--manifeste-pwa-par-langue)
 - [J69-2 — Back-office volontairement français-only](#j69-2--back-office-volontairement-français-only)
+- [J70-1 — Lexique de référence figé](#j70-1--lexique-de-référence-figé)
+- [J70-2 — Glossaire exécutable dans les deux sens](#j70-2--glossaire-exécutable-dans-les-deux-sens)
+- [J70-3 — Format des prix en anglais](#j70-3--format-des-prix-en-anglais)
+- [J70-4 — Fidélité : plus de livraison gratuite](#j70-4--fidélité--plus-de-livraison-gratuite)
 
 ---
 
@@ -112,3 +116,114 @@ Tant que la décision tient, **ne pas** ajouter `pages/admin` ni
 `components/admin` à la liste des fichiers migrés : le garde-fou
 `check-hardcoded-french.js` échouerait sur des centaines de chaînes françaises
 attendues.
+
+---
+
+## J70-1 — Lexique de référence figé
+
+### Décision
+
+Le vocabulaire métier FR/EN est figé dans **`docs/GLOSSAIRE_REFERENCE.md`**, qui
+devient la référence pour toute traduction ou relecture. Il reprend la liste de
+la feuille de route bilingue (rôles, filière, fiche de culture, étape de pousse,
+zone sahélienne) et tranche les cas qu'elle laissait ouverts.
+
+Arbitrages notables :
+
+| Français | Retenu | Pourquoi |
+| --- | --- | --- |
+| Transformateur | **Processor** | « Transformer » est ambigu (verbe, transformateur électrique) |
+| Transporteur | **Carrier** | « Transporter » désigne un engin en anglais ; la feuille de route acceptait les deux, on fixe le plus naturel |
+| Restaurateur | **Restaurateur** | Mot anglais existant, déjà employé dans 44 chaînes des pages publiques ; « Restaurant owner » n'était utilisé que dans deux libellés de rôle |
+
+### Garde-fou
+
+`frontend/scripts/check-glossary-terms.js` parcourt les **valeurs** de
+`src/locales/en/*.json` (jamais les clés) et échoue si « transformer » ou
+« transporter » réapparaît comme nom de rôle. Branché sur `npm run build` et
+`npm run lint`, comme les garde-fous des Jours 36 et 69.
+
+### Portée
+
+Les clés techniques (`transformer`, `transporter`, `transformerProfile`,
+`becomeTransporter`…) ne changent pas : seules les valeurs affichées suivent le
+lexique, pour ne pas casser le routage ni les `userType`.
+
+---
+
+## J70-2 — Glossaire exécutable dans les deux sens
+
+### Décision
+
+Le glossaire du back-office (`/admin/glossary`) porte désormais **les deux
+sens**. Le sens EN → FR, vide depuis le Jour 48, est semé avec les équivalents
+des produits locaux, et le sens FR → EN reçoit la règle « Gumbo » → « okra ».
+
+### Pourquoi la règle « Gumbo »
+
+Quand la traduction automatique rend « Gumbo » pour « gombo », la règle
+`\bgombo\b` ne matche plus : elle s'applique au texte **déjà traduit**. Une
+seconde règle `\bgumbo\b` → `okra` rattrape ce cas. Les correspondances exactes
+(`gombo` → `Okra`) court-circuitent en plus l'appel au service pour les noms de
+produits seuls.
+
+### Mise en œuvre
+
+- `backend/data/translationGlossary.json` est réorganisé par direction
+  (`exactTerms["fr-en"|"en-fr"]`, `wordReplacements["fr-en"|"en-fr"]`) ; il reste
+  la semence et le repli hors base.
+- `backend/scripts/seedTranslationGlossary.js` sème les deux sens en mode
+  idempotent (dry-run par défaut, `--execute` pour écrire).
+- `backend/tests/translation-glossary.test.js` vérifie les deux sens, l'absence
+  de doublon et la validité des motifs, sans connexion réseau ni MongoDB.
+
+---
+
+## J70-3 — Format des prix en anglais
+
+### Décision
+
+| Langue | Format | Exemple |
+| --- | --- | --- |
+| Français | montant puis devise, milliers séparés par une espace | `3 000 F CFA` |
+| Anglais | code devise puis montant, milliers séparés par une virgule | `FCFA 3,000` |
+
+La devise **ne change pas avec la langue** : tous les prix restent en FCFA/XOF.
+
+### Pourquoi
+
+`utils/currencyUtils.formatPrice` forçait `fr-FR` pour tout le site : en anglais,
+les montants restaient au format français. La feuille de route laissait le choix
+(« FCFA 3,000 » ou équivalent) ; on retient la présentation naturelle en anglais
+(code avant le montant, séparateur virgule) sans toucher au français déjà affiché.
+
+### Mise en œuvre
+
+- `frontend/src/utils/priceFormat.js` centralise la règle (langue lue via
+  l'instance i18next partagée, donc pas de cycle d'imports).
+- `utils/currencyUtils.formatPrice` et `utils/i18n.formatPrice` y délèguent ; les
+  formatages locaux des écrans bilingues (catégories, détail de plat, profils
+  vendeurs, abonnement du tableau de bord) sont remplacés par cet utilitaire.
+- `getLocaleConfig("en").currency` passe de `GHS` (cedi ghanéen, jamais utilisé
+  pour un prix réel) à `XOF`.
+- Le back-office reste en français (J69-2) et garde donc le format français.
+
+---
+
+## J70-4 — Fidélité : plus de livraison gratuite
+
+### Décision
+
+Les avantages « Livraison gratuite sur commandes > 10,000 XAF » (niveau Silver)
+et « Livraison gratuite illimitée » (niveau Gold) sont **retirés** de
+`public.json` (clés `loyalty.tiers[*].benefits`), tout comme « Retours
+gratuits » (Gold), qui promettait la même logistique gratuite. L'exemple de
+bonus Platinum (`loyalty.exampleBonus1`) est remplacé par « Support VIP 24/7 »,
+avantage déjà listé pour ce niveau.
+
+### Pourquoi
+
+Depuis la décision du 07/10/2026, **la livraison est facturée par le livreur** :
+la plateforme ne peut pas promettre la gratuité, ni à l'aller ni au retour.
+Une page publique qui promet un avantage non tenu est un risque commercial et
+juridique, pas seulement une incohérence de traduction.

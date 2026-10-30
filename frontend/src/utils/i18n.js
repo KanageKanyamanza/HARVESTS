@@ -2,6 +2,8 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import { fr, enUS } from "date-fns/locale";
 import { getConfig } from "../config/production";
+import { DEFAULT_CURRENCY } from "../config/currencies";
+import { formatPriceForLanguage } from "./priceFormat";
 
 // Namespaces par domaine (Jour 34 - cadrage bilingue), un fichier par langue et
 // par namespace : chaque écran ne demande que le(s) namespace(s) dont il a besoin
@@ -233,7 +235,7 @@ export const getLocaleConfig = (language = getCurrentLanguage()) => {
 	const configs = {
 		fr: {
 			locale: "fr-FR",
-			currency: "XAF", // FCFA pour les pays francophones
+			currency: "XOF", // FCFA — devise de vente, identique dans les deux langues
 			currencySymbol: "FCFA",
 			dateFormat: "DD/MM/YYYY",
 			timeFormat: "HH:mm",
@@ -244,8 +246,11 @@ export const getLocaleConfig = (language = getCurrentLanguage()) => {
 		},
 		en: {
 			locale: "en-US",
-			currency: "GHS", // Par défaut Ghana Cedi
-			currencySymbol: "₵",
+			// Jour 70 : la devise ne dépend pas de la langue affichée. Avant,
+			// l'anglais retombait sur le cedi ghanéen (GHS) alors que tous les
+			// prix de la plateforme sont libellés en FCFA.
+			currency: "XOF",
+			currencySymbol: "FCFA",
 			dateFormat: "MM/DD/YYYY",
 			timeFormat: "hh:mm A",
 			numberFormat: {
@@ -258,27 +263,13 @@ export const getLocaleConfig = (language = getCurrentLanguage()) => {
 	return configs[language] || configs.fr;
 };
 
-// Fonction utilitaire pour formater les prix
+// Fonction utilitaire pour formater les prix : mêmes conventions que
+// utils/currencyUtils.formatPrice (fr « 3 000 F CFA », en « FCFA 3,000 »).
 export const formatPrice = (
 	amount,
 	currency = null,
 	language = getCurrentLanguage()
-) => {
-	const config = getLocaleConfig(language);
-	const currencyToUse = currency || config.currency;
-
-	try {
-		return new Intl.NumberFormat(config.locale, {
-			style: "currency",
-			currency: currencyToUse,
-			minimumFractionDigits: 0,
-			maximumFractionDigits: 0,
-		}).format(amount);
-	} catch {
-		// Fallback si la devise n'est pas supportée
-		return `${amount.toLocaleString(config.locale)} ${config.currencySymbol}`;
-	}
-};
+) => formatPriceForLanguage(amount, currency || DEFAULT_CURRENCY, language);
 
 // Fonction utilitaire pour formater les dates
 export const formatDate = (date, language = getCurrentLanguage()) => {

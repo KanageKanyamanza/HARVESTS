@@ -13,8 +13,9 @@
     "check:i18n-hardcoded": "node scripts/check-hardcoded-french.js",
     "check:crop-advice": "node scripts/check-crop-advice-en.js",
     "check:manifest": "node scripts/check-manifest.js",
-    "build": "node scripts/check-i18n-parity.js && node scripts/check-crop-advice-en.js && node scripts/check-manifest.js && node scripts/set-sw-version.js && vite build",
-    "lint": "eslint . && node scripts/check-hardcoded-french.js",
+    "check:glossary": "node scripts/check-glossary-terms.js",
+    "build": "node scripts/check-i18n-parity.js && node scripts/check-crop-advice-en.js && node scripts/check-manifest.js && node scripts/check-glossary-terms.js && node scripts/set-sw-version.js && vite build",
+    "lint": "eslint . && node scripts/check-hardcoded-french.js && node scripts/check-glossary-terms.js",
     "preview": "vite preview"
   },
   "dependencies": {

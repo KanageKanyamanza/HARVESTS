@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { subscriptionService } from "../../../services";
 import { formatDate as formatLocalizedDate } from "../../../utils/i18n";
+import { formatPrice } from "../../../utils/currencyUtils";
 import {
 	FiStar,
 	FiCalendar,
@@ -71,10 +72,6 @@ const SubscriptionSection = () => {
 		} finally {
 			setLoading(false);
 		}
-	};
-
-	const formatPrice = (price) => {
-		return new Intl.NumberFormat("fr-FR").format(price);
 	};
 
 	const formatDate = (dateString) => {
@@ -216,7 +213,7 @@ const SubscriptionSection = () => {
 						{t("dashboardSections.subscription.amount")}
 					</span>
 					<span className="font-semibold text-gray-900">
-						{formatPrice(subscription.amount)} {subscription.currency}
+						{formatPrice(subscription.amount, subscription.currency || "XOF")}
 						{subscription.billingPeriod === "monthly" && (
 							<span className="text-gray-500 text-xs ml-1">
 								{t("dashboardSections.subscription.perMonth")}
