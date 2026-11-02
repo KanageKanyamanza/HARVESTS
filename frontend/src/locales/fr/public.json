@@ -247,8 +247,8 @@
       "popular": "Plus populaires"
     },
     "filters": {
-      "priceMin": "Prix minimum (XOF)",
-      "priceMax": "Prix maximum (XOF)",
+      "priceMin": "Prix minimum (FCFA)",
+      "priceMax": "Prix maximum (FCFA)",
       "producer": "Producteur",
       "sectionSearchTitle": "Recherche",
       "searchPlaceholder": "Chercher...",
@@ -258,7 +258,7 @@
       "allCountries": "Tous les pays",
       "zonesGroup": "Zones",
       "countriesGroup": "Pays",
-      "sectionPriceTitle": "Prix (XOF)",
+      "sectionPriceTitle": "Prix (FCFA)",
       "pricePlaceholderMin": "Min",
       "pricePlaceholderMax": "Max",
       "bioLabel": "Produits Certifiés BIO",
@@ -1168,7 +1168,7 @@
       },
       {
         "title": "Gagnez des Points",
-        "description": "Recevez des points pour chaque achat (1 point = 100 XAF)"
+        "description": "Recevez des points pour chaque achat (1 point = 100 FCFA)"
       },
       {
         "title": "Montez de Niveau",
@@ -1186,7 +1186,7 @@
     "tiers": [
       {
         "benefits": [
-          "1 point pour chaque 100 XAF dépensé",
+          "1 point pour chaque 100 FCFA dépensé",
           "Réductions exclusives",
           "Accès aux ventes flash",
           "Newsletter mensuelle"
@@ -1194,7 +1194,7 @@
       },
       {
         "benefits": [
-          "1 point pour chaque 100 XAF dépensé",
+          "1 point pour chaque 100 FCFA dépensé",
           "Tous les avantages Bronze",
           "Accès prioritaire aux nouveaux produits",
           "Cadeau d'anniversaire"
@@ -1202,7 +1202,7 @@
       },
       {
         "benefits": [
-          "1.5 points pour chaque 100 XAF dépensé",
+          "1.5 points pour chaque 100 FCFA dépensé",
           "Tous les avantages Silver",
           "Cadeaux exclusifs trimestriels",
           "Service client prioritaire"
@@ -1210,7 +1210,7 @@
       },
       {
         "benefits": [
-          "2 points pour chaque 100 XAF dépensé",
+          "2 points pour chaque 100 FCFA dépensé",
           "Tous les avantages Gold",
           "Support VIP 24/7",
           "Accès aux événements exclusifs",
@@ -1240,12 +1240,12 @@
       }
     ],
     "examplesTitle": "Exemple de récompenses",
-    "examplePurchase": "Achat de 50,000 XAF",
+    "examplePurchase": "Achat de 50 000 F CFA",
     "exampleBronze": "Niveau Bronze : +500 points",
-    "examplePlatinum": "Niveau Platinum : +1,000 points",
+    "examplePlatinum": "Niveau Platinum : +1 000 points",
     "exampleSavings": "Économies possibles",
-    "exampleSavings1": "500 points = 500 XAF de réduction",
-    "exampleSavings2": "1,000 points = 1,000 XAF de réduction",
+    "exampleSavings1": "500 points = 500 F CFA de réduction",
+    "exampleSavings2": "1 000 points = 1 000 F CFA de réduction",
     "exampleBonus": "Bonus membre Platinum",
     "exampleBonus1": "Support VIP 24/7",
     "exampleBonus2": "Cadeaux mensuels premium",
@@ -1253,11 +1253,11 @@
     "faq": [
       {
         "question": "Comment gagner des points ?",
-        "answer": "Vous gagnez automatiquement des points à chaque achat. Le nombre de points dépend de votre niveau : Bronze et Silver (1 pt/100 XAF), Gold (1.5 pts/100 XAF), Platinum (2 pts/100 XAF)."
+        "answer": "Vous gagnez automatiquement des points à chaque achat. Le nombre de points dépend de votre niveau : Bronze et Silver (1 pt/100 FCFA), Gold (1.5 pts/100 FCFA), Platinum (2 pts/100 FCFA)."
       },
       {
         "question": "Comment utiliser mes points ?",
-        "answer": "Lors du checkout, vous pouvez choisir d'utiliser vos points. Chaque point vaut 1 XAF de réduction sur votre commande. Vous décidez du nombre de points à utiliser."
+        "answer": "Lors du checkout, vous pouvez choisir d'utiliser vos points. Chaque point vaut 1 FCFA de réduction sur votre commande. Vous décidez du nombre de points à utiliser."
       },
       {
         "question": "Les points expirent-ils ?",

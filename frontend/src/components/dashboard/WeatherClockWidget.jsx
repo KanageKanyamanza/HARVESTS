@@ -91,7 +91,7 @@ const WeatherClockWidget = ({ city }) => {
 		};
 	}, [city]);
 
-	const dateLocale = i18n.language === "en" ? "en-US" : "fr-FR";
+	const dateLocale = i18n.language === "en" ? "en-GB" : "fr-FR";
 	const timeLabel = now.toLocaleTimeString(dateLocale, {
 		hour: "2-digit",
 		minute: "2-digit",

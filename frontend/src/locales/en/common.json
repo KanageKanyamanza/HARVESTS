@@ -1,6 +1,6 @@
 {
 	"welcome": "Welcome",
-	"loading": "Loading...",
+	"loading": "Loading…",
 	"error": "Error",
 	"success": "Success",
 	"cancel": "Cancel",
@@ -9,7 +9,7 @@
 	"delete": "Delete",
 	"confirm": "Confirm",
 	"search": {
-		"placeholder": "Search..."
+		"placeholder": "Search…"
 	},
 	"filter": "Filter",
 	"sort": "Sort",
@@ -74,7 +74,7 @@
 		"privacyLink": "Privacy Policy",
 		"acceptAll": "Accept all",
 		"essentialOnly": "Essential only",
-		"customize": "Customize",
+		"customize": "Customise",
 		"save": "Save my choices",
 		"categories": {
 			"essential": {
@@ -99,7 +99,7 @@
 			"Quick access from your home screen",
 			"Works offline",
 			"Push notifications",
-			"Optimized experience"
+			"Optimised experience"
 		],
 		"iosTitle": "To install Harvests on iOS:",
 		"iosStep1Prefix": "Tap the",
@@ -116,7 +116,7 @@
 	"units": {
 		"kg": "Kilograms (kg)",
 		"g": "Grams (g)",
-		"L": "Liters (L)",
+		"L": "Litres (L)",
 		"ml": "Milliliters (ml)",
 		"bag": "Bag",
 		"carton": "Carton",
@@ -136,7 +136,7 @@
 		"invalidFile": "Please select a valid image file",
 		"tooLarge": "File size must not exceed 5 MB",
 		"uploadError": "Could not upload the image",
-		"uploading": "Uploading...",
+		"uploading": "Uploading…",
 		"dropHere": "Drag and drop your images here",
 		"orClick": "or click to select files",
 		"select": "Select images",
@@ -347,7 +347,7 @@
 		"emailResent": "Verification email sent again! Check your inbox.",
 		"emailError": "Error while resending. Please try again.",
 		"emailWait": "Please wait before resending the email.",
-		"sending": "Sending...",
+		"sending": "Sending…",
 		"sent": "Email sent",
 		"resend": "Resend the verification email",
 		"quotaReachedTitle": "Weekly quota reached ({{count}}/{{max}})",
@@ -422,7 +422,7 @@
 		"newConversation": "New conversation",
 		"selectTitle": "Your messages",
 		"selectText": "Select a conversation from the list to start chatting with your contacts.",
-		"placeholder": "Write a message...",
+		"placeholder": "Write a message…",
 		"sendError": "Error while sending the message",
 		"attachFile": "Attach a file",
 		"removeAttachment": "Remove attachment",
@@ -433,7 +433,7 @@
 		"titleStart": "My",
 		"titleHighlight": "Messages.",
 		"subtitle": "Talk directly with your customers, sellers and logistics partners.",
-		"searchPlaceholder": "Search conversations...",
+		"searchPlaceholder": "Search conversations…",
 		"noResult": "No conversation found",
 		"conversationsCount_one": "{{count}} conversation",
 		"conversationsCount_other": "{{count}} conversations"
@@ -458,7 +458,7 @@
 		"filterAll": "All",
 		"filterUnread": "Unread",
 		"filterRead": "Read",
-		"searchPlaceholder": "Search...",
+		"searchPlaceholder": "Search…",
 		"clearSearch": "Clear search",
 		"selected_one": "{{count}} notification selected",
 		"selected_other": "{{count}} notifications selected",
@@ -517,7 +517,7 @@
 		"privacyText": "Your administrative documents are only used by our teams to verify that your business is genuine and to build trust with your future partners.",
 		"documentsTitle": "Administrative documents",
 		"certificationsTitle": "Labels & awards",
-		"saving": "Saving...",
+		"saving": "Saving…",
 		"save": "Save changes",
 		"saved": "Documents saved",
 		"saveError": "Error while saving the documents",
@@ -536,7 +536,7 @@
 		"underReview": "Under review",
 		"toProvide": "To provide",
 		"number": "Number / reference",
-		"numberPlaceholder": "e.g. RC-SN-DKR-2024-B-...",
+		"numberPlaceholder": "e.g. RC-SN-DKR-2024-B-…",
 		"scan": "Document scan (PDF / image)"
 	},
 	"documentUpload": {
@@ -544,7 +544,7 @@
 		"tooLarge": "File too large (10 MB max).",
 		"unexpectedResponse": "Unexpected server response",
 		"uploadError": "Error while uploading the file.",
-		"uploading": "Uploading...",
+		"uploading": "Uploading…",
 		"clickToUpload": "Click to upload a file (PDF / image)",
 		"view": "View document",
 		"uploaded": "Uploaded",
@@ -557,7 +557,7 @@
 		"pdfDocument": "PDF document",
 		"previewAlt": "Document preview",
 		"defaultLabel": "Document",
-		"previewLoading": "Loading preview...",
+		"previewLoading": "Loading preview…",
 		"previewError": "Unable to display this document.",
 		"openError": "Unable to open this document. Please log in again and retry."
 	},
@@ -579,7 +579,7 @@
 		"estimatedDelivery": "Estimated delivery",
 		"documents": "Documents",
 		"downloadInvoice": "Download invoice",
-		"downloading": "Downloading...",
+		"downloading": "Downloading…",
 		"invoiceFile": "invoice-{{number}}.pdf",
 		"invoiceError": "Error while downloading the invoice",
 		"statusNote": "Status updated by {{name}}",
@@ -625,7 +625,7 @@
 		"references_other": "{{count}} items",
 		"unknownProduct": "Unknown product",
 		"unitPrice": "Unit price: {{price}}",
-		"validating": "Validating...",
+		"validating": "Validating…",
 		"confirm": "Confirm"
 	},
 	"errorMessage": {
@@ -645,7 +645,7 @@
 		"tooLarge": "File too large (max {{size}} MB)",
 		"fetchError": "Error while retrieving the image",
 		"uploadFailed": "Image upload failed",
-		"processing": "Processing...",
+		"processing": "Processing…",
 		"change": "Change",
 		"remove": "Remove image",
 		"previewAlt": "Image preview",
@@ -677,7 +677,7 @@
 		"noOrderFound": "No order found for this product",
 		"noOrderHint": "You can still leave a general review",
 		"comment": "Your review",
-		"commentPlaceholder": "Share your experience with this product (optional)...",
+		"commentPlaceholder": "Share your experience with this product (optional)…",
 		"media": "Photos or videos (optional)",
 		"mediaAdd": "Click to add photos or videos",
 		"mediaHint": "PNG, JPG, MP4 up to 10 MB",
@@ -685,7 +685,7 @@
 		"video": "Video",
 		"removeMedia": "Remove this file",
 		"cancel": "Cancel",
-		"submitting": "Sending...",
+		"submitting": "Sending…",
 		"submit": "Post review"
 	},
 	"reviewList": {
@@ -722,11 +722,11 @@
 		"helpful": "Helpful",
 		"notHelpful": "Not helpful",
 		"loginToReply": "Log in to reply",
-		"replyPlaceholder": "Write a comment...",
+		"replyPlaceholder": "Write a comment…",
 		"sendReply": "Send"
 	},
 	"searchModal": {
-		"placeholder": "Search for products...",
+		"placeholder": "Search for products…",
 		"clear": "Clear search",
 		"close": "Close",
 		"startTyping": "Start typing to search for products",

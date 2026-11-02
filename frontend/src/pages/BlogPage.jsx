@@ -26,7 +26,7 @@ const formatDate = (dateString, language = "fr") => {
 		day: "numeric",
 	};
 	return date.toLocaleDateString(
-		language === "fr" ? "fr-FR" : "en-US",
+		language === "fr" ? "fr-FR" : "en-GB",
 		options,
 	);
 };

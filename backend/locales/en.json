@@ -53,7 +53,7 @@
     "document_status_updated": "Document status updated",
     "firstname_email_required": "First name and email are required",
     "url_required": "URL required",
-    "url_forbidden": "Unauthorized URL",
+    "url_forbidden": "Unauthorised URL",
     "cloudinary_url_invalid": "Unrecognised Cloudinary URL",
     "signature_rejected": "Signature rejected. Try without the extension.",
     "secure_download_error": "Secure download error.",
@@ -71,7 +71,7 @@
     "transporters_available": "Carriers available for local orders"
   },
   "common": {
-    "loading": "Loading...",
+    "loading": "Loading…",
     "error": "Error",
     "success": "Success",
     "cancel": "Cancel",
@@ -107,7 +107,7 @@
     "account_not_approved": "Account pending approval",
     "account_suspended": "Account suspended",
     "token_expired": "Token expired",
-    "unauthorized": "Unauthorized",
+    "unauthorized": "Unauthorised",
     "verification_email_sent": "Verification email sent successfully",
     "email_not_verified": "Please verify your email before logging in",
     "session_expired": "Session expired. Please log in again.",
@@ -268,7 +268,7 @@
     "push_unsubscribed": "Push notification unsubscription confirmed",
     "subscription_required": "Subscription object required",
     "endpoint_required": "Endpoint required",
-    "unauthorized_admin": "Unauthorized or admin not found",
+    "unauthorized_admin": "Unauthorised or admin not found",
     "recipient_not_found": "Recipient not found",
     "recipients_required": "At least one recipient is required",
     "failed_only_retry": "Only failed notifications can be resent",
@@ -514,11 +514,11 @@
       ],
       "features_title": "Once your account is activated, you will be able to:",
       "features": [
-        "Access your personalized dashboard",
+        "Access your personalised dashboard",
         "Publish and manage your agricultural products",
         "Connect with other players in the sector",
         "Use our advanced management tools",
-        "Receive personalized notifications",
+        "Receive personalised notifications",
         "Access our premium marketplace"
       ],
       "ignore": "If you didn't create a Harvests account, you can safely ignore this email. No action is required on your part."
@@ -541,7 +541,7 @@
         "Mix letters, numbers and special symbols",
         "Enable two-factor authentication if available",
         "Change your passwords regularly",
-        "Sign out of any devices you don't recognize"
+        "Sign out of any devices you don't recognise"
       ],
       "support": "If you keep having trouble signing in, or you think your account has been compromised, contact our support team immediately."
     },
@@ -715,7 +715,7 @@
     "piece": "piece",
     "box": "box",
     "bag": "bag",
-    "liter": "liter"
+    "liter": "litre"
   },
   "producer": {
     "not_found": "Producer not found",

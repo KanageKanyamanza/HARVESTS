@@ -107,7 +107,7 @@ api.interceptors.request.use(
 
 		// Ajouter les headers de langue
 		config.headers["Accept-Language"] =
-			language === "fr" ? "fr-FR,fr;q=0.9" : "en-US,en;q=0.9";
+			language === "fr" ? "fr-FR,fr;q=0.9" : "en-GB,en;q=0.9";
 
 		// Reprendre le jeton CSRF renvoyé par l'API (le cookie n'est pas
 		// lisible depuis la page quand le front et l'API sont sur des
