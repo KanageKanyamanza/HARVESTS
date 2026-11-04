@@ -5,6 +5,7 @@ import React, {
 	useMemo,
 } from "react";
 import { useAuth } from "../hooks/useAuth";
+import i18n from "../utils/i18n";
 import { generateUniqueId } from "../utils/uuid";
 import { notificationService } from "../services/notificationService";
 import { NotificationContext } from "./NotificationContextObject";
@@ -181,10 +182,10 @@ export const NotificationProvider = ({ children }) => {
 		if (isAuthenticated) { try { await notificationService.deleteAllNotifications(); } catch {} }
 	}, [isAuthenticated]);
 
-	const showSuccess = useCallback((m, t = "Succès", s = true) => addNotification({ type: "success", title: t, message: m, icon: "✅", showAsToast: s }), [addNotification]);
-	const showError = useCallback((m, t = "Erreur", s = true) => addNotification({ type: "error", title: t, message: m, icon: "❌", showAsToast: s }), [addNotification]);
-	const showInfo = useCallback((m, t = "Info", s = true) => addNotification({ type: "info", title: t, message: m, icon: "ℹ️", showAsToast: s }), [addNotification]);
-	const showWarning = useCallback((m, t = "Attention", s = true) => addNotification({ type: "warning", title: t, message: m, icon: "⚠️", showAsToast: s }), [addNotification]);
+	const showSuccess = useCallback((m, t = i18n.t("common:success"), s = true) => addNotification({ type: "success", title: t, message: m, icon: "✅", showAsToast: s }), [addNotification]);
+	const showError = useCallback((m, t = i18n.t("common:error"), s = true) => addNotification({ type: "error", title: t, message: m, icon: "❌", showAsToast: s }), [addNotification]);
+	const showInfo = useCallback((m, t = i18n.t("common:info"), s = true) => addNotification({ type: "info", title: t, message: m, icon: "ℹ️", showAsToast: s }), [addNotification]);
+	const showWarning = useCallback((m, t = i18n.t("common:warning"), s = true) => addNotification({ type: "warning", title: t, message: m, icon: "⚠️", showAsToast: s }), [addNotification]);
 
 	const refreshNotifications = useCallback(async () => {
 		if (isAuthenticated) {

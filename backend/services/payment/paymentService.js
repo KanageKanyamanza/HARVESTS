@@ -34,13 +34,13 @@ async function initiateSubscriptionPayment(userId, { planId, billingPeriod, amou
   const plan = plans[planId];
 
   if (!plan) {
-    throw new Error('Plan invalide');
+    throw new Error('payment.invalid_plan');
   }
 
   const expectedAmount = billingPeriod === 'monthly' ? plan.monthlyPrice : plan.annualPrice;
   
   if (amount !== expectedAmount) {
-    throw new Error('Montant incorrect');
+    throw new Error('payment.incorrect_amount');
   }
 
   // Vérifier si l'utilisateur a déjà une souscription active
@@ -50,7 +50,7 @@ async function initiateSubscriptionPayment(userId, { planId, billingPeriod, amou
   });
 
   if (existingActive && planId !== 'gratuit') {
-    throw new Error('Vous avez déjà une souscription active');
+    throw new Error('payment.subscription_already_active');
   }
 
   // Créer ou trouver la souscription
@@ -158,19 +158,19 @@ async function initiateSubscriptionPayment(userId, { planId, billingPeriod, amou
 async function initiateOrderPayment(userId, orderId, { method, returnUrl, cancelUrl, cashInstructions, customerIp, userAgent }) {
   const order = await Order.findById(orderId);
   if (!order) {
-    throw new Error('Commande non trouvée');
+    throw new Error('order.not_found');
   }
 
   if (order.buyer.toString() !== userId) {
-    throw new Error('Vous ne pouvez payer que vos propres commandes');
+    throw new Error('payment.own_orders_only');
   }
 
   if (order.payment.status === 'completed') {
-    throw new Error('Cette commande a déjà été payée');
+    throw new Error('payment.order_already_paid');
   }
 
   if (!['pending', 'failed'].includes(order.status)) {
-    throw new Error('Cette commande ne peut plus être payée');
+    throw new Error('payment.order_not_payable');
   }
 
   const normalizedProvider = method === 'paypal' ? 'paypal' : 'cash-on-delivery';
@@ -270,7 +270,7 @@ async function confirmPayPalPayment(paymentId, userId, paypalOrderId) {
   });
 
   if (!payment) {
-    throw new Error('Paiement non trouvé');
+    throw new Error('payment.not_found');
   }
 
   if (payment.status === 'succeeded') {
@@ -305,7 +305,7 @@ async function confirmCashPayment(paymentId, userId, confirmationNotes) {
   });
 
   if (!payment) {
-    throw new Error('Paiement non trouvé');
+    throw new Error('payment.not_found');
   }
 
   payment.paymentDetails.cash = {
@@ -374,7 +374,7 @@ async function getPaymentById(paymentId, userId) {
   }).populate('order', 'orderNumber items buyer seller');
 
   if (!payment) {
-    throw new Error('Paiement non trouvé');
+    throw new Error('payment.not_found');
   }
 
   return payment;

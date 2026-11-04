@@ -15,11 +15,11 @@ async function requestRefund(paymentId, userId, { reason, amount }) {
   });
 
   if (!payment) {
-    throw new Error('Paiement non trouvé');
+    throw new Error('payment.not_found');
   }
 
   if (!payment.canBeRefunded) {
-    throw new Error('Ce paiement ne peut pas être remboursé');
+    throw new Error('payment.not_refundable');
   }
 
   const refundAmount = amount || payment.amount;
@@ -56,7 +56,7 @@ async function processRefund(refundId, adminId, { status, note }) {
   }).populate('user', 'firstName lastName email');
 
   if (!payment) {
-    throw new Error('Demande de remboursement non trouvée');
+    throw new Error('payment.refund_request_not_found');
   }
 
   await payment.processRefund(refundId, status);

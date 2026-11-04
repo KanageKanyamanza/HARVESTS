@@ -210,7 +210,10 @@ const ChatWindow = ({ conversation, currentUser, mobileView, onBack }) => {
 								return (
 									<div key={msg._id} className="flex justify-center">
 										<span className="text-[11px] text-gray-400 bg-white/60 px-3 py-1 rounded-full">
-											{msg.content}
+											{msg.metadata?.systemType === "conversation_created" &&
+											conversation.type === "direct" ?
+												t("messaging.conversationStarted")
+											:	msg.content}
 										</span>
 									</div>
 								);

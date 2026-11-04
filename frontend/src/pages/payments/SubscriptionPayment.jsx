@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../hooks/useAuth";
 import { subscriptionService } from "../../services";
+import { formatPrice } from "../../utils/i18n";
 import {
 	FiArrowLeft,
 	FiInfo,
@@ -14,6 +16,7 @@ import {
 
 const SubscriptionPayment = () => {
 	const { planId } = useParams();
+	const { t, i18n } = useTranslation("public");
 	const { isAuthenticated } = useAuth();
 	const navigate = useNavigate();
 
@@ -22,37 +25,22 @@ const SubscriptionPayment = () => {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState(null);
 
+	// Seule la partie non textuelle des plans vit ici : noms, sous-titres et
+	// descriptions viennent de `pricing.plans.*`, déjà traduits pour la page
+	// Tarifs (Jour 72 : la page de paiement était restée en français).
 	const plans = {
-		gratuit: {
-			id: "gratuit",
-			name: "Gratuit",
-			subtitle: "Découverte",
-			monthlyPrice: 0,
-			annualPrice: 0,
-			description:
-				"Idéal pour les producteurs débutants souhaitant tester la plateforme sans engagement.",
-		},
-		standard: {
-			id: "standard",
-			name: "Standard",
-			subtitle: "Professionnel",
-			monthlyPrice: 3000,
-			annualPrice: 25000,
-			description:
-				"Idéal pour les petits producteurs, coopératives ou transformateurs souhaitant développer leur visibilité et leurs ventes.",
-		},
-		premium: {
-			id: "premium",
-			name: "Premium",
-			subtitle: "Export & Croissance",
-			monthlyPrice: 10000,
-			annualPrice: 75000,
-			description:
-				"Idéal pour les producteurs structurés, coopératives sérieuses, distributeurs et exportateurs.",
-		},
+		gratuit: { id: "gratuit", monthlyPrice: 0, annualPrice: 0 },
+		standard: { id: "standard", monthlyPrice: 3000, annualPrice: 25000 },
+		premium: { id: "premium", monthlyPrice: 10000, annualPrice: 75000 },
 	};
 
 	const selectedPlan = plans[planId] || plans.standard;
+	const planCopy = (field) =>
+		t(`pricing.plans.${selectedPlan.id}.${field}`, {
+			returnObjects: false,
+		});
+
+	const priceLabel = (amount) => formatPrice(amount, "FCFA", i18n.language);
 
 	useEffect(() => {
 		if (!isAuthenticated) {
@@ -61,10 +49,6 @@ const SubscriptionPayment = () => {
 			});
 		}
 	}, [isAuthenticated, navigate, planId]);
-
-	const formatPrice = (price) => {
-		return new Intl.NumberFormat("fr-FR").format(price);
-	};
 
 	const getPrice = () => {
 		return billingPeriod === "monthly" ?
@@ -89,13 +73,14 @@ const SubscriptionPayment = () => {
 			// Pour le plan gratuit, on peut directement activer sans paiement
 			try {
 				setIsSubmitting(true);
-				await subscriptionService.activateFreePlan("gratuit");
+				await subscriptionService.activateFreePlan(selectedPlan.id);
 				navigate("/dashboard", {
-					state: { message: "Plan gratuit activé avec succès!" },
+					state: { message: t("pricing.checkout.successFree") },
 				});
 			} catch (err) {
 				setError(
-					err.response?.data?.message || "Erreur lors de l'activation du plan",
+					err.response?.data?.message ||
+						t("pricing.checkout.errors.freeActivation"),
 				);
 				setIsSubmitting(false);
 			}
@@ -115,13 +100,15 @@ const SubscriptionPayment = () => {
 				});
 				navigate("/dashboard", {
 					state: {
-						message: `Souscription ${selectedPlan.name} créée! Vous serez contacté pour le paiement.`,
+						message: t("pricing.checkout.successCash", {
+							plan: planCopy("name"),
+						}),
 					},
 				});
 			} catch (err) {
 				setError(
 					err.response?.data?.message ||
-						"Erreur lors de la création de la souscription",
+						t("pricing.checkout.errors.subscriptionCreation"),
 				);
 				setIsSubmitting(false);
 			}
@@ -141,6 +128,19 @@ const SubscriptionPayment = () => {
 	const price = getPrice();
 	const discount = getDiscount();
 
+	const paymentMethods = [
+		{
+			value: "cash",
+			label: t("pricing.checkout.cashLabel"),
+			description: t("pricing.checkout.cashDescription"),
+		},
+		{
+			value: "paypal",
+			label: t("pricing.checkout.paypalLabel"),
+			description: t("pricing.checkout.paypalDescription"),
+		},
+	];
+
 	return (
 		<div className="min-h-screen bg-gray-50 py-8">
 			<div className="container mx-auto px-4 max-w-4xl">
@@ -150,17 +150,17 @@ const SubscriptionPayment = () => {
 					className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
 				>
 					<FiArrowLeft className="mr-2" />
-					Retour aux tarifs
+					{t("pricing.checkout.backToPricing")}
 				</button>
 
 				<div className="bg-white rounded-lg shadow-lg overflow-hidden">
 					{/* Plan Summary */}
 					<div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-8">
 						<h1 className="text-3xl font-bold mb-2">
-							Souscription {selectedPlan.name}
+							{t("pricing.checkout.pageTitle", { plan: planCopy("name") })}
 						</h1>
-						<p className="text-lg opacity-90">{selectedPlan.subtitle}</p>
-						<p className="mt-4 opacity-80">{selectedPlan.description}</p>
+						<p className="text-lg opacity-90">{planCopy("subtitle")}</p>
+						<p className="mt-4 opacity-80">{planCopy("description")}</p>
 					</div>
 
 					<form onSubmit={handleSubmit} className="p-8">
@@ -169,7 +169,7 @@ const SubscriptionPayment = () => {
 							<div className="mb-8">
 								<h2 className="text-xl font-semibold mb-4 flex items-center">
 									<FiCalendar className="mr-2" />
-									Période de facturation
+									{t("pricing.checkout.billingPeriod")}
 								</h2>
 								<div className="grid grid-cols-2 gap-4">
 									<button
@@ -181,11 +181,15 @@ const SubscriptionPayment = () => {
 											:	"border-gray-200 hover:border-gray-300"
 										}`}
 									>
-										<div className="font-semibold text-lg mb-1">Mensuel</div>
-										<div className="text-2xl font-bold text-gray-900">
-											{formatPrice(selectedPlan.monthlyPrice)} FCFA
+										<div className="font-semibold text-lg mb-1">
+											{t("pricing.checkout.monthly")}
 										</div>
-										<div className="text-sm text-gray-600 mt-1">par mois</div>
+										<div className="text-2xl font-bold text-gray-900">
+											{priceLabel(selectedPlan.monthlyPrice)}
+										</div>
+										<div className="text-sm text-gray-600 mt-1">
+											{t("pricing.checkout.perMonth")}
+										</div>
 									</button>
 									<button
 										type="button"
@@ -201,21 +205,25 @@ const SubscriptionPayment = () => {
 												-{discount.percent}%
 											</span>
 										)}
-										<div className="font-semibold text-lg mb-1">Annuel</div>
+										<div className="font-semibold text-lg mb-1">
+											{t("pricing.checkout.annual")}
+										</div>
 										<div className="text-2xl font-bold text-gray-900">
-											{formatPrice(selectedPlan.annualPrice)} FCFA
+											{priceLabel(selectedPlan.annualPrice)}
 										</div>
 										<div className="text-sm text-gray-600 mt-1">
 											{discount && (
 												<span className="line-through text-gray-400 mr-2">
-													{formatPrice(selectedPlan.monthlyPrice * 12)}
+													{priceLabel(selectedPlan.monthlyPrice * 12)}
 												</span>
 											)}
-											par an
+											{t("pricing.checkout.perYear")}
 										</div>
 										{discount && (
 											<div className="text-sm text-green-600 font-medium mt-2">
-												Économisez {formatPrice(discount.amount)} FCFA
+												{t("pricing.checkout.save", {
+													amount: priceLabel(discount.amount),
+												})}
 											</div>
 										)}
 									</button>
@@ -228,23 +236,10 @@ const SubscriptionPayment = () => {
 							<div className="mb-8">
 								<h2 className="text-xl font-semibold mb-4 flex items-center">
 									<FiCreditCard className="mr-2" />
-									Méthode de paiement
+									{t("pricing.checkout.paymentMethod")}
 								</h2>
 								<div className="space-y-4">
-									{[
-										{
-											value: "cash",
-											label: "Paiement à la livraison",
-											description:
-												"Vous serez contacté pour finaliser le paiement en espèces ou par mobile money.",
-										},
-										{
-											value: "paypal",
-											label: "PayPal ou Carte bancaire",
-											description:
-												"Payer en ligne via votre compte PayPal ou Carte bancaire, de façon sécurisée.",
-										},
-									].map((method) => {
+									{paymentMethods.map((method) => {
 										const IconComponent =
 											method.value === "cash" ? FiDollarSign : FiCreditCard;
 										return (
@@ -286,11 +281,10 @@ const SubscriptionPayment = () => {
 											<FiInfo className="h-5 w-5 text-green-600 mr-2 mt-0.5" />
 											<div>
 												<h3 className="text-sm font-medium text-green-800">
-													Paiement à la livraison
+													{t("pricing.checkout.cashInfoTitle")}
 												</h3>
 												<p className="text-sm text-green-700 mt-1">
-													Notre équipe vous contactera dans les 24 heures pour
-													finaliser votre souscription et organiser le paiement.
+													{t("pricing.checkout.cashInfoText")}
 												</p>
 											</div>
 										</div>
@@ -303,12 +297,10 @@ const SubscriptionPayment = () => {
 											<FiShield className="h-5 w-5 text-blue-600 mr-2 mt-0.5" />
 											<div>
 												<h3 className="text-sm font-medium text-blue-800">
-													Paiement sécurisé via PayPal
+													{t("pricing.checkout.paypalInfoTitle")}
 												</h3>
 												<p className="text-sm text-blue-700 mt-1">
-													Après validation, vous serez redirigé vers PayPal pour
-													autoriser le paiement. Aucune information sensible
-													n'est stockée par Harvests.
+													{t("pricing.checkout.paypalInfoText")}
 												</p>
 											</div>
 										</div>
@@ -320,33 +312,39 @@ const SubscriptionPayment = () => {
 						{/* Order Summary */}
 						<div className="bg-gray-50 rounded-lg p-6 mb-8">
 							<h3 className="text-lg font-semibold mb-4">
-								Résumé de la souscription
+								{t("pricing.checkout.summaryTitle")}
 							</h3>
 							<div className="space-y-3">
 								<div className="flex justify-between">
-									<span className="text-gray-600">Plan</span>
-									<span className="font-medium">{selectedPlan.name}</span>
+									<span className="text-gray-600">
+										{t("pricing.checkout.plan")}
+									</span>
+									<span className="font-medium">{planCopy("name")}</span>
 								</div>
 								<div className="flex justify-between">
-									<span className="text-gray-600">Période</span>
+									<span className="text-gray-600">
+										{t("pricing.checkout.period")}
+									</span>
 									<span className="font-medium">
-										{billingPeriod === "monthly" ? "Mensuel" : "Annuel"}
+										{billingPeriod === "monthly" ?
+											t("pricing.checkout.monthly")
+										:	t("pricing.checkout.annual")}
 									</span>
 								</div>
 								{discount && (
 									<div className="flex justify-between text-green-600">
-										<span>Remise</span>
-										<span>-{formatPrice(discount.amount)} FCFA</span>
+										<span>{t("pricing.checkout.discount")}</span>
+										<span>-{priceLabel(discount.amount)}</span>
 									</div>
 								)}
 								<hr className="my-3" />
 								<div className="flex justify-between text-lg font-bold">
-									<span>Total</span>
-									<span>{formatPrice(price)} FCFA</span>
+									<span>{t("pricing.checkout.total")}</span>
+									<span>{priceLabel(price)}</span>
 								</div>
 								{billingPeriod === "monthly" && price > 0 && (
 									<div className="text-sm text-gray-500 text-right">
-										Facturé mensuellement
+										{t("pricing.checkout.billedMonthly")}
 									</div>
 								)}
 							</div>
@@ -369,29 +367,25 @@ const SubscriptionPayment = () => {
 							{isSubmitting ?
 								<>
 									<div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-									Traitement en cours...
+									{t("pricing.checkout.processing")}
 								</>
 							: price === 0 ?
-								"Activer le plan gratuit"
+								t("pricing.checkout.activateFree")
 							: paymentMethod === "cash" ?
-								"Confirmer la souscription"
-							:	"Procéder au paiement"}
+								t("pricing.checkout.confirm")
+							:	t("pricing.checkout.proceed")}
 						</button>
 
 						{/* Security Notice */}
 						<div className="mt-6 text-center text-sm text-gray-500 flex items-center justify-center">
 							<FiShield className="mr-2" />
-							Paiement sécurisé et crypté
+							{t("pricing.checkout.secureNotice")}
 						</div>
 					</form>
 				</div>
-
-				{/* Modal PayPal et formulaire carte supprimés - redirection vers page dédiée SubscriptionCheckout.jsx */}
 			</div>
 		</div>
 	);
 };
-
-// Composants PayPal supprimés - maintenant dans SubscriptionCheckout.jsx
 
 export default SubscriptionPayment;

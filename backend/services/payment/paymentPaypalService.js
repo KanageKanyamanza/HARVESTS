@@ -17,7 +17,7 @@ async function generatePaypalClientToken(customerId) {
   });
 
   if (!clientToken) {
-    throw new Error('Impossible de générer un token client PayPal');
+    throw new Error('payment.paypal_token_failed');
   }
 
   return clientToken;
@@ -31,13 +31,13 @@ async function createPaypalOrderForSubscription(userId, { planId, billingPeriod,
   const plan = plans[planId];
 
   if (!plan) {
-    throw new Error('Plan invalide');
+    throw new Error('payment.invalid_plan');
   }
 
   const expectedAmount = billingPeriod === 'monthly' ? plan.monthlyPrice : plan.annualPrice;
   
   if (amount !== expectedAmount) {
-    throw new Error('Montant incorrect');
+    throw new Error('payment.incorrect_amount');
   }
 
   // Créer ou trouver la souscription
@@ -110,21 +110,21 @@ async function createPaypalOrderForSubscription(userId, { planId, billingPeriod,
  */
 async function createPaypalOrderForOrder(userId, orderId, { customerIp, userAgent }) {
   if (!orderId) {
-    throw new Error('ID de commande requis pour les paiements de type "order"');
+    throw new Error('payment.order_id_required');
   }
 
   const order = await Order.findById(orderId);
   
   if (!order) {
-    throw new Error('Commande non trouvée');
+    throw new Error('order.not_found');
   }
 
   if (order.buyer.toString() !== userId) {
-    throw new Error('Vous ne pouvez payer que vos propres commandes');
+    throw new Error('payment.own_orders_only');
   }
 
   if (order.payment.status === 'completed') {
-    throw new Error('Cette commande a déjà été payée');
+    throw new Error('payment.order_already_paid');
   }
 
   // Vérifier si un paiement existe déjà pour cette commande

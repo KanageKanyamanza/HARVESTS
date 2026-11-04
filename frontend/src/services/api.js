@@ -1,6 +1,6 @@
 import axios from "axios";
 import { getCurrentLanguage } from "../utils/i18n";
-import { isValidToken } from "../utils/tokenValidation";
+import { isMalformedToken, isValidToken } from "../utils/tokenValidation";
 import { getConfig } from "../config/production";
 
 // Configuration de base d'Axios
@@ -88,8 +88,10 @@ api.interceptors.request.use(
 		if (!isPublicRoute) {
 			if (hasValidToken) {
 				config.headers.Authorization = `Bearer ${token}`;
-			} else if (token) {
-				// Token invalide trouvé, le nettoyer
+			} else if (isMalformedToken(token)) {
+				// Token illisible : le nettoyer. Un token seulement expiré reste en
+				// place : le 401 qui suit déclenche le renouvellement plus bas, et
+				// l'utilisateur enregistré doit survivre au rechargement de la page.
 				console.warn("Token invalide détecté dans intercepteur, nettoyage...");
 				localStorage.removeItem("harvests_token");
 				localStorage.removeItem("harvests_user");

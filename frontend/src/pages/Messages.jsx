@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useChat } from "../contexts/ChatContext";
 import ChatList from "../components/chat/ChatList";
@@ -20,6 +20,7 @@ const conversationName = (conversation, currentUser) => {
 const Messages = () => {
 	const { t } = useTranslation("common");
 	const { id } = useParams();
+	const navigate = useNavigate();
 	const {
 		conversations,
 		activeConversation,
@@ -38,14 +39,37 @@ const Messages = () => {
 	}, []);
 
 	// Gérer l'ouverture d'une conversation via l'URL
+	// Une seule fois par id : fermer la conversation efface l'état avant que la navigation
+	// ait changé l'URL, et l'ancien id la rouvrirait aussitôt.
+	const appliedIdRef = useRef(null);
 	useEffect(() => {
-		if (id && conversations.length > 0) {
-			const conversation = conversations.find((c) => c._id === id);
-			if (conversation && activeConversation?._id !== id) {
+		if (!id) {
+			appliedIdRef.current = null;
+			return;
+		}
+		if (appliedIdRef.current === id) return;
+		const conversation = conversations.find((c) => c._id === id);
+		if (conversation) {
+			appliedIdRef.current = id;
+			if (activeConversation?._id !== id) {
 				selectConversation(conversation);
 			}
 		}
 	}, [id, conversations, activeConversation, selectConversation]);
+
+	// L'URL fait foi quand elle désigne une conversation (effet ci-dessus) : la garder
+	// alignée, sinon elle rouvre aussitôt l'ancienne conversation au clic ou au retour.
+	const messagesPath = `/${user?.userType || "consumer"}/messages`;
+
+	const openConversation = (conversation) => {
+		selectConversation(conversation);
+		navigate(`${messagesPath}/${conversation._id}`);
+	};
+
+	const closeConversation = () => {
+		setActiveConversation(null);
+		navigate(messagesPath);
+	};
 
 	// Recherche par nom du contact ou par contenu du dernier message
 	const filteredConversations = useMemo(() => {
@@ -126,7 +150,7 @@ const Messages = () => {
 						:	<ChatList
 								conversations={filteredConversations}
 								activeConversationId={activeConversation?._id}
-								onSelectConversation={selectConversation}
+								onSelectConversation={openConversation}
 								currentUser={user}
 							/>
 						}
@@ -139,7 +163,7 @@ const Messages = () => {
 								conversation={activeConversation}
 								currentUser={user}
 								mobileView={isMobile}
-								onBack={() => setActiveConversation(null)}
+								onBack={closeConversation}
 							/>
 						:	<div className="flex flex-col items-center justify-center h-full p-8 text-center bg-gradient-to-br from-emerald-50/40 via-white/40 to-teal-50/30">
 								<div className="w-24 h-24 bg-white rounded-[2rem] flex items-center justify-center mb-6 shadow-lg shadow-emerald-900/5 border border-emerald-50">

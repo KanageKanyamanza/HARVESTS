@@ -23,7 +23,7 @@ exports.updateFinancialInfo = catchAsync(async (req, res, next) => {
 
     res.status(200).json({
       status: 'success',
-      message: 'Informations financières mises à jour avec succès',
+      message: req.t('user.financial_info_updated'),
       data: {
         user: updatedUser
       }
@@ -54,7 +54,7 @@ exports.updateNotificationSettings = catchAsync(async (req, res, next) => {
 
     res.status(200).json({
       status: 'success',
-      message: 'Paramètres de notification mis à jour avec succès',
+      message: req.t('user.notification_settings_updated'),
       data: {
         user: updatedUser
       }
@@ -99,7 +99,7 @@ exports.addDeliveryAddress = catchAsync(async (req, res, next) => {
 
     res.status(201).json({
       status: 'success',
-      message: 'Adresse de livraison ajoutée avec succès',
+      message: req.t('user.delivery_address_added'),
       data: {
         user: updatedUser
       }
@@ -117,7 +117,7 @@ exports.updateDeliveryAddress = catchAsync(async (req, res, next) => {
 
     res.status(200).json({
       status: 'success',
-      message: 'Adresse de livraison mise à jour avec succès',
+      message: req.t('user.delivery_address_updated'),
       data: {
         user: updatedUser
       }
@@ -135,7 +135,7 @@ exports.deleteDeliveryAddress = catchAsync(async (req, res, next) => {
 
     res.status(200).json({
       status: 'success',
-      message: 'Adresse de livraison supprimée avec succès',
+      message: req.t('user.delivery_address_deleted'),
       data: {
         user: updatedUser
       }

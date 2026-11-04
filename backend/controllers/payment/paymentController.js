@@ -1,6 +1,7 @@
 const Notification = require('../../models/Notification');
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
+const { isNotFound } = require('../../utils/translate');
 const paymentService = require('../../services/payment/paymentService');
 
 // Initier un paiement
@@ -8,7 +9,7 @@ exports.initiatePayment = catchAsync(async (req, res, next) => {
   const { orderId, method, returnUrl, cancelUrl, cashInstructions, type, planId, billingPeriod, amount, currency } = req.body;
 
   if (!['cash', 'paypal'].includes(method)) {
-    return next(new AppError('Méthode de paiement non supportée', 400));
+    return next(new AppError('payment.unsupported_method', 400));
   }
 
   try {
@@ -28,7 +29,7 @@ exports.initiatePayment = catchAsync(async (req, res, next) => {
       });
     } else {
       if (!orderId) {
-        return next(new AppError('ID de commande ou type de paiement requis', 400));
+        return next(new AppError('payment.order_or_type_required', 400));
       }
 
       result = await paymentService.initiateOrderPayment(req.user.id, orderId, {
@@ -56,7 +57,7 @@ exports.initiatePayment = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(AppError.from(error, error.message.includes('non trouv') ? 404 : 400));
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 400));
   }
 });
 
@@ -84,7 +85,7 @@ exports.confirmPayment = catchAsync(async (req, res, next) => {
 
     if (payment.method === 'paypal') {
       if (!paypalOrderId) {
-        return next(new AppError('Identifiant de commande PayPal manquant', 400));
+        return next(new AppError('payment.paypal_order_id_missing', 400));
       }
 
       result = await paymentService.confirmPayPalPayment(req.params.id, req.user.id, paypalOrderId);
@@ -207,7 +208,7 @@ exports.confirmPayment = catchAsync(async (req, res, next) => {
         });
       }
     } else {
-      return next(new AppError('Méthode de paiement non supportée pour la confirmation', 400));
+      return next(new AppError('payment.unsupported_confirm_method', 400));
     }
 
     res.status(200).json({
@@ -221,7 +222,7 @@ exports.confirmPayment = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    if (error.message.includes('non trouvé')) {
+    if (isNotFound(error.message)) {
       return next(AppError.from(error, 404));
     }
     return next(AppError.from(error, 400));

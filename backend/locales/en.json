@@ -157,9 +157,18 @@
     "password_reset_neutral": "If an account exists with this email, you will receive a reset link.",
     "reset_token_invalid": "Invalid or expired reset link",
     "current_password_incorrect": "Your current password is incorrect",
+    "password_incorrect": "Incorrect password",
+    "email_mismatch": "This email does not match your account",
+    "delete_confirmation_required": "Please confirm the deletion with your password or your email",
     "verification_email_neutral": "If an unverified account exists with this email, a new verification email has just been sent."
   },
   "user": {
+    "financial_info_updated": "Financial information updated successfully",
+    "notification_settings_updated": "Notification settings updated successfully",
+    "delivery_address_added": "Delivery address added successfully",
+    "delivery_address_updated": "Delivery address updated successfully",
+    "delivery_address_deleted": "Delivery address deleted successfully",
+    "account_deleted": "Your account has been deleted",
     "profile_updated": "Profile updated successfully",
     "password_updated": "Password updated successfully",
     "user_not_found": "User not found",
@@ -167,6 +176,10 @@
     "phone_already_exists": "This phone number already exists"
   },
   "product": {
+    "dish_submitted": "Dish submitted for approval",
+    "dish_updated_review": "Dish updated. It needs to be approved again.",
+    "dish_updated": "Dish updated successfully",
+    "dish_deleted": "Dish deleted successfully",
     "created": "Product created successfully",
     "updated": "Product updated successfully",
     "deleted": "Product deleted successfully",
@@ -180,6 +193,10 @@
     "images_only": "Please upload images only."
   },
   "order": {
+    "segment_not_found": "Order segment not found",
+    "invalid_item_transition": "Invalid item status change: {{from}} -> {{to}}",
+    "invalid_status_transition": "Invalid status change: {{from}} -> {{to}}",
+    "update_forbidden": "You do not have permission to update this order",
     "created": "Order created successfully",
     "updated": "Order updated successfully",
     "cancelled": "Order cancelled",
@@ -202,14 +219,31 @@
     "cannot_cancel": "This order can no longer be cancelled",
     "a_seller": "a seller",
     "cancel_forbidden": "You are not allowed to cancel this order",
-    "cancelled_success": "Order cancelled successfully"
+    "cancelled_success": "Order cancelled successfully",
+    "items_required": "At least one item is required"
   },
   "payment": {
+    "not_found": "Payment not found",
+    "paypal_token_failed": "Could not generate a PayPal client token",
+    "invalid_plan": "Invalid plan",
+    "incorrect_amount": "Incorrect amount",
+    "order_id_required": "An order ID is required for \"order\" payments",
+    "own_orders_only": "You can only pay for your own orders",
+    "order_already_paid": "This order has already been paid",
+    "order_not_payable": "This order can no longer be paid",
+    "not_refundable": "This payment cannot be refunded",
+    "refund_request_not_found": "Refund request not found",
+    "subscription_already_active": "You already have an active subscription",
+    "paypal_order_id_missing": "PayPal order ID is missing",
     "processing": "Payment being processed",
     "completed": "Payment completed successfully",
     "failed": "Payment failed",
     "refunded": "Payment refunded",
-    "cancelled": "Payment cancelled"
+    "cancelled": "Payment cancelled",
+    "unsupported_method": "Unsupported payment method",
+    "order_or_type_required": "An order ID or payment type is required",
+    "unsupported_confirm_method": "Unsupported payment method for confirmation",
+    "unsupported_hosted_fields_type": "Unsupported payment type for Hosted Fields. Use \"subscription\" or \"order\""
   },
   "newsletter": {
     "email_required": "Please provide an email address.",
@@ -276,6 +310,7 @@
     "webhook_provider_unsupported": "Unsupported webhook provider"
   },
   "review": {
+    "default_title": "{{rating}}-star review",
     "created": "Review created successfully",
     "updated": "Review updated successfully",
     "deleted": "Review deleted successfully",

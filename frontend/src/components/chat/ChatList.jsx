@@ -82,7 +82,9 @@ const ChatList = ({ conversations, activeConversationId, onSelectConversation, c
               </div>
               <p className={`text-xs truncate ${unreadCount > 0 ? 'font-bold text-gray-800' : 'font-medium text-gray-500'}`}>
                 {conversation.lastMessage?.sender === currentUser?._id && t('messaging.you')}
-                {conversation.lastMessage?.content || (conversation.lastMessage?.attachments?.length > 0 ? t('messaging.attachment') : t('messaging.newConversation'))}
+                {conversation.lastMessage?.metadata?.systemType === 'conversation_created'
+                  ? t('messaging.newConversation')
+                  : conversation.lastMessage?.content || (conversation.lastMessage?.attachments?.length > 0 ? t('messaging.attachment') : t('messaging.newConversation'))}
               </p>
             </div>
           </div>

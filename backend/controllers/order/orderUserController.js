@@ -20,7 +20,7 @@ exports.estimateOrderCosts = catchAsync(async (req, res, next) => {
 	} = req.body;
 
 	if (!items || !Array.isArray(items) || items.length === 0) {
-		return next(new AppError("Au moins un article est requis", 400));
+		return next(new AppError("order.items_required", 400));
 	}
 
 	try {
@@ -57,7 +57,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
 	} = req.body;
 
 	if (!items || items.length === 0) {
-		return next(new AppError("Au moins un article est requis", 400));
+		return next(new AppError("order.items_required", 400));
 	}
 
 	try {

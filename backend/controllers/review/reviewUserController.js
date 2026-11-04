@@ -99,7 +99,7 @@ exports.createReview = catchAsync(async (req, res, next) => {
 		order: orderId || (order ? order._id : null),
 		producer: producerId,
 		rating,
-		title: title || `Avis ${rating} étoiles`,
+		title: title || req.t("review.default_title", { rating }),
 		comment: comment || "",
 		detailedRating,
 		media: media || [],

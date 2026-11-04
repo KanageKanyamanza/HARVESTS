@@ -157,9 +157,18 @@
     "password_reset_neutral": "Si un compte existe avec cet e-mail, vous recevrez un lien de réinitialisation.",
     "reset_token_invalid": "Lien de réinitialisation invalide ou expiré",
     "current_password_incorrect": "Votre mot de passe actuel est incorrect",
+    "password_incorrect": "Mot de passe incorrect",
+    "email_mismatch": "L'e-mail ne correspond pas à votre compte",
+    "delete_confirmation_required": "Veuillez confirmer la suppression avec votre mot de passe ou votre e-mail",
     "verification_email_neutral": "Si un compte non vérifié existe avec cet e-mail, un nouvel e-mail de vérification vient d'être envoyé."
   },
   "user": {
+    "financial_info_updated": "Informations financières mises à jour avec succès",
+    "notification_settings_updated": "Paramètres de notification mis à jour avec succès",
+    "delivery_address_added": "Adresse de livraison ajoutée avec succès",
+    "delivery_address_updated": "Adresse de livraison mise à jour avec succès",
+    "delivery_address_deleted": "Adresse de livraison supprimée avec succès",
+    "account_deleted": "Votre compte a été supprimé",
     "profile_updated": "Profil mis à jour avec succès",
     "password_updated": "Mot de passe mis à jour avec succès",
     "user_not_found": "Utilisateur non trouvé",
@@ -167,6 +176,10 @@
     "phone_already_exists": "Ce numéro de téléphone existe déjà"
   },
   "product": {
+    "dish_submitted": "Plat soumis pour validation",
+    "dish_updated_review": "Plat mis à jour. Une nouvelle validation est nécessaire.",
+    "dish_updated": "Plat mis à jour avec succès",
+    "dish_deleted": "Plat supprimé avec succès",
     "created": "Produit créé avec succès",
     "updated": "Produit mis à jour avec succès",
     "deleted": "Produit supprimé avec succès",
@@ -180,6 +193,10 @@
     "images_only": "Veuillez envoyer uniquement des images."
   },
   "order": {
+    "segment_not_found": "Segment de commande introuvable",
+    "invalid_item_transition": "Transition d'article invalide : {{from}} -> {{to}}",
+    "invalid_status_transition": "Transition de statut invalide : {{from}} -> {{to}}",
+    "update_forbidden": "Vous n’avez pas le droit de modifier cette commande",
     "created": "Commande créée avec succès",
     "updated": "Commande mise à jour avec succès",
     "cancelled": "Commande annulée",
@@ -202,14 +219,31 @@
     "cannot_cancel": "Cette commande ne peut plus être annulée",
     "a_seller": "un vendeur",
     "cancel_forbidden": "Vous n'avez pas le droit d'annuler cette commande",
-    "cancelled_success": "Commande annulée avec succès"
+    "cancelled_success": "Commande annulée avec succès",
+    "items_required": "Au moins un article est requis"
   },
   "payment": {
+    "not_found": "Paiement non trouvé",
+    "paypal_token_failed": "Impossible de générer un token client PayPal",
+    "invalid_plan": "Plan invalide",
+    "incorrect_amount": "Montant incorrect",
+    "order_id_required": "ID de commande requis pour les paiements de type \"order\"",
+    "own_orders_only": "Vous ne pouvez payer que vos propres commandes",
+    "order_already_paid": "Cette commande a déjà été payée",
+    "order_not_payable": "Cette commande ne peut plus être payée",
+    "not_refundable": "Ce paiement ne peut pas être remboursé",
+    "refund_request_not_found": "Demande de remboursement non trouvée",
+    "subscription_already_active": "Vous avez déjà une souscription active",
+    "paypal_order_id_missing": "Identifiant de commande PayPal manquant",
     "processing": "Paiement en cours de traitement",
     "completed": "Paiement effectué avec succès",
     "failed": "Échec du paiement",
     "refunded": "Paiement remboursé",
-    "cancelled": "Paiement annulé"
+    "cancelled": "Paiement annulé",
+    "unsupported_method": "Méthode de paiement non supportée",
+    "order_or_type_required": "ID de commande ou type de paiement requis",
+    "unsupported_confirm_method": "Méthode de paiement non supportée pour la confirmation",
+    "unsupported_hosted_fields_type": "Type de paiement non supporté pour les Hosted Fields. Utilisez \"subscription\" ou \"order\""
   },
   "newsletter": {
     "email_required": "Veuillez fournir une adresse email.",
@@ -276,6 +310,7 @@
     "webhook_provider_unsupported": "Fournisseur de webhook non supporté"
   },
   "review": {
+    "default_title": "Avis {{rating}} étoiles",
     "created": "Avis créé avec succès",
     "updated": "Avis mis à jour avec succès",
     "deleted": "Avis supprimé avec succès",

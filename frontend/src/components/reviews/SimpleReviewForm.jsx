@@ -14,7 +14,7 @@ import StarRating from './StarRating';
 import { formatDate, formatPrice } from '../../utils/i18n';
 import CloudinaryImage from '../common/CloudinaryImage';
 import { parseProductName } from '../../utils/productUtils';
-import { consumerService } from '../../services';
+import { consumerService, uploadService } from '../../services';
 
 const SimpleReviewForm = ({ 
   product, 
@@ -32,6 +32,8 @@ const SimpleReviewForm = ({
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mediaUploading, setMediaUploading] = useState(false);
+  const [mediaError, setMediaError] = useState(null);
   const [orders, setOrders] = useState([]);
   const [_loadingOrders, setLoadingOrders] = useState(false);
 
@@ -92,20 +94,68 @@ const SimpleReviewForm = ({
     }
   };
 
-  const handleMediaUpload = (event) => {
-    const files = Array.from(event.target.files);
-    // Ici, vous intégreriez avec Cloudinary pour l'upload
-    // Pour l'instant, on simule l'upload
-    const newMedia = files.map(file => ({
-      type: file.type.startsWith('video/') ? 'video' : 'image',
-      url: URL.createObjectURL(file), // URL temporaire
-      name: file.name
-    }));
-    
-    setFormData(prev => ({
-      ...prev,
-      media: [...prev.media, ...newMedia]
-    }));
+  const handleMediaUpload = async (event) => {
+    const files = Array.from(event.target.files || []);
+    event.target.value = '';
+    if (files.length === 0) return;
+
+    setMediaError(null);
+
+    const MAX_MEDIA = 5;
+    const remaining = MAX_MEDIA - formData.media.length;
+    if (remaining <= 0) {
+      setMediaError(t('reviewForm.mediaLimit', { max: MAX_MEDIA }));
+      return;
+    }
+
+    const accepted = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const batch = files.slice(0, remaining);
+
+    if (files.length > remaining) {
+      setMediaError(t('reviewForm.mediaLimit', { max: MAX_MEDIA }));
+    }
+
+    for (const file of batch) {
+      if (!accepted.includes(file.type)) {
+        setMediaError(t('reviewForm.mediaInvalidType'));
+        continue;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        setMediaError(t('reviewForm.mediaTooLarge'));
+        continue;
+      }
+
+      setMediaUploading(true);
+      try {
+        const formDataUpload = new FormData();
+        formDataUpload.append('file', file);
+        formDataUpload.append('folder', 'harvests/reviews');
+
+        const response = await uploadService.uploadToCloudinary(formDataUpload);
+        const uploaded = response.data?.data || response.data;
+        const url = uploaded?.secure_url || uploaded?.url;
+
+        if (!url) throw new Error('missing_url');
+
+        setFormData((prev) => ({
+          ...prev,
+          media: [
+            ...prev.media,
+            {
+              type: 'image',
+              url,
+              name: file.name,
+              publicId: uploaded?.public_id,
+            },
+          ],
+        }));
+      } catch (error) {
+        console.error('Erreur lors de l\'upload du média:', error);
+        setMediaError(t('reviewForm.mediaUploadError'));
+      } finally {
+        setMediaUploading(false);
+      }
+    }
   };
 
   const removeMedia = (index) => {
@@ -290,24 +340,32 @@ const SimpleReviewForm = ({
             <input
               type="file"
               multiple
-              accept="image/*,video/*"
+              accept="image/jpeg,image/png,image/webp,image/gif"
               onChange={handleMediaUpload}
+              disabled={mediaUploading}
               className="hidden"
               id="media-upload"
             />
             <label
               htmlFor="media-upload"
-              className="cursor-pointer flex flex-col items-center justify-center py-4"
+              className={`flex flex-col items-center justify-center py-4 ${mediaUploading ? 'cursor-wait opacity-60' : 'cursor-pointer'}`}
             >
               <Upload className="h-8 w-8 text-gray-400 mb-2" />
               <span className="text-sm text-gray-600">
-                {t('reviewForm.mediaAdd')}
+                {mediaUploading ? t('reviewForm.mediaUploading') : t('reviewForm.mediaAdd')}
               </span>
               <span className="text-xs text-gray-500 mt-1">
                 {t('reviewForm.mediaHint')}
               </span>
             </label>
           </div>
+
+          {mediaError && (
+            <p className="mt-2 text-sm text-red-600 flex items-center">
+              <AlertCircle className="h-4 w-4 mr-1" />
+              {mediaError}
+            </p>
+          )}
 
           {/* Aperçu des médias */}
           {formData.media.length > 0 && (
@@ -351,7 +409,7 @@ const SimpleReviewForm = ({
           </button>
           <button
             type="submit"
-            disabled={isSubmitting || loading}
+            disabled={isSubmitting || mediaUploading || loading}
             className="px-6 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
           >
             {isSubmitting ? (

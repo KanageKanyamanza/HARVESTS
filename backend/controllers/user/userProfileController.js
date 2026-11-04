@@ -47,21 +47,19 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
 
   if (!password && !email) {
     return next(
-      new AppError(
-        'Veuillez confirmer la suppression avec votre mot de passe ou votre email',
-        400
-      )
+      new AppError('auth.delete_confirmation_required', 400)
     );
   }
 
   const user = await User.findById(req.user.id).select('+password');
 
+  // 400 et non 401 : la session est valide, seule la confirmation saisie est fausse.
   if (password) {
     if (!(await user.comparePassword(password))) {
-      return next(new AppError('Mot de passe incorrect', 401));
+      return next(new AppError('auth.password_incorrect', 400));
     }
   } else if (email.trim().toLowerCase() !== user.email.toLowerCase()) {
-    return next(new AppError("L'email ne correspond pas à votre compte", 401));
+    return next(new AppError('auth.email_mismatch', 400));
   }
 
   try {
@@ -69,7 +67,7 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
 
     res.status(200).json({
       status: 'success',
-      message: 'Votre compte a été supprimé',
+      message: req.t('user.account_deleted'),
       data: null,
     });
   } catch (error) {

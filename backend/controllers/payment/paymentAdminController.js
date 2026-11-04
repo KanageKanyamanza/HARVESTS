@@ -1,5 +1,6 @@
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
+const { isNotFound } = require('../../utils/translate');
 const paymentAdminService = require('../../services/payment/paymentAdminService');
 
 // Obtenir tous les paiements (admin)
@@ -63,6 +64,6 @@ exports.reconcilePayment = catchAsync(async (req, res, next) => {
       message: 'Paiement réconcilié avec succès'
     });
   } catch (error) {
-    return next(AppError.from(error, error.message.includes('non trouvé') ? 404 : 400));
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 400));
   }
 });
