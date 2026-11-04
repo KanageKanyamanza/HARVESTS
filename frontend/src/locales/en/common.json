@@ -424,7 +424,6 @@
 		"restaurateur": "Restaurateur",
 		"transporter": "Carrier",
 		"exporter": "Exporter",
-		"explorer": "Explorer",
 		"admin": "Administrator"
 	},
 	"messaging": {
@@ -674,12 +673,6 @@
 	"cart": {
 		"outOfStock": "This product is out of stock",
 		"insufficientStock": "Insufficient stock. Available: {{stock}}, already in cart: {{inCart}}"
-	},
-	"orderAlerts": {
-		"newOrdersTitle_one": "New order received",
-		"newOrdersTitle_other": "New orders received",
-		"newOrdersMessage_one": "You have received {{count}} new order.",
-		"newOrdersMessage_other": "You have received {{count}} new orders."
 	},
 	"reviewForm": {
 		"byProducer": "By {{name}}",

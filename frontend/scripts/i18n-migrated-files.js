@@ -178,8 +178,6 @@ export const MIGRATED_FILES = [
 	"pages/dashboard/restaurateur/RestaurateurReviews.jsx",
 	"components/dishes/DishForm.jsx",
 	"components/dishes/DishCard.jsx",
-	"components/dashboard/GenericDashboard.jsx",
-	"components/common/CommonStats.jsx",
 	"components/reviews/StarRating.jsx",
 	"pages/dashboard/common/ProfilePage.jsx",
 	"components/profile/ProfileHeader.jsx",
@@ -211,5 +209,4 @@ export const MIGRATED_FILES = [
 	"components/dashboard/PushNotificationBanner.jsx",
 	"components/layout/AuthLayout.jsx",
 	"hooks/useCartActions.js",
-	"hooks/useOrderNotifications.js",
 ];

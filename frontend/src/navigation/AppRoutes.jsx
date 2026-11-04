@@ -17,7 +17,6 @@ import {
 	restaurateurRoutes,
 	transporterRoutes,
 	exporterRoutes,
-	explorerRoutes,
 } from "./routes";
 
 // Import des pages publiques avec React.lazy pour le code splitting
@@ -658,21 +657,6 @@ const AppRoutes = () => {
 					path={route.path}
 					element={
 						<ProtectedRoute requiredUserType="exporter">
-							<DashboardRouteWrapper>
-								<SuspenseRoute element={route.element} fallback={<DashboardFallback />} />
-							</DashboardRouteWrapper>
-						</ProtectedRoute>
-					}
-				/>
-			))}
-
-			{/* Routes explorer */}
-			{explorerRoutes.map((route) => (
-				<Route
-					key={route.path}
-					path={route.path}
-					element={
-						<ProtectedRoute requiredUserType="explorer">
 							<DashboardRouteWrapper>
 								<SuspenseRoute element={route.element} fallback={<DashboardFallback />} />
 							</DashboardRouteWrapper>

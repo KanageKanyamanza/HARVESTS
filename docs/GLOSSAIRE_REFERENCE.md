@@ -44,7 +44,6 @@ badges, les filtres catalogue, les tableaux de bord et les e-mails.
 | Restaurateur | **Restaurateur** | Mot anglais existant (personne qui tient un restaurant), déjà employé partout dans les pages publiques. On ne le remplace pas par « Restaurant owner » |
 | Consommateur | **Consumer** | — |
 | Exportateur | **Exporter** | — |
-| Explorateur | **Explorer** | Rôle de découverte du catalogue |
 | Administrateur | **Administrator** | Le back-office reste en français (cf. décision J69-2) |
 
 Les clés techniques (`transporter`, `transformer`, `restaurateur`…) ne changent

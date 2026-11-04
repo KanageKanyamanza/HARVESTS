@@ -424,7 +424,6 @@
 		"restaurateur": "Restaurateur",
 		"transporter": "Transporteur",
 		"exporter": "Exportateur",
-		"explorer": "Explorateur",
 		"admin": "Administrateur"
 	},
 	"messaging": {
@@ -674,12 +673,6 @@
 	"cart": {
 		"outOfStock": "Ce produit est en rupture de stock",
 		"insufficientStock": "Stock insuffisant. Disponible : {{stock}}, déjà dans le panier : {{inCart}}"
-	},
-	"orderAlerts": {
-		"newOrdersTitle_one": "Nouvelle commande reçue",
-		"newOrdersTitle_other": "Nouvelles commandes reçues",
-		"newOrdersMessage_one": "Vous avez reçu {{count}} nouvelle commande.",
-		"newOrdersMessage_other": "Vous avez reçu {{count}} nouvelles commandes."
 	},
 	"reviewForm": {
 		"byProducer": "Par {{name}}",

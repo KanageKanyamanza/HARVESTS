@@ -119,7 +119,6 @@ export const getNotificationsRoute = (user) => {
 	if (user?.userType === "restaurateur") return "/restaurateur/notifications";
 	if (user?.userType === "transporter") return "/transporter/notifications";
 	if (user?.userType === "exporter") return "/exporter/notifications";
-	if (user?.userType === "explorer") return "/explorer/notifications";
 	return "/consumer/notifications";
 };
 
