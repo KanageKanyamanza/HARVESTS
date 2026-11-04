@@ -120,11 +120,12 @@ exports.createReview = catchAsync(async (req, res, next) => {
 		type: "review_received",
 		category: "product",
 		title: "Nouvel avis reçu",
-		message: `Vous avez reçu un avis ${rating} étoiles pour "${title}"`,
+		message: title ? `Vous avez reçu un avis ${rating} étoiles pour "${title}"` : `Vous avez reçu un avis ${rating} étoiles`,
 		data: {
 			reviewId: review._id,
 			productId,
 			rating,
+			reviewTitle: title || null,
 		},
 		actions: [
 			{
@@ -359,6 +360,7 @@ exports.addReply = catchAsync(async (req, res, next) => {
 			data: {
 				reviewId: review._id,
 				replyId: review.replies[review.replies.length - 1]._id,
+				senderName: req.user.firstName,
 			},
 			actions: [
 				{

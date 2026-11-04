@@ -1,3 +1,4 @@
+const { createNotificationsForAdmins } = require('../../utils/adminNotifications');
 const Payment = require('../../models/Payment');
 const Notification = require('../../models/Notification');
 
@@ -26,8 +27,7 @@ async function requestRefund(paymentId, userId, { reason, amount }) {
   await payment.createRefund(refundAmount, reason);
 
   // Notifier les admins
-  await Notification.createNotification({
-    recipient: 'admin',
+  await createNotificationsForAdmins({
     type: 'refund_requested',
     category: 'payment',
     priority: 'high',

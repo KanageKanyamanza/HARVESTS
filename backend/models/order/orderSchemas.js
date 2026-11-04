@@ -152,6 +152,11 @@ const orderSegmentSchema = new mongoose.Schema(
 			type: Number,
 			default: 0,
 		},
+		// Solde du stock déjà effectué pour ce segment (voir orderStock.js)
+		stockState: {
+			type: String,
+			enum: ["committed", "released"],
+		},
 		items: [orderItemSchema],
 		history: [segmentHistorySchema],
 	},
@@ -308,6 +313,12 @@ const deliverySchema = new mongoose.Schema({
 // Schéma principal de la commande
 const orderSchema = new mongoose.Schema(
 	{
+		// Solde du stock déjà effectué, pour une commande sans segment (voir orderStock.js)
+		stockState: {
+			type: String,
+			enum: ["committed", "released"],
+		},
+
 		// Numéro de commande unique
 		orderNumber: {
 			type: String,

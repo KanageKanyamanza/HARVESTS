@@ -485,9 +485,7 @@ async function cancelOrder(order, userId, reason) {
 		throw new AppError("order.cannot_cancel", 400);
 	}
 
-	// Libérer le stock
-	await order.releaseStock();
-
+	// Le stock est rendu à l'enregistrement (models/order/orderStock.js)
 	const segmentsCreated = ensureSegmentsForOrder(order);
 	if (segmentsCreated) {
 		await order.save();

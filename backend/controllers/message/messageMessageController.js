@@ -119,6 +119,8 @@ exports.sendMessage = catchAsync(async (req, res, next) => {
 				data: {
 					conversationId: conversation._id,
 					messageId: message._id,
+					senderName: req.user.firstName,
+					attachmentOnly: !content,
 				},
 				actions: [
 					{

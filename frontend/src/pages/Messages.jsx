@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useChat } from "../contexts/ChatContext";
@@ -39,12 +40,14 @@ const Messages = () => {
 	}, []);
 
 	// Gérer l'ouverture d'une conversation via l'URL
-	// Une seule fois par id : fermer la conversation efface l'état avant que la navigation
-	// ait changé l'URL, et l'ancien id la rouvrirait aussitôt.
+	// L'URL fait foi : cliquer, revenir en arrière (y compris avec le bouton du
+	// téléphone) ou ouvrir un lien passent tous par elle. Une seule fois par id,
+	// pour ne pas relancer l'ouverture à chaque nouveau message.
 	const appliedIdRef = useRef(null);
 	useEffect(() => {
 		if (!id) {
 			appliedIdRef.current = null;
+			if (activeConversation) setActiveConversation(null);
 			return;
 		}
 		if (appliedIdRef.current === id) return;
@@ -55,21 +58,11 @@ const Messages = () => {
 				selectConversation(conversation);
 			}
 		}
-	}, [id, conversations, activeConversation, selectConversation]);
+	}, [id, conversations, activeConversation, selectConversation, setActiveConversation]);
 
-	// L'URL fait foi quand elle désigne une conversation (effet ci-dessus) : la garder
-	// alignée, sinon elle rouvre aussitôt l'ancienne conversation au clic ou au retour.
 	const messagesPath = `/${user?.userType || "consumer"}/messages`;
-
-	const openConversation = (conversation) => {
-		selectConversation(conversation);
-		navigate(`${messagesPath}/${conversation._id}`);
-	};
-
-	const closeConversation = () => {
-		setActiveConversation(null);
-		navigate(messagesPath);
-	};
+	const openConversation = (conversation) => navigate(`${messagesPath}/${conversation._id}`);
+	const closeConversation = () => navigate(messagesPath);
 
 	// Recherche par nom du contact ou par contenu du dernier message
 	const filteredConversations = useMemo(() => {
@@ -81,6 +74,26 @@ const Messages = () => {
 				(c.lastMessage?.content || "").toLowerCase().includes(term),
 		);
 	}, [conversations, searchTerm, user]);
+
+	// Sur mobile, la discussion occupe tout l'écran, au-dessus de la barre du haut.
+	// Rendue dans <body> : un `fixed` resterait limité à son parent à cause du
+	// `transform` et du `backdrop-blur` du panneau. 100dvh suit le clavier du téléphone.
+	if (activeConversation && isMobile) {
+		return createPortal(
+			<div
+				className="fixed inset-x-0 top-0 z-[70] flex flex-col bg-white pb-[env(safe-area-inset-bottom)]"
+				style={{ height: "100dvh" }}
+			>
+				<ChatWindow
+					conversation={activeConversation}
+					currentUser={user}
+					mobileView
+					onBack={closeConversation}
+				/>
+			</div>,
+			document.body,
+		);
+	}
 
 	return (
 		<div className="dashboard-page bg-harvests-light/20">

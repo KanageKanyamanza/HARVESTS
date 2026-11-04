@@ -294,9 +294,6 @@ const SimpleReviewForm = ({
                 <p className="text-sm text-gray-600">
                   {t('reviewForm.noOrderFound')}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {t('reviewForm.noOrderHint')}
-                </p>
               </div>
             </div>
           </div>

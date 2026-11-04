@@ -6,6 +6,7 @@ const notificationController = require("../notificationController");
 const { ensureSegmentsForOrder } = require("../../utils/orderSegments");
 const orderService = require("../../services/orderService");
 const orderStatusService = require("../../services/orderStatusService");
+const orderNotificationService = require("../../services/orderNotificationService");
 const adminNotifications = require("../../utils/adminNotifications");
 const invoiceService = require("../../services/invoiceService");
 
@@ -263,6 +264,13 @@ exports.cancelOrder = catchAsync(async (req, res, next) => {
 			req.user._id,
 			reason
 		);
+
+		// Prévenir le client, le vendeur et le livreur : le vendeur ne doit pas préparer pour rien
+		orderNotificationService
+			.sendStatusNotifications(cancelledOrder, "cancelled")
+			.catch((err) => {
+				console.error("Erreur notification annulation commande:", err);
+			});
 
 		// Notifier les admins de l'annulation
 		adminNotifications

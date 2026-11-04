@@ -99,6 +99,9 @@ route bilingue.
   restant en français.
 - Les **e-mails** et le **chatbot** sont bilingues (Jours 64-67), quelle que
   soit la personne qui les déclenche depuis l'administration.
+- Le **texte des notifications** est choisi à la lecture, dans la langue du
+  destinataire (`backend/utils/notificationI18n.js`, Jour 72). Celles destinées
+  aux administrateurs restent en français, comme le reste du contenu administratif.
 
 ### Quand rouvrir la décision
 

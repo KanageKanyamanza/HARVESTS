@@ -1,4 +1,5 @@
 const { getCountryPrefix } = require('./orderHelpers');
+const { settleOrderStock } = require('./orderStock');
 
 // Middleware pre-save
 function addOrderMiddleware(orderSchema) {
@@ -68,6 +69,16 @@ function addOrderMiddleware(orderSchema) {
         timestamp: new Date(),
         updatedBy: this.modifiedBy || null // Doit être défini par l'application
       });
+    }
+    
+    // Solde du stock réservé : tous les changements de statut passent par ici
+    if (!this.isNew && (this.isModified('status') || this.isModified('segments'))) {
+      try {
+        await settleOrderStock(this);
+      } catch (error) {
+        // Sans `stockState`, le solde sera retenté au prochain enregistrement
+        console.error('Erreur lors du solde du stock de la commande', this.orderNumber, error.message);
+      }
     }
     
     next();
