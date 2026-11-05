@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Navigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../hooks/useAuth";
 import { subscriptionService } from "../../services";
@@ -35,6 +35,7 @@ const SubscriptionPayment = () => {
 	};
 
 	const selectedPlan = plans[planId] || plans.standard;
+	const isPlanValid = Boolean(planId && plans[planId]);
 	const planCopy = (field) =>
 		t(`pricing.plans.${selectedPlan.id}.${field}`, {
 			returnObjects: false,
@@ -120,6 +121,10 @@ const SubscriptionPayment = () => {
 			setIsSubmitting(false);
 		}
 	};
+
+	if (!isPlanValid) {
+		return <Navigate to="/pricing" replace />;
+	}
 
 	if (!isAuthenticated) {
 		return null;

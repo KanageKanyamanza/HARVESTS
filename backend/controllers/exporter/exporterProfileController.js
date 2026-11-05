@@ -75,7 +75,7 @@ exports.updateExportLicense = catchAsync(async (req, res, next) => {
 	const exporter = await Exporter.findById(req.user.id);
 	const license = exporter.exportLicenses.id(req.params.licenseId);
 
-	if (!license) return next(new AppError("Licence non trouvée", 404));
+	if (!license) return next(new AppError("exporter.license_not_found", 404));
 
 	Object.keys(req.body).forEach((key) => {
 		license[key] = req.body[key];
@@ -113,7 +113,7 @@ exports.getMyFleet = catchAsync(async (req, res, next) => {
 
 exports.addVehicle = catchAsync(async (req, res, next) => {
 	const exporter = await Exporter.findById(req.user.id);
-	if (!exporter) return next(new AppError("Exportateur non trouvé", 404));
+	if (!exporter) return next(new AppError("exporter.not_found", 404));
 
 	exporter.fleet.push(req.body);
 	await exporter.save();
@@ -128,7 +128,7 @@ exports.updateVehicle = catchAsync(async (req, res, next) => {
 	const exporter = await Exporter.findById(req.user.id);
 	const vehicle = exporter.fleet.id(req.params.vehicleId);
 
-	if (!vehicle) return next(new AppError("Véhicule non trouvé", 404));
+	if (!vehicle) return next(new AppError("exporter.vehicle_not_found", 404));
 
 	Object.keys(req.body).forEach((key) => {
 		vehicle[key] = req.body[key];
@@ -149,7 +149,7 @@ exports.updateVehicleAvailability = catchAsync(async (req, res, next) => {
 	const exporter = await Exporter.findById(req.user.id);
 	const vehicle = exporter.fleet.id(req.params.vehicleId);
 
-	if (!vehicle) return next(new AppError("Véhicule non trouvé", 404));
+	if (!vehicle) return next(new AppError("exporter.vehicle_not_found", 404));
 
 	vehicle.isAvailable =
 		req.body.isAvailable !== undefined ?

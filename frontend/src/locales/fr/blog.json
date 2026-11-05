@@ -55,7 +55,7 @@
 		"returningVisitorInfo": "Vous avez visité {{count}} articles",
 		"firstName": "Prénom",
 		"lastName": "Nom",
-		"email": "Email",
+		"email": "E-mail",
 		"country": "Pays",
 		"submit": "Continuer",
 		"submitting": "Envoi...",

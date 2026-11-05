@@ -8,7 +8,7 @@ const Review = require("../../models/Review");
 exports.getExportStats = catchAsync(async (req, res, next) => {
 	const exporter = await Exporter.findById(req.user.id);
 	if (!exporter) {
-		return next(new AppError("Exportateur non trouvé", 404));
+		return next(new AppError("exporter.not_found", 404));
 	}
 
 	// Récupérer toutes les commandes assignées à l'exportateur

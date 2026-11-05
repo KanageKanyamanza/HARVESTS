@@ -1,6 +1,7 @@
 const Order = require('../../models/Order');
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
+const { toPlainText } = require('../../utils/localization');
 
 // @desc    Obtenir toutes les commandes
 // @route   GET /api/v1/admin/orders
@@ -56,7 +57,7 @@ exports.getAllOrders = catchAsync(async (req, res, next) => {
       
       return {
         product: {
-          name: item.productSnapshot?.name || item.product?.name || 'Produit supprimé',
+          name: toPlainText(item.productSnapshot?.name || item.product?.name, 'Produit supprimé'),
           images: images
         },
         productSnapshot: item.productSnapshot,
@@ -150,7 +151,7 @@ exports.getOrderById = catchAsync(async (req, res, next) => {
     } else if (item.product?.images && Array.isArray(item.product.images) && item.product.images.length > 0) {
       images = item.product.images;
     }
-    const productName = item.productSnapshot?.name || item.product?.name || 'Produit supprimé';
+    const productName = toPlainText(item.productSnapshot?.name || item.product?.name, 'Produit supprimé');
     
     return {
       _id: item._id,
@@ -271,7 +272,7 @@ exports.updateOrderStatus = catchAsync(async (req, res, next) => {
     totalAmount: updatedOrder.total,
     items: updatedOrder.items.map(item => ({
       product: {
-        name: item.productSnapshot?.name || item.product?.name || 'Produit supprimé',
+        name: toPlainText(item.productSnapshot?.name || item.product?.name, 'Produit supprimé'),
         images: item.productSnapshot?.images || item.product?.images || []
       },
       quantity: item.quantity,
@@ -367,7 +368,7 @@ exports.cancelOrder = catchAsync(async (req, res, next) => {
     totalAmount: updatedOrder.total,
     items: updatedOrder.items.map(item => ({
       product: {
-        name: item.productSnapshot?.name || item.product?.name || 'Produit supprimé',
+        name: toPlainText(item.productSnapshot?.name || item.product?.name, 'Produit supprimé'),
         images: item.productSnapshot?.images || item.product?.images || []
       },
       quantity: item.quantity,

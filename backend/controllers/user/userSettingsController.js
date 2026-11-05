@@ -1,6 +1,7 @@
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
 const userSettingsService = require('../../services/user/userSettingsService');
+const { isNotFound } = require('../../utils/translate');
 
 // Obtenir les informations financières
 exports.getFinancialInfo = catchAsync(async (req, res, next) => {
@@ -123,7 +124,7 @@ exports.updateDeliveryAddress = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(AppError.from(error, error.message.includes('non trouvée') ? 404 : 500));
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 500));
   }
 });
 
@@ -141,7 +142,7 @@ exports.deleteDeliveryAddress = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(AppError.from(error, error.message.includes('non trouvée') ? 404 : 500));
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 500));
   }
 });
 

@@ -446,7 +446,7 @@
     "location": "Localisation",
     "memberSince": "Membre depuis",
     "phone": "Téléphone",
-    "email": "Email",
+    "email": "E-mail",
     "visitShop": "Visiter la boutique",
     "soldBy": "Vendu par",
     "noReviews": "Aucun avis",
@@ -496,7 +496,7 @@
           },
           {
             "q": "Comment puis-je contacter le support ?",
-            "a": "Vous pouvez nous contacter par email à contact@harvests.site, par téléphone au +221 78 834 69 69, ou via notre page de contact sur le site."
+            "a": "Vous pouvez nous contacter par e-mail à contact@harvests.site, par téléphone au +221 78 834 69 69, ou via notre page de contact sur le site."
           }
         ]
       },
@@ -505,7 +505,7 @@
         "questions": [
           {
             "q": "Comment créer un compte ?",
-            "a": "Cliquez sur 'Inscription' en haut de la page, choisissez votre type de compte (consommateur, producteur, restaurateur, etc.), remplissez le formulaire et validez votre email."
+            "a": "Cliquez sur 'Inscription' en haut de la page, choisissez votre type de compte (consommateur, producteur, restaurateur, etc.), remplissez le formulaire et validez votre e-mail."
           },
           {
             "q": "Quels types de comptes sont disponibles ?",
@@ -513,7 +513,7 @@
           },
           {
             "q": "J'ai oublié mon mot de passe, que faire ?",
-            "a": "Cliquez sur 'Mot de passe oublié' sur la page de connexion, entrez votre email et suivez les instructions envoyées pour réinitialiser votre mot de passe."
+            "a": "Cliquez sur 'Mot de passe oublié' sur la page de connexion, entrez votre e-mail et suivez les instructions envoyées pour réinitialiser votre mot de passe."
           }
         ]
       },
@@ -643,12 +643,12 @@
       },
       {
         "title": "10. Modification des conditions",
-        "text": "Harvests se réserve le droit de modifier ces conditions à tout moment. Les utilisateurs seront informés des modifications par email ou notification sur la plateforme. L'utilisation continue de la plateforme après modification vaut acceptation des nouvelles conditions."
+        "text": "Harvests se réserve le droit de modifier ces conditions à tout moment. Les utilisateurs seront informés des modifications par e-mail ou notification sur la plateforme. L'utilisation continue de la plateforme après modification vaut acceptation des nouvelles conditions."
       }
     ],
     "contactTitle": "11. Contact",
     "contactIntro": "Pour toute question concernant ces conditions, contactez-nous à :",
-    "emailLabel": "Email :",
+    "emailLabel": "E-mail :",
     "phoneLabel": "Téléphone :"
   },
   "privacy": {
@@ -795,7 +795,7 @@
     ],
     "contactTitle": "11. Contact",
     "contactIntro": "Pour toute question concernant cette politique ou pour exercer vos droits, contactez-nous :",
-    "emailLabel": "Email :",
+    "emailLabel": "E-mail :",
     "phoneLabel": "Téléphone :",
     "addressLabel": "Adresse :",
     "address": "Dakar, Sénégal"
@@ -877,7 +877,7 @@
     "detailsTitle": "Nos coordonnées",
     "info": [
       {
-        "title": "Email",
+        "title": "E-mail",
         "details": [
           "contact@harvests.site"
         ],
@@ -935,8 +935,8 @@
     "error": "Une erreur s'est produite lors de l'envoi. Veuillez réessayer.",
     "nameLabel": "Nom complet *",
     "namePlaceholder": "Votre nom complet",
-    "emailLabel": "Email *",
-    "emailPlaceholder": "votre@email.com",
+    "emailLabel": "E-mail *",
+    "emailPlaceholder": "votre@e-mail.com",
     "typeLabel": "Type de demande *",
     "types": {
       "general": "Question générale",
@@ -1032,8 +1032,8 @@
       "finalisingOrder": "Nous finalisons la commande",
       "confirming": "Confirmation de votre paiement en cours…",
       "confirmed": "Votre paiement a été confirmé. Merci pour votre confiance !",
-      "subscriptionEmail": "Vous recevrez un email de confirmation contenant tous les détails de votre souscription.",
-      "orderEmail": "Vous recevrez un email de confirmation contenant tous les détails de votre commande.",
+      "subscriptionEmail": "Vous recevrez un e-mail de confirmation contenant tous les détails de votre souscription.",
+      "orderEmail": "Vous recevrez un e-mail de confirmation contenant tous les détails de votre commande.",
       "orderRefresh": "Si la commande n'apparaît pas immédiatement dans votre historique, n'hésitez pas à rafraîchir la page dans quelques instants.",
       "backHome": "Retour à l'accueil",
       "viewOrders": "Voir mes commandes",
@@ -1221,7 +1221,7 @@
         "description": "Réduction des intermédiaires, meilleurs revenus pour les producteurs, traçabilité de la récolte à la vente."
       }
     ],
-    "emailLabel": "Email",
+    "emailLabel": "E-mail",
     "phoneLabel": "Téléphone",
     "addressLabel": "Adresse",
     "address": "Dakar, Sénégal",
@@ -1232,8 +1232,8 @@
     "error": "Une erreur s'est produite lors de l'envoi. Vous pouvez aussi nous écrire directement à contact@harvests.site.",
     "nameLabel": "Nom complet *",
     "namePlaceholder": "Votre nom complet",
-    "emailFieldLabel": "Email *",
-    "emailPlaceholder": "votre@email.com",
+    "emailFieldLabel": "E-mail *",
+    "emailPlaceholder": "votre@e-mail.com",
     "subjectLabel": "Sujet *",
     "messageLabel": "Message *",
     "requiredFields": "* Champs obligatoires",
@@ -1348,7 +1348,7 @@
       },
       {
         "question": "Les points expirent-ils ?",
-        "answer": "Les points sont valables pendant 12 mois à partir de la date d'acquisition. Vous recevrez une notification par email 30 jours avant leur expiration."
+        "answer": "Les points sont valables pendant 12 mois à partir de la date d'acquisition. Vous recevrez une notification par e-mail 30 jours avant leur expiration."
       },
       {
         "question": "Comment monter de niveau ?",

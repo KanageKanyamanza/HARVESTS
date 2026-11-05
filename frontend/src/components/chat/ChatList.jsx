@@ -84,6 +84,10 @@ const ChatList = ({ conversations, activeConversationId, onSelectConversation, c
                 {conversation.lastMessage?.sender === currentUser?._id && t('messaging.you')}
                 {conversation.lastMessage?.metadata?.systemType === 'conversation_created'
                   ? t('messaging.newConversation')
+                  : conversation.lastMessage?.metadata?.systemType === 'user_joined' && conversation.lastMessage?.metadata?.name
+                    ? t('messaging.userJoined', { name: conversation.lastMessage.metadata.name })
+                  : conversation.lastMessage?.metadata?.systemType === 'user_left' && conversation.lastMessage?.metadata?.name
+                    ? t('messaging.userLeft', { name: conversation.lastMessage.metadata.name })
                   : conversation.lastMessage?.content || (conversation.lastMessage?.attachments?.length > 0 ? t('messaging.attachment') : t('messaging.newConversation'))}
               </p>
             </div>

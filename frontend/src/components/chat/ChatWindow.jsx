@@ -207,13 +207,25 @@ const ChatWindow = ({ conversation, currentUser, mobileView, onBack }) => {
 						{messages.map((msg, index) => {
 							// Messages système (ex: création de conversation) : pas d'expéditeur, affichage neutre
 							if (!msg.sender) {
+								const systemType = msg.metadata?.systemType;
+								const systemText =
+									systemType === "conversation_created" ?
+										conversation.type === "direct" ?
+											t("messaging.conversationStarted")
+										:	msg.metadata?.title ?
+											t("messaging.groupConversationCreated", {
+												title: msg.metadata.title,
+											})
+										:	msg.content
+									: systemType === "user_joined" && msg.metadata?.name ?
+										t("messaging.userJoined", { name: msg.metadata.name })
+									: systemType === "user_left" && msg.metadata?.name ?
+										t("messaging.userLeft", { name: msg.metadata.name })
+									:	msg.content;
 								return (
 									<div key={msg._id} className="flex justify-center">
 										<span className="text-[11px] text-gray-400 bg-white/60 px-3 py-1 rounded-full">
-											{msg.metadata?.systemType === "conversation_created" &&
-											conversation.type === "direct" ?
-												t("messaging.conversationStarted")
-											:	msg.content}
+											{systemText}
 										</span>
 									</div>
 								);

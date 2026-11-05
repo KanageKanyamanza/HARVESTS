@@ -39,6 +39,21 @@ const textIn = (value, language) => {
 	return null;
 };
 
+// Jour 72 : le nom du plan est enregistré en français (« Gratuit ») ; il est
+// traduit à la lecture pour ne pas laisser « Gratuit » dans un message anglais.
+const PLAN_IDS = {
+	gratuit: "gratuit",
+	free: "gratuit",
+	standard: "standard",
+	premium: "premium",
+	professionnel: "premium",
+};
+
+const planNameIn = (name, language) => {
+	const id = PLAN_IDS[String(name || "").trim().toLowerCase()];
+	return (id && translate(`subscription.plans.${id}`, language)) || name;
+};
+
 const orderParams = ({ data }) => (data?.orderNumber ? { orderNumber: data.orderNumber } : null);
 
 const orderMoneyParams = ({ data, language }) => {
@@ -156,11 +171,14 @@ const CATALOG = {
 	},
 
 	subscription_activated: {
-		params: ({ data }) => (data?.planName ? { planName: data.planName } : null),
+		params: ({ data, language }) =>
+			data?.planName ? { planName: planNameIn(data.planName, language) } : null,
 	},
 	quota_reached: {
-		params: ({ data }) =>
-			data?.limit !== undefined && data?.planName ? { limit: data.limit, planName: data.planName } : null,
+		params: ({ data, language }) =>
+			data?.limit !== undefined && data?.planName
+				? { limit: data.limit, planName: planNameIn(data.planName, language) }
+				: null,
 		action: "change_plan",
 	},
 	payment_received: {

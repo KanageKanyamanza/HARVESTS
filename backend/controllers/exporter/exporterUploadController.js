@@ -7,7 +7,7 @@ const multerFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image') || file.mimetype === 'application/pdf') {
     cb(null, true);
   } else {
-    cb(new AppError('Veuillez télécharger uniquement des images ou des PDF!', 400), false);
+    cb(new AppError('exporter.upload_type_not_allowed', 400), false);
   }
 };
 

@@ -16,6 +16,9 @@ Sommaire :
 - [J71-1 — Anglais britannique (en-GB)](#j71-1--anglais-britannique-en-gb)
 - [J71-2 — « FCFA » dans tous les textes affichés](#j71-2--fcfa-dans-tous-les-textes-affichés)
 - [J71-3 — Ce que l'automatique peut relire, et ce qu'il ne peut pas](#j71-3--ce-que-lautomatique-peut-relire-et-ce-quil-ne-peut-pas)
+- [J72-1 — Messages serveur en clés, messages système retraduits](#j72-1--messages-serveur-en-clés-messages-système-retraduits)
+- [J72-2 — Snapshots de commande bilingues](#j72-2--snapshots-de-commande-bilingues)
+- [J72-3 — Placeholders hors base et orthographe « e-mail »](#j72-3--placeholders-hors-base-et-orthographe-e-mail)
 
 ---
 
@@ -323,3 +326,85 @@ instant donné.
 Le Jour 71 est clos, mais la règle reste : **toute nouvelle chaîne anglaise**
 (dashboard, e-mail, contenu produit) passe par `npm run lint` — et par une
 relecture native si elle introduit un vocabulaire ou un registre nouveau.
+
+---
+
+## J72-1 — Messages serveur en clés, messages système retraduits
+
+### Décision
+
+Les messages renvoyés par l'API à l'utilisateur sont des **clés de traduction**
+(`message.*`, `user.*`, `blog.*`, `exporter.*`), traduites par `req.t` dans la
+langue de la requête. Les messages système d'une conversation (création,
+arrivée, départ) sont enregistrés dans cette langue, mais accompagnés de
+`metadata.systemType` et, quand il y a un nom ou un titre, de
+`metadata.name` / `metadata.title`. L'interface les retraduit dans la langue
+active ; `content` sert de repli pour les messages anciens ou d'un type inconnu.
+
+### Pourquoi
+
+Un message système est un fait de la conversation, pas un texte libre : le
+stocker traduit une fois pour toutes laissait « Conversation démarrée » en
+français chez un utilisateur anglais. Les métadonnées permettent de changer de
+langue sans migration ni perte d'historique.
+
+### Portée
+
+- Contrôleurs messagerie, profil, blog et exportateur (y compris les réponses
+  provisoires `exporter.features.*`).
+- Interface : `ChatWindow.jsx` et `ChatList.jsx` (`messaging.userJoined`,
+  `userLeft`, `groupConversationCreated`).
+- Les messages réellement écrits par un utilisateur ne sont jamais traduits.
+
+---
+
+## J72-2 — Snapshots de commande bilingues
+
+### Décision
+
+`productSnapshot.name` conserve le nom dans ses deux langues (`{ fr, en }`)
+et non plus une chaîne figée en français. L'affichage choisit la langue de
+l'interface (`parseProductName` côté frontend, `toPlainText` côté backend pour
+les e-mails, factures et notifications). Les commandes antérieures, dont le
+snapshot est une chaîne simple, restent compatibles.
+
+### Pourquoi
+
+Le client voyait « Millet Couscous » et le vendeur « Couscous de mil » sur la
+même commande : le snapshot était aplati en français à la création. Figer une
+seule langue dans une donnée partagée par plusieurs interfaces reproduit le
+problème à chaque nouvelle langue.
+
+### Portée
+
+- `backend/models/order/orderSchemas.js` (`Mixed`), `orderService.js`.
+- `OrderItemsList.jsx`, `OrderConfirmationComponents.jsx`.
+- Consommateurs backend (admin, facture, notifications) : aplatissement
+  explicite, jamais d'objet affiché tel quel.
+
+---
+
+## J72-3 — Placeholders hors base et orthographe « e-mail »
+
+### Décision
+
+1. Les modèles vendeurs ne stockent plus de texte d'interface : `companyName`,
+   `farmName` et `restaurantName` ont pour valeur par défaut une chaîne vide.
+   L'ancien placeholder « À compléter » est traité comme vide à l'affichage et
+   à l'édition, sans migration de données.
+2. En français, le mot s'écrit **« e-mail »** (et « e-mails »), y compris dans
+   les phrases où il était écrit « email ». Les variables `{{email}}` et les
+   noms de clés (`emailPlaceholder`, `emailRequired`…) ne changent pas.
+
+### Pourquoi
+
+Un placeholder enregistré en base finit par être affiché, exporté ou comparé
+comme une donnée réelle (« À compléter » dans un profil, un document ou une
+facture). Quant à l'orthographe, deux graphies coexistaient dans la même
+interface française (« RENVOYER L'EMAIL » et « RENVOYER L'E-MAIL »).
+
+### Portée
+
+- Modèles `Exporter`, `Transporter`, `Producer`, `Restaurateur`, `Transformer`.
+- `ProfilePage.jsx` (`safeDisplay`, préremplissage du formulaire).
+- `backend/locales/fr.json`, `frontend/src/locales/fr/*.json`.

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useMemo } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { paymentService } from '../../services';
@@ -40,6 +40,7 @@ const SubscriptionCheckout = () => {
   };
 
   const selectedPlan = plans[planId] || plans.standard;
+  const isPlanValid = Boolean(planId && plans[planId]);
   const planName = t(`pricing.plans.${selectedPlan.id}.name`);
   const periodLabel =
     billingPeriod === 'monthly'
@@ -154,6 +155,10 @@ const SubscriptionCheckout = () => {
     setPaymentError(err?.message || t('pricing.checkout.errors.paypalUnexpected'));
     setPaymentProcessing(false);
   }, [t]);
+
+  if (!isPlanValid) {
+    return <Navigate to="/pricing" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">

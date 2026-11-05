@@ -16,7 +16,10 @@ const orderItemSchema = new mongoose.Schema({
 		ref: "User",
 	},
 	productSnapshot: {
-		name: String,
+		// Jour 72 : le nom est conservé dans ses deux langues ({ fr, en })
+		// pour que le vendeur le voie dans la langue de son interface, comme
+		// le client. Les commandes antérieures contiennent une chaîne simple.
+		name: mongoose.Schema.Types.Mixed,
 		description: String,
 		unit: String,
 		images: [String],

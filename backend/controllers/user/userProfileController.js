@@ -2,6 +2,7 @@ const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
 const User = require('../../models/User');
 const userProfileService = require('../../services/user/userProfileService');
+const { isNotFound } = require('../../utils/translate');
 
 // Middleware pour récupérer l'utilisateur actuel
 exports.getMe = (req, res, next) => {
@@ -133,7 +134,7 @@ exports.updateAddress = catchAsync(async (req, res, next) => {
       },
     });
   } catch (error) {
-    return next(AppError.from(error, error.message.includes('non trouvé') ? 404 : 500));
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 500));
   }
 });
 
@@ -146,7 +147,7 @@ exports.deleteAddress = catchAsync(async (req, res, next) => {
       data: null,
     });
   } catch (error) {
-    return next(AppError.from(error, error.message.includes('non trouvé') ? 404 : 500));
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 500));
   }
 });
 

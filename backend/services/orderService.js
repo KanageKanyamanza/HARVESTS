@@ -106,10 +106,13 @@ async function processOrderItems(items) {
 			unit: weightData?.unit || product.shipping?.weightUnit || "kg",
 		};
 
-		const productName = toPlainText(
-			product.name,
-			product.slug || product._id?.toString() || "Produit",
-		);
+		const productName =
+			product.name && typeof product.name === "object" ?
+				product.name
+			:	toPlainText(
+					product.name,
+					product.slug || product._id?.toString() || "Produit",
+				);
 		const productDescription =
 			toPlainText(product.shortDescription) ||
 			toPlainText(product.description) ||
@@ -400,7 +403,7 @@ async function createOrder(orderData, user) {
 			// Identifier les produits concernés dans le panier
 			const affectedProducts = processedItems
 				.filter((item) => item.seller.toString() === sellerId.toString())
-				.map((item) => item.productSnapshot.name);
+				.map((item) => toPlainText(item.productSnapshot.name, "Produit"));
 
 			const productsList = affectedProducts.join(", ");
 

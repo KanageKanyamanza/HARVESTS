@@ -116,13 +116,13 @@ exports.getBlogBySlug = catchAsync(async (req, res, next) => {
 	);
 
 	if (!blog) {
-		return next(new AppError("Blog non trouvé", 404));
+		return next(new AppError("blog.not_found", 404));
 	}
 
 	// Vérifier le statut (permettre aux admins de voir les brouillons)
 	const isAdmin = req.admin || (req.user && req.user.role === "admin");
 	if (blog.status !== "published" && !isAdmin) {
-		return next(new AppError("Blog non publié", 404));
+		return next(new AppError("blog.not_published", 404));
 	}
 
 	// Gestion de la session
@@ -205,14 +205,14 @@ exports.getBlogBySlug = catchAsync(async (req, res, next) => {
 exports.likeBlog = catchAsync(async (req, res, next) => {
 	if (!req.user) {
 		return next(
-			new AppError("Vous devez être connecté pour aimer un article", 401)
+			new AppError("blog.login_to_like", 401)
 		);
 	}
 
 	const blog = await Blog.findById(req.params.id);
 
 	if (!blog) {
-		return next(new AppError("Blog non trouvé", 404));
+		return next(new AppError("blog.not_found", 404));
 	}
 
 	const userId = req.user._id;
@@ -249,13 +249,13 @@ exports.trackVisit = catchAsync(async (req, res, next) => {
 	const { visitId, timeOnPage, scrollDepth, action } = req.body;
 
 	if (!visitId) {
-		return next(new AppError("visitId requis", 400));
+		return next(new AppError("blog.visit_id_required", 400));
 	}
 
 	const visit = await BlogVisit.findById(visitId);
 
 	if (!visit) {
-		return next(new AppError("Visite non trouvée", 404));
+		return next(new AppError("blog.visit_not_found", 404));
 	}
 
 	// Mettre à jour les métriques
