@@ -1,12 +1,128 @@
 const User = require("../../models/User");
 const Product = require("../../models/Product");
 const Order = require("../../models/Order");
+const LanguageSwitch = require("../../models/LanguageSwitch");
 const catchAsync = require("../../utils/catchAsync");
 const { toPlainText } = require("../../utils/localization");
 
 // @desc    Obtenir les analytics
 // @route   GET /api/v1/admin/analytics
 // @access  Admin
+// Jour 73 (lancement bilingue) : suivi du taux d'usage de la bascule
+// fr/en, consommé par la carte « Bascule FR/EN » de la page admin
+// Analytiques. Les agrégats reprennent la fenêtre de temps déjà calculée
+// par getAnalytics (timeRange) : une seule source pour toutes les cartes.
+
+/**
+ * Agrège les totaux en la vue « overview » exposée à l'admin : part de
+ * l'anglais, retours au français, visiteurs distincts. Fonction pure,
+ * testée sans MongoDB (tests/language-usage.test.js).
+ */
+const buildLanguageUsageOverview = ({
+	total = 0,
+	toEnglish = 0,
+	distinctVisitorCount = 0,
+} = {}) => {
+	// Retours au français : toute bascule non anglaise (en → fr).
+	const toFrench = Math.max(total - toEnglish, 0);
+
+	// Le taux demandé par la feuille de route : part de l'anglais parmi
+	// les bascules explicites de la période, exprimée en pourcentage.
+	const englishShare =
+		total > 0 ? parseFloat(((toEnglish / total) * 100).toFixed(1)) : 0;
+
+	return {
+		total,
+		toEnglish,
+		toFrench,
+		englishShare,
+		distinctVisitors: distinctVisitorCount,
+	};
+};
+
+// Exposé pour les tests : le calcul du taux est le cœur du suivi.
+exports.buildLanguageUsageOverview = buildLanguageUsageOverview;
+
+// Agrégats MongoDB du suivi ; getAnalytics (plus bas) les consomme pour
+// nourrir la carte « Bascule FR/EN » de la page admin Analytiques.
+exports.getLanguageUsage = async (startDate) => {
+	const periodMatch = { occurredAt: { $gte: startDate } };
+
+	const switchTotals = await LanguageSwitch.aggregate([
+		{ $match: periodMatch },
+		{
+			$group: {
+				_id: null,
+				total: { $sum: 1 },
+				toEnglish: {
+					$sum: { $cond: [{ $eq: ["$to", "en"] }, 1, 0] },
+				},
+			},
+		},
+		{ $project: { _id: 0, total: 1, toEnglish: 1 } },
+	]);
+
+	const totals = switchTotals[0] || { total: 0, toEnglish: 0 };
+
+	// Un agrégat honnête compte les visiteurs, pas les clics : distinct()
+	// sur l'identifiant anonyme du navigateur évite qu'une personne qui
+	// teste fr/en à répétition soit comptée à chaque bascule.
+	const distinctVisitors = await LanguageSwitch.distinct(
+		"visitorId",
+		periodMatch,
+	);
+
+	// Endroits de l'interface (header, footer, topbar, auth…) où la bascule
+	// est employée : c'est la matière première du Jour 74
+	// (« en se basant sur les retours/usages remontés »).
+	const byContext = await LanguageSwitch.aggregate([
+		{ $match: periodMatch },
+		{
+			$group: {
+				_id: { $ifNull: ["$context", "unknown"] },
+				total: { $sum: 1 },
+				toEnglish: {
+					$sum: { $cond: [{ $eq: ["$to", "en"] }, 1, 0] },
+				},
+			},
+		},
+		{ $sort: { total: -1 } },
+		{ $limit: 5 },
+		{ $project: { _id: 0, context: "$_id", total: 1, toEnglish: 1 } },
+	]);
+
+	// Même format que les graphiques existants (year/month/day) : une
+	// carte future pourra tracer la courbe sans changement de contrat.
+	const byDay = await LanguageSwitch.aggregate([
+		{ $match: periodMatch },
+		{
+			$group: {
+				_id: {
+					year: { $year: "$occurredAt" },
+					month: { $month: "$occurredAt" },
+					day: { $dayOfMonth: "$occurredAt" },
+				},
+				total: { $sum: 1 },
+				toEnglish: {
+					$sum: { $cond: [{ $eq: ["$to", "en"] }, 1, 0] },
+				},
+			},
+		},
+		{ $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } },
+		{ $project: { _id: 0, day: "$_id", total: 1, toEnglish: 1 } },
+	]);
+
+	return {
+		overview: buildLanguageUsageOverview({
+			total: totals.total,
+			toEnglish: totals.toEnglish,
+			distinctVisitorCount: distinctVisitors.length,
+		}),
+		byContext,
+		byDay,
+	};
+};
+
 exports.getAnalytics = catchAsync(async (req, res, next) => {
 	const { timeRange = "30d" } = req.query;
 
@@ -201,6 +317,10 @@ exports.getAnalytics = catchAsync(async (req, res, next) => {
 		name: toPlainText(product.name, "Produit"),
 	}));
 
+	// Jour 73 (lancement bilingue) : usage de la bascule fr/en sur la
+	// même fenêtre de temps, affiché dans la carte « Bascule FR/EN ».
+	const languageUsage = await exports.getLanguageUsage(startDate);
+
 	const analytics = {
 		overview: {
 			totalUsers,
@@ -220,6 +340,11 @@ exports.getAnalytics = catchAsync(async (req, res, next) => {
 			categoryDistribution,
 			topProducers,
 			topProducts: normalizedTopProducts,
+		},
+		languageUsage: {
+			overview: languageUsage.overview,
+			byContext: languageUsage.byContext,
+			byDay: languageUsage.byDay,
 		},
 	};
 

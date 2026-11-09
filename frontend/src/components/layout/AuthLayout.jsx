@@ -12,7 +12,8 @@ const AuthLayout = ({ children, showBackButton = true }) => {
   const languageInfo = getLanguageInfo(currentLanguage);
 
   const handleLanguageChange = (lang) => {
-    changeLanguage(lang);
+    // context "auth" : pages de connexion / inscription (suivi Jour 73)
+    changeLanguage(lang, { context: "auth" });
     setIsLanguageMenuOpen(false);
   };
 
