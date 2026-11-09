@@ -388,7 +388,7 @@ const PRODUCTS = [
 		},
 		category: "processed-foods",
 		subcategory: "dish-entree",
-		dishCategory: "entrée",
+		dishCategory: "entree",
 		preparationTime: 15,
 		allergens: [],
 		price: 1500,

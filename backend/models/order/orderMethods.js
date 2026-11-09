@@ -166,31 +166,6 @@ function addOrderMethods(orderSchema) {
       }
     }
   };
-
-  orderSchema.methods.releaseStock = async function() {
-    const Product = mongoose.model('Product');
-    
-    for (const item of this.items) {
-      const product = await Product.findById(item.product);
-      if (product) {
-        // S'assurer que le produit a le champ userType défini
-        if (!product.userType) {
-          // Déterminer le userType basé sur les champs existants
-          if (product.producer) {
-            product.userType = 'producer';
-          } else if (product.transformer) {
-            product.userType = 'transformer';
-          } else {
-            // Fallback - essayer de déterminer depuis le vendeur de la commande
-            product.userType = 'producer'; // Valeur par défaut
-          }
-        }
-        
-        product.releaseStock(item.quantity, item.variant);
-        await product.save();
-      }
-    }
-  };
 }
 
 module.exports = addOrderMethods;

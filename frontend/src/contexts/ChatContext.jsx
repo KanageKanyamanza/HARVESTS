@@ -117,7 +117,10 @@ export const ChatProvider = ({ children }) => {
 
 			const handleNewConversation = (conversation) => {
 				socket.emit("join_conversation", conversation._id);
-				setConversations((prev) => [conversation, ...prev]);
+				// L'auteur reçoit aussi cet événement : startConversation l'a peut-être déjà ajoutée.
+				setConversations((prev) =>
+					prev.some((c) => c._id === conversation._id) ? prev : [conversation, ...prev],
+				);
 			};
 
 			socket.on("new_message", handleNewMessage);
@@ -189,7 +192,9 @@ export const ChatProvider = ({ children }) => {
 				if (socket && isConnected) {
 					socket.emit("join_conversation", newConv._id);
 				}
-				setConversations((prev) => [newConv, ...prev]);
+				setConversations((prev) =>
+					prev.some((c) => c._id === newConv._id) ? prev : [newConv, ...prev],
+				);
 				setActiveConversation(newConv);
 				return newConv;
 			}

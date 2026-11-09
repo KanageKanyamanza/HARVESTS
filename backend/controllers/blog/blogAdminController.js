@@ -46,7 +46,7 @@ exports.getBlogAdmin = catchAsync(async (req, res, next) => {
 	);
 
 	if (!blog) {
-		return next(new AppError("Blog non trouvé", 404));
+		return next(new AppError("blog.not_found", 404));
 	}
 
 	res.status(200).json({
@@ -59,12 +59,12 @@ exports.getBlogAdmin = catchAsync(async (req, res, next) => {
 exports.createBlog = catchAsync(async (req, res, next) => {
 	// Validation : au moins un titre requis
 	if (!req.body.title?.fr && !req.body.title?.en) {
-		return next(new AppError("Au moins un titre (FR ou EN) est requis", 400));
+		return next(new AppError("blog.title_required", 400));
 	}
 
 	// Validation : au moins un contenu requis
 	if (!req.body.content?.fr && !req.body.content?.en) {
-		return next(new AppError("Au moins un contenu (FR ou EN) est requis", 400));
+		return next(new AppError("blog.content_required", 400));
 	}
 
 	// Ajouter l'auteur
@@ -88,7 +88,7 @@ exports.updateBlog = catchAsync(async (req, res, next) => {
 	const blog = await Blog.findById(req.params.id);
 
 	if (!blog) {
-		return next(new AppError("Blog non trouvé", 404));
+		return next(new AppError("blog.not_found", 404));
 	}
 
 	// Champs à exclure de la mise à jour directe
@@ -128,7 +128,7 @@ exports.deleteBlog = catchAsync(async (req, res, next) => {
 	const blog = await Blog.findByIdAndDelete(req.params.id);
 
 	if (!blog) {
-		return next(new AppError("Blog non trouvé", 404));
+		return next(new AppError("blog.not_found", 404));
 	}
 
 	// Supprimer aussi les visites associées
@@ -136,7 +136,7 @@ exports.deleteBlog = catchAsync(async (req, res, next) => {
 
 	res.status(200).json({
 		success: true,
-		message: "Blog supprimé avec succès",
+		message: req.t("blog.deleted"),
 	});
 });
 
@@ -379,7 +379,7 @@ exports.translateText = catchAsync(async (req, res, next) => {
 
 	if (!text || !fromLang || !toLang) {
 		return next(
-			new AppError("Texte, langue source et langue cible requis", 400),
+			new AppError("blog.translation_fields_required", 400),
 		);
 	}
 
@@ -392,7 +392,7 @@ exports.translateText = catchAsync(async (req, res, next) => {
 			? { translatedText }
 			: {
 					translatedText,
-					warning: "Traduction non disponible, texte original retourné",
+					warning: req.t("blog.translation_unavailable"),
 				},
 	});
 });

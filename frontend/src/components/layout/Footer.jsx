@@ -262,7 +262,7 @@ const Footer = () => {
 							</Link>
 							
 							<div className="flex items-center gap-4">
-								<LanguageSelector buttonClassName="flex items-center gap-1.5 border border-gray-500 hover:border-white bg-transparent text-sm text-gray-300 rounded px-3 py-2 transition-colors" />
+								<LanguageSelector buttonClassName="flex items-center gap-1.5 border border-gray-500 hover:border-white bg-transparent text-sm text-gray-300 rounded px-3 py-2 transition-colors" context="footer" />
 								<select
 									value={currency}
 									onChange={(e) => setCurrency(e.target.value)}

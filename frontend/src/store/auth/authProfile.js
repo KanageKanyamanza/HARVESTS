@@ -29,8 +29,8 @@ const getUserService = (userType) => {
 const extractUserFromResponse = (response, userType) => {
   if (userType === 'restaurateur') {
     return response.data?.data?.restaurateur || response.data?.restaurateur;
-  } else if (['transformer', 'producer', 'exporter', 'transporter'].includes(userType)) {
-    return response.data?.data?.[userType] || 
+  } else if (['consumer', 'transformer', 'producer', 'exporter', 'transporter'].includes(userType)) {
+    return response.data?.data?.[userType] ||
            response.data?.[userType] || 
            response.data?.data?.user || 
            response.data?.user;
@@ -188,7 +188,8 @@ export const restoreSession = async (dispatch, clearAuthData) => {
         }
         
         if (updatedUser) {
-          saveAuthData(updatedUser, token);
+          // Relire le token : l'appel ci-dessus a pu le renouveler, ne pas réécrire l'ancien.
+          saveAuthData(updatedUser, localStorage.getItem('harvests_token') || token);
           dispatch({
             type: AUTH_ACTIONS.UPDATE_PROFILE,
             payload: updatedUser,

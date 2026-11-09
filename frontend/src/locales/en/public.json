@@ -180,15 +180,15 @@
       "videoFallback": "Your browser does not support video playback."
     },
     "loyaltyProgram": {
-      "title": "Harvests Loyalty Program",
+      "title": "Harvests Loyalty Programme",
       "subtitle": "Earn points on every purchase and enjoy exclusive rewards",
-      "cta": "Discover the Program"
+      "cta": "Discover the Programme"
     }
   },
   "products": {
     "title": "Our Products",
     "subtitle": "Discover our fresh and quality products",
-    "searchPlaceholder": "Search products...",
+    "searchPlaceholder": "Search products…",
     "filtersLabel": "Filters",
     "clearFilters": "Clear filters",
     "sortBy": "Sort by",
@@ -202,7 +202,7 @@
     "heroEyebrow": "Direct Market & Short Supply Chains",
     "producerSectionEmpty": "No producer products found",
     "dishesSectionTitle": "Restaurateur Dishes",
-    "searchingInProgress": "Searching for products...",
+    "searchingInProgress": "Searching for products…",
     "resultsCount_zero": "No products",
     "resultsCount_one": "{{count}} product found",
     "resultsCount_other": "{{count}} products found",
@@ -247,18 +247,18 @@
       "popular": "Most popular"
     },
     "filters": {
-      "priceMin": "Minimum price (XOF)",
-      "priceMax": "Maximum price (XOF)",
+      "priceMin": "Minimum price (FCFA)",
+      "priceMax": "Maximum price (FCFA)",
       "producer": "Producer",
       "sectionSearchTitle": "Search",
-      "searchPlaceholder": "Search...",
+      "searchPlaceholder": "Search…",
       "sectionCategoryTitle": "Category",
       "sectionCountryTitle": "Country of origin",
       "myZone": "My zone",
       "allCountries": "All countries",
       "zonesGroup": "Zones",
       "countriesGroup": "Countries",
-      "sectionPriceTitle": "Price (XOF)",
+      "sectionPriceTitle": "Price (FCFA)",
       "pricePlaceholderMin": "Min",
       "pricePlaceholderMax": "Max",
       "bioLabel": "Certified Organic Products",
@@ -291,7 +291,7 @@
     "heroBadge": "Value Chains & Direct Sourcing",
     "heroTitle": "Marketplace Categories & Harvests",
     "heroDescription": "Access the best African agricultural value chains: fruits, fresh vegetables, tubers, cereals, spices and fully traceable processed products.",
-    "searchPlaceholder": "Search a category (e.g. Vegetables, Spices, Cereals)...",
+    "searchPlaceholder": "Search a category (e.g. Vegetables, Spices, Cereals)…",
     "clearSearch": "Clear",
     "resultCount_one": "{{count}} Category",
     "resultCount_other": "{{count}} Categories",
@@ -351,11 +351,11 @@
     }
   },
   "producers": {
-    "loadingText": "Loading agricultural producers...",
+    "loadingText": "Loading agricultural producers…",
     "heroBadge": "Verified Farms & Operations",
     "heroTitle": "Our Agricultural Producers",
     "heroDescription": "Buy directly from certified cooperatives and farmers. Ultra-fresh, traceable products from local short supply chains.",
-    "searchPlaceholder": "Search a farm, producer, city...",
+    "searchPlaceholder": "Search a farm, producer, city…",
     "clearSearch": "Clear",
     "myZone": "📍 My local area",
     "allCountries": "🌍 All countries",
@@ -382,12 +382,12 @@
     "title": "Product details",
     "genericName": "Product",
     "defaultSeoDescription": "Discover this product available on Harvests.",
-    "loadingText": "Loading product...",
+    "loadingText": "Loading product…",
     "back": "Back",
     "backToProducts": "Back to products",
     "productNotFound": "Product not found",
     "productNotFoundDescription": "The product doesn't exist or is no longer available",
-    "unauthorizedTitle": "Unauthorized access",
+    "unauthorizedTitle": "Unauthorised access",
     "unauthorizedDescription": "This product is not yet approved.",
     "addToCart": "Add to cart",
     "addedButton": "Added!",
@@ -395,12 +395,12 @@
     "addedToCartToast_one": "{{count}} item added to cart",
     "addedToCartToast_other": "{{count}} items added to cart",
     "addedToCartTitle": "Product added",
-    "mustBeConsumerFavorite": "You must be logged in as a consumer to manage your favorites",
-    "removedFromFavorites": "Product removed from your favorites",
-    "alreadyInFavorites": "Product already in your favorites",
-    "addedToFavorites": "Product added to your favorites",
-    "alreadyInFavoritesError": "This product is already in your favorites",
-    "favoritesError": "Error managing favorites",
+    "mustBeConsumerFavorite": "You must be logged in as a consumer to manage your favourites",
+    "removedFromFavorites": "Product removed from your favourites",
+    "alreadyInFavorites": "Product already in your favourites",
+    "addedToFavorites": "Product added to your favourites",
+    "alreadyInFavoritesError": "This product is already in your favourites",
+    "favoritesError": "Error managing favourites",
     "reviewSubmitted": "Your review has been published successfully!",
     "reviewErrorDefault": "Error publishing the review",
     "reviewErrorMustHavePurchased": "You must have purchased this product to leave a review",
@@ -463,9 +463,9 @@
     "leaveReview": "Leave a review",
     "share": "Share",
     "shareProduct": "Share product",
-    "removeFromFavorites": "Remove from favorites",
-    "addToFavorites": "Add to favorites",
-    "favorite": "Favorite",
+    "removeFromFavorites": "Remove from favourites",
+    "addToFavorites": "Add to favourites",
+    "favorite": "Favourite",
     "add": "Add",
     "noImage": "No image",
     "addWithPrice": "Add — {{price}}"
@@ -601,7 +601,7 @@
           "Provide accurate and complete information when registering",
           "Keep your login credentials confidential",
           "Be responsible for all activity carried out under your account",
-          "Inform us immediately of any unauthorized use"
+          "Inform us immediately of any unauthorised use"
         ]
       },
       {
@@ -612,7 +612,7 @@
           "Comply with food hygiene and safety standards",
           "Fulfill orders within the announced timeframes",
           "Respond to customer complaints professionally",
-          "Hold all necessary legal authorizations"
+          "Hold all necessary legal authorisations"
         ]
       },
       {
@@ -635,7 +635,7 @@
       },
       {
         "title": "8. Intellectual property",
-        "text": "All content on Harvests (logos, texts, images, software) is protected by intellectual property law. Any unauthorized reproduction or use is prohibited."
+        "text": "All content on Harvests (logos, texts, images, software) is protected by intellectual property law. Any unauthorised reproduction or use is prohibited."
       },
       {
         "title": "9. Limitation of liability",
@@ -749,7 +749,7 @@
           },
           {
             "lead": "Performance cookies",
-            "text": ": to analyze how the site is used. Disabled until you accept them."
+            "text": ": to analyse how the site is used. Disabled until you accept them."
           },
           {
             "lead": "Preference cookies",
@@ -805,7 +805,7 @@
     "heroTagline": "The Amazon of African Agricultural Products",
     "heroDescription": "A modern e-commerce platform connecting producers and consumers across Africa, with multilingual support and local payments.",
     "missionTitle": "Our Mission",
-    "missionP1": "Harvests' mission is to revolutionize agricultural trade in Africa by building a digital platform that connects producers directly with consumers, eliminating intermediaries and guaranteeing fair prices for everyone.",
+    "missionP1": "Harvests' mission is to revolutionise agricultural trade in Africa by building a digital platform that connects producers directly with consumers, eliminating intermediaries and guaranteeing fair prices for everyone.",
     "missionP2": "We are committed to promoting sustainable agriculture, supporting small producers and making fresh, quality agricultural products accessible to all Africans.",
     "valuesTitle": "Our Values",
     "valuesSubtitle": "These core principles guide each of our actions and decisions",
@@ -828,7 +828,7 @@
       {
         "title": "Pragmatism & Simplicity",
         "subtitle": "",
-        "description": "We favor simple, practical and effective solutions that meet real needs."
+        "description": "We favour simple, practical and effective solutions that meet real needs."
       },
       {
         "title": "Discipline & Structure",
@@ -856,9 +856,9 @@
         "description": "We believe in the power of teamwork and strategic partnerships to reach our goals."
       },
       {
-        "title": "Innovation & Modernization",
+        "title": "Innovation & Modernisation",
         "subtitle": "",
-        "description": "We embrace innovation and modernization to continuously improve our services."
+        "description": "We embrace innovation and modernisation to continuously improve our services."
       }
     ],
     "visionTitle": "Our Vision",
@@ -901,8 +901,8 @@
         "title": "Legal Information",
         "details": [
           "UBUNTU BUSINESS BUILDERS (UBB) – SARL",
-          "RCCM : SN.DKR.2026.B.1650",
-          "NINEA : 012753069"
+          "RCCM: SN.DKR.2026.B.1650",
+          "NINEA: 012753069"
         ],
         "description": "Official registration"
       },
@@ -948,15 +948,102 @@
     "subjectLabel": "Subject *",
     "subjectPlaceholder": "Summary of your request",
     "messageLabel": "Message *",
-    "messagePlaceholder": "Describe your request in detail...",
+    "messagePlaceholder": "Describe your request in detail…",
     "requiredFields": "* Required fields",
-    "sending": "Sending...",
+    "sending": "Sending…",
     "send": "Send message",
     "communityTitle": "Join our community",
     "communityDescription": "Follow us on social media to stay up to date with the latest news"
   },
   "pricing": {
     "badge": "Plans & Transparency",
+    "checkout": {
+      "backToPricing": "Back to pricing",
+      "pageTitle": "{{plan}} subscription",
+      "billingPeriod": "Billing period",
+      "monthly": "Monthly",
+      "annual": "Annual",
+      "perMonth": "per month",
+      "perYear": "per year",
+      "save": "Save {{amount}}",
+      "paymentMethod": "Payment method",
+      "cashLabel": "Payment on delivery",
+      "cashDescription": "We will contact you to complete the payment in cash or by mobile money.",
+      "paypalLabel": "PayPal or bank card",
+      "paypalDescription": "Pay online securely with your PayPal account or bank card.",
+      "cashInfoTitle": "Payment on delivery",
+      "cashInfoText": "Our team will contact you within 24 hours to finalise your subscription and arrange payment.",
+      "paypalInfoTitle": "Secure payment via PayPal",
+      "paypalInfoText": "After confirmation, you will be redirected to PayPal to authorise the payment. Harvests never stores any sensitive information.",
+      "summaryTitle": "Subscription summary",
+      "plan": "Plan",
+      "period": "Period",
+      "discount": "Discount",
+      "total": "Total",
+      "billedMonthly": "Billed monthly",
+      "processing": "Processing…",
+      "activateFree": "Activate the free plan",
+      "confirm": "Confirm subscription",
+      "proceed": "Proceed to payment",
+      "secureNotice": "Secure, encrypted payment",
+      "back": "Back",
+      "securePaymentTitle": "Secure payment",
+      "subscriptionLine": "{{plan}} subscription — {{period}}",
+      "billingInfo": "Billing information",
+      "cardOrPaypalTitle": "Pay by bank card or PayPal",
+      "cardOrPaypalText": "Pay securely with your bank card or your PayPal account",
+      "importantNoteTitle": "Important note:",
+      "importantNoteText": "For subscriptions, PayPal may open a secure window for your bank's 3D Secure authentication. This is normal and secure.",
+      "paypalMissing": "PayPal configuration is missing. Please set",
+      "initialising": "Initialising payment buttons…",
+      "sslNotice": "Secure payment protected by SSL encryption",
+      "secureTitle": "Secure payment",
+      "secureText": "Your payment information is encrypted and secure. We never store your card details.",
+      "successFree": "Free plan activated successfully!",
+      "successCash": "{{plan}} subscription created! You will be contacted to arrange payment.",
+      "errors": {
+        "freeActivation": "The free plan could not be activated",
+        "subscriptionCreation": "The subscription could not be created",
+        "paypalUnavailable": "PayPal cannot be reached right now.",
+        "paymentIdMissing": "Payment identifier not found.",
+        "paymentConfirmation": "The payment could not be confirmed.",
+        "paymentCancelled": "Payment cancelled. You can try again.",
+        "paypalUnexpected": "Unexpected PayPal error."
+      }
+    },
+    "paypalCancel": {
+      "title": "Payment cancelled",
+      "interrupted": "The PayPal payment attempt was interrupted.",
+      "reason": "Reason given:",
+      "notCharged": "You have not been charged. You can try to complete your order again or choose another payment method.",
+      "help": "Need help? Contact our support team from the contact page.",
+      "backHome": "Back to home",
+      "backToCheckout": "Back to checkout",
+      "backToShop": "Back to the shop",
+      "redirect_one": "Redirecting to the home page in {{count}} second…",
+      "redirect_other": "Redirecting to the home page in {{count}} seconds…"
+    },
+    "paypalSuccess": {
+      "pendingTitle": "Confirming your payment",
+      "failedTitle": "Payment not confirmed",
+      "failedHint": "We could not confirm your payment. If you have been charged, please contact our support team from the contact page.",
+      "title": "Payment confirmed",
+      "thanks": "Thank you! Your PayPal payment was successfully validated.",
+      "finalisingOrder": "We are finalising order",
+      "confirming": "Confirming your payment…",
+      "confirmed": "Your payment has been confirmed. Thank you for your trust!",
+      "subscriptionEmail": "You will receive a confirmation email containing all the details of your subscription.",
+      "orderEmail": "You will receive a confirmation email containing all the details of your order.",
+      "orderRefresh": "If the order does not appear in your history right away, please refresh the page in a few moments.",
+      "backHome": "Back to home",
+      "viewOrders": "View my orders",
+      "continueShopping": "Continue shopping",
+      "redirect": "Redirecting to the home page in 5 seconds…",
+      "errors": {
+        "missingPaypalId": "PayPal identifier missing from the URL.",
+        "confirmationFailed": "PayPal confirmation failed."
+      }
+    },
     "heroTitle": "Plans tailored to your Harvests",
     "heroDescription": "Whether you are an independent producer or a structured cooperative, choose the plan that fits your volume and grow your direct sales.",
     "billingMonthly": "Monthly Billing",
@@ -980,7 +1067,7 @@
           "5 orders received per week",
           "Direct messaging with buyers",
           "Basic WhatsApp assistance",
-          "Customized shop page",
+          "Customised shop page",
           "Verified Producer badge",
           "Featured on the home page",
           "B2B & Export network access",
@@ -996,7 +1083,7 @@
         "features": [
           "Up to 15 products online",
           "15 orders received per week",
-          "Customized shop page & logo",
+          "Customised shop page & logo",
           "Official \"Verified Producer\" badge",
           "Featured in categories",
           "Basic view statistics",
@@ -1046,7 +1133,7 @@
       {
         "feature": "Shop page",
         "gratuit": "Basic",
-        "standard": "Customized",
+        "standard": "Customised",
         "premium": "Dedicated URL + Gallery"
       },
       {
@@ -1150,17 +1237,17 @@
     "subjectLabel": "Subject *",
     "messageLabel": "Message *",
     "requiredFields": "* Required fields",
-    "sending": "Sending...",
+    "sending": "Sending…",
     "send": "Send request"
   },
   "loyalty": {
     "badge": "Rewards & Loyalty",
-    "heroTitle": "Harvests Loyalty Program",
+    "heroTitle": "Harvests Loyalty Programme",
     "heroDescription": "Earn points on every purchase and unlock exclusive benefits, from the producer to your table.",
-    "viewMyProgram": "View My Program",
+    "viewMyProgram": "View My Programme",
     "joinNow": "Join Now",
     "howTitle": "How does it work?",
-    "howSubtitle": "A simple and transparent program to reward your loyalty",
+    "howSubtitle": "A simple and transparent programme to reward your loyalty",
     "steps": [
       {
         "title": "Shop",
@@ -1168,7 +1255,7 @@
       },
       {
         "title": "Earn Points",
-        "description": "Receive points for every purchase (1 point = 100 XAF)"
+        "description": "Receive points for every purchase (1 point = 100 FCFA)"
       },
       {
         "title": "Level Up",
@@ -1186,7 +1273,7 @@
     "tiers": [
       {
         "benefits": [
-          "1 point for every 100 XAF spent",
+          "1 point for every 100 FCFA spent",
           "Exclusive discounts",
           "Access to flash sales",
           "Monthly newsletter"
@@ -1194,7 +1281,7 @@
       },
       {
         "benefits": [
-          "1 point for every 100 XAF spent",
+          "1 point for every 100 FCFA spent",
           "All Bronze benefits",
           "Priority access to new products",
           "Birthday gift"
@@ -1202,7 +1289,7 @@
       },
       {
         "benefits": [
-          "1.5 points for every 100 XAF spent",
+          "1.5 points for every 100 FCFA spent",
           "All Silver benefits",
           "Exclusive quarterly gifts",
           "Priority customer service"
@@ -1210,17 +1297,17 @@
       },
       {
         "benefits": [
-          "2 points for every 100 XAF spent",
+          "2 points for every 100 FCFA spent",
           "All Gold benefits",
           "24/7 VIP support",
           "Access to exclusive events",
           "Free consultation with producers",
-          "Order customization",
+          "Order customisation",
           "Premium monthly gifts"
         ]
       }
     ],
-    "whyTitle": "Why join our program?",
+    "whyTitle": "Why join our programme?",
     "why": [
       {
         "title": "Instant Rewards",
@@ -1236,16 +1323,16 @@
       },
       {
         "title": "No Fees",
-        "desc": "Program membership is free and automatic"
+        "desc": "Programme membership is free and automatic"
       }
     ],
     "examplesTitle": "Rewards example",
-    "examplePurchase": "Purchase of 50,000 XAF",
+    "examplePurchase": "Purchase of 50,000 FCFA",
     "exampleBronze": "Bronze tier: +500 points",
     "examplePlatinum": "Platinum tier: +1,000 points",
     "exampleSavings": "Possible savings",
-    "exampleSavings1": "500 points = 500 XAF discount",
-    "exampleSavings2": "1,000 points = 1,000 XAF discount",
+    "exampleSavings1": "500 points = 500 FCFA discount",
+    "exampleSavings2": "1,000 points = 1,000 FCFA discount",
     "exampleBonus": "Platinum member bonus",
     "exampleBonus1": "VIP support 24/7",
     "exampleBonus2": "Premium monthly gifts",
@@ -1253,11 +1340,11 @@
     "faq": [
       {
         "question": "How do I earn points?",
-        "answer": "You automatically earn points on every purchase. The number of points depends on your tier: Bronze and Silver (1 pt/100 XAF), Gold (1.5 pts/100 XAF), Platinum (2 pts/100 XAF)."
+        "answer": "You automatically earn points on every purchase. The number of points depends on your tier: Bronze and Silver (1 pt/100 FCFA), Gold (1.5 pts/100 FCFA), Platinum (2 pts/100 FCFA)."
       },
       {
         "question": "How do I use my points?",
-        "answer": "At checkout, you can choose to use your points. Each point is worth 1 XAF off your order. You decide how many points to use."
+        "answer": "At checkout, you can choose to use your points. Each point is worth 1 FCFA off your order. You decide how many points to use."
       },
       {
         "question": "Do points expire?",
@@ -1273,21 +1360,21 @@
       },
       {
         "question": "Is there a fee to join?",
-        "answer": "No, the loyalty program is completely free. You are automatically enrolled with your first order as a Bronze member."
+        "answer": "No, the loyalty programme is completely free. You are automatically enrolled with your first order as a Bronze member."
       }
     ],
     "ctaTitle": "Ready to get started?",
-    "ctaDescription": "Join thousands of members already enjoying the Harvests loyalty program",
-    "ctaAccess": "Go to My Loyalty Program",
+    "ctaDescription": "Join thousands of members already enjoying the Harvests loyalty programme",
+    "ctaAccess": "Go to My Loyalty Programme",
     "ctaCreate": "Create an Account",
     "ctaLogin": "Log In"
   },
   "restaurateurs": {
-    "loadingText": "Loading restaurateurs...",
+    "loadingText": "Loading restaurateurs…",
     "heroBadge": "Restaurateurs",
     "heroTitle": "Restaurateurs",
     "heroDescription": "Discover restaurateurs who source fresh, local produce directly from producers on the platform.",
-    "searchPlaceholder": "Search a restaurateur (name, city, country)...",
+    "searchPlaceholder": "Search a restaurateur (name, city, country)…",
     "clearSearch": "Clear",
     "resultCount_one": "{{count}} Restaurateur",
     "resultCount_other": "{{count}} Restaurateurs",
@@ -1315,11 +1402,11 @@
     "clearSearchAction": "Clear search"
   },
   "transformers": {
-    "loadingText": "Loading processors...",
+    "loadingText": "Loading processors…",
     "heroBadge": "Processing & Agribusiness",
     "heroTitle": "Processors & Agribusiness",
     "heroDescription": "Discover the processing companies that turn fresh harvests into processed products, spices and artisanal preserves.",
-    "searchPlaceholder": "Search a processor (name, city, country)...",
+    "searchPlaceholder": "Search a processor (name, city, country)…",
     "clearSearch": "Clear",
     "resultCount_one": "{{count}} Processor",
     "resultCount_other": "{{count}} Processors",
@@ -1343,11 +1430,11 @@
     "clearSearchAction": "Clear search"
   },
   "logistics": {
-    "loadingText": "Loading carriers and exporters...",
+    "loadingText": "Loading carriers and exporters…",
     "heroBadge": "Transport & Cold Chain",
     "heroTitle": "Carriers & Exporters",
     "heroDescription": "Discover our logistics partners for local transport and international export, from the field to the table.",
-    "searchPlaceholder": "Search a logistics partner (name, city, country)...",
+    "searchPlaceholder": "Search a logistics partner (name, city, country)…",
     "clearSearch": "Clear",
     "resultCount_one": "{{count}} Partner",
     "resultCount_other": "{{count}} Partners",
@@ -1372,11 +1459,11 @@
     "clearSearchAction": "Clear search"
   },
   "vendeurs": {
-    "loadingText": "Loading partners...",
+    "loadingText": "Loading partners…",
     "heroTitlePrefix": "Discover our",
     "heroTitleHighlight": "Local Partners",
     "heroDescription": "Explore producers, processors and restaurateurs near you offering fresh, top-quality products.",
-    "searchPlaceholder": "Search by name, city, region...",
+    "searchPlaceholder": "Search by name, city, region…",
     "myZone": "My area",
     "allCountriesZones": "All countries / zones",
     "zonesGroup": "Zones",
@@ -1420,7 +1507,7 @@
     "mobileTotal_other": "Total ({{count}} items)"
   },
   "dishDetail": {
-    "loadingText": "Loading dish...",
+    "loadingText": "Loading dish…",
     "notFoundTitle": "Dish not found",
     "notFoundDefault": "This dish doesn't exist or is no longer available.",
     "notFoundServiceError": "Dish not found or unavailable",
@@ -1458,7 +1545,7 @@
     "restaurantTitle": "Restaurant"
   },
   "vendorProfile": {
-    "loadingText": "Loading profile...",
+    "loadingText": "Loading profile…",
     "notFoundTitle": "Profile not found",
     "notFoundDescription": "This partner doesn't exist or is no longer available.",
     "backToProducers": "View producers",
@@ -1528,7 +1615,7 @@
       "emptyDisplay": "No certification registered",
       "remove": "Remove",
       "nameLabel": "Label / Certification name",
-      "namePlaceholder": "Organic Farming, ISO 9001...",
+      "namePlaceholder": "Organic Farming, ISO 9001…",
       "issuedByLabel": "Issued by",
       "issuedByPlaceholder": "Certifying body",
       "expiryLabel": "Expiry date",
@@ -1650,7 +1737,7 @@
     "exporter": {
       "targetMarketsLabel": "Target markets",
       "fleetLabel": "Fleet",
-      "licensesLabel": "Licenses",
+      "licensesLabel": "Licences",
       "exportProductsLabel": "Export products",
       "exportTo": "Export to {{markets}}",
       "genericLabel": "Exporter",
@@ -1666,7 +1753,7 @@
       "commercialConditionsTitle": "Commercial Terms",
       "acceptedIncoterms": "Accepted incoterms",
       "acceptedCurrencies": "Accepted currencies",
-      "exportLicensesTitle": "Export licenses",
+      "exportLicensesTitle": "Export licences",
       "licenseNumber": "No. {{number}}",
       "issuedBy": "Issued by: {{issuer}}",
       "validUntil": "Valid until: {{date}}",

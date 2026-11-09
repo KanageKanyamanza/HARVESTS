@@ -1,9 +1,10 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import { fr, enUS } from "date-fns/locale";
+import { fr, enGB } from "date-fns/locale";
 import { getConfig } from "../config/production";
 import { DEFAULT_CURRENCY } from "../config/currencies";
 import { formatPriceForLanguage } from "./priceFormat";
+import { trackLanguageSwitch } from "./languageUsage";
 
 // Namespaces par domaine (Jour 34 - cadrage bilingue), un fichier par langue et
 // par namespace : chaque écran ne demande que le(s) namespace(s) dont il a besoin
@@ -186,8 +187,25 @@ syncLanguageWithBackend(detectLanguage());
 applyManifestLanguage(detectLanguage());
 
 // Fonction utilitaire pour changer la langue
-export const changeLanguage = (language) => {
+//
+// Jour 73 (lancement bilingue) : chaque bascule explicite est relevée
+// auprès de l'API (utils/languageUsage.js) pour suivre le taux d'usage
+// de l'anglais demandé par la feuille de route. `context` désigne
+// l'endroit de l'interface où la bascule a lieu ("header", "footer",
+// "topbar", "auth") : c'est lui qui dira, au Jour 74, quels sélecteurs
+// portent réellement la bascule. changeLanguage n'est appelée que par des
+// actions utilisateur : le suivi ne compte jamais la langue au simple
+// démarrage (la bascule reste un choix, jamais un réglage subi).
+export const changeLanguage = (language, { context } = {}) => {
 	if (["fr", "en"].includes(language)) {
+		const previousLanguage = getCurrentLanguage();
+
+		// Relevé AVANT le changement : `from` doit être la langue réellement
+		// affichée au moment du clic, et l'appel est fire-and-forget (aucune
+		// attente, aucune erreur ne gêne la bascule). Un clic sur la langue
+		// déjà active (from === to) est refusé côté API : pas une bascule.
+		trackLanguageSwitch({ from: previousLanguage, to: language, context });
+
 		i18n.changeLanguage(language);
 		localStorage.setItem("harvests_language", language);
 
@@ -245,14 +263,17 @@ export const getLocaleConfig = (language = getCurrentLanguage()) => {
 			},
 		},
 		en: {
-			locale: "en-US",
+			// Jour 71 : anglais britannique (en-GB) — public cible : Afrique de
+			// l'Ouest anglophone (Ghana, Nigeria, Sierra Leone, Gambie, Liberia),
+			// où l'orthographe et les dates britanniques sont la norme.
+			locale: "en-GB",
 			// Jour 70 : la devise ne dépend pas de la langue affichée. Avant,
 			// l'anglais retombait sur le cedi ghanéen (GHS) alors que tous les
 			// prix de la plateforme sont libellés en FCFA.
 			currency: "XOF",
 			currencySymbol: "FCFA",
-			dateFormat: "MM/DD/YYYY",
-			timeFormat: "hh:mm A",
+			dateFormat: "DD/MM/YYYY",
+			timeFormat: "HH:mm",
 			numberFormat: {
 				decimal: ".",
 				thousands: ",",
@@ -319,7 +340,7 @@ export const formatMonthCode = (
 
 // Langue date-fns (« il y a 3 heures » / « 3 hours ago ») selon l'interface
 export const getDateFnsLocale = (language = getCurrentLanguage()) =>
-	language === "en" ? enUS : fr;
+	language === "en" ? enGB : fr;
 
 // Nom d'un pays dans la langue de l'interface à partir de son code ISO (« SN » → « Sénégal » / « Senegal »)
 export const getCountryName = (code, language = getCurrentLanguage()) => {

@@ -1,14 +1,26 @@
 const Notification = require('../../models/Notification');
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
+const { isNotFound } = require('../../utils/translate');
 const paymentService = require('../../services/payment/paymentService');
 
 // Initier un paiement
 exports.initiatePayment = catchAsync(async (req, res, next) => {
-  const { orderId, method, returnUrl, cancelUrl, cashInstructions, type, planId, billingPeriod, amount, currency } = req.body;
+  const { orderId, method, returnUrl, cancelUrl, cashInstructions, type, planId, billingPeriod, amount, currency, operator, phone, country } = req.body;
 
-  if (!['cash', 'paypal'].includes(method)) {
-    return next(new AppError('Méthode de paiement non supportée', 400));
+  if (!['cash', 'paypal', 'mobile_money'].includes(method)) {
+    return next(new AppError('payment.unsupported_method', 400));
+  }
+
+  // Payin AfriBaPay (Jour 76) : les souscriptions restent cash/paypal — le
+  // mobile money ne concerne que les commandes client.
+  if (method === 'mobile_money') {
+    if (type === 'subscription') {
+      return next(new AppError('payment.unsupported_method', 400));
+    }
+    if (!operator || !phone) {
+      return next(new AppError('payment.mobile_money_contact_required', 400));
+    }
   }
 
   try {
@@ -28,7 +40,7 @@ exports.initiatePayment = catchAsync(async (req, res, next) => {
       });
     } else {
       if (!orderId) {
-        return next(new AppError('ID de commande ou type de paiement requis', 400));
+        return next(new AppError('payment.order_or_type_required', 400));
       }
 
       result = await paymentService.initiateOrderPayment(req.user.id, orderId, {
@@ -37,7 +49,8 @@ exports.initiatePayment = catchAsync(async (req, res, next) => {
         cancelUrl,
         cashInstructions,
         customerIp: req.ip,
-        userAgent: req.get('User-Agent')
+        userAgent: req.get('User-Agent'),
+        mobileMoney: method === 'mobile_money' ? { operator, phone, country } : undefined
       });
     }
 
@@ -50,13 +63,19 @@ exports.initiatePayment = catchAsync(async (req, res, next) => {
           amount: result.payment.amount,
           currency: result.payment.currency,
           method: result.payment.method,
-          provider: result.payment.provider
+          provider: result.payment.provider,
+          afribapay: result.payment.paymentDetails?.afribapay ? {
+            payinOrderId: result.payment.paymentDetails.afribapay.payinOrderId,
+            attempt: result.payment.paymentDetails.afribapay.attempt,
+            transactionId: result.payment.paymentDetails.afribapay.transactionId,
+            processorStatus: result.payment.paymentDetails.afribapay.processorStatus
+          } : undefined
         },
         ...result.paymentResponse
       }
     });
   } catch (error) {
-    return next(AppError.from(error, error.message.includes('non trouv') ? 404 : 400));
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 400));
   }
 });
 
@@ -84,7 +103,7 @@ exports.confirmPayment = catchAsync(async (req, res, next) => {
 
     if (payment.method === 'paypal') {
       if (!paypalOrderId) {
-        return next(new AppError('Identifiant de commande PayPal manquant', 400));
+        return next(new AppError('payment.paypal_order_id_missing', 400));
       }
 
       result = await paymentService.confirmPayPalPayment(req.params.id, req.user.id, paypalOrderId);
@@ -207,7 +226,7 @@ exports.confirmPayment = catchAsync(async (req, res, next) => {
         });
       }
     } else {
-      return next(new AppError('Méthode de paiement non supportée pour la confirmation', 400));
+      return next(new AppError('payment.unsupported_confirm_method', 400));
     }
 
     res.status(200).json({
@@ -221,7 +240,7 @@ exports.confirmPayment = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    if (error.message.includes('non trouvé')) {
+    if (isNotFound(error.message)) {
       return next(AppError.from(error, 404));
     }
     return next(AppError.from(error, 400));

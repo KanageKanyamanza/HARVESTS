@@ -15,11 +15,6 @@ Ce dossier contient les composants réutilisables centralisés pour éviter la d
 
 ### Composants UI
 
-- **`CommonStats.jsx`** - Composant pour afficher les statistiques communes
-  - Adapté selon le type d'utilisateur (producer, consumer, transformer, etc.)
-  - Affiche les statistiques pertinentes pour chaque profil
-  - Gestion du loading et des états vides
-
 - **`FinancialInfo.jsx`** - Composant pour gérer les informations financières
   - Édition des informations bancaires
   - Gestion des méthodes de paiement
@@ -36,17 +31,10 @@ Ce dossier contient les composants réutilisables centralisés pour éviter la d
 ### Dans les dashboards
 
 ```jsx
-import CommonStats from '../../../components/common/CommonStats';
 import FinancialInfo from '../../../components/common/FinancialInfo';
 import NotificationSettings from '../../../components/common/NotificationSettings';
 
 // Dans le composant
-<CommonStats 
-  stats={commonStats}
-  userType="producer"
-  loading={loading}
-/>
-
 <FinancialInfo 
   bankAccount={bankAccount}
   paymentMethods={paymentMethods}
@@ -58,9 +46,6 @@ import NotificationSettings from '../../../components/common/NotificationSetting
 
 ```jsx
 import { commonService } from '../../services';
-
-// Charger les statistiques communes
-const response = await commonService.getCommonStats();
 
 // Mettre à jour les préférences de notification
 await commonService.updateNotificationPreferences(notifications);

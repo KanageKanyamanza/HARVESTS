@@ -3,6 +3,7 @@ const Payment = require('../../models/Payment');
 const Order = require('../../models/Order');
 const Subscription = require('../../models/Subscription');
 const paypalService = require('../paypalService');
+const paymentAfribapayService = require('./paymentAfribapayService');
 
 /**
  * Service pour la gestion des paiements
@@ -26,6 +27,8 @@ const appendParamsToUrl = (url, params = {}) => {
   }
 };
 
+const PROVIDERS = { cash: 'cash-on-delivery', paypal: 'paypal', mobile_money: 'afribapay' };
+
 /**
  * Initier un paiement de souscription
  */
@@ -34,13 +37,13 @@ async function initiateSubscriptionPayment(userId, { planId, billingPeriod, amou
   const plan = plans[planId];
 
   if (!plan) {
-    throw new Error('Plan invalide');
+    throw new Error('payment.invalid_plan');
   }
 
   const expectedAmount = billingPeriod === 'monthly' ? plan.monthlyPrice : plan.annualPrice;
   
   if (amount !== expectedAmount) {
-    throw new Error('Montant incorrect');
+    throw new Error('payment.incorrect_amount');
   }
 
   // Vérifier si l'utilisateur a déjà une souscription active
@@ -50,7 +53,7 @@ async function initiateSubscriptionPayment(userId, { planId, billingPeriod, amou
   });
 
   if (existingActive && planId !== 'gratuit') {
-    throw new Error('Vous avez déjà une souscription active');
+    throw new Error('payment.subscription_already_active');
   }
 
   // Créer ou trouver la souscription
@@ -74,7 +77,7 @@ async function initiateSubscriptionPayment(userId, { planId, billingPeriod, amou
     });
   }
 
-  const normalizedProvider = method === 'paypal' ? 'paypal' : 'cash-on-delivery';
+  const normalizedProvider = PROVIDERS[method] || 'cash-on-delivery';
 
   const payment = await Payment.create({
     paymentId: new mongoose.Types.ObjectId().toString(),
@@ -155,25 +158,25 @@ async function initiateSubscriptionPayment(userId, { planId, billingPeriod, amou
 /**
  * Initier un paiement de commande
  */
-async function initiateOrderPayment(userId, orderId, { method, returnUrl, cancelUrl, cashInstructions, customerIp, userAgent }) {
+async function initiateOrderPayment(userId, orderId, { method, returnUrl, cancelUrl, cashInstructions, customerIp, userAgent, mobileMoney }) {
   const order = await Order.findById(orderId);
   if (!order) {
-    throw new Error('Commande non trouvée');
+    throw new Error('order.not_found');
   }
 
   if (order.buyer.toString() !== userId) {
-    throw new Error('Vous ne pouvez payer que vos propres commandes');
+    throw new Error('payment.own_orders_only');
   }
 
   if (order.payment.status === 'completed') {
-    throw new Error('Cette commande a déjà été payée');
+    throw new Error('payment.order_already_paid');
   }
 
   if (!['pending', 'failed'].includes(order.status)) {
-    throw new Error('Cette commande ne peut plus être payée');
+    throw new Error('payment.order_not_payable');
   }
 
-  const normalizedProvider = method === 'paypal' ? 'paypal' : 'cash-on-delivery';
+  const normalizedProvider = PROVIDERS[method] || 'cash-on-delivery';
 
   const payment = await Payment.create({
     paymentId: new mongoose.Types.ObjectId().toString(),
@@ -184,6 +187,9 @@ async function initiateOrderPayment(userId, orderId, { method, returnUrl, cancel
     method,
     provider: normalizedProvider,
     type: 'order',
+    // Paypal : processing dès la création (comportement historique conservé) ;
+    // mobile_money : pending, passe en processing quand AfriBaPay accepte
+    // la demande (cf. requestPayin) ; seul le webhook (J77) confirme ensuite.
     status: method === 'paypal' ? 'processing' : 'pending',
     metadata: {
       orderId: orderId?.toString?.() || order._id?.toString(),
@@ -215,6 +221,31 @@ async function initiateOrderPayment(userId, orderId, { method, returnUrl, cancel
       requiresOnlineAction: false,
       confirmationType: 'delivery',
       instructions: payment.paymentDetails.cash.instructions
+    };
+  } else if (method === 'mobile_money') {
+    // Payin AfriBaPay (Jour 76) : demande de paiement envoyée, confirmation
+    // par webhook (J77). Le client doit amener operator + phone (+ country
+    // éventuelle) ; le montant vient de la commande, jamais de la requête.
+    await paymentAfribapayService.requestPayin({
+      payment,
+      amount: order.total,
+      currency: order.currency,
+      operator: mobileMoney.operator,
+      phone: mobileMoney.phone,
+      country: mobileMoney.country || 'SN',
+      returnUrl: enhancedReturnUrl || returnUrl,
+      cancelUrl: enhancedCancelUrl || cancelUrl
+    });
+
+    payment.calculateFees();
+    await payment.save();
+
+    paymentResponse = {
+      requiresOnlineAction: true,
+      processor: 'afribapay',
+      payinOrderId: payment.paymentDetails.afribapay.payinOrderId,
+      processorStatus: payment.paymentDetails.afribapay.processorStatus,
+      transactionId: payment.paymentDetails.afribapay.transactionId
     };
   } else {
     const paypalOrder = await paypalService.createOrder({
@@ -270,7 +301,7 @@ async function confirmPayPalPayment(paymentId, userId, paypalOrderId) {
   });
 
   if (!payment) {
-    throw new Error('Paiement non trouvé');
+    throw new Error('payment.not_found');
   }
 
   if (payment.status === 'succeeded') {
@@ -305,7 +336,7 @@ async function confirmCashPayment(paymentId, userId, confirmationNotes) {
   });
 
   if (!payment) {
-    throw new Error('Paiement non trouvé');
+    throw new Error('payment.not_found');
   }
 
   payment.paymentDetails.cash = {
@@ -374,7 +405,7 @@ async function getPaymentById(paymentId, userId) {
   }).populate('order', 'orderNumber items buyer seller');
 
   if (!payment) {
-    throw new Error('Paiement non trouvé');
+    throw new Error('payment.not_found');
   }
 
   return payment;

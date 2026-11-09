@@ -143,41 +143,6 @@ export const generateSidebarNavigation = (user, icons = {}, t = (key, fallback) 
 		];
 	}
 
-	if (user?.userType === "explorer") {
-		return [
-			{
-				name: t("dashboard", "Tableau de bord"),
-				href: getDashboardRoute(user),
-				icon: HomeIcon,
-			},
-			{
-				id: "messages", name: t("messages", "Messages"),
-				href: getMessagesRoute(user),
-				icon: FiMessageCircle,
-			},
-			{ name: t("sidebar.explore", "Explorer"), href: "/explorer/discover", icon: FiCompass },
-			{ name: t("sidebar.myFavorites", "Mes favoris"), href: "/explorer/favorites", icon: HeartIcon },
-			{
-				name: t("sidebar.myOrders", "Mes commandes"),
-				href: "/explorer/orders",
-				icon: ShoppingBagIcon,
-			},
-			{ name: t("sidebar.myReviews", "Mes avis"), href: "/explorer/reviews", icon: StarIcon },
-			{
-				name: t("sidebar.statistics", "Statistiques"),
-				href: "/explorer/statistics",
-				icon: TrendingUpIcon,
-			},
-			{
-				name: t("notifications", "Notifications"),
-				href: getNotificationsRoute(user),
-				icon: BellIcon,
-			},
-			{ name: t("profile", "Profil"), href: getProfileRoute(user), icon: UserIcon },
-			{ name: t("settings", "Paramètres"), href: getSettingsRoute(user), icon: SettingsIcon },
-		];
-	}
-
 	if (user?.userType === "producer") {
 		return [
 			{
@@ -456,38 +421,6 @@ export const generateQuickActions = (userType, icons = {}) => {
 					description: "Créer un nouvel export",
 					href: "/exporter/exports/add",
 					color: "bg-green-500 hover:bg-green-600",
-				},
-			];
-
-		case "explorer":
-			return [
-				{
-					icon: <FiCompass className="h-5 w-5" />,
-					title: "Explorer",
-					description: "Découvrir de nouveaux produits et producteurs",
-					href: "/explorer/discover",
-					color: "bg-cyan-500 hover:bg-cyan-600",
-				},
-				{
-					icon: <HeartIcon className="h-5 w-5" />,
-					title: "Mes favoris",
-					description: "Voir mes favoris",
-					href: "/explorer/favorites",
-					color: "bg-pink-500 hover:bg-pink-600",
-				},
-				{
-					icon: <ShoppingBagIcon className="h-5 w-5" />,
-					title: "Mes commandes",
-					description: "Voir mes commandes",
-					href: "/explorer/orders",
-					color: "bg-orange-500 hover:bg-orange-600",
-				},
-				{
-					icon: <SettingsIcon className="h-5 w-5" />,
-					title: "Paramètres",
-					description: "Configurer votre compte",
-					href: getSettingsRoute({ userType }),
-					color: "bg-gray-500 hover:bg-gray-600",
 				},
 			];
 

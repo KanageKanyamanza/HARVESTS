@@ -124,6 +124,8 @@ const notificationSchema = new mongoose.Schema({
       'order_cancelled_seller',
       'order_cancelled_transporter',
       'order_refunded',
+      'order_refunded_seller',
+      'order_disputed_seller',
       'order_disputed',
       'order_disputed_transporter',
       'order_payment_received',
@@ -142,6 +144,7 @@ const notificationSchema = new mongoose.Schema({
       // Avis et évaluations
       'review_received',
       'review_response_received',
+      'review_reply',
       'review_helpful_vote',
       
       // Messages et chat
@@ -193,6 +196,8 @@ const notificationSchema = new mongoose.Schema({
       'subscription_cancelled',
       'subscription_payment_failed',
       'quota_reached',
+      'subscription_activated',
+      'refund_requested',
       
       // Général
       'welcome',
@@ -206,7 +211,7 @@ const notificationSchema = new mongoose.Schema({
   // Catégorie pour le groupement
   category: {
     type: String,
-    enum: ['order', 'product', 'account', 'payment', 'message', 'system', 'marketing'],
+    enum: ['order', 'product', 'account', 'payment', 'message', 'system', 'marketing', 'subscription', 'social'],
     required: true
   },
   

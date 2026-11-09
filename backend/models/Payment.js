@@ -10,6 +10,17 @@ const paypalSchema = new mongoose.Schema({
   rawResponse: mongoose.Schema.Types.Mixed
 }, { _id: false });
 
+// Paiement mobile money via AfriBaPay (Jour 76)
+const afribapaySchema = new mongoose.Schema({
+  operator: String,       // code AfriBaPay (orange, wave, free…) — utils/afribapayOperator.js
+  phone: String,          // numéro au format AfriBaPay (fondations J75, formatPhoneForAfribapay)
+  country: String,        // ISO 2 lettres (SN…) — détermine l'indicatif retiré du numéro
+  payinOrderId: String,   // order_id de l'essai courant (R<paymentId>, relances -p2, -p3…) — unique car AfriBaPay refuse la réutilisation
+  attempt: Number,        // numéro de l'essai courant (1 = premier, sans suffixe)
+  transactionId: String,  // transaction_id AfriBaPay de l'essai courant (nouveau à chaque relance)
+  processorStatus: String // dernier statut renvoyé par AfriBaPay pour cet essai
+}, { _id: false });
+
 // Schéma pour le paiement à la livraison (cash on delivery)
 const cashOnDeliverySchema = new mongoose.Schema({
   instructions: {
@@ -60,15 +71,17 @@ const paymentSchema = new mongoose.Schema({
   
   method: {
     type: String,
-    enum: ['cash', 'paypal'],
+    enum: ['cash', 'paypal', 'mobile_money'],
     required: [true, 'validation.payment_method_required']
   },
   
   provider: {
     type: String,
-    enum: ['cash-on-delivery', 'paypal'],
+    enum: ['cash-on-delivery', 'paypal', 'afribapay'],
     default: function() {
-      return this.method === 'cash' ? 'cash-on-delivery' : 'paypal';
+      if (this.method === 'cash') return 'cash-on-delivery';
+      if (this.method === 'mobile_money') return 'afribapay';
+      return 'paypal';
     }
   },
   
@@ -135,7 +148,8 @@ const paymentSchema = new mongoose.Schema({
   // Détails spécifiques selon la méthode
   paymentDetails: {
     paypal: paypalSchema,
-    cash: cashOnDeliverySchema
+    cash: cashOnDeliverySchema,
+    afribapay: afribapaySchema
   },
   
   // Description du paiement
@@ -278,6 +292,8 @@ paymentSchema.index({ user: 1, createdAt: -1 });
 paymentSchema.index({ status: 1 });
 paymentSchema.index({ method: 1, provider: 1 });
 paymentSchema.index({ externalId: 1 });
+// Le webhook AfriBaPay positionne un order_id d'essai ; recherche affine (J77).
+paymentSchema.index({ 'paymentDetails.afribapay.payinOrderId': 1 }, { unique: true, sparse: true });
 paymentSchema.index({ paidAt: 1 });
 paymentSchema.index({ 'reconciliation.isReconciled': 1 });
 paymentSchema.index({ currency: 1, createdAt: -1 });

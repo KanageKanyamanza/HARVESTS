@@ -16,7 +16,10 @@ const orderItemSchema = new mongoose.Schema({
 		ref: "User",
 	},
 	productSnapshot: {
-		name: String,
+		// Jour 72 : le nom est conservé dans ses deux langues ({ fr, en })
+		// pour que le vendeur le voie dans la langue de son interface, comme
+		// le client. Les commandes antérieures contiennent une chaîne simple.
+		name: mongoose.Schema.Types.Mixed,
 		description: String,
 		unit: String,
 		images: [String],
@@ -151,6 +154,11 @@ const orderSegmentSchema = new mongoose.Schema(
 		total: {
 			type: Number,
 			default: 0,
+		},
+		// Solde du stock déjà effectué pour ce segment (voir orderStock.js)
+		stockState: {
+			type: String,
+			enum: ["committed", "released"],
 		},
 		items: [orderItemSchema],
 		history: [segmentHistorySchema],
@@ -308,6 +316,12 @@ const deliverySchema = new mongoose.Schema({
 // Schéma principal de la commande
 const orderSchema = new mongoose.Schema(
 	{
+		// Solde du stock déjà effectué, pour une commande sans segment (voir orderStock.js)
+		stockState: {
+			type: String,
+			enum: ["committed", "released"],
+		},
+
 		// Numéro de commande unique
 		orderNumber: {
 			type: String,

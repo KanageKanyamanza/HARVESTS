@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { FiXCircle, FiHome } from 'react-icons/fi';
 
 const PayPalCancel = () => {
+  const { t } = useTranslation('public');
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const reason = params.get('reason');
@@ -67,24 +69,24 @@ const PayPalCancel = () => {
             <FiXCircle className="h-12 w-12" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-3">
-            Paiement annulé
+            {t('pricing.paypalCancel.title')}
           </h1>
           <p className="text-gray-600 mb-6">
-            La tentative de paiement via PayPal a été interrompue.
+            {t('pricing.paypalCancel.interrupted')}
             {reason && (
               <>
                 {' '}
-                Motif communiqué&nbsp;: <span className="font-semibold">{reason}</span>.
+                {t('pricing.paypalCancel.reason')} <span className="font-semibold">{reason}</span>.
               </>
             )}
           </p>
 
           <div className="bg-gray-50 rounded-xl p-5 text-left text-sm text-gray-600 mb-6">
             <p className="mb-2">
-              Aucun montant n&apos;a été débité. Vous pouvez réessayer de finaliser votre commande ou choisir un autre moyen de paiement.
+              {t('pricing.paypalCancel.notCharged')}
             </p>
             <p>
-              Besoin d&apos;aide ? Contactez notre support depuis la page de contact.
+              {t('pricing.paypalCancel.help')}
             </p>
           </div>
 
@@ -94,7 +96,7 @@ const PayPalCancel = () => {
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-harvests-green px-6 py-3 font-semibold text-white hover:bg-green-600 transition-colors"
             >
               <FiHome className="h-5 w-5" />
-              Retour à l'accueil
+              {t('pricing.paypalCancel.backHome')}
             </button>
             <button
               onClick={() => { 
@@ -104,7 +106,7 @@ const PayPalCancel = () => {
               }}
               className="inline-flex items-center justify-center rounded-lg border border-harvests-green px-6 py-3 font-semibold text-harvests-green hover:bg-green-50 transition-colors"
             >
-              Retourner au checkout
+              {t('pricing.paypalCancel.backToCheckout')}
             </button>
             <button
               onClick={() => { 
@@ -114,12 +116,12 @@ const PayPalCancel = () => {
               }}
               className="inline-flex items-center justify-center rounded-lg border border-harvests-green px-6 py-3 font-semibold text-harvests-green hover:bg-green-50 transition-colors"
             >
-              Revenir à la boutique
+              {t('pricing.paypalCancel.backToShop')}
             </button>
           </div>
 
           <p className="mt-4 text-sm text-gray-500">
-            Redirection automatique vers l'accueil dans {countdown} seconde{countdown > 1 ? 's' : ''}...
+            {t('pricing.paypalCancel.redirect', { count: countdown })}
           </p>
         </div>
       </div>

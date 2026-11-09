@@ -25,7 +25,6 @@ const commonService = {
 		api.patch("/users/me/financial-info", { paymentMethods: data }),
 
 	// Statistiques communes
-	getCommonStats: () => api.get("/users/me/common-stats"),
 	getRatings: () => api.get("/users/me/ratings"),
 	getSalesStats: () => api.get("/users/me/sales-stats"),
 

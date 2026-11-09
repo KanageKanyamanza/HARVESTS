@@ -1,5 +1,6 @@
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
+const { isNotFound } = require('../../utils/translate');
 const paymentRefundService = require('../../services/payment/paymentRefundService');
 
 // Demander un remboursement
@@ -12,7 +13,7 @@ exports.requestRefund = catchAsync(async (req, res, next) => {
       message: 'Demande de remboursement créée avec succès'
     });
   } catch (error) {
-    return next(AppError.from(error, error.message.includes('non trouvé') ? 404 : 400));
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 400));
   }
 });
 
@@ -30,6 +31,6 @@ exports.processRefund = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(AppError.from(error, error.message.includes('non trouv') ? 404 : 400));
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 400));
   }
 });

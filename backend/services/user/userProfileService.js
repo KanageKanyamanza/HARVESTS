@@ -93,7 +93,7 @@ async function updateProfile(userId, userType, updateData, file = null) {
 	if (!user) {
 		user = await User.findById(userId);
 		if (!user) {
-			throw new Error("Utilisateur non trouvé");
+			throw new Error("user.user_not_found");
 		}
 	}
 
@@ -167,7 +167,7 @@ async function deactivateAccount(userId) {
 async function anonymizeAndDeleteAccount(userId) {
 	const user = await User.findById(userId);
 	if (!user) {
-		throw new Error("Utilisateur non trouvé");
+		throw new Error("user.user_not_found");
 	}
 
 	const anonymousId = crypto.randomBytes(8).toString("hex");
@@ -270,13 +270,13 @@ async function updateAddress(userId, addressId, addressData) {
 	const consumer = await Consumer.findById(userId);
 
 	if (!consumer) {
-		throw new Error("Utilisateur non trouvé");
+		throw new Error("user.user_not_found");
 	}
 
 	const address = consumer.deliveryAddresses.id(addressId);
 
 	if (!address) {
-		throw new Error("Adresse non trouvée");
+		throw new Error("user.address_not_found");
 	}
 
 	// Mettre à jour les champs
@@ -303,18 +303,18 @@ async function deleteAddress(userId, addressId) {
 	const consumer = await Consumer.findById(userId);
 
 	if (!consumer) {
-		throw new Error("Utilisateur non trouvé");
+		throw new Error("user.user_not_found");
 	}
 
 	const address = consumer.deliveryAddresses.id(addressId);
 
 	if (!address) {
-		throw new Error("Adresse non trouvée");
+		throw new Error("user.address_not_found");
 	}
 
 	// Ne pas permettre la suppression si c'est la seule adresse
 	if (consumer.deliveryAddresses.length === 1) {
-		throw new Error("Vous devez avoir au moins une adresse");
+		throw new Error("user.last_address_required");
 	}
 
 	// Si c'était l'adresse par défaut, définir une autre comme par défaut
@@ -339,7 +339,7 @@ async function deleteAddress(userId, addressId) {
 async function exportUserData(userId) {
 	const user = await User.findById(userId);
 	if (!user) {
-		throw new Error("Utilisateur non trouvé");
+		throw new Error("user.user_not_found");
 	}
 
 	const [ordersAsBuyer, ordersAsSeller, products, reviewsWritten, reviewsReceived] =

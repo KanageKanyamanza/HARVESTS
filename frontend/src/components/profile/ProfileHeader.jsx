@@ -34,6 +34,15 @@ const ProfileHeader = ({
 	const { t, i18n } = useTranslation("profile");
 	const isVendor = VENDOR_TYPES.includes(user.userType);
 
+	// Jour 72 : ne jamais afficher « Not provided, Burkina Faso » quand seule
+	// la ville manque — on joint uniquement les éléments renseignés.
+	const city = user.address?.city || user.city || "";
+	const country =
+		user.address?.country || user.country ?
+			getCountryName(user.address?.country || user.country, i18n.language)
+		:	"";
+	const locationLabel = [city, country].filter(Boolean).join(", ");
+
 	return (
 		<div className="relative group">
 			{/* Main Glass Card */}
@@ -111,8 +120,7 @@ const ProfileHeader = ({
 										{t("header.location")}
 									</p>
 									<p className="text-sm font-bold text-gray-900 mt-0.5 line-clamp-1">
-										{safeDisplay(user.address?.city || user.city)},{" "}
-										{safeDisplay(getCountryName(user.address?.country || user.country, i18n.language))}
+										{safeDisplay(locationLabel)}
 									</p>
 								</div>
 							</div>

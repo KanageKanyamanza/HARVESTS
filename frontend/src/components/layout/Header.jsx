@@ -347,9 +347,9 @@ const Header = () => {
 
 					{/* Actions utilisateur */}
 					<div className="flex items-center space-x-2 sm:space-x-4">
-						{/* Sélecteur de langue fr/en */}
+						{/* Sélecteur de langue fr/en (contexte "header" : suivi Jour 73) */}
 						<div className="flex items-center">
-							<LanguageSelector />
+							<LanguageSelector context="header" />
 						</div>
 
 						{/* Sélecteur de devise */}

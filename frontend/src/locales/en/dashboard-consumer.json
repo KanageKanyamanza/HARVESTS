@@ -100,7 +100,7 @@
 		"pending": "Pending",
 		"delivered": "Delivered",
 		"cancelled": "Cancelled",
-		"searchPlaceholder": "Search by order number...",
+		"searchPlaceholder": "Search by order number…",
 		"allStatuses": "All statuses"
 	},
 	"reviews": {
@@ -165,7 +165,7 @@
 		"previous": "Previous",
 		"next": "Next",
 		"confirm": "Confirm order",
-		"creating": "Placing order...",
+		"creating": "Placing order…",
 		"unavailableItems": "Some items are no longer available and have been removed.",
 		"emailRequired": "Email verification required",
 		"emailRequiredHint": "Please verify your email address to place an order.",
@@ -185,13 +185,13 @@
 			"streetPlaceholder": "Street, number, neighbourhood",
 			"city": "City",
 			"region": "Region / province",
-			"regionPlaceholder": "e.g. Centre, Dakar...",
+			"regionPlaceholder": "e.g. Centre, Dakar…",
 			"postalCode": "Postcode",
 			"country": "Country",
-			"countryPlaceholder": "e.g. Cameroon, Senegal...",
+			"countryPlaceholder": "e.g. Cameroon, Senegal…",
 			"phone": "Phone",
 			"instructions": "Delivery instructions",
-			"instructionsPlaceholder": "Additional information for the courier..."
+			"instructionsPlaceholder": "Additional information for the courier…"
 		},
 		"payment": {
 			"title": "Payment method",
@@ -212,7 +212,7 @@
 		},
 		"notes": {
 			"title": "Order notes",
-			"placeholder": "Special instructions..."
+			"placeholder": "Special instructions…"
 		},
 		"review": {
 			"title": "Order confirmation",

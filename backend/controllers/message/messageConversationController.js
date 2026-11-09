@@ -47,7 +47,7 @@ exports.createConversation = catchAsync(async (req, res, next) => {
 			if (!participantIds || participantIds.length !== 1) {
 				return next(
 					new AppError(
-						"Une conversation directe nécessite exactement un autre participant",
+						"message.direct_participant_required",
 						400,
 					),
 				);
@@ -62,7 +62,7 @@ exports.createConversation = catchAsync(async (req, res, next) => {
 		case "group":
 			if (!title) {
 				return next(
-					new AppError("Titre requis pour les conversations de groupe", 400),
+					new AppError("message.group_title_required", 400),
 				);
 			}
 			conversation = await Conversation.createGroupConversation(
@@ -74,12 +74,12 @@ exports.createConversation = catchAsync(async (req, res, next) => {
 
 		case "order":
 			if (!orderId) {
-				return next(new AppError("ID de commande requis", 400));
+				return next(new AppError("message.order_id_required", 400));
 			}
 			const Order = require("../../models/Order");
 			const order = await Order.findById(orderId);
 			if (!order) {
-				return next(new AppError("Commande non trouvée", 404));
+				return next(new AppError("order.not_found", 404));
 			}
 			conversation = await Conversation.createOrderConversation(
 				orderId,
@@ -89,7 +89,7 @@ exports.createConversation = catchAsync(async (req, res, next) => {
 			break;
 
 		default:
-			return next(new AppError("Type de conversation invalide", 400));
+			return next(new AppError("message.invalid_type", 400));
 	}
 
 	// Envoyer un message système de bienvenue
@@ -97,8 +97,9 @@ exports.createConversation = catchAsync(async (req, res, next) => {
 		conversation._id,
 		"conversation_created",
 		type === "direct" ?
-			"Conversation démarrée"
-		:	`Conversation "${title}" créée`,
+			req.t("message.system_conversation_started")
+		:	req.t("message.system_conversation_created", { title }),
+		type === "direct" ? {} : { title },
 	);
 
 	// Populer les détails pour le client app et le socket
@@ -136,12 +137,12 @@ exports.getConversation = catchAsync(async (req, res, next) => {
 		.populate("lastMessage.sender", "firstName lastName");
 
 	if (!conversation) {
-		return next(new AppError("Conversation non trouvée", 404));
+		return next(new AppError("message.conversation_not_found", 404));
 	}
 
 	// Vérifier l'accès
 	if (!conversation.canUserAccess(req.user.id)) {
-		return next(new AppError("Accès non autorisé à cette conversation", 403));
+		return next(new AppError("message.access_denied", 403));
 	}
 
 	res.status(200).json({
@@ -157,11 +158,11 @@ exports.markConversationAsRead = catchAsync(async (req, res, next) => {
 	const conversation = await Conversation.findById(req.params.id);
 
 	if (!conversation) {
-		return next(new AppError("Conversation non trouvée", 404));
+		return next(new AppError("message.conversation_not_found", 404));
 	}
 
 	if (!conversation.canUserAccess(req.user.id)) {
-		return next(new AppError("Accès non autorisé", 403));
+		return next(new AppError("message.access_denied", 403));
 	}
 
 	await Message.markConversationAsRead(req.params.id, req.user.id);
@@ -169,7 +170,7 @@ exports.markConversationAsRead = catchAsync(async (req, res, next) => {
 
 	res.status(200).json({
 		status: "success",
-		message: "Conversation marquée comme lue",
+		message: req.t("message.marked_as_read"),
 	});
 });
 
@@ -180,13 +181,13 @@ exports.addParticipant = catchAsync(async (req, res, next) => {
 	const conversation = await Conversation.findById(req.params.id);
 
 	if (!conversation) {
-		return next(new AppError("Conversation non trouvée", 404));
+		return next(new AppError("message.conversation_not_found", 404));
 	}
 
 	if (!conversation.canUserModerate(req.user.id)) {
 		return next(
 			new AppError(
-				"Vous n'avez pas les droits pour ajouter des participants",
+				"message.add_participant_forbidden",
 				403,
 			),
 		);
@@ -195,7 +196,7 @@ exports.addParticipant = catchAsync(async (req, res, next) => {
 	if (conversation.type === "direct") {
 		return next(
 			new AppError(
-				"Impossible d'ajouter des participants à une conversation directe",
+				"message.add_to_direct_forbidden",
 				400,
 			),
 		);
@@ -209,12 +210,15 @@ exports.addParticipant = catchAsync(async (req, res, next) => {
 	await Message.createSystemMessage(
 		conversation._id,
 		"user_joined",
-		`${newUser.firstName} ${newUser.lastName} a rejoint la conversation`,
+		req.t("message.system_user_joined", {
+			name: `${newUser.firstName} ${newUser.lastName}`,
+		}),
+		{ name: `${newUser.firstName} ${newUser.lastName}` },
 	);
 
 	res.status(200).json({
 		status: "success",
-		message: "Participant ajouté avec succès",
+		message: req.t("message.participant_added"),
 	});
 });
 
@@ -223,13 +227,13 @@ exports.removeParticipant = catchAsync(async (req, res, next) => {
 	const conversation = await Conversation.findById(req.params.id);
 
 	if (!conversation) {
-		return next(new AppError("Conversation non trouvée", 404));
+		return next(new AppError("message.conversation_not_found", 404));
 	}
 
 	if (!conversation.canUserModerate(req.user.id)) {
 		return next(
 			new AppError(
-				"Vous n'avez pas les droits pour supprimer des participants",
+				"message.remove_participant_forbidden",
 				403,
 			),
 		);
@@ -245,12 +249,15 @@ exports.removeParticipant = catchAsync(async (req, res, next) => {
 	await Message.createSystemMessage(
 		conversation._id,
 		"user_left",
-		`${removedUser.firstName} ${removedUser.lastName} a quitté la conversation`,
+		req.t("message.system_user_left", {
+			name: `${removedUser.firstName} ${removedUser.lastName}`,
+		}),
+		{ name: `${removedUser.firstName} ${removedUser.lastName}` },
 	);
 
 	res.status(200).json({
 		status: "success",
-		message: "Participant supprimé avec succès",
+		message: req.t("message.participant_removed"),
 	});
 });
 
@@ -259,12 +266,12 @@ exports.leaveConversation = catchAsync(async (req, res, next) => {
 	const conversation = await Conversation.findById(req.params.id);
 
 	if (!conversation) {
-		return next(new AppError("Conversation non trouvée", 404));
+		return next(new AppError("message.conversation_not_found", 404));
 	}
 
 	if (conversation.type === "direct") {
 		return next(
-			new AppError("Impossible de quitter une conversation directe", 400),
+			new AppError("message.leave_direct_forbidden", 400),
 		);
 	}
 
@@ -272,7 +279,7 @@ exports.leaveConversation = catchAsync(async (req, res, next) => {
 
 	res.status(200).json({
 		status: "success",
-		message: "Vous avez quitté la conversation",
+		message: req.t("message.left"),
 	});
 });
 
@@ -281,18 +288,18 @@ exports.archiveConversation = catchAsync(async (req, res, next) => {
 	const conversation = await Conversation.findById(req.params.id);
 
 	if (!conversation) {
-		return next(new AppError("Conversation non trouvée", 404));
+		return next(new AppError("message.conversation_not_found", 404));
 	}
 
 	if (!conversation.canUserAccess(req.user.id)) {
-		return next(new AppError("Accès non autorisé", 403));
+		return next(new AppError("message.access_denied", 403));
 	}
 
 	await conversation.archive(req.user.id);
 
 	res.status(200).json({
 		status: "success",
-		message: "Conversation archivée",
+		message: req.t("message.archived"),
 	});
 });
 
@@ -301,17 +308,17 @@ exports.unarchiveConversation = catchAsync(async (req, res, next) => {
 	const conversation = await Conversation.findById(req.params.id);
 
 	if (!conversation) {
-		return next(new AppError("Conversation non trouvée", 404));
+		return next(new AppError("message.conversation_not_found", 404));
 	}
 
 	if (!conversation.canUserAccess(req.user.id)) {
-		return next(new AppError("Accès non autorisé", 403));
+		return next(new AppError("message.access_denied", 403));
 	}
 
 	await conversation.unarchive();
 
 	res.status(200).json({
 		status: "success",
-		message: "Conversation désarchivée",
+		message: req.t("message.unarchived"),
 	});
 });

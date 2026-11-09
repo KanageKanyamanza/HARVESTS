@@ -63,7 +63,7 @@ exports.getMyExportOrder = catchAsync(async (req, res, next) => {
     .populate('items.product', 'name images price category');
 
   if (!order) {
-    return next(new AppError('Commande d\'export non trouvée ou non assignée à cet exportateur', 404));
+    return next(new AppError('exporter.order_not_found', 404));
   }
 
   // Vérifier que c'est bien un exportateur qui est assigné
@@ -72,7 +72,7 @@ exports.getMyExportOrder = catchAsync(async (req, res, next) => {
   const isExportOrder = order.isExport === true;
 
   if (!isExporterAssigned && !isExportOrder) {
-    return next(new AppError('Cette commande n\'est pas assignée à un exportateur', 403));
+    return next(new AppError('exporter.order_not_assigned', 403));
   }
 
   res.status(200).json({
@@ -90,7 +90,7 @@ exports.updateExportOrderStatus = catchAsync(async (req, res, next) => {
 
   const validStatuses = ['picked-up', 'in-transit', 'out-for-delivery', 'delivered'];
   if (!validStatuses.includes(status)) {
-    return next(new AppError(`Statut invalide. Statuts autorisés: ${validStatuses.join(', ')}`, 400));
+    return next(new AppError('exporter.invalid_status', 400, { statuses: validStatuses.join(', ') }));
   }
 
   const order = await Order.findOne({
@@ -100,7 +100,7 @@ exports.updateExportOrderStatus = catchAsync(async (req, res, next) => {
     .populate('delivery.transporter', 'userType');
 
   if (!order) {
-    return next(new AppError('Commande d\'export non trouvée ou non assignée à cet exportateur', 404));
+    return next(new AppError('exporter.order_not_found', 404));
   }
 
   // Vérifier que c'est bien un exportateur qui est assigné
@@ -109,7 +109,7 @@ exports.updateExportOrderStatus = catchAsync(async (req, res, next) => {
   const isExportOrder = order.isExport === true;
 
   if (!isExporterAssigned && !isExportOrder) {
-    return next(new AppError('Cette commande n\'est pas assignée à un exportateur', 403));
+    return next(new AppError('exporter.order_not_assigned', 403));
   }
 
   const currentStatus = order.delivery?.status || order.status || 'pending';
@@ -150,8 +150,9 @@ exports.updateExportOrderStatus = catchAsync(async (req, res, next) => {
     // Valide
   } else if (!validTransitions.includes(status) && status !== 'picked-up') {
     return next(new AppError(
-      `Transition de statut invalide pour un exportateur: de "${currentStatus}" à "${status}". Transitions autorisées: ${validTransitions.join(', ')}`,
-      403
+      'exporter.invalid_transition',
+      403,
+      { from: currentStatus, to: status, transitions: validTransitions.join(', ') }
     ));
   }
 
@@ -171,7 +172,9 @@ exports.updateExportOrderStatus = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    message: `Statut de commande d'export mis à jour: ${status === 'picked-up' ? 'Collectée' : status === 'delivered' ? 'Livrée' : status}`,
+    message: req.t('exporter.status_updated', {
+      status: req.t(`exporter.statuses.${status.replace(/-/g, '_')}`),
+    }),
     data: {
       order: updatedOrder,
       exportOrder: updatedOrder

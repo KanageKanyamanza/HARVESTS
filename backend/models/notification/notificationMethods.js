@@ -1,3 +1,4 @@
+const { localizedTexts } = require("../../utils/notificationI18n");
 const mongoose = require("mongoose");
 
 // Méthodes du schéma
@@ -100,11 +101,15 @@ function addNotificationMethods(notificationSchema) {
 					: freshNotification.actions
 				: null;
 
+			const emailTexts = localizedTexts(
+				{ ...freshNotification, actions: actionsToSend },
+				recipient.preferredLanguage,
+			);
 			await new Email(recipient).sendNotification({
-				title: freshNotification.title,
-				message: freshNotification.message,
+				title: emailTexts.title,
+				message: emailTexts.message,
 				data: dataToSend,
-				actions: actionsToSend,
+				actions: emailTexts.actions,
 			});
 
 			this.channels.email.sent = true;
@@ -236,6 +241,8 @@ function addNotificationMethods(notificationSchema) {
 				return false;
 			}
 
+			const pushTexts = localizedTexts(this.toObject(), recipient.preferredLanguage);
+
 			// Récupérer le nombre de notifications non lues pour le badge
 			const unreadCount = await this.constructor.getUnreadCount(this.recipient);
 
@@ -246,12 +253,12 @@ function addNotificationMethods(notificationSchema) {
 			if (hasWebPush) {
 				try {
 					const notificationPayload = {
-						title: this.title,
-						body: this.message,
+						title: pushTexts.title,
+						body: pushTexts.message,
 						icon: "/logo.png",
 						// Chercher une action "view" pour l'URL de redirection
 						clickAction: this.actions?.find((a) => a.type === "view")?.url || "/",
-						actions: this.actions,
+						actions: pushTexts.actions,
 						image: this.data?.image || null,
 						unreadCount: unreadCount,
 					};
@@ -273,8 +280,8 @@ function addNotificationMethods(notificationSchema) {
 			if (hasFCM) {
 				try {
 					const fcmNotification = {
-						title: this.title,
-						body: this.message,
+						title: pushTexts.title,
+						body: pushTexts.message,
 						image: this.data?.image || null,
 						clickAction: this.actions?.find((a) => a.type === "view")?.url || null,
 					};

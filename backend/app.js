@@ -208,6 +208,7 @@ const contactRoutes = require("./routes/contactRoutes");
 const seoRoutes = require("./routes/seoRoutes");
 const newsletterRoutes = require("./routes/newsletterRoutes");
 const mailingContactRoutes = require("./routes/mailingContactRoutes");
+const languageUsageRoutes = require("./routes/languageUsageRoutes");
 
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/orders", orderRoutes);
@@ -223,6 +224,10 @@ app.use("/api/v1/chat", chatRoutes);
 app.use("/api/v1/contact", contactRoutes);
 app.use("/api/v1/newsletter", newsletterRoutes);
 app.use("/api/v1/mailing-contacts", mailingContactRoutes);
+
+// Jour 73 (lancement bilingue) : relevé des bascules fr/en, sans
+// authentification — voir controllers/languageUsageController.js
+app.use("/api/v1/language-usage", languageUsageRoutes);
 
 // Routes SEO (sitemap et robots.txt)
 app.use("/", seoRoutes);

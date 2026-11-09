@@ -2,6 +2,7 @@ const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
 const User = require('../../models/User');
 const userProfileService = require('../../services/user/userProfileService');
+const { isNotFound } = require('../../utils/translate');
 
 // Middleware pour récupérer l'utilisateur actuel
 exports.getMe = (req, res, next) => {
@@ -47,21 +48,19 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
 
   if (!password && !email) {
     return next(
-      new AppError(
-        'Veuillez confirmer la suppression avec votre mot de passe ou votre email',
-        400
-      )
+      new AppError('auth.delete_confirmation_required', 400)
     );
   }
 
   const user = await User.findById(req.user.id).select('+password');
 
+  // 400 et non 401 : la session est valide, seule la confirmation saisie est fausse.
   if (password) {
     if (!(await user.comparePassword(password))) {
-      return next(new AppError('Mot de passe incorrect', 401));
+      return next(new AppError('auth.password_incorrect', 400));
     }
   } else if (email.trim().toLowerCase() !== user.email.toLowerCase()) {
-    return next(new AppError("L'email ne correspond pas à votre compte", 401));
+    return next(new AppError('auth.email_mismatch', 400));
   }
 
   try {
@@ -69,7 +68,7 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
 
     res.status(200).json({
       status: 'success',
-      message: 'Votre compte a été supprimé',
+      message: req.t('user.account_deleted'),
       data: null,
     });
   } catch (error) {
@@ -135,7 +134,7 @@ exports.updateAddress = catchAsync(async (req, res, next) => {
       },
     });
   } catch (error) {
-    return next(AppError.from(error, error.message.includes('non trouvé') ? 404 : 500));
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 500));
   }
 });
 
@@ -148,7 +147,7 @@ exports.deleteAddress = catchAsync(async (req, res, next) => {
       data: null,
     });
   } catch (error) {
-    return next(AppError.from(error, error.message.includes('non trouvé') ? 404 : 500));
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 500));
   }
 });
 

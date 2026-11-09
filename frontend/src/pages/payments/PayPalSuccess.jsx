@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { FiCheckCircle, FiHome } from 'react-icons/fi';
+import { useTranslation } from 'react-i18next';
+import { FiCheckCircle, FiHome, FiLoader, FiXCircle } from 'react-icons/fi';
 import { paymentService } from '../../services';
 
 const PayPalSuccess = () => {
   const location = useLocation();
+  const { t } = useTranslation('public');
   const params = new URLSearchParams(location.search);
   const orderId = params.get('orderId') || params.get('paymentId');
   const paypalToken = params.get('token') || params.get('paypalOrderId');
@@ -12,8 +14,9 @@ const PayPalSuccess = () => {
   const redirectTimerRef = useRef(null);
   const hasClickedRef = useRef(false);
 
+  // Démarre en « chargement » : aucun succès n'est annoncé avant la réponse du serveur.
   const [confirmationState, setConfirmationState] = useState({
-    loading: false,
+    loading: true,
     error: null,
     success: false,
   });
@@ -54,7 +57,7 @@ const PayPalSuccess = () => {
         } else {
           setConfirmationState({
             loading: false,
-            error: "Identifiant PayPal manquant dans l'URL.",
+            error: t('pricing.paypalSuccess.errors.missingPaypalId'),
             success: false,
           });
         }
@@ -72,7 +75,7 @@ const PayPalSuccess = () => {
         } else {
           setConfirmationState({
             loading: false,
-            error: 'Identifiant du paiement introuvable.',
+            error: t('pricing.checkout.errors.paymentIdMissing'),
             success: false,
           });
         }
@@ -104,7 +107,7 @@ const PayPalSuccess = () => {
         const message =
           error.response?.data?.message ||
           error.message ||
-          'Erreur lors de la confirmation PayPal.';
+          t('pricing.paypalSuccess.errors.confirmationFailed');
         setConfirmationState({
           loading: false,
           error: message,
@@ -114,7 +117,9 @@ const PayPalSuccess = () => {
     };
 
     confirmPayment();
-  }, [orderId, paypalToken, paymentIdParam, params]);
+    // `t` volontairement absent : changer de langue ne doit pas relancer une confirmation de paiement.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderId, paypalToken, paymentIdParam, location.search]);
 
   // Redirection automatique vers l'accueil après 5 secondes avec rechargement forcé
   useEffect(() => {
@@ -166,25 +171,47 @@ const PayPalSuccess = () => {
     <div className="min-h-screen bg-white py-16">
       <div className="container mx-auto px-4">
         <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg p-10 text-center">
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-green-600">
-            <FiCheckCircle className="h-12 w-12" />
-          </div>
+          {confirmationState.success ? (
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-green-600">
+              <FiCheckCircle className="h-12 w-12" />
+            </div>
+          ) : confirmationState.error ? (
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-red-100 text-red-600">
+              <FiXCircle className="h-12 w-12" />
+            </div>
+          ) : (
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+              <FiLoader className="h-12 w-12 animate-spin" />
+            </div>
+          )}
           <h1 className="text-2xl font-bold text-gray-900 mb-3">
-            Paiement confirmé
+            {confirmationState.success
+              ? t('pricing.paypalSuccess.title')
+              : confirmationState.error
+                ? t('pricing.paypalSuccess.failedTitle')
+                : t('pricing.paypalSuccess.pendingTitle')}
           </h1>
-          <p className="text-gray-600 mb-6">
-            Merci ! Votre paiement a été validé avec succès via PayPal.
-            {orderId && (
-              <>
-                {' '}
-                Nous finalisons la commande <span className="font-semibold">{orderId}</span>.
-              </>
-            )}
-          </p>
+          {confirmationState.success && (
+            <p className="text-gray-600 mb-6">
+              {t('pricing.paypalSuccess.thanks')}
+              {orderId && (
+                <>
+                  {' '}
+                  {t('pricing.paypalSuccess.finalisingOrder')}{' '}
+                  <span className="font-semibold">{orderId}</span>.
+                </>
+              )}
+            </p>
+          )}
+          {confirmationState.error && (
+            <p className="text-gray-600 mb-6">
+              {t('pricing.paypalSuccess.failedHint')}
+            </p>
+          )}
 
           {confirmationState.loading && (
             <div className="bg-blue-50 text-blue-700 text-sm rounded-xl p-4 mb-6">
-              Confirmation de votre paiement en cours...
+              {t('pricing.paypalSuccess.confirming')}
             </div>
           )}
 
@@ -196,31 +223,34 @@ const PayPalSuccess = () => {
 
           {confirmationState.success && (
             <div className="bg-green-50 text-green-700 text-sm rounded-xl p-4 mb-6">
-              Votre paiement a été confirmé. Merci pour votre confiance !
+              {t('pricing.paypalSuccess.confirmed')}
             </div>
           )}
 
-          <div className="bg-gray-50 rounded-xl p-5 text-left text-sm text-gray-600 mb-6">
-            <p className="mb-2">
-              {params.get('type') === 'subscription' 
-                ? 'Vous recevrez un email de confirmation contenant tous les détails de votre souscription.'
-                : 'Vous recevrez un email de confirmation contenant tous les détails de votre commande.'}
-            </p>
-            {params.get('type') !== 'subscription' && (
-              <p>
-                Si la commande n&apos;apparaît pas immédiatement dans votre historique, n&apos;hésitez pas à rafraîchir la page dans quelques instants.
-              </p>
-            )}
-          </div>
-
           {confirmationState.success && (
+            <div className="bg-gray-50 rounded-xl p-5 text-left text-sm text-gray-600 mb-6">
+              <p className="mb-2">
+                {params.get('type') === 'subscription'
+                  ? t('pricing.paypalSuccess.subscriptionEmail')
+                  : t('pricing.paypalSuccess.orderEmail')}
+              </p>
+              {params.get('type') !== 'subscription' && (
+                <p>
+                  {t('pricing.paypalSuccess.orderRefresh')}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Boutons aussi en cas d'échec : le client ne doit pas rester bloqué sur la page. */}
+          {!confirmationState.loading && (
             <div className="flex flex-col md:flex-row md:justify-center gap-3">
               <button
                 onClick={handleHomeClick}
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-harvests-green px-6 py-3 font-semibold text-white hover:bg-green-600 transition-colors"
               >
                 <FiHome className="h-5 w-5" />
-                Retour à l'accueil
+                {t('pricing.paypalSuccess.backHome')}
               </button>
               {params.get('type') !== 'subscription' && (
                 <>
@@ -228,13 +258,13 @@ const PayPalSuccess = () => {
                     onClick={(e) => handleButtonClick(e, '/consumer/orders')}
                     className="inline-flex items-center justify-center rounded-lg border border-harvests-green px-6 py-3 font-semibold text-harvests-green hover:bg-green-50 transition-colors"
                   >
-                    Voir mes commandes
+                    {t('pricing.paypalSuccess.viewOrders')}
                   </button>
                   <button
                     onClick={(e) => handleButtonClick(e, '/products')}
                     className="inline-flex items-center justify-center rounded-lg border border-harvests-green px-6 py-3 font-semibold text-harvests-green hover:bg-green-50 transition-colors"
                   >
-                    Continuer mes achats
+                    {t('pricing.paypalSuccess.continueShopping')}
                   </button>
                 </>
               )}
@@ -243,7 +273,7 @@ const PayPalSuccess = () => {
           
           {confirmationState.success && (
             <p className="mt-4 text-sm text-gray-500">
-              Redirection automatique vers l'accueil dans 5 secondes...
+              {t('pricing.paypalSuccess.redirect')}
             </p>
           )}
         </div>
@@ -253,4 +283,3 @@ const PayPalSuccess = () => {
 };
 
 export default PayPalSuccess;
-

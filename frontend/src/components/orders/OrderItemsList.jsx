@@ -92,10 +92,12 @@ const OrderItemsList = ({
 					const productSnapshot =
 						item.productSnapshot || item.dishSnapshot || {};
 
-					const productName =
+					const rawProductName =
 						productData.name ||
 						productSnapshot.name ||
-						item.name ||
+						item.name;
+					const productName =
+						(rawProductName && parseProductName(rawProductName)) ||
 						t("orderDetail.unknownProduct");
 
 					const productImages =

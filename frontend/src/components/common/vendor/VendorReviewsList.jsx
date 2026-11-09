@@ -44,7 +44,7 @@ const VendorReviewsList = ({ reviews }) => {
               </div>
               <p className="text-sm text-gray-600 mb-2">{review.comment}</p>
               <div className="text-xs text-gray-500">
-                {new Date(review.createdAt).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'fr-FR')}
+                {new Date(review.createdAt).toLocaleDateString(i18n.language === 'en' ? 'en-GB' : 'fr-FR')}
               </div>
             </div>
           </div>

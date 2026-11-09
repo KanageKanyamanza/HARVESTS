@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../hooks/useAuth";
+import { useNotifications } from "../../hooks/useNotifications";
 import {
 	consumerService,
 	producerService,
@@ -48,6 +49,7 @@ const formatDate = (dateString) => {
 
 const OrderDetail = () => {
 	const { t } = useTranslation("common");
+	const { showSuccess, showError } = useNotifications();
 	const { id, orderId } = useParams();
 	const orderIdParam = id || orderId;
 	const navigate = useNavigate();
@@ -184,6 +186,22 @@ const OrderDetail = () => {
 	};
 
 	const cancelOrder = () => updateOrderStatus("cancelled");
+	// Route dédiée côté client : elle gère aussi le remboursement d'un paiement déjà encaissé
+	const cancelAsBuyer = async () => {
+		if (!order || updating) return;
+		if (!window.confirm(t("orders.actions.confirmCancel"))) return;
+		setUpdating(true);
+		try {
+			await orderService.cancelOrder(order._id);
+			await loadOrderDetails();
+			showSuccess(t("orders.actions.cancelled"));
+		} catch (error) {
+			console.error("Erreur annulation commande:", error);
+			showError(error.response?.data?.message || t("orders.actions.cancelError"));
+		} finally {
+			setUpdating(false);
+		}
+	};
 	const prepareOrder = () => updateOrderStatus("preparing");
 	const readyOrder = () => updateOrderStatus("ready-for-pickup");
 	const deliverOrder = () => updateOrderStatus("delivered");
@@ -360,6 +378,7 @@ const OrderDetail = () => {
 									user={user}
 									updating={updating}
 									cancelOrder={cancelOrder}
+									cancelAsBuyer={cancelAsBuyer}
 									prepareOrder={prepareOrder}
 									readyOrder={readyOrder}
 									deliverOrder={deliverOrder}

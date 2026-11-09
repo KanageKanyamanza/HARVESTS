@@ -104,7 +104,7 @@ async function reconcilePayment(paymentId, adminId, { bankStatementRef, discrepa
   });
 
   if (!payment) {
-    throw new Error('Paiement non trouvé');
+    throw new Error('payment.not_found');
   }
 
   await payment.reconcile(adminId, bankStatementRef, discrepancies);

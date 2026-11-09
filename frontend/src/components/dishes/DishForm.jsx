@@ -13,6 +13,8 @@ import {
 import { useBilingualSourceLang } from "../../hooks/useBilingualSourceLang";
 import { UNITS, DEFAULT_UNIT } from "../../config/units";
 import { CURRENCIES, DEFAULT_CURRENCY } from "../../config/currencies";
+import { useNotifications } from "../../hooks/useNotifications";
+import { getDishImageError, uploadDishImage } from "../../utils/dishImageUpload";
 
 // Champs bilingues : le champ principal est dans la langue « source »,
 // <champ>Alt dans l'autre langue (voir utils/bilingualField.js)
@@ -43,6 +45,8 @@ const pickSourceLang = (texts, uiLang) =>
 const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
 	const { t, i18n } = useTranslation(["dashboard-restaurateur", "dashboard-producer", "common"]);
 	const info = getDishInfo(dish);
+	const { showError } = useNotifications();
+	const [uploadingImage, setUploadingImage] = useState(false);
 
 	const [originalTexts] = useState(() => readTexts(dish));
 	const [initialLang] = useState(() =>
@@ -98,13 +102,28 @@ const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
 		}
 	};
 
-	const handleImageChange = (e) => {
-		const file = e.target.files[0];
-		if (file) {
-			const reader = new FileReader();
-			reader.onload = (e) =>
-				setFormData((prev) => ({ ...prev, image: e.target.result }));
-			reader.readAsDataURL(file);
+	const handleImageChange = async (e) => {
+		const input = e.target;
+		const file = input.files[0];
+		if (!file) return;
+
+		const imageError = getDishImageError(file);
+		if (imageError) {
+			showError(t(imageError));
+			input.value = "";
+			return;
+		}
+
+		setUploadingImage(true);
+		try {
+			const url = await uploadDishImage(file);
+			setFormData((prev) => ({ ...prev, image: url }));
+		} catch (error) {
+			console.error("Erreur lors de l'envoi de la photo du plat :", error);
+			showError(t("form.imageUploadError"));
+			input.value = "";
+		} finally {
+			setUploadingImage(false);
 		}
 	};
 
@@ -337,8 +356,12 @@ const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
 						name="image"
 						accept="image/*"
 						onChange={handleImageChange}
+						disabled={uploadingImage}
 						className={inputClass}
 					/>
+					{uploadingImage && (
+						<p className="mt-2 text-xs text-gray-500">{t("form.imageUploading")}</p>
+					)}
 					{formData.image && (
 						<div className="mt-2">
 							<img
@@ -381,7 +404,7 @@ const DishForm = ({ dish, onSubmit, onCancel, loading }) => {
 					</button>
 					<button
 						type="submit"
-						disabled={loading}
+						disabled={loading || uploadingImage}
 						className="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest text-white bg-gray-900 hover:bg-orange-600 transition-colors disabled:opacity-50"
 					>
 						{loading ? t("form.saving") : t("form.saveChanges")}

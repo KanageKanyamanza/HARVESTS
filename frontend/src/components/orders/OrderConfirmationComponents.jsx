@@ -112,8 +112,10 @@ export const OrderItemsCard = ({ items }) => {
 			<div className="space-y-3">
 				{items?.map((item, index) => {
 					const productSnapshot = item.productSnapshot || {};
+					const rawProductName = productSnapshot.name || item.name;
 					const productName =
-						productSnapshot.name || item.name || t("confirmation.unknownProduct");
+						(rawProductName && parseProductName(rawProductName)) ||
+						t("confirmation.unknownProduct");
 					const productImages = productSnapshot.images || [];
 					const productPrice =
 						productSnapshot.price || item.unitPrice || item.price || 0;

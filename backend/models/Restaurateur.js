@@ -12,7 +12,7 @@ const restaurateurSchema = new mongoose.Schema({
 			100,
 			"validation.restaurant_name_maxlength",
 		],
-		default: "À compléter",
+		default: "",
 	},
 
 	businessLicense: {
