@@ -3,6 +3,7 @@ const Payment = require('../../models/Payment');
 const Order = require('../../models/Order');
 const Subscription = require('../../models/Subscription');
 const paypalService = require('../paypalService');
+const paymentAfribapayService = require('./paymentAfribapayService');
 
 /**
  * Service pour la gestion des paiements
@@ -25,6 +26,8 @@ const appendParamsToUrl = (url, params = {}) => {
     return url;
   }
 };
+
+const PROVIDERS = { cash: 'cash-on-delivery', paypal: 'paypal', mobile_money: 'afribapay' };
 
 /**
  * Initier un paiement de souscription
@@ -74,7 +77,7 @@ async function initiateSubscriptionPayment(userId, { planId, billingPeriod, amou
     });
   }
 
-  const normalizedProvider = method === 'paypal' ? 'paypal' : 'cash-on-delivery';
+  const normalizedProvider = PROVIDERS[method] || 'cash-on-delivery';
 
   const payment = await Payment.create({
     paymentId: new mongoose.Types.ObjectId().toString(),
@@ -155,7 +158,7 @@ async function initiateSubscriptionPayment(userId, { planId, billingPeriod, amou
 /**
  * Initier un paiement de commande
  */
-async function initiateOrderPayment(userId, orderId, { method, returnUrl, cancelUrl, cashInstructions, customerIp, userAgent }) {
+async function initiateOrderPayment(userId, orderId, { method, returnUrl, cancelUrl, cashInstructions, customerIp, userAgent, mobileMoney }) {
   const order = await Order.findById(orderId);
   if (!order) {
     throw new Error('order.not_found');
@@ -173,7 +176,7 @@ async function initiateOrderPayment(userId, orderId, { method, returnUrl, cancel
     throw new Error('payment.order_not_payable');
   }
 
-  const normalizedProvider = method === 'paypal' ? 'paypal' : 'cash-on-delivery';
+  const normalizedProvider = PROVIDERS[method] || 'cash-on-delivery';
 
   const payment = await Payment.create({
     paymentId: new mongoose.Types.ObjectId().toString(),
@@ -184,6 +187,9 @@ async function initiateOrderPayment(userId, orderId, { method, returnUrl, cancel
     method,
     provider: normalizedProvider,
     type: 'order',
+    // Paypal : processing dès la création (comportement historique conservé) ;
+    // mobile_money : pending, passe en processing quand AfriBaPay accepte
+    // la demande (cf. requestPayin) ; seul le webhook (J77) confirme ensuite.
     status: method === 'paypal' ? 'processing' : 'pending',
     metadata: {
       orderId: orderId?.toString?.() || order._id?.toString(),
@@ -215,6 +221,31 @@ async function initiateOrderPayment(userId, orderId, { method, returnUrl, cancel
       requiresOnlineAction: false,
       confirmationType: 'delivery',
       instructions: payment.paymentDetails.cash.instructions
+    };
+  } else if (method === 'mobile_money') {
+    // Payin AfriBaPay (Jour 76) : demande de paiement envoyée, confirmation
+    // par webhook (J77). Le client doit amener operator + phone (+ country
+    // éventuelle) ; le montant vient de la commande, jamais de la requête.
+    await paymentAfribapayService.requestPayin({
+      payment,
+      amount: order.total,
+      currency: order.currency,
+      operator: mobileMoney.operator,
+      phone: mobileMoney.phone,
+      country: mobileMoney.country || 'SN',
+      returnUrl: enhancedReturnUrl || returnUrl,
+      cancelUrl: enhancedCancelUrl || cancelUrl
+    });
+
+    payment.calculateFees();
+    await payment.save();
+
+    paymentResponse = {
+      requiresOnlineAction: true,
+      processor: 'afribapay',
+      payinOrderId: payment.paymentDetails.afribapay.payinOrderId,
+      processorStatus: payment.paymentDetails.afribapay.processorStatus,
+      transactionId: payment.paymentDetails.afribapay.transactionId
     };
   } else {
     const paypalOrder = await paypalService.createOrder({

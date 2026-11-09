@@ -246,7 +246,9 @@
     "unsupported_method": "Unsupported payment method",
     "order_or_type_required": "An order ID or payment type is required",
     "unsupported_confirm_method": "Unsupported payment method for confirmation",
-    "unsupported_hosted_fields_type": "Unsupported payment type for Hosted Fields. Use \"subscription\" or \"order\""
+    "unsupported_hosted_fields_type": "Unsupported payment type for Hosted Fields. Use \"subscription\" or \"order\"",
+    "mobile_money_contact_required": "Operator and phone number are required for mobile money",
+    "afribapay_not_configured": "Mobile payments are not available right now"
   },
   "newsletter": {
     "email_required": "Please provide an email address.",

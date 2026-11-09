@@ -48,15 +48,23 @@ router.post('/paypal/hosted-fields/order', paymentController.createOrderForHoste
  *                 format: objectId
  *               method:
  *                 type: string
- *                 enum: [wave, orange-money, stripe, paypal]
- *                 example: wave
+ *                 enum: [cash, paypal, mobile_money]
+ *                 example: mobile_money
  *               amount:
  *                 type: number
  *                 example: 18500
  *               phone:
  *                 type: string
- *                 description: Requis pour Wave et Orange Money
+ *                 description: Requis pour mobile_money (numéro du client, format local)
  *                 example: "+221771234567"
+ *               operator:
+ *                 type: string
+ *                 description: Requis pour mobile_money (nom affiché, ex: "Orange Money", "Wave")
+ *                 example: Orange Money
+ *               country:
+ *                 type: string
+ *                 description: ISO 2 lettres, défaut SN pour mobile_money
+ *                 example: SN
  *     responses:
  *       201:
  *         description: Paiement initié avec succès

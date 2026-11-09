@@ -6,10 +6,21 @@ const paymentService = require('../../services/payment/paymentService');
 
 // Initier un paiement
 exports.initiatePayment = catchAsync(async (req, res, next) => {
-  const { orderId, method, returnUrl, cancelUrl, cashInstructions, type, planId, billingPeriod, amount, currency } = req.body;
+  const { orderId, method, returnUrl, cancelUrl, cashInstructions, type, planId, billingPeriod, amount, currency, operator, phone, country } = req.body;
 
-  if (!['cash', 'paypal'].includes(method)) {
+  if (!['cash', 'paypal', 'mobile_money'].includes(method)) {
     return next(new AppError('payment.unsupported_method', 400));
+  }
+
+  // Payin AfriBaPay (Jour 76) : les souscriptions restent cash/paypal — le
+  // mobile money ne concerne que les commandes client.
+  if (method === 'mobile_money') {
+    if (type === 'subscription') {
+      return next(new AppError('payment.unsupported_method', 400));
+    }
+    if (!operator || !phone) {
+      return next(new AppError('payment.mobile_money_contact_required', 400));
+    }
   }
 
   try {
@@ -38,7 +49,8 @@ exports.initiatePayment = catchAsync(async (req, res, next) => {
         cancelUrl,
         cashInstructions,
         customerIp: req.ip,
-        userAgent: req.get('User-Agent')
+        userAgent: req.get('User-Agent'),
+        mobileMoney: method === 'mobile_money' ? { operator, phone, country } : undefined
       });
     }
 
@@ -51,7 +63,13 @@ exports.initiatePayment = catchAsync(async (req, res, next) => {
           amount: result.payment.amount,
           currency: result.payment.currency,
           method: result.payment.method,
-          provider: result.payment.provider
+          provider: result.payment.provider,
+          afribapay: result.payment.paymentDetails?.afribapay ? {
+            payinOrderId: result.payment.paymentDetails.afribapay.payinOrderId,
+            attempt: result.payment.paymentDetails.afribapay.attempt,
+            transactionId: result.payment.paymentDetails.afribapay.transactionId,
+            processorStatus: result.payment.paymentDetails.afribapay.processorStatus
+          } : undefined
         },
         ...result.paymentResponse
       }
