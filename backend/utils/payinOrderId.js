@@ -24,4 +24,27 @@ const payinAttemptNumber = (orderId) => {
 	return match ? Number(match[2]) : 1;
 };
 
-module.exports = { payinOrderIdFor, paymentIdFromPayinOrderId, payinAttemptNumber };
+/**
+ * Le webhook vise-t-il un essai DÉPASSÉ ? (porté d'AfricaSend, utilisé au
+ * Jour 77) : AfriBaPay notifie chaque essai séparément, et un webhook livré en
+ * retard peut annoncer l'échec de `R123-p2` alors que le payin a déjà été
+ * confirmé par l'essai confirmé (`payinConfirmedOrderId` du Payment). Un échec
+ * sur un tel essai est normal : simple log, jamais d'alerte ni de rétrogradation.
+ * @param {string} incomingOrderId order_id du webhook
+ * @param {{confirmedOrderId?: string, lastAttempt?: number}} reference
+ *   l'essai qui a confirmé le payin, ou à défaut le numéro du dernier essai envoyé
+ * @returns {boolean}
+ */
+const isSupersededPayinOrderId = (incomingOrderId, { confirmedOrderId, lastAttempt } = {}) => {
+	const incoming = String(incomingOrderId || "").trim();
+	if (!incoming) return false;
+	if (confirmedOrderId) return incoming !== String(confirmedOrderId).trim();
+	return payinAttemptNumber(incoming) < (Number(lastAttempt) || 1);
+};
+
+module.exports = {
+	payinOrderIdFor,
+	paymentIdFromPayinOrderId,
+	payinAttemptNumber,
+	isSupersededPayinOrderId,
+};

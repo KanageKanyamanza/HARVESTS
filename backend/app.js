@@ -46,6 +46,12 @@ const i18nResponse = require("./middleware/i18nResponse");
 
 const app = express();
 
+// Webhook payin AfriBaPay (Jour 77) : import en tête — le chemin est figé côté
+// service (il sert aussi à composer la notify_url envoyée à AfriBaPay au
+// Jour 76), et la route est montée plus bas AVANT express.json.
+const { AFRIBAPAY_WEBHOOK_PATH } = require("./services/payment/paymentAfribapayService");
+const afribapayWebhookRoutes = require("./routes/afribapayWebhookRoutes");
+
 // Configuration du proxy de confiance pour les headers X-Forwarded-*
 app.set("trust proxy", 1);
 
@@ -73,6 +79,17 @@ if (process.env.NODE_ENV === "development") {
 
 // Limiteur de taux global
 app.use("/api", globalLimiter);
+
+// Webhook payin AfriBaPay (Jour 77) : monté AVANT express.json — la signature
+// (utils/afribapaySignature.js) se vérifie sur le corps BRUT (en-tête
+// Afribapay-Sign = HMAC-SHA256 hexadécimal des octets exacts envoyés, pas
+// d'une ré-serialisation JSON). Ce parser enregistre le buffer dans
+// req.rawBody puis marque le corps comme lu : le express.json global
+// ci-dessous passe son tour pour cette requête, et les middlewares suivants
+// (mongoSanitize, csrfProtection — qui exempt déjà tout chemin /webhook)
+// opèrent sur un corps déjà parsé et validé par signature.
+app.use(AFRIBAPAY_WEBHOOK_PATH, express.json({ limit: "64kb", verify: (req, _res, buf) => { req.rawBody = buf; } }));
+app.use(AFRIBAPAY_WEBHOOK_PATH, afribapayWebhookRoutes);
 
 // Parser le body des requêtes
 app.use(express.json({ limit: "10mb" })); // Limite la taille du body pour les uploads

@@ -18,7 +18,11 @@ const afribapaySchema = new mongoose.Schema({
   payinOrderId: String,   // order_id de l'essai courant (R<paymentId>, relances -p2, -p3…) — unique car AfriBaPay refuse la réutilisation
   attempt: Number,        // numéro de l'essai courant (1 = premier, sans suffixe)
   transactionId: String,  // transaction_id AfriBaPay de l'essai courant (nouveau à chaque relance)
-  processorStatus: String // dernier statut renvoyé par AfriBaPay pour cet essai
+  processorStatus: String, // dernier statut renvoyé par AfriBaPay pour cet essai
+  // order_id de l'essai qui a RÉELLEMENT confirmé le payin (webhook J77 ou
+  // /status J78) : permet de reconnaître l'échec d'un essai remplacé
+  // (isSupersededPayinOrderId) sans jamais rétrograder un payin confirmé.
+  payinConfirmedOrderId: String
 }, { _id: false });
 
 // Schéma pour le paiement à la livraison (cash on delivery)

@@ -1,13 +1,8 @@
 --- Plan bascule bilingue FR/EN (fr → fr + en) ---
-Détail complet, chiffres d'audit et justifications : docs/Harvests-Bilingue-Roadmap.pdf. Les Jours 33 à 74 sont clos et archivés au fil de l'eau (Jours 72-74 : docs/RECETTE_72.md et docs/LANCEMENT_BILINGUE_73_74.md) ; les journaux correspondants ont été retirés de Day.md comme d'habitude.
+Détail complet, chiffres d'audit et justifications : docs/Harvests-Bilingue-Roadmap.pdf. Les Jours 33 à 77 sont clos et archivés au fil de l'eau (Jours 72-74 : docs/RECETTE_72.md et docs/LANCEMENT_BILINGUE_73_74.md ; Jours 75-77 : bloc AfriBaPay — fondations, payin et webhook payin signé) ; les journaux correspondants ont été retirés de Day.md comme d'habitude.
 
 --- Plan paiement mobile money AfriBaPay : payin client + payout vendeurs (prioritaire) ---
 Intégrée d'après le fonctionnement éprouvé dans AfricaSend (payin : `backend/controllers/transaction/transaction.afribapay.js` ; payout : `backend/controllers/transaction/transaction.payout.js` ; helpers `backend/utils/afribapay*.js`). Payin quand un client paie sa commande, payout quand on paie un vendeur (producteur, restaurateur et autres) établi dans un pays couvert par AfriBaPay — le Sénégal l'est (Orange, Wave, Free…), le pays du vendeur étant piloté par son code. Le règlement `cash` à la livraison reste disponible. **Ce bloc s'exécute en premier, avant le plan d'approvisionnement B2B ci-dessous.** Par convention, sa numérotation occupe les Jours 75 à 86 et le plan B2B est décalé de +12 (anciens Jours 75-100 → 87-112 ; le PDF `docs/HARVESTS_Integration_Prototype_Alpha.pdf` référence l'ancienne numérotation).
-
-
-
-Jour 77 — Webhook payin signé et anti-replay (à faire)
-Route webhook en raw body pour vérifier l'en-tête `Afribapay-Sign` (HMAC-SHA256 hexadécimal du corps brut avec `AFRIBAPAY_API_KEY`), comme dans AfricaSend. Événements idempotents grâce à un claim écrit (ingestion atomique, jamais traitée deux fois), contrôle de cohérence montant/devise (`payinMismatch`) contre la commande, statuts confirmés jamais rétrogradés. Alerte admin sur signature invalide ou notification concernant un payin inconnu.
 
 Jour 78 — Vérification `/status` et réconciliation (à faire)
 `GET /status?order_id=` seule source de vérité : polling des payins restés `pending` (worker planifié avec verrou d'idempotence et journal d'exécution, comme pour les occurrences B2B), resynchronisation des statuts divergents, relance `R<orderId>-p2` sur échec réseau, annulation automatique au-delà du délai imparti pour libérer la commande.

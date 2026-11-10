@@ -27,6 +27,12 @@ const AFRIBAPAY_API_USER = process.env.AFRIBAPAY_API_USER;
 const AFRIBAPAY_API_KEY = process.env.AFRIBAPAY_API_KEY;
 const AFRIBAPAY_MERCHANT_KEY = process.env.AFRIBAPAY_MERCHANT_KEY;
 
+// Clé de signature des webhooks (Jour 77) : facultative. La doc AfriBaPay
+// signe le corps brut avec l'API_KEY — cette seconde clé reste acceptée
+// comme repli (l'inverse était l'erreur d'AfricaSend : aucun webhook payin
+// n'était jamais accepté quand on ne vérifiait QUE le secret dédié).
+const AFRIBAPAY_WEBHOOK_SECRET = process.env.AFRIBAPAY_WEBHOOK_SECRET;
+
 // True dès que les credentials existent : disponible pour Jour 76 (refuser la
 // méthode mobile_money plutôt que d'échouer au milieu d'une commande) et
 // Jour 85 (afficher l'état d'activation dans le back-office).
@@ -39,5 +45,6 @@ module.exports = {
 	AFRIBAPAY_API_USER,
 	AFRIBAPAY_API_KEY,
 	AFRIBAPAY_MERCHANT_KEY,
+	AFRIBAPAY_WEBHOOK_SECRET,
 	isAfribapayConfigured,
 };

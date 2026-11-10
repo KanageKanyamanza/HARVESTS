@@ -1,8 +1,9 @@
 /**
  * Helpers AfriBaPay portés d'AfricaSend (utils/afribapayUtils.js) — fondations
- * Jour 75. La vérification montant/devise des confirmations (payinMismatch) et
- * l'extraction des coûts réels (extractAfribapayCosts) rejoignent ce fichier à
- * leurs jours dédiés (webhook Jour 77, frais Jour 84).
+ * Jour 75. La vérification montant/devise des confirmations (payinMismatch,
+ * ajoutée au Jour 77 pour le webhook) et l'extraction des coûts réels
+ * (extractAfribapayCosts) rejoignent ce fichier à leurs jours dédiés
+ * (frais Jour 84).
  */
 
 /**
@@ -90,6 +91,38 @@ const parseAfribapayBody = (data) => {
 	return null;
 };
 
+/**
+ * Vérifie qu'une confirmation de payin AfriBaPay (webhook Jour 77, ou /status
+ * Jour 78) porte bien sur le paiement demandé : même devise et même montant
+ * encaissé. Doc AfriBaPay : amount, net_amount, original_amount et
+ * amount_total ne sont pas interchangeables ; amount_total (repli :
+ * original_amount) est le montant payé par le client — celui envoyé dans
+ * /pay/payin (montant arrondi côté serveur, cf. buildPayinData). Comparé sur
+ * l'export AfriBaPay du 14/10/2026 par AfricaSend : identique au total arrondi.
+ *
+ * Peut porter sur le corps AfriBaPay à plat ou sous .data.
+ *
+ * @param {object} payment Payment local (amount, currency)
+ * @param {object} payload corps AfriBaPay, à plat ou sous .data
+ * @returns {string|null} l'écart en clair ; null si conforme ou si AfriBaPay
+ *   n'a renvoyé ni montant ni devise (rien à comparer)
+ */
+const payinMismatch = (payment, payload) => {
+	const data = payload?.data && typeof payload.data === "object" ? payload.data : payload;
+	if (!payment || !data || typeof data !== "object") return null;
+	const currency = String(payment.currency || "XOF").toUpperCase();
+	const expected = Math.round(Number(payment.amount) || 0);
+	const issues = [];
+	if (data.currency && String(data.currency).toUpperCase() !== currency) {
+		issues.push(`devise ${data.currency} au lieu de ${currency}`);
+	}
+	const received = parseFloat(data.amount_total ?? data.original_amount);
+	if (Number.isFinite(received) && Math.abs(received - expected) > 1) {
+		issues.push(`montant ${received} au lieu de ${expected}`);
+	}
+	return issues.length ? issues.join(", ") : null;
+};
+
 // Variables d'environnement dont la valeur ne doit jamais apparaître dans un log.
 const SECRET_ENV_KEYS = [
 	"AFRIBAPAY_MERCHANT_KEY",
@@ -126,4 +159,9 @@ const redactSecrets = (value) => {
 		.replace(/mk_(live|test|sandbox)_[A-Za-z0-9]+/g, "mk_$1_***");
 };
 
-module.exports = { formatPhoneForAfribapay, parseAfribapayBody, redactSecrets };
+module.exports = {
+	formatPhoneForAfribapay,
+	parseAfribapayBody,
+	payinMismatch,
+	redactSecrets,
+};
