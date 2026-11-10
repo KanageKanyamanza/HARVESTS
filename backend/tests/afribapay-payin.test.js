@@ -27,9 +27,11 @@ describe("order_id des payins (porté d'AfricaSend)", () => {
 	});
 
 	test("aller-retour order_id → paymentId + numéro d'essai", () => {
-		expect(paymentIdFromPayinOrderId("R50a1-p2")).toBe("R50a1");
+		// Le préfixe `R` est un ornement AfriBaPay, jamais stocké dans le
+		// paymentId local (ObjectId nu) : l'aller-retour le retire.
+		expect(paymentIdFromPayinOrderId("R50a1-p2")).toBe("50a1");
 		expect(payinAttemptNumber("R50a1-p2")).toBe(2);
-		expect(paymentIdFromPayinOrderId("R50a1")).toBe("R50a1");
+		expect(paymentIdFromPayinOrderId("R50a1")).toBe("50a1");
 		expect(payinAttemptNumber("R50a1")).toBe(1);
 	});
 });

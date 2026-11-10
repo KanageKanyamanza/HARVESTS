@@ -218,6 +218,25 @@ mongoose
 			}
 		};
 		// await initDefaultBanners(); // Désactivé sur demande pour ne plus attribuer de bannière par défaut
+
+		// Vérification /status AfriBaPay (Jour 78) : worker planifié qui
+		// resynchronise les payins restés en attente (webhook perdu). AFRIBAPAY_
+		// POLLER_DISABLED=true le désactive (multi-instances : un seul worker
+		// doit interroger /status ; le script backend/scripts/poll-afribapay-
+		// payins.js reste disponible pour un cron dédié).
+		try {
+			const { isAfribapayConfigured } = require("./config/afribapay");
+			const { startPollingService } = require("./services/payment/paymentAfribapayStatusService");
+			if (isAfribapayConfigured() && process.env.AFRIBAPAY_POLLER_DISABLED !== "true") {
+				startPollingService();
+			} else {
+				console.log(
+					`ℹ️ Worker /status AfriBaPay désactivé (${isAfribapayConfigured() ? "AFRIBAPAY_POLLER_DISABLED" : "credentials AfriBaPay absents"})`,
+				);
+			}
+		} catch (err) {
+			console.warn("⚠️ Worker /status AfriBaPay non démarré:", err.message);
+		}
 	})
 	.catch((err) => {
 		console.error("❌ Erreur de connexion à la base de données:", err);
@@ -276,6 +295,13 @@ process.on("unhandledRejection", (err) => {
  */
 const gracefulShutdown = (signal) => {
 	console.log(`👋 ${signal} reçu. Arrêt gracieux du serveur...`);
+	// Arrêt du worker /status AfriBaPay (Jour 78) avant la fermeture des
+	// connexions : ne pas interroger /status sur une base déjà close.
+	try {
+		require("./services/payment/paymentAfribapayStatusService").stopPollingService();
+	} catch (err) {
+		// module non chargé (AfriBaPay non configuré) : rien à arrêter
+	}
 	server.close(async () => {
 		try {
 			await mongoose.connection.close();

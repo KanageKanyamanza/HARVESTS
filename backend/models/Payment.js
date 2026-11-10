@@ -22,7 +22,14 @@ const afribapaySchema = new mongoose.Schema({
   // order_id de l'essai qui a RÉELLEMENT confirmé le payin (webhook J77 ou
   // /status J78) : permet de reconnaître l'échec d'un essai remplacé
   // (isSupersededPayinOrderId) sans jamais rétrograder un payin confirmé.
-  payinConfirmedOrderId: String
+  payinConfirmedOrderId: String,
+  // Journal /status (J78) : FAILED/EXPIRED/REJECTED sont lus deux fois avant
+  // d'écrire un failed définitif (lecture transitoire possible — reprise du
+  // paiement) ; CANCELLED reste définitif dès la première lecture. Proposé
+  // aussi au back-office J85.
+  failedReadCount: Number, // lectures FAILED/EXPIRED/REJECTED consécutives
+  lastPolledAt: Date,      // dernière interrogation /status du payin
+  lastPollResult: String   // dernier statut brut renvoyé par /status
 }, { _id: false });
 
 // Schéma pour le paiement à la livraison (cash on delivery)

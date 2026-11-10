@@ -11,11 +11,24 @@ const SUFFIX = /^(.+)-p(\d+)$/;
 const payinOrderIdFor = (paymentId, attempt = 1) =>
 	attempt > 1 ? `${paymentId}-p${attempt}` : String(paymentId);
 
-/** Identifiant de paiement à partir d'un order_id de payin (avec ou sans suffixe). */
+/**
+ * Référence AfriBaPay d'un paiement : préfixe `R` décoratif posé par
+ * buildPayinData (Jour 76). HARVESTS isole ce préfixe d'ici — contrairement à
+ * AfricaSend, dont l'identifiant de transaction INCLUT déjà le `R` (R103543678),
+ * le paymentId local est un ObjectId nu : sans cette factorisation, l'aller-
+ * retour order_id → paymentId ne refermait pas la boucle (le webhook J77
+ * cherchait un paymentId « R682f… » jamais stocké en base).
+ */
+const payinReferenceFor = (paymentId) => `R${String(paymentId).trim()}`;
+
+/** Identifiant de paiement local à partir d'un order_id de payin (avec ou sans suffixe). */
 const paymentIdFromPayinOrderId = (orderId) => {
 	const id = String(orderId || "").trim();
 	const match = SUFFIX.exec(id);
-	return match ? match[1] : id;
+	const root = match ? match[1] : id;
+	// Le `R` est un ornement d'AfriBaPay, jamais le début d'un paymentId
+	// local (ObjectId hexadécimal) : retiré pour refermer l'aller-retour.
+	return root.replace(/^R(?=.)/, "");
 };
 
 /** Numéro d'essai porté par un order_id de payin (1 = premier, sans suffixe). */
@@ -42,9 +55,43 @@ const isSupersededPayinOrderId = (incomingOrderId, { confirmedOrderId, lastAttem
 	return payinAttemptNumber(incoming) < (Number(lastAttempt) || 1);
 };
 
+/**
+ * Tous les order_ids couverts par un paiement dont la référence (avec le
+ * préfixe `R`, cf. payinReferenceFor) est `paymentRef`, et dont le dernier
+ * essai envoyé est `lastAttempt` (Jour 78) : /status?order_id= ne renvoie
+ * parfois QUE le premier essai — AfricaSend a constaté sur R103543678 un
+ * 2e essai confirmé invisible par /status/order_id. Utilisé par la
+ * vérification /status pour interroger chaque essai tant qu'aucun n'est
+ * confirmé.
+ */
+const allPayinOrderIdsFor = (paymentId, lastAttempt = 1) => {
+	const count = Math.min(20, Math.max(1, Number(lastAttempt) || 1));
+	return Array.from({ length: count }, (_, i) => payinOrderIdFor(paymentId, i + 1));
+};
+
+/**
+ * Test d'appartenance pour /status : une réponse interrogée par transaction_id
+ * doit confirmer appartenir à NOTRE paiement (paymentId) — sinon l'ID AfriBaPay
+ * d'une AUTRE transaction pourrait lui être rattaché. Accepte un order_id exact
+ * (R<paymentId> ou R<paymentId>-pN) aussi bien que le paymentId nu lui-même :
+ * paymentIdFromPayinOrderId retire le préfixe décoratif des deux côtés.
+ * @param {string} orderId order_id renvoyé par AfriBaPay (ou order_id racine)
+ * @param {string} paymentId identifiant du paiement local (sans préfixe R)
+ * @returns {boolean}
+ */
+const payinOrderIdBelongsTo = (orderId, paymentId) => {
+	if (!orderId || !paymentId) return false;
+	const expected = String(paymentId).trim();
+	const actual = paymentIdFromPayinOrderId(orderId);
+	return actual === expected;
+};
+
 module.exports = {
 	payinOrderIdFor,
+	payinReferenceFor,
 	paymentIdFromPayinOrderId,
 	payinAttemptNumber,
+	allPayinOrderIdsFor,
+	payinOrderIdBelongsTo,
 	isSupersededPayinOrderId,
 };

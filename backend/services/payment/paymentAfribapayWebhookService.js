@@ -199,11 +199,11 @@ const afribapayWebhookDecision = ({ payment, payinOrderId, rawStatus, mismatch }
  */
 const alertAfribapayAnomaly = async ({ key, message, detail, data = {} }) => {
 	const isNew = await WebhookEvent.claimEvent(key).catch((err) => {
-		console.error("[Webhook AfriBaPay] claim d'alerte en erreur:", err.message);
+		console.error("[Payin AfriBaPay] claim d'alerte en erreur:", err.message);
 		return true; // fail-open : mieux vaut deux alertes qu'aucune
 	});
 	if (!isNew) return;
-	console.warn(`[Webhook AfriBaPay] ⚠️ ${detail}`);
+	console.warn(`[Payin AfriBaPay] ⚠️ ${detail}`);
 	try {
 		await createNotificationsForAdmins({
 			title: "💳 Anomalie de paiement — AfriBaPay",
@@ -211,11 +211,151 @@ const alertAfribapayAnomaly = async ({ key, message, detail, data = {} }) => {
 			type: "payment_issue",
 			category: "payment",
 			priority: "high",
-			data: { source: "afribapay-webhook", detail, ...data },
+			data: { source: "afribapay-payin", detail, ...data },
 		});
 	} catch (err) {
-		console.error(`[Webhook AfriBaPay] alerte non envoyée: ${err.message}`);
+		console.error(`[Payin AfriBaPay] alerte non envoyée: ${err.message}`);
 	}
+};
+
+/**
+ * Exécute la décision calculée par afribapayWebhookDecision (webhook Jour 77,
+ * réutilisation /status Jour 78) : alerte admin, transition succeeded ou
+ * échec/annulation. Les deux canaux partagent exactement les mêmes garde-fous
+ * — le /status ne peut pas approuver ce que le webhook a refusé et réciproquement.
+ *
+ * @param {object} params
+ * @param {object} params.payment Payment (doct mongoose ou objet légal en test)
+ * @param {object} params.decision retour de afribapayWebhookDecision
+ * @param {string} params.payinOrderId order_id de l'essai visé
+ * @param {string} params.rawStatus statut AfriBaPay brut
+ * @param {object} [params.data] corps AfriBaPay à plat (amount, transaction_id…)
+ * @param {{source?: string, ip?: string=null, userAgent?: string}|object} [params.requestInfo]
+ * @returns {Promise<{action: string, applied?: string}>}
+ */
+const applyAfribapayPayinOutcome = async ({
+	payment,
+	decision,
+	payinOrderId,
+	rawStatus,
+	data = {},
+	requestInfo = {},
+}) => {
+	const source = requestInfo.source || "afribapay-webhook";
+	const upperStatus = String(rawStatus || "UNKNOWN").toUpperCase();
+
+	if (decision.action === "ignore") {
+		console.log(`[Payin AfriBaPay] Ignoré (${decision.kind}): ${decision.detail}`);
+		return { action: "ignore" };
+	}
+
+	if (decision.action === "alert") {
+		await alertAfribapayAnomaly({
+			key: `anomaly:payin-${decision.kind}:${payinOrderId}`,
+			message: decision.message,
+			detail: decision.detail,
+			data: { payinOrderId, paymentId: payment.paymentId, rawStatus, mismatch: data.mismatch },
+		});
+		// L'événement reste dans l'historique du paiement (audit), état inchangé.
+		payment.webhooks.push({
+			eventType: `afribapay_${upperStatus}`,
+			eventId: payinOrderId,
+			processed: false,
+			data: { receivedStatus: rawStatus || undefined, mismatch: data.mismatch || undefined },
+		});
+		await payment.save();
+		return { action: "alert" };
+	}
+
+	// 'apply-succeeded' / 'apply-end' : transition réelle (l'ingestion a été
+	// validée par le claim anti-replay du webhook, ou par le verrou de polling).
+	if (decision.action === "apply-succeeded") {
+		const transactionId = data.transaction_id || null;
+		payment.paymentDetails.afribapay = {
+			...(payment.paymentDetails.afribapay || {}),
+			processorStatus: upperStatus,
+			...(transactionId ? { transactionId } : {}),
+			// L'essai qui a réellement confirmé le payin : permet de
+			// reconnaître plus tard l'échec d'un essai remplacé
+			// (isSupersededPayinOrderId).
+			payinConfirmedOrderId: payinOrderId,
+			failedReadCount: 0,
+		};
+		payment.webhooks.push({
+			eventType: "afribapay_confirmed",
+			eventId: payinOrderId,
+			processed: true,
+			data: {
+				processorStatus: upperStatus,
+				amount: data.amount_total ?? data.original_amount,
+				currency: data.currency,
+			},
+		});
+		payment.attempts.push({ status: "succeeded" });
+		// status → succeeded : paidAt posé par le pre-save, règlement de la
+		// commande déroulé par le post-save du modèle Payment (confirmé + frais
+		// livreur éventuels).
+		await payment.markAsSucceeded(transactionId);
+		logAudit({
+			action: "PAYMENT_CONFIRMED",
+			targetId: payment._id,
+			targetType: "Payment",
+			details: {
+				payinOrderId,
+				paymentId: payment.paymentId,
+				orderId: payment.order?.toString?.() || undefined,
+				afribapayStatus: rawStatus,
+				transactionId: transactionId || undefined,
+				source,
+			},
+			ip: requestInfo.ip || null,
+			userAgent: requestInfo.userAgent || null,
+		});
+		console.log(
+			`[Payin AfriBaPay] ✅ Payin ${payinOrderId} confirmé → paiement ${payment.paymentId} succeeded`,
+		);
+		return { action: "apply-succeeded" };
+	}
+
+	// 'apply-end' : échec / annulation d'un payin en attente (pending,
+	// processing, requires_action, failed) — jamais un statut confirmé.
+	payment.paymentDetails.afribapay = {
+		...(payment.paymentDetails.afribapay || {}),
+		processorStatus: upperStatus,
+		failedReadCount: 0,
+	};
+	payment.webhooks.push({
+		eventType: `afribapay_${upperStatus}`,
+		eventId: payinOrderId,
+		processed: true,
+		data: { status: rawStatus },
+	});
+	payment.status = decision.kind; // 'failed' ou 'cancelled'
+	payment.attempts.push({
+		status: decision.kind,
+		errorCode: `afribapay_${upperStatus}`,
+		errorMessage: `Payin ${payinOrderId} : ${rawStatus}`,
+	});
+	await payment.save();
+	logAudit({
+		action: "PAYMENT_CONFIRMED",
+		status: "failure",
+		targetId: payment._id,
+		targetType: "Payment",
+		details: {
+			payinOrderId,
+			paymentId: payment.paymentId,
+			afribapayStatus: rawStatus,
+			paymentStatus: decision.kind,
+			source,
+		},
+		ip: requestInfo.ip || null,
+		userAgent: requestInfo.userAgent || null,
+	});
+	console.log(
+		`[Payin AfriBaPay] ❌ Payin ${payinOrderId} → paiement ${payment.paymentId} ${decision.kind}`,
+	);
+	return { action: "apply-end" };
 };
 
 /**
@@ -309,123 +449,25 @@ const handleAfribapayWebhook = async (req, res) => {
 				? payinMismatch(payment, data)
 				: null;
 
-		// --- 5. Décision et application (réponse 200 par défaut : ne jamais
-		// provoquer de relance de l'agrégateur sauf erreur interne) ---
+		// --- 5. Décision exécutée (même exécution que le /status du Jour 78) ---
 		const decision = afribapayWebhookDecision({
 			payment,
 			payinOrderId,
 			rawStatus,
 			mismatch,
 		});
-
-		if (decision.action === "ignore") {
-			console.log(`[Webhook AfriBaPay] Ignoré (${decision.kind}): ${decision.detail}`);
-			return res.status(200).json({ message: decision.responseMessage });
-		}
-
-		if (decision.action === "alert") {
-			await alertAfribapayAnomaly({
-				key: `anomaly:payin-${decision.kind}:${payinOrderId}`,
-				message: decision.message,
-				detail: decision.detail,
-				data: { payinOrderId, paymentId: payment.paymentId, rawStatus, mismatch },
-			});
-			// Le webhook reste dans l'historique du paiement (audit), état inchangé.
-			payment.webhooks.push({
-				eventType: `afribapay_${String(rawStatus || "UNKNOWN").toUpperCase()}`,
-				eventId: payinOrderId,
-				processed: false,
-				data: { receivedStatus: rawStatus || undefined, mismatch: mismatch || undefined },
-			});
-			await payment.save();
-			return res.status(200).json({ message: decision.responseMessage });
-		}
-
-		// 'apply-succeeded' / 'apply-end' : transition réelle, opérée une seule
-		// fois (le claim anti-replay ci-dessus a validé l'ingestion).
-		if (decision.action === "apply-succeeded") {
-			const transactionId = data.transaction_id || body.transaction_id || null;
-			payment.paymentDetails.afribapay = {
-				...(payment.paymentDetails.afribapay || {}),
-				processorStatus: String(rawStatus).toUpperCase(),
-				...(transactionId ? { transactionId } : {}),
-				// L'essai qui a réellement confirmé le payin : permet de
-				// reconnaître plus tard l'échec d'un essai remplacé
-				// (isSupersededPayinOrderId).
-				payinConfirmedOrderId: payinOrderId,
-			};
-			payment.webhooks.push({
-				eventType: "afribapay_confirmed",
-				eventId: payinOrderId,
-				processed: true,
-				data: {
-					processorStatus: String(rawStatus).toUpperCase(),
-					amount: data.amount_total ?? data.original_amount,
-					currency: data.currency,
-				},
-			});
-			payment.attempts.push({ status: "succeeded" });
-			// status → succeeded : paidAt posé par le pre-save, order.règlement
-			// déroulé par le post-save du modèle Payment (confirmé + frais livreur).
-			await payment.markAsSucceeded(transactionId);
-			logAudit({
-				action: "PAYMENT_CONFIRMED",
-				targetId: payment._id,
-				targetType: "Payment",
-				details: {
-					payinOrderId,
-					paymentId: payment.paymentId,
-					orderId: payment.order?.toString?.() || undefined,
-					afribapayStatus: rawStatus,
-					transactionId: transactionId || undefined,
-					source: "afribapay-webhook",
-				},
-				ip: req.ip,
-				userAgent: req.get("User-Agent"),
-			});
-			console.log(
-				`[Webhook AfriBaPay] ✅ Payin ${payinOrderId} confirmé → paiement ${payment.paymentId} succeeded`,
-			);
-			return res.status(200).json({ message: decision.responseMessage });
-		}
-
-		// 'apply-end' : échec / annulation d'un payin en attente (pending,
-		// processing, requires_action, failed) — jamais un statut confirmé.
-		payment.paymentDetails.afribapay = {
-			...(payment.paymentDetails.afribapay || {}),
-			processorStatus: String(rawStatus).toUpperCase(),
-		};
-		payment.webhooks.push({
-			eventType: `afribapay_${String(rawStatus).toUpperCase()}`,
-			eventId: payinOrderId,
-			processed: true,
-			data: { status: rawStatus },
-		});
-		payment.status = decision.kind; // 'failed' ou 'cancelled'
-		payment.attempts.push({
-			status: decision.kind,
-			errorCode: `afribapay_${String(rawStatus).toUpperCase()}`,
-			errorMessage: `Payin ${payinOrderId} : ${rawStatus}`,
-		});
-		await payment.save();
-		logAudit({
-			action: "PAYMENT_CONFIRMED",
-			status: "failure",
-			targetId: payment._id,
-			targetType: "Payment",
-			details: {
-				payinOrderId,
-				paymentId: payment.paymentId,
-				afribapayStatus: rawStatus,
-				paymentStatus: decision.kind,
-				source: "afribapay-webhook",
+		await applyAfribapayPayinOutcome({
+			payment,
+			decision,
+			payinOrderId,
+			rawStatus,
+			data: {
+				transaction_id: data.transaction_id || body.transaction_id,
+				...data,
+				mismatch,
 			},
-			ip: req.ip,
-			userAgent: req.get("User-Agent"),
+			requestInfo: { source: "afribapay-webhook", ip: req.ip, userAgent: req.get("User-Agent") },
 		});
-		console.log(
-			`[Webhook AfriBaPay] ❌ Payin ${payinOrderId} → paiement ${payment.paymentId} ${decision.kind}`,
-		);
 		return res.status(200).json({ message: decision.responseMessage });
 	} catch (err) {
 		console.error(
@@ -443,5 +485,7 @@ module.exports = {
 	extractWebhookIdentity,
 	replayKeyFor,
 	afribapayWebhookDecision,
+	applyAfribapayPayinOutcome,
+	alertAfribapayAnomaly,
 	handleAfribapayWebhook,
 };

@@ -143,9 +143,40 @@ const requestPayin = async ({ payment, amount, currency, operator, phone, countr
 	}
 };
 
+/**
+ * Relance le payin d'un Payment après un échec (abandon du client, annulation
+ * de l'essai, problème réseau). requestPayin incrémente l'essai et pose
+ * l'order_id unique de la relance (`R<paymentId>-p2`, `-p3`… — AfriBaPay
+ * refuse la réutilisation d'un order_id, Jour 75) ; le paiement repasse en
+ * processing. Utilisé par le fallback client du Jour 79 (relance depuis la page
+ * d'attente) et les relances admin du Jour 85 — pas par cet appel : un échec
+ * réseau DURANT un POST /pay/payin est déjà retenté par withRetry même
+ * order_id, AfriBaPay le dédupliquant (Jour 76).
+ *
+ * @param {object} payinParams mêmes paramètres que requestPayin
+ *   ({ payment, amount, currency, operator, phone, country, returnUrl, cancelUrl })
+ * @throws {Error} "payment.afribapay_confirmed" si le payin est déjà confirmé
+ */
+const retryAfribapayPayin = async (payinParams) => {
+	const { payment } = payinParams;
+	if (["succeeded", "refunded", "partially_refunded"].includes(payment.status)) {
+		const error = new Error("Paiement déjà confirmé : relance interdite");
+		error.i18nKey = "payment.afribapay_confirmed";
+		throw error;
+	}
+	// Les compteurs d'échec /status (J78) ne doivent pas survivre à une
+	// nouvelle demande de paiement.
+	payment.paymentDetails.afribapay = {
+		...(payment.paymentDetails.afribapay || {}),
+		failedReadCount: 0,
+	};
+	return requestPayin(payinParams);
+};
+
 module.exports = {
 	AFRIBAPAY_WEBHOOK_PATH,
 	backendPublicUrl,
 	buildPayinData,
 	requestPayin,
+	retryAfribapayPayin,
 };
