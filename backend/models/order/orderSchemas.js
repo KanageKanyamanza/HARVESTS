@@ -203,25 +203,36 @@ const deliveryAddressSchema = new mongoose.Schema({
 const paymentSchema = new mongoose.Schema({
 	method: {
 		type: String,
-		enum: ["cash", "paypal"],
+		enum: ["cash", "paypal", "mobile_money"],
 		required: [true, "validation.payment_method_required"],
 	},
 	provider: {
 		type: String,
-		enum: ["cash-on-delivery", "paypal"],
+		enum: ["cash-on-delivery", "paypal", "afribapay"],
 		default: function () {
-			return this.method === "cash" ? "cash-on-delivery" : "paypal";
+			if (this.method === "cash") return "cash-on-delivery";
+			if (this.method === "mobile_money") return "afribapay";
+			return "paypal";
 		},
 	},
 	status: {
 		type: String,
+		// Jour 79 : ces valeurs reflètent celles du modèle Payment. Le post-save
+		// de Payment recopie `succeeded` sur la commande — sans lui, la mise à
+		// jour était rejetée silencieusement et la caisse mobile money croyait
+		// encore le paiement en attente après confirmation.
 		enum: [
 			"pending",
 			"processing",
+			"requires_action",
+			"succeeded",
 			"completed",
 			"failed",
-			"refunded",
 			"cancelled",
+			"refunded",
+			"partially_refunded",
+			"disputed",
+			"expired",
 		],
 		default: "pending",
 	},

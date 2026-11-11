@@ -333,6 +333,8 @@ export const PaymentInfoCard = ({ payment }) => {
 					? "PayPal"
 					: payment?.method === "cash"
 					? t("checkout.payment.cash")
+					: payment?.method === "mobile_money"
+					? "Mobile Money"
 					: payment?.method}
 			</p>
 			<p>

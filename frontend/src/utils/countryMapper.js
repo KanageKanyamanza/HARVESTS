@@ -68,3 +68,53 @@ export function getCountryName(input) {
   return trimmed;
 }
 
+// Jour 79 — l'adresse du checkout stocke un nom affiché (« Sénégal »), alors
+// que le paiement mobile et AfriBaPay attendent un code ISO 2 lettres. Sans
+// inverse, la caisse ne pouvait pas demander les opérateurs du bon pays.
+const COUNTRY_NAME_TO_CODE = {
+  'Sénégal': 'SN',
+  'Senegal': 'SN',
+  'Côte d\'Ivoire': 'CI',
+  'Cote d\'Ivoire': 'CI',
+  'Côte d’Ivoire': 'CI',
+  'Ivory Coast': 'CI',
+  'Cameroun': 'CM',
+  'Cameroon': 'CM',
+  'Burkina Faso': 'BF',
+  'Mali': 'ML',
+  'Ghana': 'GH',
+  'Nigeria': 'NG',
+  'Bénin': 'BJ',
+  'Benin': 'BJ',
+  'Togo': 'TG',
+  'Gabon': 'GA',
+  'Congo': 'CG',
+  'République démocratique du Congo': 'CD',
+  'République democratique du Congo': 'CD',
+  'RD Congo': 'CD',
+  'RDC': 'CD',
+  'Kenya': 'KE',
+  'Niger': 'NE',
+  'Tchad': 'TD',
+  'République centrafricaine': 'CF',
+  'Centrafrique': 'CF',
+  'Gambie': 'GM',
+  'Guinée Conakry': 'GN',
+  'Guinée-Bissau': 'GW'
+};
+
+/**
+ * Convertit un code ISO ou un nom de pays (français/anglais) vers le code ISO
+ * 2 lettres utilisé par les API de paiement. ''. retourné si inconnu : mieux
+ * vaut masquer le mobile money que de proposer les opérateurs d'un autre pays.
+ */
+export function getCountryCode(input) {
+  if (!input) return '';
+  const trimmed = String(input).trim();
+  const upper = trimmed.toUpperCase();
+  if (SUPPORTED_COUNTRIES.some((country) => country.code === upper)) return upper;
+  const match = Object.entries(COUNTRY_NAME_TO_CODE).find(
+    ([name]) => name.toLowerCase() === trimmed.toLowerCase()
+  );
+  return match ? match[1] : '';
+}

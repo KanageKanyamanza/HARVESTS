@@ -7,8 +7,10 @@ import { useCheckout } from "../../../hooks/useCheckout";
 import {
 	orderService,
 	restaurateurService,
+	paymentService,
 } from "../../../services";
 import cartService from "../../../services/cartService";
+import { getCountryCode } from "../../../utils/countryMapper";
 import {
 	ProgressSteps,
 	AddressStep,
@@ -134,6 +136,43 @@ const Checkout = () => {
 				response.data?.order?._id ||
 				response.data?.data?._id ||
 				null;
+
+			// Jour 79 — le payin AfriBaPay part dès la création de la commande,
+			// comme PayPal : la page de confirmation n'a plus qu'à suivre le
+			// statut. Le contact (opérateur, numéro, pays) est mémorisé pour
+			// pouvoir relancer même si l'envoi initial échoue.
+			if (orderId && orderData.paymentMethod === "mobile_money") {
+				const origin = window.location.origin;
+				const contact = {
+					operator: orderData.mobileMoneyOperator,
+					phone: orderData.mobileMoneyPhone,
+					country: getCountryCode(orderData.deliveryAddress.country) || "SN",
+				};
+				try {
+					const paymentResponse = await paymentService.initiatePayment({
+						orderId,
+						method: "mobile_money",
+						...contact,
+						returnUrl: `${origin}/payment/success?orderId=${orderId}`,
+						cancelUrl: `${origin}/payment/cancel?orderId=${orderId}`,
+					});
+					const paymentId =
+						paymentResponse.data?.data?.payment?.id || null;
+					sessionStorage.setItem(
+						`harvests_mobile_money_${orderId}`,
+						JSON.stringify({ ...contact, paymentId })
+					);
+				} catch (error) {
+					console.error(
+						"🛒 [Checkout] Échec de l'envoi du payin mobile money:",
+						error
+					);
+					sessionStorage.setItem(
+						`harvests_mobile_money_${orderId}`,
+						JSON.stringify({ ...contact, paymentId: null })
+					);
+				}
+			}
 
 			validCartItems.forEach((item) =>
 				removeFromCart(item.productId || item.id, item.originType || "product")

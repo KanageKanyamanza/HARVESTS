@@ -3,6 +3,47 @@ const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
 const { isNotFound } = require('../../utils/translate');
 const paymentService = require('../../services/payment/paymentService');
+const { listOperatorsForCountry, operatorLabel } = require('../../config/afribapayOperators');
+const { resynchronizePayin } = require('../../services/payment/paymentAfribapayStatusService');
+const { retryAfribapayPayin } = require('../../services/payment/paymentAfribapayService');
+
+// Statuts pour lesquels un payin n'a plus besoin d'être réinterrogé : le
+// /status ne doit jamais rétrograder un paiement confirmé (garde-fou J77/J78).
+const CONFIRMED_PAYMENT_STATUSES = ['succeeded', 'refunded', 'partially_refunded'];
+
+// Vue publique d'un Payment mobile money : la page d'attente n'a besoin ni du
+// journal d'audit ni des métadonnées internes, et ne reçoit jamais la
+// merchant_key (jamais stockée sur le Payment, mais on garde le contrat étroit).
+const serializeAfribapayPayment = (payment) => {
+  const afribapay = payment.paymentDetails?.afribapay || {};
+
+  return {
+    id: payment.paymentId,
+    status: payment.status,
+    method: payment.method,
+    provider: payment.provider,
+    amount: payment.amount,
+    currency: payment.currency,
+    orderId:
+      payment.order?._id?.toString?.() ||
+      payment.order?.toString?.() ||
+      payment.metadata?.orderId ||
+      null,
+    paidAt: payment.paidAt,
+    failureMessage: payment.failureMessage || null,
+    afribapay: {
+      operator: afribapay.operator || null,
+      operatorName: afribapay.operator ? operatorLabel(afribapay.operator) : null,
+      phone: afribapay.phone || null,
+      country: afribapay.country || null,
+      payinOrderId: afribapay.payinOrderId || null,
+      attempt: afribapay.attempt || 0,
+      processorStatus: afribapay.processorStatus || null,
+      lastPolledAt: afribapay.lastPolledAt || null,
+      lastPollResult: afribapay.lastPollResult || null
+    }
+  };
+};
 
 // Initier un paiement
 exports.initiatePayment = catchAsync(async (req, res, next) => {
@@ -281,6 +322,100 @@ exports.getPayment = catchAsync(async (req, res, next) => {
     });
   } catch (error) {
     return next(AppError.from(error, 404));
+  }
+});
+
+// Opérateurs mobile money proposés pour un pays (Jour 79)
+exports.getAfribapayOperators = catchAsync(async (req, res) => {
+  const country = String(req.query.country || 'SN');
+
+  res.status(200).json({
+    status: 'success',
+    data: listOperatorsForCountry(country)
+  });
+});
+
+// Repoll du payin mobile money depuis la page d'attente (Jour 79) : /status est
+// la source de vérité (J78) — le webhook peut être perdu ou en retard. Un
+// payin confirmé n'est pas réinterrogé ; une erreur AfriBaPay ne casse pas la
+// page, on renvoie le dernier état stocké.
+exports.getAfribapayStatus = catchAsync(async (req, res, next) => {
+  try {
+    const payment = await paymentService.getPaymentById(req.params.id, req.user.id);
+
+    if (payment.method !== 'mobile_money') {
+      return next(new AppError('payment.unsupported_method', 400));
+    }
+
+    let sync = 'already';
+    if (!CONFIRMED_PAYMENT_STATUSES.includes(payment.status)) {
+      try {
+        sync = await resynchronizePayin({
+          payment,
+          source: 'afribapay-status-client'
+        });
+      } catch (error) {
+        console.error('[Status AfriBaPay] Repoll client en échec:', error?.message ?? error);
+        sync = 'skip';
+      }
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        sync,
+        payment: serializeAfribapayPayment(payment)
+      }
+    });
+  } catch (error) {
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 400));
+  }
+});
+
+// Relance le payin mobile money après un échec ou un abandon (Jour 79) : même
+// service que les relances admin du Jour 85, order_id unique par tentative
+// (`R<paymentId>-p2`, `-p3`… — AfriBaPay refuse la réutilisation).
+exports.retryAfribapayPayment = catchAsync(async (req, res, next) => {
+  const { operator, phone, country, returnUrl, cancelUrl } = req.body;
+
+  try {
+    const payment = await paymentService.getPaymentById(req.params.id, req.user.id);
+
+    if (payment.method !== 'mobile_money') {
+      return next(new AppError('payment.unsupported_method', 400));
+    }
+
+    const stored = payment.paymentDetails?.afribapay || {};
+    const targetOperator = operator || stored.operator;
+    const targetPhone = phone || stored.phone;
+
+    if (!targetOperator || !targetPhone) {
+      return next(new AppError('payment.mobile_money_contact_required', 400));
+    }
+
+    const result = await retryAfribapayPayin({
+      payment,
+      amount: payment.amount,
+      currency: payment.currency,
+      operator: targetOperator,
+      phone: targetPhone,
+      country: country || stored.country || 'SN',
+      returnUrl,
+      cancelUrl
+    });
+
+    payment.calculateFees();
+    await payment.save();
+
+    res.status(201).json({
+      status: 'success',
+      data: {
+        payment: serializeAfribapayPayment(payment),
+        processorStatus: result?.data?.status || result?.status || null
+      }
+    });
+  } catch (error) {
+    return next(new AppError(error.i18nKey || error.message, error.i18nKey ? 400 : isNotFound(error.message) ? 404 : 400));
   }
 });
 

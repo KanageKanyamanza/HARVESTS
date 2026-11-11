@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
 	FiMapPin,
@@ -8,11 +8,14 @@ import {
 	FiTruck,
 	FiInfo,
 	FiShield,
+	FiSmartphone,
 } from "react-icons/fi";
 import { convertPrice, formatPrice } from "../../utils/currencyUtils";
 import { useCurrency } from "../../contexts/CurrencyContext.jsx";
 import { DEFAULT_CURRENCY } from "../../config/currencies";
 import { toPlainText } from "../../utils/textHelpers";
+import { getCountryCode } from "../../utils/countryMapper";
+import { paymentService } from "../../services";
 
 export const ProgressSteps = ({ currentStep }) => {
 	const { t } = useTranslation("dashboard-consumer");
@@ -147,6 +150,70 @@ export const AddressStep = ({ orderData, handleInputChange }) => {
 
 export const PaymentStep = ({ orderData, handleInputChange }) => {
 	const { t } = useTranslation("dashboard-consumer");
+	const { t: tPayment } = useTranslation("payment");
+	const countryCode = getCountryCode(orderData.deliveryAddress?.country);
+	const [operators, setOperators] = useState([]);
+	const [operatorMeta, setOperatorMeta] = useState({
+		phoneCode: "",
+	});
+	const [operatorsLoading, setOperatorsLoading] = useState(false);
+
+	// Jour 79 — la liste vient du backend (config AfriBaPay), pas d'une table
+	// dupliquée côté frontend : elle suit les opérateurs que le payin accepte.
+	useEffect(() => {
+		if (!countryCode) {
+			setOperators([]);
+			return;
+		}
+		let active = true;
+		setOperatorsLoading(true);
+		paymentService
+			.getAfribapayOperators(countryCode)
+			.then((response) => {
+				if (!active) return;
+				const data = response.data?.data || {};
+				setOperators(Array.isArray(data.operators) ? data.operators : []);
+				setOperatorMeta({
+					phoneCode: data.phoneCode || "",
+				});
+			})
+			.catch(() => {
+				if (active) setOperators([]);
+			})
+			.finally(() => {
+				if (active) setOperatorsLoading(false);
+			});
+		return () => {
+			active = false;
+		};
+	}, [countryCode]);
+
+	const mobileMoneyAvailable =
+		operators.length > 0 || orderData.paymentMethod === "mobile_money";
+	const paymentOptions = [
+		{
+			value: "cash",
+			label: t("checkout.payment.cash"),
+			description: t("checkout.payment.cashDescription"),
+			Icon: FiDollarSign,
+		},
+		{
+			value: "paypal",
+			label: t("checkout.payment.paypal"),
+			description: t("checkout.payment.paypalDescription"),
+			Icon: FiCreditCard,
+		},
+		...(mobileMoneyAvailable
+			? [
+					{
+						value: "mobile_money",
+						label: tPayment("checkout.mobileMoney"),
+						description: tPayment("checkout.mobileMoneyDescription"),
+						Icon: FiSmartphone,
+					},
+				]
+			: []),
+	];
 
 	return (
 		<div className="space-y-5">
@@ -159,20 +226,7 @@ export const PaymentStep = ({ orderData, handleInputChange }) => {
 				</h2>
 
 				<div className="space-y-3">
-					{[
-						{
-							value: "cash",
-							label: t("checkout.payment.cash"),
-							description: t("checkout.payment.cashDescription"),
-							Icon: FiDollarSign,
-						},
-						{
-							value: "paypal",
-							label: t("checkout.payment.paypal"),
-							description: t("checkout.payment.paypalDescription"),
-							Icon: FiCreditCard,
-						},
-					].map(({ value, label, description, Icon }) => (
+					{paymentOptions.map(({ value, label, description, Icon }) => (
 						<label
 							key={value}
 							className={`flex items-start p-4 border rounded-xl cursor-pointer transition-all ${
@@ -228,6 +282,120 @@ export const PaymentStep = ({ orderData, handleInputChange }) => {
 							<p className="text-sm text-blue-700/80 mt-1">
 								{t("checkout.payment.paypalRedirect")}
 							</p>
+						</div>
+					</div>
+				)}
+
+				{orderData.paymentMethod === "mobile_money" && (
+					<div className="mt-5 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+						<div className="flex items-start">
+							<FiSmartphone className="h-5 w-5 text-[#1A5514] mr-2 mt-0.5 flex-shrink-0" />
+							<div className="flex-1 min-w-0">
+								<h3 className="text-sm font-bold text-[#1A5514]">
+									{tPayment("checkout.mobileMoney")}
+								</h3>
+								<p className="text-sm text-emerald-800/80 mt-1">
+									{tPayment("checkout.mobileMoneyHint")}
+								</p>
+
+								{!countryCode && (
+									<p className="mt-3 text-sm font-medium text-amber-800">
+										{tPayment("checkout.countryMissing")}
+									</p>
+								)}
+
+								{countryCode && operatorsLoading && (
+									<p className="mt-3 text-sm text-emerald-800/70">
+										{tPayment("checkout.loadingOperators")}
+									</p>
+								)}
+
+								{countryCode &&
+									!operatorsLoading &&
+									operators.length === 0 && (
+										<p className="mt-3 text-sm font-bold text-red-700">
+											{tPayment("checkout.unavailable")}
+										</p>
+									)}
+
+								{operators.length > 0 && (
+									<div className="mt-4 space-y-4">
+										<div>
+											<span className="block text-sm font-bold text-[#161D14]">
+												{tPayment("checkout.operatorLabel")}
+											</span>
+											<div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+												{operators.map((operator) => {
+													const selected =
+														orderData.mobileMoneyOperator ===
+														operator.name;
+													return (
+														<button
+															key={operator.code}
+															type="button"
+															onClick={() =>
+																handleInputChange(
+																	"",
+																	"mobileMoneyOperator",
+																	operator.name
+																)
+															}
+															className={`flex items-center justify-between px-3.5 py-3 rounded-xl border bg-white text-left transition-all ${
+																selected
+																	? "border-[#31BC2E] ring-1 ring-[#31BC2E]/30"
+																	: "border-emerald-200 hover:border-emerald-300"
+															}`}
+														>
+															<span className="text-sm font-bold text-[#161D14] truncate">
+																{operator.name}
+															</span>
+															{selected && (
+																<FiCheck className="h-4 w-4 text-[#1A5514] flex-shrink-0 ml-2" />
+															)}
+														</button>
+													);
+												})}
+											</div>
+										</div>
+
+										<div>
+											<label className="block text-sm font-bold text-[#161D14] mb-2">
+												{tPayment("checkout.phoneLabel")}
+											</label>
+											<input
+												type="tel"
+												value={orderData.mobileMoneyPhone}
+												onChange={(e) =>
+													handleInputChange(
+														"",
+														"mobileMoneyPhone",
+														e.target.value
+													)
+												}
+												placeholder={tPayment(
+													"checkout.phonePlaceholder",
+													{ phoneCode: operatorMeta.phoneCode || "+221" }
+												)}
+												className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#31BC2E]/40 focus:border-[#31BC2E]"
+											/>
+											<p className="mt-1 text-xs text-emerald-800/70">
+												{tPayment("checkout.phoneHint")}
+											</p>
+										</div>
+
+										{orderData.mobileMoneyOperator &&
+											orderData.mobileMoneyPhone && (
+												<p className="text-sm text-emerald-800">
+													{tPayment("checkout.selectedOperator", {
+														operator:
+															orderData.mobileMoneyOperator,
+														phone: orderData.mobileMoneyPhone,
+													})}
+												</p>
+											)}
+									</div>
+								)}
+							</div>
 						</div>
 					</div>
 				)}
@@ -305,6 +473,7 @@ export const PaymentStep = ({ orderData, handleInputChange }) => {
 
 export const ConfirmationStep = ({ orderData, cartItems }) => {
 	const { t } = useTranslation("dashboard-consumer");
+	const { t: tPayment } = useTranslation("payment");
 	const { currency } = useCurrency();
 
 	return (
@@ -371,11 +540,27 @@ export const ConfirmationStep = ({ orderData, cartItems }) => {
 						<p>
 							{t("checkout.review.method", {
 								method:
-									orderData.paymentMethod === "paypal" ? "PayPal" : t("checkout.payment.cash"),
+									orderData.paymentMethod === "paypal"
+										? "PayPal"
+										: orderData.paymentMethod === "mobile_money"
+										? tPayment("checkout.mobileMoney")
+										: t("checkout.payment.cash"),
 							})}
 						</p>
 						{orderData.paymentMethod === "paypal" && (
 							<p className="text-blue-600 mt-1">{t("checkout.review.paypalRedirect")}</p>
+						)}
+						{orderData.paymentMethod === "mobile_money" && (
+							<>
+								<p className="text-[#1A5514] font-bold mt-1">
+									{orderData.mobileMoneyOperator} —{" "}
+									{orderData.mobileMoneyPhone}
+								</p>
+								<p className="text-[#1A5514] mt-1 flex items-center">
+									<FiSmartphone className="w-4 h-4 mr-1" />{" "}
+									{tPayment("checkout.mobileMoneyDescription")}
+								</p>
+							</>
 						)}
 						{orderData.paymentMethod === "cash" && (
 							<p className="text-[#1A5514] font-bold flex items-center mt-1">

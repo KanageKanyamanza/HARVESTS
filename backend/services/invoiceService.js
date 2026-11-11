@@ -451,6 +451,7 @@ async function generateInvoicePDF(
 			cash: "Espèces",
 			"cash-on-delivery": "Paiement à la livraison",
 			paypal: "PayPal",
+			mobile_money: "Mobile Money (AfriBaPay)",
 			stripe: "Carte bancaire",
 			wave: "Wave",
 			"orange-money": "Orange Money",

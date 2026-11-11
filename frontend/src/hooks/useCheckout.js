@@ -31,6 +31,8 @@ const initialOrderData = {
 	},
 	paymentMethod: "cash",
 	paymentProvider: "cash-on-delivery",
+	mobileMoneyOperator: "",
+	mobileMoneyPhone: "",
 	deliveryMethod: "standard-delivery",
 	notes: "",
 	useLoyaltyPoints: false,
@@ -121,6 +123,11 @@ export const useCheckout = (user, cartItems) => {
 			orderData.paymentProvider !== "paypal"
 		) {
 			setOrderData((prev) => ({ ...prev, paymentProvider: "paypal" }));
+		} else if (
+			orderData.paymentMethod === "mobile_money" &&
+			orderData.paymentProvider !== "afribapay"
+		) {
+			setOrderData((prev) => ({ ...prev, paymentProvider: "afribapay" }));
 		}
 	}, [orderData.paymentMethod, orderData.paymentProvider]);
 
@@ -234,7 +241,18 @@ export const useCheckout = (user, cartItems) => {
 				deliveryAddress.phone
 			);
 		}
-		if (step === 2) return Boolean(orderData.paymentMethod);
+		if (step === 2) {
+			if (!orderData.paymentMethod) return false;
+			// Mobile money : l'opérateur et le numéro partent dans la demande
+			// AfriBaPay (J76) — sans eux le back-office refuse le payin.
+			if (orderData.paymentMethod === "mobile_money") {
+				return Boolean(
+					orderData.mobileMoneyOperator &&
+						String(orderData.mobileMoneyPhone || "").trim().length >= 6
+				);
+			}
+			return true;
+		}
 		return true;
 	};
 

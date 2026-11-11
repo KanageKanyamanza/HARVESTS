@@ -168,7 +168,7 @@ async function initiateOrderPayment(userId, orderId, { method, returnUrl, cancel
     throw new Error('payment.own_orders_only');
   }
 
-  if (order.payment.status === 'completed') {
+  if (['completed', 'succeeded'].includes(order.payment.status)) {
     throw new Error('payment.order_already_paid');
   }
 

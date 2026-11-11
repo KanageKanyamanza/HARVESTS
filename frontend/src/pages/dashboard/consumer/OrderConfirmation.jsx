@@ -8,6 +8,7 @@ import {
 	paymentService,
 } from "../../../services";
 import PayPalPaymentSection from "../../../components/orders/PayPalPaymentSection";
+import MobileMoneyPaymentSection from "../../../components/orders/MobileMoneyPaymentSection";
 import { 
 	SuccessHeader, 
 	OrderInfoCard, 
@@ -368,6 +369,16 @@ const OrderConfirmation = () => {
 	const isPaypalPending =
 		isPaypalPayment &&
 		!["succeeded", "completed", "paid"].includes(paymentStatus);
+	const isMobileMoneyPayment = order?.payment?.method === "mobile_money";
+	const isMobileMoneyPending =
+		isMobileMoneyPayment &&
+		![
+			"succeeded",
+			"completed",
+			"paid",
+			"refunded",
+			"partially_refunded",
+		].includes(paymentStatus);
 	const orderCurrency = (
 		order?.currency ||
 		order?.payment?.currency ||
@@ -404,6 +415,10 @@ const OrderConfirmation = () => {
 						handlePayPalError={handlePayPalError}
 						handleFallbackPayment={handleFallbackPayment}
 					/>
+				)}
+
+				{isMobileMoneyPending && (
+					<MobileMoneyPaymentSection order={order} orderId={orderKey} />
 				)}
 
 				<OrderInfoCard

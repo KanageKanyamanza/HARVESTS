@@ -413,12 +413,16 @@ async function createOrder(orderData, user) {
 
 	const isSingleSellerOrder = uniqueSellerIds.length === 1;
 	const normalizedPaymentMethod =
-		["paypal", "cash"].includes((orderData.paymentMethod || "").toLowerCase()) ?
+		["paypal", "cash", "mobile_money"].includes(
+			(orderData.paymentMethod || "").toLowerCase(),
+		) ?
 			(orderData.paymentMethod || "").toLowerCase()
 		:	"cash";
 	const normalizedPaymentProvider =
 		orderData.paymentProvider ||
-		(normalizedPaymentMethod === "paypal" ? "paypal" : "cash-on-delivery");
+		(normalizedPaymentMethod === "paypal" ? "paypal"
+		: normalizedPaymentMethod === "mobile_money" ? "afribapay"
+		: "cash-on-delivery");
 
 	const orderPayload = {
 		buyer: user._id,
@@ -520,7 +524,7 @@ async function cancelOrder(order, userId, reason) {
 	await order.save();
 
 	// Traiter le remboursement si paiement effectué
-	if (order.payment.status === "completed") {
+	if (["completed", "succeeded"].includes(order.payment.status)) {
 		const Payment = require("../models/Payment");
 		const payment = await Payment.findOne({ order: order._id });
 		if (payment) {
@@ -672,12 +676,16 @@ async function estimateOrderCosts(
 	const total = subtotal + taxes - discount;
 	const paymentMethodRaw = options.paymentMethod;
 	const normalizedPaymentMethod =
-		["paypal", "cash"].includes((paymentMethodRaw || "").toLowerCase()) ?
+		["paypal", "cash", "mobile_money"].includes(
+			(paymentMethodRaw || "").toLowerCase(),
+		) ?
 			(paymentMethodRaw || "").toLowerCase()
 		:	"cash";
 	const normalizedPaymentProvider =
 		options.paymentProvider ||
-		(normalizedPaymentMethod === "paypal" ? "paypal" : "cash-on-delivery");
+		(normalizedPaymentMethod === "paypal" ? "paypal"
+		: normalizedPaymentMethod === "mobile_money" ? "afribapay"
+		: "cash-on-delivery");
 
 	return {
 		subtotal,

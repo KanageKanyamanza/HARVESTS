@@ -7,12 +7,18 @@ function addOrderMiddleware(orderSchema) {
     try {
       if (this.payment) {
         const method = (this.payment.method || '').toLowerCase();
-        const normalizedMethod = method === 'paypal' ? 'paypal' : 'cash';
+        const normalizedMethod =
+          method === 'paypal' ? 'paypal' : method === 'mobile_money' ? 'mobile_money' : 'cash';
         if (!this.payment.method) {
           this.payment.method = normalizedMethod;
         }
         if (!this.payment.provider || this.payment.provider === '') {
-          this.payment.provider = normalizedMethod === 'paypal' ? 'paypal' : 'cash-on-delivery';
+          this.payment.provider =
+            normalizedMethod === 'paypal'
+              ? 'paypal'
+              : normalizedMethod === 'mobile_money'
+              ? 'afribapay'
+              : 'cash-on-delivery';
         }
       }
 

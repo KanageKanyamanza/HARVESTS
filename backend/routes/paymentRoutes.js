@@ -79,6 +79,15 @@ router.post('/:id/confirm', paymentController.confirmPayment);
 // Obtenir mes paiements
 router.get('/my', paymentController.getMyPayments);
 
+// Opérateurs mobile money disponibles pour un pays (Jour 79)
+router.get('/afribapay/operators', paymentController.getAfribapayOperators);
+
+// Repoll du payin mobile money depuis la page d'attente (Jour 79)
+router.get('/:id/afribapay/status', paymentController.getAfribapayStatus);
+
+// Relance du payin mobile money après échec ou abandon (Jour 79)
+router.post('/:id/afribapay/retry', paymentController.retryAfribapayPayment);
+
 /**
  * @swagger
  * /api/v1/payments/{id}:

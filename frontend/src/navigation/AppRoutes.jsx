@@ -59,6 +59,12 @@ const PayPalSuccess = React.lazy(() =>
 	import("../pages/payments/PayPalSuccess")
 );
 const PayPalCancel = React.lazy(() => import("../pages/payments/PayPalCancel"));
+const MobileMoneySuccess = React.lazy(() =>
+	import("../pages/payments/MobileMoneySuccess")
+);
+const MobileMoneyCancel = React.lazy(() =>
+	import("../pages/payments/MobileMoneyCancel")
+);
 const SubscriptionPayment = React.lazy(() =>
 	import("../pages/payments/SubscriptionPayment")
 );
@@ -460,6 +466,22 @@ const AppRoutes = () => {
 				element={
 					<Layout>
 						<SuspenseRoute element={<PayPalCancel />} />
+					</Layout>
+				}
+			/>
+			<Route
+				path="/payment/success"
+				element={
+					<Layout>
+						<SuspenseRoute element={<MobileMoneySuccess />} />
+					</Layout>
+				}
+			/>
+			<Route
+				path="/payment/cancel"
+				element={
+					<Layout>
+						<SuspenseRoute element={<MobileMoneyCancel />} />
 					</Layout>
 				}
 			/>

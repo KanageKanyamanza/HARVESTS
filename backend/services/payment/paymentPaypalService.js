@@ -123,7 +123,7 @@ async function createPaypalOrderForOrder(userId, orderId, { customerIp, userAgen
     throw new Error('payment.own_orders_only');
   }
 
-  if (order.payment.status === 'completed') {
+  if (['completed', 'succeeded'].includes(order.payment.status)) {
     throw new Error('payment.order_already_paid');
   }
 
