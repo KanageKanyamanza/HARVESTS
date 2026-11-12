@@ -23,6 +23,7 @@
 		"failedTitle": "The payment did not go through",
 		"failedText": "The request was declined or has expired. You can try again without losing your order.",
 		"retry": "Try the payment again",
+		"phoneLabel": "Mobile Money number to charge",
 		"retrying": "Sending a new request…",
 		"cancel": "Abandon payment",
 		"changeMethod": "Choose another payment method",

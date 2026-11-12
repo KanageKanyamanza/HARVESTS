@@ -33,6 +33,7 @@ const {
 } = require("../../utils/payinOrderId");
 const { createNotificationsForAdmins } = require("../../utils/adminNotifications");
 const { logAudit } = require("../../utils/auditLogger");
+const { mergeAfribapayDetails } = require("../../utils/paymentDetails");
 
 // Statuts AfriBaPay considérés comme confirmant qu'un payin a été reçu.
 // Liste portée d'AfricaSend (aussi utilisée par le /status du Jour 78).
@@ -155,6 +156,22 @@ const afribapayWebhookDecision = ({ payment, payinOrderId, rawStatus, mismatch }
 		};
 	}
 
+	// Paiement non confirmé : un échec visant un essai ANTÉRIEUR à l'essai
+	// courant (FAILED tardif de R<id> alors que R<id>-p2 attend la confirmation
+	// du client) ne doit pas faire tomber l'essai en cours. Un SUCCESS tardif
+	// sur un ancien essai reste appliqué (le client a réellement payé).
+	if (newStatus !== "succeeded") {
+		const afribapay = payment.paymentDetails?.afribapay || {};
+		if (isSupersededPayinOrderId(payinOrderId, { lastAttempt: afribapay.attempt })) {
+			return {
+				action: "ignore",
+				kind: "essai-remplace",
+				responseMessage: "Échec d'un essai remplacé — paiement inchangé",
+				detail: `${rawStatus} sur l'essai ${payinOrderId} alors que l'essai courant est le n°${afribapay.attempt} — statut ${payment.status} conservé.`,
+			};
+		}
+	}
+
 	// Paiement réellement reçu sur un paiement annulé : le client est débité
 	// sans commande payable. Jamais silencieux, pas de retour à l'annulé
 	// (relance automatique interdite : il a pu payer de nouveau).
@@ -271,8 +288,9 @@ const applyAfribapayPayinOutcome = async ({
 	// validée par le claim anti-replay du webhook, ou par le verrou de polling).
 	if (decision.action === "apply-succeeded") {
 		const transactionId = data.transaction_id || null;
-		payment.paymentDetails.afribapay = {
-			...(payment.paymentDetails.afribapay || {}),
+		// Jamais `{ ...sous-document }` : Mongoose garderait les anciennes
+		// valeurs (utils/paymentDetails.js).
+		mergeAfribapayDetails(payment, {
 			processorStatus: upperStatus,
 			...(transactionId ? { transactionId } : {}),
 			// L'essai qui a réellement confirmé le payin : permet de
@@ -280,7 +298,7 @@ const applyAfribapayPayinOutcome = async ({
 			// (isSupersededPayinOrderId).
 			payinConfirmedOrderId: payinOrderId,
 			failedReadCount: 0,
-		};
+		});
 		payment.webhooks.push({
 			eventType: "afribapay_confirmed",
 			eventId: payinOrderId,
@@ -319,11 +337,10 @@ const applyAfribapayPayinOutcome = async ({
 
 	// 'apply-end' : échec / annulation d'un payin en attente (pending,
 	// processing, requires_action, failed) — jamais un statut confirmé.
-	payment.paymentDetails.afribapay = {
-		...(payment.paymentDetails.afribapay || {}),
+	mergeAfribapayDetails(payment, {
 		processorStatus: upperStatus,
 		failedReadCount: 0,
-	};
+	});
 	payment.webhooks.push({
 		eventType: `afribapay_${upperStatus}`,
 		eventId: payinOrderId,

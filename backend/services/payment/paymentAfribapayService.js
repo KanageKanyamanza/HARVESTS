@@ -8,6 +8,7 @@ const { getAccessToken, ipv4Agent, withRetry, tagIfUnavailable } = require("../.
 const { parseAfribapayBody, redactSecrets, formatPhoneForAfribapay } = require("../../utils/afribapayUtils");
 const { toAfribapayOperator } = require("../../utils/afribapayOperator");
 const { payinOrderIdFor } = require("../../utils/payinOrderId");
+const { afribapayDetailsOf, mergeAfribapayDetails } = require("../../utils/paymentDetails");
 
 // Chemin du webhook AfriBaPay, tel que monté dans app.js au Jour 77.
 const AFRIBAPAY_WEBHOOK_PATH = "/api/v1/payments/afribapay/webhook";
@@ -16,6 +17,28 @@ const AFRIBAPAY_WEBHOOK_PATH = "/api/v1/payments/afribapay/webhook";
 // localhost en dev — port 5000 en dev (port 3000 occupé par une autre app).
 const backendPublicUrl = () =>
 	String(process.env.BACKEND_URL || "http://localhost:5000").replace(/\/$/, "");
+
+// AfriBaPay refuse en 400 « Invalid callback URL » les return/cancel_url hors
+// des domaines du compte marchand — dont localhost (constaté le 11/11/2026 :
+// localhost et un domaine inconnu refusés, www.harvests.site et le backend
+// onrender acceptés). En dev, on rebascule chemin + query sur ce domaine
+// public : la confirmation mobile money se fait sur le téléphone et la page
+// d'attente suit le /status, le retour navigateur n'est qu'accessoire.
+const AFRIBAPAY_RETURN_BASE_URL = () =>
+	String(process.env.AFRIBAPAY_RETURN_BASE_URL || "https://www.harvests.site").replace(/\/$/, "");
+
+const publicCallbackUrl = (url) => {
+	if (!url) return url;
+	let parsed;
+	try {
+		parsed = new URL(url);
+	} catch {
+		return url;
+	}
+	const isLocal = /^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(parsed.hostname);
+	if (parsed.protocol === "https:" && !isLocal) return url;
+	return `${AFRIBAPAY_RETURN_BASE_URL()}${parsed.pathname}${parsed.search}`;
+};
 
 /**
  * Construit le payload /pay/payin (pur, testé sans appeler l'API).
@@ -49,15 +72,12 @@ const buildPayinData = ({
 		merchant_key: AFRIBAPAY_MERCHANT_KEY,
 		order_id: payinOrderId,
 		notify_url: `${backendPublicUrl()}${AFRIBAPAY_WEBHOOK_PATH}`,
-		return_url: returnUrl,
-		cancel_url: cancelUrl,
+		return_url: publicCallbackUrl(returnUrl),
+		cancel_url: publicCallbackUrl(cancelUrl),
 		lang: "fr",
-		// Contexte interne (non signé) : filtre le webhook et l'alerting au J77
-		metadata: {
-			source: "harvests",
-			paymentId: String(paymentId),
-			orderId: String(orderId),
-		},
+		// Pas de champ `metadata` : /pay/payin le refuse en 400 « Unexpected
+		// fields: metadata » (constaté le 11/11/2026). Le webhook et le /status
+		// retrouvent le Payment par order_id (R<paymentId>-pN).
 	};
 };
 
@@ -65,6 +85,11 @@ const buildPayinData = ({
  * Envoie la demande de paiement (POST /pay/payin) pour un Payment existant.
  * 1 seul retry sur erreur transitoire comme AfricaSend : le même order_id est
  * renvoyé lors du retry (AfriBaPay déduplique, pas de double débit).
+ *
+ * Après un échec, l'essai envoyé est consommé (attempt / payinOrderId posés)
+ * dès qu'AfriBaPay a pu le recevoir : refus (réponse) → FAILED ; sans réponse
+ * (réseau, timeout) → Payment remis en `pending` pour que la réconciliation
+ * relise CET order_id, et un initiate suivant reste idempotent.
  */
 const requestPayin = async ({ payment, amount, currency, operator, phone, country, returnUrl, cancelUrl }) => {
 	if (!isAfribapayConfigured()) {
@@ -92,17 +117,22 @@ const requestPayin = async ({ payment, amount, currency, operator, phone, countr
 	// merchant_key masquée : même le dump de debug d'AfriBaPay la répercuterait
 	console.log("Calling AfriBaPay Payin with:", redactSecrets(JSON.stringify(payinData, null, 2)));
 
+	// Vrai dès que le POST /pay/payin a été tenté : un échec du jeton seul
+	// n'envoie rien, l'essai n'est alors pas consommé.
+	let sent = false;
 	try {
 		const token = await getAccessToken();
 		const response = await withRetry(
-			() =>
-				axios.post(`${AFRIBAPAY_BASE_URL}/pay/payin`, payinData, {
+			() => {
+				sent = true;
+				return axios.post(`${AFRIBAPAY_BASE_URL}/pay/payin`, payinData, {
 					headers: {
 						Authorization: `Bearer ${token}`,
 						"Content-Type": "application/json",
 					},
 					httpsAgent: ipv4Agent,
-				}),
+				});
+			},
 			{ retries: 1, baseDelayMs: 3000, label: "AfriBaPay Payin" },
 		);
 
@@ -113,7 +143,7 @@ const requestPayin = async ({ payment, amount, currency, operator, phone, countr
 
 		// L'historique des essais reste porté par le Payment (champs attempts de
 		// base) : chaque relance crée un nouveau transaction_id AfriBaPay partiel.
-		payment.paymentDetails.afribapay = {
+		mergeAfribapayDetails(payment, {
 			operator: payinData.operator,
 			phone: payinData.phone_number,
 			country,
@@ -121,7 +151,8 @@ const requestPayin = async ({ payment, amount, currency, operator, phone, countr
 			attempt: nextAttempt,
 			transactionId: body?.data?.transaction_id || body?.transaction_id,
 			processorStatus: body?.data?.status || body?.status,
-		};
+			failedReadCount: 0,
+		});
 
 		// La demande est partie : le client doit confirmer sur son téléphone.
 		// On passe en `processing` (`isPending` du schema la couvre) ;
@@ -134,12 +165,50 @@ const requestPayin = async ({ payment, amount, currency, operator, phone, countr
 		console.error("AfriBaPay Payin Error:", redactSecrets(error.response?.data ?? error.message));
 		const { invalidateAfribapayTokenOn401 } = require("../../utils/afribapayTokenCache");
 		invalidateAfribapayTokenOn401(error);
+		tagIfUnavailable(error);
+
+		// Message AfriBaPay lisible (« This phone number is unavailable… »)
+		// plutôt que « Request failed with status code 400 » côté client.
+		const providerMessage = parseAfribapayBody(error.response?.data)?.error?.message;
+		const rawMessage = error.message;
+		error.message = error.friendlyMessage || providerMessage || error.message;
+
 		payment.attempts.push({
 			status: "failed",
 			errorCode: error.response?.status ? String(error.response.status) : "network",
-			errorMessage: error.friendlyMessage || "afribapay payin",
+			// Raison brute d'AfriBaPay (audit) ; le message convivial à défaut
+			errorMessage: providerMessage || error.friendlyMessage || "afribapay payin",
 		});
-		throw tagIfUnavailable(error);
+
+		const sentAttempt = {
+			operator: payinData.operator,
+			phone: payinData.phone_number,
+			country,
+			payinOrderId: payinData.order_id,
+			attempt: nextAttempt,
+		};
+
+		// AfriBaPay a répondu : il a vu (et parfois enregistré) cet order_id,
+		// la relance doit en prendre un nouveau.
+		if (error.response) {
+			mergeAfribapayDetails(payment, { ...sentAttempt, processorStatus: "FAILED" });
+			// Refus explicite (numéro, opérateur…) : message traduit côté
+			// client avec la raison d'AfriBaPay. Une indisponibilité
+			// (5xx, friendlyMessage) garde son message convivial.
+			if (!error.friendlyMessage) {
+				error.i18nKey = "payment.afribapay_payin_rejected";
+				error.params = { reason: providerMessage || rawMessage };
+			}
+		} else if (sent) {
+			// Sans réponse (réseau, timeout) : la demande a pu arriver chez
+			// AfriBaPay et sur le téléphone du client. Essai consommé, sans
+			// statut FAILED, et Payment en `pending` (même s'il partait de
+			// failed / cancelled) : la réconciliation (PENDING_POLL_STATUSES)
+			// relit cet order_id, un nouvel initiate ne renvoie rien.
+			mergeAfribapayDetails(payment, sentAttempt);
+			payment.status = "pending";
+		}
+		throw error;
 	}
 };
 
@@ -149,9 +218,10 @@ const requestPayin = async ({ payment, amount, currency, operator, phone, countr
  * l'order_id unique de la relance (`R<paymentId>-p2`, `-p3`… — AfriBaPay
  * refuse la réutilisation d'un order_id, Jour 75) ; le paiement repasse en
  * processing. Utilisé par le fallback client du Jour 79 (relance depuis la page
- * d'attente) et les relances admin du Jour 85 — pas par cet appel : un échec
- * réseau DURANT un POST /pay/payin est déjà retenté par withRetry même
- * order_id, AfriBaPay le dédupliquant (Jour 76).
+ * d'attente) et les relances admin du Jour 85. Un échec réseau DURANT un POST
+ * /pay/payin est d'abord retenté par withRetry avec le même order_id
+ * (AfriBaPay déduplique) ; s'il persiste, l'essai est consommé et le paiement
+ * repasse en pending pour la réconciliation (voir requestPayin).
  *
  * @param {object} payinParams mêmes paramètres que requestPayin
  *   ({ payment, amount, currency, operator, phone, country, returnUrl, cancelUrl })
@@ -166,17 +236,16 @@ const retryAfribapayPayin = async (payinParams) => {
 	}
 	// Les compteurs d'échec /status (J78) ne doivent pas survivre à une
 	// nouvelle demande de paiement.
-	payment.paymentDetails.afribapay = {
-		...(payment.paymentDetails.afribapay || {}),
-		failedReadCount: 0,
-	};
+	mergeAfribapayDetails(payment, { failedReadCount: 0 });
 	return requestPayin(payinParams);
 };
 
 module.exports = {
 	AFRIBAPAY_WEBHOOK_PATH,
+	afribapayDetailsOf,
 	backendPublicUrl,
 	buildPayinData,
+	publicCallbackUrl,
 	requestPayin,
 	retryAfribapayPayin,
 };

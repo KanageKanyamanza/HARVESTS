@@ -358,3 +358,38 @@ describe("claim d'idempotence (WebhookEvent.claimEvent)", () => {
 		expect(`anomaly:payin-montant-devise:R50a1-p2`).toMatch(/^anomaly:payin-[a-z-]+:R50a1-p2$/);
 	});
 });
+
+// Revue Jour 79 : un échec visant un essai ANTÉRIEUR à l'essai courant
+// (paymentDetails.afribapay.attempt) ne doit pas faire tomber le paiement
+// en attente de l'essai en cours (relance `-p2` envoyée, FAILED tardif de
+// `R<id>`). Un SUCCESS tardif sur un ancien essai reste appliqué.
+describe("décision du webhook — essai remplacé sur un paiement non confirmé", () => {
+	const current = (status) => paymentIn(status, { payinOrderId: "R50a1-p2", attempt: 2 });
+
+	test.each(["FAILED", "CANCELLED", "EXPIRED", "REJECTED"])(
+		"%s sur l'essai R50a1 alors que R50a1-p2 est en cours → ignoré, Payment non modifié",
+		(rawStatus) => {
+			const payment = current("processing");
+			const snapshot = JSON.parse(JSON.stringify(payment));
+			const decision = decide(payment, { payinOrderId: "R50a1", rawStatus });
+			expect(decision.action).toBe("ignore");
+			expect(JSON.parse(JSON.stringify(payment))).toEqual(snapshot);
+		},
+	);
+
+	test("FAILED sur un ancien essai d'un paiement déjà failed → ignoré aussi", () => {
+		const decision = decide(current("failed"), { payinOrderId: "R50a1", rawStatus: "FAILED" });
+		expect(decision.action).toBe("ignore");
+	});
+
+	test("non-régression : FAILED sur l'essai courant → apply-end", () => {
+		const decision = decide(current("processing"), { payinOrderId: "R50a1-p2", rawStatus: "FAILED" });
+		expect(decision.action).toBe("apply-end");
+		expect(decision.kind).toBe("failed");
+	});
+
+	test("non-régression : SUCCESS tardif sur l'ancien essai → apply-succeeded", () => {
+		const decision = decide(current("processing"), { payinOrderId: "R50a1", rawStatus: "SUCCESS" });
+		expect(decision.action).toBe("apply-succeeded");
+	});
+});

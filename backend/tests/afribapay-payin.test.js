@@ -79,13 +79,24 @@ describe("buildPayinData (payload /pay/payin)", () => {
 		expect(data.cancel_url).toContain("/payment/cancel");
 	});
 
-	test("contexte interne paymentId/orderId pour filtrer le webhook", () => {
-		const data = buildPayinData(base);
-		expect(data.metadata).toEqual({
-			source: "harvests",
-			paymentId: base.paymentId,
-			orderId: base.orderId,
+	test("return/cancel_url localhost rebasculées sur le domaine public (AfriBaPay refuse localhost)", () => {
+		const data = buildPayinData({
+			...base,
+			returnUrl: "http://localhost:5174/payment/success?orderId=1&paymentId=2",
+			cancelUrl: "http://127.0.0.1:5174/payment/cancel?orderId=1",
 		});
+		expect(data.return_url).toBe("https://www.harvests.site/payment/success?orderId=1&paymentId=2");
+		expect(data.cancel_url).toBe("https://www.harvests.site/payment/cancel?orderId=1");
+		expect(buildPayinData({ ...base, returnUrl: "https://www.harvests.site/x?a=1" }).return_url)
+			.toBe("https://www.harvests.site/x?a=1");
+	});
+
+	test("aucun champ hors contrat /pay/payin (AfriBaPay rejette « Unexpected fields »)", () => {
+		const data = buildPayinData(base);
+		expect(Object.keys(data).sort()).toEqual([
+			"amount", "cancel_url", "country", "currency", "lang", "merchant_key",
+			"notify_url", "operator", "order_id", "phone_number", "return_url",
+		]);
 	});
 });
 

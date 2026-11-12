@@ -23,6 +23,7 @@
 		"failedTitle": "Le paiement n'a pas abouti",
 		"failedText": "La demande a été refusée ou a expiré. Vous pouvez réessayer sans perdre votre commande.",
 		"retry": "Réessayer le paiement",
+		"phoneLabel": "Numéro Mobile Money à débiter",
 		"retrying": "Nouvelle demande en cours…",
 		"cancel": "Abandonner le paiement",
 		"changeMethod": "Choisir un autre mode de paiement",

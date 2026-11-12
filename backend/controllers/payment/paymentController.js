@@ -116,6 +116,9 @@ exports.initiatePayment = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
+    // Refus AfriBaPay : clé traduite + raison (requestPayin), le message brut
+    // reste sur le Payment (failureMessage).
+    if (error.i18nKey) return next(new AppError(error.i18nKey, 400, error.params));
     return next(AppError.from(error, isNotFound(error.message) ? 404 : 400));
   }
 });
@@ -393,16 +396,35 @@ exports.retryAfribapayPayment = catchAsync(async (req, res, next) => {
       return next(new AppError('payment.mobile_money_contact_required', 400));
     }
 
-    const result = await retryAfribapayPayin({
-      payment,
-      amount: payment.amount,
-      currency: payment.currency,
-      operator: targetOperator,
-      phone: targetPhone,
-      country: country || stored.country || 'SN',
-      returnUrl,
-      cancelUrl
-    });
+    let result;
+    try {
+      result = await retryAfribapayPayin({
+        payment,
+        amount: payment.amount,
+        currency: payment.currency,
+        operator: targetOperator,
+        phone: targetPhone,
+        country: country || stored.country || 'SN',
+        returnUrl,
+        cancelUrl
+      });
+    } catch (payinError) {
+      // AfriBaPay a répondu (refus) : essai raté conservé, order_id consommé,
+      // la relance suivante en prendra un nouveau. Sans réponse (réseau), la
+      // demande a pu partir : requestPayin a consommé l'essai et remis le
+      // Payment en pending, la réconciliation relira cet order_id.
+      // payment.afribapay_confirmed (payin déjà confirmé) : rien à changer.
+      if (payinError.response) {
+        payment.status = 'failed';
+        payment.failureMessage = payinError.friendlyMessage || payinError.message;
+      }
+      if (payinError.i18nKey !== 'payment.afribapay_confirmed') {
+        await payment.save().catch((saveError) =>
+          console.error('[Payin AfriBaPay] Sauvegarde de la relance impossible:', saveError.message)
+        );
+      }
+      throw payinError;
+    }
 
     payment.calculateFees();
     await payment.save();
@@ -415,7 +437,7 @@ exports.retryAfribapayPayment = catchAsync(async (req, res, next) => {
       }
     });
   } catch (error) {
-    return next(new AppError(error.i18nKey || error.message, error.i18nKey ? 400 : isNotFound(error.message) ? 404 : 400));
+    return next(new AppError(error.i18nKey || error.message, error.i18nKey ? 400 : isNotFound(error.message) ? 404 : 400, error.params));
   }
 });
 

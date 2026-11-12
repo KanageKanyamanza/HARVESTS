@@ -20,6 +20,7 @@ const { getAccessToken, ipv4Agent } = require("../../utils/afribapayClient");
 const { invalidateAfribapayTokenOn401 } = require("../../utils/afribapayTokenCache");
 const { parseAfribapayBody, payinMismatch, redactSecrets } = require("../../utils/afribapayUtils");
 const { logAudit } = require("../../utils/auditLogger");
+const { mergeAfribapayDetails } = require("../../utils/paymentDetails");
 const {
 	payinReferenceFor,
 	payinOrderIdFor,
@@ -323,11 +324,11 @@ const resynchronizePayin = async ({
 			: check.payload || {};
 
 	// ── Journal d'exécution : chaque passage consigne lecture et horodatage ──
-	payment.paymentDetails.afribapay = {
-		...(payment.paymentDetails.afribapay || {}),
+	// (jamais `{ ...sous-document }` : utils/paymentDetails.js)
+	mergeAfribapayDetails(payment, {
 		lastPolledAt: new Date(),
 		lastPollResult: rawStatus || "UNREADABLE",
-	};
+	});
 
 	// Confirmation réelle (SUCCESS… via /status) : décision et transition,
 	// exactement comme le webhook — payinConfirmedOrderId posé au passage.

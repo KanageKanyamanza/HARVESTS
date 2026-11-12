@@ -38,11 +38,16 @@ const MobileMoneyPaymentSection = ({ order, orderId }) => {
 	const { t } = useTranslation("payment");
 	const navigate = useNavigate();
 	const storageKey = `harvests_mobile_money_${orderId}`;
-	const [contact] = useState(() => readStoredContact(storageKey));
+	const [contact, setContact] = useState(() => readStoredContact(storageKey));
+	// Numéro modifiable après un échec : la relance part avec ce numéro-là.
+	const [phoneDraft, setPhoneDraft] = useState(() => contact?.phone || "");
 	const [payment, setPayment] = useState(null);
 	const [phase, setPhase] = useState("starting");
 	const [error, setError] = useState(null);
 	const [retrying, setRetrying] = useState(false);
+	// Garde synchrone contre le double clic : l'état `retrying` n'est vu
+	// qu'au rendu suivant, deux clics rapprochés partiraient tous les deux.
+	const retryingRef = useRef(false);
 
 	const paymentIdRef = useRef(contact?.paymentId || null);
 	const timerRef = useRef(null);
@@ -187,29 +192,57 @@ const MobileMoneyPaymentSection = ({ order, orderId }) => {
 			mountedRef.current = false;
 			stopPolling();
 		};
-		// `poll` est stable (dépendances t / navigate) : le suivi ne doit pas
-		// repartir à chaque rendu de la page de confirmation.
+		// Démarrage lié à la commande seule : le suivi ne doit pas repartir à
+		// chaque rendu. `t` est exclu (et donc `poll`, qui en dépend) : un
+		// changement de langue relançait start() et, sans paymentId, un nouvel
+		// initiate sans action de l'utilisateur. `contact` est exclu : il ne
+		// sert qu'au premier envoi, une relance (handleRetry) le met à jour sans
+		// relancer ce démarrage.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [contact, orderId, storageKey, t]);
+	}, [orderId, storageKey]);
 
 	const handleRetry = async () => {
-		const paymentId = paymentIdRef.current;
-		if (!paymentId || retrying) return;
+		const phone = phoneDraft.trim();
+		if (retryingRef.current || retrying || !contact?.operator || phone.length < 6) return;
 
+		retryingRef.current = true;
 		setRetrying(true);
 		setError(null);
 		stoppedRef.current = false;
 		pollsRef.current = 0;
 
+		const nextContact = { ...contact, phone };
+		const origin = window.location.origin;
+		const payinParams = {
+			operator: nextContact.operator,
+			phone,
+			country: nextContact.country,
+			returnUrl: `${origin}/payment/success?orderId=${orderId}`,
+			cancelUrl: `${origin}/payment/cancel?orderId=${orderId}`,
+		};
+
 		try {
-			const origin = window.location.origin;
-			await paymentService.retryAfribapayPayment(paymentId, {
-				operator: contact?.operator,
-				phone: contact?.phone,
-				country: contact?.country,
-				returnUrl: `${origin}/payment/success?orderId=${orderId}`,
-				cancelUrl: `${origin}/payment/cancel?orderId=${orderId}`,
-			});
+			// Premier envoi raté au checkout : pas encore de paymentId, on
+			// relance l'initiation (le backend réutilise le Payment de la commande).
+			const response = paymentIdRef.current
+				? await paymentService.retryAfribapayPayment(
+						paymentIdRef.current,
+						payinParams
+				  )
+				: await paymentService.initiatePayment({
+						orderId,
+						method: "mobile_money",
+						...payinParams,
+				  });
+			const paymentId =
+				response.data?.data?.payment?.id || paymentIdRef.current;
+			paymentIdRef.current = paymentId;
+			setContact({ ...nextContact, paymentId });
+			sessionStorage.setItem(
+				storageKey,
+				JSON.stringify({ ...nextContact, paymentId })
+			);
+			setPayment(null);
 			if (!mountedRef.current) return;
 			setPhase("awaiting");
 			stopPolling();
@@ -222,6 +255,7 @@ const MobileMoneyPaymentSection = ({ order, orderId }) => {
 				requestError.response?.data?.message || t("waiting.initError")
 			);
 		} finally {
+			retryingRef.current = false;
 			if (mountedRef.current) setRetrying(false);
 		}
 	};
@@ -269,9 +303,19 @@ const MobileMoneyPaymentSection = ({ order, orderId }) => {
 					<p className="text-xs font-bold uppercase tracking-wide text-gray-500">
 						{operatorName}
 					</p>
-					<p className="text-sm font-bold text-[#161D14] mt-0.5 truncate">
-						{phone}
-					</p>
+					{phase === "failed" ? (
+						<input
+							type="tel"
+							value={phoneDraft}
+							onChange={(e) => setPhoneDraft(e.target.value)}
+							aria-label={t("waiting.phoneLabel")}
+							className="mt-1 w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm font-bold text-[#161D14] bg-white focus:outline-none focus:ring-2 focus:ring-[#31BC2E]/40 focus:border-[#31BC2E]"
+						/>
+					) : (
+						<p className="text-sm font-bold text-[#161D14] mt-0.5 truncate">
+							{phone}
+						</p>
+					)}
 				</div>
 			</div>
 
@@ -340,7 +384,11 @@ const MobileMoneyPaymentSection = ({ order, orderId }) => {
 						<button
 							type="button"
 							onClick={handleRetry}
-							disabled={retrying || !paymentIdRef.current}
+							disabled={
+								retrying ||
+								!contact?.operator ||
+								phoneDraft.trim().length < 6
+							}
 							className="inline-flex items-center justify-center px-4 py-2.5 rounded-full text-sm font-bold text-white bg-gradient-to-r from-[#1A5514] to-[#31BC2E] shadow-lg shadow-emerald-900/20 hover:shadow-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed"
 						>
 							<FiRefreshCw
