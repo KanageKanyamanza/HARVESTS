@@ -3,6 +3,7 @@ const {
   ensureSegmentsForOrder,
   updateOrderStatusFromSegments
 } = require('../../utils/orderSegments');
+const { getCommissionRate } = require('../../config/payout');
 
 // Méthodes du schéma
 function addOrderMethods(orderSchema) {
@@ -127,7 +128,9 @@ function addOrderMethods(orderSchema) {
   };
 
   orderSchema.methods.calculateFees = function() {
-    const platformFeeRate = 0.05; // 5% de commission
+    // Commission plateforme (7,5 % par défaut) : source unique config/payout.js,
+    // lue à chaque appel (HARVESTS_COMMISSION_RATE), comme les reversements vendeurs
+    const platformFeeRate = getCommissionRate();
     const paymentFeeRate = 0.025; // 2.5% de frais de paiement
     
     const platformFee = this.subtotal * platformFeeRate;

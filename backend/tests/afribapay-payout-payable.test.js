@@ -277,6 +277,39 @@ describe("E — assiette et commission", () => {
 		expect(entry.commissionAmount).toBe(51);
 		expect(entry.amount).toBe(948);
 	});
+
+	// Commission HARVESTS 7,5 % (décision utilisateur, remplace 5 %).
+	test("E35 10 000 à 7,5 % → commission 750, net 9 250", () => {
+		expect(computePayoutLine({ gross: 10000, rate: 0.075 })).toEqual({ gross: 10000, commission: 750, net: 9250 });
+	});
+
+	test("E36 333 à 7,5 % → commission 25 (Math.round 24,975), net 308", () => {
+		expect(computePayoutLine({ gross: 333, rate: 0.075 })).toEqual({ gross: 333, commission: 25, net: 308 });
+	});
+
+	test("E37 lot sans taux explicite → 7,5 % par défaut, total = somme des lignes", () => {
+		const saved = process.env.HARVESTS_COMMISSION_RATE;
+		delete process.env.HARVESTS_COMMISSION_RATE;
+		try {
+			const seller = makeSeller();
+			const orders = [singleOrder(seller._id, 10000), singleOrder(seller._id, 333), singleOrder(seller._id, 333)];
+			const res = groupPayableBySeller({ orders, sellers: [seller], alreadyPaidPairs: new Set() });
+			const entry = payableFor(res, seller);
+			expect(entry).toBeDefined();
+			expect(entry.commissionRate).toBe(0.075);
+			expect(entry.lines.map((l) => l.commission).sort((a, b) => a - b)).toEqual([25, 25, 750]);
+			const sum = (key) => entry.lines.reduce((acc, l) => acc + l[key], 0);
+			expect(entry.grossAmount).toBe(10666);
+			expect(entry.commissionAmount).toBe(800);
+			expect(entry.amount).toBe(9866);
+			expect(sum("gross")).toBe(entry.grossAmount);
+			expect(sum("commission")).toBe(entry.commissionAmount);
+			expect(sum("net")).toBe(entry.amount);
+		} finally {
+			if (saved === undefined) delete process.env.HARVESTS_COMMISSION_RATE;
+			else process.env.HARVESTS_COMMISSION_RATE = saved;
+		}
+	});
 });
 
 // ---------------------------------------------------------------------------
@@ -685,6 +718,21 @@ describe("H — listPayableSellers (lectures simulées)", () => {
 			const entry = payableFor(res, seller);
 			expect(entry.commissionRate).toBe(0.08);
 			expect(entry.commissionAmount).toBe(800 + 160);
+		} finally {
+			if (saved === undefined) delete process.env.HARVESTS_COMMISSION_RATE;
+			else process.env.HARVESTS_COMMISSION_RATE = saved;
+		}
+	});
+
+	test("H49 sans variable d'environnement ni taux → 7,5 %", async () => {
+		const saved = process.env.HARVESTS_COMMISSION_RATE;
+		delete process.env.HARVESTS_COMMISSION_RATE;
+		try {
+			const res = await listPayableSellers();
+			const entry = payableFor(res, seller);
+			expect(entry.commissionRate).toBe(0.075);
+			expect(entry.commissionAmount).toBe(750 + 150);
+			expect(entry.amount).toBe(9250 + 1850);
 		} finally {
 			if (saved === undefined) delete process.env.HARVESTS_COMMISSION_RATE;
 			else process.env.HARVESTS_COMMISSION_RATE = saved;

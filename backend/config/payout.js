@@ -4,14 +4,15 @@
 // qui est dû ; l'envoi du payout (J81), son webhook (J82) et la capture des
 // frais réels AfriBaPay (J84) s'appuieront sur ces mêmes listes.
 
-// Même taux que la commission plateforme de models/order/orderMethods.js
-// (calculateFees, platformFeeRate) : un seul taux tant que la variable
-// d'environnement n'est pas définie.
-const DEFAULT_COMMISSION_RATE = 0.05;
+// Commission HARVESTS : 7,5 % (décision utilisateur). Source unique du taux :
+// la commission plateforme des commandes (models/order/orderMethods.js,
+// calculateFees) et les reversements vendeurs lisent tous deux
+// getCommissionRate().
+const DEFAULT_COMMISSION_RATE = 0.075;
 
 /**
  * Taux de commission en vigueur : HARVESTS_COMMISSION_RATE s'il s'agit d'un
- * nombre fini dans [0, 1[, sinon 5 %. Une valeur invalide ne doit jamais
+ * nombre fini dans [0, 1[, sinon 7,5 %. Une valeur invalide ne doit jamais
  * produire un reversement aberrant (taux négatif ou ≥ 100 %).
  * @param {object} [env=process.env]
  * @returns {number}

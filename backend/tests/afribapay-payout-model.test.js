@@ -57,16 +57,16 @@ const errorsOf = (data) => {
 };
 
 describe("config/payout — constantes et taux de commission", () => {
-	test("A1 sans variable d'environnement → 5 %", () => {
-		expect(DEFAULT_COMMISSION_RATE).toBe(0.05);
-		expect(getCommissionRate({})).toBe(0.05);
+	test("A1 sans variable d'environnement → 7,5 %", () => {
+		expect(DEFAULT_COMMISSION_RATE).toBe(0.075);
+		expect(getCommissionRate({})).toBe(0.075);
 	});
 
 	test("A1 lit process.env par défaut", () => {
 		const saved = process.env.HARVESTS_COMMISSION_RATE;
 		try {
 			delete process.env.HARVESTS_COMMISSION_RATE;
-			expect(getCommissionRate()).toBe(0.05);
+			expect(getCommissionRate()).toBe(0.075);
 			process.env.HARVESTS_COMMISSION_RATE = "0.07";
 			expect(getCommissionRate()).toBe(0.07);
 		} finally {
@@ -81,9 +81,9 @@ describe("config/payout — constantes et taux de commission", () => {
 	});
 
 	test.each(["abc", "-0.1", "1", "1.5", ""])(
-		"A3 valeur invalide %p → repli sur 0.05",
+		"A3 valeur invalide %p → repli sur 0.075",
 		(value) => {
-			expect(getCommissionRate({ HARVESTS_COMMISSION_RATE: value })).toBe(0.05);
+			expect(getCommissionRate({ HARVESTS_COMMISSION_RATE: value })).toBe(0.075);
 		},
 	);
 
