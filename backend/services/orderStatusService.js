@@ -1,6 +1,9 @@
 const AppError = require('../utils/appError');
 const { ensureSegmentsForOrder, updateOrderStatusFromSegments } = require('../utils/orderSegments');
 
+// Statuts d'article définitifs : jamais réécrits par la clôture d'un segment.
+const TERMINAL_ITEM_STATUSES = ['cancelled', 'rejected', 'refunded', 'disputed'];
+
 /**
  * Service pour la gestion des statuts de commandes
  */
@@ -477,7 +480,10 @@ async function updateOrderStatus(order, status, user, options = {}) {
       // même s'ils n'ont pas encore le statut 'delivered'
       if (status === 'completed') {
         const currentItemStatus = segmentItem.status || 'pending';
-        if (currentItemStatus !== 'completed') {
+        // Revue Jour 80 : un article en statut terminal (annulé, rejeté,
+        // remboursé, en litige) n'est jamais réécrit en « completed » — il
+        // réentrerait sinon dans l'assiette du reversement vendeur.
+        if (currentItemStatus !== 'completed' && !TERMINAL_ITEM_STATUSES.includes(currentItemStatus)) {
           segmentItem.status = 'completed';
           segmentItem.statusHistory = segmentItem.statusHistory || [];
           segmentItem.statusHistory.push({
@@ -491,7 +497,7 @@ async function updateOrderStatus(order, status, user, options = {}) {
           
           // Mettre à jour aussi l'article de base
           const baseItem = findBaseItemForSegmentItem(segmentItem);
-          if (baseItem && baseItem !== segmentItem && baseItem.status !== 'completed') {
+          if (baseItem && baseItem !== segmentItem && baseItem.status !== 'completed' && !TERMINAL_ITEM_STATUSES.includes(baseItem.status)) {
             baseItem.status = 'completed';
             baseItem.statusHistory = baseItem.statusHistory || [];
             baseItem.statusHistory.push({

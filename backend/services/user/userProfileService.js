@@ -189,6 +189,7 @@ async function anonymizeAndDeleteAccount(userId) {
 	user.shopBanner = null;
 	user.shopLogo = null;
 	user.bankAccount = undefined;
+	user.payoutAccount = undefined;
 	user.paymentMethods = [];
 	user.webPushSubscriptions = [];
 	user.fcmTokens = [];

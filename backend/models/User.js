@@ -324,6 +324,26 @@ const baseUserSchema = new mongoose.Schema(
 			},
 		},
 		paymentMethods: [String],
+		// Compte de reversement mobile money (Jour 80, payout AfriBaPay) :
+		// opérateur choisi par le vendeur ; à défaut de numéro dédié, le
+		// numéro du profil est utilisé (services/payment/paymentPayoutService.js).
+		// select:false : jamais lu sans demande explicite (+payoutAccount.…).
+		payoutAccount: {
+			operator: {
+				type: String,
+				trim: true,
+				select: false,
+			},
+			phone: {
+				type: String,
+				trim: true,
+				select: false,
+			},
+			updatedAt: {
+				type: Date,
+				select: false,
+			},
+		},
 
 		// Paramètres de notification
 		notificationSettings: {
@@ -553,6 +573,7 @@ baseUserSchema.methods.toJSON = function () {
 
 	// Optimisation : Suppression des données redondantes (récupérées via endpoints dédiés)
 	delete userObject.bankAccount;
+	delete userObject.payoutAccount;
 	delete userObject.paymentMethods;
 	delete userObject.notificationSettings;
 

@@ -39,6 +39,11 @@ const formatPhoneForAfribapay = (phone, countryCode) => {
 		TG: "228",
 		GA: "241",
 		CD: "243",
+		// Jour 80 : pays payables en XOF/XAF (config/payout.js), indicatifs
+		// repris de config/afribapayOperators.js
+		TD: "235",
+		CF: "236",
+		GW: "245",
 	};
 
 	const prefix = prefixes[countryCode];
