@@ -161,9 +161,39 @@ const payoutSchema = new mongoose.Schema({
       message: 'validation.payout_operator_not_in_country'
     }
   },
-  phone: { type: String, required: true }, // format AfriBaPay (formatPhoneForAfribapay)
+phone: { type: String, required: true }, // format AfriBaPay (formatPhoneForAfribapay)
 
-  status: { type: String, enum: PAYOUT_STATUSES, default: 'pending' },
+// Conversion XOF → XAF (Jour 81) : les commandes sont libellées en XOF, les
+// vendeurs des pays XAF sont payés en XAF. Le taux appliqué et la devise source
+// sont enregistrés pour l'audit (le back-office du Jour 85 doit pouvoir
+// expliquer un montant). Un Payout antérieur au Jour 81 n'a pas de fx : le
+// champ reste facultatif, mais `buildPayoutDoc` le pose toujours.
+fx: {
+	type: new mongoose.Schema(
+		{
+			rate: {
+				type: Number,
+				required: true,
+				validate: {
+					validator: (rate) => Number.isFinite(rate) && rate > 0,
+					message: 'validation.payout_fx_rate_invalid'
+				}
+			},
+			sourceCurrency: { type: String, enum: PAYOUT_CURRENCIES, required: true },
+			targetCurrency: { type: String, enum: PAYOUT_CURRENCIES, required: true },
+			convertedAt: { type: Date, default: Date.now }
+		},
+		{ _id: false }
+	),
+	validate: {
+		// Une conversion ne se prononce que si les devises diffèrent : entre
+		// XOF et XOF, le taux doit rester 1 (aucun effet de bord d'arrondi).
+		validator: (fx) => !fx || fx.sourceCurrency !== fx.targetCurrency || fx.rate === 1,
+		message: 'validation.payout_fx_same_currency_rate_one'
+	}
+},
+
+status: { type: String, enum: PAYOUT_STATUSES, default: 'pending' },
   attempts: [payoutAttemptSchema],
   afribapay: afribapaySchema,
 

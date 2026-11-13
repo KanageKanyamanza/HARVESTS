@@ -4,24 +4,40 @@
 // reversement vient du pays du vendeur ; AfriBaPay ne paie que des numéros
 // des pays couverts (config/afribapayOperators.js).
 //
-// Lecture seule : aucun Payout n'est écrit ici. L'envoi avec verrou
-// anti-doublon et statuts ambigus arrive au Jour 81, le webhook payout au
-// Jour 82, les frais réels AfriBaPay au Jour 84.
+// Jour 81 : la lecture seule devient exécution. Le même service prépare le
+// Payout, vérifie le float AfriBaPay, prend un verrou atomique anti-double-
+// envoi, puis POSTe sur l'URL payout avec un order_id unique par tentative
+// (utils/payoutOrderId.js). Les statuts ambigus sont distingués des incidents
+// réseau (le webhook payout et les alertes admin arrivent au Jour 82, les frais
+// réels au Jour 84).
+const axios = require("axios");
 const Order = require("../../models/Order");
 const User = require("../../models/User");
 const Payout = require("../../models/Payout");
 const {
 	getCommissionRate,
+	getPayoutHoldHours,
+	getXofToXafRate,
 	COUNTRY_PAYOUT_CURRENCY,
 	SETTLED_PAYMENT_STATUSES,
 	DELIVERED_STATUSES,
 	EXCLUDED_ORDER_STATUSES,
 	EXCLUDED_ITEM_STATUSES,
 } = require("../../config/payout");
+const {
+	AFRIBAPAY_BASE_URL,
+	AFRIBAPAY_PAYOUT_URL,
+	AFRIBAPAY_MERCHANT_KEY,
+	isAfribapayConfigured,
+} = require("../../config/afribapay");
 const { COUNTRIES, normalizeCountry, listOperatorsForCountry } = require("../../config/afribapayOperators");
 const { COUNTRY_NAME_TO_CODE, COUNTRY_CODE_TO_NAME } = require("../../utils/countryMapper");
 const { toAfribapayOperator } = require("../../utils/afribapayOperator");
-const { formatPhoneForAfribapay } = require("../../utils/afribapayUtils");
+const { formatPhoneForAfribapay, parseAfribapayBody, redactSecrets } = require("../../utils/afribapayUtils");
+const { getAccessToken, ipv4Agent, withRetry } = require("../../utils/afribapayClient");
+const { invalidateAfribapayTokenOn401 } = require("../../utils/afribapayTokenCache");
+const { payoutOrderIdFor } = require("../../utils/payoutOrderId");
+const { backendPublicUrl } = require("./paymentAfribapayService");
 
 // Champs vendeur lus pour décider du reversement. payoutAccount.* est
 // select:false (models/User.js) : inclusion explicite des feuilles, car
@@ -188,6 +204,10 @@ const buildPayableOrdersQuery = ({ sellerId, since } = {}) => {
 				{ "segments.status": { $in: [...DELIVERED_STATUSES] } },
 			],
 		},
+		// Jour 81 : une commande déjà programmée (scheduled), payée (paid) ou
+		// définitivement échouée (failed) ne ressort plus. L'absence de
+		// marqueur — commandes antérieures au Jour 81 — reste « pending ».
+		{ $or: [{ payoutState: "pending" }, { payoutState: { $exists: false } }] },
 	];
 	if (sellerId) {
 		and.push({
@@ -201,6 +221,327 @@ const buildPayableOrdersQuery = ({ sellerId, since } = {}) => {
 		status: { $nin: [...EXCLUDED_ORDER_STATUSES] },
 		$and: and,
 	};
+};
+
+// ---------------------------------------------------------------------------
+// Exécution du payout (Jour 81)
+// ---------------------------------------------------------------------------
+
+// Statuts d'un Payout qui ne doivent plus être renvoyés : un succès, un échec
+// définitif, un litige ou une annulation demandent une action humaine.
+const PAYOUT_TERMINAL_STATUSES = ["succeeded", "failed", "ambiguous", "cancelled"];
+
+// Statuts d'une commande qui ne sont plus payables (marqueur payoutState).
+const PAYOUT_ORDER_EXCLUDED_STATES = ["scheduled", "paid", "failed"];
+
+// Statuts bruts AfriBaPay (doc opérateur, tolérants sur les variantes).
+const PAYOUT_SUCCESS_STATUSES = ["SUCCESS", "SUCCEEDED", "COMPLETED", "PAID"];
+const PAYOUT_FAILURE_STATUSES = ["FAILED", "REJECTED", "EXPIRED", "CANCELLED", "CANCELED", "DECLINED"];
+
+/** Erreur métier du payout, porteuse d'un code lisible (et de son contexte). */
+class PayoutError extends Error {
+	constructor(code, details = {}) {
+		super(code);
+		this.name = "PayoutError";
+		this.code = code;
+		Object.assign(this, details);
+	}
+}
+
+/**
+ * Traduit un statut brut AfriBaPay en statut Payout :
+ *  - succès explicite → `succeeded` ;
+ *  - refus clair de l'opérateur (FAILED, REJECTED, EXPIRED, CANCELLED) → `failed` ;
+ *  - tout le reste (statut inconnu, réponse illisible) → `ambiguous`.
+ * Fonction pure (aucun appel réseau).
+ * @param {string|null|undefined} rawStatus
+ * @returns {"succeeded"|"failed"|"ambiguous"}
+ */
+const mapPayoutProcessorStatus = (rawStatus) => {
+	const status = String(rawStatus || "").toUpperCase();
+	if (PAYOUT_SUCCESS_STATUSES.includes(status)) return "succeeded";
+	if (PAYOUT_FAILURE_STATUSES.includes(status)) return "failed";
+	return "ambiguous";
+};
+
+/**
+ * Délai de garde (Jour 81) : une commande livrée n'est payable qu'à l'expiration
+ * de `deliveredAt + holdHours` (72 h par défaut, décision utilisateur). Sans
+ * date de livraison, la fonction répond « pas payable » — c'est à l'appelant de
+ * décider du repli (les commandes antérieures au Jour 81 n'ont pas de date).
+ * Fonction pure.
+ * @param {object} order commande (au moins `deliveredAt`)
+ * @param {{ now?: number, holdHours?: number }} [options]
+ * @returns {{ payable: boolean, reason?: string, eligibleAt?: Date }}
+ */
+const isOrderPayableNow = (order, { now = Date.now(), holdHours = getPayoutHoldHours() } = {}) => {
+	const deliveredAt = order?.deliveredAt ? new Date(order.deliveredAt) : null;
+	if (!deliveredAt || Number.isNaN(deliveredAt.getTime())) {
+		return { payable: false, reason: "payout_delivery_date_missing" };
+	}
+	const eligibleAt = new Date(deliveredAt.getTime() + Number(holdHours) * 60 * 60 * 1000);
+	if (eligibleAt.getTime() > now) return { payable: false, reason: "payout_hold_not_eligible", eligibleAt };
+	return { payable: true };
+};
+
+/**
+ * Conversion XOF → XAF d'un montant, arrondie à l'unité (francs CFA sans
+ * centimes). Un taux invalide retombe sur 1 plutôt que de produire un montant
+ * aberrant. Fonction pure.
+ * @param {number} amount montant en XOF
+ * @param {number} rate taux XOF → XAF
+ * @returns {number}
+ */
+const convertXofToXaf = (amount, rate) => {
+	const value = Number(amount);
+	if (!Number.isFinite(value)) return 0;
+	const factor = Number.isFinite(Number(rate)) && Number(rate) > 0 ? Number(rate) : 1;
+	return Math.round(value * factor);
+};
+
+/** Numéro de la prochaine tentative d'un Payout (1 = premier envoi). */
+const nextPayoutAttempt = (payout) =>
+	(payout.attempts || []).reduce((max, attempt) => Math.max(max, Number(attempt?.attempt) || 0), 0) + 1;
+
+/**
+ * Charge utile du POST /pay/payout (pur, testable sans réseau). AfriBaPay refuse
+ * tout champ hors contrat : les 9 clés ci-dessous, rien d'autre.
+ * @param {object} payout Payout (amount déjà dans `currency`)
+ * @param {{ attempt?: number }} [options]
+ */
+const buildPayoutPayload = (payout, { attempt = 1 } = {}) => ({
+	merchant_key: AFRIBAPAY_MERCHANT_KEY,
+	operator: payout.operator,
+	country: payout.country,
+	phone_number: payout.phone,
+	amount: Math.round(Number(payout.amount) || 0),
+	currency: payout.currency,
+	order_id: payoutOrderIdFor(payout._id, attempt),
+	notify_url: `${backendPublicUrl()}/api/v1/payouts/afribapay/webhook`,
+	lang: "fr",
+});
+
+/**
+ * Solde AfriBaPay disponible pour les payouts (par pays si fourni).
+ * @param {string} token jeton AfriBaPay
+ * @param {{ country?: string }} [options]
+ * @returns {Promise<{ available: number, currency: string, raw: * }>}
+ */
+const fetchPayoutBalance = async (token, { country } = {}) => {
+	const query = new URLSearchParams({ service: "payout" });
+	if (country) query.set("country", country);
+
+	const response = await axios.get(`${AFRIBAPAY_BASE_URL}/balance?${query.toString()}`, {
+		headers: { Authorization: `Bearer ${token}` },
+		httpsAgent: ipv4Agent,
+		timeout: 10_000,
+	});
+
+	const payload = parseAfribapayBody(response.data) ?? response.data;
+	const data = payload?.data && typeof payload.data === "object" ? payload.data : payload;
+	const available = Number(data?.available ?? data?.balance ?? data?.amount ?? 0);
+	return {
+		available: Number.isFinite(available) ? available : 0,
+		currency: String(data?.currency || "").toUpperCase(),
+		raw: payload,
+	};
+};
+
+/**
+ * Verrou atomique anti-double-envoi : un seul travailleur fait passer le Payout
+ * de `pending` (ou `network_issue`) à `processing`. L'update conditionnel est
+ * atomique côté MongoDB — deux workers qui partent en même temps, un seul gagne
+ * et reçoit le document, l'autre reçoit `null`.
+ * @param {*} payoutId
+ * @returns {Promise<object|null>}
+ */
+const claimPayout = (payoutId) =>
+	Payout.findOneAndUpdate(
+		{ _id: payoutId, status: { $in: ["pending", "network_issue"] } },
+		{ $set: { status: "processing", "afribapay.lockedAt": new Date() } },
+		{ new: true },
+	);
+
+/**
+ * Envoie UNE tentative de payout à AfriBaPay. Le retry réseau (withRetry) rejoue
+ * le MÊME order_id : AfriBaPay déduplique, pas de double paiement.
+ *  - réponse + statut SUCCESS → `succeeded` ;
+ *  - réponse + refus opérateur → `failed` (définitif) ;
+ *  - réponse illisible ou inattendue → `ambiguous` (à enquêter) ;
+ *  - pas de réponse (réseau, timeout après retry) → PayoutError
+ *    `payout_network_issue` : l'essai est consommé, une relance prendra un
+ *    nouvel order_id.
+ * @param {object} payout
+ * @param {{ token: string, attempt?: number }} params
+ * @returns {Promise<{ orderId: string, status: string, processorStatus: string|null, transactionId: string|null, error: string|null, sentAt: Date }>}
+ */
+const sendPayout = async (payout, { token, attempt = 1 } = {}) => {
+	if (!isAfribapayConfigured()) throw new PayoutError("afribapay_not_configured");
+
+	const payload = buildPayoutPayload(payout, { attempt });
+	const orderId = payload.order_id;
+	const sentAt = new Date();
+
+	console.log("Calling AfriBaPay Payout with:", redactSecrets(JSON.stringify(payload, null, 2)));
+
+	try {
+		const response = await withRetry(
+			() =>
+				axios.post(AFRIBAPAY_PAYOUT_URL, payload, {
+					headers: {
+						Authorization: `Bearer ${token}`,
+						"Content-Type": "application/json",
+					},
+					httpsAgent: ipv4Agent,
+				}),
+			{ retries: 1, baseDelayMs: 1000, label: "AfriBaPay Payout" },
+		);
+
+		// AfriBaPay peut coller un dump de debug PHP devant le JSON.
+		const body = parseAfribapayBody(response.data) ?? response.data;
+		const data = body?.data && typeof body.data === "object" ? body.data : body;
+		const processorStatus = String(data?.status || body?.status || "").toUpperCase() || null;
+		const status = mapPayoutProcessorStatus(processorStatus);
+		const transactionId = data?.transaction_id || body?.transaction_id || null;
+
+		return {
+			orderId,
+			status,
+			processorStatus,
+			transactionId,
+			error: status === "failed" ? redactSecrets(String(data?.message || processorStatus || "payout_failed")) : null,
+			sentAt,
+		};
+	} catch (error) {
+		invalidateAfribapayTokenOn401(error);
+
+		const providerMessage = parseAfribapayBody(error.response?.data)?.error?.message;
+		const rawMessage = error.response?.data ?? error.message;
+
+		if (!error.response) {
+			// Pas de réponse : la demande a pu arriver chez AfriBaPay. L'essai
+			// est consommé, le Payout passera en `network_issue`.
+			console.error("AfriBaPay Payout Error:", redactSecrets(String(error.message || "payout network")));
+			throw new PayoutError("payout_network_issue", {
+				orderId,
+				error: redactSecrets(String(error.message || "payout network")),
+			});
+		}
+
+		// Réponse HTTP d'erreur (validation, refus) : le statut réel est
+		// inconnu — à enquêter (webhook /status du Jour 82), jamais de relance
+		// automatique.
+		console.error("AfriBaPay Payout Error:", redactSecrets(String(rawMessage)));
+		return {
+			orderId,
+			status: "ambiguous",
+			processorStatus: null,
+			transactionId: null,
+			error: redactSecrets(String(providerMessage || rawMessage || "payout_rejected")),
+			sentAt,
+		};
+	}
+};
+
+/**
+ * Exécute un Payout : vérifie le float, prend le verrou, envoie, enregistre la
+ * tentative et applique la transition de statut.
+ *  - AfriBaPay non configuré → `afribapay_not_configured` (aucun appel) ;
+ *  - statut terminal → `payout_terminal` (aucun appel) ;
+ *  - float insuffisant → `insufficient_float` (aucun verrou, aucune tentative,
+ *    le Payout reste `pending`) ;
+ *  - verrou déjà pris → `payout_not_pending` (un autre travailleur gagne).
+ * @param {object} payout Payout (document Mongoose ou objet équivalent)
+ * @param {{ token?: string, claimLock?: Function, sendAttempt?: Function, fetchBalance?: Function }} [deps]
+ * @returns {Promise<{ payout: object, attempt: object, outcome: string, alert: boolean }>}
+ */
+const executePayout = async (
+	payout,
+	{ token, claimLock = claimPayout, sendAttempt = sendPayout, fetchBalance = fetchPayoutBalance } = {},
+) => {
+	if (!isAfribapayConfigured()) throw new PayoutError("afribapay_not_configured");
+	if (PAYOUT_TERMINAL_STATUSES.includes(payout.status)) {
+		throw new PayoutError("payout_terminal", { status: payout.status });
+	}
+
+	const resolvedToken = token || (await getAccessToken());
+
+	// Le solde est vérifié AVANT le verrou : un float insuffisant ne doit pas
+	// consommer le verrou ni laisser le Payout en `processing`.
+	const balance = await fetchBalance(resolvedToken, { country: payout.country });
+	const amount = Number(payout.amount) || 0;
+	if (!(balance.available >= amount)) {
+		throw new PayoutError("insufficient_float", { available: balance.available, amount });
+	}
+
+	const claimed = await claimLock(payout._id);
+	if (!claimed) throw new PayoutError("payout_not_pending", { payoutId: payout._id });
+
+	const attempt = nextPayoutAttempt(payout);
+	payout.status = "processing";
+
+	const setAfribapay = (patch) => {
+		payout.afribapay = {
+			...(payout.afribapay || {}),
+			...patch,
+			lastPolledAt: new Date(),
+		};
+	};
+
+	let result;
+	try {
+		result = await sendAttempt(payout, { token: resolvedToken, attempt });
+	} catch (error) {
+		const orderId = error?.orderId || payoutOrderIdFor(payout._id, attempt);
+		const record = {
+			attempt,
+			orderId,
+			status: "network_issue",
+			processorStatus: null,
+			transactionId: null,
+			error: redactSecrets(String(error?.message || "payout_network_issue")),
+			sentAt: new Date(),
+		};
+		payout.attempts.push(record);
+		setAfribapay({
+			payoutOrderId: orderId,
+			attempt,
+			transactionId: null,
+			processorStatus: null,
+			lastPollResult: null,
+		});
+		payout.status = "network_issue";
+		return { payout, attempt: record, outcome: "network_issue", alert: false };
+	}
+
+	const record = {
+		attempt,
+		orderId: result.orderId || payoutOrderIdFor(payout._id, attempt),
+		status: result.status,
+		processorStatus: result.processorStatus ?? null,
+		transactionId: result.transactionId ?? null,
+		error: result.error ? redactSecrets(String(result.error)) : null,
+		sentAt: result.sentAt || new Date(),
+	};
+	payout.attempts.push(record);
+	setAfribapay({
+		payoutOrderId: record.orderId,
+		attempt,
+		transactionId: record.transactionId,
+		processorStatus: record.processorStatus,
+		lastPollResult: record.processorStatus,
+	});
+
+	payout.status = record.status;
+	if (record.status === "succeeded") payout.succeededAt = new Date();
+	if (record.status === "failed") {
+		payout.failedAt = new Date();
+		payout.failureReason = record.error;
+	}
+
+	// `ambiguous` déclenche une alerte admin (Jour 82) et interdit toute relance
+	// automatique : le statut terminal s'en charge.
+	return { payout, attempt: record, outcome: record.status, alert: record.status === "ambiguous" };
 };
 
 // ---------------------------------------------------------------------------
@@ -259,6 +600,13 @@ const groupPayableBySeller = ({
 
 	for (const order of orders) {
 		if (!isCollectionSettled(order) || EXCLUDED_ORDER_STATUSES.includes(order.status)) continue;
+		// Jour 81 : une commande déjà programmée, payée ou définitivement
+		// échouée ne ressort plus (marqueur payoutState).
+		if (PAYOUT_ORDER_EXCLUDED_STATES.includes(order.payoutState)) continue;
+		// Délai de garde de 72 h (décision utilisateur). Les commandes
+		// antérieures au Jour 81 n'ont pas de `deliveredAt` : repli legacy,
+		// sinon plus aucune commande ancienne ne serait payable.
+		if (order.deliveredAt && !isOrderPayableNow(order).payable) continue;
 		for (const id of sellersOfOrder(order)) {
 			const key = idKey(id);
 			if (sellerId && key !== idKey(sellerId)) continue;
@@ -292,22 +640,46 @@ const groupPayableBySeller = ({
 		const collected = bucket.orders.filter((e) => !cashUnverified.includes(e));
 		if (cashUnverified.length > 0) block(seller._id, "cash_unverified", cashUnverified);
 
-		// Une commande dans une autre devise que celle du pays n'est jamais
-		// convertie : elle est bloquée, les autres restent payables. Une commande
-		// sans devise n'est pas présumée en XOF.
+		// Devise : une commande dans la devise du pays est payée telle quelle. Les
+		// commandes XOF d'un vendeur des pays XAF sont converties au taux
+		// configurable (Jour 81) ; toute autre devise est bloquée (jamais de
+		// conversion à l'aveugle). Une commande sans devise n'est pas présumée
+		// en XOF.
 		const orderCurrency = (order) => order.currency || order.payment?.currency;
-		const mismatched = collected.filter((e) => orderCurrency(e.order) !== destination.currency);
-		const eligible = collected.filter((e) => orderCurrency(e.order) === destination.currency);
+		const mismatched = collected.filter((e) => {
+			const currency = orderCurrency(e.order);
+			if (currency === destination.currency) return false;
+			return !(currency === "XOF" && destination.currency === "XAF");
+		});
+		const convertible = collected.filter((e) => !mismatched.includes(e));
 		if (mismatched.length > 0) block(seller._id, "currency_mismatch", mismatched);
+		if (convertible.length === 0) continue;
+
+		// Une seule devise source par Payout (le champ `fx` n'en porte qu'une) :
+		// les commandes d'une autre devise restent bloquées, les premières
+		// restent payables.
+		const sourceCurrency = orderCurrency(convertible[0].order);
+		const eligible = convertible.filter((e) => orderCurrency(e.order) === sourceCurrency);
+		const others = convertible.filter((e) => orderCurrency(e.order) !== sourceCurrency);
+		if (others.length > 0) block(seller._id, "currency_mismatch", others);
 		if (eligible.length === 0) continue;
 
+		const needsConversion = sourceCurrency !== destination.currency;
+		const fxRate = needsConversion ? getXofToXafRate() : 1;
+
 		const lines = eligible
-			.map(({ order, gross }) => ({
-				order: order._id,
-				orderNumber: order.orderNumber,
-				...computePayoutLine({ gross, rate }),
-				settledBy: order.payment?.method,
-			}))
+			.map(({ order, gross }) => {
+				// La conversion porte sur l'ASSIETTE, avant commission : un
+				// arrondi indépendant de la commission et du net casserait
+				// l'invariant gross − commission = net.
+				const convertedGross = needsConversion ? convertXofToXaf(gross, fxRate) : gross;
+				return {
+					order: order._id,
+					orderNumber: order.orderNumber,
+					...computePayoutLine({ gross: convertedGross, rate }),
+					settledBy: order.payment?.method,
+				};
+			})
 			.filter((line) => line.net > 0);
 		if (lines.length === 0) {
 			block(seller._id, "amount_zero", eligible);
@@ -328,6 +700,8 @@ const groupPayableBySeller = ({
 			grossAmount: total("gross"),
 			commissionAmount: total("commission"),
 			amount: total("net"),
+			// Traçabilité de la conversion XOF → XAF (audit, back-office J85).
+			fx: { rate: fxRate, sourceCurrency, targetCurrency: destination.currency },
 		});
 	}
 
@@ -349,6 +723,9 @@ const buildPayoutDoc = (entry) => ({
 	grossAmount: entry.grossAmount,
 	commissionAmount: entry.commissionAmount,
 	amount: entry.amount,
+	// Jour 81 : la conversion est enregistrée pour l'audit ; une commande
+	// antérieure au Jour 81 sans `fx` est réputée convertie à parité (1).
+	fx: entry.fx ?? { rate: 1, sourceCurrency: entry.currency, targetCurrency: entry.currency },
 	country: entry.country,
 	operator: entry.operator,
 	phone: entry.phone,
@@ -401,4 +778,16 @@ module.exports = {
 	groupPayableBySeller,
 	buildPayoutDoc,
 	listPayableSellers,
+	// Jour 81 — exécution
+	PAYOUT_TERMINAL_STATUSES,
+	PayoutError,
+	mapPayoutProcessorStatus,
+	isOrderPayableNow,
+	convertXofToXaf,
+	nextPayoutAttempt,
+	buildPayoutPayload,
+	fetchPayoutBalance,
+	claimPayout,
+	sendPayout,
+	executePayout,
 };

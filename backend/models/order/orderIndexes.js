@@ -8,6 +8,9 @@ function addOrderIndexes(orderSchema) {
   orderSchema.index({ 'delivery.status': 1 });
   orderSchema.index({ createdAt: -1 });
   orderSchema.index({ 'delivery.transporter': 1 });
+  // Recherche des vendeurs payables (Jour 81) : les commandes non encore
+  // reversées, les plus récemment mises à jour d'abord.
+  orderSchema.index({ payoutState: 1, updatedAt: -1 });
 }
 
 module.exports = addOrderIndexes;

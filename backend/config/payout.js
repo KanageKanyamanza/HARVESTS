@@ -74,9 +74,55 @@ const EXCLUDED_ORDER_STATUSES = ["cancelled", "refunded", "disputed"];
 // Articles hors assiette du reversement.
 const EXCLUDED_ITEM_STATUSES = ["cancelled", "rejected", "refunded", "disputed"];
 
+// Délai de garde entre la livraison et le reversement (Jour 81, décision
+// utilisateur du 13/11/2026) : 72 h pendant lesquelles un litige ou un
+// remboursement (Jour 83) peut encore être traité avant que les fonds ne
+// quittent le float HARVESTS.
+const DEFAULT_PAYOUT_HOLD_HOURS = 72;
+
+/**
+ * Délai de garde en heures : HARVESTS_PAYOUT_HOLD_HOURS si c'est un nombre fini
+ * ≥ 0, sinon 72. Une valeur invalide ne doit jamais produire un délai aberrant
+ * (un délai négatif rendrait toute commande exigible immédiatement).
+ * @param {object} [env=process.env]
+ * @returns {number}
+ */
+const getPayoutHoldHours = (env = process.env) => {
+	const raw = env?.HARVESTS_PAYOUT_HOLD_HOURS;
+	if (raw === undefined || raw === null || String(raw).trim() === "") return DEFAULT_PAYOUT_HOLD_HOURS;
+	const hours = Number(raw);
+	if (!Number.isFinite(hours) || hours < 0) return DEFAULT_PAYOUT_HOLD_HOURS;
+	return hours;
+};
+
+// Taux de conversion XOF → XAF (Jour 81, décision utilisateur du 13/11/2026) :
+// les commandes sont libellées en XOF, les vendeurs des pays XAF (CM, GA, CG,
+// TD, CF) sont payés en XAF. Par défaut 1 (parité de fait entre les deux
+// francs CFA), surchargeable sans toucher au code.
+const DEFAULT_XOF_TO_XAF_RATE = 1;
+
+/**
+ * Taux XOF → XAF : HARVESTS_XOF_TO_XAF_RATE s'il s'agit d'un nombre fini > 0,
+ * sinon 1. Un taux ≤ 0 ou non numérique est refusé : il inverserait le sens du
+ * reversement ou produirait un montant aberrant.
+ * @param {object} [env=process.env]
+ * @returns {number}
+ */
+const getXofToXafRate = (env = process.env) => {
+	const raw = env?.HARVESTS_XOF_TO_XAF_RATE;
+	if (raw === undefined || raw === null || String(raw).trim() === "") return DEFAULT_XOF_TO_XAF_RATE;
+	const rate = Number(raw);
+	if (!Number.isFinite(rate) || rate <= 0) return DEFAULT_XOF_TO_XAF_RATE;
+	return rate;
+};
+
 module.exports = {
 	DEFAULT_COMMISSION_RATE,
 	getCommissionRate,
+	DEFAULT_PAYOUT_HOLD_HOURS,
+	getPayoutHoldHours,
+	DEFAULT_XOF_TO_XAF_RATE,
+	getXofToXafRate,
 	PAYOUT_STATUSES,
 	PAYOUT_SELLER_TYPES,
 	PAYOUT_CURRENCIES,

@@ -333,6 +333,18 @@ const orderSchema = new mongoose.Schema(
 			enum: ["committed", "released"],
 		},
 
+		// Avancement du reversement vendeur (Jour 81). Évite de relire toutes
+		// les commandes livrées et payées à chaque recherche de vendeurs
+		// payables : pending = à reverser, scheduled = Payout en cours,
+		// paid = vendeur crédité, failed = échec définitif (relance manuelle
+		// Jour 85). Les commandes antérieures au Jour 81 n'ont pas de marqueur :
+		// elles sont traitées comme « pending » (repli legacy).
+		payoutState: {
+			type: String,
+			enum: ["pending", "scheduled", "paid", "failed"],
+			default: "pending",
+		},
+
 		// Numéro de commande unique
 		orderNumber: {
 			type: String,
