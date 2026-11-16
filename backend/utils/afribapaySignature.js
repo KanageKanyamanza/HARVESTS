@@ -8,6 +8,12 @@ const crypto = require("crypto");
 
 const SIGNATURE_HEADER = "afribapay-sign";
 
+// Jour 82 — secret d'URL du webhook payout : AfriBaPay peut notifier sans
+// signature exploitable. Le secret est alors transporté par l'URL de
+// notification (`?secret=…`) ou par un en-tête, et comparé en temps constant.
+const URL_SECRET_PARAM = "secret";
+const URL_SECRET_HEADER = "afribapay-secret";
+
 /**
  * Vérifie l'en-tête Afribapay-Sign d'un webhook payin.
  * Compare en temps constant (audit AfricaSend 2026-10-02, O2) le HMAC
@@ -41,4 +47,22 @@ const checkAfribapaySignature = (req, keys) => {
 	return valid ? "valid" : "invalid";
 };
 
-module.exports = { SIGNATURE_HEADER, checkAfribapaySignature };
+/**
+ * Vérifie un secret d'URL ou d'en-tête (webhook payout, Jour 82).
+ * Comparaison en temps constant, longueurs différentes traitées comme
+ * invalides (jamais d'exception ni de comparaison courte).
+ *
+ * @param {string|undefined} provided valeur reçue (query `secret` ou en-tête)
+ * @param {string|undefined} expected secret configuré
+ * @returns {"valid"|"missing"|"invalid"|"unconfigured"}
+ */
+const checkUrlSecret = (provided, expected) => {
+	if (!expected) return "unconfigured";
+	if (!provided) return "missing";
+	const a = Buffer.from(String(provided));
+	const b = Buffer.from(String(expected));
+	if (a.length !== b.length) return "invalid";
+	return crypto.timingSafeEqual(a, b) ? "valid" : "invalid";
+};
+
+module.exports = { SIGNATURE_HEADER, checkAfribapaySignature, URL_SECRET_PARAM, URL_SECRET_HEADER, checkUrlSecret };

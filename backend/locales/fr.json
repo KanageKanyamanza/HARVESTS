@@ -352,7 +352,8 @@
       "quota_reached": { "title": "Quota hebdomadaire atteint", "message": "Une tentative de commande a été bloquée car vous avez atteint votre quota de {{limit}} commandes cette semaine avec votre plan {{planName}}. Pensez à passer au plan supérieur." },
       "payment_received_paypal": { "title": "Paiement PayPal confirmé", "message": "Votre paiement PayPal de {{amount}} a été confirmé." },
       "payment_received_cash": { "title": "Paiement à la livraison confirmé", "message": "Votre paiement à la livraison de {{amount}} est confirmé." },
-      "payout_processed": { "title": "Frais de livraison reçus", "message": "Vous avez reçu {{amount}} de frais de livraison pour la commande {{orderNumber}}" }
+      "payout_processed": { "title": "Frais de livraison reçus", "message": "Vous avez reçu {{amount}} de frais de livraison pour la commande {{orderNumber}}" },
+      "payout_sent": { "title": "Reversement effectué", "message": "Votre reversement de {{amount}} a été envoyé sur votre compte mobile money." }
     },
     "sent": "Notification envoyée",
     "marked_read": "Notification marquée comme lue",

@@ -189,6 +189,13 @@ const CATALOG = {
 		variant: ({ data }) => (data?.provider === "paypal" ? "payment_received_paypal" : "payment_received_cash"),
 	},
 	payout_processed: { params: orderMoneyParams },
+	// Jour 82 : reversement vendeur AfriBaPay (montant net effectivement payé).
+	payout_sent: {
+		params: ({ data, language }) => {
+			const amount = formatMoney(data?.amount, data?.currency, language);
+			return amount ? { amount } : null;
+		},
+	},
 };
 
 /** Types du catalogue, pour les tests. */

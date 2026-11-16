@@ -52,6 +52,12 @@ const app = express();
 const { AFRIBAPAY_WEBHOOK_PATH } = require("./services/payment/paymentAfribapayService");
 const afribapayWebhookRoutes = require("./routes/afribapayWebhookRoutes");
 
+// Webhook payout AfriBaPay (Jour 82) : même traitement que le payin — chemin
+// figé dans config/afribapay.js (déjà annoncé dans la notify_url du payout),
+// monté AVANT express.json pour la signature sur le corps brut.
+const { AFRIBAPAY_PAYOUT_WEBHOOK_PATH } = require("./config/afribapay");
+const afribapayPayoutWebhookRoutes = require("./routes/afribapayPayoutWebhookRoutes");
+
 // Configuration du proxy de confiance pour les headers X-Forwarded-*
 app.set("trust proxy", 1);
 
@@ -90,6 +96,11 @@ app.use("/api", globalLimiter);
 // opèrent sur un corps déjà parsé et validé par signature.
 app.use(AFRIBAPAY_WEBHOOK_PATH, express.json({ limit: "64kb", verify: (req, _res, buf) => { req.rawBody = buf; } }));
 app.use(AFRIBAPAY_WEBHOOK_PATH, afribapayWebhookRoutes);
+
+// Webhook payout AfriBaPay (Jour 82) : mêmes garanties (corps brut préservé
+// avant express.json), chemin distinct de celui du payin.
+app.use(AFRIBAPAY_PAYOUT_WEBHOOK_PATH, express.json({ limit: "64kb", verify: (req, _res, buf) => { req.rawBody = buf; } }));
+app.use(AFRIBAPAY_PAYOUT_WEBHOOK_PATH, afribapayPayoutWebhookRoutes);
 
 // Parser le body des requêtes
 app.use(express.json({ limit: "10mb" })); // Limite la taille du body pour les uploads

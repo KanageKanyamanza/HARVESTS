@@ -40,6 +40,16 @@ webhookEventSchema.statics.claimEvent = async function (key) {
 	}
 };
 
+/**
+ * Libère un événement réclamé mais NON traité (erreur interne pendant le
+ * traitement) : sans cela, la nouvelle tentative du fournisseur serait prise
+ * pour un rejeu et l'événement serait perdu.
+ * @param {string} key clé réclamée par claimEvent
+ */
+webhookEventSchema.statics.releaseEvent = function (key) {
+	return this.deleteOne({ key });
+};
+
 const WebhookEvent = mongoose.model("WebhookEvent", webhookEventSchema);
 
 module.exports = WebhookEvent;

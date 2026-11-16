@@ -53,7 +53,8 @@ const afribapaySchema = new mongoose.Schema({
   transactionId: String,   // transaction_id AfriBaPay de la tentative courante
   processorStatus: String, // dernier statut renvoyé par AfriBaPay
   lastPolledAt: Date,      // dernière interrogation /status (Jour 81)
-  lastPollResult: String   // dernier statut brut renvoyé par /status
+  lastPollResult: String,  // dernier statut brut renvoyé par /status
+  lockedAt: Date           // verrou d'envoi pris (claimPayout) — diagnostic
 }, { _id: false });
 
 const payoutSchema = new mongoose.Schema({
@@ -208,7 +209,13 @@ status: { type: String, enum: PAYOUT_STATUSES, default: 'pending' },
   failedAt: Date,
   failureReason: String
 }, {
-  timestamps: true
+  timestamps: true,
+  // Deux webhooks concurrents (FAILED d'un essai remplacé / SUCCESS du nouveau)
+  // chargent puis enregistrent le même document : sans contrôle de version, le
+  // dernier écrivain pourrait rétrograder un `succeeded` en `failed`. Une
+  // VersionError remonte au handler, qui répond 500 et libère sa clé anti-replay
+  // — AfriBaPay retente, relit le statut courant et n'applique rien.
+  optimisticConcurrency: true
 });
 
 // Une commande n'est jamais reversée deux fois au même vendeur

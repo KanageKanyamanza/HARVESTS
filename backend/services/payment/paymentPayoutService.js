@@ -7,9 +7,13 @@
 // Jour 81 : la lecture seule devient exécution. Le même service prépare le
 // Payout, vérifie le float AfriBaPay, prend un verrou atomique anti-double-
 // envoi, puis POSTe sur l'URL payout avec un order_id unique par tentative
-// (utils/payoutOrderId.js). Les statuts ambigus sont distingués des incidents
-// réseau (le webhook payout et les alertes admin arrivent au Jour 82, les frais
-// réels au Jour 84).
+// (utils/payoutOrderId.js).
+//
+// Jour 82 : le résultat d'un envoi est finalisé ici (persistance, marqueur
+// payoutState des commandes, notification du vendeur, alerte admin sur échec
+// définitif ou statut ambigu, journal d'audit) — le webhook payout et la
+// relance manuelle du back-office passent par la même finalisation, avec un
+// seul order_id de référence et sans jamais rétrograder un versement confirmé.
 const axios = require("axios");
 const Order = require("../../models/Order");
 const User = require("../../models/User");
@@ -28,6 +32,8 @@ const {
 	AFRIBAPAY_BASE_URL,
 	AFRIBAPAY_PAYOUT_URL,
 	AFRIBAPAY_MERCHANT_KEY,
+	AFRIBAPAY_PAYOUT_WEBHOOK_PATH,
+	getPayoutWebhookSecret,
 	isAfribapayConfigured,
 } = require("../../config/afribapay");
 const { COUNTRIES, normalizeCountry, listOperatorsForCountry } = require("../../config/afribapayOperators");
@@ -36,8 +42,11 @@ const { toAfribapayOperator } = require("../../utils/afribapayOperator");
 const { formatPhoneForAfribapay, parseAfribapayBody, redactSecrets } = require("../../utils/afribapayUtils");
 const { getAccessToken, ipv4Agent, withRetry } = require("../../utils/afribapayClient");
 const { invalidateAfribapayTokenOn401 } = require("../../utils/afribapayTokenCache");
-const { payoutOrderIdFor } = require("../../utils/payoutOrderId");
+const { payoutOrderIdFor, payoutAttemptNumber } = require("../../utils/payoutOrderId");
 const { backendPublicUrl } = require("./paymentAfribapayService");
+const { URL_SECRET_PARAM } = require("../../utils/afribapaySignature");
+const { logAudit, AUDIT_ACTIONS } = require("../../utils/auditLogger");
+const payoutNotifications = require("../../utils/payoutNotifications");
 
 // Champs vendeur lus pour décider du reversement. payoutAccount.* est
 // select:false (models/User.js) : inclusion explicite des feuilles, car
@@ -304,6 +313,18 @@ const nextPayoutAttempt = (payout) =>
 	(payout.attempts || []).reduce((max, attempt) => Math.max(max, Number(attempt?.attempt) || 0), 0) + 1;
 
 /**
+ * URL de notification des payouts (Jour 82) : chemin figé du webhook payout,
+ * plus `?secret=…` quand un secret d'URL est configuré (AfriBaPay ne signe pas
+ * toujours les notifications payout — cf. utils/afribapaySignature.js).
+ * @param {string|null} [secret] secret à transporter (défaut : config)
+ * @returns {string}
+ */
+const payoutNotifyUrl = (secret = getPayoutWebhookSecret()) => {
+	const base = `${backendPublicUrl()}${AFRIBAPAY_PAYOUT_WEBHOOK_PATH}`;
+	return secret ? `${base}?${URL_SECRET_PARAM}=${encodeURIComponent(String(secret))}` : base;
+};
+
+/**
  * Charge utile du POST /pay/payout (pur, testable sans réseau). AfriBaPay refuse
  * tout champ hors contrat : les 9 clés ci-dessous, rien d'autre.
  * @param {object} payout Payout (amount déjà dans `currency`)
@@ -317,7 +338,7 @@ const buildPayoutPayload = (payout, { attempt = 1 } = {}) => ({
 	amount: Math.round(Number(payout.amount) || 0),
 	currency: payout.currency,
 	order_id: payoutOrderIdFor(payout._id, attempt),
-	notify_url: `${backendPublicUrl()}/api/v1/payouts/afribapay/webhook`,
+	notify_url: payoutNotifyUrl(),
 	lang: "fr",
 });
 
@@ -353,12 +374,23 @@ const fetchPayoutBalance = async (token, { country } = {}) => {
  * atomique côté MongoDB — deux workers qui partent en même temps, un seul gagne
  * et reçoit le document, l'autre reçoit `null`.
  * @param {*} payoutId
+ * @param {{ statuses?: string[], attempt?: number }} [options] statuts d'où la
+ *   prise est permise (une relance manuelle ajoute le statut d'origine
+ *   `failed`/`ambiguous`) et numéro de la tentative réclamée — persisté avec le
+ *   verrou pour que le webhook reconnaisse ensuite un échec tardif d'un essai
+ *   remplacé.
  * @returns {Promise<object|null>}
  */
-const claimPayout = (payoutId) =>
+const claimPayout = (payoutId, { statuses = ["pending", "network_issue"], attempt = null } = {}) =>
 	Payout.findOneAndUpdate(
-		{ _id: payoutId, status: { $in: ["pending", "network_issue"] } },
-		{ $set: { status: "processing", "afribapay.lockedAt": new Date() } },
+		{ _id: payoutId, status: { $in: [...statuses] } },
+		{
+			$set: {
+				status: "processing",
+				"afribapay.lockedAt": new Date(),
+				...(attempt ? { "afribapay.attempt": attempt } : {}),
+			},
+		},
 		{ new: true },
 	);
 
@@ -444,23 +476,65 @@ const sendPayout = async (payout, { token, attempt = 1 } = {}) => {
 };
 
 /**
+ * Journalise un envoi de payout (Jour 82). Best-effort : l'audit ne doit
+ * jamais faire échouer un envoi déjà parti chez AfriBaPay.
+ * @param {object} params
+ */
+const auditPayoutSent = async (audit, { payout, attempt, orderId, outcome, processorStatus = null, error = null }) => {
+	try {
+		await audit({
+			action: AUDIT_ACTIONS.PAYOUT_SENT,
+			status: outcome === "succeeded" ? "success" : "failure",
+			targetId: payout._id,
+			targetType: "Payout",
+			details: {
+				payoutId: payout._id?.toString?.() || String(payout._id),
+				sellerId: payout.seller?.toString?.() || String(payout.seller),
+				attempt,
+				orderId,
+				outcome,
+				processorStatus: processorStatus || undefined,
+				amount: payout.amount,
+				currency: payout.currency,
+				country: payout.country,
+				error: error || undefined,
+			},
+		});
+	} catch (err) {
+		console.error(`[Payout] audit d'envoi non écrit: ${err.message}`);
+	}
+};
+
+/**
  * Exécute un Payout : vérifie le float, prend le verrou, envoie, enregistre la
  * tentative et applique la transition de statut.
  *  - AfriBaPay non configuré → `afribapay_not_configured` (aucun appel) ;
- *  - statut terminal → `payout_terminal` (aucun appel) ;
+ *  - statut terminal → `payout_terminal` (aucun appel), sauf `manualRetry` :
+ *    une relance décidée par un admin est justement le cas d'un payout
+ *    `failed`/`ambiguous` (le verrou est alors pris depuis ce statut) ;
  *  - float insuffisant → `insufficient_float` (aucun verrou, aucune tentative,
- *    le Payout reste `pending`) ;
+ *    le Payout reste `pending` et rien n'est consommé) ;
  *  - verrou déjà pris → `payout_not_pending` (un autre travailleur gagne).
+ *
+ * Ne FINALISE pas : l'appelant applique le résultat via `finalizePayoutOutcome`
+ * (notification du vendeur, alerte admin, marqueur des commandes, audit).
  * @param {object} payout Payout (document Mongoose ou objet équivalent)
- * @param {{ token?: string, claimLock?: Function, sendAttempt?: Function, fetchBalance?: Function }} [deps]
+ * @param {{ token?: string, claimLock?: Function, sendAttempt?: Function, fetchBalance?: Function, manualRetry?: boolean, audit?: Function }} [deps]
  * @returns {Promise<{ payout: object, attempt: object, outcome: string, alert: boolean }>}
  */
 const executePayout = async (
 	payout,
-	{ token, claimLock = claimPayout, sendAttempt = sendPayout, fetchBalance = fetchPayoutBalance } = {},
+	{
+		token,
+		claimLock = claimPayout,
+		sendAttempt = sendPayout,
+		fetchBalance = fetchPayoutBalance,
+		manualRetry = false,
+		audit = logAudit,
+	} = {},
 ) => {
 	if (!isAfribapayConfigured()) throw new PayoutError("afribapay_not_configured");
-	if (PAYOUT_TERMINAL_STATUSES.includes(payout.status)) {
+	if (!manualRetry && PAYOUT_TERMINAL_STATUSES.includes(payout.status)) {
 		throw new PayoutError("payout_terminal", { status: payout.status });
 	}
 
@@ -474,10 +548,14 @@ const executePayout = async (
 		throw new PayoutError("insufficient_float", { available: balance.available, amount });
 	}
 
-	const claimed = await claimLock(payout._id);
+	// La tentative est calculée AVANT le verrou : elle est persistée avec lui
+	// (`afribapay.attempt`), ce qui permet au webhook de reconnaître l'échec
+	// tardif d'un essai remplacé pendant qu'une relance court.
+	const attempt = nextPayoutAttempt(payout);
+
+	const claimed = await claimLock(payout._id, { attempt });
 	if (!claimed) throw new PayoutError("payout_not_pending", { payoutId: payout._id });
 
-	const attempt = nextPayoutAttempt(payout);
 	payout.status = "processing";
 
 	const setAfribapay = (patch) => {
@@ -511,6 +589,13 @@ const executePayout = async (
 			lastPollResult: null,
 		});
 		payout.status = "network_issue";
+		await auditPayoutSent(audit, {
+			payout,
+			attempt,
+			orderId,
+			outcome: "network_issue",
+			error: record.error,
+		});
 		return { payout, attempt: record, outcome: "network_issue", alert: false };
 	}
 
@@ -539,9 +624,307 @@ const executePayout = async (
 		payout.failureReason = record.error;
 	}
 
-	// `ambiguous` déclenche une alerte admin (Jour 82) et interdit toute relance
-	// automatique : le statut terminal s'en charge.
+	await auditPayoutSent(audit, {
+		payout,
+		attempt,
+		orderId: record.orderId,
+		outcome: record.status,
+		processorStatus: record.processorStatus,
+		error: record.error,
+	});
+
+	// `ambiguous` et `failed` déclenchent une alerte admin à la finalisation
+	// (Jour 82) ; `ambiguous` interdit toute relance automatique.
 	return { payout, attempt: record, outcome: record.status, alert: record.status === "ambiguous" };
+};
+
+// ---------------------------------------------------------------------------
+// Finalisation d'un résultat et relance manuelle (Jour 82)
+// ---------------------------------------------------------------------------
+
+// Marqueur `payoutState` posé sur les commandes du lot selon le résultat.
+// `ambiguous` n'y touche pas : la réservation de l'index unique du Payout
+// (seller, lines.order) empêche déjà tout double reversement, et un admin doit
+// d'abord vérifier si l'argent est parti.
+const PAYOUT_ORDER_STATE_BY_STATUS = {
+	succeeded: "paid",
+	failed: "failed",
+	network_issue: "scheduled",
+};
+
+/**
+ * Pose le marqueur `payoutState` sur les commandes d'un Payout (Jour 81/82).
+ * Best-effort : une erreur ici ne remet pas en cause le reversement lui-même.
+ * @param {object} payout
+ * @param {"paid"|"failed"|"scheduled"} state
+ * @returns {Promise<number>} nombre de commandes modifiées
+ */
+const setPayoutOrderStates = async (payout, state) => {
+	const orderIds = (payout?.lines || []).map((line) => line?.order).filter(Boolean);
+	if (!orderIds.length) return 0;
+	const result = await Order.updateMany({ _id: { $in: orderIds } }, { $set: { payoutState: state } });
+	return result?.modifiedCount ?? 0;
+};
+
+/**
+ * Applique le résultat définitif d'un reversement : statut, champs AfriBaPay,
+ * tentative, persistance, marqueur des commandes, notification du vendeur,
+ * alerte admin et journal d'audit. Partagé par le webhook payout (résultat
+ * asynchrone) et par l'envoi/la relance manuelle (résultat synchrone).
+ *
+ * Idempotence : un succès déjà enregistré ne renotifie pas le vendeur
+ * (`previousStatus`), et la finalisation ne rétrograde jamais un payout
+ * `succeeded` — la décision est prise en amont (webhook).
+ *
+ * @param {object} payout Payout (document Mongoose ou objet équivalent)
+ * @param {object} options
+ * @param {"succeeded"|"failed"|"ambiguous"|"network_issue"} options.status
+ * @param {string} options.orderId order_id de la tentative concernée
+ * @param {string} [options.previousStatus] statut avant la transition (défaut :
+ *   statut courant du Payout) — pilote la notification du vendeur
+ * @param {string|null} [options.transactionId]
+ * @param {string|null} [options.processorStatus] statut brut AfriBaPay
+ * @param {string|null} [options.reason] motif d'échec (expurgé avant écriture)
+ * @param {string} [options.source] origine (webhook, manual-retry, send…)
+ * @param {object} [deps] effets injectables (save, notifySeller, alert,
+ *   setOrderStates, audit) — les tests n'ouvrent ni base ni réseau
+ * @returns {Promise<{ payout: object, status: string, notified: boolean }>}
+ */
+const finalizePayoutOutcome = async (
+	payout,
+	{
+		status,
+		orderId,
+		previousStatus = payout.status,
+		transactionId = null,
+		processorStatus = null,
+		reason = null,
+		source = "system",
+	} = {},
+	deps = {},
+) => {
+	const persist = deps.save || (() => payout.save());
+	const notifySeller = deps.notifySeller || ((p) => payoutNotifications.notifyPayoutSeller(p));
+	const alert = deps.alert || ((params) => payoutNotifications.alertPayoutAnomaly(params));
+	const setOrderStates = deps.setOrderStates || setPayoutOrderStates;
+	const audit = deps.audit || logAudit;
+
+	const attemptNumber = payoutAttemptNumber(orderId) || Number(payout?.afribapay?.attempt) || 1;
+	const upper = String(processorStatus || "").toUpperCase() || null;
+	const safeReason = reason ? redactSecrets(String(reason)) : null;
+
+	payout.status = status;
+	if (status === "succeeded") {
+		if (!payout.succeededAt) payout.succeededAt = new Date();
+		// Un succès tardif efface le motif d'échec provisoire ; l'historique
+		// reste dans attempts[].
+		payout.failureReason = null;
+	} else if (status === "failed") {
+		payout.failedAt = new Date();
+		payout.failureReason = safeReason;
+	}
+
+	// Champs AfriBaPay : affectation champ par champ — un spread d'un
+	// sous-document Mongoose recopie ses internes et Mongoose garde les
+	// anciennes valeurs (cf. KNOWLEDGE, piège paymentDetails).
+	if (!payout.afribapay) payout.afribapay = {};
+	payout.afribapay.payoutOrderId = orderId || payout.afribapay.payoutOrderId;
+	payout.afribapay.attempt = attemptNumber;
+	if (transactionId) payout.afribapay.transactionId = transactionId;
+	payout.afribapay.processorStatus = upper || payout.afribapay.processorStatus || null;
+	payout.afribapay.lastPolledAt = new Date();
+	payout.afribapay.lastPollResult = upper || null;
+
+	// La tentative concernée est retrouvée par son order_id (une relance a le
+	// sien) ; si elle n'est pas tracée, elle est ajoutée pour l'audit.
+	if (!Array.isArray(payout.attempts)) payout.attempts = [];
+	const attempt = payout.attempts.find((a) => String(a?.orderId || "") === String(orderId || ""));
+	if (attempt) {
+		attempt.status = status;
+		attempt.processorStatus = upper || attempt.processorStatus || null;
+		if (transactionId) attempt.transactionId = transactionId;
+		if (status === "failed" && safeReason) attempt.error = safeReason;
+	} else {
+		payout.attempts.push({
+			attempt: attemptNumber,
+			orderId: orderId || null,
+			status,
+			processorStatus: upper,
+			transactionId: transactionId || null,
+			error: status === "failed" ? safeReason : null,
+			sentAt: new Date(),
+		});
+	}
+
+	await persist();
+
+	const orderState = PAYOUT_ORDER_STATE_BY_STATUS[status];
+	if (orderState) {
+		try {
+			await setOrderStates(payout, orderState);
+		} catch (err) {
+			console.error(`[Payout] marqueur payoutState non posé (${orderState}): ${err.message}`);
+		}
+	}
+
+	const notified = status === "succeeded" && previousStatus !== "succeeded";
+	if (notified) {
+		try {
+			await notifySeller(payout);
+		} catch (err) {
+			console.error(`[Payout] notification vendeur non envoyée: ${err.message}`);
+		}
+	}
+
+	if (status === "failed" || status === "ambiguous") {
+		const amount = `${payout.amount} ${payout.currency}`;
+		const detail =
+			status === "failed"
+				? `Reversement ${orderId || payout._id} en échec définitif (${upper || "statut inconnu"})`
+				: `Reversement ${orderId || payout._id} en statut ambigu (${upper || "illisible"})`;
+		try {
+			await alert({
+				key: `anomaly:payout-${status === "failed" ? "failed" : "ambiguous"}:${payout._id}:${orderId || ""}`,
+				message:
+					status === "failed"
+						? `Le reversement ${orderId || payout._id} de ${amount} au vendeur ${payout.seller} a échoué définitivement (${upper || "statut inconnu"}). Vérifiez le dashboard AfriBaPay puis relancez manuellement si le versement n'a pas eu lieu.`
+						: `Le reversement ${orderId || payout._id} de ${amount} au vendeur ${payout.seller} a un statut ambigu (${upper || "illisible"}) : le versement a peut-être eu lieu. Vérifiez sur le dashboard AfriBaPay AVANT toute relance.`,
+				detail,
+				data: {
+					payoutId: payout._id?.toString?.() || String(payout._id),
+					sellerId: payout.seller?.toString?.() || String(payout.seller),
+					orderId,
+					amount: payout.amount,
+					currency: payout.currency,
+					processorStatus: upper,
+					source,
+				},
+			});
+		} catch (err) {
+			console.error(`[Payout] alerte admin non envoyée: ${err.message}`);
+		}
+	}
+
+	const action =
+		status === "succeeded"
+			? AUDIT_ACTIONS.PAYOUT_CONFIRMED
+			: status === "failed"
+				? AUDIT_ACTIONS.PAYOUT_FAILED
+				: status === "ambiguous"
+					? AUDIT_ACTIONS.PAYOUT_AMBIGUOUS
+					: null;
+	if (action) {
+		try {
+			await audit({
+				action,
+				status: status === "succeeded" ? "success" : "failure",
+				targetId: payout._id,
+				targetType: "Payout",
+				details: {
+					payoutId: payout._id?.toString?.() || String(payout._id),
+					sellerId: payout.seller?.toString?.() || String(payout.seller),
+					orderId,
+					attempt: attemptNumber,
+					amount: payout.amount,
+					currency: payout.currency,
+					payoutStatus: status,
+					processorStatus: upper || undefined,
+					source,
+				},
+			});
+		} catch (err) {
+			console.error(`[Payout] audit de finalisation non écrit: ${err.message}`);
+		}
+	}
+
+	return { payout, status, notified };
+};
+
+// Statuts depuis lesquels un admin peut relancer un reversement. Un succès ou
+// une annulation ne se relancent jamais (il faut d'abord trancher le litige).
+const MANUAL_RETRY_STATUSES = ["pending", "failed", "ambiguous", "network_issue"];
+
+/**
+ * Relance manuelle d'un reversement depuis le back-office (Jour 82, exposée au
+ * Jour 85). Elle est journalisée AVANT l'envoi (qui l'a demandé, pourquoi,
+ * depuis quel statut), utilise un NOUVEL order_id (`-r2`, `-r3`… — AfriBaPay
+ * refuse la réutilisation) et finalise le résultat comme le webhook.
+ *
+ * @param {object} payout Payout à relancer
+ * @param {object} options
+ * @param {*} [options.adminId] admin à l'origine de la relance
+ * @param {string} [options.adminEmail]
+ * @param {string} [options.reason] motif (vérification dashboard…)
+ * @param {string} [options.token] jeton AfriBaPay
+ * @param {Function} [options.claimLock] verrou (défaut : statut courant inclus)
+ * @param {Function} [options.sendAttempt]
+ * @param {Function} [options.fetchBalance]
+ * @param {Function} [options.finalize] finalisation (défaut : ci-dessus)
+ * @param {Function} [options.audit]
+ * @returns {Promise<{ payout: object, attempt: object, outcome: string, alert: boolean }>}
+ */
+const retryPayoutManually = async (
+	payout,
+	{
+		adminId = null,
+		adminEmail = null,
+		reason = null,
+		token,
+		claimLock,
+		sendAttempt,
+		fetchBalance,
+		finalize = finalizePayoutOutcome,
+		audit = logAudit,
+	} = {},
+) => {
+	if (!MANUAL_RETRY_STATUSES.includes(payout.status)) {
+		throw new PayoutError("payout_terminal", { status: payout.status });
+	}
+	const previousStatus = payout.status;
+
+	await audit({
+		action: AUDIT_ACTIONS.PAYOUT_MANUAL_RETRY,
+		userId: adminId,
+		userEmail: adminEmail,
+		targetId: payout._id,
+		targetType: "Payout",
+		details: {
+			payoutId: payout._id?.toString?.() || String(payout._id),
+			sellerId: payout.seller?.toString?.() || String(payout.seller),
+			amount: payout.amount,
+			currency: payout.currency,
+			fromStatus: previousStatus,
+			reason: reason || null,
+		},
+	});
+
+	// Le verrou part du statut courant : pas de pré-réinitialisation, donc un
+	// float insuffisant ou un autre travailleur ne consomme rien.
+	const lock =
+		claimLock ||
+		((id, { attempt } = {}) =>
+			claimPayout(id, { statuses: [previousStatus, "pending", "network_issue"], attempt }));
+
+	const result = await executePayout(payout, {
+		token,
+		claimLock: lock,
+		sendAttempt,
+		fetchBalance,
+		manualRetry: true,
+		audit,
+	});
+
+	await finalize(payout, {
+		status: result.outcome,
+		orderId: result.attempt?.orderId,
+		previousStatus,
+		transactionId: result.attempt?.transactionId,
+		processorStatus: result.attempt?.processorStatus,
+		reason: result.attempt?.error,
+		source: "manual-retry",
+	});
+
+	return result;
 };
 
 // ---------------------------------------------------------------------------
@@ -780,14 +1163,23 @@ module.exports = {
 	listPayableSellers,
 	// Jour 81 — exécution
 	PAYOUT_TERMINAL_STATUSES,
+	PAYOUT_SUCCESS_STATUSES,
+	PAYOUT_FAILURE_STATUSES,
 	PayoutError,
 	mapPayoutProcessorStatus,
 	isOrderPayableNow,
 	convertXofToXaf,
 	nextPayoutAttempt,
+	payoutNotifyUrl,
 	buildPayoutPayload,
 	fetchPayoutBalance,
 	claimPayout,
 	sendPayout,
 	executePayout,
+	// Jour 82 — finalisation, marqueur des commandes et relance manuelle
+	PAYOUT_ORDER_STATE_BY_STATUS,
+	setPayoutOrderStates,
+	finalizePayoutOutcome,
+	MANUAL_RETRY_STATUSES,
+	retryPayoutManually,
 };

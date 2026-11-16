@@ -173,6 +173,7 @@ const notificationSchema = new mongoose.Schema({
       'payment_sent',
       'payment_failed',
       'payout_processed',
+      'payout_sent',
       'invoice_generated',
       
       // Promotions et marketing

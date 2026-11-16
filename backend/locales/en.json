@@ -352,7 +352,8 @@
       "quota_reached": { "title": "Weekly quota reached", "message": "An order attempt was blocked because you have reached your quota of {{limit}} orders this week on your {{planName}} plan. Consider upgrading your plan." },
       "payment_received_paypal": { "title": "PayPal payment confirmed", "message": "Your PayPal payment of {{amount}} has been confirmed." },
       "payment_received_cash": { "title": "Payment on delivery confirmed", "message": "Your payment on delivery of {{amount}} is confirmed." },
-      "payout_processed": { "title": "Delivery fee received", "message": "You have received {{amount}} in delivery fees for order {{orderNumber}}" }
+      "payout_processed": { "title": "Delivery fee received", "message": "You have received {{amount}} in delivery fees for order {{orderNumber}}" },
+      "payout_sent": { "title": "Payout sent", "message": "Your payout of {{amount}} has been sent to your mobile money account." }
     },
     "sent": "Notification sent",
     "marked_read": "Notification marked as read",

@@ -33,6 +33,19 @@ const AFRIBAPAY_MERCHANT_KEY = process.env.AFRIBAPAY_MERCHANT_KEY;
 // n'était jamais accepté quand on ne vérifiait QUE le secret dédié).
 const AFRIBAPAY_WEBHOOK_SECRET = process.env.AFRIBAPAY_WEBHOOK_SECRET;
 
+// Jour 82 — webhook payout : chemin figé (déjà composé dans la notify_url du
+// POST /pay/payout au Jour 81) et secret d'URL facultatif. AfriBaPay ne signe
+// pas toujours les notifications payout : un secret dédié, transporté par
+// l'URL (`?secret=…`) ou l'en-tête `Afribapay-Secret`, sert de second canal.
+const AFRIBAPAY_PAYOUT_WEBHOOK_PATH = "/api/v1/payouts/afribapay/webhook";
+const AFRIBAPAY_PAYOUT_WEBHOOK_SECRET = process.env.AFRIBAPAY_PAYOUT_WEBHOOK_SECRET;
+
+// Lu à l'appel (et non figé à l'import) : la composition de la notify_url et la
+// vérification du webhook payout doivent toujours utiliser le même secret.
+const getPayoutWebhookSecret = () =>
+	process.env.AFRIBAPAY_PAYOUT_WEBHOOK_SECRET || AFRIBAPAY_PAYOUT_WEBHOOK_SECRET;
+
+
 // True dès que les credentials existent : disponible pour Jour 76 (refuser la
 // méthode mobile_money plutôt que d'échouer au milieu d'une commande) et
 // Jour 85 (afficher l'état d'activation dans le back-office).
@@ -46,5 +59,8 @@ module.exports = {
 	AFRIBAPAY_API_KEY,
 	AFRIBAPAY_MERCHANT_KEY,
 	AFRIBAPAY_WEBHOOK_SECRET,
+	AFRIBAPAY_PAYOUT_WEBHOOK_PATH,
+	AFRIBAPAY_PAYOUT_WEBHOOK_SECRET,
+	getPayoutWebhookSecret,
 	isAfribapayConfigured,
 };
