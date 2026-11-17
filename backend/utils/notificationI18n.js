@@ -203,6 +203,19 @@ const CATALOG = {
 			return amount ? { amount } : null;
 		},
 	},
+	// Ancien circuit (PayPal/espèces) : traitement/rejet par un admin.
+	refund_processed: {
+		params: ({ data, language }) => {
+			const amount = formatMoney(data?.amount, data?.currency, language);
+			return amount ? { amount } : null;
+		},
+	},
+	refund_rejected: {
+		params: ({ data, language }) => {
+			const amount = formatMoney(data?.amount, data?.currency, language);
+			return amount ? { amount } : null;
+		},
+	},
 };
 
 /** Types du catalogue, pour les tests. */

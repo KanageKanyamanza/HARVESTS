@@ -350,7 +350,7 @@ paymentSchema.virtual('isFailed').get(function() {
 paymentSchema.virtual('totalRefunded').get(function() {
   return this.refunds
     .filter(refund => refund.status === 'succeeded')
-    .reduce((total, refund) => total + refund.amount, 0);
+    .reduce((total, refund) => total + (Number(refund.amount) || 0), 0);
 });
 
 // Montant déjà engagé (Jour 83) : un remboursement en cours ou incertain
@@ -611,6 +611,14 @@ paymentSchema.methods.processRefund = function(refundId, status, processedAt = n
   const refund = this.refunds.find(r => r.refundId === refundId);
   if (!refund) {
     throw new Error('Remboursement non trouvé');
+  }
+
+  // Un remboursement mobile money est un VERSEMENT AfriBaPay (Jour 83) : le
+  // marquer « traité » depuis l'ancienne route admin laisserait croire au
+  // client qu'il a été payé sans qu'aucun versement ne parte. Vaut aussi pour
+  // une demande créée par l'ancien circuit sur un paiement mobile money.
+  if (this.method === 'mobile_money' || refund.attempt != null || String(refund.orderId || '').startsWith('refund-')) {
+    throw new Error('payment.refund_managed_by_afribapay');
   }
   
   refund.status = status;

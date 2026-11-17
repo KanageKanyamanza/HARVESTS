@@ -10,6 +10,7 @@ const REFUND_ERROR_STATUS = {
   // Relance d'un remboursement confirmé ou ambigu : conflit, pas une saisie
   // invalide (l'administrateur doit vérifier le dashboard AfriBaPay).
   refund_not_retryable: 409,
+  refund_conflict: 409,
   afribapay_not_configured: 503
 };
 

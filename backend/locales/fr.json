@@ -244,6 +244,7 @@
     "refunded": "Paiement remboursé",
     "refund_failed": "Le remboursement AfriBaPay a échoué : il peut être relancé",
     "refund_ambiguous": "Statut du remboursement incertain : vérifiez le dashboard AfriBaPay avant toute relance",
+    "refund_managed_by_afribapay": "Ce remboursement est un versement mobile money : traitez-le depuis le remboursement AfriBaPay, pas depuis l'ancienne validation",
     "cancelled": "Paiement annulé",
     "unsupported_method": "Méthode de paiement non supportée",
     "order_or_type_required": "ID de commande ou type de paiement requis",
@@ -356,7 +357,9 @@
       "payment_received_cash": { "title": "Paiement à la livraison confirmé", "message": "Votre paiement à la livraison de {{amount}} est confirmé." },
       "payout_processed": { "title": "Frais de livraison reçus", "message": "Vous avez reçu {{amount}} de frais de livraison pour la commande {{orderNumber}}" },
       "payout_sent": { "title": "Reversement effectué", "message": "Votre reversement de {{amount}} a été envoyé sur votre compte mobile money." },
-      "refund_sent": { "title": "Remboursement effectué", "message": "Votre remboursement de {{amount}} a été envoyé sur votre compte mobile money." }
+      "refund_sent": { "title": "Remboursement effectué", "message": "Votre remboursement de {{amount}} a été envoyé sur votre compte mobile money." },
+      "refund_processed": { "title": "Remboursement traité", "message": "Votre remboursement de {{amount}} a été traité." },
+      "refund_rejected": { "title": "Remboursement rejeté", "message": "Votre demande de remboursement de {{amount}} a été rejetée." }
     },
     "sent": "Notification envoyée",
     "marked_read": "Notification marquée comme lue",

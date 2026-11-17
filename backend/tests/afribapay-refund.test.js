@@ -781,6 +781,177 @@ describe("L — corrections de revue indépendante", () => {
 });
 
 // ---------------------------------------------------------------------------
+describe("M — écritures concurrentes (résidu de revue)", () => {
+	// `readyState` n'est pas configurable : on le redéfinit le temps du test.
+	const connected = () => {
+		Object.defineProperty(mongoose.connection, "readyState", {
+			value: 1,
+			configurable: true,
+			writable: true,
+		});
+	};
+	afterEach(() => {
+		Object.defineProperty(mongoose.connection, "readyState", {
+			value: 0,
+			configurable: true,
+			writable: true,
+		});
+	});
+
+	test("en base, la finalisation n'écrit QUE l'essai visé (pas de save global)", async () => {
+		connected();
+		const updateOne = jest.spyOn(Payment, "updateOne").mockResolvedValue({ matchedCount: 1 });
+		const payment = makePayment({ status: "succeeded" });
+		const refund = makeRefund({ amount: 4000, status: "pending" });
+		payment.refunds.push(refund);
+		const save = jest.fn();
+		await refundService.finalizeRefundOutcome(
+			payment,
+			{ refundId: refund.refundId, orderId: refund.orderId, status: "succeeded" },
+			{ save, notifyClient: jest.fn(), alert: jest.fn(), audit: jest.fn() },
+		);
+		expect(save).not.toHaveBeenCalled();
+		const [filter, update, options] = updateOne.mock.calls[0];
+		expect(filter).toEqual({ _id: payment._id });
+		expect(update.$set["refunds.$[essai].status"]).toBe("succeeded");
+		expect(update.$set["refunds.$[essai].processedAt"]).toBeInstanceOf(Date);
+		expect(update.$set.status).toBe("partially_refunded");
+		expect(options.arrayFilters).toEqual([{ "essai.refundId": refund.refundId }]);
+		// L'objet en mémoire reflète l'écriture (retour d'API).
+		expect(refund.status).toBe("succeeded");
+		expect(payment.status).toBe("partially_refunded");
+	});
+
+	test("en base, l'entrée pending part en $push ciblé, sans save global", async () => {
+		connected();
+		jest.spyOn(Payment, "findOneAndUpdate").mockReturnValue({
+			lean: async () => ({ refundAttempt: 1 }),
+		});
+		const updateOne = jest.spyOn(Payment, "updateOne");
+		let pushed = null;
+		updateOne.mockImplementation(async (filter, update) => {
+			// Instantané : l'entrée est mutée ensuite par la finalisation.
+			if (update?.$push?.refunds) {
+				pushed = {
+					status: update.$push.refunds.status,
+					attempt: update.$push.refunds.attempt,
+					amount: update.$push.refunds.amount,
+				};
+			}
+			return { matchedCount: 1 };
+		});
+		// Contrôle de dépassement concurrent : le total engagé reste sous le payé.
+		jest.spyOn(Payment, "findById").mockReturnValue({
+			lean: async () => ({ amount: 10000, refunds: [{ refundId: "x", amount: 4000, status: "pending" }] }),
+		});
+		const payment = makePayment();
+		const save = jest.fn();
+		await refundService.requestAfribapayRefund(payment, { amount: 4000, ...refundDeps(), save });
+		expect(save).not.toHaveBeenCalled();
+		const [filter] = updateOne.mock.calls[0];
+		expect(filter).toEqual({
+			_id: payment._id,
+			"refunds.refundId": { $ne: `ref_afp_${payment.paymentId}_1` },
+		});
+		expect(pushed).toEqual({ status: "pending", attempt: 1, amount: 4000 });
+	});
+
+	test("en base, un essai déjà enregistré est refusé (pas de doublon)", async () => {
+		connected();
+		jest.spyOn(Payment, "findOneAndUpdate").mockReturnValue({
+			lean: async () => ({ refundAttempt: 1 }),
+		});
+		jest.spyOn(Payment, "updateOne").mockResolvedValue({ matchedCount: 0 });
+		await expect(
+			refundService.requestAfribapayRefund(makePayment(), { amount: 1000, ...refundDeps() }),
+		).rejects.toMatchObject({ code: "refund_conflict" });
+	});
+});
+
+// ---------------------------------------------------------------------------
+describe("N — gardes issus de l'audit Jours 70-83", () => {
+	test("l'ancienne route admin ne peut pas clôturer un remboursement AfriBaPay", () => {
+		const payment = Payment.hydrate({
+			amount: 10000,
+			status: "succeeded",
+			refunds: [{ refundId: "ref_afp_x_1", amount: 4000, status: "ambiguous", attempt: 1, orderId: "refund-x" }],
+		});
+		expect(() => payment.processRefund("ref_afp_x_1", "succeeded")).toThrow(
+			"payment.refund_managed_by_afribapay",
+		);
+		expect(payment.refunds[0].status).toBe("ambiguous");
+	});
+
+	test("l'ancienne route admin ne clôture pas non plus une demande legacy sur mobile money", () => {
+		const payment = Payment.hydrate({
+			method: "mobile_money",
+			amount: 10000,
+			status: "succeeded",
+			refunds: [{ refundId: "ref_legacy_mm", amount: 4000, status: "pending" }],
+		});
+		expect(() => payment.processRefund("ref_legacy_mm", "succeeded")).toThrow(
+			"payment.refund_managed_by_afribapay",
+		);
+		expect(payment.refunds[0].status).toBe("pending");
+	});
+
+	test("la relance refuse un remboursement legacy sans numéro d'essai", async () => {
+		const payment = makePayment({
+			refunds: [makeRefund({ refundId: "ref_legacy", attempt: undefined, orderId: undefined, status: "failed" })],
+		});
+		await expect(
+			refundService.retryRefundManually(payment, "ref_legacy", { adminId: oid(), ...refundDeps() }),
+		).rejects.toMatchObject({ code: "refund_not_retryable" });
+	});
+
+	test("un dépassement concurrent est annulé avant tout envoi", async () => {
+		Object.defineProperty(mongoose.connection, "readyState", {
+			value: 1,
+			configurable: true,
+			writable: true,
+		});
+		try {
+			const payment = makePayment();
+			const refund = makeRefund({ refundId: "ref_concurrent", amount: 6000, status: "pending" });
+			jest.spyOn(Payment, "findById").mockReturnValue({
+				lean: async () => ({
+					amount: 10000,
+					refunds: [
+						{ refundId: "autre", amount: 6000, status: "pending" },
+						{ refundId: "ref_concurrent", amount: 6000, status: "pending" },
+					],
+				}),
+			});
+			const updateOne = jest.spyOn(Payment, "updateOne").mockResolvedValue({ matchedCount: 1 });
+			await expect(refundService.verifyReservedAmount(payment, refund)).rejects.toMatchObject({
+				code: "refund_amount_exceeds",
+			});
+			expect(updateOne.mock.calls[0][1].$set["refunds.$[essai].status"]).toBe("cancelled");
+			expect(refund.status).toBe("cancelled");
+		} finally {
+			Object.defineProperty(mongoose.connection, "readyState", {
+				value: 0,
+				configurable: true,
+				writable: true,
+			});
+		}
+	});
+
+	test("types de notification de l'ancien circuit déclarés et traduits", () => {
+		for (const type of ["refund_processed", "refund_rejected"]) {
+			expect(Notification.schema.path("type").enumValues).toContain(type);
+			const a = fr.notification.texts[type];
+			const b = en.notification.texts[type];
+			expect(a).toBeDefined();
+			expect(b).toBeDefined();
+			const vars = (text) => (text.match(/\{\{\s*\w+\s*\}\}/g) || []).map((v) => v.replace(/\W/g, "")).sort();
+			expect(vars(b.title)).toEqual(vars(a.title));
+			expect(vars(b.message)).toEqual(vars(a.message));
+		}
+	});
+});
+
+// ---------------------------------------------------------------------------
 describe("K — aucune connexion Mongo ouverte", () => {
 	test("les tests n'ouvrent pas de connexion", () => {
 		expect(mongoose.connection.readyState).toBe(0);

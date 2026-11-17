@@ -201,6 +201,9 @@ const notificationSchema = new mongoose.Schema({
       'refund_requested',
       // Jour 83 : remboursement mobile money réellement versé au client
       'refund_sent',
+      // Ancien circuit (PayPal/espèces) : traitement et rejet par un admin
+      'refund_processed',
+      'refund_rejected',
       
       // Général
       'welcome',

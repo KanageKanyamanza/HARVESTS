@@ -281,6 +281,84 @@ const reserveRefundAttempt = async (payment) => {
 };
 
 /**
+ * Applique des changements à UN essai de remboursement (et éventuellement au
+ * statut global du Payment).
+ *
+ * Sans base (tests) : mutation en mémoire puis `save()` injecté. En base :
+ * écriture ciblée (`$set` positionnel via arrayFilters) — `Payment` n'a pas
+ * `optimisticConcurrency`, un `save()` global écraserait l'essai qu'un autre
+ * webhook vient de confirmer en parallèle.
+ *
+ * @param {object} payment
+ * @param {object} refund
+ * @param {{refund: object, payment?: object}} changes
+ * @param {{save: Function}} deps
+ * @returns {Promise<"save"|"atomic">}
+ */
+const persistRefundChanges = async (payment, refund, changes, { save }) => {
+	const applied = () => {
+		Object.assign(refund, changes.refund);
+		if (changes.payment) Object.assign(payment, changes.payment);
+	};
+
+	if (mongoose.connection.readyState !== 1 || !payment?._id) {
+		applied();
+		await save();
+		return "save";
+	}
+
+	const set = {};
+	for (const [key, value] of Object.entries(changes.refund)) {
+		set[`refunds.$[essai].${key}`] = value;
+	}
+	for (const [key, value] of Object.entries(changes.payment || {})) set[key] = value;
+	const result = await Payment.updateOne(
+		{ _id: payment._id },
+		{ $set: set },
+		{ arrayFilters: [{ "essai.refundId": refund.refundId }] },
+	);
+	if (!result?.matchedCount) {
+		throw refundError("refund_not_found", "Remboursement absent du paiement — état non enregistré");
+	}
+	applied();
+	return "atomic";
+};
+
+/**
+ * Après avoir enregistré l'entrée `pending`, vérifie que le total ENGAGÉ
+ * (pending + ambiguous + succeeded) ne dépasse pas le montant payé : deux
+ * administrateurs simultanés peuvent tous deux avoir passé la validation sur
+ * un document périmé. La seconde entrée est annulée AVANT l'envoi — l'argent
+ * ne part jamais deux fois.
+ */
+const verifyReservedAmount = async (payment, refund) => {
+	if (mongoose.connection.readyState !== 1 || !payment?._id) return;
+	const fresh = await Payment.findById(payment._id).lean();
+	if (!fresh) return;
+	const reserved = (fresh.refunds || [])
+		.filter((entry) => RESERVED_REFUND_STATUSES.includes(entry?.status))
+		.reduce((total, entry) => total + (Number(entry?.amount) || 0), 0);
+	if (reserved <= (Number(fresh.amount) || 0)) return;
+
+	await Payment.updateOne(
+		{ _id: payment._id },
+		{
+			$set: {
+				"refunds.$[essai].status": "cancelled",
+				"refunds.$[essai].failureReason": "refund_concurrent_conflict",
+			},
+		},
+		{ arrayFilters: [{ "essai.refundId": refund.refundId }] },
+	);
+	refund.status = "cancelled";
+	refund.failureReason = "refund_concurrent_conflict";
+	throw refundError(
+		"refund_amount_exceeds",
+		"Un autre remboursement a engagé le montant disponible entre-temps : aucun envoi n'a été fait",
+	);
+};
+
+/**
  * Crée l'entrée `pending` d'une tentative et la persiste AVANT l'envoi.
  */
 const persistPendingRefund = async (payment, { save, amount, reason, attempt, operator, phone, country, adminId, now }) => {
@@ -298,6 +376,21 @@ const persistPendingRefund = async (payment, { save, amount, reason, attempt, op
 		requestedBy: adminId || null,
 		createdAt: now(),
 	};
+	if (mongoose.connection.readyState === 1 && payment?._id) {
+		// `$push` ciblé : l'entrée part sans réécrire le tableau lu par un autre
+		// administrateur (son essai ne serait pas perdu).
+		const result = await Payment.updateOne(
+			{ _id: payment._id, "refunds.refundId": { $ne: refund.refundId } },
+			{ $push: { refunds: refund } },
+		);
+		if (!result?.matchedCount) {
+			throw refundError("refund_conflict", "Ce remboursement est déjà enregistré — réessayez");
+		}
+		if (!Array.isArray(payment.refunds)) payment.refunds = [];
+		payment.refunds.push(refund);
+		return refund;
+	}
+
 	if (!Array.isArray(payment.refunds)) payment.refunds = [];
 	payment.refunds.push(refund);
 	await save();
@@ -351,62 +444,66 @@ const finalizeRefundOutcome = async (
 		return { refund, status: refund.status, notified: false };
 	}
 	const before = previousStatus || refund.status;
+	const refundAmount = Number(refund.amount) || 0;
+	const paidAmount = Number(payment.amount) || 0;
+	const alreadyRefunded = (payment.refunds || [])
+		.filter((entry) => entry !== refund && entry?.status === "succeeded")
+		.reduce((total, entry) => total + (Number(entry?.amount) || 0), 0);
 
 	// Un succès qui ferait dépasser le montant payé signale un DOUBLE
 	// remboursement (l'essai d'une tentative antérieure a été confirmé après
 	// coup) : on n'applique rien et on alerte — le client a peut-être reçu deux
 	// fois.
-	if (status === "succeeded") {
-		const alreadyRefunded = (payment.refunds || [])
-			.filter((entry) => entry !== refund && entry?.status === "succeeded")
-			.reduce((total, entry) => total + (Number(entry?.amount) || 0), 0);
-		if (alreadyRefunded + (Number(refund.amount) || 0) > (Number(payment.amount) || 0)) {
-			try {
-				await alert({
-					key: `anomaly:refund-double:${payment.paymentId}:${refund.orderId || refund.refundId}`,
-					message: `Un second remboursement (${refund.orderId || refund.refundId}, ${refund.amount} ${payment.currency || "XOF"}) est confirmé pour le paiement ${payment.paymentId} alors que ${alreadyRefunded} ${payment.currency || "XOF"} sont déjà versés. Le client a peut-être été remboursé DEUX FOIS — vérifiez le dashboard AfriBaPay avant toute action.`,
-					detail: `Succès ${refund.orderId || refund.refundId} non appliqué : total dépasserait le montant payé`,
-					data: {
-						paymentId: payment.paymentId,
-						refundId: refund.refundId,
-						orderId: refund.orderId,
-						amount: refund.amount,
-						alreadyRefunded,
-						currency: payment.currency,
-						source,
-					},
-				});
-			} catch (err) {
-				console.error(`[Refund] alerte double remboursement non envoyée: ${err.message}`);
-			}
-			return { refund, status: refund.status, notified: false, blocked: "double-refund" };
+	if (status === "succeeded" && alreadyRefunded + refundAmount > paidAmount) {
+		try {
+			await alert({
+				key: `anomaly:refund-double:${payment.paymentId}:${refund.orderId || refund.refundId}`,
+				message: `Un second remboursement (${refund.orderId || refund.refundId}, ${refundAmount} ${payment.currency || "XOF"}) est confirmé pour le paiement ${payment.paymentId} alors que ${alreadyRefunded} ${payment.currency || "XOF"} sont déjà versés. Le client a peut-être été remboursé DEUX FOIS — vérifiez le dashboard AfriBaPay avant toute action.`,
+				detail: `Succès ${refund.orderId || refund.refundId} non appliqué : total dépasserait le montant payé`,
+				data: {
+					paymentId: payment.paymentId,
+					refundId: refund.refundId,
+					orderId: refund.orderId,
+					amount: refundAmount,
+					alreadyRefunded,
+					currency: payment.currency,
+					source,
+				},
+			});
+		} catch (err) {
+			console.error(`[Refund] alerte double remboursement non envoyée: ${err.message}`);
 		}
+		return { refund, status: refund.status, notified: false, blocked: "double-refund" };
 	}
 
-	refund.status = status;
-	refund.processedAt = now();
-	refund.processorStatus = processorStatus || refund.processorStatus || null;
-	if (transactionId) refund.transactionId = transactionId;
-	if (orderId) refund.orderId = orderId;
-	if (status === "failed" || status === "ambiguous") {
-		refund.failureReason = reason ? redactSecrets(String(reason)) : null;
-	}
+	const processedAt = now();
+	const changes = {
+		refund: {
+			status,
+			processedAt,
+			processorStatus: processorStatus || refund.processorStatus || null,
+			...(transactionId ? { transactionId } : {}),
+			...(orderId ? { orderId } : {}),
+			...(["failed", "ambiguous"].includes(status)
+				? { failureReason: reason ? redactSecrets(String(reason)) : null }
+				: {}),
+		},
+	};
 
 	// Statut global : total réellement versé. Un échec ne rétrograde jamais un
 	// paiement déjà remboursé.
 	if (status === "succeeded") {
-		const totalRefunded = (payment.refunds || [])
-			.filter((entry) => entry?.status === "succeeded")
-			.reduce((total, entry) => total + (Number(entry?.amount) || 0), 0);
-		if (totalRefunded >= (Number(payment.amount) || 0)) {
-			payment.status = "refunded";
-			if (!payment.refundedAt) payment.refundedAt = now();
+		const paymentChanges = {};
+		if (alreadyRefunded + refundAmount >= paidAmount) {
+			paymentChanges.status = "refunded";
+			if (!payment.refundedAt) paymentChanges.refundedAt = processedAt;
 		} else if (payment.status !== "refunded") {
-			payment.status = "partially_refunded";
+			paymentChanges.status = "partially_refunded";
 		}
+		if (Object.keys(paymentChanges).length) changes.payment = paymentChanges;
 	}
 
-	await save();
+	await persistRefundChanges(payment, refund, changes, { save });
 
 	const notified = status === "succeeded" && before !== "succeeded";
 	if (notified) {
@@ -546,6 +643,10 @@ const requestAfribapayRefund = async (
 		now,
 	});
 
+	// Deux demandes simultanées ont pu passer la validation sur un document
+	// périmé : la seconde est annulée ici, avant tout envoi.
+	await verifyReservedAmount(payment, refund);
+
 	let result;
 	try {
 		result = await sendAttempt(payment, {
@@ -621,12 +722,17 @@ const retryRefundManually = async (
 	} = {},
 ) => {
 	const previous = (payment?.refunds || []).find((entry) => entry?.refundId === refundId);
-	if (!previous || !RETRYABLE_REFUND_STATUSES.includes(previous.status)) {
+	// Seul un essai AfriBaPay (avec numéro d'essai) se relance : un
+	// remboursement legacy PayPal/espèces n'a pas de destinataire mobile money.
+	if (!previous || previous.attempt == null || !RETRYABLE_REFUND_STATUSES.includes(previous.status)) {
 		throw refundError(
 			"refund_not_retryable",
 			`Remboursement ${previous?.status || "introuvable"} : relance interdite`,
 		);
 	}
+	// Le montant doit toujours être disponible (un autre remboursement a pu
+	// être versé entre-temps).
+	await assertRefundable(payment, previous.amount, { now });
 
 	await auditRefund(audit, {
 		payment,
@@ -652,6 +758,8 @@ const retryRefundManually = async (
 		adminId,
 		now,
 	});
+
+	await verifyReservedAmount(payment, refund);
 
 	let result;
 	try {
@@ -709,6 +817,8 @@ module.exports = {
 	assertRefundable,
 	nextRefundAttempt,
 	reserveRefundAttempt,
+	persistRefundChanges,
+	verifyReservedAmount,
 	buildRefundPayload,
 	mapRefundProcessorStatus,
 	classifyRefundSendFailure,
