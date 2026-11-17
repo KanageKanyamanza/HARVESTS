@@ -199,6 +199,8 @@ const notificationSchema = new mongoose.Schema({
       'quota_reached',
       'subscription_activated',
       'refund_requested',
+      // Jour 83 : remboursement mobile money réellement versé au client
+      'refund_sent',
       
       // Général
       'welcome',

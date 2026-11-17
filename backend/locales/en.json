@@ -242,6 +242,8 @@
     "completed": "Payment completed successfully",
     "failed": "Payment failed",
     "refunded": "Payment refunded",
+    "refund_failed": "The AfriBaPay refund failed and can be retried",
+    "refund_ambiguous": "Refund status uncertain: check the AfriBaPay dashboard before retrying",
     "cancelled": "Payment cancelled",
     "unsupported_method": "Unsupported payment method",
     "order_or_type_required": "An order ID or payment type is required",
@@ -353,7 +355,8 @@
       "payment_received_paypal": { "title": "PayPal payment confirmed", "message": "Your PayPal payment of {{amount}} has been confirmed." },
       "payment_received_cash": { "title": "Payment on delivery confirmed", "message": "Your payment on delivery of {{amount}} is confirmed." },
       "payout_processed": { "title": "Delivery fee received", "message": "You have received {{amount}} in delivery fees for order {{orderNumber}}" },
-      "payout_sent": { "title": "Payout sent", "message": "Your payout of {{amount}} has been sent to your mobile money account." }
+      "payout_sent": { "title": "Payout sent", "message": "Your payout of {{amount}} has been sent to your mobile money account." },
+      "refund_sent": { "title": "Refund sent", "message": "Your refund of {{amount}} has been sent to your mobile money account." }
     },
     "sent": "Notification sent",
     "marked_read": "Notification marked as read",

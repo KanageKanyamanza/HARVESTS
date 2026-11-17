@@ -38,8 +38,10 @@ const {
 	payoutOrderIdBelongsTo,
 	isSupersededPayoutOrderId,
 } = require("../../utils/payoutOrderId");
+const { isRefundOrderId } = require("../../utils/refundOrderId");
 const { redactSecrets } = require("../../utils/afribapayUtils");
 const payoutService = require("./paymentPayoutService");
+const refundWebhookService = require("./paymentRefundWebhookService");
 const payoutNotifications = require("../../utils/payoutNotifications");
 
 const SUCCESS_STATUSES = payoutService.PAYOUT_SUCCESS_STATUSES;
@@ -318,6 +320,23 @@ const handleAfribapayPayoutWebhook = async (req, res) => {
 		}
 
 		const { payoutOrderId, rawStatus } = identity;
+
+		// --- 2bis. Remboursements client (Jour 83) : AfriBaPay notifie les
+		// remboursements sur la MÊME URL que le payout (`refund-<paymentId>[-rN]`).
+		// Le service des remboursements prend le relais, avec son propre
+		// anti-replay — sinon un remboursement serait pris pour un reversement
+		// inconnu.
+		if (isRefundOrderId(payoutOrderId)) {
+			const refundData = body.data && typeof body.data === "object" ? body.data : body;
+			const outcome = await refundWebhookService.processRefundWebhook({
+				refundOrderId: payoutOrderId,
+				rawStatus,
+				data: refundData,
+				requestInfo: { source: "afribapay-payout-webhook", ip: req.ip },
+			});
+			return res.status(200).json({ message: outcome.message });
+		}
+
 		const replayKey = payoutWebhookReplayKey(payoutOrderId, rawStatus);
 		const isNewEvent = await WebhookEvent.claimEvent(replayKey).catch((err) => {
 			console.error("[Webhook Payout AfriBaPay] claim anti-replay en erreur:", err.message);

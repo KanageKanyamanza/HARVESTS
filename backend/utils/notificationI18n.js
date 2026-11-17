@@ -196,6 +196,13 @@ const CATALOG = {
 			return amount ? { amount } : null;
 		},
 	},
+	// Jour 83 : remboursement client mobile money, versé sur son téléphone.
+	refund_sent: {
+		params: ({ data, language }) => {
+			const amount = formatMoney(data?.amount, data?.currency, language);
+			return amount ? { amount } : null;
+		},
+	},
 };
 
 /** Types du catalogue, pour les tests. */

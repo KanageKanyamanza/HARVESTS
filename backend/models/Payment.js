@@ -197,9 +197,22 @@ const paymentSchema = new mongoose.Schema({
     amount: Number,
     reason: String,
     status: {
+      // `ambiguous` (Jour 83) : AfriBaPay n'a pas confirmé — l'argent a
+      // peut-être été versé, aucune relance avant vérification du dashboard.
       type: String,
-      enum: ['pending', 'succeeded', 'failed', 'cancelled']
+      enum: ['pending', 'succeeded', 'failed', 'cancelled', 'ambiguous']
     },
+    // Suivi de la tentative AfriBaPay (Jour 83) : un remboursement est un
+    // versement sur le téléphone du client, avec son propre order_id
+    // (`refund-<paymentId>[-rN]`) et sa confirmation par webhook.
+    attempt: Number,
+    orderId: String,
+    transactionId: String,
+    processorStatus: String,
+    operator: String,
+    phone: String,
+    country: String,
+    requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
     createdAt: {
       type: Date,
       default: Date.now
@@ -207,6 +220,15 @@ const paymentSchema = new mongoose.Schema({
     processedAt: Date,
     failureReason: String
   }],
+
+  // Compteur atomique des tentatives de remboursement (Jour 83) : incrémenté
+  // avant l'envoi pour qu'un order_id ne soit jamais réutilisé, même si deux
+  // administrateurs cliquent en même temps.
+  refundAttempt: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
   
   // Contestations
   disputes: [{
@@ -329,6 +351,16 @@ paymentSchema.virtual('totalRefunded').get(function() {
   return this.refunds
     .filter(refund => refund.status === 'succeeded')
     .reduce((total, refund) => total + refund.amount, 0);
+});
+
+// Montant déjà engagé (Jour 83) : un remboursement en cours ou incertain
+// réserve sa part — deux essais ne peuvent pas rembourser deux fois le même
+// argent. `failed`/`cancelled` libèrent la réservation.
+paymentSchema.virtual('reservedRefunded').get(function() {
+  const reserved = ['pending', 'ambiguous', 'succeeded'];
+  return this.refunds
+    .filter(refund => reserved.includes(refund.status))
+    .reduce((total, refund) => total + (Number(refund.amount) || 0), 0);
 });
 
 paymentSchema.virtual('canBeRefunded').get(function() {
