@@ -135,6 +135,9 @@ router.patch('/admin/refunds/:refundId/process', paymentController.processRefund
 // Statistiques des paiements
 router.get('/admin/stats', paymentController.getPaymentStats);
 
+// Coûts réels AfriBaPay (payin, payout, remboursements) par devise — Jour 84
+router.get('/admin/provider-costs', paymentController.getProviderCosts);
+
 // Réconciliation
 router.get('/admin/unreconciled', paymentController.getUnreconciledPayments);
 router.patch('/admin/:id/reconcile', paymentController.reconcilePayment);

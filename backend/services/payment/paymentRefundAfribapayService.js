@@ -23,6 +23,7 @@ const Notification = require("../../models/Notification");
 const { AFRIBAPAY_PAYOUT_URL, AFRIBAPAY_MERCHANT_KEY, isAfribapayConfigured } = require("../../config/afribapay");
 const { getAccessToken, ipv4Agent, withRetry, tagIfUnavailable } = require("../../utils/afribapayClient");
 const { parseAfribapayBody, redactSecrets, formatPhoneForAfribapay } = require("../../utils/afribapayUtils");
+const { capturedAfribapayCosts } = require("../../models/afribapayCosts");
 const { toAfribapayOperator } = require("../../utils/afribapayOperator");
 const { refundOrderIdFor } = require("../../utils/refundOrderId");
 const { payoutNotifyUrl, PAYOUT_SUCCESS_STATUSES, PAYOUT_FAILURE_STATUSES } = require("./paymentPayoutService");
@@ -148,7 +149,7 @@ const classifyRefundSendFailure = (error) => {
 /**
  * Envoie UNE tentative de remboursement. Le retry réseau (withRetry) rejoue le
  * même order_id : AfriBaPay déduplique, pas de double versement.
- * @returns {Promise<{orderId: string, status: string, processorStatus: string|null, transactionId: string|null, error: string|null, sentAt: Date}>}
+ * @returns {Promise<{orderId: string, status: string, processorStatus: string|null, transactionId: string|null, error: string|null, sentAt: Date, costs: object|null}>}
  */
 const sendRefund = async (payment, { amount, attempt = 1, operator, phone, country } = {}) => {
 	if (!isAfribapayConfigured()) throw refundError("afribapay_not_configured");
@@ -187,6 +188,8 @@ const sendRefund = async (payment, { amount, attempt = 1, operator, phone, count
 					? redactSecrets(String(data?.message || processorStatus || "refund_failed"))
 					: null,
 			sentAt,
+			// Coûts réels prélevés sur ce versement client (Jour 84).
+			costs: capturedAfribapayCosts(data, sentAt),
 		};
 	} catch (error) {
 		const { invalidateAfribapayTokenOn401 } = require("../../utils/afribapayTokenCache");
@@ -411,6 +414,8 @@ const persistPendingRefund = async (payment, { save, amount, reason, attempt, op
  * @param {string|null} [options.processorStatus]
  * @param {string|null} [options.reason]
  * @param {string} [options.source]
+ * @param {object|null} [options.costs] coûts réels AfriBaPay du versement
+ *   (Jour 84, horodatés) — jamais écrits s'ils manquent
  * @param {object} [deps]
  * @returns {Promise<{refund: object, status: string, notified: boolean}>}
  */
@@ -425,6 +430,7 @@ const finalizeRefundOutcome = async (
 		processorStatus = null,
 		reason = null,
 		source = "refund",
+		costs = null,
 	} = {},
 	deps = {},
 ) => {
@@ -486,6 +492,11 @@ const finalizeRefundOutcome = async (
 			...(orderId ? { orderId } : {}),
 			...(["failed", "ambiguous"].includes(status)
 				? { failureReason: reason ? redactSecrets(String(reason)) : null }
+				: {}),
+			// Coûts réels AfriBaPay (Jour 84) : conservés quand la réponse ou le
+			// webhook les fournit, sans écraser un coût déjà capturé.
+			...(costs
+				? { fees: { ...costs, capturedAt: costs.capturedAt || processedAt } }
 				: {}),
 		},
 	};
@@ -689,6 +700,7 @@ const requestAfribapayRefund = async (
 			processorStatus: result.processorStatus || null,
 			reason: result.error || null,
 			source: "refund",
+			costs: result.costs || null,
 		},
 		{ save, notifyClient, alert, audit, now },
 	);
@@ -801,6 +813,7 @@ const retryRefundManually = async (
 			processorStatus: result.processorStatus || null,
 			reason: result.error || null,
 			source: "manual-retry",
+			costs: result.costs || null,
 		},
 		{ save, notifyClient, alert, audit, now },
 	);

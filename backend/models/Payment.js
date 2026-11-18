@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { afribapayCostsSchema } = require('./afribapayCosts');
 
 // Schéma pour les paiements PayPal
 const paypalSchema = new mongoose.Schema({
@@ -29,7 +30,11 @@ const afribapaySchema = new mongoose.Schema({
   // aussi au back-office J85.
   failedReadCount: Number, // lectures FAILED/EXPIRED/REJECTED consécutives
   lastPolledAt: Date,      // dernière interrogation /status du payin
-  lastPollResult: String   // dernier statut brut renvoyé par /status
+  lastPollResult: String,  // dernier statut brut renvoyé par /status
+  // Coûts réels prélevés par AfriBaPay sur le payin (Jour 84) :
+  // { fees, taxes, total, capturedAt }. Absent tant qu'aucune confirmation
+  // n'en a fourni — ne jamais lire des zéros comme un coût mesuré.
+  fees: afribapayCostsSchema
 }, { _id: false });
 
 // Schéma pour le paiement à la livraison (cash on delivery)
@@ -212,6 +217,8 @@ const paymentSchema = new mongoose.Schema({
     operator: String,
     phone: String,
     country: String,
+    // Coûts réels du versement de remboursement (Jour 84).
+    fees: afribapayCostsSchema,
     requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
     createdAt: {
       type: Date,

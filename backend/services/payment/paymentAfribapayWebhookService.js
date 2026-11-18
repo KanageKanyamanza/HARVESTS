@@ -27,6 +27,7 @@ const WebhookEvent = require("../../models/WebhookEvent");
 const { AFRIBAPAY_API_KEY, AFRIBAPAY_WEBHOOK_SECRET } = require("../../config/afribapay");
 const { checkAfribapaySignature, SIGNATURE_HEADER } = require("../../utils/afribapaySignature");
 const { payinMismatch, redactSecrets } = require("../../utils/afribapayUtils");
+const { capturedAfribapayCosts } = require("../../models/afribapayCosts");
 const {
 	paymentIdFromPayinOrderId,
 	isSupersededPayinOrderId,
@@ -288,6 +289,10 @@ const applyAfribapayPayinOutcome = async ({
 	// validée par le claim anti-replay du webhook, ou par le verrou de polling).
 	if (decision.action === "apply-succeeded") {
 		const transactionId = data.transaction_id || null;
+		// Coûts réels prélevés par AfriBaPay sur ce payin (Jour 84) : lus dans
+		// le corps de confirmation (webhook J77 ou /status J78). Absents → on
+		// n'écrit rien (un coût inconnu n'est pas un coût nul).
+		const costs = capturedAfribapayCosts(data);
 		// Jamais `{ ...sous-document }` : Mongoose garderait les anciennes
 		// valeurs (utils/paymentDetails.js).
 		mergeAfribapayDetails(payment, {
@@ -298,6 +303,7 @@ const applyAfribapayPayinOutcome = async ({
 			// (isSupersededPayinOrderId).
 			payinConfirmedOrderId: payinOrderId,
 			failedReadCount: 0,
+			...(costs ? { fees: costs } : {}),
 		});
 		payment.webhooks.push({
 			eventType: "afribapay_confirmed",
@@ -307,6 +313,7 @@ const applyAfribapayPayinOutcome = async ({
 				processorStatus: upperStatus,
 				amount: data.amount_total ?? data.original_amount,
 				currency: data.currency,
+				fees: costs || undefined,
 			},
 		});
 		payment.attempts.push({ status: "succeeded" });

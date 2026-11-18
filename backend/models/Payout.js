@@ -6,6 +6,7 @@
 // (Jour 81), le webhook payout (Jour 82) et les frais réels (Jour 84)
 // rempliront attempts, afribapay et fees.
 const mongoose = require('mongoose');
+const { afribapayCostsSchema } = require('./afribapayCosts');
 const {
   PAYOUT_STATUSES,
   PAYOUT_SELLER_TYPES,
@@ -198,12 +199,10 @@ status: { type: String, enum: PAYOUT_STATUSES, default: 'pending' },
   attempts: [payoutAttemptSchema],
   afribapay: afribapaySchema,
 
-  // Frais réels AfriBaPay (Jour 84, extractAfribapayCosts)
-  fees: {
-    fees: { type: Number, default: 0 },
-    taxes: { type: Number, default: 0 },
-    total: { type: Number, default: 0 }
-  },
+  // Frais réels AfriBaPay (Jour 84, extractAfribapayCosts) : frais et taxes
+  // effectivement prélevés sur le reversement. `capturedAt` reste vide tant
+  // qu'aucune réponse ne les a fournis (défauts à 0 = non mesuré).
+  fees: { type: afribapayCostsSchema, default: () => ({}) },
 
   succeededAt: Date,
   failedAt: Date,

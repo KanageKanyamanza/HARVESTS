@@ -40,6 +40,7 @@ const {
 } = require("../../utils/payoutOrderId");
 const { isRefundOrderId } = require("../../utils/refundOrderId");
 const { redactSecrets } = require("../../utils/afribapayUtils");
+const { capturedAfribapayCosts } = require("../../models/afribapayCosts");
 const payoutService = require("./paymentPayoutService");
 const refundWebhookService = require("./paymentRefundWebhookService");
 const payoutNotifications = require("../../utils/payoutNotifications");
@@ -257,6 +258,8 @@ const applyPayoutWebhookOutcome = async ({
 			processorStatus: rawStatus,
 			reason: status === "failed" ? data.message || rawStatus : null,
 			source,
+			// Coûts réels du versement notifiés avec le résultat (Jour 84).
+			costs: capturedAfribapayCosts(data),
 		},
 		deps,
 	);

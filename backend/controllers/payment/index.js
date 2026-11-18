@@ -29,6 +29,7 @@ module.exports = {
   // Admin
   getAllPayments: paymentAdminController.getAllPayments,
   getPaymentStats: paymentAdminController.getPaymentStats,
+  getProviderCosts: paymentAdminController.getProviderCosts,
   getUnreconciledPayments: paymentAdminController.getUnreconciledPayments,
   reconcilePayment: paymentAdminController.reconcilePayment,
   

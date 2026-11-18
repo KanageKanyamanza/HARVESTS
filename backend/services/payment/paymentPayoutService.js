@@ -40,6 +40,7 @@ const { COUNTRIES, normalizeCountry, listOperatorsForCountry } = require("../../
 const { COUNTRY_NAME_TO_CODE, COUNTRY_CODE_TO_NAME } = require("../../utils/countryMapper");
 const { toAfribapayOperator } = require("../../utils/afribapayOperator");
 const { formatPhoneForAfribapay, parseAfribapayBody, redactSecrets } = require("../../utils/afribapayUtils");
+const { capturedAfribapayCosts } = require("../../models/afribapayCosts");
 const { getAccessToken, ipv4Agent, withRetry } = require("../../utils/afribapayClient");
 const { invalidateAfribapayTokenOn401 } = require("../../utils/afribapayTokenCache");
 const { payoutOrderIdFor, payoutAttemptNumber } = require("../../utils/payoutOrderId");
@@ -405,7 +406,7 @@ const claimPayout = (payoutId, { statuses = ["pending", "network_issue"], attemp
  *    nouvel order_id.
  * @param {object} payout
  * @param {{ token: string, attempt?: number }} params
- * @returns {Promise<{ orderId: string, status: string, processorStatus: string|null, transactionId: string|null, error: string|null, sentAt: Date }>}
+ * @returns {Promise<{ orderId: string, status: string, processorStatus: string|null, transactionId: string|null, error: string|null, sentAt: Date, costs: object|null }>}
  */
 const sendPayout = async (payout, { token, attempt = 1 } = {}) => {
 	if (!isAfribapayConfigured()) throw new PayoutError("afribapay_not_configured");
@@ -443,6 +444,9 @@ const sendPayout = async (payout, { token, attempt = 1 } = {}) => {
 			transactionId,
 			error: status === "failed" ? redactSecrets(String(data?.message || processorStatus || "payout_failed")) : null,
 			sentAt,
+			// Coûts réels prélevés sur ce versement (Jour 84), lus dans la
+			// réponse d'envoi ; null si AfriBaPay n'en fournit pas.
+			costs: capturedAfribapayCosts(data, sentAt),
 		};
 	} catch (error) {
 		invalidateAfribapayTokenOn401(error);
@@ -616,6 +620,11 @@ const executePayout = async (
 		processorStatus: record.processorStatus,
 		lastPollResult: record.processorStatus,
 	});
+	// Coûts réels du versement (Jour 84) : conservés tels quels pour le
+	// back-office. Un envoi sans coût ne fabrique rien.
+	if (result.costs) {
+		payout.fees = { ...result.costs, capturedAt: result.costs.capturedAt || new Date() };
+	}
 
 	payout.status = record.status;
 	if (record.status === "succeeded") payout.succeededAt = new Date();
@@ -686,6 +695,8 @@ const setPayoutOrderStates = async (payout, state) => {
  * @param {string|null} [options.processorStatus] statut brut AfriBaPay
  * @param {string|null} [options.reason] motif d'échec (expurgé avant écriture)
  * @param {string} [options.source] origine (webhook, manual-retry, send…)
+ * @param {object|null} [options.costs] coûts réels AfriBaPay de ce résultat
+ *   (Jour 84, { fees, taxes, total } horodaté) — jamais écrits s'ils manquent
  * @param {object} [deps] effets injectables (save, notifySeller, alert,
  *   setOrderStates, audit) — les tests n'ouvrent ni base ni réseau
  * @returns {Promise<{ payout: object, status: string, notified: boolean }>}
@@ -700,6 +711,7 @@ const finalizePayoutOutcome = async (
 		processorStatus = null,
 		reason = null,
 		source = "system",
+		costs = null,
 	} = {},
 	deps = {},
 ) => {
@@ -734,6 +746,13 @@ const finalizePayoutOutcome = async (
 	payout.afribapay.processorStatus = upper || payout.afribapay.processorStatus || null;
 	payout.afribapay.lastPolledAt = new Date();
 	payout.afribapay.lastPollResult = upper || null;
+
+	// Coûts réels AfriBaPay (Jour 84) : lus dans le corps de notification
+	// quand il en porte. Un message sans coût ne remplace pas un coût déjà
+	// capturé à l'envoi.
+	if (costs) {
+		payout.fees = { ...costs, capturedAt: costs.capturedAt || new Date() };
+	}
 
 	// La tentative concernée est retrouvée par son order_id (une relance a le
 	// sien) ; si elle n'est pas tracée, elle est ajoutée pour l'audit.
@@ -830,6 +849,7 @@ const finalizePayoutOutcome = async (
 					payoutStatus: status,
 					processorStatus: upper || undefined,
 					source,
+					fees: costs || undefined,
 				},
 			});
 		} catch (err) {

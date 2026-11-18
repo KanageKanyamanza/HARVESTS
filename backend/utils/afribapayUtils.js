@@ -128,6 +128,70 @@ const payinMismatch = (payment, payload) => {
 	return issues.length ? issues.join(", ") : null;
 };
 
+/**
+ * Montant AfriBaPay → nombre exploitable, ou null. Les réponses passent parfois
+ * par un dump PHP (valeurs en chaîne), avec espaces de milliers et virgule
+ * décimale. Une valeur négative ou illisible est ignorée : un coût ne se
+ * devine pas.
+ * @param {*} value
+ * @returns {number|null}
+ */
+const toXofAmount = (value) => {
+	if (value === null || value === undefined || value === "") return null;
+	const raw = typeof value === "number" ? value : Number(String(value).replace(/\s/g, "").replace(",", "."));
+	if (!Number.isFinite(raw) || raw < 0) return null;
+	return Math.round(raw * 100) / 100;
+};
+
+/**
+ * Coûts réels d'une transaction AfriBaPay (Jour 84) : `fees` et `taxes`
+ * prélevés, `fees_taxes_ttc` étant le total effectivement débité du compte
+ * marchand. Accepte la charge utile à plat, sous `.data`, `.data.data`, ou en
+ * chaîne (dump debug PHP devant le JSON — voir parseAfribapayBody).
+ *
+ * Renvoie `null` quand AfriBaPay ne fournit aucun coût : le back-office doit
+ * distinguer « coût inconnu » d'un coût réellement nul (mêmes garanties que
+ * payinMismatch sur des montants absents).
+ *
+ * @param {object|string} payload corps AfriBaPay (réponse d'envoi, webhook, /status)
+ * @returns {{fees: number, taxes: number, total: number}|null}
+ */
+const extractAfribapayCosts = (payload) => {
+	const parsed = typeof payload === "string" ? parseAfribapayBody(payload) : payload;
+	if (!parsed || typeof parsed !== "object") return null;
+
+	// Enveloppes successives : corps à plat, .data, .data.data (selon les
+	// endpoints) — la première qui porte un champ de coût fait foi.
+	const candidates = [parsed];
+	let node = parsed.data;
+	while (node && typeof node === "object") {
+		candidates.push(node);
+		node = node.data;
+	}
+
+	for (const candidate of candidates) {
+		if (!("fees" in candidate) && !("taxes" in candidate) && !("fees_taxes_ttc" in candidate)) {
+			continue;
+		}
+		const fees = toXofAmount(candidate.fees);
+		const taxes = toXofAmount(candidate.taxes);
+		const declaredTotal = toXofAmount(candidate.fees_taxes_ttc);
+		if (fees === null && taxes === null && declaredTotal === null) continue;
+
+		const safeFees = fees ?? 0;
+		const safeTaxes = taxes ?? 0;
+		return {
+			fees: safeFees,
+			taxes: safeTaxes,
+			// Un total déclaré à 0 vaut « non fourni » : la somme des composants
+			// est alors la seule information fiable.
+			total: declaredTotal ? declaredTotal : Math.round((safeFees + safeTaxes) * 100) / 100,
+		};
+	}
+
+	return null;
+};
+
 // Variables d'environnement dont la valeur ne doit jamais apparaître dans un log.
 const SECRET_ENV_KEYS = [
 	"AFRIBAPAY_MERCHANT_KEY",
@@ -168,5 +232,6 @@ module.exports = {
 	formatPhoneForAfribapay,
 	parseAfribapayBody,
 	payinMismatch,
+	extractAfribapayCosts,
 	redactSecrets,
 };
