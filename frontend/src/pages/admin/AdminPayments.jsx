@@ -9,6 +9,7 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	CreditCard,
+	ChevronDown,
 	Landmark,
 	RefreshCw,
 	RotateCcw,
@@ -61,6 +62,7 @@ const AdminPayments = () => {
 	const [payouts, setPayouts] = useState([]);
 	const [currencies, setCurrencies] = useState({});
 	const [floatBalances, setFloatBalances] = useState({});
+	const [floatOpen, setFloatOpen] = useState(false);
 	const [pagination, setPagination] = useState({ page: 1, total: 0, totalPages: 1 });
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
@@ -151,21 +153,38 @@ const AdminPayments = () => {
 				</p>
 			</div>
 
-			{/* Soldes de float AfriBaPay par pays (Jour 85). */}
+			{/* Soldes de float AfriBaPay par pays (Jour 85) — repliés par défaut. */}
 			{Object.keys(floatBalances).length > 0 && (
-				<section className="mb-5 grid gap-3 md:grid-cols-3">
-					{Object.entries(floatBalances).map(([country, balance]) => (
-						<div key={country} className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
-							<div className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-								Float {country}
-							</div>
-							<div className="mt-1 text-sm font-black text-gray-800">
-								{balance?.error
-									? "Indisponible"
-									: `${new Intl.NumberFormat("fr-FR").format(balance?.available || 0)} ${balance?.currency || ""}`}
-							</div>
+				<section className="mb-5 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+					<button
+						type="button"
+						onClick={() => setFloatOpen((value) => !value)}
+						aria-expanded={floatOpen}
+						className="flex w-full items-center justify-between text-left"
+					>
+						<span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+							Soldes de float par pays ({Object.keys(floatBalances).length})
+						</span>
+						<ChevronDown
+							className={`h-4 w-4 text-gray-400 transition-transform ${floatOpen ? "rotate-180" : ""}`}
+						/>
+					</button>
+					{floatOpen && (
+						<div className="mt-3 grid gap-3 md:grid-cols-3">
+							{Object.entries(floatBalances).map(([country, balance]) => (
+								<div key={country} className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+									<div className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+										Float {country}
+									</div>
+									<div className="mt-1 text-sm font-black text-gray-800">
+										{balance?.error
+											? "Indisponible"
+											: `${new Intl.NumberFormat("fr-FR").format(balance?.available || 0)} ${balance?.currency || ""}`}
+									</div>
+								</div>
+							))}
 						</div>
-					))}
+					)}
 				</section>
 			)}
 
