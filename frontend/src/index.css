@@ -479,4 +479,37 @@
 		backdrop-filter: blur(8px);
 		border: 1px solid rgba(255, 255, 255, 0.5);
 	}
+
+	/* Lisibilité des tableaux de bord (retour utilisateur 19/11/2026) :
+	   textes secondaires trop clairs et trop petits. La sélectivité
+	   `.dashboard-page .text-*` (0,2,0) bat les utilitaires Tailwind (0,1,0),
+	   mais les variantes `hover:*` (0,2,0, plus tard) gardent la priorité au
+	   survol. Aucun composant n'est modifié. */
+	.dashboard-page .text-gray-200,
+	.dashboard-page .text-gray-300 { color: #4b5563; }
+	.dashboard-page .text-gray-400 { color: #485463; }
+	.dashboard-page .text-gray-500 { color: #374151; }
+	.dashboard-page .text-gray-600 { color: #1f2937; }
+
+	.dashboard-page ::placeholder { color: #4b5563; opacity: 1; }
+
+	/* Pastilles de statut : un texte 600 sur fond 50 était sous 4,5:1. */
+	.dashboard-page .text-emerald-600 { color: #047857; }
+	.dashboard-page .text-green-600 { color: #2e7d32; }
+	.dashboard-page .text-blue-600 { color: #1d4ed8; }
+	.dashboard-page .text-sky-600 { color: #0369a1; }
+	.dashboard-page .text-indigo-600 { color: #4338ca; }
+	.dashboard-page .text-purple-600 { color: #7e22ce; }
+	.dashboard-page .text-rose-600 { color: #be123c; }
+	.dashboard-page .text-red-600 { color: #b91c1c; }
+	.dashboard-page .text-amber-600 { color: #b45309; }
+	.dashboard-page .text-orange-600 { color: #c2410c; }
+	.dashboard-page .text-teal-600 { color: #0f766e; }
+
+	/* Plancher de taille : 7/8/9/10/11px => 9/10/11/11/12px. */
+	.dashboard-page .text-\[7px\] { font-size: 9px; }
+	.dashboard-page .text-\[8px\] { font-size: 10px; }
+	.dashboard-page .text-\[9px\],
+	.dashboard-page .text-\[10px\] { font-size: 11px; }
+	.dashboard-page .text-\[11px\] { font-size: 12px; }
 }
