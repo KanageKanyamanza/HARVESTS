@@ -525,3 +525,10 @@
 	.dashboard-page .blur-\[120px\],
 	.dashboard-page .blur-\[140px\] { display: none; }
 }
+
+/* Rayon de coin unique sur le site : 16px (rounded-2xl, référence = cartes
+   d'accueil). Les boutons conservent leur forme ; les pastilles/cercles
+   `rounded-full` et les coins partiels (rounded-t/b/l/r) ne sont pas touchés. */
+[class*="rounded-"]:not(button):not(.btn):not([role="button"]):not([class*="rounded-full"]):not([class*="rounded-t"]):not([class*="rounded-b"]):not([class*="rounded-l"]):not([class*="rounded-r"]):not([class*="rounded-none"]) {
+	border-radius: 16px;
+}
