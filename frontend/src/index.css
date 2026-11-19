@@ -512,4 +512,16 @@
 	.dashboard-page .text-\[9px\],
 	.dashboard-page .text-\[10px\] { font-size: 11px; }
 	.dashboard-page .text-\[11px\] { font-size: 12px; }
+
+	/* Fonds des dashboards : blanc cassé neutre. On retire les lueurs
+	   décoratives (blur 40–140px) qui teintaient le côté gauche en vert/bleu ;
+	   les cartes restent blanches, le contraste des textes est conservé. */
+	.dashboard-page { background-color: #f7f8f6; }
+
+	.dashboard-page .blur-\[40px\],
+	.dashboard-page .blur-\[60px\],
+	.dashboard-page .blur-\[90px\],
+	.dashboard-page .blur-\[100px\],
+	.dashboard-page .blur-\[120px\],
+	.dashboard-page .blur-\[140px\] { display: none; }
 }
