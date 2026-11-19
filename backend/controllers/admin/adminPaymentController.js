@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const Payment = require('../../models/Payment');
 const AppError = require('../../utils/appError');
 const refundService = require('../../services/payment/paymentRefundAfribapayService');
+const paymentAdminService = require('../../services/payment/paymentAdminService');
 
 // Statut HTTP associé à chaque refus métier du remboursement.
 const REFUND_ERROR_STATUS = {
@@ -18,11 +19,22 @@ const REFUND_ERROR_STATUS = {
 // @route   GET /api/v1/admin/payments
 // @access  Admin
 exports.getAllPayments = catchAsync(async (req, res, next) => {
-  res.status(200).json({
-    status: 'success',
-    message: req.t('admin.feature_in_development'),
-    data: { payments: [] }
-  });
+  try {
+    const result = await paymentAdminService.getAllPayments(req.query);
+
+    res.status(200).json({
+      status: 'success',
+      results: result.payments.length,
+      total: result.total,
+      page: result.page,
+      totalPages: result.totalPages,
+      data: {
+        payments: result.payments
+      }
+    });
+  } catch (error) {
+    return next(AppError.from(error, 400));
+  }
 });
 
 // @desc    Obtenir un paiement par ID
