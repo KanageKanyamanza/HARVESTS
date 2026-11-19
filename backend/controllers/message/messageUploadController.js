@@ -23,7 +23,7 @@ const multerFilter = (req, file, cb) => {
 	if (allowedTypes.includes(file.mimetype)) {
 		cb(null, true);
 	} else {
-		cb(new AppError("Type de fichier non autorisé", 400), false);
+		cb(new AppError("message.file_type_not_allowed", 400), false);
 	}
 };
 
@@ -92,6 +92,6 @@ exports.processAttachments = catchAsync(async (req, res, next) => {
 		req.body.attachments = uploadedAttachments;
 		next();
 	} catch (error) {
-		return next(new AppError("Erreur lors de l'upload des fichiers", 500));
+		return next(new AppError("message.upload_failed", 500));
 	}
 });

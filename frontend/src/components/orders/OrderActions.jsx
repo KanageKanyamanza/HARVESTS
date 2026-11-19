@@ -4,7 +4,7 @@ import { FiTruck, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 
 const OrderActions = ({
   displayedStatus, order, updating,
-  cancelOrder, prepareOrder, readyOrder, deliverOrder, completeOrder, updateOrderStatus,
+  cancelOrder, cancelAsBuyer, prepareOrder, readyOrder, deliverOrder, completeOrder, updateOrderStatus,
   isSellerView, isTransporterView, isAdmin, isBuyerView
 }) => {
   const { t } = useTranslation('common');
@@ -34,6 +34,10 @@ const OrderActions = ({
       {/* BUYER ACTIONS */}
       {isBuyerView && (
         <>
+          {/* Mêmes statuts que Order.canBeCancelled côté serveur */}
+          {(displayedStatus === 'pending' || displayedStatus === 'confirmed') && (
+            <ActionButton onClick={cancelAsBuyer} disabled={updating} color="red" icon={FiXCircle} text={updating ? t('orders.actions.cancelling') : t('orders.actions.cancelOrder')} />
+          )}
           {(displayedStatus === 'ready-for-pickup' || displayedStatus === 'in-transit') && (
             <ActionButton onClick={deliverOrder} disabled={updating} color="blue" icon={FiCheckCircle} text={updating ? t('orders.actions.validating') : t('orders.actions.confirmReceipt')} />
           )}

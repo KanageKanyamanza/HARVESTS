@@ -92,7 +92,8 @@ async function rejectProduct(productId, reason) {
         message: `Votre produit "${localizedName}" a été rejeté. Raison : ${reason}`,
         data: {
           productId: product._id,
-          productName: localizedName
+          productName: localizedName,
+          reason
         },
         channels: {
           inApp: { enabled: true },

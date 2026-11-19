@@ -18,21 +18,19 @@ export const SocketProvider = ({ children }) => {
 	const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 	const SOCKET_URL = new URL(API_URL).origin;
 
+	// Une mise à jour du profil crée un nouvel objet `user` : seul le changement
+	// de compte doit rouvrir la connexion, sinon les messages émis entre-temps sont perdus.
+	const userId = user?._id || user?.id;
+
 	useEffect(() => {
 		let newSocket;
 
-		if (isAuthenticated && user) {
-			// Récupérer le token du localStorage comme backup si non dispo dans le contexte immédiat
-			const token = localStorage.getItem("harvests_token");
-
-			if (token) {
+		if (isAuthenticated && userId) {
+			if (localStorage.getItem("harvests_token")) {
 				newSocket = io(SOCKET_URL, {
-					auth: {
-						token: token,
-					},
-					query: {
-						token: token,
-					},
+					// Relu à chaque tentative : le jeton d'accès (15 min) a pu être renouvelé
+					// depuis l'ouverture. Hors de l'URL pour ne pas finir dans les journaux.
+					auth: (cb) => cb({ token: localStorage.getItem("harvests_token") }),
 					// Options de reconnexion
 					reconnection: true,
 					reconnectionAttempts: 10,
@@ -63,7 +61,7 @@ export const SocketProvider = ({ children }) => {
 				newSocket.disconnect();
 			}
 		};
-	}, [isAuthenticated, user, SOCKET_URL]);
+	}, [isAuthenticated, userId, SOCKET_URL]);
 
 	const value = {
 		socket,

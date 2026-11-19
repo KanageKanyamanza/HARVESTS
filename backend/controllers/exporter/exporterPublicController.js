@@ -100,7 +100,7 @@ exports.getExporter = catchAsync(async (req, res, next) => {
   });
 
   if (!exporter) {
-    return next(new AppError('Exportateur non trouvé', 404));
+    return next(new AppError('exporter.not_found', 404));
   }
 
   res.status(200).json({

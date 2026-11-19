@@ -13,6 +13,7 @@ import {
 } from "../../../utils/bilingualField";
 import { deriveShortDescription } from "../../../utils/textHelpers";
 import { useBilingualSourceLang } from "../../../hooks/useBilingualSourceLang";
+import { getDishImageError, uploadDishImage } from "../../../utils/dishImageUpload";
 
 // Champs saisis dans la langue de l'interface ; <champ>Alt = l'autre langue
 const BILINGUAL_FIELDS = ["name", "description"];
@@ -50,6 +51,7 @@ const AddDish = () => {
 
 	const [loading, setLoading] = useState(false);
 	const [imagePreview, setImagePreview] = useState("");
+	const [uploadingImage, setUploadingImage] = useState(false);
 
 	const handleChange = (event) => {
 		const { name, value, type } = event.target;
@@ -74,27 +76,30 @@ const AddDish = () => {
 		}));
 	};
 
-	const handleImageSelect = (event) => {
-		const file = event.target.files?.[0];
+	const handleImageSelect = async (event) => {
+		const input = event.target;
+		const file = input.files?.[0];
 		if (!file) return;
 
-		if (!file.type.startsWith("image/")) {
-			showError(t("form.invalidImage"));
+		const imageError = getDishImageError(file);
+		if (imageError) {
+			showError(t(imageError));
+			input.value = "";
 			return;
 		}
 
-		const reader = new FileReader();
-		reader.onload = (loadEvent) => {
-			const base64 = loadEvent.target?.result;
-			if (typeof base64 === "string") {
-				setFormData((prev) => ({
-					...prev,
-					image: base64,
-				}));
-				setImagePreview(base64);
-			}
-		};
-		reader.readAsDataURL(file);
+		setUploadingImage(true);
+		try {
+			const url = await uploadDishImage(file);
+			setFormData((prev) => ({ ...prev, image: url }));
+			setImagePreview(url);
+		} catch (error) {
+			console.error("Erreur lors de l'envoi de la photo du plat :", error);
+			showError(t("form.imageUploadError"));
+			input.value = "";
+		} finally {
+			setUploadingImage(false);
+		}
 	};
 
 	const removeImage = () => {
@@ -281,12 +286,13 @@ const AddDish = () => {
 								<div className="flex flex-col sm:flex-row sm:items-center gap-4">
 									<label className="flex items-center justify-center px-4 py-4 border-2 border-dashed border-gray-200 rounded-2xl cursor-pointer hover:border-orange-400 hover:bg-orange-50/40 transition-colors">
 										<FiUpload className="h-5 w-5 text-gray-400 mr-2" />
-										<span className="text-sm text-gray-600">{t("form.selectImage")}</span>
+										<span className="text-sm text-gray-600">{uploadingImage ? t("form.imageUploading") : t("form.selectImage")}</span>
 										<input
 											ref={fileInputRef}
 											type="file"
 											accept="image/*"
 											onChange={handleImageSelect}
+											disabled={uploadingImage}
 											className="hidden"
 										/>
 									</label>
@@ -418,7 +424,7 @@ const AddDish = () => {
 						<div className="flex flex-col gap-3">
 							<button
 								type="submit"
-								disabled={loading}
+								disabled={loading || uploadingImage}
 								className="inline-flex items-center justify-center px-6 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest text-white bg-gray-900 hover:bg-orange-600 transition-all shadow-sm disabled:opacity-50"
 							>
 								<FiSave className="h-4 w-4 mr-2" />

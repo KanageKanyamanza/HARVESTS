@@ -3,6 +3,7 @@ const {
   ensureSegmentsForOrder,
   updateOrderStatusFromSegments
 } = require('../../utils/orderSegments');
+const { getCommissionRate } = require('../../config/payout');
 
 // Méthodes du schéma
 function addOrderMethods(orderSchema) {
@@ -127,7 +128,9 @@ function addOrderMethods(orderSchema) {
   };
 
   orderSchema.methods.calculateFees = function() {
-    const platformFeeRate = 0.05; // 5% de commission
+    // Commission plateforme (7,5 % par défaut) : source unique config/payout.js,
+    // lue à chaque appel (HARVESTS_COMMISSION_RATE), comme les reversements vendeurs
+    const platformFeeRate = getCommissionRate();
     const paymentFeeRate = 0.025; // 2.5% de frais de paiement
     
     const platformFee = this.subtotal * platformFeeRate;
@@ -162,31 +165,6 @@ function addOrderMethods(orderSchema) {
         }
         
         product.reserveStock(item.quantity, item.variant);
-        await product.save();
-      }
-    }
-  };
-
-  orderSchema.methods.releaseStock = async function() {
-    const Product = mongoose.model('Product');
-    
-    for (const item of this.items) {
-      const product = await Product.findById(item.product);
-      if (product) {
-        // S'assurer que le produit a le champ userType défini
-        if (!product.userType) {
-          // Déterminer le userType basé sur les champs existants
-          if (product.producer) {
-            product.userType = 'producer';
-          } else if (product.transformer) {
-            product.userType = 'transformer';
-          } else {
-            // Fallback - essayer de déterminer depuis le vendeur de la commande
-            product.userType = 'producer'; // Valeur par défaut
-          }
-        }
-        
-        product.releaseStock(item.quantity, item.variant);
         await product.save();
       }
     }

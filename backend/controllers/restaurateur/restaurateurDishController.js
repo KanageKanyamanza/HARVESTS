@@ -43,7 +43,7 @@ exports.addDish = catchAsync(async (req, res, next) => {
     const product = await restaurateurDishService.addDish(req.user.id, req.body);
     res.status(201).json({
       status: 'success',
-      message: 'Plat soumis pour validation',
+      message: req.t('product.dish_submitted'),
       data: { dish: product }
     });
   } catch (error) {
@@ -57,7 +57,7 @@ exports.updateDish = catchAsync(async (req, res, next) => {
     const { product, requiresReview } = await restaurateurDishService.updateDish(req.params.dishId, req.user.id, req.body);
     res.status(200).json({
       status: 'success',
-      message: requiresReview ? 'Plat mis à jour. Une nouvelle validation est nécessaire.' : 'Plat mis à jour avec succès',
+      message: req.t(requiresReview ? 'product.dish_updated_review' : 'product.dish_updated'),
       data: { dish: product }
     });
   } catch (error) {
@@ -71,7 +71,7 @@ exports.deleteDish = catchAsync(async (req, res, next) => {
     await restaurateurDishService.deleteDish(req.params.dishId, req.user.id);
     res.status(200).json({
       status: 'success',
-      message: 'Plat supprimé avec succès'
+      message: req.t('product.dish_deleted')
     });
   } catch (error) {
     return next(AppError.from(error, 404));

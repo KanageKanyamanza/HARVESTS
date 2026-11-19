@@ -303,12 +303,19 @@ async function getAllProducts(queryParams = {}, userLocation = null, isTestView 
     isLocalPrioritized = true;
     
     // Requête pour les produits locaux
+    // Dans $and : un $or direct écraserait celui de la recherche textuelle, et tous
+    // les produits locaux remonteraient quel que soit le mot cherché.
     const localQueryObj = {
       ...queryObj,
-      $or: [
-        { producer: { $in: localVendorIds } },
-        { transformer: { $in: localVendorIds } },
-        { restaurateur: { $in: localVendorIds } }
+      $and: [
+        ...(queryObj.$and || []),
+        {
+          $or: [
+            { producer: { $in: localVendorIds } },
+            { transformer: { $in: localVendorIds } },
+            { restaurateur: { $in: localVendorIds } }
+          ]
+        }
       ]
     };
 

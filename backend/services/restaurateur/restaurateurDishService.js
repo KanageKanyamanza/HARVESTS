@@ -2,6 +2,7 @@ const Product = require("../../models/Product");
 const Restaurateur = require("../../models/Restaurateur");
 const { toPlainText } = require("../../utils/localization");
 const { stripProtectedFields } = require("../../utils/vendorProductGuard");
+const { assertProductLimit } = require("../../utils/subscriptionLimits");
 const { testAccountScope, testProductsViewerFilter } = require("../../utils/testAccounts");
 
 /**
@@ -10,30 +11,7 @@ const { testAccountScope, testProductsViewerFilter } = require("../../utils/test
 
 async function addDish(restaurateurId, dishData) {
 	// Vérifier les limites de produits selon le plan
-	const mongoose = require("mongoose");
-	const Subscription = mongoose.model("Subscription");
-	const activeSubscription = await Subscription.findOne({
-		user: restaurateurId,
-		status: "active",
-	});
-
-	const plans = Subscription.getAvailablePlans();
-	const currentPlan =
-		activeSubscription ? plans[activeSubscription.planId] : plans.gratuit;
-
-	const productCount = await Product.countDocuments({
-		restaurateur: restaurateurId,
-		status: { $ne: "inactive" },
-	});
-
-	if (
-		currentPlan.features.maxProducts !== -1 &&
-		productCount >= currentPlan.features.maxProducts
-	) {
-		throw new Error(
-			`Limite de produits atteinte pour votre plan ${currentPlan.name} (${currentPlan.features.maxProducts} produits max).`,
-		);
-	}
+	await assertProductLimit("restaurateur", restaurateurId);
 
 	const {
 		name,

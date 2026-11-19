@@ -16,7 +16,10 @@ const orderItemSchema = new mongoose.Schema({
 		ref: "User",
 	},
 	productSnapshot: {
-		name: String,
+		// Jour 72 : le nom est conservé dans ses deux langues ({ fr, en })
+		// pour que le vendeur le voie dans la langue de son interface, comme
+		// le client. Les commandes antérieures contiennent une chaîne simple.
+		name: mongoose.Schema.Types.Mixed,
 		description: String,
 		unit: String,
 		images: [String],
@@ -152,6 +155,11 @@ const orderSegmentSchema = new mongoose.Schema(
 			type: Number,
 			default: 0,
 		},
+		// Solde du stock déjà effectué pour ce segment (voir orderStock.js)
+		stockState: {
+			type: String,
+			enum: ["committed", "released"],
+		},
 		items: [orderItemSchema],
 		history: [segmentHistorySchema],
 	},
@@ -195,25 +203,36 @@ const deliveryAddressSchema = new mongoose.Schema({
 const paymentSchema = new mongoose.Schema({
 	method: {
 		type: String,
-		enum: ["cash", "paypal"],
+		enum: ["cash", "paypal", "mobile_money"],
 		required: [true, "validation.payment_method_required"],
 	},
 	provider: {
 		type: String,
-		enum: ["cash-on-delivery", "paypal"],
+		enum: ["cash-on-delivery", "paypal", "afribapay"],
 		default: function () {
-			return this.method === "cash" ? "cash-on-delivery" : "paypal";
+			if (this.method === "cash") return "cash-on-delivery";
+			if (this.method === "mobile_money") return "afribapay";
+			return "paypal";
 		},
 	},
 	status: {
 		type: String,
+		// Jour 79 : ces valeurs reflètent celles du modèle Payment. Le post-save
+		// de Payment recopie `succeeded` sur la commande — sans lui, la mise à
+		// jour était rejetée silencieusement et la caisse mobile money croyait
+		// encore le paiement en attente après confirmation.
 		enum: [
 			"pending",
 			"processing",
+			"requires_action",
+			"succeeded",
 			"completed",
 			"failed",
-			"refunded",
 			"cancelled",
+			"refunded",
+			"partially_refunded",
+			"disputed",
+			"expired",
 		],
 		default: "pending",
 	},
@@ -308,6 +327,24 @@ const deliverySchema = new mongoose.Schema({
 // Schéma principal de la commande
 const orderSchema = new mongoose.Schema(
 	{
+		// Solde du stock déjà effectué, pour une commande sans segment (voir orderStock.js)
+		stockState: {
+			type: String,
+			enum: ["committed", "released"],
+		},
+
+		// Avancement du reversement vendeur (Jour 81). Évite de relire toutes
+		// les commandes livrées et payées à chaque recherche de vendeurs
+		// payables : pending = à reverser, scheduled = Payout en cours,
+		// paid = vendeur crédité, failed = échec définitif (relance manuelle
+		// Jour 85). Les commandes antérieures au Jour 81 n'ont pas de marqueur :
+		// elles sont traitées comme « pending » (repli legacy).
+		payoutState: {
+			type: String,
+			enum: ["pending", "scheduled", "paid", "failed"],
+			default: "pending",
+		},
+
 		// Numéro de commande unique
 		orderNumber: {
 			type: String,

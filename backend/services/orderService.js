@@ -106,10 +106,13 @@ async function processOrderItems(items) {
 			unit: weightData?.unit || product.shipping?.weightUnit || "kg",
 		};
 
-		const productName = toPlainText(
-			product.name,
-			product.slug || product._id?.toString() || "Produit",
-		);
+		const productName =
+			product.name && typeof product.name === "object" ?
+				product.name
+			:	toPlainText(
+					product.name,
+					product.slug || product._id?.toString() || "Produit",
+				);
 		const productDescription =
 			toPlainText(product.shortDescription) ||
 			toPlainText(product.description) ||
@@ -400,7 +403,7 @@ async function createOrder(orderData, user) {
 			// Identifier les produits concernés dans le panier
 			const affectedProducts = processedItems
 				.filter((item) => item.seller.toString() === sellerId.toString())
-				.map((item) => item.productSnapshot.name);
+				.map((item) => toPlainText(item.productSnapshot.name, "Produit"));
 
 			const productsList = affectedProducts.join(", ");
 
@@ -410,12 +413,16 @@ async function createOrder(orderData, user) {
 
 	const isSingleSellerOrder = uniqueSellerIds.length === 1;
 	const normalizedPaymentMethod =
-		["paypal", "cash"].includes((orderData.paymentMethod || "").toLowerCase()) ?
+		["paypal", "cash", "mobile_money"].includes(
+			(orderData.paymentMethod || "").toLowerCase(),
+		) ?
 			(orderData.paymentMethod || "").toLowerCase()
 		:	"cash";
 	const normalizedPaymentProvider =
 		orderData.paymentProvider ||
-		(normalizedPaymentMethod === "paypal" ? "paypal" : "cash-on-delivery");
+		(normalizedPaymentMethod === "paypal" ? "paypal"
+		: normalizedPaymentMethod === "mobile_money" ? "afribapay"
+		: "cash-on-delivery");
 
 	const orderPayload = {
 		buyer: user._id,
@@ -485,9 +492,7 @@ async function cancelOrder(order, userId, reason) {
 		throw new AppError("order.cannot_cancel", 400);
 	}
 
-	// Libérer le stock
-	await order.releaseStock();
-
+	// Le stock est rendu à l'enregistrement (models/order/orderStock.js)
 	const segmentsCreated = ensureSegmentsForOrder(order);
 	if (segmentsCreated) {
 		await order.save();
@@ -519,7 +524,7 @@ async function cancelOrder(order, userId, reason) {
 	await order.save();
 
 	// Traiter le remboursement si paiement effectué
-	if (order.payment.status === "completed") {
+	if (["completed", "succeeded"].includes(order.payment.status)) {
 		const Payment = require("../models/Payment");
 		const payment = await Payment.findOne({ order: order._id });
 		if (payment) {
@@ -671,12 +676,16 @@ async function estimateOrderCosts(
 	const total = subtotal + taxes - discount;
 	const paymentMethodRaw = options.paymentMethod;
 	const normalizedPaymentMethod =
-		["paypal", "cash"].includes((paymentMethodRaw || "").toLowerCase()) ?
+		["paypal", "cash", "mobile_money"].includes(
+			(paymentMethodRaw || "").toLowerCase(),
+		) ?
 			(paymentMethodRaw || "").toLowerCase()
 		:	"cash";
 	const normalizedPaymentProvider =
 		options.paymentProvider ||
-		(normalizedPaymentMethod === "paypal" ? "paypal" : "cash-on-delivery");
+		(normalizedPaymentMethod === "paypal" ? "paypal"
+		: normalizedPaymentMethod === "mobile_money" ? "afribapay"
+		: "cash-on-delivery");
 
 	return {
 		subtotal,

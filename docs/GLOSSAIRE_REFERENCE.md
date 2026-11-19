@@ -13,6 +13,7 @@ Sommaire :
 - [3. Vocabulaire métier](#3-vocabulaire-métier)
 - [4. Produits et cuisine locaux](#4-produits-et-cuisine-locaux)
 - [5. Montants, dates et nombres](#5-montants-dates-et-nombres)
+- [5 bis. Orthographe anglaise : britannique (en-GB)](#5-bis-orthographe-anglaise--britannique-en-gb)
 - [6. Ce qui ne se traduit jamais](#6-ce-qui-ne-se-traduit-jamais)
 - [7. Gouvernance](#7-gouvernance)
 
@@ -43,7 +44,6 @@ badges, les filtres catalogue, les tableaux de bord et les e-mails.
 | Restaurateur | **Restaurateur** | Mot anglais existant (personne qui tient un restaurant), déjà employé partout dans les pages publiques. On ne le remplace pas par « Restaurant owner » |
 | Consommateur | **Consumer** | — |
 | Exportateur | **Exporter** | — |
-| Explorateur | **Explorer** | Rôle de découverte du catalogue |
 | Administrateur | **Administrator** | Le back-office reste en français (cf. décision J69-2) |
 
 Les clés techniques (`transporter`, `transformer`, `restaurateur`…) ne changent
@@ -91,17 +91,55 @@ pas le connaître — `Soumbala (fermented locust bean)`, pas `locust bean seaso
 | --- | --- | --- |
 | Prix | `3 000 F CFA` | `FCFA 3,000` |
 | Nombre | `3 000` (espace) | `3,000` (virgule) |
-| Date | `29/09/2026` | `Sep 29, 2026` |
-| Heure | `08:15` | `08:15 AM` |
+| Date | `29/09/2026` | `29 Sep 2026` |
+| Heure | `08:15` | `08:15` (24 h) |
+| Points de suspension | `…` | `…` |
 
 - La devise **ne dépend pas de la langue** : tous les prix sont libellés en
-  FCFA/XOF, y compris en anglais. Avant le Jour 70, l'anglais retombait sur le
+  FCFA, y compris en anglais. Avant le Jour 70, l'anglais retombait sur le
   cedi ghanéen dans certains utilitaires.
+- **Toujours écrire `FCFA` dans un texte affiché.** `XOF` est le code technique
+  et `XAF` le franc CFA d'Afrique centrale (ce n'est pas la zone du Sénégal) :
+  ni l'un ni l'autre n'a sa place dans une phrase. Vérifié par
+  `frontend/scripts/check-i18n-quality.js`.
 - Implémentation unique : `frontend/src/utils/priceFormat.js`, réutilisée par
   `utils/currencyUtils.js` (tout le site) et `utils/i18n.js`. Ne pas réécrire un
   `Intl.NumberFormat("fr-FR", …)` local dans un écran bilingue.
 - Le back-office reste en français : ses montants peuvent garder le format
   français.
+
+## 5 bis. Orthographe anglaise : britannique (en-GB)
+
+L'anglais du site suit l'**orthographe britannique**, comme le public visé
+(Afrique de l'Ouest anglophone : Ghana, Nigeria, Sierra Leone, Gambie, Liberia).
+
+| Retenu (en-GB) | Proscrit (en-US) |
+| --- | --- |
+| favour, favourite | favor, favorite |
+| colour | color |
+| fertiliser | fertilizer |
+| optimise, customise, analyse, recognise | optimize, customize, analyze, recognize |
+| -ise en général : unauthorised, fertilisation, modernisation, personalised | -ize : unauthorized, fertilization, modernization, personalized |
+| licence (nom) | license (nom) |
+| programme | program (sauf « computer program ») |
+| litre | liter |
+| centre, metre, labour, behaviour, neighbour | center, meter, labor, behavior, neighbor |
+
+Règle générale : **tout suffixe `-ize` devient `-ise`** (`-ization` → `-isation`).
+Seules exceptions : les mots qui se terminent par « ize » sans être des verbes
+en -ize (`size`, `maize`, `prize`, `seize`, `capsize`, `oversized`).
+
+Corollaires appliqués avec l'orthographe :
+
+- le format de date et d'heure anglais est britannique (`29 Sep 2026`,
+  `08:15`), d'où la locale `en-GB` dans `utils/i18n.js` et
+  `utils/priceFormat.js` ;
+- les points de suspension sont le caractère unique `…`, pas trois points ;
+- pas d'espace avant `:` (convention française).
+
+Tout cela est vérifié par `frontend/scripts/check-i18n-quality.js`, branché sur
+`npm run build` et `npm run lint`.
+
 
 ## 6. Ce qui ne se traduit jamais
 
@@ -123,8 +161,13 @@ pas le connaître — `Soumbala (fermented locust bean)`, pas `locust bean seaso
    (tableau `FORBIDDEN`) pour que le build échoue si une traduction le
    réintroduit.
 3. **Relecture native (Jour 71)** : toute divergence constatée entre ce document
-   et un texte anglais se tranche ici, pas dans le fichier de traduction.
+   et un texte anglais se tranche ici, pas dans le fichier de traduction. Le
+   support de relecture est `docs/I18N_REVIEW_71.md`.
 4. **Sens de traduction** : chaque entrée du back-office porte une direction
    (`fr-en` ou `en-fr`). Ne pas déduire l'un de l'autre — plusieurs termes
    français peuvent donner le même terme anglais, et un remplacement porte sur
    le texte déjà traduit.
+5. **Avant d'ouvrir une PR qui touche `en/*.json`** : `npm run lint` doit
+   passer, ce qui exécute `check-glossary-terms.js` et
+   `check-i18n-quality.js` (interpolation, restes de français, orthographe
+   en-GB, devise, typographie).

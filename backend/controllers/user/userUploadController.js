@@ -15,7 +15,7 @@ const createUploadMiddleware = (contentType, fieldName = 'avatar') => {
         if (file.mimetype.startsWith('image')) {
           cb(null, true);
         } else {
-          cb(new AppError('Veuillez télécharger uniquement des images!', 400), false);
+          cb(new AppError('upload.images_only', 400), false);
         }
       }
     });

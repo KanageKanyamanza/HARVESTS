@@ -12,9 +12,14 @@ import {
 // dans le header public. Suit le même motif "dropdown maison" (useState +
 // clic extérieur) que les autres menus déroulants du projet (pas de
 // dépendance headless supplémentaire).
+//
+// Jour 73 (lancement bilingue) : le suivi du taux d'usage de l'anglais
+// enregistre l'endroit de l'interface où la bascule a été cliquée via la
+// prop `context` — chaque point d'usage passe la sienne ("header",
+// "footer", "topbar", "auth", cf. utils/languageUsage.js).
 const DEFAULT_BUTTON_CLASSES = "flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 text-xs font-bold border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 transition-colors";
 
-const LanguageSelector = ({ className = "", buttonClassName = DEFAULT_BUTTON_CLASSES }) => {
+const LanguageSelector = ({ className = "", buttonClassName = DEFAULT_BUTTON_CLASSES, context = "unknown" }) => {
 	const { t } = useTranslation("common");
 	const [isOpen, setIsOpen] = useState(false);
 	const [language, setLanguage] = useState(getCurrentLanguage());
@@ -31,7 +36,7 @@ const LanguageSelector = ({ className = "", buttonClassName = DEFAULT_BUTTON_CLA
 	}, []);
 
 	const handleSelect = (lang) => {
-		changeLanguage(lang);
+		changeLanguage(lang, { context });
 		setLanguage(lang);
 		setIsOpen(false);
 	};

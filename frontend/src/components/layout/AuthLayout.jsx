@@ -1,16 +1,19 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Globe } from 'lucide-react';
 import { changeLanguage, getCurrentLanguage, getLanguageInfo } from '../../utils/i18n';
 
 const AuthLayout = ({ children, showBackButton = true }) => {
+  const { t } = useTranslation('common');
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = React.useState(false);
 
   const currentLanguage = getCurrentLanguage();
   const languageInfo = getLanguageInfo(currentLanguage);
 
   const handleLanguageChange = (lang) => {
-    changeLanguage(lang);
+    // context "auth" : pages de connexion / inscription (suivi Jour 73)
+    changeLanguage(lang, { context: "auth" });
     setIsLanguageMenuOpen(false);
   };
 
@@ -35,7 +38,7 @@ const AuthLayout = ({ children, showBackButton = true }) => {
               className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
-              <span className="text-sm font-medium">Retour</span>
+              <span className="text-sm font-medium">{t('back')}</span>
             </Link>
           )}
         </div>

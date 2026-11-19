@@ -1,3 +1,4 @@
+const { toPlainText } = require("../../utils/localization");
 const Notification = require('../../models/Notification');
 const Product = require('../../models/Product');
 const Consumer = require('../../models/Consumer');
@@ -280,7 +281,7 @@ async function notifyLowStock(productId, currentStock, threshold) {
     category: 'product',
     priority: 'high',
     title: 'Stock faible',
-    message: `Le stock de "${product.name}" est faible (${currentStock} restant, seuil: ${threshold})`,
+    message: `Le stock de "${toPlainText(product.name, "Produit")}" est faible (${currentStock} restant, seuil: ${threshold})`,
     data: {
       productId: product._id,
       productName: product.name,
@@ -325,7 +326,7 @@ async function notifyBackInStock(productId) {
       type: 'wishlist_item_available',
       category: 'product',
       title: 'Produit de nouveau disponible',
-      message: `"${product.name}" de votre liste de souhaits est de nouveau en stock !`,
+      message: `"${toPlainText(product.name, "Produit")}" de votre liste de souhaits est de nouveau en stock !`,
       data: {
         productId: product._id,
         productName: product.name

@@ -1,117 +1,121 @@
-const catchAsync = require('../../utils/catchAsync');
+const catchAsync = require("../../utils/catchAsync");
 
 // Fonction temporaire pour les fonctionnalités en cours de développement
-const temporaryResponse = (message) => catchAsync(async (req, res, next) => {
-  res.status(200).json({
-    status: 'success',
-    message: `Fonctionnalité en cours de développement - ${message}`,
-    data: {},
-  });
-});
+const temporaryResponse = (featureKey) =>
+	catchAsync(async (req, res, next) => {
+		res.status(200).json({
+			status: "success",
+			message: req.t("exporter.features.development", {
+				feature: req.t(`exporter.features.${featureKey}`),
+			}),
+			data: {},
+		});
+	});
 
 // Marchés cibles
-exports.getTargetMarkets = temporaryResponse('Marchés cibles');
-exports.addTargetMarket = temporaryResponse('Ajout marché');
-exports.updateTargetMarket = temporaryResponse('Mise à jour marché');
-exports.removeTargetMarket = temporaryResponse('Suppression marché');
+exports.getTargetMarkets = temporaryResponse("target_markets");
+exports.addTargetMarket = temporaryResponse("add_market");
+exports.updateTargetMarket = temporaryResponse("update_market");
+exports.removeTargetMarket = temporaryResponse("remove_market");
 
 // Produits d'export
-exports.getExportProducts = temporaryResponse('Produits d\'export');
-exports.addExportProduct = temporaryResponse('Ajout produit');
-exports.updateExportProduct = temporaryResponse('Mise à jour produit');
-exports.removeExportProduct = temporaryResponse('Suppression produit');
+exports.getExportProducts = temporaryResponse("export_products");
+exports.addExportProduct = temporaryResponse("add_product");
+exports.updateExportProduct = temporaryResponse("update_product");
+exports.removeExportProduct = temporaryResponse("remove_product");
 
 // Certifications internationales
-exports.getInternationalCertifications = temporaryResponse('Certifications internationales');
-exports.addInternationalCertification = temporaryResponse('Ajout certification');
-exports.updateInternationalCertification = temporaryResponse('Mise à jour certification');
-exports.removeInternationalCertification = temporaryResponse('Suppression certification');
+exports.getInternationalCertifications = temporaryResponse(
+	"international_certifications",
+);
+exports.addInternationalCertification = temporaryResponse("add_certification");
+exports.updateInternationalCertification = temporaryResponse("update_certification");
+exports.removeInternationalCertification = temporaryResponse("remove_certification");
 
 // Capacités logistiques
-exports.getLogisticsCapabilities = temporaryResponse('Capacités logistiques');
-exports.updateLogisticsCapabilities = temporaryResponse('Mise à jour logistique');
+exports.getLogisticsCapabilities = temporaryResponse("logistics_capabilities");
+exports.updateLogisticsCapabilities = temporaryResponse("update_logistics");
 
 // Partenaires transport
-exports.getShippingPartners = temporaryResponse('Partenaires transport');
-exports.addShippingPartner = temporaryResponse('Ajout partenaire');
-exports.updateShippingPartner = temporaryResponse('Mise à jour partenaire');
-exports.removeShippingPartner = temporaryResponse('Suppression partenaire');
+exports.getShippingPartners = temporaryResponse("shipping_partners");
+exports.addShippingPartner = temporaryResponse("add_partner");
+exports.updateShippingPartner = temporaryResponse("update_partner");
+exports.removeShippingPartner = temporaryResponse("remove_partner");
 
 // Conditions commerciales
-exports.getTradingTerms = temporaryResponse('Conditions commerciales');
-exports.updateTradingTerms = temporaryResponse('Mise à jour conditions');
+exports.getTradingTerms = temporaryResponse("trading_terms");
+exports.updateTradingTerms = temporaryResponse("update_terms");
 
 // Fournisseurs locaux
-exports.getLocalSuppliers = temporaryResponse('Fournisseurs locaux');
-exports.addLocalSupplier = temporaryResponse('Ajout fournisseur');
-exports.updateLocalSupplier = temporaryResponse('Mise à jour fournisseur');
-exports.removeLocalSupplier = temporaryResponse('Suppression fournisseur');
+exports.getLocalSuppliers = temporaryResponse("local_suppliers");
+exports.addLocalSupplier = temporaryResponse("add_supplier");
+exports.updateLocalSupplier = temporaryResponse("update_supplier");
+exports.removeLocalSupplier = temporaryResponse("remove_supplier");
 
 // Comptes bancaires
-exports.getBankAccounts = temporaryResponse('Comptes bancaires');
-exports.addBankAccount = temporaryResponse('Ajout compte');
-exports.updateBankAccount = temporaryResponse('Mise à jour compte');
-exports.removeBankAccount = temporaryResponse('Suppression compte');
+exports.getBankAccounts = temporaryResponse("bank_accounts");
+exports.addBankAccount = temporaryResponse("add_account");
+exports.updateBankAccount = temporaryResponse("update_account");
+exports.removeBankAccount = temporaryResponse("remove_account");
 
 // Polices d'assurance
-exports.getInsurancePolicies = temporaryResponse('Polices d\'assurance');
-exports.addInsurancePolicy = temporaryResponse('Ajout assurance');
-exports.updateInsurancePolicy = temporaryResponse('Mise à jour assurance');
-exports.removeInsurancePolicy = temporaryResponse('Suppression assurance');
+exports.getInsurancePolicies = temporaryResponse("insurance_policies");
+exports.addInsurancePolicy = temporaryResponse("add_insurance");
+exports.updateInsurancePolicy = temporaryResponse("update_insurance");
+exports.removeInsurancePolicy = temporaryResponse("remove_insurance");
 
 // Équipe
-exports.getTeam = temporaryResponse('Équipe');
-exports.addTeamMember = temporaryResponse('Ajout membre');
-exports.updateTeamMember = temporaryResponse('Mise à jour membre');
-exports.removeTeamMember = temporaryResponse('Suppression membre');
+exports.getTeam = temporaryResponse("team");
+exports.addTeamMember = temporaryResponse("add_member");
+exports.updateTeamMember = temporaryResponse("update_member");
+exports.removeTeamMember = temporaryResponse("remove_member");
 
 // Commandes
-exports.createExportOrder = temporaryResponse('Création commande');
-exports.updateExportOrder = temporaryResponse('Mise à jour commande');
-exports.cancelExportOrder = temporaryResponse('Annulation commande');
-exports.trackExportOrder = temporaryResponse('Suivi commande');
+exports.createExportOrder = temporaryResponse("create_order");
+exports.updateExportOrder = temporaryResponse("update_order");
+exports.cancelExportOrder = temporaryResponse("cancel_order");
+exports.trackExportOrder = temporaryResponse("track_order");
 
 // Documents
-exports.getExportDocuments = temporaryResponse('Documents export');
-exports.addExportDocument = temporaryResponse('Ajout document');
+exports.getExportDocuments = temporaryResponse("export_documents");
+exports.addExportDocument = temporaryResponse("add_document");
 
 // Lettres de crédit
-exports.getLettersOfCredit = temporaryResponse('Lettres de crédit');
-exports.createLetterOfCredit = temporaryResponse('Création LC');
-exports.getLetterOfCredit = temporaryResponse('Détail LC');
-exports.updateLetterOfCredit = temporaryResponse('Mise à jour LC');
+exports.getLettersOfCredit = temporaryResponse("letters_of_credit");
+exports.createLetterOfCredit = temporaryResponse("create_letter_of_credit");
+exports.getLetterOfCredit = temporaryResponse("letter_of_credit_detail");
+exports.updateLetterOfCredit = temporaryResponse("update_letter_of_credit");
 
 // Analytics
-exports.getExportAnalytics = temporaryResponse('Analytics export');
-exports.getMarketPerformance = temporaryResponse('Performance marchés');
-exports.getRevenueAnalytics = temporaryResponse('Analytics revenus');
+exports.getExportAnalytics = temporaryResponse("export_analytics");
+exports.getMarketPerformance = temporaryResponse("market_performance");
+exports.getRevenueAnalytics = temporaryResponse("revenue_analytics");
 
 // Rapports
-exports.getRegulatoryReports = temporaryResponse('Rapports réglementaires');
-exports.generateRegulatoryReport = temporaryResponse('Génération rapport');
+exports.getRegulatoryReports = temporaryResponse("regulatory_reports");
+exports.generateRegulatoryReport = temporaryResponse("generate_report");
 
 // Devis internationaux
-exports.getInternationalQuotes = temporaryResponse('Devis internationaux');
-exports.createInternationalQuote = temporaryResponse('Création devis');
-exports.getInternationalQuote = temporaryResponse('Détail devis');
-exports.updateInternationalQuote = temporaryResponse('Mise à jour devis');
-exports.deleteInternationalQuote = temporaryResponse('Suppression devis');
-exports.convertQuoteToOrder = temporaryResponse('Conversion devis');
+exports.getInternationalQuotes = temporaryResponse("international_quotes");
+exports.createInternationalQuote = temporaryResponse("create_quote");
+exports.getInternationalQuote = temporaryResponse("quote_detail");
+exports.updateInternationalQuote = temporaryResponse("update_quote");
+exports.deleteInternationalQuote = temporaryResponse("delete_quote");
+exports.convertQuoteToOrder = temporaryResponse("convert_quote");
 
 // Taux de change
-exports.getExchangeRates = temporaryResponse('Taux de change');
-exports.getHedgingPositions = temporaryResponse('Positions de couverture');
-exports.createHedgingPosition = temporaryResponse('Création position');
+exports.getExchangeRates = temporaryResponse("exchange_rates");
+exports.getHedgingPositions = temporaryResponse("hedging_positions");
+exports.createHedgingPosition = temporaryResponse("create_position");
 
 // Documents
-exports.getMyDocuments = temporaryResponse('Mes documents');
-exports.addDocument = temporaryResponse('Ajout document');
+exports.getMyDocuments = temporaryResponse("my_documents");
+exports.addDocument = temporaryResponse("add_document");
 
 // Notifications
-exports.getNotifications = temporaryResponse('Notifications');
-exports.markNotificationsAsRead = temporaryResponse('Lecture notifications');
+exports.getNotifications = temporaryResponse("notifications");
+exports.markNotificationsAsRead = temporaryResponse("notifications_read");
 
 // Alertes
-exports.getMarketAlerts = temporaryResponse('Alertes marché');
-exports.createMarketAlert = temporaryResponse('Création alerte');
-
+exports.getMarketAlerts = temporaryResponse("market_alerts");
+exports.createMarketAlert = temporaryResponse("create_alert");

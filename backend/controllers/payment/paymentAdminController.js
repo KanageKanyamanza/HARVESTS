@@ -1,6 +1,8 @@
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
+const { isNotFound } = require('../../utils/translate');
 const paymentAdminService = require('../../services/payment/paymentAdminService');
+const paymentCostsService = require('../../services/payment/paymentCostsService');
 
 // Obtenir tous les paiements (admin)
 exports.getAllPayments = catchAsync(async (req, res, next) => {
@@ -63,6 +65,26 @@ exports.reconcilePayment = catchAsync(async (req, res, next) => {
       message: 'Paiement réconcilié avec succès'
     });
   } catch (error) {
-    return next(AppError.from(error, error.message.includes('non trouvé') ? 404 : 400));
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 400));
+  }
+});
+
+// Coûts réels AfriBaPay d'une période, par devise (Jour 84) : payin,
+// reversements vendeurs et remboursements clients, avec les montants
+// effectivement prélevés par l'agrégateur. Alimente le back-office du Jour 85.
+exports.getProviderCosts = catchAsync(async (req, res, next) => {
+  try {
+    const { period = '30d', from, to, currency } = req.query;
+    const result = await paymentCostsService.getProviderCostStats({ period, from, to, currency });
+
+    res.status(200).json({
+      status: 'success',
+      data: result
+    });
+  } catch (error) {
+    // Paramètres refusés par le service (devise, dates, période) : message
+    // contrôlé, jamais une erreur interne remontée telle quelle.
+    if (error instanceof RangeError) return next(new AppError(error.message, 400));
+    return next(AppError.from(error, 400));
   }
 });

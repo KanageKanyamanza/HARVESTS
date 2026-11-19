@@ -14,6 +14,8 @@ import {
 	ArrowRight,
 	Activity,
 	ExternalLink,
+	Globe,
+	CreditCard,
 } from "lucide-react";
 
 import { adminService } from "../../services/adminService";
@@ -42,9 +44,25 @@ const AdminAnalytics = () => {
 			topProducers: [],
 			topProducts: [],
 		},
+		// Jour 73 (lancement bilingue) : usage de la bascule fr/en, cf.
+		// backend/controllers/admin/adminAnalyticsController.js
+		languageUsage: {
+			overview: {
+				total: 0,
+				toEnglish: 0,
+				toFrench: 0,
+				englishShare: 0,
+				distinctVisitors: 0,
+			},
+			byContext: [],
+			byDay: [],
+		},
 	});
 	const [loading, setLoading] = useState(true);
 	const [timeRange, setTimeRange] = useState("30d");
+	// Jour 85 : coûts réels AfriBaPay et stats mobile money (provider-costs).
+	const [mobileMoneyCosts, setMobileMoneyCosts] = useState({});
+	const [mobileMoneyStats, setMobileMoneyStats] = useState({});
 
 	const loadAnalytics = useCallback(async () => {
 		try {
@@ -55,6 +73,16 @@ const AdminAnalytics = () => {
 				setAnalytics(response.data.analytics);
 			} else if (response.data && response.data.data) {
 				setAnalytics(response.data.data);
+			}
+			// La page « Mobile money » consomme le même endpoint que le
+			// back-office du Jour 85 ; un échec isolé ne casse pas les analytics.
+			try {
+				const costResponse = await adminService.getProviderCosts({ period: timeRange });
+				setMobileMoneyCosts(costResponse?.data?.currencies || {});
+				setMobileMoneyStats(costResponse?.data?.statusStats || {});
+			} catch {
+				setMobileMoneyCosts({});
+				setMobileMoneyStats({});
 			}
 		} catch (error) {
 			console.error("Erreur lors du chargement des analytics:", error);
@@ -82,6 +110,22 @@ const AdminAnalytics = () => {
 	const getGrowthIcon = (growth) => {
 		return growth >= 0 ? TrendingUp : TrendingDown;
 	};
+
+	// Jour 73 (lancement bilingue) : usage de la bascule fr/en, avec des
+	// valeurs par défaut pendant le chargement (le suivi, tout neuf au
+	// Jour 73, peut renvoyer une section vide sans casser la carte).
+	const languageUsageOverview =
+		analytics.languageUsage?.overview || {
+			total: 0,
+			toEnglish: 0,
+			toFrench: 0,
+			englishShare: 0,
+			distinctVisitors: 0,
+		};
+
+	const mobileMoneyCurrencies = [
+		...new Set([...Object.keys(mobileMoneyCosts), ...Object.keys(mobileMoneyStats)]),
+	];
 
 
 	return (
@@ -257,6 +301,155 @@ const AdminAnalytics = () => {
 								/>
 							)}
 						</div>
+					</div>
+
+					{/* Jour 85 : tableau « Mobile money » — volume, taux de succès,
+						délais et coûts réels AfriBaPay par devise. */}
+					<div className="bg-white/70 backdrop-blur-xl p-4 rounded-2xl border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)] lg:col-span-2">
+						<div className="flex items-center justify-between mb-3">
+							<div>
+								<h3 className="text-sm font-[1000] text-gray-900 uppercase tracking-tight">
+									Mobile money
+								</h3>
+								<p className="text-[10px] font-medium text-gray-500 tracking-wide">
+									Volume, réussite, délais et coûts AfriBaPay sur la période
+								</p>
+							</div>
+							<div className="w-6 h-6 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600 border border-emerald-50 shadow-sm">
+								<CreditCard className="h-3 w-3" />
+							</div>
+						</div>
+						<div className="overflow-x-auto">
+							<table className="w-full text-left text-xs">
+								<thead className="bg-gray-50 text-[7px] font-black uppercase tracking-widest text-gray-500">
+									<tr>
+										<th className="px-2.5 py-2">Devise</th>
+										<th className="px-2.5 py-2">Volume</th>
+										<th className="px-2.5 py-2">Taux de succès</th>
+										<th className="px-2.5 py-2">Délai moyen</th>
+										<th className="px-2.5 py-2">Coût réel</th>
+									</tr>
+								</thead>
+								<tbody>
+									{mobileMoneyCurrencies.length === 0 && (
+										<tr>
+											<td colSpan={5} className="px-2.5 py-4 text-center text-gray-400">
+												Aucune transaction mobile money sur la période.
+											</td>
+										</tr>
+									)}
+									{mobileMoneyCurrencies.map((currency) => {
+										const buckets = mobileMoneyCosts[currency] || {};
+										const stats = mobileMoneyStats[currency];
+										return (
+											<tr key={currency} className="border-t border-gray-50">
+												<td className="px-2.5 py-2 font-black text-gray-800">{currency}</td>
+												<td className="px-2.5 py-2 text-gray-700">
+													{stats?.total ?? buckets?.payin?.count ?? 0}
+												</td>
+												<td className="px-2.5 py-2 font-bold text-emerald-600">
+													{stats?.successRate != null ? `${stats.successRate} %` : "—"}
+												</td>
+												<td className="px-2.5 py-2 text-gray-600">
+													{stats?.avgDelaySeconds != null ? `${stats.avgDelaySeconds} s` : "—"}
+												</td>
+												<td className="px-2.5 py-2 text-gray-600">
+													{new Intl.NumberFormat("fr-FR").format(buckets?.all?.total || 0)} {currency}
+												</td>
+											</tr>
+										);
+									})}
+								</tbody>
+							</table>
+						</div>
+					</div>
+
+					{/* Jour 73 (lancement bilingue) : usage de la bascule fr/en.
+						Ce back-office reste en français (J69-2) : libellés français,
+						volontairement. La carte suit le taux d'usage de la bascule
+						anglaise demandé par la feuille de route et les endroits de
+						l'interface d'où partent les bascules — la matière des
+						décisions du Jour 74 (extension progressive). */}
+					<div className="bg-white/70 backdrop-blur-xl p-4 rounded-2xl border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)] lg:col-span-2">
+						<div className="flex items-center justify-between mb-3">
+							<div>
+								<h3 className="text-sm font-[1000] text-gray-900 uppercase tracking-tight">
+									Bascule FR / EN
+								</h3>
+								<p className="text-[10px] font-medium text-gray-500 tracking-wide">
+									Usage de la bascule anglaise sur la période sélectionnée
+								</p>
+							</div>
+							<div className="w-6 h-6 bg-amber-50 rounded-lg flex items-center justify-center text-amber-600 border border-amber-50 shadow-sm">
+								<Globe className="h-3 w-3" />
+							</div>
+						</div>
+
+						<div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+							{[
+								{
+									label: "BASCULES",
+									value: languageUsageOverview.total,
+									hint: "clics sur le sélecteur de langue",
+								},
+								{
+									label: "PART ANGLAIS",
+									value: `${languageUsageOverview.englishShare}%`,
+									hint: "bascules fr → en",
+								},
+								{
+									label: "VERS L'ANGLAIS",
+									value: languageUsageOverview.toEnglish,
+									hint: `${languageUsageOverview.toFrench} retour(s) au français`,
+								},
+								{
+									label: "VISITEURS",
+									value: languageUsageOverview.distinctVisitors,
+									hint: "navigateurs distincts, anonymes",
+								},
+							].map((stat) => (
+								<div
+									key={stat.label}
+									className="p-2.5 rounded-xl bg-gray-50/60 border border-gray-100/60"
+								>
+									<p className="text-[7px] font-black text-gray-500 uppercase tracking-widest mb-0.5">
+										{stat.label}
+									</p>
+									<p className="text-sm font-black text-gray-900 tracking-tighter mb-0.5">
+										<DataValue loading={loading} className="w-10 h-[0.9em]">
+											{stat.value}
+										</DataValue>
+									</p>
+									<p className="text-[8px] font-medium text-gray-400 truncate">
+										{stat.hint}
+									</p>
+								</div>
+							))}
+						</div>
+
+						{/* Sélecteurs réellement employés : prioriser le travail
+							bilingue là où la bascule a lieu, et retirer à terme les
+							sélecteurs doublons jamais cliqués. */}
+						{(analytics.languageUsage?.byContext || []).length > 0 && (
+							<div className="flex flex-wrap items-center gap-1.5 mt-2.5 pt-2.5 border-t border-gray-100">
+								<span className="text-[7px] font-black text-gray-400 uppercase tracking-widest mr-0.5">
+									Sélecteurs employés
+								</span>
+								{analytics.languageUsage.byContext.map((entry) => (
+									<span
+										key={entry.context}
+										className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white border border-gray-100 shadow-sm"
+									>
+										<span className="text-[8px] font-black text-gray-700 uppercase tracking-wide">
+											{entry.context}
+										</span>
+										<span className="text-[8px] font-bold text-green-600">
+											{entry.total}
+										</span>
+									</span>
+								))}
+							</div>
+						)}
 					</div>
 				</div>
 

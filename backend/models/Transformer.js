@@ -12,7 +12,7 @@ const transformerSchema = new mongoose.Schema({
 			100,
 			"validation.company_name_maxlength_100",
 		],
-		default: "À compléter",
+		default: "",
 	},
 
 	companyRegistrationNumber: {

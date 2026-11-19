@@ -16,7 +16,6 @@ export const useUserType = () => {
     isRestaurateur, 
     isExporter, 
     isTransporter,
-    isExplorer,
     hasPermission,
     canAccessRoute,
     getDefaultRoute
@@ -76,16 +75,6 @@ export const useUserType = () => {
         dashboardRoute: '/transporter/dashboard',
         permissions: ['manage_transport', 'view_orders', 'manage_deliveries'],
         features: ['delivery_management', 'route_optimization', 'vehicle_tracking', 'order_management']
-      },
-      explorer: {
-        label: 'Explorateur',
-        labelEn: 'Explorer',
-        description: 'Explore et découvre de nouveaux produits et producteurs',
-        color: 'cyan',
-        icon: '🧭',
-        dashboardRoute: '/explorer/dashboard',
-        permissions: ['view_products', 'create_orders', 'view_orders', 'create_reviews', 'explore_producers'],
-        features: ['product_exploration', 'producer_discovery', 'favorites', 'reviews', 'order_history']
       },
       exporter: {
         label: 'Exportateur',
@@ -152,21 +141,6 @@ export const useUserType = () => {
       ];
     }
 
-    // Routes spécifiques aux explorateurs
-    if (userType === 'explorer') {
-      return [
-        ...baseRoutes,
-        '/explorer/dashboard',
-        '/explorer/discover',
-        '/explorer/favorites',
-        '/explorer/reviews',
-        '/explorer/statistics',
-        '/cart',
-        '/checkout',
-        '/order-history'
-      ];
-    }
-
     // Routes spécifiques aux exportateurs (peuvent aussi acheter)
     if (userType === 'exporter') {
       return [
@@ -227,9 +201,6 @@ export const useUserType = () => {
       case 'transporter':
         return hasBasicInfo && user.companyName;
       
-      case 'explorer':
-        return hasBasicInfo && user.lastName;
-      
       default:
         return hasBasicInfo;
     }
@@ -247,7 +218,6 @@ export const useUserType = () => {
     isRestaurateur,
     isExporter,
     isTransporter,
-    isExplorer,
     
     // Fonctions utilitaires
     hasPermission,

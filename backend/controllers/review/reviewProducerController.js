@@ -35,7 +35,8 @@ exports.respondToReview = catchAsync(async (req, res, next) => {
     message: `Le producteur a répondu à votre avis sur "${review.title}"`,
     data: {
       reviewId: review._id,
-      productId: review.product
+      productId: review.product,
+      reviewTitle: review.title
     },
     actions: [{
       type: 'view',

@@ -3,6 +3,8 @@ const Payment = require('../../models/Payment');
 const Order = require('../../models/Order');
 const Subscription = require('../../models/Subscription');
 const paypalService = require('../paypalService');
+const paymentAfribapayService = require('./paymentAfribapayService');
+const { mergeAfribapayDetails, mergePaymentDetails } = require('../../utils/paymentDetails');
 
 /**
  * Service pour la gestion des paiements
@@ -26,6 +28,8 @@ const appendParamsToUrl = (url, params = {}) => {
   }
 };
 
+const PROVIDERS = { cash: 'cash-on-delivery', paypal: 'paypal', mobile_money: 'afribapay' };
+
 /**
  * Initier un paiement de souscription
  */
@@ -34,13 +38,13 @@ async function initiateSubscriptionPayment(userId, { planId, billingPeriod, amou
   const plan = plans[planId];
 
   if (!plan) {
-    throw new Error('Plan invalide');
+    throw new Error('payment.invalid_plan');
   }
 
   const expectedAmount = billingPeriod === 'monthly' ? plan.monthlyPrice : plan.annualPrice;
   
   if (amount !== expectedAmount) {
-    throw new Error('Montant incorrect');
+    throw new Error('payment.incorrect_amount');
   }
 
   // Vérifier si l'utilisateur a déjà une souscription active
@@ -50,7 +54,7 @@ async function initiateSubscriptionPayment(userId, { planId, billingPeriod, amou
   });
 
   if (existingActive && planId !== 'gratuit') {
-    throw new Error('Vous avez déjà une souscription active');
+    throw new Error('payment.subscription_already_active');
   }
 
   // Créer ou trouver la souscription
@@ -74,7 +78,7 @@ async function initiateSubscriptionPayment(userId, { planId, billingPeriod, amou
     });
   }
 
-  const normalizedProvider = method === 'paypal' ? 'paypal' : 'cash-on-delivery';
+  const normalizedProvider = PROVIDERS[method] || 'cash-on-delivery';
 
   const payment = await Payment.create({
     paymentId: new mongoose.Types.ObjectId().toString(),
@@ -111,10 +115,9 @@ async function initiateSubscriptionPayment(userId, { planId, billingPeriod, amou
   });
 
   if (method === 'cash') {
-    payment.paymentDetails.cash = {
-      ...(payment.paymentDetails.cash || {}),
+    mergePaymentDetails(payment, 'cash', {
       instructions: 'Vous serez contacté pour finaliser le paiement de votre souscription.'
-    };
+    });
     payment.calculateFees();
     await payment.save();
 
@@ -152,30 +155,72 @@ async function initiateSubscriptionPayment(userId, { planId, billingPeriod, amou
   return { payment, subscription, paymentResponse };
 }
 
+// Réponse d'un payin mobile money (demande envoyée, confirmation sur le téléphone)
+const afribapayPaymentResponse = (payment) => {
+  const afribapay = payment.paymentDetails?.afribapay;
+  return {
+    requiresOnlineAction: true,
+    processor: 'afribapay',
+    payinOrderId: afribapay?.payinOrderId,
+    processorStatus: afribapay?.processorStatus,
+    transactionId: afribapay?.transactionId
+  };
+};
+
 /**
  * Initier un paiement de commande
  */
-async function initiateOrderPayment(userId, orderId, { method, returnUrl, cancelUrl, cashInstructions, customerIp, userAgent }) {
+async function initiateOrderPayment(userId, orderId, { method, returnUrl, cancelUrl, cashInstructions, customerIp, userAgent, mobileMoney }) {
   const order = await Order.findById(orderId);
   if (!order) {
-    throw new Error('Commande non trouvée');
+    throw new Error('order.not_found');
   }
 
   if (order.buyer.toString() !== userId) {
-    throw new Error('Vous ne pouvez payer que vos propres commandes');
+    throw new Error('payment.own_orders_only');
   }
 
-  if (order.payment.status === 'completed') {
-    throw new Error('Cette commande a déjà été payée');
+  if (['completed', 'succeeded'].includes(order.payment.status)) {
+    throw new Error('payment.order_already_paid');
   }
 
   if (!['pending', 'failed'].includes(order.status)) {
-    throw new Error('Cette commande ne peut plus être payée');
+    throw new Error('payment.order_not_payable');
   }
 
-  const normalizedProvider = method === 'paypal' ? 'paypal' : 'cash-on-delivery';
+  const normalizedProvider = PROVIDERS[method] || 'cash-on-delivery';
 
-  const payment = await Payment.create({
+  // Mobile money : une nouvelle tentative réutilise le Payment non confirmé de
+  // la commande au lieu d'en créer un par essai (orphelins `pending`).
+  const reusable = method === 'mobile_money'
+    ? await Payment.findOne({
+        order: orderId,
+        user: userId,
+        method: 'mobile_money',
+        status: { $in: ['pending', 'processing', 'failed', 'cancelled'] }
+      }).sort({ createdAt: -1 })
+    : null;
+
+  // Demande déjà envoyée sur le téléphone du client (processing, ou pending
+  // avec un order_id posé — réseau incertain, la réconciliation la relira) :
+  // initiate idempotent, aucun nouvel appel AfriBaPay (pas de double demande).
+  if (reusable && (
+    reusable.status === 'processing' ||
+    (reusable.status === 'pending' && reusable.paymentDetails?.afribapay?.payinOrderId)
+  )) {
+    return { payment: reusable, paymentResponse: afribapayPaymentResponse(reusable) };
+  }
+
+  if (reusable) {
+    // Nouvelle demande sur un Payment échoué / annulé / jamais envoyé : les
+    // compteurs d'échec /status (J78) repartent de zéro et le montant suit la
+    // commande (jamais un montant d'un essai précédent).
+    mergeAfribapayDetails(reusable, { failedReadCount: 0 });
+    reusable.amount = order.total;
+    reusable.currency = order.currency;
+  }
+
+  const payment = reusable || await Payment.create({
     paymentId: new mongoose.Types.ObjectId().toString(),
     order: orderId,
     user: userId,
@@ -184,6 +229,9 @@ async function initiateOrderPayment(userId, orderId, { method, returnUrl, cancel
     method,
     provider: normalizedProvider,
     type: 'order',
+    // Paypal : processing dès la création (comportement historique conservé) ;
+    // mobile_money : pending, passe en processing quand AfriBaPay accepte
+    // la demande (cf. requestPayin) ; seul le webhook (J77) confirme ensuite.
     status: method === 'paypal' ? 'processing' : 'pending',
     metadata: {
       orderId: orderId?.toString?.() || order._id?.toString(),
@@ -203,10 +251,9 @@ async function initiateOrderPayment(userId, orderId, { method, returnUrl, cancel
   });
 
   if (method === 'cash') {
-    payment.paymentDetails.cash = {
-      ...(payment.paymentDetails.cash || {}),
+    mergePaymentDetails(payment, 'cash', {
       instructions: cashInstructions || 'Préparez le montant exact à régler auprès du livreur lors de la livraison.'
-    };
+    });
 
     payment.calculateFees();
     await payment.save();
@@ -216,6 +263,41 @@ async function initiateOrderPayment(userId, orderId, { method, returnUrl, cancel
       confirmationType: 'delivery',
       instructions: payment.paymentDetails.cash.instructions
     };
+  } else if (method === 'mobile_money') {
+    // Payin AfriBaPay (Jour 76) : demande de paiement envoyée, confirmation
+    // par webhook (J77). Le client doit amener operator + phone (+ country
+    // éventuelle) ; le montant vient de la commande, jamais de la requête.
+    try {
+      await paymentAfribapayService.requestPayin({
+        payment,
+        amount: order.total,
+        currency: order.currency,
+        operator: mobileMoney.operator,
+        phone: mobileMoney.phone,
+        country: mobileMoney.country || 'SN',
+        returnUrl: enhancedReturnUrl || returnUrl,
+        cancelUrl: enhancedCancelUrl || cancelUrl
+      });
+    } catch (error) {
+      // L'essai raté est conservé (attempts) : la relance suivante réutilise ce
+      // Payment. AfriBaPay a répondu (refus) → failed, order_id consommé.
+      // Sans réponse (réseau / timeout), la demande a pu partir : requestPayin
+      // a consommé l'essai et remis le Payment en pending, pour que la
+      // réconciliation (PENDING_POLL_STATUSES) relise cet order_id.
+      if (error.response) {
+        payment.status = 'failed';
+        payment.failureMessage = error.friendlyMessage || error.message;
+      }
+      await payment.save().catch((saveError) =>
+        console.error('[Payin AfriBaPay] Sauvegarde de l\'échec impossible:', saveError.message)
+      );
+      throw error;
+    }
+
+    payment.calculateFees();
+    await payment.save();
+
+    paymentResponse = afribapayPaymentResponse(payment);
   } else {
     const paypalOrder = await paypalService.createOrder({
       amount: payment.amount,
@@ -270,7 +352,7 @@ async function confirmPayPalPayment(paymentId, userId, paypalOrderId) {
   });
 
   if (!payment) {
-    throw new Error('Paiement non trouvé');
+    throw new Error('payment.not_found');
   }
 
   if (payment.status === 'succeeded') {
@@ -279,15 +361,14 @@ async function confirmPayPalPayment(paymentId, userId, paypalOrderId) {
 
   const capture = await paypalService.captureOrder(paypalOrderId);
 
-  payment.paymentDetails.paypal = {
-    ...(payment.paymentDetails.paypal || {}),
+  mergePaymentDetails(payment, 'paypal', {
     orderId: paypalOrderId,
     captureId: capture.purchase_units?.[0]?.payments?.captures?.[0]?.id || capture.id,
     status: capture.status,
     payerEmail: capture.payer?.email_address,
     payerName: [capture.payer?.name?.given_name, capture.payer?.name?.surname].filter(Boolean).join(' ') || undefined,
     rawResponse: capture
-  };
+  });
 
   const captureId = payment.paymentDetails.paypal.captureId;
   await payment.markAsSucceeded(captureId, capture.update_time ? new Date(capture.update_time) : new Date());
@@ -305,15 +386,14 @@ async function confirmCashPayment(paymentId, userId, confirmationNotes) {
   });
 
   if (!payment) {
-    throw new Error('Paiement non trouvé');
+    throw new Error('payment.not_found');
   }
 
-  payment.paymentDetails.cash = {
-    ...(payment.paymentDetails.cash || {}),
+  mergePaymentDetails(payment, 'cash', {
     confirmedBy: userId,
     confirmedAt: new Date(),
     notes: confirmationNotes || undefined
-  };
+  });
 
   await payment.markAsSucceeded(null);
 
@@ -374,7 +454,7 @@ async function getPaymentById(paymentId, userId) {
   }).populate('order', 'orderNumber items buyer seller');
 
   if (!payment) {
-    throw new Error('Paiement non trouvé');
+    throw new Error('payment.not_found');
   }
 
   return payment;

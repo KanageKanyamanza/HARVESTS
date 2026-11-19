@@ -124,7 +124,7 @@ exports.cleanupInactiveConversations = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    message: `${result.modifiedCount} conversation(s) archivée(s)`,
+    message: req.t("message.archived_count", { count: result.modifiedCount }),
     data: {
       archivedCount: result.modifiedCount
     }

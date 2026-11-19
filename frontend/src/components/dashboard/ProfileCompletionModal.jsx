@@ -21,7 +21,6 @@ const PROFILE_ROUTES = {
 	restaurateur: "/restaurateur/profile",
 	transporter: "/transporter/profile",
 	exporter: "/exporter/profile",
-	explorer: "/explorer/profile",
 	consumer: "/consumer/profile",
 };
 

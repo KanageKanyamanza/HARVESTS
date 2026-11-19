@@ -12,7 +12,7 @@
 		"shopTitle": "My shop & visual identity",
 		"cancel": "Cancel",
 		"save": "Save changes",
-		"saving": "Saving...",
+		"saving": "Saving…",
 		"saveSuccess": "Profile updated successfully",
 		"saveError": "Error while saving the profile. Check the fields and try again."
 	},
@@ -65,12 +65,12 @@
 		"city": "City / town",
 		"region": "Region / state",
 		"country": "Country",
-		"select": "Select...",
+		"select": "Select…",
 		"addressInfoStart": "Your delivery addresses are managed from",
 		"addressInfoLink": "Settings → Addresses",
 		"addressInfoEnd": ", where you can save several and choose your default one.",
 		"bio": "Biography & introduction",
-		"bioPlaceholder": "Share your story, your values and your passion...",
+		"bioPlaceholder": "Share your story, your values and your passion…",
 		"bioEmpty": "No biography yet. Click “Edit profile” to add an introduction."
 	},
 	"units": {

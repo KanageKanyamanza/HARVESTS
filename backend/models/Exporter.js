@@ -9,7 +9,7 @@ const exporterSchema = new mongoose.Schema({
     required: false, // Optionnel lors de l'inscription
     trim: true,
     maxlength: [150, 'validation.company_name_maxlength_150'],
-    default: 'À compléter'
+    default: ''
   },
   
   businessRegistrationNumber: {

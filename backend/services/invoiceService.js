@@ -4,6 +4,7 @@ const fs = require("fs");
 const Order = require("../models/Order");
 const User = require("../models/User");
 const AppError = require("../utils/appError");
+const { toPlainText } = require("../utils/localization");
 
 /**
  * Service pour générer des factures PDF
@@ -298,7 +299,10 @@ async function generateInvoicePDF(
 				yPos = 50;
 			}
 
-			const productName = item.productSnapshot?.name || item.name || "Produit";
+			const productName = toPlainText(
+				item.productSnapshot?.name || item.name,
+				"Produit",
+			);
 			const quantity = item.quantity || 1;
 			const unitPrice = item.unitPrice || item.price || 0;
 			const totalPrice = item.totalPrice || quantity * unitPrice;
@@ -447,6 +451,7 @@ async function generateInvoicePDF(
 			cash: "Espèces",
 			"cash-on-delivery": "Paiement à la livraison",
 			paypal: "PayPal",
+			mobile_money: "Mobile Money (AfriBaPay)",
 			stripe: "Carte bancaire",
 			wave: "Wave",
 			"orange-money": "Orange Money",

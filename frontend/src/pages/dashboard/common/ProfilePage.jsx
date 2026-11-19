@@ -58,6 +58,11 @@ const ProfilePage = () => {
 
 	const safeDisplay = (value, fallback = t("notProvided")) => {
 		if (value === null || value === undefined) return fallback;
+		// Jour 72 : les anciennes données portent le placeholder « À compléter »
+		// (companyName, farmName…) qui n'a pas à apparaître dans l'interface.
+		if (typeof value === "string" && /^À[_\s]compléter$/i.test(value.trim())) {
+			return fallback;
+		}
 		if (typeof value === "object") {
 			return (
 				value.value ||
@@ -89,7 +94,11 @@ const ProfilePage = () => {
 
 		const editableData = Object.keys(user).reduce((acc, key) => {
 			if (!excludedFields.includes(key)) {
-				acc[key] = user[key];
+				const value = user[key];
+				acc[key] =
+					typeof value === "string" && /^À[_\s]compléter$/i.test(value.trim()) ?
+						""
+					:	value;
 			}
 			return acc;
 		}, {});

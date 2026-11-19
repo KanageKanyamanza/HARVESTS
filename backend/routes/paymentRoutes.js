@@ -48,15 +48,23 @@ router.post('/paypal/hosted-fields/order', paymentController.createOrderForHoste
  *                 format: objectId
  *               method:
  *                 type: string
- *                 enum: [wave, orange-money, stripe, paypal]
- *                 example: wave
+ *                 enum: [cash, paypal, mobile_money]
+ *                 example: mobile_money
  *               amount:
  *                 type: number
  *                 example: 18500
  *               phone:
  *                 type: string
- *                 description: Requis pour Wave et Orange Money
+ *                 description: Requis pour mobile_money (numéro du client, format local)
  *                 example: "+221771234567"
+ *               operator:
+ *                 type: string
+ *                 description: Requis pour mobile_money (nom affiché, ex: "Orange Money", "Wave")
+ *                 example: Orange Money
+ *               country:
+ *                 type: string
+ *                 description: ISO 2 lettres, défaut SN pour mobile_money
+ *                 example: SN
  *     responses:
  *       201:
  *         description: Paiement initié avec succès
@@ -70,6 +78,15 @@ router.post('/:id/confirm', paymentController.confirmPayment);
 
 // Obtenir mes paiements
 router.get('/my', paymentController.getMyPayments);
+
+// Opérateurs mobile money disponibles pour un pays (Jour 79)
+router.get('/afribapay/operators', paymentController.getAfribapayOperators);
+
+// Repoll du payin mobile money depuis la page d'attente (Jour 79)
+router.get('/:id/afribapay/status', paymentController.getAfribapayStatus);
+
+// Relance du payin mobile money après échec ou abandon (Jour 79)
+router.post('/:id/afribapay/retry', paymentController.retryAfribapayPayment);
 
 /**
  * @swagger
@@ -117,6 +134,9 @@ router.patch('/admin/refunds/:refundId/process', paymentController.processRefund
 
 // Statistiques des paiements
 router.get('/admin/stats', paymentController.getPaymentStats);
+
+// Coûts réels AfriBaPay (payin, payout, remboursements) par devise — Jour 84
+router.get('/admin/provider-costs', paymentController.getProviderCosts);
 
 // Réconciliation
 router.get('/admin/unreconciled', paymentController.getUnreconciledPayments);

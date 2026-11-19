@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useChat } from "../contexts/ChatContext";
 import ChatList from "../components/chat/ChatList";
@@ -20,6 +21,7 @@ const conversationName = (conversation, currentUser) => {
 const Messages = () => {
 	const { t } = useTranslation("common");
 	const { id } = useParams();
+	const navigate = useNavigate();
 	const {
 		conversations,
 		activeConversation,
@@ -38,14 +40,29 @@ const Messages = () => {
 	}, []);
 
 	// Gérer l'ouverture d'une conversation via l'URL
+	// L'URL fait foi : cliquer, revenir en arrière (y compris avec le bouton du
+	// téléphone) ou ouvrir un lien passent tous par elle. Une seule fois par id,
+	// pour ne pas relancer l'ouverture à chaque nouveau message.
+	const appliedIdRef = useRef(null);
 	useEffect(() => {
-		if (id && conversations.length > 0) {
-			const conversation = conversations.find((c) => c._id === id);
-			if (conversation && activeConversation?._id !== id) {
+		if (!id) {
+			appliedIdRef.current = null;
+			if (activeConversation) setActiveConversation(null);
+			return;
+		}
+		if (appliedIdRef.current === id) return;
+		const conversation = conversations.find((c) => c._id === id);
+		if (conversation) {
+			appliedIdRef.current = id;
+			if (activeConversation?._id !== id) {
 				selectConversation(conversation);
 			}
 		}
-	}, [id, conversations, activeConversation, selectConversation]);
+	}, [id, conversations, activeConversation, selectConversation, setActiveConversation]);
+
+	const messagesPath = `/${user?.userType || "consumer"}/messages`;
+	const openConversation = (conversation) => navigate(`${messagesPath}/${conversation._id}`);
+	const closeConversation = () => navigate(messagesPath);
 
 	// Recherche par nom du contact ou par contenu du dernier message
 	const filteredConversations = useMemo(() => {
@@ -57,6 +74,26 @@ const Messages = () => {
 				(c.lastMessage?.content || "").toLowerCase().includes(term),
 		);
 	}, [conversations, searchTerm, user]);
+
+	// Sur mobile, la discussion occupe tout l'écran, au-dessus de la barre du haut.
+	// Rendue dans <body> : un `fixed` resterait limité à son parent à cause du
+	// `transform` et du `backdrop-blur` du panneau. 100dvh suit le clavier du téléphone.
+	if (activeConversation && isMobile) {
+		return createPortal(
+			<div
+				className="fixed inset-x-0 top-0 z-[70] flex flex-col bg-white pb-[env(safe-area-inset-bottom)]"
+				style={{ height: "100dvh" }}
+			>
+				<ChatWindow
+					conversation={activeConversation}
+					currentUser={user}
+					mobileView
+					onBack={closeConversation}
+				/>
+			</div>,
+			document.body,
+		);
+	}
 
 	return (
 		<div className="dashboard-page bg-harvests-light/20">
@@ -126,7 +163,7 @@ const Messages = () => {
 						:	<ChatList
 								conversations={filteredConversations}
 								activeConversationId={activeConversation?._id}
-								onSelectConversation={selectConversation}
+								onSelectConversation={openConversation}
 								currentUser={user}
 							/>
 						}
@@ -139,7 +176,7 @@ const Messages = () => {
 								conversation={activeConversation}
 								currentUser={user}
 								mobileView={isMobile}
-								onBack={() => setActiveConversation(null)}
+								onBack={closeConversation}
 							/>
 						:	<div className="flex flex-col items-center justify-center h-full p-8 text-center bg-gradient-to-br from-emerald-50/40 via-white/40 to-teal-50/30">
 								<div className="w-24 h-24 bg-white rounded-[2rem] flex items-center justify-center mb-6 shadow-lg shadow-emerald-900/5 border border-emerald-50">

@@ -1,6 +1,9 @@
 const AppError = require('../utils/appError');
 const { ensureSegmentsForOrder, updateOrderStatusFromSegments } = require('../utils/orderSegments');
 
+// Statuts d'article définitifs : jamais réécrits par la clôture d'un segment.
+const TERMINAL_ITEM_STATUSES = ['cancelled', 'rejected', 'refunded', 'disputed'];
+
 /**
  * Service pour la gestion des statuts de commandes
  */
@@ -84,7 +87,7 @@ function checkUpdatePermissions(order, userId, userRole, userType) {
     (buyerId && buyerId === userId.toString());
 
   if (!canUpdate) {
-    throw new AppError('Vous n\'avez pas le droit de modifier cette commande', 403);
+    throw new AppError('order.update_forbidden', 403);
   }
 
   return true;
@@ -95,7 +98,7 @@ function resolveSegmentsForUpdate(order, userId, userType, segmentId) {
   if (segmentId) {
     const segment = order.segments.id(segmentId);
     if (!segment) {
-      throw new AppError('Segment de commande introuvable', 404);
+      throw new AppError('order.segment_not_found', 404);
     }
     return [segment];
   }
@@ -159,11 +162,11 @@ async function updateOrderStatus(order, status, user, options = {}) {
   const canUpdate =
     sellerIds.has(user._id.toString()) ||
     (order.delivery.transporter && order.delivery.transporter.toString() === user._id.toString()) ||
-    user.role === 'admin' ||
+    (user.userType === 'admin' || user.role === 'admin') ||
     (buyerId && buyerId === user._id.toString());
 
   if (!canUpdate) {
-    throw new AppError('Vous n\'avez pas le droit de modifier cette commande', 403);
+    throw new AppError('order.update_forbidden', 403);
   }
 
   // Vérifier le statut actuel
@@ -217,7 +220,7 @@ async function updateOrderStatus(order, status, user, options = {}) {
   if (segmentId) {
     const segment = order.segments.id(segmentId);
     if (!segment) {
-      throw new AppError('Segment de commande introuvable', 404);
+      throw new AppError('order.segment_not_found', 404);
     }
     targetSegments = [segment];
   } else if (sellerTypes.includes(userType) && !isBuyer) {
@@ -294,7 +297,7 @@ async function updateOrderStatus(order, status, user, options = {}) {
 
     const allowedTargets = allowedItemTransitions[currentItemStatus] || [];
     if (!allowedTargets.includes(status)) {
-      throw new AppError(`Transition d'article invalide: ${currentItemStatus} -> ${status}`, 400);
+      throw new AppError('order.invalid_item_transition', 400, { from: currentItemStatus, to: status });
     }
 
     item.status = status;
@@ -364,7 +367,7 @@ async function updateOrderStatus(order, status, user, options = {}) {
         };
         const allowedTargets = allowedItemTransitions[currentItemStatus] || [];
         if (!allowedTargets.includes(status)) {
-          throw new AppError(`Transition d'article invalide: ${currentItemStatus} -> ${status}`, 400);
+          throw new AppError('order.invalid_item_transition', 400, { from: currentItemStatus, to: status });
         }
 
         const updatedSegmentItem = updateItemStatus(item, true);
@@ -420,7 +423,7 @@ async function updateOrderStatus(order, status, user, options = {}) {
         if (currentStatus === status) continue;
         const validTransitions = getValidStatusTransitions(currentStatus, userType);
         if (!validTransitions.includes(status)) {
-          throw new AppError(`Transition de statut invalide: ${currentStatus} -> ${status}`, 400);
+          throw new AppError('order.invalid_status_transition', 400, { from: currentStatus, to: status });
         }
         segmentsToUpdate.push(segment);
       }
@@ -477,7 +480,10 @@ async function updateOrderStatus(order, status, user, options = {}) {
       // même s'ils n'ont pas encore le statut 'delivered'
       if (status === 'completed') {
         const currentItemStatus = segmentItem.status || 'pending';
-        if (currentItemStatus !== 'completed') {
+        // Revue Jour 80 : un article en statut terminal (annulé, rejeté,
+        // remboursé, en litige) n'est jamais réécrit en « completed » — il
+        // réentrerait sinon dans l'assiette du reversement vendeur.
+        if (currentItemStatus !== 'completed' && !TERMINAL_ITEM_STATUSES.includes(currentItemStatus)) {
           segmentItem.status = 'completed';
           segmentItem.statusHistory = segmentItem.statusHistory || [];
           segmentItem.statusHistory.push({
@@ -491,7 +497,7 @@ async function updateOrderStatus(order, status, user, options = {}) {
           
           // Mettre à jour aussi l'article de base
           const baseItem = findBaseItemForSegmentItem(segmentItem);
-          if (baseItem && baseItem !== segmentItem && baseItem.status !== 'completed') {
+          if (baseItem && baseItem !== segmentItem && baseItem.status !== 'completed' && !TERMINAL_ITEM_STATUSES.includes(baseItem.status)) {
             baseItem.status = 'completed';
             baseItem.statusHistory = baseItem.statusHistory || [];
             baseItem.statusHistory.push({

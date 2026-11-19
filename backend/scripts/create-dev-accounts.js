@@ -34,7 +34,6 @@ const Restaurateur = require("../models/Restaurateur");
 const Transporter = require("../models/Transporter");
 const Exporter = require("../models/Exporter");
 
-// Le rôle « explorateur » n'existe pas côté backend (enum User.userType)
 const ACCOUNTS = {
 	consumer: {
 		Model: Consumer,

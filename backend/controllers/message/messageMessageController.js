@@ -10,11 +10,11 @@ exports.getConversationMessages = catchAsync(async (req, res, next) => {
 	const conversation = await Conversation.findById(req.params.id);
 
 	if (!conversation) {
-		return next(new AppError("Conversation non trouvée", 404));
+		return next(new AppError("message.conversation_not_found", 404));
 	}
 
 	if (!conversation.canUserAccess(req.user.id)) {
-		return next(new AppError("Accès non autorisé", 403));
+		return next(new AppError("message.access_denied", 403));
 	}
 
 	const page = parseInt(req.query.page, 10) || 1;
@@ -47,16 +47,16 @@ exports.sendMessage = catchAsync(async (req, res, next) => {
 	const conversation = await Conversation.findById(req.params.id);
 
 	if (!conversation) {
-		return next(new AppError("Conversation non trouvée", 404));
+		return next(new AppError("message.conversation_not_found", 404));
 	}
 
 	if (!conversation.canUserAccess(req.user.id)) {
-		return next(new AppError("Accès non autorisé", 403));
+		return next(new AppError("message.access_denied", 403));
 	}
 
 	// Valider le contenu
 	if (!content && (!attachments || attachments.length === 0)) {
-		return next(new AppError("Contenu ou pièce jointe requise", 400));
+		return next(new AppError("message.content_required", 400));
 	}
 
 	// Créer le message
@@ -114,16 +114,20 @@ exports.sendMessage = catchAsync(async (req, res, next) => {
 				sender: req.user.id,
 				type: "message_received",
 				category: "message",
-				title: `Message de ${req.user.firstName}`,
-				message: content ? content.substring(0, 100) : "Pièce jointe envoyée",
+				title: req.t("message.notification_title", {
+					name: req.user.firstName,
+				}),
+				message: content ? content.substring(0, 100) : req.t("message.notification_attachment"),
 				data: {
 					conversationId: conversation._id,
 					messageId: message._id,
+					senderName: req.user.firstName,
+					attachmentOnly: !content,
 				},
 				actions: [
 					{
 						type: "view",
-						label: "Répondre",
+						label: req.t("message.reply"),
 						url: `/messages/${conversation._id}`,
 					},
 				],
@@ -149,13 +153,13 @@ exports.editMessage = catchAsync(async (req, res, next) => {
 	const { content } = req.body;
 
 	if (!content) {
-		return next(new AppError("Nouveau contenu requis", 400));
+		return next(new AppError("message.content_new_required", 400));
 	}
 
 	const message = await Message.findById(req.params.messageId);
 
 	if (!message) {
-		return next(new AppError("Message non trouvé", 404));
+		return next(new AppError("message.not_found", 404));
 	}
 
 	try {
@@ -177,10 +181,10 @@ exports.deleteMessage = catchAsync(async (req, res, next) => {
 	const message = await Message.findById(req.params.messageId);
 
 	if (!message) {
-		return next(new AppError("Message non trouvé", 404));
+		return next(new AppError("message.not_found", 404));
 	}
 
-	const isAdmin = req.user.role === "admin";
+	const isAdmin = req.user.role === "admin" || req.user.userType === "admin";
 
 	try {
 		await message.delete(req.user.id, isAdmin);
@@ -199,13 +203,13 @@ exports.addReaction = catchAsync(async (req, res, next) => {
 	const { emoji } = req.body;
 
 	if (!emoji) {
-		return next(new AppError("Emoji requis", 400));
+		return next(new AppError("message.emoji_required", 400));
 	}
 
 	const message = await Message.findById(req.params.messageId);
 
 	if (!message) {
-		return next(new AppError("Message non trouvé", 404));
+		return next(new AppError("message.not_found", 404));
 	}
 
 	await message.addReaction(req.user.id, emoji);
@@ -225,7 +229,7 @@ exports.removeReaction = catchAsync(async (req, res, next) => {
 	const message = await Message.findById(req.params.messageId);
 
 	if (!message) {
-		return next(new AppError("Message non trouvé", 404));
+		return next(new AppError("message.not_found", 404));
 	}
 
 	await message.removeReaction(req.user.id, emoji);
@@ -243,7 +247,7 @@ exports.pinMessage = catchAsync(async (req, res, next) => {
 	const message = await Message.findById(req.params.messageId);
 
 	if (!message) {
-		return next(new AppError("Message non trouvé", 404));
+		return next(new AppError("message.not_found", 404));
 	}
 
 	// Vérifier les permissions
@@ -251,7 +255,7 @@ exports.pinMessage = catchAsync(async (req, res, next) => {
 	if (!conversation.canUserModerate(req.user.id)) {
 		return next(
 			new AppError(
-				"Vous n'avez pas les droits pour épingler des messages",
+				"message.pin_forbidden",
 				403,
 			),
 		);
@@ -272,14 +276,14 @@ exports.unpinMessage = catchAsync(async (req, res, next) => {
 	const message = await Message.findById(req.params.messageId);
 
 	if (!message) {
-		return next(new AppError("Message non trouvé", 404));
+		return next(new AppError("message.not_found", 404));
 	}
 
 	const conversation = await Conversation.findById(message.conversation);
 	if (!conversation.canUserModerate(req.user.id)) {
 		return next(
 			new AppError(
-				"Vous n'avez pas les droits pour désépingler des messages",
+				"message.unpin_forbidden",
 				403,
 			),
 		);
@@ -300,20 +304,20 @@ exports.reportMessage = catchAsync(async (req, res, next) => {
 	const { reason, description } = req.body;
 
 	if (!reason) {
-		return next(new AppError("Raison du signalement requise", 400));
+		return next(new AppError("message.report_reason_required", 400));
 	}
 
 	const message = await Message.findById(req.params.messageId);
 
 	if (!message) {
-		return next(new AppError("Message non trouvé", 404));
+		return next(new AppError("message.not_found", 404));
 	}
 
 	await message.report(req.user.id, reason, description);
 
 	res.status(200).json({
 		status: "success",
-		message: "Message signalé avec succès",
+		message: req.t("message.reported"),
 	});
 });
 
@@ -322,7 +326,7 @@ exports.searchMessages = catchAsync(async (req, res, next) => {
 	const { q, conversationId } = req.query;
 
 	if (!q) {
-		return next(new AppError("Terme de recherche requis", 400));
+		return next(new AppError("message.search_term_required", 400));
 	}
 
 	let searchOptions = {
@@ -342,7 +346,7 @@ exports.searchMessages = catchAsync(async (req, res, next) => {
 		const conversation = await Conversation.findById(conversationId);
 		if (!conversation || !conversation.canUserAccess(req.user.id)) {
 			return next(
-				new AppError("Conversation non trouvée ou accès non autorisé", 404),
+				new AppError("message.conversation_denied", 404),
 			);
 		}
 
@@ -383,13 +387,13 @@ exports.shareProduct = catchAsync(async (req, res, next) => {
 	const conversation = await Conversation.findById(req.params.id);
 	if (!conversation || !conversation.canUserAccess(req.user.id)) {
 		return next(
-			new AppError("Conversation non trouvée ou accès non autorisé", 404),
+			new AppError("message.conversation_denied", 404),
 		);
 	}
 
 	const product = await Product.findById(productId);
 	if (!product) {
-		return next(new AppError("Produit non trouvé", 404));
+		return next(new AppError("message.product_not_found", 404));
 	}
 
 	const sharedMessage = await Message.createProductShare(
@@ -417,7 +421,7 @@ exports.sendQuote = catchAsync(async (req, res, next) => {
 	const conversation = await Conversation.findById(req.params.id);
 	if (!conversation || !conversation.canUserAccess(req.user.id)) {
 		return next(
-			new AppError("Conversation non trouvée ou accès non autorisé", 404),
+			new AppError("message.conversation_denied", 404),
 		);
 	}
 

@@ -91,7 +91,7 @@ const WeatherClockWidget = ({ city }) => {
 		};
 	}, [city]);
 
-	const dateLocale = i18n.language === "en" ? "en-US" : "fr-FR";
+	const dateLocale = i18n.language === "en" ? "en-GB" : "fr-FR";
 	const timeLabel = now.toLocaleTimeString(dateLocale, {
 		hour: "2-digit",
 		minute: "2-digit",
@@ -115,8 +115,8 @@ const WeatherClockWidget = ({ city }) => {
 				<span className="text-xs font-bold tabular-nums">
 					{weather ? `${weather.temperature}°` : "--°"}
 				</span>
-				<span className="w-px h-3 bg-gray-200 mx-0.5" />
-				<span className="text-xs font-bold tabular-nums">{timeLabel}</span>
+				{/* <span className="w-px h-3 bg-gray-200 mx-0.5" />
+				<span className="text-xs font-bold tabular-nums">{timeLabel}</span> */}
 			</div>
 
 			{/* Version complète (desktop) */}

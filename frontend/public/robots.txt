@@ -12,7 +12,6 @@ Disallow: /transformer/
 Disallow: /restaurateur/
 Disallow: /transporter/
 Disallow: /exporter/
-Disallow: /explorer/
 Disallow: /auth/
 Disallow: /checkout
 Disallow: /cart

@@ -111,7 +111,7 @@
 │ • Stripe international  │ • HMAC sécurisé                  │
 │ • Wave Sénégal          │ • Retry automatique              │
 │ • Orange Money backup   │ • Logs complets                  │
-│ • Commission 5%         │ • Analytics intégrées            │
+│ • Commission 7,5%       │ • Analytics intégrées            │
 └─────────────────────────────────────────────────────────────┘
 ```
 

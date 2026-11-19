@@ -4,6 +4,7 @@
 
 const AuditLog = require("../models/AuditLog");
 const { isTestUser } = require("./testAccounts");
+const mongoose = require("mongoose");
 
 const AUDIT_ACTIONS = {
 	// Auth
@@ -30,6 +31,22 @@ const AUDIT_ACTIONS = {
 	ORDER_CANCELLED: "ORDER_CANCELLED",
 	ORDER_STATUS_CHANGED: "ORDER_STATUS_CHANGED",
 	PAYMENT_CONFIRMED: "PAYMENT_CONFIRMED",
+
+	// Reversements vendeurs AfriBaPay (Jour 82) : envoi, confirmation par
+	// webhook, échec définitif et relance manuelle depuis le back-office.
+	PAYOUT_SENT: "PAYOUT_SENT",
+	PAYOUT_CONFIRMED: "PAYOUT_CONFIRMED",
+	PAYOUT_FAILED: "PAYOUT_FAILED",
+	PAYOUT_AMBIGUOUS: "PAYOUT_AMBIGUOUS",
+	PAYOUT_MANUAL_RETRY: "PAYOUT_MANUAL_RETRY",
+
+	// Remboursements client AfriBaPay (Jour 83) : même logique que les
+	// reversements, l'argent part vers le téléphone du client.
+	REFUND_SENT: "REFUND_SENT",
+	REFUND_CONFIRMED: "REFUND_CONFIRMED",
+	REFUND_FAILED: "REFUND_FAILED",
+	REFUND_AMBIGUOUS: "REFUND_AMBIGUOUS",
+	REFUND_MANUAL_RETRY: "REFUND_MANUAL_RETRY",
 
 	// Products
 	PRODUCT_CREATED: "PRODUCT_CREATED",
@@ -63,6 +80,18 @@ const logAudit = async ({
 	status = "success",
 }) => {
 	try {
+		// Aucune base connectée (tests unitaires, outils hors ligne) : il n'y a
+		// pas d'entrée à écrire et Mongoose mettrait la commande en tampon.
+		// Hors test, ne jamais perdre l'information en silence.
+		if (mongoose.connection.readyState !== 1) {
+			if (process.env.NODE_ENV !== "test") {
+				console.warn(
+					`[Audit] base non connectée (readyState ${mongoose.connection.readyState}) — action ${action} non journalisée`,
+				);
+			}
+			return;
+		}
+
 		// Comptes de test (développement) : jamais suivis (utils/testAccounts.js)
 		if (await isTestUser({ id: userId, email: userEmail })) return;
 

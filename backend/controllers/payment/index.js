@@ -16,6 +16,11 @@ module.exports = {
   getMyPayments: paymentController.getMyPayments,
   getPayment: paymentController.getPayment,
   getMyRevenue: paymentController.getMyRevenue,
+
+  // AfriBaPay / Mobile Money (Jour 79)
+  getAfribapayOperators: paymentController.getAfribapayOperators,
+  getAfribapayStatus: paymentController.getAfribapayStatus,
+  retryAfribapayPayment: paymentController.retryAfribapayPayment,
   
   // Refunds
   requestRefund: paymentRefundController.requestRefund,
@@ -24,6 +29,7 @@ module.exports = {
   // Admin
   getAllPayments: paymentAdminController.getAllPayments,
   getPaymentStats: paymentAdminController.getPaymentStats,
+  getProviderCosts: paymentAdminController.getProviderCosts,
   getUnreconciledPayments: paymentAdminController.getUnreconciledPayments,
   reconcilePayment: paymentAdminController.reconcilePayment,
   

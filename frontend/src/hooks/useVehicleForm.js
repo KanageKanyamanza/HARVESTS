@@ -143,10 +143,10 @@ export const useVehicleForm = (service, userTypeKey, basePath, defaultWeightUnit
       const payload = { ...formData, image: vehicleImage };
       
       if (vehicleId) {
-        await service.updateVehicle(vehicleId, payload);
+        await service.updateFleetVehicle(vehicleId, payload);
         showSuccess(t('vehicle.messages.updated'));
       } else {
-        await service.addVehicle(payload);
+        await service.addFleetVehicle(payload);
         showSuccess(t('vehicle.messages.added'));
       }
       navigate(`/${userTypeKey}/fleet`);

@@ -9,7 +9,9 @@ import { DEFAULT_CURRENCY } from "../config/currencies";
 // Le montant reste libellé en FCFA/XOF dans les deux langues : la plateforme
 // vend en francs CFA, seule la présentation change. Avant le Jour 70, tous les
 // prix passaient par `fr-FR` et restaient donc au format français en anglais.
-const LOCALES = { fr: "fr-FR", en: "en-US" };
+// Jour 71 : l'anglais passe de `en-US` à `en-GB` (public cible : Afrique de
+// l'Ouest anglophone) ; les nombres rendent identiquement « 3,000 ».
+const LOCALES = { fr: "fr-FR", en: "en-GB" };
 
 // `i18next` exporte l'instance partagée initialisée par utils/i18n.js. On la lit
 // directement pour éviter que ce module (importé par currencyUtils, lui-même

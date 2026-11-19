@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useMemo } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { paymentService } from '../../services';
 import {
@@ -20,39 +21,31 @@ import {
 const SubscriptionCheckout = () => {
   const { planId } = useParams();
   const location = useLocation();
+  const { t } = useTranslation('public');
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  
+
   // Récupérer billingPeriod depuis location.state ou utiliser 'monthly' par défaut
   const billingPeriod = location.state?.billingPeriod || 'monthly';
-  
+
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState(null);
   const paymentIdRef = useRef(null);
   const paypalClientId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
 
   const plans = {
-    gratuit: {
-      id: 'gratuit',
-      name: 'Gratuit',
-      monthlyPrice: 0,
-      annualPrice: 0
-    },
-    standard: {
-      id: 'standard',
-      name: 'Standard',
-      monthlyPrice: 3000,
-      annualPrice: 25000
-    },
-    premium: {
-      id: 'premium',
-      name: 'Premium',
-      monthlyPrice: 10000,
-      annualPrice: 75000
-    }
+    gratuit: { id: 'gratuit', monthlyPrice: 0, annualPrice: 0 },
+    standard: { id: 'standard', monthlyPrice: 3000, annualPrice: 25000 },
+    premium: { id: 'premium', monthlyPrice: 10000, annualPrice: 75000 }
   };
 
   const selectedPlan = plans[planId] || plans.standard;
+  const isPlanValid = Boolean(planId && plans[planId]);
+  const planName = t(`pricing.plans.${selectedPlan.id}.name`);
+  const periodLabel =
+    billingPeriod === 'monthly'
+      ? t('pricing.checkout.monthly')
+      : t('pricing.checkout.annual');
 
   React.useEffect(() => {
     if (!isAuthenticated) {
@@ -116,25 +109,25 @@ const SubscriptionCheckout = () => {
       }
 
       if (!orderId) {
-        throw new Error('Identifiant PayPal introuvable.');
+        throw new Error(t('pricing.checkout.errors.paymentIdMissing'));
       }
 
       setPaymentProcessing(false);
       return orderId;
     } catch (err) {
-      const message = err.response?.data?.message || err.message || 'Impossible de contacter PayPal pour le moment.';
+      const message = err.response?.data?.message || err.message || t('pricing.checkout.errors.paypalUnavailable');
       setPaymentError(message);
       setPaymentProcessing(false);
       throw err;
     }
-  }, [selectedPlan.id, billingPeriod, price, user]);
+  }, [selectedPlan.id, billingPeriod, price, user, t]);
 
   const handlePayPalApprove = useCallback(async (data) => {
     try {
       const paymentId = paymentIdRef.current || sessionStorage.getItem(`harvests_subscription_payment_${selectedPlan.id}`);
 
       if (!paymentId) {
-        throw new Error('Identifiant du paiement introuvable.');
+        throw new Error(t('pricing.checkout.errors.paymentIdMissing'));
       }
 
       await paymentService.confirmPayment(paymentId, { paypalOrderId: data.orderID });
@@ -142,26 +135,30 @@ const SubscriptionCheckout = () => {
       sessionStorage.setItem(`harvests_subscription_paypal_order_${selectedPlan.id}`, data.orderID);
       setPaymentError(null);
       setPaymentProcessing(false);
-      
+
       navigate(`/payments/paypal/success?type=subscription&planId=${selectedPlan.id}&paymentId=${paymentId}&paypalOrderId=${data.orderID}`);
     } catch (err) {
       console.error('Erreur PayPal lors de la confirmation:', err);
-      const message = err.response?.data?.message || err.message || 'Erreur lors de la confirmation du paiement.';
+      const message = err.response?.data?.message || err.message || t('pricing.checkout.errors.paymentConfirmation');
       setPaymentError(message);
       setPaymentProcessing(false);
     }
-  }, [selectedPlan.id, navigate]);
+  }, [selectedPlan.id, navigate, t]);
 
   const handlePayPalCancel = useCallback(() => {
-    setPaymentError('Paiement annulé. Vous pouvez réessayer.');
+    setPaymentError(t('pricing.checkout.errors.paymentCancelled'));
     setPaymentProcessing(false);
-  }, []);
+  }, [t]);
 
   const handlePayPalError = useCallback((err) => {
     console.error('Erreur PayPal:', err);
-    setPaymentError(err?.message || 'Erreur PayPal inattendue.');
+    setPaymentError(err?.message || t('pricing.checkout.errors.paypalUnexpected'));
     setPaymentProcessing(false);
-  }, []);
+  }, [t]);
+
+  if (!isPlanValid) {
+    return <Navigate to="/pricing" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -173,10 +170,14 @@ const SubscriptionCheckout = () => {
             className="flex items-center text-gray-600 hover:text-gray-900 mb-4"
           >
             <FiArrowLeft className="mr-2" />
-            Retour
+            {t('pricing.checkout.back')}
           </button>
-          <h1 className="text-2xl font-bold text-gray-900">Paiement sécurisé</h1>
-          <p className="text-gray-600 mt-1">Abonnement {selectedPlan.name} - {billingPeriod === 'monthly' ? 'Mensuel' : 'Annuel'}</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {t('pricing.checkout.securePaymentTitle')}
+          </h1>
+          <p className="text-gray-600 mt-1">
+            {t('pricing.checkout.subscriptionLine', { plan: planName, period: periodLabel })}
+          </p>
         </div>
 
         {/* Carte principale */}
@@ -186,7 +187,7 @@ const SubscriptionCheckout = () => {
             <div className="mb-6 bg-white border-2 border-gray-300 rounded-lg p-4 shadow-sm">
               <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
                 <FiUser className="h-4 w-4 mr-2" />
-                Informations de facturation
+                {t('pricing.checkout.billingInfo')}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                 <div className="flex items-center text-gray-900">
@@ -214,10 +215,10 @@ const SubscriptionCheckout = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-semibold text-green-900">
-                  Paiement par carte bancaire ou PayPal
+                  {t('pricing.checkout.cardOrPaypalTitle')}
                 </h3>
                 <p className="text-sm text-green-800 mt-1">
-                  Payez en toute sécurité avec votre carte bancaire ou votre compte PayPal
+                  {t('pricing.checkout.cardOrPaypalText')}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -231,8 +232,8 @@ const SubscriptionCheckout = () => {
 
           {/* Note importante */}
           <div className="mb-6 bg-blue-50 border border-blue-200 rounded-md p-3 text-sm text-blue-800">
-            <p className="font-semibold mb-1">Note importante :</p>
-            <p>Pour les abonnements, PayPal peut ouvrir une fenêtre sécurisée pour l'authentification 3D Secure de votre banque. C'est normal et sécurisé.</p>
+            <p className="font-semibold mb-1">{t('pricing.checkout.importantNoteTitle')}</p>
+            <p>{t('pricing.checkout.importantNoteText')}</p>
           </div>
 
           {/* Affichage des erreurs */}
@@ -245,7 +246,7 @@ const SubscriptionCheckout = () => {
           {/* Boutons PayPal */}
           {!paypalClientId ? (
             <div className="mt-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg p-3">
-              Configuration PayPal manquante. Veuillez définir <code>VITE_PAYPAL_CLIENT_ID</code>.
+              {t('pricing.checkout.paypalMissing')} <code>VITE_PAYPAL_CLIENT_ID</code>.
             </div>
           ) : paypalOptions ? (
             <PayPalScriptProvider
@@ -270,14 +271,14 @@ const SubscriptionCheckout = () => {
             </PayPalScriptProvider>
           ) : (
             <div className="mt-4 text-sm text-gray-600 bg-white border border-gray-200 rounded-md p-4">
-              <p>Initialisation des boutons de paiement...</p>
+              <p>{t('pricing.checkout.initialising')}</p>
             </div>
           )}
 
           {/* Sécurité */}
           <div className="mt-6 flex items-center justify-center space-x-2 text-sm text-gray-600">
             <FiLock className="h-4 w-4" />
-            <span>Paiement sécurisé protégé par cryptage SSL</span>
+            <span>{t('pricing.checkout.sslNotice')}</span>
           </div>
         </div>
 
@@ -285,8 +286,8 @@ const SubscriptionCheckout = () => {
         <div className="bg-white rounded-lg shadow p-4 flex items-start gap-3">
           <FiShield className="h-5 w-5 text-green-600 mt-0.5" />
           <div className="text-sm text-gray-600">
-            <p className="font-semibold text-gray-900 mb-1">Paiement sécurisé</p>
-            <p>Vos informations de paiement sont cryptées et sécurisées. Nous ne stockons jamais vos données de carte bancaire.</p>
+            <p className="font-semibold text-gray-900 mb-1">{t('pricing.checkout.secureTitle')}</p>
+            <p>{t('pricing.checkout.secureText')}</p>
           </div>
         </div>
       </div>

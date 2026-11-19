@@ -1,0 +1,58 @@
+{
+	"checkout": {
+		"mobileMoney": "Mobile Money",
+		"mobileMoneyDescription": "Pay from your phone with Wave, Orange Money, MTN, Moov…",
+		"mobileMoneyHint": "Choose your operator, then enter the number that will receive the payment request.",
+		"operatorLabel": "Operator",
+		"phoneLabel": "Phone number",
+		"phonePlaceholder": "{{phoneCode}} 7X XXX XX XX",
+		"phoneHint": "The country code is added automatically if you include it.",
+		"loadingOperators": "Loading operators…",
+		"unavailable": "Mobile Money payment is not yet available for this country. Choose another payment method.",
+		"countryMissing": "Enter the delivery country first to see the available operators.",
+		"selectedOperator": "A {{operator}} payment request will be sent to {{phone}}."
+	},
+	"waiting": {
+		"title": "Awaiting confirmation",
+		"description": "A payment request was sent to {{phone}} via {{operator}}. Approve it on your phone to confirm the order.",
+		"amountLabel": "Amount due",
+		"checking": "Checking the payment…",
+		"checkNow": "Check now",
+		"stillWaiting": "Still waiting? Check that you approved the request on your phone.",
+		"success": "Payment confirmed! Redirecting…",
+		"failedTitle": "The payment did not go through",
+		"failedText": "The request was declined or has expired. You can try again without losing your order.",
+		"retry": "Try the payment again",
+		"phoneLabel": "Mobile Money number to charge",
+		"retrying": "Sending a new request…",
+		"cancel": "Abandon payment",
+		"changeMethod": "Choose another payment method",
+		"initError": "The payment request could not be sent. Try again or choose another payment method.",
+		"missingContact": "The mobile payment details were lost. Return to the order to choose your operator again.",
+		"statusError": "The payment cannot be checked right now.",
+		"secured": "Payment secured by AfriBaPay"
+	},
+	"success": {
+		"title": "Payment confirmed",
+		"text": "Your Mobile Money payment has been received. Your order is recorded.",
+		"pendingTitle": "Payment being checked",
+		"pendingText": "AfriBaPay has not confirmed the payment yet. This page refreshes automatically.",
+		"failedTitle": "Payment not confirmed",
+		"failedText": "The payment was not confirmed. Return to the order to try again.",
+		"viewOrder": "View my order",
+		"viewOrders": "View my orders",
+		"home": "Back to home",
+		"checkAgain": "Check again"
+	},
+	"cancel": {
+		"title": "Payment abandoned",
+		"text": "No money was taken. You can restart the payment from your order.",
+		"retry": "Restart payment",
+		"home": "Back to home",
+		"viewOrders": "View my orders"
+	},
+	"errors": {
+		"notFound": "Payment not found.",
+		"loadError": "The payment could not be loaded."
+	}
+}

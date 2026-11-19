@@ -3,6 +3,7 @@ const AppError = require('../../utils/appError');
 const userAdminService = require('../../services/user/userAdminService');
 const adminNotifications = require('../../utils/adminNotifications');
 const User = require('../../models/User');
+const { isNotFound } = require('../../utils/translate');
 
 // Obtenir tous les utilisateurs (admin seulement)
 exports.getAllUsers = catchAsync(async (req, res, next) => {
@@ -60,7 +61,7 @@ exports.updateUser = catchAsync(async (req, res, next) => {
       },
     });
   } catch (error) {
-    return next(AppError.from(error, error.message.includes('non trouvé') ? 404 : 400));
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 400));
   }
 });
 

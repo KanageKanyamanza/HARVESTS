@@ -1,4 +1,5 @@
 const Payment = require('../../models/Payment');
+const { mergePaymentDetails } = require('../../utils/paymentDetails');
 const paypalService = require('../paypalService');
 
 /**
@@ -53,15 +54,14 @@ async function handlePayPalCaptureCompleted(resource) {
     return;
   }
 
-  payment.paymentDetails.paypal = {
-    ...(payment.paymentDetails.paypal || {}),
+  mergePaymentDetails(payment, 'paypal', {
     orderId: orderId || payment.paymentDetails.paypal?.orderId,
     captureId,
     status: resource.status,
     payerEmail: resource.payer?.email_address || payment.paymentDetails.paypal?.payerEmail,
     payerName: [resource.payer?.name?.given_name, resource.payer?.name?.surname].filter(Boolean).join(' ') || payment.paymentDetails.paypal?.payerName,
     rawResponse: resource
-  };
+  });
 
   await payment.markAsSucceeded(captureId, resource.update_time ? new Date(resource.update_time) : new Date());
 }

@@ -68,7 +68,7 @@ async function checkWeeklyOrderLimit(userId) {
  * /producers/me/products, producteur via /products, transformateur) — la
  * route de l'interface producteur ne la vérifiait pas : un appel direct à
  * l'API permettait de dépasser le plan.
- * @param {"producer"|"transformer"} ownerField - champ propriétaire du produit
+ * @param {"producer"|"transformer"|"restaurateur"} ownerField - champ propriétaire du produit
  * @param {string} ownerId - identifiant du vendeur
  * @throws {AppError} 403 si la limite est atteinte
  */

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { afribapayCostsSchema } = require('./afribapayCosts');
 
 // Schéma pour les paiements PayPal
 const paypalSchema = new mongoose.Schema({
@@ -8,6 +9,32 @@ const paypalSchema = new mongoose.Schema({
   payerName: String,
   status: String,
   rawResponse: mongoose.Schema.Types.Mixed
+}, { _id: false });
+
+// Paiement mobile money via AfriBaPay (Jour 76)
+const afribapaySchema = new mongoose.Schema({
+  operator: String,       // code AfriBaPay (orange, wave, free…) — utils/afribapayOperator.js
+  phone: String,          // numéro au format AfriBaPay (fondations J75, formatPhoneForAfribapay)
+  country: String,        // ISO 2 lettres (SN…) — détermine l'indicatif retiré du numéro
+  payinOrderId: String,   // order_id de l'essai courant (R<paymentId>, relances -p2, -p3…) — unique car AfriBaPay refuse la réutilisation
+  attempt: Number,        // numéro de l'essai courant (1 = premier, sans suffixe)
+  transactionId: String,  // transaction_id AfriBaPay de l'essai courant (nouveau à chaque relance)
+  processorStatus: String, // dernier statut renvoyé par AfriBaPay pour cet essai
+  // order_id de l'essai qui a RÉELLEMENT confirmé le payin (webhook J77 ou
+  // /status J78) : permet de reconnaître l'échec d'un essai remplacé
+  // (isSupersededPayinOrderId) sans jamais rétrograder un payin confirmé.
+  payinConfirmedOrderId: String,
+  // Journal /status (J78) : FAILED/EXPIRED/REJECTED sont lus deux fois avant
+  // d'écrire un failed définitif (lecture transitoire possible — reprise du
+  // paiement) ; CANCELLED reste définitif dès la première lecture. Proposé
+  // aussi au back-office J85.
+  failedReadCount: Number, // lectures FAILED/EXPIRED/REJECTED consécutives
+  lastPolledAt: Date,      // dernière interrogation /status du payin
+  lastPollResult: String,  // dernier statut brut renvoyé par /status
+  // Coûts réels prélevés par AfriBaPay sur le payin (Jour 84) :
+  // { fees, taxes, total, capturedAt }. Absent tant qu'aucune confirmation
+  // n'en a fourni — ne jamais lire des zéros comme un coût mesuré.
+  fees: afribapayCostsSchema
 }, { _id: false });
 
 // Schéma pour le paiement à la livraison (cash on delivery)
@@ -60,15 +87,17 @@ const paymentSchema = new mongoose.Schema({
   
   method: {
     type: String,
-    enum: ['cash', 'paypal'],
+    enum: ['cash', 'paypal', 'mobile_money'],
     required: [true, 'validation.payment_method_required']
   },
   
   provider: {
     type: String,
-    enum: ['cash-on-delivery', 'paypal'],
+    enum: ['cash-on-delivery', 'paypal', 'afribapay'],
     default: function() {
-      return this.method === 'cash' ? 'cash-on-delivery' : 'paypal';
+      if (this.method === 'cash') return 'cash-on-delivery';
+      if (this.method === 'mobile_money') return 'afribapay';
+      return 'paypal';
     }
   },
   
@@ -135,7 +164,8 @@ const paymentSchema = new mongoose.Schema({
   // Détails spécifiques selon la méthode
   paymentDetails: {
     paypal: paypalSchema,
-    cash: cashOnDeliverySchema
+    cash: cashOnDeliverySchema,
+    afribapay: afribapaySchema
   },
   
   // Description du paiement
@@ -172,9 +202,24 @@ const paymentSchema = new mongoose.Schema({
     amount: Number,
     reason: String,
     status: {
+      // `ambiguous` (Jour 83) : AfriBaPay n'a pas confirmé — l'argent a
+      // peut-être été versé, aucune relance avant vérification du dashboard.
       type: String,
-      enum: ['pending', 'succeeded', 'failed', 'cancelled']
+      enum: ['pending', 'succeeded', 'failed', 'cancelled', 'ambiguous']
     },
+    // Suivi de la tentative AfriBaPay (Jour 83) : un remboursement est un
+    // versement sur le téléphone du client, avec son propre order_id
+    // (`refund-<paymentId>[-rN]`) et sa confirmation par webhook.
+    attempt: Number,
+    orderId: String,
+    transactionId: String,
+    processorStatus: String,
+    operator: String,
+    phone: String,
+    country: String,
+    // Coûts réels du versement de remboursement (Jour 84).
+    fees: afribapayCostsSchema,
+    requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
     createdAt: {
       type: Date,
       default: Date.now
@@ -182,6 +227,15 @@ const paymentSchema = new mongoose.Schema({
     processedAt: Date,
     failureReason: String
   }],
+
+  // Compteur atomique des tentatives de remboursement (Jour 83) : incrémenté
+  // avant l'envoi pour qu'un order_id ne soit jamais réutilisé, même si deux
+  // administrateurs cliquent en même temps.
+  refundAttempt: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
   
   // Contestations
   disputes: [{
@@ -278,6 +332,8 @@ paymentSchema.index({ user: 1, createdAt: -1 });
 paymentSchema.index({ status: 1 });
 paymentSchema.index({ method: 1, provider: 1 });
 paymentSchema.index({ externalId: 1 });
+// Le webhook AfriBaPay positionne un order_id d'essai ; recherche affine (J77).
+paymentSchema.index({ 'paymentDetails.afribapay.payinOrderId': 1 }, { unique: true, sparse: true });
 paymentSchema.index({ paidAt: 1 });
 paymentSchema.index({ 'reconciliation.isReconciled': 1 });
 paymentSchema.index({ currency: 1, createdAt: -1 });
@@ -301,7 +357,17 @@ paymentSchema.virtual('isFailed').get(function() {
 paymentSchema.virtual('totalRefunded').get(function() {
   return this.refunds
     .filter(refund => refund.status === 'succeeded')
-    .reduce((total, refund) => total + refund.amount, 0);
+    .reduce((total, refund) => total + (Number(refund.amount) || 0), 0);
+});
+
+// Montant déjà engagé (Jour 83) : un remboursement en cours ou incertain
+// réserve sa part — deux essais ne peuvent pas rembourser deux fois le même
+// argent. `failed`/`cancelled` libèrent la réservation.
+paymentSchema.virtual('reservedRefunded').get(function() {
+  const reserved = ['pending', 'ambiguous', 'succeeded'];
+  return this.refunds
+    .filter(refund => reserved.includes(refund.status))
+    .reduce((total, refund) => total + (Number(refund.amount) || 0), 0);
 });
 
 paymentSchema.virtual('canBeRefunded').get(function() {
@@ -552,6 +618,14 @@ paymentSchema.methods.processRefund = function(refundId, status, processedAt = n
   const refund = this.refunds.find(r => r.refundId === refundId);
   if (!refund) {
     throw new Error('Remboursement non trouvé');
+  }
+
+  // Un remboursement mobile money est un VERSEMENT AfriBaPay (Jour 83) : le
+  // marquer « traité » depuis l'ancienne route admin laisserait croire au
+  // client qu'il a été payé sans qu'aucun versement ne parte. Vaut aussi pour
+  // une demande créée par l'ancien circuit sur un paiement mobile money.
+  if (this.method === 'mobile_money' || refund.attempt != null || String(refund.orderId || '').startsWith('refund-')) {
+    throw new Error('payment.refund_managed_by_afribapay');
   }
   
   refund.status = status;

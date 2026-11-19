@@ -9,7 +9,7 @@ const transporterSchema = new mongoose.Schema({
     required: false, // Optionnel lors de l'inscription
     trim: true,
     maxlength: [100, 'validation.company_name_maxlength_100'],
-    default: 'À compléter'
+    default: ''
   },
   
   businessLicense: {

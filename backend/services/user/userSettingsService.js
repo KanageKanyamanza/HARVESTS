@@ -211,7 +211,7 @@ async function updateDeliveryAddress(userId, addressId, addressData) {
 	);
 
 	if (!updatedUser) {
-		throw new Error("Adresse de livraison non trouvée");
+		throw new Error("user.delivery_address_not_found");
 	}
 
 	return updatedUser;
@@ -228,7 +228,7 @@ async function deleteDeliveryAddress(userId, addressId) {
 	);
 
 	if (!updatedUser) {
-		throw new Error("Adresse de livraison non trouvée");
+		throw new Error("user.delivery_address_not_found");
 	}
 
 	return updatedUser;

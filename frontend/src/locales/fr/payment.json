@@ -1,0 +1,58 @@
+{
+	"checkout": {
+		"mobileMoney": "Mobile Money",
+		"mobileMoneyDescription": "Payez depuis votre téléphone avec Wave, Orange Money, MTN, Moov…",
+		"mobileMoneyHint": "Choisissez votre opérateur, puis saisissez le numéro qui recevra la demande de paiement.",
+		"operatorLabel": "Opérateur",
+		"phoneLabel": "Numéro de téléphone",
+		"phonePlaceholder": "{{phoneCode}} 7X XXX XX XX",
+		"phoneHint": "L'indicatif du pays est ajouté automatiquement si vous le saisissez.",
+		"loadingOperators": "Chargement des opérateurs…",
+		"unavailable": "Le paiement Mobile Money n'est pas encore disponible pour ce pays. Choisissez un autre mode de paiement.",
+		"countryMissing": "Renseignez d'abord le pays de livraison pour connaître les opérateurs disponibles.",
+		"selectedOperator": "Une demande de paiement {{operator}} sera envoyée au {{phone}}."
+	},
+	"waiting": {
+		"title": "En attente de confirmation",
+		"description": "Une demande de paiement a été envoyée au {{phone}} via {{operator}}. Validez-la sur votre téléphone pour confirmer la commande.",
+		"amountLabel": "Montant à payer",
+		"checking": "Vérification du paiement…",
+		"checkNow": "Vérifier maintenant",
+		"stillWaiting": "Toujours en attente ? Vérifiez que vous avez bien validé la demande sur votre téléphone.",
+		"success": "Paiement confirmé ! Redirection…",
+		"failedTitle": "Le paiement n'a pas abouti",
+		"failedText": "La demande a été refusée ou a expiré. Vous pouvez réessayer sans perdre votre commande.",
+		"retry": "Réessayer le paiement",
+		"phoneLabel": "Numéro Mobile Money à débiter",
+		"retrying": "Nouvelle demande en cours…",
+		"cancel": "Abandonner le paiement",
+		"changeMethod": "Choisir un autre mode de paiement",
+		"initError": "Impossible d'envoyer la demande de paiement. Réessayez ou choisissez un autre mode de paiement.",
+		"missingContact": "Les informations de paiement mobile ont été perdues. Revenez à la commande pour choisir à nouveau votre opérateur.",
+		"statusError": "Impossible de vérifier le paiement pour le moment.",
+		"secured": "Paiement sécurisé par AfriBaPay"
+	},
+	"success": {
+		"title": "Paiement confirmé",
+		"text": "Votre paiement Mobile Money a bien été reçu. Votre commande est enregistrée.",
+		"pendingTitle": "Paiement en cours de vérification",
+		"pendingText": "AfriBaPay n'a pas encore confirmé la réception. Cette page se met à jour automatiquement.",
+		"failedTitle": "Paiement non confirmé",
+		"failedText": "Le paiement n'a pas été confirmé. Revenez à la commande pour réessayer.",
+		"viewOrder": "Voir ma commande",
+		"viewOrders": "Voir mes commandes",
+		"home": "Retour à l'accueil",
+		"checkAgain": "Vérifier à nouveau"
+	},
+	"cancel": {
+		"title": "Paiement abandonné",
+		"text": "Aucun montant n'a été débité. Vous pouvez reprendre le paiement depuis votre commande.",
+		"retry": "Reprendre le paiement",
+		"home": "Retour à l'accueil",
+		"viewOrders": "Voir mes commandes"
+	},
+	"errors": {
+		"notFound": "Paiement introuvable.",
+		"loadError": "Impossible de charger le paiement."
+	}
+}

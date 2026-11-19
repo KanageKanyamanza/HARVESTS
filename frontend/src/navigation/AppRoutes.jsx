@@ -17,7 +17,6 @@ import {
 	restaurateurRoutes,
 	transporterRoutes,
 	exporterRoutes,
-	explorerRoutes,
 } from "./routes";
 
 // Import des pages publiques avec React.lazy pour le code splitting
@@ -60,6 +59,12 @@ const PayPalSuccess = React.lazy(() =>
 	import("../pages/payments/PayPalSuccess")
 );
 const PayPalCancel = React.lazy(() => import("../pages/payments/PayPalCancel"));
+const MobileMoneySuccess = React.lazy(() =>
+	import("../pages/payments/MobileMoneySuccess")
+);
+const MobileMoneyCancel = React.lazy(() =>
+	import("../pages/payments/MobileMoneyCancel")
+);
 const SubscriptionPayment = React.lazy(() =>
 	import("../pages/payments/SubscriptionPayment")
 );
@@ -465,6 +470,22 @@ const AppRoutes = () => {
 				}
 			/>
 			<Route
+				path="/payment/success"
+				element={
+					<Layout>
+						<SuspenseRoute element={<MobileMoneySuccess />} />
+					</Layout>
+				}
+			/>
+			<Route
+				path="/payment/cancel"
+				element={
+					<Layout>
+						<SuspenseRoute element={<MobileMoneyCancel />} />
+					</Layout>
+				}
+			/>
+			<Route
 				path="/payment/subscription/:planId"
 				element={
 					<Layout>
@@ -658,21 +679,6 @@ const AppRoutes = () => {
 					path={route.path}
 					element={
 						<ProtectedRoute requiredUserType="exporter">
-							<DashboardRouteWrapper>
-								<SuspenseRoute element={route.element} fallback={<DashboardFallback />} />
-							</DashboardRouteWrapper>
-						</ProtectedRoute>
-					}
-				/>
-			))}
-
-			{/* Routes explorer */}
-			{explorerRoutes.map((route) => (
-				<Route
-					key={route.path}
-					path={route.path}
-					element={
-						<ProtectedRoute requiredUserType="explorer">
 							<DashboardRouteWrapper>
 								<SuspenseRoute element={route.element} fallback={<DashboardFallback />} />
 							</DashboardRouteWrapper>

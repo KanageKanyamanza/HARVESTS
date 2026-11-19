@@ -69,7 +69,7 @@ const Pricing = () => {
 	}));
 
 	const formatPrice = (price) =>
-		new Intl.NumberFormat(i18n.language === "en" ? "en-US" : "fr-FR").format(price);
+		new Intl.NumberFormat(i18n.language === "en" ? "en-GB" : "fr-FR").format(price);
 
 	return (
 		<div className="min-h-screen bg-[#F8FAF6] pb-16">

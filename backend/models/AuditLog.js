@@ -22,7 +22,7 @@ const auditLogSchema = new mongoose.Schema(
 		},
 		targetType: {
 			type: String,
-			enum: ["User", "Admin", "Order", "Product", "Payment", "TranslationGlossary", null],
+			enum: ["User", "Admin", "Order", "Product", "Payment", "Payout", "TranslationGlossary", null],
 		},
 		details: {
 			type: mongoose.Schema.Types.Mixed,

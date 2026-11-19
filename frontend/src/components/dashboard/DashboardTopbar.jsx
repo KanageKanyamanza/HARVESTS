@@ -37,7 +37,7 @@ const DashboardTopbar = ({ onMenuClick }) => {
 					{isProducer && <ProducerQuickStats />}
 
 					{/* Sélecteur de langue fr/en - visible pour tous, y compris admin */}
-					<LanguageSelector />
+					<LanguageSelector context="topbar" />
 
 					{/* Notifications - seulement si pas admin */}
 					{!isAdmin && <NotificationDropdown />}

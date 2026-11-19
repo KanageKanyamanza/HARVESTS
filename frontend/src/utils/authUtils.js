@@ -53,7 +53,7 @@ export const canAccessRoute = (route, userType, isAuthenticated, role = null) =>
   }
 
   // Routes spécifiques par type d'utilisateur
-  const userTypeRoutes = ['consumer', 'producer', 'transformer', 'restaurateur', 'exporter', 'transporter', 'explorer'];
+  const userTypeRoutes = ['consumer', 'producer', 'transformer', 'restaurateur', 'exporter', 'transporter'];
   if (userType && userTypeRoutes.includes(userType) && route.startsWith(`/${userType}/`)) {
     return true;
   }

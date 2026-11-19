@@ -1,5 +1,6 @@
 const catchAsync = require('../../utils/catchAsync');
 const AppError = require('../../utils/appError');
+const { isNotFound } = require('../../utils/translate');
 const paymentPaypalService = require('../../services/payment/paymentPaypalService');
 
 // Obtenir le token client PayPal
@@ -25,7 +26,7 @@ exports.createOrderForHostedFields = catchAsync(async (req, res, next) => {
 
   // Vérifier le type de paiement
   if (type !== 'subscription' && type !== 'order') {
-    return next(new AppError('Type de paiement non supporté pour les Hosted Fields. Utilisez "subscription" ou "order"', 400));
+    return next(new AppError('payment.unsupported_hosted_fields_type', 400));
   }
 
   try {
@@ -59,6 +60,6 @@ exports.createOrderForHostedFields = catchAsync(async (req, res, next) => {
       data: result
     });
   } catch (error) {
-    return next(AppError.from(error, error.message.includes('non trouv') ? 404 : 500));
+    return next(AppError.from(error, isNotFound(error.message) ? 404 : 500));
   }
 });

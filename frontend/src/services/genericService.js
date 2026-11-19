@@ -251,7 +251,6 @@ export const exporterService = {
 	updateVehicleAvailability: (id, data) =>
 		api.patch(`/exporters/me/fleet/${id}/availability`, data),
 };
-export const explorerService = createGenericService("explorer");
 
 // Service pour créer un service personnalisé
 export const createService = (userType) => createGenericService(userType);
@@ -263,6 +262,5 @@ export default {
 	restaurateurService,
 	transporterService,
 	exporterService,
-	explorerService,
 	createService,
 };

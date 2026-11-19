@@ -1,3 +1,4 @@
+const { localizeNotifications } = require("../../utils/notificationI18n");
 const catchAsync = require("../../utils/catchAsync");
 const AppError = require("../../utils/appError");
 const notificationUserService = require("../../services/notification/notificationUserService");
@@ -19,7 +20,7 @@ exports.getMyNotifications = catchAsync(async (req, res, next) => {
 			page: result.page,
 			totalPages: result.totalPages,
 			data: {
-				notifications: result.notifications,
+				notifications: localizeNotifications(result.notifications, req.language),
 			},
 		});
 	} catch (error) {
@@ -58,7 +59,7 @@ exports.getNotificationsByCategory = catchAsync(async (req, res, next) => {
 			status: "success",
 			results: notifications.length,
 			data: {
-				notifications,
+				notifications: localizeNotifications(notifications, req.language),
 			},
 		});
 	} catch (error) {

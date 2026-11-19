@@ -1,6 +1,6 @@
 import axios from "axios";
 import { getCurrentLanguage } from "../utils/i18n";
-import { isValidToken } from "../utils/tokenValidation";
+import { isMalformedToken, isValidToken } from "../utils/tokenValidation";
 import { getConfig } from "../config/production";
 
 // Configuration de base d'Axios
@@ -88,8 +88,10 @@ api.interceptors.request.use(
 		if (!isPublicRoute) {
 			if (hasValidToken) {
 				config.headers.Authorization = `Bearer ${token}`;
-			} else if (token) {
-				// Token invalide trouvé, le nettoyer
+			} else if (isMalformedToken(token)) {
+				// Token illisible : le nettoyer. Un token seulement expiré reste en
+				// place : le 401 qui suit déclenche le renouvellement plus bas, et
+				// l'utilisateur enregistré doit survivre au rechargement de la page.
 				console.warn("Token invalide détecté dans intercepteur, nettoyage...");
 				localStorage.removeItem("harvests_token");
 				localStorage.removeItem("harvests_user");
@@ -107,7 +109,7 @@ api.interceptors.request.use(
 
 		// Ajouter les headers de langue
 		config.headers["Accept-Language"] =
-			language === "fr" ? "fr-FR,fr;q=0.9" : "en-US,en;q=0.9";
+			language === "fr" ? "fr-FR,fr;q=0.9" : "en-GB,en;q=0.9";
 
 		// Reprendre le jeton CSRF renvoyé par l'API (le cookie n'est pas
 		// lisible depuis la page quand le front et l'API sont sur des

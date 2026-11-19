@@ -8,7 +8,6 @@ export { transformerRoutes } from './transformer/transformerRoutes.jsx';
 export { restaurateurRoutes } from './restaurateur/restaurateurRoutes.jsx';
 export { transporterRoutes } from './transporter/transporterRoutes.jsx';
 export { exporterRoutes } from './exporter/exporterRoutes.jsx';
-export { explorerRoutes } from './explorer/explorerRoutes.jsx';
 
 // Import de toutes les routes pour faciliter l'utilisation
 import { adminRoutes } from './admin/adminRoutes.jsx';
@@ -18,7 +17,6 @@ import { transformerRoutes } from './transformer/transformerRoutes.jsx';
 import { restaurateurRoutes } from './restaurateur/restaurateurRoutes.jsx';
 import { transporterRoutes } from './transporter/transporterRoutes.jsx';
 import { exporterRoutes } from './exporter/exporterRoutes.jsx';
-import { explorerRoutes } from './explorer/explorerRoutes.jsx';
 
 /**
  * Toutes les routes groupées par type d'utilisateur
@@ -30,8 +28,7 @@ export const allRoutes = {
   transformer: transformerRoutes,
   restaurateur: restaurateurRoutes,
   transporter: transporterRoutes,
-  exporter: exporterRoutes,
-  explorer: explorerRoutes
+  exporter: exporterRoutes
 };
 
 /**

@@ -9,7 +9,7 @@ const producerSchema = new mongoose.Schema({
 		required: false, // Optionnel lors de l'inscription
 		trim: true,
 		maxlength: [100, "validation.farm_name_maxlength"],
-		default: "À compléter",
+		default: "",
 	},
 
 	farmSize: {

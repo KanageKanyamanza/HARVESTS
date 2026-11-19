@@ -17,7 +17,7 @@ import { formatPrice } from "../../utils/currencyUtils";
 
 const ProductSpecifications = ({ product, producer, user, statusConfig }) => {
 	const { t, i18n } = useTranslation("public");
-	const dateLocale = i18n.language === "en" ? "en-US" : "fr-FR";
+	const dateLocale = i18n.language === "en" ? "en-GB" : "fr-FR";
 	const isOwnerOrAdmin =
 		user &&
 		(user.userType === "admin" ||

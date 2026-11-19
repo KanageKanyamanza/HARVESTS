@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Bell, X, CheckCircle, Smartphone, Loader2 } from "lucide-react";
 import pushService from "../../services/pushService";
 
@@ -6,6 +7,7 @@ import pushService from "../../services/pushService";
  * Bannière violette affichée si les notifications push ne sont pas activées.
  */
 const PushNotificationBanner = ({ user, onClose }) => {
+	const { t } = useTranslation("common");
 	const [status, setStatus] = useState({ supported: true, subscribed: false });
 	const [dismissed, setDismissed] = useState(() => {
 		const saved = localStorage.getItem("push-banner-dismissed");
@@ -74,10 +76,10 @@ const PushNotificationBanner = ({ user, onClose }) => {
 					</div>
 					<div className="min-w-0">
 						<p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-0.5">
-							Notifications Actives
+							{t("pushBanner.title")}
 						</p>
 						<p className="text-xs font-bold truncate">
-							Ne manquez aucune alerte critique. Activez les notifications push sur cet appareil.
+							{t("pushBanner.text")}
 						</p>
 					</div>
 				</div>
@@ -94,13 +96,14 @@ const PushNotificationBanner = ({ user, onClose }) => {
 						) : (
 							<Smartphone className="w-3 h-3" />
 						)}
-						{processing ? "Activation..." : "Activer"}
+						{processing ? t("pushBanner.enabling") : t("pushBanner.enable")}
 					</button>
 
 					<button
 						onClick={handleDismiss}
 						className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-						title="Plus tard"
+						title={t("pushBanner.later")}
+						aria-label={t("pushBanner.later")}
 					>
 						<X className="w-3.5 h-3.5" />
 					</button>

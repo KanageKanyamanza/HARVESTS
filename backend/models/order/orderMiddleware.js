@@ -1,4 +1,5 @@
 const { getCountryPrefix } = require('./orderHelpers');
+const { settleOrderStock } = require('./orderStock');
 
 // Middleware pre-save
 function addOrderMiddleware(orderSchema) {
@@ -6,12 +7,18 @@ function addOrderMiddleware(orderSchema) {
     try {
       if (this.payment) {
         const method = (this.payment.method || '').toLowerCase();
-        const normalizedMethod = method === 'paypal' ? 'paypal' : 'cash';
+        const normalizedMethod =
+          method === 'paypal' ? 'paypal' : method === 'mobile_money' ? 'mobile_money' : 'cash';
         if (!this.payment.method) {
           this.payment.method = normalizedMethod;
         }
         if (!this.payment.provider || this.payment.provider === '') {
-          this.payment.provider = normalizedMethod === 'paypal' ? 'paypal' : 'cash-on-delivery';
+          this.payment.provider =
+            normalizedMethod === 'paypal'
+              ? 'paypal'
+              : normalizedMethod === 'mobile_money'
+              ? 'afribapay'
+              : 'cash-on-delivery';
         }
       }
 
@@ -68,6 +75,16 @@ function addOrderMiddleware(orderSchema) {
         timestamp: new Date(),
         updatedBy: this.modifiedBy || null // Doit être défini par l'application
       });
+    }
+    
+    // Solde du stock réservé : tous les changements de statut passent par ici
+    if (!this.isNew && (this.isModified('status') || this.isModified('segments'))) {
+      try {
+        await settleOrderStock(this);
+      } catch (error) {
+        // Sans `stockState`, le solde sera retenté au prochain enregistrement
+        console.error('Erreur lors du solde du stock de la commande', this.orderNumber, error.message);
+      }
     }
     
     next();

@@ -93,7 +93,9 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
 
   // 2) Vérifier si le mot de passe actuel est correct
   if (!(await user.comparePassword(req.body.passwordCurrent))) {
-    return next(new AppError('auth.current_password_incorrect', 401));
+    // 400 et non 401 : la session est valide. Le client traite un 401 comme une session
+    // morte et l'effacerait pour une simple erreur de saisie.
+    return next(new AppError('auth.current_password_incorrect', 400));
   }
 
   // 3) Si oui, mettre à jour le mot de passe
