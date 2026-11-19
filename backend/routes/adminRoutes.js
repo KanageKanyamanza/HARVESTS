@@ -9,6 +9,7 @@ const adminOrderController = require("../controllers/admin/adminOrderController"
 const adminReviewController = require("../controllers/admin/adminReviewController");
 const adminMessageController = require("../controllers/admin/adminMessageController");
 const adminPaymentController = require("../controllers/admin/adminPaymentController");
+const paymentCostsController = require("../controllers/payment/paymentAdminController");
 const adminAnalyticsController = require("../controllers/admin/adminAnalyticsController");
 const adminSettingsController = require("../controllers/admin/adminSettingsController");
 const adminAuditController = require("../controllers/admin/adminAuditController");
@@ -306,6 +307,11 @@ router.delete("/messages/:id", adminMessageController.deleteMessage);
 
 // Obtenir tous les paiements avec filtres
 router.get("/payments", adminPaymentController.getAllPayments);
+
+// Coûts réels AfriBaPay par devise — variant admin (Jour 85) : la route
+// /payments/admin/provider-costs est protégée par le middleware utilisateur
+// et renvoie 401 avec un jeton admin. À placer avant /payments/:id.
+router.get("/payments/provider-costs", paymentCostsController.getProviderCosts);
 
 // Obtenir un paiement spécifique
 router.get("/payments/:id", adminPaymentController.getPaymentById);

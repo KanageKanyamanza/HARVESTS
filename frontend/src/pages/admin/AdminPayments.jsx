@@ -141,6 +141,7 @@ const AdminPayments = () => {
 
 	return (
 		<div className="dashboard-page">
+			<div className="dashboard-container">
 			<div className="mb-5">
 				<h1 className="text-xl font-black text-gray-800">
 					Paiements <span className="text-green-600">& payouts</span>
@@ -382,6 +383,7 @@ const AdminPayments = () => {
 						</button>
 					</div>
 				</div>
+			</div>
 			</div>
 		</div>
 	);

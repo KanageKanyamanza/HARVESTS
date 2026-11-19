@@ -452,7 +452,7 @@ export const getPayouts = async (params = {}) => {
 };
 
 export const getProviderCosts = async (params = {}) => {
-	const response = await api.get("/payments/admin/provider-costs", { params });
+	const response = await api.get("/admin/payments/provider-costs", { params });
 	return response.data;
 };
 
