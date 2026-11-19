@@ -319,6 +319,15 @@ router.patch(
 // Rembourser un paiement
 router.post("/payments/:id/refund", adminPaymentController.refundPayment);
 
+// Relancer un payin mobile money échoué (admin, Jour 85)
+router.post("/payments/:id/retry", adminPaymentController.retryAfribapayPayment);
+
+// Obtenir tous les payouts (admin) — Jour 85 (listing back-office)
+router.get("/payouts", adminPaymentController.getAllPayouts);
+
+// Soldes de float AfriBaPay par pays (admin) — Jour 85
+router.get("/payouts/float", adminPaymentController.getFloatBalances);
+
 // ========================================
 // RAPPORTS ET ANALYTICS
 // ========================================

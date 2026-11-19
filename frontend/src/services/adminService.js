@@ -434,6 +434,38 @@ export const deleteGlossaryEntry = async (id) => {
 	return response.data;
 };
 
+// Jour 85 — relance manuelle d'un remboursement échoué (protégée côté backend)
+export const refundPayment = async (id, data) => {
+	const response = await api.post(`/admin/payments/${id}/refund`, data);
+	return response.data;
+};
+
+// Jour 85 — back-office « paiements et payouts »
+export const getPayments = async (params = {}) => {
+	const response = await api.get("/admin/payments", { params });
+	return response.data;
+};
+
+export const getPayouts = async (params = {}) => {
+	const response = await api.get("/admin/payouts", { params });
+	return response.data;
+};
+
+export const getProviderCosts = async (params = {}) => {
+	const response = await api.get("/payments/admin/provider-costs", { params });
+	return response.data;
+};
+
+export const getFloatBalances = async (params = {}) => {
+	const response = await api.get("/admin/payouts/float", { params });
+	return response.data;
+};
+
+export const retryPayment = async (id, data = {}) => {
+	const response = await api.post(`/admin/payments/${id}/retry`, data);
+	return response.data;
+};
+
 // Export nommé pour adminService
 export const adminService = {
 	// Dashboard
@@ -480,6 +512,14 @@ export const adminService = {
 	deleteDish,
 	approveDish,
 	rejectDish,
+
+	// Jour 85 — paiements et payouts (back-office)
+	getPayments,
+	getPayouts,
+	getProviderCosts,
+	getFloatBalances,
+	retryPayment,
+	refundPayment,
 
 	// Orders
 	getOrders,

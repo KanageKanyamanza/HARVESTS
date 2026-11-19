@@ -134,6 +134,35 @@ const buildRefundCostsPipeline = ({ from, to, currency }) => [
 	{ $sort: { _id: 1 } },
 ];
 
+/**
+ * Statistiques mobile money pour le tableau « Mobile money » du Jour 85 :
+ * volume, taux de succès et délai moyen de confirmation. Toutes les tentatives
+ * de payin de la période, quel que soit leur statut (contrairement aux coûts
+ * qui ne retiennent que les transactions confirmées).
+ * @param {{from: Date, to: Date, currency?: string}} params
+ */
+const buildPaymentStatusPipeline = ({ from, to, currency }) => [
+	{
+		$match: {
+			method: "mobile_money",
+			createdAt: { $gte: from, $lte: to },
+			...(currency ? { currency } : {}),
+		},
+	},
+	{
+		$group: {
+			_id: "$currency",
+			total: { $sum: 1 },
+			succeeded: { $sum: { $cond: [{ $eq: ["$status", "succeeded"] }, 1, 0] } },
+			failed: { $sum: { $cond: [{ $eq: ["$status", "failed"] }, 1, 0] } },
+			pending: { $sum: { $cond: [{ $in: ["$status", ["pending", "processing"]] }, 1, 0] } },
+			ambiguous: { $sum: { $cond: [{ $eq: ["$status", "ambiguous"] }, 1, 0] } },
+			avgDelayMs: { $avg: { $subtract: ["$paidAt", "$createdAt"] } },
+		},
+	},
+	{ $sort: { _id: 1 } },
+];
+
 const emptyBucket = () => ({ count: 0, fees: 0, taxes: 0, total: 0 });
 
 const amount = (value) => {
@@ -196,6 +225,31 @@ const summarizeProviderCosts = ({ payinRows = [], payoutRows = [], refundRows = 
 };
 
 /**
+ * Statuts mobile money par devise (tableau « Mobile money » du Jour 85).
+ * @param {object[]} rows
+ */
+const summarizePaymentStatusStats = (rows = []) => {
+	const byCurrency = {};
+	for (const row of rows || []) {
+		const currency = row?._id;
+		if (typeof currency !== "string" || !currency) continue;
+		const total = Number(row.total) || 0;
+		const succeeded = Number(row.succeeded) || 0;
+		const avgDelayMs = Number(row.avgDelayMs) || 0;
+		byCurrency[currency] = {
+			total,
+			succeeded,
+			failed: Number(row.failed) || 0,
+			pending: Number(row.pending) || 0,
+			ambiguous: Number(row.ambiguous) || 0,
+			successRate: total > 0 ? Math.round((succeeded / total) * 100) : 0,
+			avgDelaySeconds: Math.round(avgDelayMs / 1000),
+		};
+	}
+	return byCurrency;
+};
+
+/**
  * Coûts réels AfriBaPay d'une période, par devise (payin, payout, remboursement).
  * @param {{period?: string, from?: Date|string, to?: Date|string, currency?: string}} [params]
  */
@@ -206,10 +260,11 @@ const getProviderCostStats = async ({ period = "30d", from, to, currency } = {})
 		new Date(endDate.getTime() - parsePeriodDays(period) * 24 * 60 * 60 * 1000);
 	const range = { from: startDate, to: endDate, currency: normalizeCurrency(currency) };
 
-	const [payinRows, payoutRows, refundRows] = await Promise.all([
+	const [payinRows, payoutRows, refundRows, statusRows] = await Promise.all([
 		Payment.aggregate(buildPayinCostsPipeline(range)),
 		Payout.aggregate(buildPayoutCostsPipeline(range)),
 		Payment.aggregate(buildRefundCostsPipeline(range)),
+		Payment.aggregate(buildPaymentStatusPipeline(range)),
 	]);
 
 	return {
@@ -218,6 +273,7 @@ const getProviderCostStats = async ({ period = "30d", from, to, currency } = {})
 		to: endDate,
 		currency: range.currency || null,
 		currencies: summarizeProviderCosts({ payinRows, payoutRows, refundRows }),
+		statusStats: summarizePaymentStatusStats(statusRows),
 	};
 };
 
@@ -226,6 +282,8 @@ module.exports = {
 	buildPayinCostsPipeline,
 	buildPayoutCostsPipeline,
 	buildRefundCostsPipeline,
+	buildPaymentStatusPipeline,
 	summarizeProviderCosts,
+	summarizePaymentStatusStats,
 	getProviderCostStats,
 };

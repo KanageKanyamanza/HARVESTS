@@ -32,6 +32,9 @@ const AdminMessages = React.lazy(() =>
 const AdminAnalytics = React.lazy(() =>
 	import("../../../pages/admin/AdminAnalytics")
 );
+const AdminPayments = React.lazy(() =>
+	import("../../../pages/admin/AdminPayments")
+);
 const AdminBlogs = React.lazy(() => import("../../../pages/admin/AdminBlogs"));
 const AdminBlogCreate = React.lazy(() =>
 	import("../../../pages/admin/AdminBlogCreate")
@@ -145,6 +148,11 @@ export const adminRoutes = [
 		path: "/admin/analytics",
 		element: <AdminAnalytics />,
 		title: "Analytiques",
+	},
+	{
+		path: "/admin/payments",
+		element: <AdminPayments />,
+		title: "Paiements et payouts",
 	},
 	{
 		path: "/admin/blog",

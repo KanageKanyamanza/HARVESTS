@@ -126,6 +126,12 @@ const AdminLayout = ({ children }) => {
 			current: location.pathname.startsWith("/admin/orders"),
 		},
 		{
+			name: "Paiements",
+			href: "/admin/payments",
+			icon: CreditCard,
+			current: location.pathname.startsWith("/admin/payments"),
+		},
+		{
 			name: "Analytiques",
 			href: "/admin/analytics",
 			icon: BarChart3,

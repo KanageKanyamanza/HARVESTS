@@ -15,6 +15,7 @@ import {
 	Activity,
 	ExternalLink,
 	Globe,
+	CreditCard,
 } from "lucide-react";
 
 import { adminService } from "../../services/adminService";
@@ -59,6 +60,9 @@ const AdminAnalytics = () => {
 	});
 	const [loading, setLoading] = useState(true);
 	const [timeRange, setTimeRange] = useState("30d");
+	// Jour 85 : coûts réels AfriBaPay et stats mobile money (provider-costs).
+	const [mobileMoneyCosts, setMobileMoneyCosts] = useState({});
+	const [mobileMoneyStats, setMobileMoneyStats] = useState({});
 
 	const loadAnalytics = useCallback(async () => {
 		try {
@@ -69,6 +73,16 @@ const AdminAnalytics = () => {
 				setAnalytics(response.data.analytics);
 			} else if (response.data && response.data.data) {
 				setAnalytics(response.data.data);
+			}
+			// La page « Mobile money » consomme le même endpoint que le
+			// back-office du Jour 85 ; un échec isolé ne casse pas les analytics.
+			try {
+				const costResponse = await adminService.getProviderCosts({ period: timeRange });
+				setMobileMoneyCosts(costResponse?.data?.currencies || {});
+				setMobileMoneyStats(costResponse?.data?.statusStats || {});
+			} catch {
+				setMobileMoneyCosts({});
+				setMobileMoneyStats({});
 			}
 		} catch (error) {
 			console.error("Erreur lors du chargement des analytics:", error);
@@ -108,6 +122,10 @@ const AdminAnalytics = () => {
 			englishShare: 0,
 			distinctVisitors: 0,
 		};
+
+	const mobileMoneyCurrencies = [
+		...new Set([...Object.keys(mobileMoneyCosts), ...Object.keys(mobileMoneyStats)]),
+	];
 
 
 	return (
@@ -282,6 +300,67 @@ const AdminAnalytics = () => {
 									data={analytics.charts?.revenueTrends || []}
 								/>
 							)}
+						</div>
+					</div>
+
+					{/* Jour 85 : tableau « Mobile money » — volume, taux de succès,
+						délais et coûts réels AfriBaPay par devise. */}
+					<div className="bg-white/70 backdrop-blur-xl p-4 rounded-2xl border border-white/60 shadow-[0_20px_50px_rgba(0,0,0,0.02)] lg:col-span-2">
+						<div className="flex items-center justify-between mb-3">
+							<div>
+								<h3 className="text-sm font-[1000] text-gray-900 uppercase tracking-tight">
+									Mobile money
+								</h3>
+								<p className="text-[10px] font-medium text-gray-500 tracking-wide">
+									Volume, réussite, délais et coûts AfriBaPay sur la période
+								</p>
+							</div>
+							<div className="w-6 h-6 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-600 border border-emerald-50 shadow-sm">
+								<CreditCard className="h-3 w-3" />
+							</div>
+						</div>
+						<div className="overflow-x-auto">
+							<table className="w-full text-left text-xs">
+								<thead className="bg-gray-50 text-[7px] font-black uppercase tracking-widest text-gray-500">
+									<tr>
+										<th className="px-2.5 py-2">Devise</th>
+										<th className="px-2.5 py-2">Volume</th>
+										<th className="px-2.5 py-2">Taux de succès</th>
+										<th className="px-2.5 py-2">Délai moyen</th>
+										<th className="px-2.5 py-2">Coût réel</th>
+									</tr>
+								</thead>
+								<tbody>
+									{mobileMoneyCurrencies.length === 0 && (
+										<tr>
+											<td colSpan={5} className="px-2.5 py-4 text-center text-gray-400">
+												Aucune transaction mobile money sur la période.
+											</td>
+										</tr>
+									)}
+									{mobileMoneyCurrencies.map((currency) => {
+										const buckets = mobileMoneyCosts[currency] || {};
+										const stats = mobileMoneyStats[currency];
+										return (
+											<tr key={currency} className="border-t border-gray-50">
+												<td className="px-2.5 py-2 font-black text-gray-800">{currency}</td>
+												<td className="px-2.5 py-2 text-gray-700">
+													{stats?.total ?? buckets?.payin?.count ?? 0}
+												</td>
+												<td className="px-2.5 py-2 font-bold text-emerald-600">
+													{stats?.successRate != null ? `${stats.successRate} %` : "—"}
+												</td>
+												<td className="px-2.5 py-2 text-gray-600">
+													{stats?.avgDelaySeconds != null ? `${stats.avgDelaySeconds} s` : "—"}
+												</td>
+												<td className="px-2.5 py-2 text-gray-600">
+													{new Intl.NumberFormat("fr-FR").format(buckets?.all?.total || 0)} {currency}
+												</td>
+											</tr>
+										);
+									})}
+								</tbody>
+							</table>
 						</div>
 					</div>
 

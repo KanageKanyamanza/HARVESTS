@@ -1170,6 +1170,58 @@ const listPayableSellers = async ({ sellerId, since, rate = getCommissionRate() 
 	return groupPayableBySeller({ orders, sellers, alreadyPaidPairs, rate, sellerId });
 };
 
+// Jour 85 — soldes de float par pays pour le back-office. Un pays en échec
+// n'empêche pas les autres d'être affichés (l'argent réel reste côté
+// AfriBaPay, on ne fait que lire le solde disponible).
+const getFloatBalances = async ({
+	countries = Object.keys(COUNTRIES),
+	fetchBalance = fetchPayoutBalance,
+	token,
+} = {}) => {
+	const accessToken = token === undefined ? await getAccessToken() : token;
+	const balances = {};
+	await Promise.all(
+		countries.map(async (country) => {
+			try {
+				const balance = await fetchBalance(accessToken, { country });
+				balances[country] = {
+					available: balance?.available ?? 0,
+					currency: balance?.currency || "",
+				};
+			} catch (error) {
+				balances[country] = {
+					available: 0,
+					currency: "",
+					error: error?.message || "balance_unavailable",
+				};
+			}
+		}),
+	);
+	return balances;
+};
+
+// Jour 85 — back-office : listing des payouts (page admin « paiements et
+// payouts »). Filtres optionnels (statut, vendeur, devise, période) + pagination.
+const listPayouts = async ({ status, sellerId, currency, from, to, page = 1, limit = 50 } = {}) => {
+	const query = {};
+	if (status) query.status = status;
+	if (sellerId) query.seller = sellerId;
+	if (currency) query.currency = currency;
+	if (from || to) {
+		query.createdAt = {};
+		if (from) query.createdAt.$gte = new Date(from);
+		if (to) query.createdAt.$lte = new Date(to);
+	}
+	const safePage = Math.max(parseInt(page, 10) || 1, 1);
+	const safeLimit = Math.min(Math.max(parseInt(limit, 10) || 50, 1), 100);
+	const payouts = await Payout.find(query)
+		.sort("-createdAt _id")
+		.skip((safePage - 1) * safeLimit)
+		.limit(safeLimit);
+	const total = await Payout.countDocuments(query);
+	return { payouts, total, page: safePage, totalPages: Math.ceil(total / safeLimit) };
+};
+
 module.exports = {
 	resolvePayoutCountry,
 	payoutSellerType,
@@ -1202,4 +1254,7 @@ module.exports = {
 	finalizePayoutOutcome,
 	MANUAL_RETRY_STATUSES,
 	retryPayoutManually,
+	// Jour 85 — back-office : listing des payouts
+	listPayouts,
+	getFloatBalances,
 };
