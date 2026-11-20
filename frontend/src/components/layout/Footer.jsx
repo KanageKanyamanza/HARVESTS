@@ -331,7 +331,7 @@ const Footer = () => {
 						<div className="text-xs text-gray-400 flex flex-col md:flex-row items-center gap-2">
 							<span>{t("footer.copyright", { ns: "navigation", year: currentYear })}</span>
 							<span className="hidden md:inline">|</span>
-							<span className="flex items-center">{t("footer.productOf", { ns: "navigation" })} <span className="text-yellow-200 font-bold ml-1"> UBB </span></span>
+							<span className="flex items-center">{t("footer.productOf", { ns: "navigation" })} <span className="text-yellow-200 font-bold ml-1"> <a href="https://www.ubbuntu.com/" target="_blank" rel="noopener noreferrer">UBB</a></span></span>
 						</div>
 					</div>
 				</div>
