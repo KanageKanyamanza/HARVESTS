@@ -729,6 +729,11 @@ describe("F — back-office : agrégats des coûts réels", () => {
 			expect(result.period).toBe("30d");
 			const spanDays = (result.to.getTime() - result.from.getTime()) / (24 * 60 * 60 * 1000);
 			expect(Math.round(spanDays)).toBe(30);
+
+			const year = await costsService.getProviderCostStats({ period: "1y" });
+			expect(year.period).toBe("365d");
+			const yearSpan = (year.to.getTime() - year.from.getTime()) / (24 * 60 * 60 * 1000);
+			expect(Math.round(yearSpan)).toBe(365);
 		});
 	});
 });

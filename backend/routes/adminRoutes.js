@@ -323,10 +323,18 @@ router.patch(
 );
 
 // Rembourser un paiement
-router.post("/payments/:id/refund", adminPaymentController.refundPayment);
+router.post(
+	"/payments/:id/refund",
+	adminAuthController.restrictTo("super-admin", "admin"),
+	adminPaymentController.refundPayment,
+);
 
 // Relancer un payin mobile money échoué (admin, Jour 85)
-router.post("/payments/:id/retry", adminPaymentController.retryAfribapayPayment);
+router.post(
+	"/payments/:id/retry",
+	adminAuthController.restrictTo("super-admin", "admin"),
+	adminPaymentController.retryAfribapayPayment,
+);
 
 // Obtenir tous les payouts (admin) — Jour 85 (listing back-office)
 router.get("/payouts", adminPaymentController.getAllPayouts);
@@ -371,6 +379,10 @@ router.delete("/glossary/:id", adminGlossaryController.deleteGlossaryEntry);
 // ========================================
 
 // Obtenir les logs d'audit
-router.get("/audit-logs", adminAuditController.getAuditLogs);
+router.get(
+	"/audit-logs",
+	adminAuthController.restrictTo("super-admin", "admin"),
+	adminAuditController.getAuditLogs,
+);
 
 module.exports = router;

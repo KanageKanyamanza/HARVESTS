@@ -33,8 +33,9 @@ const pushService = {
 		}
 
 		try {
-			// 1. Register Service Worker
-			const registration = await navigator.serviceWorker.register("/sw.js");
+			// 1. Register Service Worker (déjà fait au chargement dans main.jsx pour les anonymes)
+			const registration = await (window.__harvestsSwRegistrationPromise ||
+				navigator.serviceWorker.register("/sw.js"));
 
 			// Wait for the service worker to be active
 			await navigator.serviceWorker.ready;

@@ -26,11 +26,15 @@ const FormField = ({
         )}
         <input
           type={type}
+          id={name}
           name={name}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className={`w-full ${Icon ? 'pl-10' : 'pl-4'} ${showPasswordToggle ? 'pr-12' : 'pr-4'} py-3 border rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-[#1A5514] outline-none transition-all text-sm ${
+          aria-label={placeholder || name}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? `${name}-error` : undefined}
+          className={`w-full ${Icon ? 'pl-10' : 'pl-4'} ${showPasswordToggle ? 'pr-12' : 'pr-4'} py-3 border rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus-visible:border-[#1A5514] outline-none transition-all text-sm ${
             error ? 'border-red-300' : 'border-gray-200'
           }`}
         />
@@ -50,7 +54,7 @@ const FormField = ({
         )}
       </div>
       {error && (
-        <p className="mt-1 text-xs text-red-600 font-medium">{error}</p>
+        <p id={`${name}-error`} className="mt-1 text-xs text-red-600 font-medium">{error}</p>
       )}
       {helperText && !error && (
         <p className="mt-1 text-xs text-gray-500">{helperText}</p>

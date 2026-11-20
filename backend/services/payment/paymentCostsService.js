@@ -51,7 +51,15 @@ const parseBoundary = (value, label) => {
 };
 
 const parsePeriodDays = (period) => {
-	const days = Number.parseInt(period, 10);
+	const raw = String(period || "").trim();
+	// `1y` doit valoir une année, pas un jour (les cartes analytics utilisent 365).
+	const years = /^(\d+)y$/i.exec(raw);
+	if (years) {
+		const count = Number(years[1]);
+		if (count <= 0) return 30;
+		return Math.min(count * 365, MAX_PERIOD_DAYS);
+	}
+	const days = Number.parseInt(raw, 10);
 	if (!Number.isFinite(days) || days <= 0) return 30;
 	return Math.min(days, MAX_PERIOD_DAYS);
 };

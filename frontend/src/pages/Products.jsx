@@ -42,6 +42,7 @@ const Products = () => {
 		totalProducts,
 		handleFilterChange,
 		clearFilters,
+		error,
 	} = useProducts();
 
 	const handleClearFilters = () => {
@@ -263,8 +264,24 @@ const Products = () => {
 							</div>
 						)}
 
+						{/* API error — distinct from an empty result */}
+						{error && !loading && (
+							<div className="text-center py-14 bg-white rounded-2xl border border-rose-100 shadow-sm p-8" role="alert">
+								<FiPackage className="mx-auto h-12 w-12 text-rose-300 mb-4" />
+								<h3 className="text-lg font-black text-[#161D14] mb-4">
+									{t("products.loadError", { ns: "public" })}
+								</h3>
+								<button
+									onClick={() => window.location.reload()}
+									className="px-6 py-2.5 bg-[#1A5514] hover:bg-[#31BC2E] text-white font-extrabold text-xs rounded-xl shadow-md transition-all"
+								>
+									{t("products.retry", { ns: "public" })}
+								</button>
+							</div>
+						)}
+
 						{/* Empty State */}
-						{(products.length === 0 && restaurateurProducts.length === 0 && !loading) && (
+						{(products.length === 0 && restaurateurProducts.length === 0 && !loading && !error) && (
 							<div className="text-center py-16 bg-white rounded-2xl border border-emerald-100/90 shadow-sm p-8">
 								<FiPackage className="mx-auto h-14 w-14 text-gray-300 mb-4" />
 								<h3 className="text-lg font-black text-[#161D14] mb-2">

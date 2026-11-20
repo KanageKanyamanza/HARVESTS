@@ -4,7 +4,7 @@ export const chatService = {
 	// Récupérer les commandes récentes de l'utilisateur connecté
 	getRecentOrders: async () => {
 		try {
-			const response = await api.get("/orders/my-orders", {
+			const response = await api.get("/chat/my-orders", {
 				params: { limit: 3, sort: "-createdAt" },
 			});
 			return response.data?.data?.orders || response.data?.orders || [];
@@ -54,7 +54,7 @@ export const chatService = {
 	// Obtenir le statut d'une commande spécifique
 	getOrderStatus: async (orderNumber) => {
 		try {
-			const response = await api.get(`/orders/track/${orderNumber}`);
+			const response = await api.get(`/chat/track/${orderNumber}`);
 			return response.data?.data?.order || response.data?.order || null;
 		} catch (error) {
 			console.error("Erreur chatService.getOrderStatus:", error);
@@ -180,7 +180,7 @@ export const chatService = {
 	// Obtenir le contenu du panier
 	getCart: async () => {
 		try {
-			const response = await api.get("/cart");
+			const response = await api.get("/consumers/me/cart");
 			return response.data?.data?.cart || response.data?.cart || null;
 		} catch (error) {
 			console.error("Erreur chatService.getCart:", error);
@@ -191,7 +191,7 @@ export const chatService = {
 	// Vider le panier
 	clearCart: async () => {
 		try {
-			await api.delete("/cart");
+			await api.delete("/consumers/me/cart");
 			return true;
 		} catch (error) {
 			console.error("Erreur chatService.clearCart:", error);
@@ -202,7 +202,7 @@ export const chatService = {
 	// Obtenir les favoris
 	getFavorites: async () => {
 		try {
-			const response = await api.get("/users/favorites");
+			const response = await api.get("/consumers/me/favorites");
 			return response.data?.data?.favorites || [];
 		} catch (error) {
 			console.error("Erreur chatService.getFavorites:", error);

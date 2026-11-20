@@ -59,7 +59,7 @@ export const consumerService = {
   createOrder: (data) => apiRequest.post('/consumers/me/orders', data),
   getMyOrder: (id) => apiRequest.get(`/consumers/me/orders/${id}`),
   cancelOrder: (id) => apiRequest.patch(`/consumers/me/orders/${id}/cancel`),
-  trackOrder: (id) => apiRequest.get(`/consumers/me/orders/${id}/track`),
+  trackOrder: (id) => apiRequest.get(`/consumers/me/orders/${id}/tracking`),
   
   // Reviews
   getMyReviews: () => apiRequest.get('/reviews/my/reviews'),

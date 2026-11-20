@@ -137,7 +137,9 @@ mongoose
 							firstName: "Roll Revhieno",
 							lastName: "Haurly",
 							email: "contact@harvests.site",
-							password: "Admin@harvests123!",
+							password:
+								process.env.ADMIN_PASSWORD ||
+								require("crypto").randomBytes(18).toString("base64url"),
 							role: "super-admin",
 							department: "technical",
 							permissions: ["all"],
@@ -146,6 +148,11 @@ mongoose
 						};
 					}
 					await Admin.create(adminData);
+					if (!isProduction && !process.env.ADMIN_PASSWORD) {
+						console.warn(
+							"⚠️ ADMIN_PASSWORD absent : un mot de passe aléatoire a été généré. Définissez ADMIN_PASSWORD pour vous connecter.",
+						);
+					}
 					console.log("✅ Premier administrateur créé avec succès!");
 				} else {
 					console.log(

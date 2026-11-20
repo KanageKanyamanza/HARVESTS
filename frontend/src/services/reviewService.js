@@ -36,25 +36,25 @@ const service = {
 
 	// Mettre à jour mon avis
 	updateMyReview: async (reviewId, reviewData) => {
-		const response = await api.patch(`/reviews/${reviewId}`, reviewData);
+		const response = await api.patch(`/reviews/my/${reviewId}`, reviewData);
 		return response.data;
 	},
 
 	// Supprimer mon avis
 	deleteMyReview: async (reviewId) => {
-		const response = await api.delete(`/reviews/${reviewId}`);
+		const response = await api.delete(`/reviews/my/${reviewId}`);
 		return response.data;
 	},
 
 	// Voter utile sur un avis
 	voteHelpful: async (reviewId) => {
-		const response = await api.post(`/reviews/${reviewId}/vote/helpful`);
+		const response = await api.post(`/reviews/${reviewId}/vote`, { voteType: "helpful" });
 		return response.data;
 	},
 
 	// Voter inutile sur un avis
 	voteUnhelpful: async (reviewId) => {
-		const response = await api.post(`/reviews/${reviewId}/vote/unhelpful`);
+		const response = await api.post(`/reviews/${reviewId}/vote`, { voteType: "unhelpful" });
 		return response.data;
 	},
 

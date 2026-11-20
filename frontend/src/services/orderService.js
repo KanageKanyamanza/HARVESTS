@@ -38,7 +38,7 @@ export const orderService = {
 		apiRequest.patch(`/orders/${id}/deliver`, deliveryData),
 
 	// Suivre une commande
-	trackOrder: (id) => apiRequest.get(`/orders/${id}/track`),
+	trackOrder: (id) => apiRequest.get(`/orders/${id}/tracking`),
 
 	// Obtenir l'historique des commandes d'un utilisateur
 	getUserOrders: (userId, params = {}) =>

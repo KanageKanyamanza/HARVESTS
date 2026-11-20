@@ -176,7 +176,7 @@ const Orders = () => {
 									placeholder={t("orders.searchPlaceholder")}
 									value={searchTerm}
 									onChange={(e) => setSearchTerm(e.target.value)}
-									className="w-full px-4 py-3 bg-transparent text-sm font-bold text-gray-900 placeholder:text-gray-400 focus:outline-none border-none ring-0 focus:ring-0"
+									className="w-full px-4 py-3 bg-transparent text-sm font-bold text-gray-900 placeholder:text-gray-400 focus:outline-none border-none focus:ring-2 focus:ring-indigo-500"
 								/>
 							</div>
 						</div>

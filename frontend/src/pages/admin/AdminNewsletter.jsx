@@ -899,7 +899,7 @@ const AdminNewsletter = () => {
 										</td>
 										<td className="px-5 py-3">
 											<div className="font-bold text-slate-500">
-												{new Date(sub.createdAt).toLocaleDateString()}
+												{new Date(sub.createdAt).toLocaleDateString("fr-FR")}
 											</div>
 										</td>
 										<td className="px-5 py-3">
@@ -1048,7 +1048,7 @@ const AdminNewsletter = () => {
 																{sub.email}
 															</td>
 															<td className="px-4 py-3 text-xs text-slate-500">
-																{new Date(sub.createdAt).toLocaleDateString()}
+																{new Date(sub.createdAt).toLocaleDateString("fr-FR")}
 															</td>
 														</tr>
 													))}

@@ -230,7 +230,7 @@ const AdminBlogEdit = () => {
 
 						<div className="bg-slate-50/80 backdrop-blur-md p-8 border-t border-slate-100 mt-12 flex items-center justify-between">
 							<div className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
-								Last modified: {new Date(formData.updatedAt).toLocaleDateString()}
+								Last modified: {new Date(formData.updatedAt).toLocaleDateString("fr-FR")}
 							</div>
 							<FormActions
 								loading={loading}

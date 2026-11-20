@@ -532,3 +532,18 @@
 [class*="rounded-"]:not(button):not(.btn):not([role="button"]):not([class*="rounded-full"]):not([class*="rounded-t"]):not([class*="rounded-b"]):not([class*="rounded-l"]):not([class*="rounded-r"]):not([class*="rounded-none"]) {
 	border-radius: 16px;
 }
+
+/* Mouvement réduit : on arrête les animations bouclantes, pas les
+   transitions d'état (elles restent le signal visuel du changement). */
+@media (prefers-reduced-motion: reduce) {
+	.animate-vendors-ticker,
+	.animate-bounce,
+	.animate-bounce-gentle,
+	.animate-pulse,
+	.animate-spin {
+		animation: none !important;
+	}
+	html {
+		scroll-behavior: auto !important;
+	}
+}

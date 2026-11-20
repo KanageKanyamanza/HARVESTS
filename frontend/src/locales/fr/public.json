@@ -188,6 +188,8 @@
   "products": {
     "title": "Nos Produits",
     "subtitle": "Découvrez nos produits frais et de qualité",
+    "loadError": "Impossible de charger les produits",
+    "retry": "Réessayer",
     "searchPlaceholder": "Rechercher des produits...",
     "filtersLabel": "Filtres",
     "clearFilters": "Effacer les filtres",

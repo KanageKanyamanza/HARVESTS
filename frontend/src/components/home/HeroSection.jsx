@@ -21,6 +21,8 @@ const HeroSection = () => {
 	const slides = slideMeta.map((meta, i) => ({ ...meta, ...slideContent[i] }));
 
 	useEffect(() => {
+		// Respecter prefers-reduced-motion : pas de défilement automatique.
+		if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return undefined;
 		const timer = setInterval(() => {
 			setCurrentSlide((prev) => (prev + 1) % slides.length);
 		}, 5000);
@@ -50,6 +52,8 @@ const HeroSection = () => {
 							key={slide.id}
 							src={slide.image}
 							alt={slide.badge}
+							loading={index === 0 ? "eager" : "lazy"}
+							fetchPriority={index === 0 ? "high" : "auto"}
 							className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-1000 ease-in-out ${
 								index === currentSlide ? "opacity-100 scale-100" : "opacity-0 scale-105 pointer-events-none"
 							}`}
