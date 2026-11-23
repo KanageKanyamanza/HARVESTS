@@ -69,6 +69,35 @@ describe("A — script de vérification sandbox (Jour 86)", () => {
 		expect(result.tokenOk).toBe(true);
 		expect(axios.post).toHaveBeenCalledTimes(1);
 		expect(axios.post.mock.calls[0][0]).toContain("/token");
+		// Le vrai /token exige le Basic auth de l'application (401 sinon).
+		const [, payload, config] = axios.post.mock.calls[0];
+		expect(payload).toEqual({});
+		expect(config.headers["Content-Type"]).toBe("application/json");
+		expect(config.headers.Authorization).toBe(
+			`Basic ${Buffer.from("user_sandbox:pk_s_test_key_123").toString("base64")}`,
+		);
+		expect(config.httpsAgent).toBeDefined();
+		expect(config.timeout).toBe(10_000);
+	});
+
+	test("A8 token imbriqué dans data.access_token reconnu", async () => {
+		axios.post.mockResolvedValue({ data: { data: { access_token: "T2" } } });
+		const result = await script.runVerification({
+			live: true,
+			credentials: SANDBOX,
+			baseUrl: SANDBOX_URL,
+		});
+		expect(result.tokenOk).toBe(true);
+	});
+
+	test("A9 réponse sans token -> tokenOk faux", async () => {
+		axios.post.mockResolvedValue({ data: {} });
+		const result = await script.runVerification({
+			live: true,
+			credentials: SANDBOX,
+			baseUrl: SANDBOX_URL,
+		});
+		expect(result.tokenOk).toBe(false);
 	});
 
 	test("A6 order_id unique par lancement", () => {

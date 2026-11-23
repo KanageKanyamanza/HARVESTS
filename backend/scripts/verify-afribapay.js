@@ -18,6 +18,9 @@ const {
 	AFRIBAPAY_API_KEY,
 	AFRIBAPAY_MERCHANT_KEY,
 } = require("../config/afribapay");
+// Même appel que l'application (utils/afribapayClient.js) : Basic auth et agent
+// IPv4. Un /token sans Authorization renvoie 401 même avec des clés valides.
+const { afribapayBasicAuth, ipv4Agent } = require("../utils/afribapayClient");
 
 const SANDBOX_HOST = "api-sandbox.afribapay.com";
 const LIVE_KEY_RE = /^(pk|sk|mk)_(live|prod|production)_/i;
@@ -94,11 +97,22 @@ const runVerification = async ({
 	}
 
 	assertSandboxSafe({ credentials, baseUrl, payoutUrl });
-	const response = await http.post(`${baseUrl}/token`, null, {
-		headers: { "Content-Type": "application/x-www-form-urlencoded" },
-		timeout: 10_000,
-	});
-	const tokenOk = Boolean(response?.data?.access_token || response?.data?.token);
+	const response = await http.post(
+		`${baseUrl}/token`,
+		{},
+		{
+			headers: {
+				Authorization: afribapayBasicAuth(credentials?.apiUser, credentials?.apiKey),
+				"Content-Type": "application/json",
+			},
+			httpsAgent: ipv4Agent,
+			timeout: 10_000,
+		},
+	);
+	const body = response?.data;
+	const tokenOk = Boolean(
+		body?.data?.access_token || body?.token || body?.access_token,
+	);
 	return { mode: "live", orderId, steps: CHECKLIST, tokenOk };
 };
 

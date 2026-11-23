@@ -64,8 +64,13 @@ const withRetry = async (
 	throw lastError;
 };
 
-const afribapayBasicAuth = () =>
-	`Basic ${Buffer.from(`${AFRIBAPAY_API_USER}:${AFRIBAPAY_API_KEY}`).toString("base64")}`;
+// Identifiants surchargeables : le script de vérification sandbox (Jour 86)
+// dérive l'en-tête des credentials qu'il a validés, et non de valeurs de
+// configuration différentes (qui pourraient être LIVE).
+const afribapayBasicAuth = (
+	user = AFRIBAPAY_API_USER,
+	key = AFRIBAPAY_API_KEY,
+) => `Basic ${Buffer.from(`${user}:${key}`).toString("base64")}`;
 
 const getAccessToken = async () => {
 	const cachedToken = getCachedAfribapayToken();

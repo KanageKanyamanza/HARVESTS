@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { afribapayCostsSchema } = require('./afribapayCosts');
+const { RESERVED_REFUND_STATUSES } = require('../utils/refundStatuses');
 
 // Schéma pour les paiements PayPal
 const paypalSchema = new mongoose.Schema({
@@ -364,9 +365,8 @@ paymentSchema.virtual('totalRefunded').get(function() {
 // réserve sa part — deux essais ne peuvent pas rembourser deux fois le même
 // argent. `failed`/`cancelled` libèrent la réservation.
 paymentSchema.virtual('reservedRefunded').get(function() {
-  const reserved = ['pending', 'ambiguous', 'succeeded'];
   return this.refunds
-    .filter(refund => reserved.includes(refund.status))
+    .filter(refund => RESERVED_REFUND_STATUSES.includes(refund.status))
     .reduce((total, refund) => total + (Number(refund.amount) || 0), 0);
 });
 

@@ -59,7 +59,7 @@ router.post('/paypal/hosted-fields/order', paymentController.createOrderForHoste
  *                 example: "+221771234567"
  *               operator:
  *                 type: string
- *                 description: Requis pour mobile_money (nom affiché, ex: "Orange Money", "Wave")
+ *                 description: "Requis pour mobile_money (nom affiché, par exemple Orange Money ou Wave)"
  *                 example: Orange Money
  *               country:
  *                 type: string

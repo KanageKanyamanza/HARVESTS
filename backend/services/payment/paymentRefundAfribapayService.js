@@ -32,8 +32,9 @@ const payoutNotifications = require("../../utils/payoutNotifications");
 
 // Statuts Payment depuis lesquels un remboursement peut être demandé.
 const REFUNDABLE_PAYMENT_STATUSES = ["succeeded", "partially_refunded"];
-// Statuts qui engagent déjà de l'argent : ils réduisent le montant disponible.
-const RESERVED_REFUND_STATUSES = ["pending", "ambiguous", "succeeded"];
+// Statuts qui engagent déjà de l'argent : source unique partagée avec le
+// virtuel Payment.reservedRefunded (les deux listes ne peuvent plus dériver).
+const { RESERVED_REFUND_STATUSES } = require("../../utils/refundStatuses");
 // Statuts depuis lesquels un admin peut relancer : jamais un remboursement
 // confirmé, et surtout jamais `ambiguous` (l'argent a peut-être été versé).
 const RETRYABLE_REFUND_STATUSES = ["failed"];
