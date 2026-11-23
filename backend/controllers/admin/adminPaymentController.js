@@ -1,6 +1,6 @@
 const catchAsync = require('../../utils/catchAsync');
-const mongoose = require('mongoose');
 const Payment = require('../../models/Payment');
+const { findPaymentByIdentifier } = require('../../utils/paymentLookup');
 const AppError = require('../../utils/appError');
 const refundService = require('../../services/payment/paymentRefundAfribapayService');
 const paymentAdminService = require('../../services/payment/paymentAdminService');
@@ -94,9 +94,10 @@ exports.getFloatBalances = catchAsync(async (req, res, next) => {
 // ObjectId ou paymentId. La relance reste déléguée à `retryAfribapayPayin`.
 exports.retryAfribapayPayment = catchAsync(async (req, res, next) => {
   try {
-    const payment = mongoose.isValidObjectId(req.params.id)
-      ? await Payment.findById(req.params.id)
-      : await Payment.findOne({ paymentId: req.params.id });
+    const payment = await findPaymentByIdentifier(req.params.id, {
+      findOne: (query) => Payment.findOne(query),
+      findById: (id) => Payment.findById(id),
+    });
     if (!payment) return next(new AppError('payment.not_found', 404));
     if (payment.method !== 'mobile_money') {
       return next(new AppError('payment.unsupported_method', 400));
@@ -169,9 +170,10 @@ exports.refundPayment = catchAsync(async (req, res, next) => {
 
     // `:id` est le plus souvent le paymentId métier, mais le back-office
     // manipule aussi l'ObjectId : les deux sont acceptés.
-    const payment = mongoose.isValidObjectId(req.params.id)
-      ? await Payment.findById(req.params.id)
-      : await Payment.findOne({ paymentId: req.params.id });
+    const payment = await findPaymentByIdentifier(req.params.id, {
+      findOne: (query) => Payment.findOne(query),
+      findById: (id) => Payment.findById(id),
+    });
     if (!payment) {
       return next(new AppError('payment.not_found', 404));
     }

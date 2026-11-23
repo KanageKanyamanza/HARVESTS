@@ -317,7 +317,22 @@ const AdminPayments = () => {
 										row.attempts?.length ||
 										payment.paymentDetails?.afribapay?.attempt ||
 										0;
-									const cost = row.fees || row.paymentDetails?.afribapay?.fees;
+									// Les frais AfriBaPay réellement prélevés portent `capturedAt`.
+									// Sur un payin, `row.fees` est la commission (total 0) : on
+									// prend le coût capturé du paiement. Sur un payout ou un
+									// remboursement, `row.fees` EST le coût de la ligne : jamais
+									// afficher celui du paiement parent à la place.
+									const capturedCost = [
+										row.fees,
+										payment.paymentDetails?.afribapay?.fees,
+										row.paymentDetails?.afribapay?.fees,
+									].find((candidate) => candidate?.capturedAt);
+									const cost =
+										activeTab === "payments"
+											? capturedCost || row.fees
+											: row.fees?.capturedAt
+												? row.fees
+												: null;
 									const reference =
 										row.refundId ||
 										row.paymentId ||

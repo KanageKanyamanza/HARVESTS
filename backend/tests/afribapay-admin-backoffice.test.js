@@ -334,6 +334,8 @@ describe("F — relance manuelle admin d'un payin (Jour 85, revue finale)", () =
 
 	test("F1 relance par ObjectId, sans filtre user (la route client ne marche pas pour un admin)", async () => {
 		const payment = makePayin();
+		// Le paymentId métier est cherché en premier (utils/paymentLookup.js).
+		jest.spyOn(Payment, "findOne").mockResolvedValue(null);
 		jest.spyOn(Payment, "findById").mockResolvedValue(payment);
 		const retry = jest
 			.spyOn(afribapayPayinService, "retryAfribapayPayin")
@@ -362,6 +364,7 @@ describe("F — relance manuelle admin d'un payin (Jour 85, revue finale)", () =
 
 	test("F2 sans opérateur ni téléphone : 400 contrôlé", async () => {
 		const payment = makePayin({ paymentDetails: { afribapay: { country: "SN" } } });
+		jest.spyOn(Payment, "findOne").mockResolvedValue(null);
 		jest.spyOn(Payment, "findById").mockResolvedValue(payment);
 		const next = jest.fn();
 		await adminPaymentController.retryAfribapayPayment(
@@ -369,6 +372,7 @@ describe("F — relance manuelle admin d'un payin (Jour 85, revue finale)", () =
 			okRes(),
 			next,
 		);
+		await new Promise((resolve) => setImmediate(resolve));
 		expect(next).toHaveBeenCalledTimes(1);
 		expect(next.mock.calls[0][0]).toBeInstanceOf(AppError);
 		expect(next.mock.calls[0][0].statusCode).toBe(400);
@@ -382,6 +386,7 @@ describe("F — relance manuelle admin d'un payin (Jour 85, revue finale)", () =
 			okRes(),
 			next,
 		);
+		await new Promise((resolve) => setImmediate(resolve));
 		expect(next).toHaveBeenCalledTimes(1);
 		expect(next.mock.calls[0][0].statusCode).toBe(404);
 	});
