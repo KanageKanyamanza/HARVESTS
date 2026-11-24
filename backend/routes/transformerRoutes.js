@@ -138,6 +138,7 @@ router.use(authMiddleware.checkApprovalStatus); // Vérifier le statut d'approba
 router.get('/me/business-stats', transformerController.getBusinessStats);
 router.get('/me/stats', transformerController.getBusinessStats); // Alias pour compatibilité avec GenericDashboard
 router.get('/me/production-analytics', transformerController.getProductionAnalytics);
+router.get('/me/sales-analytics', transformerController.getSalesAnalytics); // Graphique des ventes du tableau de bord
 // Route /me/reviews gérée par la route générique /:id/reviews ci-dessus
 router.patch('/me/reviews/:reviewId/read', transformerController.markReviewAsRead);
 router.patch('/me/reviews/read-all', transformerController.markAllReviewsAsRead);

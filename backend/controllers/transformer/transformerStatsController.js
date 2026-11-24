@@ -37,6 +37,18 @@ exports.getProductionAnalytics = catchAsync(async (req, res, next) => {
   }
 });
 
+exports.getSalesAnalytics = catchAsync(async (req, res, next) => {
+  try {
+    const analytics = await transformerStatsService.getSalesAnalytics(req.user._id);
+    res.status(200).json({
+      status: 'success',
+      data: { analytics }
+    });
+  } catch (error) {
+    return next(AppError.from(error, 404));
+  }
+});
+
 exports.getEfficiencyMetrics = temporaryResponse('Métriques efficacité');
 exports.getRevenueAnalytics = temporaryResponse('Analytics revenus');
 

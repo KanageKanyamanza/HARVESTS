@@ -65,6 +65,7 @@ module.exports = {
   getProductionAnalytics: transformerStatsController.getProductionAnalytics,
   getEfficiencyMetrics: transformerStatsController.getEfficiencyMetrics,
   getRevenueAnalytics: transformerStatsController.getRevenueAnalytics,
+  getSalesAnalytics: transformerStatsController.getSalesAnalytics,
   
   // Review routes
   getMyReviews: transformerReviewController.getMyReviews,

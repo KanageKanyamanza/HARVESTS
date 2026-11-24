@@ -167,7 +167,41 @@ async function getProductionAnalytics(transformerId, period = "30d") {
 	};
 }
 
+// Ventes mensuelles des 12 derniers mois pour le graphique du tableau de bord
+// (même forme que chez le producteur : mois ISO AAAA-MM, du plus ancien au plus récent)
+async function getSalesAnalytics(transformerId) {
+	const twelveMonthsAgo = new Date();
+	twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+
+	const orders = await Order.find({
+		seller: transformerId,
+		status: { $in: ["completed", "delivered"] },
+		createdAt: { $gte: twelveMonthsAgo },
+	});
+
+	const monthlySales = {};
+	orders.forEach((order) => {
+		const month = new Date(order.createdAt).toISOString().slice(0, 7);
+		if (!monthlySales[month]) {
+			monthlySales[month] = { orders: 0, revenue: 0, sales: 0, products: 0 };
+		}
+		monthlySales[month].orders += 1;
+		monthlySales[month].revenue += order.total || 0;
+		monthlySales[month].sales += order.total || 0;
+		(order.items || []).forEach((item) => {
+			monthlySales[month].products += item.quantity || 0;
+		});
+	});
+
+	const chartData = Object.entries(monthlySales)
+		.map(([month, data]) => ({ month, ...data }))
+		.sort((a, b) => a.month.localeCompare(b.month));
+
+	return { monthlySales: chartData, chartData };
+}
+
 module.exports = {
 	getBusinessStats,
 	getProductionAnalytics,
+	getSalesAnalytics,
 };
